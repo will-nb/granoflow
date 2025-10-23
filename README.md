@@ -2,6 +2,33 @@
 
 GranoFlow 是一款离线优先的任务与计时管理应用，支持 Android、iOS 与 macOS，围绕「收集、计划、执行、复盘」四个阶段打造顺滑体验。
 
+## Git 仓库管理
+
+### 敏感文件处理
+项目已配置完善的 `.gitignore`，自动忽略以下敏感文件：
+- 签名密钥文件（`*.jks`, `*.keystore`, `keystore.properties`）
+- 构建产物（`*.apk`, `*.aab`, `*.ipa`）
+- IDE 配置和缓存文件
+- 系统临时文件
+
+⚠️ **重要**：实际的签名密钥文件请勿提交到仓库。使用 `android/app/keystore.sample.properties` 作为模板。
+
+### 签名配置
+1. 复制示例文件：
+   ```bash
+   cp android/app/keystore.sample.properties android/app/keystore.properties
+   ```
+
+2. 编辑 `android/app/keystore.properties` 并填入真实信息：
+   ```properties
+   storeFile=upload-keystore.jks
+   storePassword=YOUR_ACTUAL_STORE_PASSWORD
+   keyAlias=upload
+   keyPassword=YOUR_ACTUAL_KEY_PASSWORD
+   ```
+
+3. 将签名密钥文件 `upload-keystore.jks` 放置在 `android/app/` 目录（此文件会被 `.gitignore` 忽略）
+
 ## 环境准备
 1. **安装依赖**
    - Flutter SDK：`>=3.8.0 <4.0.0`（推荐使用 FVM 管理版本）
@@ -31,6 +58,36 @@ GranoFlow 是一款离线优先的任务与计时管理应用，支持 Android�
    fvm flutter pub run build_runner build --delete-conflicting-outputs
    fvm flutter gen-l10n
    ```
+
+## 构建与发布
+
+### Android 构建
+```bash
+# 构建调试 APK
+fvm flutter build apk --debug
+
+# 构建发布 APK（需要签名配置）
+fvm flutter build apk --release
+
+# 构建 AAB 文件（推荐，用于 Google Play）
+fvm flutter build appbundle --release
+```
+
+### iOS/macOS 构建
+```bash
+# iOS（需要 Xcode）
+fvm flutter build ios --release
+
+# macOS
+fvm flutter build macos --release
+```
+
+### Google Play 发布
+1. 使用上述命令构建 AAB 文件
+2. 访问 [Google Play Console](https://play.google.com/console/)
+3. 创建新应用并上传 AAB 文件
+4. 完善应用信息（描述、截图、隐私政策等）
+5. 提交审核
 
 ## 常用命令
 - `fvm flutter analyze`：静态检查（CI Gate）。
