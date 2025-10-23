@@ -1,0 +1,235 @@
+meta:
+  summary: >
+    Reusable widget catalog for GranoFlow. Widgets encapsulate styling,
+    responsiveness, and behavior consistent across pages. Larger compositions
+    (e.g. full screens) belong to pages.yaml.
+  conventions:
+    two_column_breakpoint: 600
+    typography: Respect font scale from fontScaleProvider
+    theme: Use color tokens defined in documents/251022-技术规范.yaml
+  source_of_truth:
+    - documents/product_requirements.yaml
+    - documents/user_stories.md
+    - documents/architecture/services.yaml
+    - documents/architecture/providers.yaml
+
+widgets:
+  - name: DashboardMetricCard
+    description: Displays one metric on the home dashboard.
+    props:
+      - metricTitle: String
+      - metricValue: String
+      - trendLabel: String?
+      - icon: IconData
+    behaviors:
+      - responsive: Stretches to grid width; icon size adjusts between 32/48 for phone/tablet.
+      - accessibility: Announces metric title and value as a single semantics label.
+    usage:
+      - presentation/home/home_page.dart
+
+  - name: PrimaryActionButton
+    description: Pill-shaped button for major CTAs (e.g., “进入收集箱”).
+    props:
+      - label: String
+      - subtitle: String?
+      - onPressed: VoidCallback
+      - icon: IconData?
+    behaviors:
+      - layout: Uses two-line layout when subtitle present; otherwise centers label.
+      - focus_state: Shows elevation and primary color outline when focused via keyboard.
+    usage:
+      - presentation/home/home_page.dart
+
+  - name: TaskSectionList
+    description: Lists leaf tasks within Today/Tomorrow/Later sections.
+    props:
+      - sectionTitle: String
+      - tasks: List<TaskViewModel>
+      - onTapTask: ValueChanged<TaskViewModel>
+      - onLongPressDragStart: ValueChanged<TaskViewModel>
+    behaviors:
+      - virtualization: Uses SliverList with separators to support long lists.
+      - semantics: Announces number of tasks in the section.
+    usage:
+      - presentation/task_list/base_mode_view.dart
+
+  - name: TaskEditItem
+    description: Row in edit mode showing drag handle, title, and action icons.
+    props:
+      - task: TaskTreeNode
+      - onAddSubtask: VoidCallback
+      - onEditTitle: VoidCallback
+      - onArchive: VoidCallback
+      - dragHandle: Widget
+    behaviors:
+      - layout: Reserves right-side actions; supports multi-line title with ellipsis.
+      - visual_states: Highlights row when drag is active.
+    usage:
+      - presentation/task_list/edit_mode_view.dart
+
+  - name: TemplateSuggestionChip
+    description: Chip shown under task input to suggest templates.
+    props:
+      - templateTitle: String
+      - lastUsedLabel: String
+      - onApply: VoidCallback
+    behaviors:
+      - layout: Wrap-friendly; automatically truncates long titles.
+      - analytics: Emits event through TemplateActionsNotifier when applied.
+    usage:
+      - presentation/inbox/inbox_input.dart
+
+  - name: PersistentInboxInput
+    description: 顶部常驻输入框，支持快捷提交与模板提示。
+    props:
+      - controller: TextEditingController
+      - onSubmit: ValueChanged<String>
+      - onChanged: ValueChanged<String>
+      - isSubmitting: bool
+    behaviors:
+      - focus: 自动聚焦，提交后保留焦点；空字符串时禁用提交。
+      - shortcuts: Cmd/Ctrl+Enter 触发提交；Esc 清除内容。
+    usage:
+      - presentation/inbox/inbox_page.dart
+
+  - name: TemplateSuggestionWrap
+    description: 模板推荐 chip 的容器，根据输入动态过滤。
+    props:
+      - templates: List<TemplateViewModel>
+      - onTapTemplate: ValueChanged<int>
+      - emptyLabel: String
+    behaviors:
+      - layout: 使用 Wrap，自适应换行；自动隐藏当列表为空。
+      - analytics: 触发 TemplateActionsNotifier 记录使用。
+    usage:
+      - presentation/inbox/inbox_page.dart
+
+  - name: InboxTaskItem
+    description: 收集箱任务手风琴，展示基本信息与展开操作区。
+    props:
+      - task: InboxTaskViewModel
+      - isExpanded: bool
+      - onToggleExpanded: ValueChanged<int>
+      - onPlan: VoidCallback
+      - onDelete: VoidCallback
+      - onEditTitle: ValueChanged<String>
+      - onUpdateTags: ValueChanged<TagSelection>
+      - onChangeParent: ValueChanged<int?>
+    behaviors:
+      - swipe: 左滑显示 Delete/Move actions；右滑显示 QuickPlan。
+      - semantics: 宣读任务标题、创建时间与标签。
+    usage:
+      - presentation/inbox/inbox_task_item.dart
+
+  - name: TagPanel
+    description: 上下分区的情境/优先级单选标签组。
+    props:
+      - contextOptions: List<TagOption>
+      - priorityOptions: List<TagOption>
+      - selectedContext: String?
+      - selectedPriority: String?
+      - onContextChanged: ValueChanged<String?>
+      - onPriorityChanged: ValueChanged<String?>
+    behaviors:
+      - exclusivity: 同一分类仅允许单选；再次点击则清除。
+      - accessibility: 使用 ToggleButtons/SegmentedButton 实现，提供 aria-pressed。
+    usage:
+      - presentation/inbox/inbox_task_item.dart
+
+  - name: ParentSelectorField
+    description: 自动补全选择父任务的输入框。
+    props:
+      - query: String
+      - suggestions: List<TaskSummary>
+      - onQueryChanged: ValueChanged<String>
+      - onSelect: ValueChanged<int?>
+    behaviors:
+      - autocomplete: Debounce 输入，调用 TaskRepository.searchByTitle。
+      - clear_action: 提供清除按钮恢复根节点。
+    usage:
+      - presentation/inbox/inbox_task_item.dart
+
+  - name: FilterResetButton
+    description: AppBar 右上角的筛选重置按钮。
+    props:
+      - onPressed: VoidCallback
+      - isVisible: bool
+    behaviors:
+      - fade: 当任何筛选激活时显示，动画淡入淡出。
+    usage:
+      - presentation/inbox/inbox_page.dart
+
+  - name: InboxEmptyStateCard
+    description: 收集箱为空时展示的提示卡。
+    props:
+      - title: String
+      - message: String
+      - actionLabel: String
+      - onAction: VoidCallback
+    behaviors:
+      - layout: 居中，占据剩余空间；暗色模式使用 surfaceContainer。
+    usage:
+      - presentation/inbox/inbox_page.dart
+
+  - name: FocusTimerDisplay
+    description: Central timing component showing elapsed time and alarm state.
+    props:
+      - elapsed: Duration
+      - estimate: Duration?
+      - alarmEnabled: bool
+      - status: FocusTimerStatus
+    behaviors:
+      - visual: Switches color to warning when elapsed exceeds estimate.
+      - semantics: Announces elapsed time and alarm status for screen readers.
+    usage:
+      - presentation/focus/focus_screen.dart
+
+  - name: FocusEndDialog
+    description: Modal dialog presenting completion options and reflection field.
+    props:
+      - taskTitle: String
+      - elapsed: Duration
+      - estimate: Duration?
+      - onComplete: Callback<FocusOutcome, String?>
+      - onCreateSubtask: VoidCallback
+      - onLogMultiple: VoidCallback
+      - onMarkWasted: VoidCallback
+    behaviors:
+      - forms: Reflection textarea hidden by default, expands when “记录本次心得” toggled.
+      - accessibility: Buttons ordered by frequency (complete, add subtask, log multiple, wasted).
+    usage:
+      - presentation/focus/focus_screen.dart
+
+  - name: MetricRefreshHeader
+    description: Pull-to-refresh indicator for dashboard metrics.
+    props:
+      - isRefreshing: bool
+    behaviors:
+      - animation: Uses Lottie or custom painter to show progress; colorized via theme.
+    usage:
+      - presentation/home/home_page.dart
+
+  - name: SeedCalloutCard
+    description: Card shown after seed import to highlight tutorial tasks.
+    props:
+      - title: String
+      - message: String
+      - actionLabel: String
+      - onAction: VoidCallback
+    behaviors:
+      - persistence: Dismissible; dismissal stored in preferences.
+    usage:
+      - presentation/home/home_page.dart
+
+  - name: ChipToggleGroup
+    description: Reusable segmented control for tags or filters.
+    props:
+      - options: List<ChipOption>
+      - selected: Set<String>
+      - onChanged: ValueChanged<Set<String>>
+      - multiSelect: bool
+    behaviors:
+      - keyboard: Supports arrow navigation and space/enter selection.
+    usage:
+      - presentation/inbox/filter_bar.dart
+      - presentation/task_list/filter_bar.dart

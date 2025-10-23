@@ -1,0 +1,683 @@
+{
+  "@@locale": "en",
+  "appTitle": "GranoFlow",
+  "@appTitle": {
+    "description": "Application title displayed in the window title"
+  },
+  "homeGreeting": "Hello, GranoFlow",
+  "@homeGreeting": {
+    "description": "Headline greeting on the landing page"
+  },
+  "homeTagline": "A focused workspace for every screen.",
+  "@homeTagline": {
+    "description": "Supporting text explaining the app works across devices"
+  },
+  "navOverviewTitle": "Overview",
+  "@navOverviewTitle": {
+    "description": "Main menu label for the overview landing page"
+  },
+  "navInboxTitle": "Capture Inbox",
+  "@navInboxTitle": {
+    "description": "Main menu label for the inbox page where ideas are captured"
+  },
+  "navPlannedTitle": "Planned Tasks",
+  "@navPlannedTitle": {
+    "description": "Main menu label for the scheduled task list"
+  },
+  "navCompletedTitle": "Completed",
+  "@navCompletedTitle": {
+    "description": "Main menu label for the completed tasks view"
+  },
+  "navArchivedTitle": "Archive",
+  "@navArchivedTitle": {
+    "description": "Main menu label for the archived tasks view"
+  },
+  "navTrashTitle": "Trash",
+  "@navTrashTitle": {
+    "description": "Main menu label for the trash bin"
+  },
+  "navSettingsSectionTitle": "Preferences",
+  "@navSettingsSectionTitle": {
+    "description": "Heading inside the navigation menu for language, font, and theme controls"
+  },
+  "settingsLanguageLabel": "Language",
+  "@settingsLanguageLabel": {
+    "description": "Label for language selection"
+  },
+  "settingsFontSizeLabel": "Font size",
+  "@settingsFontSizeLabel": {
+    "description": "Label for font size selection"
+  },
+  "settingsThemeLabel": "Theme",
+  "@settingsThemeLabel": {
+    "description": "Label for theme selection"
+  },
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {
+    "description": "Language option for English"
+  },
+  "settingsLanguageTraditionalChinese": "Traditional Chinese",
+  "@settingsLanguageTraditionalChinese": {
+    "description": "Language option for Traditional Chinese"
+  },
+  "settingsLanguageSimplifiedChinese": "Simplified Chinese",
+  "@settingsLanguageSimplifiedChinese": {
+    "description": "Language option for Simplified Chinese"
+  },
+  "settingsFontSizeSmall": "Small",
+  "@settingsFontSizeSmall": {
+    "description": "Font size option small"
+  },
+  "settingsFontSizeMedium": "Standard",
+  "@settingsFontSizeMedium": {
+    "description": "Font size option medium"
+  },
+  "settingsFontSizeLarge": "Large",
+  "@settingsFontSizeLarge": {
+    "description": "Font size option large"
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Theme option light"
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Theme option dark"
+  },
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {
+    "description": "Theme option system (follow device setting)"
+  },
+  "plannerSectionTodayTitle": "Today",
+  "@plannerSectionTodayTitle": {
+    "description": "Column title for tasks due today"
+  },
+  "plannerSectionTomorrowTitle": "Tomorrow",
+  "@plannerSectionTomorrowTitle": {
+    "description": "Column title for tasks due tomorrow"
+  },
+  "plannerSectionLaterTitle": "Later",
+  "@plannerSectionLaterTitle": {
+    "description": "Column title for tasks due in the future"
+  },
+  "actionEdit": "Edit",
+  "@actionEdit": {
+    "description": "Action label to edit a task"
+  },
+  "actionDelete": "Delete",
+  "@actionDelete": {
+    "description": "Action label to delete a task"
+  },
+  "actionMoveToPlanned": "Move to Planned",
+  "@actionMoveToPlanned": {
+    "description": "Action label to move a captured task into the planned board"
+  },
+  "actionAddSubtask": "Add subtask",
+  "@actionAddSubtask": {
+    "description": "Action label to add a subtask"
+  },
+  "actionMarkCompleted": "Mark completed",
+  "@actionMarkCompleted": {
+    "description": "Action label to mark a task as completed"
+  },
+  "actionArchive": "Archive",
+  "@actionArchive": {
+    "description": "Action label to archive a task"
+  },
+  "actionStartTimer": "Start timer",
+  "@actionStartTimer": {
+    "description": "Action label to start the timer"
+  },
+  "actionRestore": "Restore",
+  "@actionRestore": {
+    "description": "Action label to restore a task"
+  },
+  "actionEmptyTrash": "Empty trash",
+  "@actionEmptyTrash": {
+    "description": "Action label to empty the trash bin"
+  },
+  "actionReactivate": "Reactivate",
+  "@actionReactivate": {
+    "description": "Action label to reactivate a completed task"
+  },
+  "timerPause": "Pause",
+  "@timerPause": {
+    "description": "Button label to pause the timer"
+  },
+  "timerResume": "Resume",
+  "@timerResume": {
+    "description": "Button label to resume the timer"
+  },
+  "timerEndSession": "End session",
+  "@timerEndSession": {
+    "description": "Button label to end the focus session"
+  },
+  "timerQuickSubtask": "Quick subtask",
+  "@timerQuickSubtask": {
+    "description": "Button label to spin off a quick subtask from the timer"
+  },
+  "timerAlarmToggleLabel": "Focus alarm",
+  "@timerAlarmToggleLabel": {
+    "description": "Label for the alarm toggle on the timer page"
+  },
+  "timerEstimateLabel": "Est. minutes",
+  "@timerEstimateLabel": {
+    "description": "Label for entering estimated minutes"
+  },
+  "endSessionTitle": "Session wrap-up",
+  "@endSessionTitle": {
+    "description": "Title for the end session dialog"
+  },
+  "endSessionSummaryLabel": "Time logged",
+  "@endSessionSummaryLabel": {
+    "description": "Label for the total time logged"
+  },
+  "endSessionEstimateComparison": "Estimate vs actual",
+  "@endSessionEstimateComparison": {
+    "description": "Label for the estimate versus actual comparison"
+  },
+  "endSessionCompleteTask": "Complete task",
+  "@endSessionCompleteTask": {
+    "description": "Action to complete the current task"
+  },
+  "endSessionAddSubtask": "Add follow-up subtask",
+  "@endSessionAddSubtask": {
+    "description": "Action to create a follow-up subtask"
+  },
+  "endSessionAddMultiple": "Log multiple tasks",
+  "@endSessionAddMultiple": {
+    "description": "Action to add multiple tasks for the session"
+  },
+  "endSessionLogWasted": "Log as wasted time",
+  "@endSessionLogWasted": {
+    "description": "Action to mark the session as wasted time"
+  },
+  "endSessionWastedNote": "Adds the wasted tag for reporting",
+  "@endSessionWastedNote": {
+    "description": "Helper text explaining the wasted tag"
+  },
+  "endSessionCloseButton": "Done",
+  "@endSessionCloseButton": {
+    "description": "Button label to close the end session dialog"
+  },
+  "inboxQuickAddPlaceholder": "Capture a task idea...",
+  "@inboxQuickAddPlaceholder": {
+    "description": "Placeholder text for the inbox quick add field"
+  },
+  "inboxContextFilterLabel": "Context",
+  "@inboxContextFilterLabel": {
+    "description": "Label for the context tag filter"
+  },
+  "inboxPriorityFilterLabel": "Priority",
+  "@inboxPriorityFilterLabel": {
+    "description": "Label for the priority tag filter"
+  },
+  "inboxFilterReset": "Reset filters",
+  "@inboxFilterReset": {
+    "description": "Action text to reset active inbox filters"
+  },
+  "inboxTemplateEmpty": "No template suggestions yet.",
+  "@inboxTemplateEmpty": {
+    "description": "Helper text when there are no template suggestions"
+  },
+  "inboxInputSend": "Add",
+  "@inboxInputSend": {
+    "description": "Tooltip for the inbox input submit button"
+  },
+  "inboxInputEmpty": "Please enter a task title.",
+  "@inboxInputEmpty": {
+    "description": "Validation message when the input is empty"
+  },
+  "inboxAddedToast": "Task captured to inbox.",
+  "@inboxAddedToast": {
+    "description": "Snackbar message after adding a task to inbox"
+  },
+  "inboxAddError": "Failed to add task",
+  "@inboxAddError": {
+    "description": "Snackbar prefix when adding a task fails"
+  },
+  "inboxTemplateApplied": "Template applied.",
+  "@inboxTemplateApplied": {
+    "description": "Snackbar message when a template is applied from the inbox"
+  },
+  "inboxTemplateError": "Failed to apply template",
+  "@inboxTemplateError": {
+    "description": "Snackbar prefix when applying a template fails"
+  },
+  "inboxQuickPlanAction": "Plan for today",
+  "@inboxQuickPlanAction": {
+    "description": "Swipe action label for quick planning to today"
+  },
+  "inboxDeleteAction": "Delete",
+  "@inboxDeleteAction": {
+    "description": "Swipe action label for deleting a task"
+  },
+  "inboxDeleteConfirmTitle": "Move to trash?",
+  "@inboxDeleteConfirmTitle": {
+    "description": "Confirmation dialog title before trashing a task"
+  },
+  "inboxDeleteConfirmMessage": "This idea will be moved to the trash. Continue?",
+  "@inboxDeleteConfirmMessage": {
+    "description": "Confirmation dialog message before trashing a task"
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Generic cancel button label"
+  },
+  "commonDelete": "Delete",
+  "@commonDelete": {
+    "description": "Generic delete button label"
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Generic save button label"
+  },
+  "inboxRenameTitle": "Rename task",
+  "@inboxRenameTitle": {
+    "description": "Dialog title for renaming an inbox task"
+  },
+  "inboxRenameSuccess": "Task title updated.",
+  "@inboxRenameSuccess": {
+    "description": "Snackbar message after renaming a task"
+  },
+  "inboxRenameError": "Failed to rename task",
+  "@inboxRenameError": {
+    "description": "Snackbar prefix when renaming a task fails"
+  },
+  "inboxPlanButtonLabel": "Move to task list",
+  "@inboxPlanButtonLabel": {
+    "description": "Tooltip for the button that plans a task"
+  },
+  "inboxPlanSuccess": "Task moved to task list.",
+  "@inboxPlanSuccess": {
+    "description": "Snackbar message when a task is successfully planned"
+  },
+  "inboxPlanError": "Failed to plan task",
+  "@inboxPlanError": {
+    "description": "Snackbar prefix when planning fails"
+  },
+  "inboxDeleteError": "Failed to delete task",
+  "@inboxDeleteError": {
+    "description": "Snackbar prefix when deleting fails"
+  },
+  "inboxTagError": "Failed to update tags",
+  "@inboxTagError": {
+    "description": "Snackbar prefix when updating tags fails"
+  },
+  "inboxParentLabel": "Parent task",
+  "@inboxParentLabel": {
+    "description": "Label for the parent selector tile"
+  },
+  "inboxParentNone": "None (keep at root)",
+  "@inboxParentNone": {
+    "description": "Option text indicating no parent"
+  },
+  "inboxParentChange": "Change",
+  "@inboxParentChange": {
+    "description": "Button label to change parent task"
+  },
+  "inboxParentPickerTitle": "Choose parent task",
+  "@inboxParentPickerTitle": {
+    "description": "Sheet title for selecting a parent task"
+  },
+  "inboxParentSearchPlaceholder": "Search task titles...",
+  "@inboxParentSearchPlaceholder": {
+    "description": "Placeholder text for parent search input"
+  },
+  "inboxParentUpdated": "Parent updated.",
+  "@inboxParentUpdated": {
+    "description": "Snackbar message after parent change"
+  },
+  "inboxSwipeHint": "Tip: swipe right to plan, left to delete.",
+  "@inboxSwipeHint": {
+    "description": "Helper text reminding swipe actions"
+  },
+  "inboxDeletedToast": "Task moved to trash.",
+  "@inboxDeletedToast": {
+    "description": "Snackbar message when a task is trashed"
+  },
+  "inboxQuickPlanSuccess": "Planned for today.",
+  "@inboxQuickPlanSuccess": {
+    "description": "Snackbar message after quick planning"
+  },
+  "inboxEmptyTitle": "Inbox is clear!",
+  "@inboxEmptyTitle": {
+    "description": "Title for the empty inbox state"
+  },
+  "inboxEmptyMessage": "Capture a new idea or reuse a template to get started.",
+  "@inboxEmptyMessage": {
+    "description": "Message explaining the empty inbox state"
+  },
+  "inboxEmptyAction": "Browse templates",
+  "@inboxEmptyAction": {
+    "description": "CTA label for the empty inbox state"
+  },
+  "completedTabLabel": "Completed",
+  "@completedTabLabel": {
+    "description": "Tab label for completed tasks"
+  },
+  "archivedTabLabel": "Archived",
+  "@archivedTabLabel": {
+    "description": "Tab label for archived tasks"
+  },
+  "trashConfirmTitle": "Empty trash?",
+  "@trashConfirmTitle": {
+    "description": "Confirmation dialog title before emptying trash"
+  },
+  "trashConfirmMessage": "This permanently deletes all trashed tasks.",
+  "@trashConfirmMessage": {
+    "description": "Confirmation dialog message before emptying trash"
+  },
+  "trashConfirmAccept": "Delete forever",
+  "@trashConfirmAccept": {
+    "description": "Confirmation button label to empty trash"
+  },
+  "trashConfirmCancel": "Cancel",
+  "@trashConfirmCancel": {
+    "description": "Cancel button label for the trash confirmation dialog"
+  },
+  "datePickerTitle": "Set due date",
+  "@datePickerTitle": {
+    "description": "Title for the due date picker"
+  },
+  "datePickerOptionToday": "Today",
+  "@datePickerOptionToday": {
+    "description": "Option label for today"
+  },
+  "datePickerOptionTomorrow": "Tomorrow",
+  "@datePickerOptionTomorrow": {
+    "description": "Option label for tomorrow"
+  },
+  "datePickerOptionThisWeek": "End of week",
+  "@datePickerOptionThisWeek": {
+    "description": "Option label for the end of the current week"
+  },
+  "datePickerOptionThisMonth": "End of month",
+  "@datePickerOptionThisMonth": {
+    "description": "Option label for the end of the current month"
+  },
+  "commonAdd": "Add",
+  "@commonAdd": {
+    "description": "Generic add button label"
+  },
+  "actionMoveToTrash": "Move to trash",
+  "@actionMoveToTrash": {
+    "description": "Action label to move a task to trash"
+  },
+  "taskListTitle": "Task list",
+  "@taskListTitle": {
+    "description": "Title for the task list page"
+  },
+  "taskListTitleEdit": "Task list · Edit mode",
+  "@taskListTitleEdit": {
+    "description": "Title when task list is in edit mode"
+  },
+  "taskListModeBasic": "Basic",
+  "@taskListModeBasic": {
+    "description": "Toggle label for basic mode"
+  },
+  "taskListModeEdit": "Edit",
+  "@taskListModeEdit": {
+    "description": "Toggle label for edit mode"
+  },
+  "taskListQuickAddTooltip": "Quick add task",
+  "@taskListQuickAddTooltip": {
+    "description": "Tooltip for the quick add button"
+  },
+  "taskListEmptySectionHint": "No tasks yet. Use quick add to get started.",
+  "@taskListEmptySectionHint": {
+    "description": "Hint shown when a task section is empty"
+  },
+  "taskListAddedToast": "Task added to planner.",
+  "@taskListAddedToast": {
+    "description": "Snackbar shown after quick add"
+  },
+  "taskListAddError": "Failed to add task.",
+  "@taskListAddError": {
+    "description": "Snackbar shown when quick add fails"
+  },
+  "taskListSortError": "Unable to update order.",
+  "@taskListSortError": {
+    "description": "Snackbar shown when sorting fails"
+  },
+  "taskListFocusStartedToast": "Focus started.",
+  "@taskListFocusStartedToast": {
+    "description": "Snackbar shown after starting focus"
+  },
+  "taskListFocusError": "Failed to start focus.",
+  "@taskListFocusError": {
+    "description": "Snackbar shown when focus start fails"
+  },
+  "taskListTaskCompletedToast": "Task completed.",
+  "@taskListTaskCompletedToast": {
+    "description": "Snackbar shown after completing task"
+  },
+  "taskListTaskCompletedError": "Failed to complete task.",
+  "@taskListTaskCompletedError": {
+    "description": "Snackbar shown when completion fails"
+  },
+  "taskListTaskArchivedToast": "Task archived.",
+  "@taskListTaskArchivedToast": {
+    "description": "Snackbar shown after archiving task"
+  },
+  "taskListTaskArchivedError": "Failed to archive task.",
+  "@taskListTaskArchivedError": {
+    "description": "Snackbar shown when archiving fails"
+  },
+  "taskListQuickAddTitle": "Add to {section}",
+  "@taskListQuickAddTitle": {
+    "description": "Title for quick add sheet",
+    "placeholders": {
+      "section": {
+        "type": "String",
+        "example": "Today"
+      }
+    }
+  },
+  "taskListAddSubtaskDialogTitle": "Add subtask",
+  "@taskListAddSubtaskDialogTitle": {
+    "description": "Dialog title when adding a subtask"
+  },
+  "taskListInputValidation": "Please enter a task title.",
+  "@taskListInputValidation": {
+    "description": "Validation message for empty task title"
+  },
+  "taskListInputLabel": "Task title",
+  "@taskListInputLabel": {
+    "description": "Label for task title input"
+  },
+  "taskListNoSubtasks": "No subtasks yet.",
+  "@taskListNoSubtasks": {
+    "description": "Message shown when a task has no subtasks"
+  },
+  "taskListSubtaskCreatedToast": "Subtask created.",
+  "@taskListSubtaskCreatedToast": {
+    "description": "Snackbar shown after subtask creation"
+  },
+  "taskListSubtaskError": "Failed to create subtask.",
+  "@taskListSubtaskError": {
+    "description": "Snackbar shown when subtask creation fails"
+  },
+  "taskListRenameDialogTitle": "Rename task",
+  "@taskListRenameDialogTitle": {
+    "description": "Dialog title when renaming a task"
+  },
+  "taskListRenameSuccess": "Task updated.",
+  "@taskListRenameSuccess": {
+    "description": "Snackbar shown after renaming a task"
+  },
+  "taskListRenameError": "Failed to rename task.",
+  "@taskListRenameError": {
+    "description": "Snackbar shown when renaming fails"
+  },
+  "completedPageTitle": "Completed & Archive",
+  "@completedPageTitle": {
+    "description": "Title for completed/archive page"
+  },
+  "completedEmptyMessage": "Nothing here yet.",
+  "@completedEmptyMessage": {
+    "description": "Message when completed/archive list is empty"
+  },
+  "completedReactivateSuccess": "Task reactivated.",
+  "@completedReactivateSuccess": {
+    "description": "Snackbar shown after reactivation"
+  },
+  "completedReactivateError": "Failed to reactivate task.",
+  "@completedReactivateError": {
+    "description": "Snackbar shown when reactivation fails"
+  },
+  "completedArchiveSuccess": "Task archived.",
+  "@completedArchiveSuccess": {
+    "description": "Snackbar shown after archiving from completed tab"
+  },
+  "completedArchiveError": "Failed to archive task.",
+  "@completedArchiveError": {
+    "description": "Snackbar shown when archive fails"
+  },
+  "completedTrashSuccess": "Moved to trash.",
+  "@completedTrashSuccess": {
+    "description": "Snackbar shown after moving to trash"
+  },
+  "completedTrashError": "Failed to move to trash.",
+  "@completedTrashError": {
+    "description": "Snackbar shown when moving to trash fails"
+  },
+  "trashEmptyMessage": "Trash is empty.",
+  "@trashEmptyMessage": {
+    "description": "Message when trash list is empty"
+  },
+  "trashEmptySuccess": "Trash emptied.",
+  "@trashEmptySuccess": {
+    "description": "Snackbar shown after emptying trash"
+  },
+  "trashEmptyError": "Failed to empty trash.",
+  "@trashEmptyError": {
+    "description": "Snackbar shown when emptying trash fails"
+  },
+  "trashRestoreSuccess": "Task restored.",
+  "@trashRestoreSuccess": {
+    "description": "Snackbar shown after restoring from trash"
+  },
+  "trashRestoreError": "Failed to restore task.",
+  "@trashRestoreError": {
+    "description": "Snackbar shown when restore fails"
+  },
+  "trashDeleteSuccess": "Task deleted.",
+  "@trashDeleteSuccess": {
+    "description": "Snackbar shown after permanent delete"
+  },
+  "trashDeleteError": "Failed to delete task.",
+  "@trashDeleteError": {
+    "description": "Snackbar shown when permanent delete fails"
+  },
+  "timerTemplatesTitle": "Template shortcuts",
+  "@timerTemplatesTitle": {
+    "description": "Section title for template shortcuts"
+  },
+  "timerSearchTemplatesPlaceholder": "Search templates",
+  "@timerSearchTemplatesPlaceholder": {
+    "description": "Placeholder for template search field"
+  },
+  "timerTemplatesEmpty": "No templates available.",
+  "@timerTemplatesEmpty": {
+    "description": "Message when there are no templates"
+  },
+  "timerTemplateApplyError": "Failed to apply template.",
+  "@timerTemplateApplyError": {
+    "description": "Snackbar shown when template apply fails"
+  },
+  "timerIdleTitle": "No active focus session",
+  "@timerIdleTitle": {
+    "description": "Title when timer is idle"
+  },
+  "timerIdleHint": "Pick a task and tap \"Start timer\" to begin.",
+  "@timerIdleHint": {
+    "description": "Hint shown when no session is active"
+  },
+  "timerNoPlannedTasks": "No planned tasks yet.",
+  "@timerNoPlannedTasks": {
+    "description": "Message when there are no planned tasks"
+  },
+  "timerGoPlan": "Plan tasks",
+  "@timerGoPlan": {
+    "description": "CTA button to open task planner"
+  },
+  "timerControlTitle": "Focus controls",
+  "@timerControlTitle": {
+    "description": "Section title for focus control buttons"
+  },
+  "timerActiveTitle": "Focusing on {taskTitle}",
+  "@timerActiveTitle": {
+    "description": "Displays the active task title",
+    "placeholders": {
+      "taskTitle": {
+        "type": "String",
+        "example": "Deep work"
+      }
+    }
+  },
+  "timerEndSessionSuccess": "Session ended.",
+  "@timerEndSessionSuccess": {
+    "description": "Snackbar shown after ending session with completion"
+  },
+  "timerEndSessionAddSubtask": "Subtask created and session logged.",
+  "@timerEndSessionAddSubtask": {
+    "description": "Snackbar shown when session ends with an added subtask"
+  },
+  "timerEndSessionAddMultiple": "Multiple tasks logged.",
+  "@timerEndSessionAddMultiple": {
+    "description": "Snackbar shown when multiple tasks are logged"
+  },
+  "timerEndSessionLogWasted": "Session marked as wasted.",
+  "@timerEndSessionLogWasted": {
+    "description": "Snackbar shown when session is marked as wasted"
+  },
+  "timerSelectTaskTitle": "Select a task",
+  "@timerSelectTaskTitle": {
+    "description": "Title for task selection dropdown"
+  },
+  "endSessionSubtaskTitleLabel": "Subtask title",
+  "@endSessionSubtaskTitleLabel": {
+    "description": "Label for subtask title input"
+  },
+  "endSessionMultipleHint": "One task per line",
+  "@endSessionMultipleHint": {
+    "description": "Hint for multiline task input"
+  },
+  "endSessionReflectionLabel": "Reflection / notes",
+  "@endSessionReflectionLabel": {
+    "description": "Label for reflection text field"
+  },
+  "endSessionSubtaskValidation": "Please provide a subtask title.",
+  "@endSessionSubtaskValidation": {
+    "description": "Validation message when subtask title missing"
+  },
+  "endSessionMultipleValidation": "Enter at least one task.",
+  "@endSessionMultipleValidation": {
+    "description": "Validation message when multi-task input empty"
+  },
+  "appShellHome": "Home",
+  "@appShellHome": {
+    "description": "Label for home destination"
+  },
+  "appShellInbox": "Inbox",
+  "@appShellInbox": {
+    "description": "Label for inbox destination"
+  },
+  "appShellTasks": "Tasks",
+  "@appShellTasks": {
+    "description": "Label for tasks destination"
+  },
+  "appShellCompleted": "Completed",
+  "@appShellCompleted": {
+    "description": "Label for completed destination"
+  },
+  "appShellTrash": "Trash",
+  "@appShellTrash": {
+    "description": "Label for trash destination"
+  },
+  "appShellSettings": "Settings",
+  "@appShellSettings": {
+    "description": "Label for settings destination"
+  }
+}

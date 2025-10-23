@@ -1,0 +1,142 @@
+{
+  "tasks": [
+    {
+      "slug": "tutorial_granoflow",
+      "title": "完成 GranoFlow 操作指南任務列表",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": []
+    },
+    {
+      "slug": "tutorial_granoflow_home",
+      "title": "在首頁查看四個效率指標卡片",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_open_inbox",
+      "title": "打開收集箱並新增一條待辦",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_promote_inbox",
+      "title": "將收集箱待辦加入任務清單並設定截止日期",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_enter_edit_mode",
+      "title": "切換到編輯模式了解任務層級",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_drag_task",
+      "title": "在編輯模式拖動任務調整順序",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_apply_template",
+      "title": "在任務輸入欄套用一個模板",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_start_focus",
+      "title": "從任務列表啟動一次專注計時",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_end_session",
+      "title": "結束專注並選擇立即完成",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_review_completed",
+      "title": "打開已完成頁面檢查任務狀態",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+
+    {
+      "slug": "anchor_wellness",
+      "title": "維護健康與運動計畫清單",
+      "status": "pending",
+      "tags": ["@home"]
+    },
+    {
+      "slug": "task_sample_yoga_intro",
+      "title": "完成 20 分鐘晨間瑜伽練習",
+      "parentSlug": "anchor_wellness",
+      "status": "pending",
+      "tags": ["@home", "#important"]
+    },
+    {
+      "slug": "task_sample_run_interval",
+      "title": "完成 4 輪城市間歇跑訓練",
+      "parentSlug": "anchor_wellness",
+      "status": "pending",
+      "tags": ["@city", "#urgent"]
+    },
+    {
+      "slug": "task_sample_weight_reflection",
+      "title": "記錄本週體重並寫下三條狀態備註",
+      "parentSlug": "anchor_wellness",
+      "status": "pending",
+      "tags": ["@home", "#not_urgent"]
+    },
+
+    {
+      "slug": "anchor_learning",
+      "title": "維護學習與成長計畫清單",
+      "status": "pending",
+      "tags": ["@home"]
+    },
+    {
+      "slug": "task_sample_vocab_review",
+      "title": "複習 30 個英語詞彙並標記難點",
+      "parentSlug": "anchor_learning",
+      "status": "pending",
+      "tags": ["@mobile", "#important"]
+    },
+    {
+      "slug": "task_sample_reading_session",
+      "title": "閱讀《原子習慣》一章並整理要點",
+      "parentSlug": "anchor_learning",
+      "status": "pending",
+      "tags": ["@home", "#not_urgent"]
+    },
+    {
+      "slug": "task_sample_granostack_review",
+      "title": "回顧 GranoStack 技巧並記錄三條心得",
+      "parentSlug": "anchor_learning",
+      "status": "pending",
+      "tags": ["@work", "#not_urgent"]
+    },
+
+    {
+      "slug": "anchor_life_admin",
+      "title": "維護生活管理事項清單",
+      "status": "pending",
+      "tags": ["@home"]
+    },
+    {
+      "slug": "task_sample_weekly_review",
+      "title": "完成一次每週生活回顧並列出下週三項重點",
+      "parentSlug": "anchor_life_admin",
+      "status": "pending",
+      "tags": ["@home", "#important"]
+    },
+    {
+      "slug": "task_sample_finance_check",
+      "title": "整理本月支出並核對預算差異",
+      "parentSlug": "anchor_life_admin",
+      "status": "pending",
+      "tags": ["@home", "#urgent"]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "templates": [
+    {
+      "slug": "tmpl_morning_yoga",
+      "title": "完成 20 分钟晨间瑜伽练习",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@home", "#important"],
+      "suggestedEstimateMinutes": 20,
+      "notes": "简单拉伸 + 呼吸放松，适合开启活力的一天。"
+    },
+    {
+      "slug": "tmpl_interval_run",
+      "title": "完成 4 轮城市间歇跑训练",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@city", "#urgent"],
+      "suggestedEstimateMinutes": 35,
+      "notes": "5 分钟热身 + 4x（快跑 2 分钟 / 慢跑 2 分钟）+ 5 分钟放松。"
+    },
+    {
+      "slug": "tmpl_weekly_weight_journal",
+      "title": "记录本周体重并写下三条状态备注",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@home", "#not_urgent"],
+      "suggestedEstimateMinutes": 10,
+      "notes": "回顾饮食状态，标记想继续保持与待改进的习惯。"
+    },
+    {
+      "slug": "tmpl_vocab_review",
+      "title": "复习 30 个英语词汇并标记难点",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@mobile", "#important"],
+      "suggestedEstimateMinutes": 25,
+      "notes": "闪卡复习 + 记录常错单词，适合碎片时间练习。"
+    },
+    {
+      "slug": "tmpl_focus_reading",
+      "title": "阅读并总结 30 分钟深度阅读要点",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@home", "#not_urgent"],
+      "suggestedEstimateMinutes": 30,
+      "notes": "选择一本正在阅读的书籍，做重点批注并简单总结。"
+    },
+    {
+      "slug": "tmpl_granostack_daily",
+      "title": "记录今日 GranoStack 使用心得三条",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@work", "#not_important"],
+      "suggestedEstimateMinutes": 15,
+      "notes": "检查日常数据同步状态，记录发现的新玩法。"
+    },
+    {
+      "slug": "tmpl_weekly_review",
+      "title": "完成每周生活回顾并列出下周三项重点",
+      "parentSlug": "anchor_life_admin",
+      "defaultTags": ["@home", "#important"],
+      "suggestedEstimateMinutes": 25,
+      "notes": "回顾目标进展、写下感恩与下周前三件大事。"
+    }
+  ]
+}

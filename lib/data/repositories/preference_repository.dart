@@ -1,0 +1,86 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
+
+import '../isar/preference_entity.dart';
+import '../models/preference.dart';
+
+abstract class PreferenceRepository {
+  Stream<Preference> watch();
+
+  Future<Preference> load();
+
+  Future<void> update(PreferenceUpdate payload);
+}
+
+class IsarPreferenceRepository implements PreferenceRepository {
+  IsarPreferenceRepository(this._isar);
+
+  final Isar _isar;
+
+  static const int _singletonId = 1;
+
+  @override
+  Stream<Preference> watch() {
+    return _isar.preferenceEntitys
+        .watchObject(_singletonId, fireImmediately: true)
+        .asyncMap((entity) async {
+          final ensured = await _ensureEntity(entity);
+          return _toDomain(ensured);
+        });
+  }
+
+  @override
+  Future<Preference> load() async {
+    final entity = await _isar.preferenceEntitys.get(_singletonId);
+    final ensured = await _ensureEntity(entity);
+    return _toDomain(ensured);
+  }
+
+  @override
+  Future<void> update(PreferenceUpdate payload) async {
+    await _isar.writeTxn(() async {
+      final entity = await _ensureEntity(
+        await _isar.preferenceEntitys.get(_singletonId),
+      );
+      if (payload.localeCode != null) {
+        entity.localeCode = payload.localeCode!;
+      }
+      if (payload.themeMode != null) {
+        entity.themeMode = payload.themeMode!;
+      }
+      if (payload.fontScale != null) {
+        entity.fontScale = payload.fontScale!;
+      }
+      entity.updatedAt = DateTime.now();
+      await _isar.preferenceEntitys.put(entity);
+    });
+  }
+
+  Future<PreferenceEntity> _ensureEntity(PreferenceEntity? entity) async {
+    if (entity != null) {
+      return entity;
+    }
+    final newEntity = PreferenceEntity()
+      ..id = _singletonId
+      ..localeCode = 'en'
+      ..themeMode = ThemeMode.system
+      ..fontScale = 1.0
+      ..updatedAt = DateTime.now();
+    await _isar.writeTxn(() async {
+      await _isar.preferenceEntitys.put(newEntity);
+    });
+    return newEntity;
+  }
+
+  Preference _toDomain(PreferenceEntity entity) {
+    return Preference(
+      id: entity.id,
+      localeCode: entity.localeCode,
+      themeMode: entity.themeMode,
+      fontScale: entity.fontScale,
+      updatedAt: entity.updatedAt,
+    );
+  }
+}

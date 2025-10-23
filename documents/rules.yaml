@@ -1,0 +1,13 @@
+rules:
+  - id: R1
+    description: >
+      Do not modify or create files unless the user explicitly requests it.
+  - id: R2
+    description: >
+      Dart source files may only be edited when the relevant YAML specifications
+      have been updated; every Dart change must align with the documented YAML rules.
+  - id: R3
+    description: >
+      Avoid hard-coded literals. Use l10n entries for user-facing text, theming
+      variables from lib/theme, and define environment variables in the config
+      module.

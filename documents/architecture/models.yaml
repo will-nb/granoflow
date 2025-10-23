@@ -1,0 +1,241 @@
+meta:
+  summary: >
+    Core domain models planned for the GranoFlow offline-first stack.
+    Each model maps to an Isar collection unless noted, with fields kept
+    under 100 characters and camelCase naming to align with AGENTS.md.
+  source_of_truth:
+    - documents/product_requirements.yaml
+    - documents/user_stories.md
+    - documents/251022-技术规范.yaml
+
+models:
+  - name: Task
+    description: >
+      Canonical representation of a user task or idea regardless of its lifecycle
+      stage (inbox, planned, doing, completed, archived, trashed, pseudo-deleted).
+      Parents can own child tasks, but only leaf tasks may run focus sessions.
+    storage: isar_collection
+    indexes:
+      - field: status
+      - field: dueAtUtc
+      - field: parentId
+      - field: updatedAtUtc
+      - composite:
+          fields: [status, dueAtUtc]
+    fields:
+      - name: id
+        type: int
+        isar_id: true
+        notes: Auto-increment primary key managed by Isar.
+      - name: taskId
+        type: String
+        notes: >
+          Human-visible identifier (immutable) surfaced in UI to keep traceability
+          with notes and external tools.
+      - name: title
+        type: String
+        notes: Required, max 120 chars.
+      - name: status
+        type: TaskStatus
+        notes: Enum documented below; drives page visibility.
+      - name: dueAtUtc
+        type: DateTime?
+        notes: Stored in UTC; null for inbox tasks until scheduled.
+      - name: startedAtUtc
+        type: DateTime?
+        notes: Timestamp when the task entered `doing` state.
+      - name: endedAtUtc
+        type: DateTime?
+        notes: Captured when task transitions to completed or archived.
+      - name: parentId
+        type: int?
+        notes: Links to another Task.id when this is a child task.
+      - name: sortIndex
+        type: double
+        notes: Fractional index to keep manual ordering within a section.
+      - name: tags
+        type: List<String>
+        notes: Inline storage of tag ids for quick filtering (context, priority, wasted).
+      - name: templateLockCount
+        type: int
+        notes: >
+          Number of TaskTemplate definitions referencing this task as parent.
+          Greater than zero implies delete/archive/complete operations must be blocked.
+      - name: seedSlug
+        type: String?
+        notes: Optional slug assigned during seed import to reconcile references; removed/ignored on subsequent updates.
+      - name: createdAtUtc
+        type: DateTime
+      - name: updatedAtUtc
+        type: DateTime
+    enums:
+      - name: TaskStatus
+        values:
+          - inbox
+          - pending
+          - doing
+          - completed_active
+          - archived
+          - trashed
+          - pseudo_deleted
+        notes:
+          pending: Planned but not yet active.
+          doing: Currently in progress (may have active focus session).
+          completed_active: Completed but still visible for review/reactivation.
+          pseudo_deleted: Retained only for sync conflict detection; auto-purged after SLA.
+
+  - name: FocusSession
+    description: >
+      Records a timed focus session for a leaf task, including estimate toggles
+      and alarm usage to provide history, totals, and end-session decisions.
+    storage: isar_collection
+    indexes:
+      - field: taskId
+      - field: startedAtUtc
+    fields:
+      - name: id
+        type: int
+        isar_id: true
+      - name: taskId
+        type: int
+        notes: FK to Task.id; validates leaf constraint before creation.
+      - name: startedAtUtc
+        type: DateTime
+      - name: endedAtUtc
+        type: DateTime?
+        notes: Null while session is ongoing.
+      - name: actualMinutes
+        type: int
+        notes: Rounded when session stops; used for aggregate stats.
+      - name: estimateMinutes
+        type: int?
+        notes: Optional user-supplied estimate from alarm toggle.
+      - name: alarmEnabled
+        type: bool
+      - name: transferredToTaskId
+        type: int?
+        notes: >
+          When quick-subtask creates a new child and moves elapsed time,
+          we record the destination task for auditing.
+      - name: reflectionNote
+        type: String?
+        notes: Optional short note captured at end-session, max 200 chars.
+
+  - name: Tag
+    description: >
+      Dictionary of available tags surfaced to the user (context, priority,
+      system-level flags like `wasted`). Stored separately for future
+      multi-language names or ordering without patching each Task.
+    storage: isar_collection
+    indexes:
+      - field: kind
+      - field: slug
+    fields:
+      - name: id
+        type: int
+        isar_id: true
+      - name: slug
+        type: String
+        notes: Stable identifier used in Task.tags (e.g. "@home", "#urgent", "wasted").
+      - name: localizedKeys
+        type: Map<String, String>
+        notes: Maps locale (e.g. "en") to display name for future i18n.
+      - name: kind
+        type: TagKind
+        notes: Helps drive filtering in UI.
+      - name: sortOrder
+        type: int
+        notes: Controls display ordering within each kind.
+    enums:
+      - name: TagKind
+        values: [context, priority, special]
+
+  - name: Preference
+    description: >
+      Stores per-device UI preferences so the app can restore theme, locale,
+      and font size offline. Sync scope is device-only, so no user identity required.
+    storage: isar_collection
+    fields:
+      - name: id
+        type: int
+        isar_id: true
+      - name: localeCode
+        type: String
+        notes: Defaults to system; matches supported locales (en, zh, zh_Hans, zh_Hant).
+      - name: themeMode
+        type: String
+        notes: "light" | "dark" | "system".
+      - name: fontScale
+        type: double
+        notes: Multipliers for typography (0.875/1.0/1.125 etc.).
+      - name: updatedAtUtc
+        type: DateTime
+
+  - name: MetricSnapshot
+    description: >
+      Cached aggregates supporting the home dashboard cards. Snapshotting
+      avoids recomputing totals on every frame and simplifies future sync.
+    storage: isar_collection
+    retention: rolling_singleton
+    fields:
+      - name: id
+        type: int
+        isar_id: true
+      - name: totalCompletedTasks
+        type: int
+      - name: totalFocusMinutes
+        type: int
+      - name: pendingTasks
+        type: int
+      - name: pendingTodayTasks
+        type: int
+      - name: calculatedAtUtc
+        type: DateTime
+    notes:
+      - Recomputed after significant Task or FocusSession mutations.
+      - Acts as the single source for homepage metrics to keep UI simple.
+
+  - name: TaskTemplate
+    description: >
+      Defines reusable task blueprints for recurring activities (e.g., running, yoga).
+      Applying a template instantiates a leaf task inheriting title, parent, and tags.
+    storage: isar_collection
+    indexes:
+      - field: title
+      - field: lastUsedAtUtc
+      - field: parentTaskId
+    fields:
+      - name: id
+        type: int
+        isar_id: true
+      - name: title
+        type: String
+        notes: Required; surfaced in auto-complete suggestions.
+      - name: parentTaskId
+        type: int?
+        notes: Optional parent link; when set, referenced task's templateLockCount increments.
+      - name: defaultTags
+        type: List<String>
+      - name: createdAtUtc
+        type: DateTime
+      - name: updatedAtUtc
+        type: DateTime
+      - name: lastUsedAtUtc
+        type: DateTime?
+        notes: Updated whenever template instantiates a task; used for sorting suggestions.
+      - name: seedSlug
+        type: String?
+        notes: Temporary identifier for seed import; not exposed to UI.
+
+  - name: SeedImportLog
+    description: Tracks execution of seed data migrations to prevent duplicate imports.
+    storage: isar_collection
+    fields:
+      - name: id
+        type: int
+        isar_id: true
+      - name: version
+        type: String
+        notes: Matches assets/seeds/version.json.
+      - name: importedAtUtc
+        type: DateTime

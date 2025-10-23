@@ -1,0 +1,72 @@
+meta:
+  description: >
+    Material Design 3 theme specification for GranoFlow.
+    Colors derived from Material Theme Builder using seed #2B5797 to align with
+    brand guidelines and cards_flutter palette.
+  seed_color: "#2B5797"
+  last_updated: 2025-10-23
+  maintainers:
+    - design
+    - engineering
+
+palette:
+  primary: "#2B5797"
+  on_primary: "#FFFFFF"
+  primary_container: "#D0E3FF"
+  on_primary_container: "#001C3B"
+  secondary: "#4A4A4A"
+  on_secondary: "#FFFFFF"
+  secondary_container: "#DFE1E8"
+  on_secondary_container: "#11131A"
+  tertiary: "#9C27B0"
+  on_tertiary: "#FFFFFF"
+  tertiary_container: "#F5D9FF"
+  on_tertiary_container: "#35003C"
+  error: "#B71C1C"
+  on_error: "#FFFFFF"
+  error_container: "#FFDAD5"
+  on_error_container: "#40000A"
+  background: "#F5F5F5"
+  on_background: "#1A1C1E"
+  surface: "#FFFFFF"
+  on_surface: "#1A1C1E"
+  surface_container_highest: "#E0E0E0"
+  on_surface_variant: "#43474E"
+  outline: "#72777F"
+  success: "#2E7D32"
+  warning: "#F57F17"
+
+typography:
+  font_family: "Inter"
+  base_scale: 1.0
+  display_large: 57
+  headline_large: 32
+  title_large: 22
+  body_large: 16
+  label_large: 14
+  mobile_adjustments:
+    title: -2
+    body: -2
+
+shape:
+  corner_radius:
+    xs: 8
+    sm: 12
+    md: 16
+    lg: 24
+  elevation:
+    card: 1
+    modal: 3
+    dialog: 6
+
+usage:
+  theme_data:
+    light_mode: ColorScheme
+    dark_mode: ColorScheme (tonal palette inverted)
+  components_should_reference:
+    - Theme.of(context).colorScheme
+    - Theme.of(context).textTheme
+    - Theme.of(context).extensions<AppColorTokens>
+  forbidden:
+    - Hard coded Color(...) values in widgets
+    - Direct use of Colors.red/green/... in presentation layer

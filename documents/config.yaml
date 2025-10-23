@@ -1,0 +1,103 @@
+meta:
+  description: >
+    Environment configuration contract for GranoFlow.
+    Actual values must be supplied per environment (local, staging, production)
+    via secrets management or runtime injection. This file only documents naming,
+    typing, and sourcing rules.
+  last_updated: 2025-10-23
+  maintainers:
+    - engineering
+    - devops
+
+conventions:
+  naming:
+    casing: SCREAMING_SNAKE_CASE
+    prefix: GRANOFLOW_
+    examples:
+      - GRANOFLOW_API_BASE_URL
+      - GRANOFLOW_ISAR_DIR
+      - GRANOFLOW_FEATURE_FOCUS_TIMER
+  definition_order:
+    - runtime_environment
+    - networking
+    - storage
+    - feature_flags
+    - instrumentation
+  access:
+    - Never read environment variables directly via Platform.environment in widgets.
+    - Use ConfigService (lib/core/config/config_service.dart) or equivalent wrapper.
+    - Provide default fallbacks only in the config layer when safe.
+  sources_priority:
+    - system_environment
+    - secrets_manager (e.g., CI vault, cloud secrets)
+    - .env files (development only, never committed)
+    - config/local_overrides.yaml
+  dart_define:
+    synopsis: flutter run --dart-define=KEY=VALUE
+    example: >
+      flutter run --dart-define=GRANOFLOW_ENV=staging
+                   --dart-define=GRANOFLOW_API_BASE_URL=https://staging.api.example.com
+    batch_file: >
+      flutter run --dart-define-from-file=config/defines/dev.json
+    notes: >
+      Prefer --dart-define or --dart-define-from-file in CI/CD. Keep example commands
+      documented here for quick reference.
+
+variables:
+  runtime_environment:
+    - name: GRANOFLOW_ENV
+      type: enum
+      allowed: [development, staging, production]
+      required: true
+      notes: >
+        Controls logging level, analytics endpoints, and feature flag defaults.
+  networking:
+    - name: GRANOFLOW_API_BASE_URL
+      type: url
+      required: true
+      notes: >
+        Base REST endpoint. Must end without trailing slash.
+    - name: GRANOFLOW_WEBSOCKET_URL
+      type: url
+      required: false
+      notes: >
+        Optional realtime endpoint. When absent, realtime features must remain disabled.
+  storage:
+    - name: GRANOFLOW_ISAR_DIR
+      type: filesystem_path
+      required: false
+      default: application_support
+      notes: >
+        Overrides default Isar directory when specified (e.g., for desktop testing).
+  feature_flags:
+    - name: GRANOFLOW_FEATURE_FOCUS_TIMER
+      type: boolean
+      default: true
+      notes: >
+        Enables focus timer UI. Must be read through ConfigService.
+    - name: GRANOFLOW_FEATURE_MONETIZATION
+      type: boolean
+      default: false
+      notes: >
+        Toggles subscription/paywall flows. Staging and production manage via secrets.
+  instrumentation:
+    - name: GRANOFLOW_SENTRY_DSN
+      type: url
+      required: false
+      notes: >
+        When provided, error logging is enabled. Must not be committed in example files.
+
+security:
+  secrets_handling:
+    - Sensitive variables (tokens, DSNs) must be injected via secrets manager or CI.
+    - Never commit real values into repository (use `.env.example` with placeholders).
+  auditing:
+    - ConfigService should log (debug level) source resolution without exposing values.
+    - Automated checks should verify required variables exist in deployment manifests.
+
+local_development:
+  example_file: .env.example
+  instructions:
+    - Copy `.env.example` to `.env` when running locally.
+    - Update `GRANOFLOW_ENV=development` and provide dev-safe endpoints.
+    - Do not commit `.env` files; add to `.gitignore`.

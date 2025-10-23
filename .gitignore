@@ -1,0 +1,143 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android related
+android/app/build/
+android/app/google-services.json
+android/app/src/main/res/mipmap-*/ic_launcher.png
+android/keystore.properties
+android/app/keystore.properties
+android/app/upload-keystore.jks
+*.jks
+*.keystore
+*.apk
+*.aab
+*.aar
+*.aab.sha1
+*.aab.sha256
+
+# iOS related
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Pods/
+ios/.symlinks/
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcworkspace/xcshareddata/
+ios/Runner.xcworkspace/xcschemes/
+*.ipa
+*.xcarchive
+
+# macOS related
+macos/Flutter/Flutter.framework
+macos/Flutter/Flutter.podspec
+macos/Pods/
+macos/.symlinks/
+macos/Runner.xcworkspace/xcuserdata/
+macos/Runner.xcworkspace/xcshareddata/
+macos/Runner.xcworkspace/xcschemes/
+*.app
+
+# Windows related
+windows/flutter/ephemeral/
+windows/flutter/generated_plugins/
+
+# Linux related
+linux/flutter/ephemeral/
+linux/flutter/generated_plugins/
+
+# Web related
+web/build/
+web/packages/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux specific
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+.cache/
+
+# Logs
+*.log
+logs/
+
+# Generated files
+lib/generated/**
+!lib/generated/.gitkeep
+
+# Test coverage
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+
+# Signing keys and certificates
+*.p12
+*.pem
+*.cer
+*.crt
+*.key
+*.pfx
+
+# Build artifacts and outputs
+build/
+dist/
+out/
+outputs/
+
+# Pub packages lock file (optional, uncomment if you want to commit it)
+# pubspec.lock
+
+# Flutter specific
+.flutter/
+flutter_*.tar.xz
+
+# IDE project files
+*.iml
+*.ipr
+*.iws
+
+# Cursor AI specific
+.cursor/

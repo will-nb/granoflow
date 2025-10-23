@@ -1,0 +1,503 @@
+meta:
+  name: GranoFlow
+  version: 1.0
+  platform: [Android, iOS, macOS]
+  storage: Isar object database (自增Id设计，高性能)
+  offline: true
+  description: >
+    GranoFlow 是一个离线的时间与任务管理工具，
+    用户可以添加任务、设置截止时间、进行计时、归档和删除，
+    所有数据保存在本地。
+
+pages:
+  - id: home_dashboard
+    name: 首页效率概览
+    purpose: 激发用户继续投入工作，快速展示成果与当日任务状态
+    components:
+      - headline: 鼓舞式问候语（依赖本地化文案）
+      - metric_total_completed: 累计完成任务数量卡片
+      - metric_total_time: 累计专注时长卡片（小时 + 分钟显示）
+      - metric_pending_total: 当前待完成任务总数卡片
+      - metric_pending_today: 今日需完成任务数量卡片
+      - action_plan_today: 进入收集箱按钮，附简短描述帮助用户先规划
+      - action_start_work: 打开任务列表按钮，附简短描述引导立即开始
+    interactions:
+      - tap_action_plan_today: 打开收集箱页面并切换到规划模式
+      - tap_action_start_work: 打开任务清单页并定位到 today 分栏
+      - pull_to_refresh: 刷新任务统计数据，确保多设备同步时即时更新
+    data_bind:
+      metrics_source: TaskRepository
+      fields:
+        totalCompleted: 统计 status in [completed_active, archived] 的任务数量
+        totalFocusMinutes: 汇总所有计时会话的 actualMinutes
+        pendingTotal: 统计 status in [pending, doing] 的任务数量
+        pendingToday: 统计 dueAt=today 23:59:59 之前且 status in [pending, doing] 的任务数量
+      display_rules:
+        zero_state: 当所有指标为0时展示鼓励文案，提示先从收集箱开始
+        large_numbers: 超过999时在数值后加 "+" 号，防止占用过多空间
+    tone_and_copy:
+      plan_cta_description: "先梳理今天的计划，让灵感有序落地。"
+      work_cta_description: "计划已定，马上开工逐个完成。"
+
+  - id: main_navigation
+    name: 主导航菜单
+    purpose: 右上角主导航按钮，弹出菜单选择页面和设置
+    components:
+      - navigation_button: 右上角菜单图标按钮
+      - navigation_popup: 弹出菜单，包含页面导航和设置选项
+      - page_list: 首页、收集箱、任务列表、已完成、归档处、垃圾箱
+      - settings_section: 字体大小、多国语言、明暗模式切换
+    interactions:
+      - tap_navigation_button: 弹出导航菜单
+      - select_page: 切换到选中的页面
+      - toggle_theme: 切换明暗模式
+      - change_font_size: 切换字体大小（小、中、大）
+      - change_language: 切换界面语言
+      - dismiss_menu: 点击外部或返回按钮关闭菜单
+    trigger: 右上角菜单按钮
+
+  - id: task_list
+    name: 任务清单页（叶子任务+活跃父任务，手风琴式展开）
+    purpose: 展示叶子任务和活跃父任务，按截止时间分栏，互斥展开查看上级任务链
+    components:
+      - section: today
+        label: 今天
+        data_filter: (dueAt falls within user_local_today AND NOT has_children) OR (dueAt falls within user_local_today AND has_children AND all_children_completed_active)
+      - section: tomorrow
+        label: 明天
+        data_filter: (dueAt falls within user_local_tomorrow AND NOT has_children) OR (dueAt falls within user_local_tomorrow AND has_children AND all_children_completed_active)
+      - section: later
+        label: 以后
+        data_filter: (dueAt >= start_of_day_plus_2 AND NOT has_children) OR (dueAt >= start_of_day_plus_2 AND has_children AND all_children_completed_active)
+      - mode_switcher: 顶部显式按钮/菜单切换基础模式与编辑模式
+      - edit_mode_toolbar: 显示操作提示（长按拖动、点击按钮编辑/归档/增子任务）
+    interactions:
+      - quick_add_section: 分栏标题旁提供快速添加按钮，点击弹出最小化表单（标题 + 可选截止日期，默认推算所处分栏）
+      - tap_base_mode: 基础模式下单击叶子任务直接开始专注计时
+      - drag_base_mode: 基础模式下长按并拖动叶子任务改变排序或跨分栏移动（自动调整 dueAt）
+      - toggle_edit_mode: 通过模式入口进入编辑模式，再次点击返回基础模式
+      - tap_edit_expand_root: 编辑模式下点击根任务行展示其所有子任务，保持单根展开
+      - long_press_drag_edit: 编辑模式下长按任务行并拖动，支持在同一根任务内排序或拖到其他根任务/顶层形成父子结构
+      - drag_visual_feedback: 拖动到任务之间时显示加粗分隔线；悬停在任务上方时行本身加遮罩提示“放入其下”
+      - action_add_subtask: 编辑模式右侧按钮立即为该任务新增子任务
+      - action_edit: 编辑模式右侧按钮打开编辑面板（包含标题、场景/优先级标签、上级任务选择等功能）
+      - action_archive: 编辑模式右侧按钮将任务归档（删除操作移至归档页）
+      - expand_parent_exclusive: 编辑模式下展开当前根任务时自动收起其他根任务
+      - collapse_parent: 收起当前任务的上级任务链
+      - complete_task: 手工完成任务，status=doing → status=completed_active
+      - archive: 归档任务，status=completed_active → status=archived
+    data_bind:
+      model: Task
+      visible_when: status in [pending, doing, completed_active] AND (NOT has_children OR all_children_completed_active)
+      display_format: "{icon} {taskId}: {title}"
+      icon_logic: "status == 'completed_active' ? '✅' : (has_children ? '📁' : '📄')"
+      show_taskid: true (便于笔记工具追溯)
+      expandable: "accordion" (互斥手风琴模式，只展开一个任务链)
+    due_date_notes:
+      - “今天/明天/本周/当月”仅作为日期快捷选择的文案提示，内部仍以用户所选具体日子的 23:59:59（本地时区）写入 `dueAt`.
+      - 列表分栏依据 `dueAt` 所属的本地日历日自动归类，不依赖具体按钮文案或 UI 分组。
+
+  - id: task_templates
+    name: 任务模板
+    purpose: 让重复性任务快速生成标准化待办，缩短计划时间
+    components:
+      - template_list: 最近使用的模板，按最近实例化时间倒序展示
+      - search_field: 支持关键字或标签过滤模板
+      - template_detail: 显示模板标题与关联的上级任务
+      - apply_button: 一键生成任务（可选设置截止日期/标签）
+      - manage_entrypoint: 跳转到模板管理页（创建、编辑、删除模板）
+    interactions:
+      - auto_complete_input: 在任务输入框中输入字符即显示模板建议，允许直接套用
+      - apply_template: 选择模板后自动创建任务（标题、父任务、默认标签均继承模板）
+      - edit_template: 在管理页修改模板标题、默认父任务、默认标签
+      - delete_template: 删除模板前校验是否仍有受保护的父任务，若删除父任务需先移除模板
+    rules:
+      - protected_parent: 被模板引用的父任务不可删除、归档或标记已完成；若尝试，需提示先删除对应模板
+      - instantiation_history: 记录模板最近一次应用时间，供排序使用
+      - template_scope: 模板仅生成叶子任务，禁止含子任务的模板；可选默认 due date 为“无”
+
+  - id: timer_page
+    name: 计时页
+    purpose: 执行当前任务的计时与完成（需主动开启闹钟）
+    components:
+      - timer_display: 从0开始正计时
+      - buttons: [pause, end_session]
+      - alarm_toggle: 可选择开启闹钟并设置预估时间
+      - timeout_indicator: 仅在开启闹钟时显示，超时后表盘变红 + 小号超时时间显示
+      - quick_subtask_button: 创建子任务并转移计时
+    interactions:
+      - alarm_toggle: 用户可选择开启闹钟并设置estimateMinutes，无闹钟时纯计时
+      - end_session: 打开结束会话对话框，提供多种完成选项
+      - timeout: 仅在开启闹钟时生效，到达预估时间后表盘变红但不打断用户
+      - quick_subtask: 创建新任务作为当前任务子任务，已用时间转移到新任务，原任务保持状态但标记为有活跃子任务（可递归嵌套，无限层级）
+    data_bind:
+      model: Task
+      updates: [status, startedAt, endedAt, actualMinutes, parentId]
+
+  - id: end_session_dialog
+    name: 结束计时对话框
+    purpose: 为专注时段提供有价值的结果选项，记录实际使用时间并管理任务完成状态
+    components:
+      - session_summary: 显示本次计时总时长、预估vs实际对比（如果有预估）
+      - time_analysis: estimateMinutes vs actualMinutes对比分析
+      - completion_options:
+        - complete_current: 完成当前任务（子任务进入已完成列表，叶子任务进入已完成状态）
+        - create_subtask: 在当前任务下创建新子任务（继承计时）
+        - add_multiple_tasks: 添加多个独立任务（如果完成了多个事项）
+        - mark_as_wasted: 标记为浪费时间（仅在此对话框可用）
+    interactions:
+      - complete_current: 记录endedAt和actualMinutes，更新status=doing → status=completed（子任务进入已完成列表）
+      - create_subtask: 记录endedAt和actualMinutes，创建新子任务并转移计时，继续当前任务树
+      - add_multiple_tasks: 记录endedAt和actualMinutes，创建多个新任务，分配本次计时时间
+      - mark_as_wasted: 记录endedAt和actualMinutes，添加"wasted"标签，status=doing → status=completed
+    trigger: 从timer_page的end_session按钮
+
+  - id: inbox_page
+    name: 收集箱（仅叶子任务，手风琴式展开）
+    purpose: 暂存未计划的叶子任务，仅支持基础操作，可互斥展开查看上级任务链
+    components:
+      - persistent_input: 顶部常驻输入框，支持键盘回车和提交按钮
+      - template_suggestions: 输入框下方模板推荐 chips（按最近使用时间排序）
+      - inbox_list: 显示收集箱项目，按创建时间倒序（最新在前）
+      - tag_panel: 展开任务后展示“场景”(context) 与“优先级”(priority) 标签分区
+      - parent_selector: 展开时提供自动补全输入框，可搜索并选择上级任务（展示 taskId 与标题）
+      - accordion_parent_chain: 互斥展开显示上级任务链（一次只展开一个）
+    interactions:
+      - add_text: 回车或点击提交创建 Task（status=inbox），自动分配全局唯一 taskId，将新任务置顶并保持输入框焦点
+      - add_template: 点击模板 chip 创建任务（继承模板默认父任务/标签，可选允许立即完成）
+      - move_to_tasklist: 修改status=inbox → status=pending，并设dueAt
+      - filter_by_context: 根据选中的context标签筛选显示
+      - left_swipe: 显示菜单(edit, delete)
+      - edit: 修改任务标题和context标签
+      - delete: 删除收集箱项目进入垃圾箱，status=inbox → status=trashed
+      - tap: 切换展开/收起上级任务链（互斥模式）
+      - toggle_context_tag: 在场景标签区单选/取消（同一时间仅允许一个 context 标签，如 @home 与 @mobile 互斥）
+      - toggle_priority_tag: 在优先级标签区单选/取消（#urgent/#not_urgent 与 #important/#not_important 均为互斥对）
+      - choose_parent: 通过自动补全框按 taskId 或标题关键词搜索，选择后将当前任务挂到对应父节点；清空选择则恢复为根节点
+      - expand_parent_exclusive: 展开当前任务的上级任务链，自动收起其他已展开的任务链
+      - collapse_parent: 收起当前任务的上级任务链
+    data_bind:
+      model: Task
+      display_order: 按创建时间倒序（最新在前）
+      display_format: "{icon} {taskId}: {title}"
+      icon_logic: "'📄'" (叶子任务始终显示文档图标)
+      show_taskid: true (便于笔记工具追溯)
+      expandable: "accordion" (互斥手风琴模式，只展开一个任务链)
+    visible_when: status==inbox
+    rules:
+      - root_by_default: 默认作为根节点创建任务，用户可通过上级选择器重新指定父任务
+      - highlight_new: 刚创建的任务在列表顶部短暂高亮
+
+  - id: completed_page
+    name: 已完成与归档（统一管理）
+    purpose: 统一显示已完成和已归档的任务，提供不同的操作选项，已完成父任务默认隐藏子节点详情
+    components:
+      - task_list_tabs: 切换查看"已完成"或"已归档"任务
+      - completed_section: 显示已完成任务，可重新激活或归档
+      - archived_section: 显示已归档任务，可恢复或删除
+      - filter_options: 可筛选查看所有任务、仅父任务或仅叶子任务
+      - parent_node_summary: 已完成父任务的子任务会被隐藏，只显示父节点
+      - accordion_completed_chain: 互斥展开显示任务的子节点链（一次只展开一个）
+    interactions:
+      - switch_tab: 在已完成和已归档之间切换显示
+      - archive: 将已完成任务归档，status=completed → status=archived
+      - delete_completed: 删除已完成任务进入垃圾箱，status=completed → status=trashed
+      - reactivate: 重新激活已完成任务，status=completed → status=pending
+      - restore: 恢复已归档任务，status=archived → status=pending
+      - delete_archived: 删除已归档任务，status=archived → status=trashed
+      - view_details: 查看任务完成详情（实际用时、预估对比等）
+      - tap: 切换展开/收起子任务详情（互斥模式）
+      - expand_completed_chain: 展开显示任务的所有子节点（包括嵌套子节点）
+      - collapse_completed_chain: 收起子任务详情，只显示父节点
+    data_bind:
+      model: Task
+      display_order: 按endedAt倒序（最近完成的在前）
+      display_format: "{icon} {taskId}: {title}"
+      icon_logic: "status == 'archived' ? '📦' : (has_children ? '📁' : '📄')"
+      show_taskid: true (便于笔记工具追溯)
+      filter_logic: "status IN ('completed', 'archived') AND (NOT has_children OR all_descendants_completed)"
+      expandable_completed: "accordion" (互斥手风琴模式，只展开一个任务链)
+    visible_when: status IN ('completed', 'archived')
+
+  - id: trash_page
+    name: 垃圾箱
+    purpose: 存放已删除任务
+    interactions:
+      - restore: 改 status=pending
+      - clear_all: 标记伪删除，status=trashed → pseudo_deleted（不可恢复，但保留60天内同步校验数据）
+    data_bind:
+      model: Task
+      visible_when: status==trashed
+      display_format: "{icon} {taskId}: {title}"
+      icon_logic: "has_children ? '📁' : '📄'"
+      show_taskid: true (便于笔记工具追溯)
+
+  - id: date_picker
+    name: 截止日期选择器
+    purpose: 选择任务截止日期（仅未来）
+    display:
+      - today: 当前日期
+      - tomorrow: 当前+1天
+      - this_week: 本周周六
+      - this_month: 月底
+    rules:
+      - cannot_select_past: true
+      - save_on_tap: true
+      - precision: day_end (23:59:59，本地时区)
+      - storage: 选定日期扩展至用户本地时区的23:59:59，随后转换为UTC写入dueAt
+
+data_model:
+  Task:
+    fields:
+      id: int (Isar数据库主键，用户不可见)
+      taskId: string (YYMMDDHHIISS格式，使用用户本地时间生成的可见全局唯一编号)
+      parentId: int? (父任务的数据库id，通过关联查询获取parentTaskId)
+      title: string(<=255)
+      estimateMinutes: int? (任务预估完成时间，分钟，仅在主动开启闹钟时设置)
+      dueAt: datetime(required, 存储为UTC，来源于用户本地日终时间)
+      status: enum(inbox,pending,doing,completed,completed_active,archived,trashed,pseudo_deleted)
+      tags: list[string]
+      createdAt: datetime (以UTC存储)
+      startedAt: datetime? (任务开始执行的UTC时间)
+      endedAt: datetime? (任务完成时的UTC时间)
+      updatedAt: datetime (以UTC存储，记录最近一次持久化变更)
+      actualMinutes: int? (实际使用时间，分钟，仅在结束时计算)
+    rules:
+      - visible: status in [pending,doing]
+      - dueAt precision: day_end (本地23:59:59，存储为UTC)
+      - utc_storage: 所有时间戳字段（createdAt、dueAt、startedAt、endedAt、updatedAt）统一使用UTC存储
+      - pseudo_deleted_visibility: status=pseudo_deleted 的记录仅用于跨设备同步比对，任何客户端界面及导出数据均不可见
+      - pseudo_deleted_retention: status=pseudo_deleted 且 updatedAt 超过60天的记录，在后端或本地保养任务中自动物理删除
+      - wasted_tag_usage: "wasted"标签仅允许在结束计时对话框中添加，不允许在常规任务编辑时主动选择
+      - user_facing_id: taskId 是用户可见的唯一标识，id仅供数据库内部使用
+      - sync_identity: 导入/导出及多设备同步以taskId为匹配键，禁止使用本地自增id对齐记录
+      - taskId_immutable: taskId一旦创建不可修改，确保历史可追溯性
+      - parent_relationship: 通过parentId关联查询获取父任务的taskId，无需冗余存储
+      - estimate_logic: estimateMinutes仅在主动开启闹钟时设置，帮助识别任务评估能力缺失
+      - actual_time_tracking: 结束时自动计算actualMinutes = (endedAt - startedAt)，为预估准确性分析提供依据
+      - inbox_context_only: status=inbox时只能设置context标签，不允许priority标签
+      - has_children: 计算字段，判断是否存在活跃子任务（子任务状态为pending/doing）
+
+
+status_flow:
+  - from: inbox
+    to: pending
+    trigger: 用户"加入任务"，继承原taskId编号
+  - from: pending
+    to: doing
+    trigger: 点击任务进入计时
+  - from: doing
+    to: completed_active
+    trigger: 子任务完成计时（自动进入可编辑完成状态，留在任务列表）
+  - from: doing
+    to: completed_active
+    trigger: 手工点击完成（父任务所有子任务完成后可手工完成）
+  - from: completed
+    to: pending
+    trigger: 用户重新激活任务，放回任务列表继续工作
+  - from: completed
+    to: archived
+    trigger: 用户选择归档已完成任务
+  - from: completed
+    to: trashed
+    trigger: 用户删除已完成任务
+  - from: any
+    to: trashed
+    trigger: 删除任务
+  - from: trashed
+    to: pseudo_deleted
+    trigger: 清空垃圾箱（标记为伪删除，仅用于同步校验）
+  - from: pseudo_deleted
+    to: deleted
+    trigger: 自动清理（updatedAt 超过60天的伪删除记录被物理移除）
+
+logic_rules:
+  global_task_numbering:
+    - format: YYMMDDHHIISS (年月日时分秒各2位，共12位)
+    - timezone_basis: 生成编号时使用用户当前本地时区
+    - uniqueness: taskId全局唯一，一旦分配不可修改
+    - anti_collision: 创建时检查全局编号唯一性，如重复则秒+1，直至找到唯一编号
+    - generation: 新建任务或收集箱项目时自动分配，全局共享编号池，无人工干预
+    - retention: 从收集箱转为正式任务时，保留原taskId编号
+    - immutability: taskId创建后不可修改，确保历史可追溯性
+  due_date:
+    - parent_shorten:
+        when: parent.dueAt < child.dueAt
+        action: prompt_and_shorten_children
+    - child_extend:
+        when: child.dueAt > parent.dueAt
+        action: prompt_and_extend_parent
+  parent_task_indicator:
+    - active_children:
+        when: 父任务存在活跃子任务（子任务状态为doing）
+        action: 显示活跃子任务指示器（如角标或特殊颜色边框）
+    - nested_completion:
+        when: 所有子任务完成（包括嵌套子任务）
+        action: 检查父任务是否可以完成（无未完成子任务时）
+    - parent_info_query:
+        method: 通过parentId关联查询父任务的taskId和title
+        performance: 支持懒加载和缓存优化
+    - estimation_insight:
+        pattern: 任务开始后才创建子任务的任务通常无estimateMinutes
+        analysis: 帮助用户识别任务评估能力的缺失和改进空间
+        value: 统计维度揭示用户在任务复杂度认知方面的成长轨迹
+    - time_accuracy_analysis:
+        metrics: estimateMinutes vs actualMinutes对比
+        insights: 识别预估偏差模式（系统性低估/高估）
+        improvement: 为用户提供个性化的时间预估建议
+        patterns: 分析不同类型任务的预估准确性差异
+    - task_icon_logic:
+        has_children: EXISTS(SELECT 1 FROM tasks WHERE parentId = this.id AND status IN ('pending', 'doing'))
+        all_children_completed: NOT EXISTS(SELECT 1 FROM tasks WHERE parentId = this.id AND status NOT IN ('completed', 'completed_active', 'archived', 'trashed', 'pseudo_deleted'))
+        all_children_completed_active: NOT EXISTS(SELECT 1 FROM tasks WHERE parentId = this.id AND status NOT IN ('completed_active', 'archived', 'trashed', 'pseudo_deleted'))
+        icon_selection: "status == 'completed_active' ? '✅' : (has_children ? '📁' : '📄')"
+        performance: 支持索引优化，实时计算
+    - leaf_node_display:
+        filter: 显示叶子任务和待完成父任务（所有子任务已完成的父任务）
+        logic: NOT EXISTS(SELECT 1 FROM tasks WHERE parentId = this.id AND status IN ('pending', 'doing'))
+        parent_completion: 父任务在所有子任务完成后显示在任务列表中
+        benefit: 专注可执行任务和待确认的父任务，减少视觉干扰
+    - parent_chain_expansion:
+        trigger: 点击叶子任务时展开
+        mechanism: 递归查询父任务链，直至根节点
+        display: 缩进显示父任务，体现层级关系
+        collapse: 点击可收起父任务链
+    - accordion_expansion:
+        mode: 互斥手风琴模式，一次只展开一个任务链
+        behavior: 展开新任务链时自动收起之前展开的任务链
+        benefit: 保持界面简洁，专注当前任务上下文
+        implementation: 维护全局展开状态，切换时自动收起其他展开项
+    - conditional_swipe_menu:
+        logic: 有子任务的节点不显示"启动计时"选项
+        reason: 父任务不适合直接计时，应专注于叶子任务的执行
+        implementation: "has_children ? 排除 'start_timer' : 包含 'start_timer'"
+    - contextual_task_menu:
+        completed_active_parent: 已完成所有子任务但仍活跃的父任务显示"编辑"、"子任务"、"完成任务"、"归档"
+        reason: 这些任务可以继续工作，也可以最终归档
+        active_parent: 有未完成子任务的父任务只显示"编辑"、"子任务"、"归档"、"删除"
+        leaf_task: 叶子任务显示完整菜单包括"启动计时"
+        completed_task: 真正已完成的任务显示"重新激活"、"归档"、"删除"（在已完成列表页面）
+    - task_reactivation:
+        mechanism: 从已完成列表重新激活任务，放回任务列表
+        status_change: completed → pending，清除endedAt，保留其他完成数据
+        purpose: 允许用户基于已完成的工作成果继续构建新功能
+    - completed_parent_summarization:
+        logic: 已完成和已归档父任务的叶子节点会被隐藏，只显示父节点本身
+        condition: 所有直接子任务和间接子任务都处于最终状态（completed或archived）
+        benefit: 减少视觉 clutter，突出父任务的完成成果
+        interaction: 点击父节点可展开显示所有子节点详情，手风琴式互斥展开
+        expansion_mechanism: 递归查询所有子孙任务，按完成时间排序显示
+        collapse_behavior: 收起时只显示父节点，保持界面简洁
+    - unified_completion_management:
+        design: 已完成和已归档任务统一在一个页面管理，提供标签页切换
+        completed_tab: 显示可重新激活的任务，可继续编辑或归档
+        archived_tab: 显示已归档的历史任务，可恢复或删除
+        benefit: 简化导航，统一管理完成状态的任务
+    - inbox_limited_operations:
+        available_actions: 仅限"加入任务清单"、"编辑"、"删除"三种操作
+        prohibited_actions: 不允许子任务创建、归档、启动计时等操作
+        reason: 收集箱专注于想法收集和初步筛选，复杂操作应在正式任务清单中进行
+    - deletion_workflow:
+        soft_delete: 从任何页面删除任务都进入垃圾箱（trashed状态）
+        pseudo_delete: 清空垃圾箱时转入伪删除（pseudo_deleted状态），记录仅用于同步冲突检测
+        purge: 伪删除记录updatedAt超过60天即物理删除（deleted状态），无需用户额外操作
+        recovery: 可从垃圾箱恢复任务到pending状态
+        safety: 提供两层保护，防止意外永久删除，同时支持跨设备同步识别
+  cross_column_drag:
+    - today: dueAt=today 23:59:59（按用户本地时区计算，存储为UTC）
+    - tomorrow: dueAt=today+1 23:59:59（按用户本地时区计算，存储为UTC）
+    - later: dueAt=today+2 23:59:59（按用户本地时区计算，存储为UTC）
+
+tags:
+  context: ["@home","@work","@mobile","@city","@country","@world"]
+  priority: ["#urgent","#important","#not_urgent","#not_important"]
+  special:
+    - wasted: 表示时间被无意义耽误（仅在结束计时对话框可用，不允许主动勾选）
+
+interactions_global:
+  - time_basis: 数据库存储统一为UTC；界面交互与提醒基于用户当前本地时区
+  - left_swipe_threshold: 0.6
+  - drag_handle_icon: "⠿"
+  - task_tap_opens: timer_page
+  - no_right_swipe: true
+  - user_identifier: taskId (用户可见的任务编号，不可修改)
+  - internal_identifier: id (数据库主键，用户不可见)
+  - taskId_immutability: taskId一旦创建不可修改，确保唯一性和可追溯性
+  - display_requirement: 所有任务列表都必须显示taskId，便于笔记工具追溯
+  - unified_model: 所有任务（包括收集箱）使用统一的Task模型，通过status区分显示
+  - leaf_only_timing: 只有叶子任务可以启动计时，有子任务的父任务不提供此功能
+  - accordion_expansion_global: 全应用采用手风琴式互斥展开，一次只展开一个任务链（包括活跃任务和已完成任务）
+  - completion_workflow: 子任务完成后自动进入已完成列表，父任务在所有子任务完成后进入活跃完成状态，可继续操作或最终归档
+  - task_reactivation: 已完成的任务可以重新激活，放回任务列表继续工作，支持基于已有成果进行扩展
+  - contextual_menus: 不同类型的任务显示不同的操作菜单，completed_active状态的任务可以继续编辑和添加子任务
+  - unified_completion_management: 已完成和已归档任务统一在一个页面管理，提供标签页切换和一致的交互体验
+  - deletion_safety: 两层删除保护机制，从任何页面删除都先进垃圾箱，清空垃圾箱时才永久删除
+  - main_navigation: 右上角主导航按钮，提供页面切换和全局设置（字体、语言、主题）
+
+ui_rules:
+  color_scheme:
+    today: "#81C784"
+    tomorrow: "#64B5F6"
+    later: "#FFF176"
+  accent: "#455A64"
+  font: "Inter / Noto Sans"
+  task_icons:
+    has_children: "📁" (文件夹图标，有子任务的父任务)
+    no_children: "📄" (文档图标，无子任务的叶子任务)
+    completed_active: "✅" (已完成但仍活跃的父任务)
+    archived: "📦" (已归档的历史任务)
+    default: "📋" (默认图标，兜底情况)
+  navigation:
+    main_button_icon: "⋮" (右上角主导航菜单图标)
+    popup_position: 右上角弹出，从导航按钮下方展开
+    popup_sections:
+      - pages: 页面导航列表
+      - settings: 字体大小、语言、主题设置
+    animation: 平滑淡入淡出动画，时长200ms
+
+non_functional:
+  offline: true
+  performance:
+    render_1000_tasks: <100ms
+  storage_size: <10MB
+  package_size: <40MB
+
+monetization:
+  model: "one_time_purchase"
+  price:
+    us: 2.99
+    cn: 18
+    hk: 23
+  trial_period_days: 14
+  - id: onboarding_seeds
+    name: 首次安装种子数据
+    purpose: 通过预置数据帮助用户理解标签、模板和操作流程
+    components:
+      - seed_tags: 固定标签集合（context、priority、special），用户不可修改
+      - seed_tasks: 示例任务树，涵盖运动、减脂、学习、“使用 GranoFlow” 等场景
+      - seed_templates: 与示例任务对应的模板（如瑜伽训练、跑步、背单词）
+      - seed_inbox_items: 收集箱范例条目，引导用户完成“加入任务清单”流程
+    interactions:
+      - first_run_import: 应用首次启动时从 `assets/seeds/` 目录导入上述数据
+      - tutorial_tasks: 示例任务包含“操作学习”步骤，点击即可标记完成，无需计时
+      - template_auto_suggest: 种子模板在任务输入框中优先展示，帮助用户理解模板功能
+    rules:
+      - tags_immutable: 种子标签写入后不可新增或删除；后续更新通过迁移脚本统一处理
+      - tutorial_no_timer: 教学型任务可直接完成不进入计时页，结束会话对话框需支持“直接完成”选项
+      - seed_versioning: 维护 `assets/seeds/version.json` 作为导入版本，避免重复导入
+      - slug_mapping: 种子任务、模板需携带 slug 字段，导入时以 slug 建立映射后再写入真实 id
+      - locale_variant: `assets/seeds/<locale>/` 存放本地化任务与模板文案；根据系统语言选择导入，缺省或缺少语种时回退到英文
+
+  - id: focus_reflection
+    name: 专注回顾记录
+    purpose: 支持在结束专注时快速点评成果或问题
+    components:
+      - reflection_toggle: 在结束会话对话框展示“记录本次心得”入口
+      - reflection_textfield: 可选文本输入（限制 200 字）描述效率问题或亮点
+      - wasted_quick_toggle: 直接点击“浪费时间”标签视为负面反馈
+    interactions:
+      - submit_reflection: 保存文本到 FocusSession，支持空内容
+      - skip_reflection: 默认不要求填写，避免给用户额外负担
+    rules:
+      - reflection_optional: 默认收起文本框，只在用户点击入口时展开
+      - analytics_opt_in: 记录仅保存在本地，不触发任何分享或同步

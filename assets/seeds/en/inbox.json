@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "slug": "inbox_try_yoga_template",
+      "title": "Plan tomorrow morning's yoga session",
+      "note": "Start from the template to see the preset parent and tags.",
+      "suggestedTemplateSlug": "tmpl_morning_yoga"
+    },
+    {
+      "slug": "inbox_weekly_review",
+      "title": "Block Sunday night for the weekly review",
+      "note": "Promote it into the task list and consider scheduling it as a template.",
+      "suggestedTemplateSlug": "tmpl_weekly_review"
+    },
+    {
+      "slug": "inbox_vocab_boost",
+      "title": "Study business meeting vocabulary",
+      "note": "Pair it with the vocabulary template for a 30-minute sprint.",
+      "suggestedTemplateSlug": "tmpl_vocab_review"
+    },
+    {
+      "slug": "inbox_granostack_feedback",
+      "title": "Capture today's GranoStack feedback",
+      "note": "Write down your favorite feature or something to improve, then archive it.",
+      "suggestedTemplateSlug": "tmpl_granostack_daily"
+    }
+  ]
+}

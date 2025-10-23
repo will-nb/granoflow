@@ -1,0 +1,254 @@
+meta:
+  summary: >
+    Repository layer contracts for GranoFlow. Repositories encapsulate Isar
+    access patterns, hide query details from services, and expose async APIs
+    suitable for Riverpod providers.
+  conventions:
+    async_style: All read methods return Streams when live updates are needed,
+      otherwise Future for one-shot operations.
+    transactions: Write methods run inside Isar write transactions to ensure
+      indexes and aggregates stay consistent.
+  source_of_truth:
+    - documents/architecture/models.yaml
+    - documents/product_requirements.yaml
+    - documents/user_stories.md
+
+repositories:
+  - name: TaskRepository
+    description: Primary entry point for task CRUD, hierarchical mutations, and sectioned queries.
+    depends_on: [Isar]
+    responsibilities:
+      - Persist Task entities with correct timestamps and sort indexes.
+      - Provide sectioned streams for Today/Tomorrow/Later and inbox views.
+      - Maintain parent/child relationships and prevent edits on completed leaves or template-locked parents.
+      - Soft-delete to trash; move pseudo_deleted records to purge queue.
+      - Normalize dueAt values to the selected local date at 23:59:59 before persisting.
+    methods:
+      - name: watchSection
+        params:
+          - section: TaskSection
+        returns: Stream<List<Task>>
+        notes: Applies status + dueAt filters aligned with UI sections.
+      - name: watchTaskTree
+        params:
+          - rootTaskId: int
+        returns: Stream<TaskTree>
+        notes: Emits root with children; used in edit mode when a single root expands.
+      - name: watchInbox
+        returns: Stream<List<Task>>
+        notes: 返回按 createdAt DESC 排序的 inbox 任务列表。
+      - name: watchInboxFiltered
+        params:
+          - contextTag: String?
+          - priorityTag: String?
+        returns: Stream<List<Task>>
+        notes: 服务器端筛选，减少 UI 过滤开销；可基于 watchInbox 扩展。
+      - name: createTask
+        params:
+          - draft: TaskDraft
+        returns: Future<Task>
+        notes: Generates `taskId`, assigns initial sortIndex, captures createdAtUtc/updatedAtUtc.
+      - name: createTaskWithSeed
+        params:
+          - draft: SeedTaskDraft
+        returns: Future<Task>
+        notes: Used during seed import; accepts slug and ensures unique taskId via normal generator.
+      - name: updateTask
+        params:
+          - taskId: int
+          - payload: TaskUpdate
+        returns: Future<void>
+      - name: moveTask
+        params:
+          - taskId: int
+          - targetParentId: int?
+          - targetSection: TaskSection
+          - sortIndex: double
+        returns: Future<void>
+        notes: Handles drag-and-drop results, converting selected calendar day to local 23:59:59 before persisting as UTC.
+      - name: markStatus
+        params:
+          - taskId: int
+          - status: TaskStatus
+        returns: Future<void>
+      - name: archiveTask
+        params:
+          - taskId: int
+        returns: Future<void>
+        notes: Sets status=archived and updates endedAtUtc.
+      - name: softDelete
+        params:
+          - taskId: int
+        returns: Future<void>
+        notes: Moves to trash (status=trashed) and queues for pseudo delete; rejected when templateLockCount > 0.
+      - name: purgeObsolete
+        params:
+          - olderThan: DateTime
+        returns: Future<int>
+        notes: Permanent delete for pseudo_deleted beyond retention window.
+      - name: adjustTemplateLock
+        params:
+          - taskId: int
+          - delta: int
+        returns: Future<void>
+        notes: Internal helper to maintain templateLockCount when templates are created or removed.
+      - name: searchByTitle
+        params:
+          - query: String
+          - status: TaskStatus?
+          - limit: int
+        returns: Future<List<Task>>
+        notes: 为父任务自动补全提供候选，默认筛选 pending/doing 任务。
+
+  - name: FocusSessionRepository
+    description: Manages FocusSession lifecycle, ensuring association with leaf tasks.
+    depends_on: [Isar, TaskRepository]
+    responsibilities:
+      - Start/stop sessions and enforce single active session per task.
+      - Aggregate total minutes per task/day for metrics.
+      - Support quick-subtask transfers with audit trail.
+    methods:
+      - name: startSession
+        params:
+          - taskId: int
+          - estimateMinutes: int?
+          - alarmEnabled: bool
+        returns: Future<FocusSession>
+      - name: endSession
+        params:
+          - sessionId: int
+          - actualMinutes: int
+          - transferToTaskId: int?
+          - reflectionNote: String?
+        returns: Future<void>
+        notes: Validates leaf constraint and flips Task status to completed if requested.
+      - name: watchActiveSession
+        params:
+          - taskId: int
+        returns: Stream<FocusSession?>
+      - name: listRecentSessions
+        params:
+          - taskId: int
+          - limit: int
+        returns: Future<List<FocusSession>>
+      - name: totalMinutesForTask
+        params:
+          - taskId: int
+        returns: Future<int>
+      - name: totalMinutesOverall
+        returns: Future<int>
+
+  - name: TagRepository
+    description: CRUD for tag dictionary plus lookup by kind for filters.
+    depends_on: [Isar]
+    responsibilities:
+      - Seed default context/priority/special tags.
+      - Provide localized labels without hitting localization layer repeatedly.
+    methods:
+      - name: ensureSeeded
+        returns: Future<void>
+      - name: listByKind
+        params:
+          - kind: TagKind
+        returns: Future<List<Tag>>
+      - name: findBySlug
+        params:
+          - slug: String
+        returns: Future<Tag?>
+
+  - name: PreferenceRepository
+    description: Stores UI preferences per device.
+    depends_on: [Isar]
+    responsibilities:
+      - Read/write locale, theme, font scale, and future UX toggles.
+      - Expose streams for reactive UI updates.
+    methods:
+      - name: watchPreferences
+        returns: Stream<Preference>
+      - name: updatePreferences
+        params:
+          - payload: PreferenceUpdate
+        returns: Future<void>
+
+  - name: MetricRepository
+    description: Computes and caches MetricSnapshot used by the home dashboard.
+    depends_on: [Isar, TaskRepository, FocusSessionRepository]
+    responsibilities:
+      - Recompute totals after task/status/session changes.
+      - Serve fast reads to presentation layer without scanning entire task table.
+    methods:
+      - name: recompute
+        params:
+          - reason: MetricRecomputeReason
+        returns: Future<MetricSnapshot>
+        notes: To be called by services/hooks after meaningful mutations.
+      - name: latest
+        returns: Stream<MetricSnapshot?>
+      - name: invalidateCache
+        returns: Future<void>
+
+  - name: TaskTemplateRepository
+    description: Persists task templates and supports suggestion flows.
+    depends_on: [Isar, TaskRepository]
+    responsibilities:
+      - Create/update/delete task templates with parent protection logic.
+      - Provide sorted suggestion lists (recently used, search filtered).
+      - Update lastUsedAtUtc when templates are applied.
+    methods:
+      - name: listRecent
+        params:
+          - limit: int
+        returns: Future<List<TaskTemplate>>
+      - name: search
+        params:
+          - query: String
+          - limit: int
+        returns: Future<List<TaskTemplate>>
+      - name: createTemplate
+        params:
+          - draft: TaskTemplateDraft
+        returns: Future<TaskTemplate>
+        notes: Increments parent templateLockCount when parentTaskId provided.
+      - name: createTemplateWithSeed
+        params:
+          - draft: SeedTemplateDraft
+          - parentId: int?
+        returns: Future<TaskTemplate>
+        notes: Inserts template using slug references resolved during seed import.
+      - name: updateTemplate
+        params:
+          - templateId: int
+          - payload: TaskTemplateUpdate
+        returns: Future<void>
+
+  - name: SeedRepository
+    description: Loads seed data from assets and tracks import version.
+    depends_on: [Isar]
+    responsibilities:
+      - Read JSON assets for tags, tasks, templates, inbox items.
+      - Apply inserts within a transaction, respecting template locks and status rules.
+      - Record executed version to avoid duplicate imports.
+      - Support locale-scoped directories (e.g., `assets/seeds/en/`) with fallback to English.
+    methods:
+      - name: wasImported
+        params:
+          - version: String
+        returns: Future<bool>
+      - name: importSeeds
+        params:
+          - payload: SeedPayload
+        returns: Future<void>
+        notes: Payload contains slugs for tasks/templates; repository resolves and persists via TaskRepository/TaskTemplateRepository helpers.
+      - name: latestVersion
+        returns: Future<String?>
+        notes: Adjusts templateLockCount if parent changes.
+      - name: deleteTemplate
+        params:
+          - templateId: int
+        returns: Future<void>
+        notes: Decrements parent templateLockCount; ensures no active locks remain before parent removal.
+      - name: markUsed
+        params:
+          - templateId: int
+          - usedAt: DateTime
+        returns: Future<void>

@@ -1,0 +1,60 @@
+{
+  "templates": [
+    {
+      "slug": "tmpl_morning_yoga",
+      "title": "Complete a 20-minute morning yoga session",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@home", "#important"],
+      "suggestedEstimateMinutes": 20,
+      "notes": "Light stretching and breathing to start the day energized."
+    },
+    {
+      "slug": "tmpl_interval_run",
+      "title": "Complete four rounds of city interval running",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@city", "#urgent"],
+      "suggestedEstimateMinutes": 35,
+      "notes": "5-minute warm-up, 4x (run 2 min / jog 2 min), 5-minute cool-down."
+    },
+    {
+      "slug": "tmpl_weekly_weight_journal",
+      "title": "Log weekly weight and capture three notes",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@home", "#not_urgent"],
+      "suggestedEstimateMinutes": 10,
+      "notes": "Review nutrition and highlight habits to keep or improve."
+    },
+    {
+      "slug": "tmpl_vocab_review",
+      "title": "Review 30 English words and flag difficult ones",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@mobile", "#important"],
+      "suggestedEstimateMinutes": 25,
+      "notes": "Use flashcards, then list tricky words for a follow-up drill."
+    },
+    {
+      "slug": "tmpl_focus_reading",
+      "title": "Do a 30-minute deep reading session with notes",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@home", "#not_urgent"],
+      "suggestedEstimateMinutes": 30,
+      "notes": "Read a chapter, highlight insights, and summarize key ideas."
+    },
+    {
+      "slug": "tmpl_granostack_daily",
+      "title": "Record three insights from today's GranoStack use",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@work", "#not_important"],
+      "suggestedEstimateMinutes": 15,
+      "notes": "Check sync status, shortcuts, or improvements discovered."
+    },
+    {
+      "slug": "tmpl_weekly_review",
+      "title": "Complete a weekly review and list next week's top three",
+      "parentSlug": "anchor_life_admin",
+      "defaultTags": ["@home", "#important"],
+      "suggestedEstimateMinutes": 25,
+      "notes": "Reflect on wins, capture gratitude, define the next focus items."
+    }
+  ]
+}

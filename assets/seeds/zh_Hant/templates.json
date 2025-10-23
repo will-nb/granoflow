@@ -1,0 +1,60 @@
+{
+  "templates": [
+    {
+      "slug": "tmpl_morning_yoga",
+      "title": "完成 20 分鐘晨間瑜伽練習",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@home", "#important"],
+      "suggestedEstimateMinutes": 20,
+      "notes": "簡單拉伸與呼吸放鬆，幫助你充滿活力地開始一天。"
+    },
+    {
+      "slug": "tmpl_interval_run",
+      "title": "完成 4 輪城市間歇跑訓練",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@city", "#urgent"],
+      "suggestedEstimateMinutes": 35,
+      "notes": "5 分鐘熱身，4 組（快跑 2 分鐘 / 慢跑 2 分鐘），最後 5 分鐘放鬆。"
+    },
+    {
+      "slug": "tmpl_weekly_weight_journal",
+      "title": "記錄本週體重並寫下三條狀態備註",
+      "parentSlug": "anchor_wellness",
+      "defaultTags": ["@home", "#not_urgent"],
+      "suggestedEstimateMinutes": 10,
+      "notes": "回顧飲食狀況，標記想延續與待改善的習慣。"
+    },
+    {
+      "slug": "tmpl_vocab_review",
+      "title": "複習 30 個英語詞彙並標記難點",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@mobile", "#important"],
+      "suggestedEstimateMinutes": 25,
+      "notes": "使用單字卡複習，記錄容易遺忘的詞彙以便後續加強。"
+    },
+    {
+      "slug": "tmpl_focus_reading",
+      "title": "閱讀並整理 30 分鐘深度閱讀重點",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@home", "#not_urgent"],
+      "suggestedEstimateMinutes": 30,
+      "notes": "選擇一本正在閱讀的書籍，做重點批註並總結心得。"
+    },
+    {
+      "slug": "tmpl_granostack_daily",
+      "title": "記錄今日 GranoStack 使用心得三條",
+      "parentSlug": "anchor_learning",
+      "defaultTags": ["@work", "#not_important"],
+      "suggestedEstimateMinutes": 15,
+      "notes": "檢查同步狀態、快捷操作或新的工作流點子。"
+    },
+    {
+      "slug": "tmpl_weekly_review",
+      "title": "完成每週生活回顧並列出下週三項重點",
+      "parentSlug": "anchor_life_admin",
+      "defaultTags": ["@home", "#important"],
+      "suggestedEstimateMinutes": 25,
+      "notes": "回顧進度、寫下感謝，並定義下一週的首要任務。"
+    }
+  ]
+}

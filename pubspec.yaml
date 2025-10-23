@@ -1,0 +1,38 @@
+name: granoflow
+description: Offline-first task and timer manager.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+  collection: ^1.19.0
+  path_provider: ^2.1.2
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  provider: ^6.1.1
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  isar_generator: ^3.1.0+1
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.11
+
+flutter:
+  generate: true
+  uses-material-design: true
+  assets:
+    - assets/seeds/version.json
+    - assets/seeds/tags.json
+    - assets/seeds/en/
+    - assets/seeds/zh_Hans/
+    - assets/seeds/zh_Hant/

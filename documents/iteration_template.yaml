@@ -1,0 +1,67 @@
+meta:
+  version: 1
+  owner: <team/owner>
+  iteration: <YYYY-MM-DD迭代名称>
+
+phases:
+  - name: 规划与需求梳理
+    tasks:
+      - id: PLAN-1
+        description: "更新 product_requirements.yaml 与 user_stories.md，列出新增/修改的页面、组件、交互"
+        status: pending
+      - id: PLAN-2
+        description: "评估现有架构影响，记录新的约束或假设（必要时新增 ADR）"
+        status: pending
+
+  - name: 架构与实现
+    tasks:
+      - id: ARCH-1
+        description: "更新 architecture/*.yaml（models、repositories、services、providers、pages、widgets、routers），保持设计同步"
+        status: pending
+      - id: ARCH-2
+        description: "落地代码改动（feature 分支），更新页面、组件、状态流与路由"
+        status: pending
+      - id: ARCH-3
+        description: "补充/调整 seeds、数据迁移脚本或配置（如需）"
+        status: pending
+
+  - name: 测试与验证
+    tasks:
+      - id: QA-1
+        description: "新增/更新单元、Widget、集成测试；运行 flutter test / flutter analyze"
+        status: pending
+      - id: QA-2
+        description: "手工验证关键路径并记录问题"
+        status: pending
+
+  - name: 文档与交付
+    tasks:
+      - id: DOC-1
+        description: "更新 project_plan.yaml 的任务状态、documents/PROGRESS.md 的里程碑记录"
+        status: pending
+      - id: DOC-2
+        description: "若涉及隐私、IAP、同步等新领域，新增或调整专题文档（privacy_policy.md、monetization.md、sync_strategy.yaml 等）"
+        status: pending
+      - id: DOC-3
+        description: "整理发布说明、变更摘要和 QA 结果，准备 PR/版本标签"
+        status: pending
+
+checklists:
+  code_quality:
+    - flutter analyze
+    - dart format . --line-length 100
+  testing:
+    - flutter test
+    - 手工验证列出场景
+  documentation:
+    - documents/product_requirements.yaml
+    - documents/user_stories.md
+    - documents/architecture/*.yaml
+    - documents/project_plan.yaml
+    - documents/PROGRESS.md
+
+signoff:
+  required_approvals:
+    - architecture: <name/team>
+    - product: <name/team>
+    - qa: <name/team>

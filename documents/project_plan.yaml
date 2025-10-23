@@ -1,0 +1,389 @@
+meta:
+  project: GranoFlow
+  objective: 发布离线优先的任务与计时管理应用，覆盖 Android、iOS 与 macOS
+  references:
+    - documents/product_requirements.yaml
+    - documents/251022-技术规范.yaml
+    - AGENTS.md
+  total_duration_days_estimate: 12
+  last_updated: 2025-10-23
+status_overview:
+  completed_tasks:
+    - id: P1
+      phase: 需求梳理与对齐
+      highlight: 用户故事文档就绪，覆盖基础体验验收标准。
+    - id: A2
+      phase: 架构与基础设施
+      highlight: Flutter 模块骨架与目录结构到位。
+    - id: D1
+      phase: 数据与存储
+      highlight: Isar 核心模型完成，支持任务、标签、模板、会话数据。
+    - id: D2
+      phase: 数据与存储
+      highlight: 仓库层实现完成，支持离线同步钩子。
+    - id: D3
+      phase: 数据与存储
+      highlight: 数据迁移策略成文，覆盖 v1 模式与防护措施。
+    - id: F1
+      phase: 功能开发第一波
+      highlight: AppShell 导航壳上线，桌面/移动布局可切换。
+    - id: F2
+      phase: 功能开发第一波
+      highlight: 任务清单页面具备手风琴、滑动与拖拽操作。
+    - id: F3
+      phase: 功能开发第一波
+      highlight: 计时页面提供任务筛选与模板快捷启动。
+    - id: F4
+      phase: 功能开发第一波
+      highlight: 结束会话对话框支持心得记录与多种结果操作。
+    - id: F5
+      phase: 功能开发第二波
+      highlight: 完成/归档/垃圾箱管理页面提供恢复与清空能力。
+    - id: F6
+      phase: 功能开发第二波
+      highlight: 主导航设置控件支持语言、字体与主题切换。
+    - id: F7
+      phase: 功能开发第二波
+      highlight: MonetizationService 管理试用与订阅状态。
+    - id: F8
+      phase: 功能开发第二波
+      highlight: 收集箱流程完成，覆盖输入、模板建议与标签筛选。
+    - id: R1
+      phase: 发布准备
+      highlight: 多平台签名指引与示例配置可用。
+    - id: R2
+      phase: 发布准备
+      highlight: 上线清单与营销素材模板就绪。
+    - id: R3
+      phase: 发布准备
+      highlight: Go-live 评审完成，风险与行动项明确。
+    - id: G1
+      phase: 扩展能力规划
+      highlight: 隐私政策与用户协议已完成审阅。
+    - id: G2
+      phase: 扩展能力规划
+      highlight: IAP 架构文档与服务实现完成。
+    - id: G3
+      phase: 扩展能力规划
+      highlight: 离线同步策略与接口约束文档就绪。
+  next_focus: []
+phases:
+  - name: 需求梳理与对齐
+    status: completed
+    duration_days_estimate: 1
+    exit_criteria:
+      - >
+        锁定 MVP 范围为完整基础体验：主导航（含设置切换）、收集箱、
+        任务清单、计时、结束会话、完成管理
+      - 在 documents/ 内提交共识术语表与导航流程图
+    tasks:
+      - id: P1
+        description: >-
+          将 product_requirements.yaml 描述的场景转化为用户故事并补充验收标准
+        owners:
+          - 产品
+          - 设计
+        deliverables:
+          - documents/user_stories.md
+        status: completed
+        notes:
+          - "documents/user_stories.md 已提交，覆盖核心场景与验收标准。"
+      - id: P2
+        description: 定义发布 KPI、付费节奏与成功指标
+        owners:
+          - 产品
+        deliverables:
+          - documents/kpi_overview.md
+        status: completed
+        notes:
+          - "documents/kpi_overview.md 已提交，覆盖 KPI、付费节奏与成功指标。"
+  - name: 架构与基础设施
+    status: completed
+    duration_days_estimate: 2
+    exit_criteria:
+      - 完成 Flutter 工作区初始化并锁定技术规范中的依赖
+      - CI 能够阻止 analyzer 与测试失败的分支
+    tasks:
+      - id: A1
+        description: 按 251022-技术规范.yaml 配置 Flutter SDK、FVM 及通用工具链
+        owners:
+          - 工程
+        deliverables:
+          - README 环境搭建章节
+        status: completed
+        notes:
+          - "README.md 已覆盖环境搭建流程与常用命令。"
+      - id: A2
+        description: 搭建项目骨架：lib/core、lib/data、lib/presentation、test 目录
+        owners:
+          - 工程
+        deliverables:
+          - 初始提交，遵循 AGENTS.md 规范
+        status: completed
+        notes:
+          - "Flutter 工程骨架与模块目录已建立，符合计划结构。"
+      - id: A3
+        description: 在 CI 中自动执行 build_runner 代码生成与 flutter analyze
+        owners:
+          - 工程
+        deliverables:
+          - .github/workflows/ci.yaml
+        status: completed
+        notes:
+          - "CI 工作流已创建，覆盖代码生成、analyze 与测试。"
+  - name: 数据与存储
+    status: completed
+    duration_days_estimate: 2
+    exit_criteria:
+      - Isar 模型通过集成测试验证并记录版本号
+      - 未来迁移方案形成文档
+    tasks:
+      - id: D1
+        description: 使用 Isar 注解建模任务、标签、计时会话实体
+        owners:
+          - 工程
+        deliverables:
+          - lib/data/models
+        status: completed
+        notes:
+          - "lib/data/models 下已包含任务、标签、会话、模板等 Isar 模型。"
+      - id: D2
+        description: 实现仓库层与离线数据同步钩子
+        owners:
+          - 工程
+        deliverables:
+          - lib/data/repositories
+        status: completed
+        notes:
+          - "lib/data/repositories 已实现主要仓库与离线同步钩子。"
+      - id: D3
+        description: 记录模式变更与迁移防护措施
+        owners:
+          - 工程
+        deliverables:
+          - documents/storage_migrations.md
+        status: completed
+        notes:
+          - "storage_migrations.md 已说明 v1 模式与迁移流程。"
+  - name: 功能开发第一波
+    status: completed
+    duration_days_estimate: 3
+    exit_criteria:
+      - 收集箱、任务清单、计时器、结束会话流程在三端可用
+      - 关键部件的 Widget 测试覆盖率达到 80%
+    tasks:
+      - id: F1
+        description: 整合导航壳与主菜单交互，接入 Riverpod 路由
+        owners:
+          - 工程
+        deliverables:
+          - lib/presentation/navigation
+        status: completed
+        notes:
+          - "AppShell 导航壳完成，Riverpod 状态驱动桌面/移动双布局。"
+      - id: F2
+        description: 实现手风琴任务清单、滑动菜单与拖放操作
+        owners:
+          - 工程
+        deliverables:
+          - lib/presentation/task_list
+        status: completed
+        notes:
+          - "任务清单页已上线，包含手风琴展开、滑动归档与拖拽排序。"
+      - id: F3
+        description: 交付计时页面，聚合 FocusFlowService 并展示模板快捷入口
+        owners:
+          - 工程
+        deliverables:
+          - lib/presentation/timer
+        status: completed
+        notes:
+          - "计时页面已完成，支持任务筛选、即时计时与模板快捷启动。"
+      - id: F4
+        description: 实现结束会话对话框，支持立即完成、记录心得、标记浪费
+        owners:
+          - 工程
+        deliverables:
+          - lib/presentation/end_session
+        status: completed
+        notes:
+          - "结束会话对话框已提供完成、子任务、批量记录与浪费标记选项。"
+  - name: 功能开发第二波
+    status: in_progress
+    duration_days_estimate: 2
+    exit_criteria:
+      - 完成状态管理、归档与删除保护均通过验证
+      - >
+        多语言切换支持繁体中文与英语，字体大小与暗黑模式在主导航中按
+        product_requirements.yaml 运作
+    tasks:
+      - id: F5
+        description: >-
+          完成统一的完成、归档、垃圾箱管理（接入 TaskService/HierarchyService）
+        owners:
+          - 工程
+        deliverables:
+          - lib/presentation/completion_management
+        status: completed
+        notes:
+          - "完成/归档/垃圾箱页面已落地，支持恢复、归档与清空操作。"
+      - id: F6
+        description: >-
+          在主导航中实现语言、字体大小与主题切换（PreferenceService 驱动）
+        owners:
+          - 工程
+        deliverables:
+          - lib/presentation/navigation/settings_controls
+        status: completed
+        notes:
+          - "设置页已提供语言、字体与主题切换，联动 PreferenceService。"
+      - id: F7
+        description: 串联付费触发与试用逻辑
+        owners:
+          - 工程
+          - 产品
+        deliverables:
+          - lib/core/monetization
+        status: completed
+        notes:
+          - "MonetizationService 建立试用/订阅流程，暴露 Riverpod 状态与操作。"
+      - id: F8
+        description: >-
+          交付收集箱页面：常驻输入、模板建议、标签筛选与手风琴任务管理
+        owners:
+          - 工程
+          - 设计
+        deliverables:
+          - lib/presentation/inbox
+          - documents/architecture/pages.yaml
+          - documents/architecture/widgets.yaml
+          - documents/architecture/providers.yaml
+          - documents/architecture/services.yaml
+        status: completed
+        notes:
+          - "收集箱体验已按照 YAML 规范交付，输入/模板/筛选与手势操作完成。"
+  - name: 测试与加固
+    status: completed
+    duration_days_estimate: 1
+    exit_criteria:
+      - 本地与 CI 均通过 analyzer 与全部测试
+      - 覆盖率 ≥80%，关键路径具备 Widget 测试
+    tasks:
+      - id: T1
+        description: 扩充单元、Widget、集成测试，并完善夹具文档
+        owners:
+          - 工程
+        deliverables:
+          - test/
+          - integration_test/
+          - test/fixtures
+        status: completed
+        notes:
+          - "新增 MonetizationService 单元测试，覆盖付费入口逻辑。"
+      - id: T2
+        description: 执行离线与跨设备探索性测试
+        owners:
+          - QA
+          - 产品
+        deliverables:
+          - documents/test_reports/offline_validation.md
+        status: completed
+        notes:
+          - "离线验证报告已记录核心场景与后续行动项。"
+  - name: 发布准备
+    status: completed
+    duration_days_estimate: 1
+    exit_criteria:
+      - Android、iOS、macOS 构建签名完成
+      - 发布说明与支持材料齐备
+    tasks:
+      - id: R1
+        description: 配置签名文件、应用图标与商店元数据
+        owners:
+          - 工程
+        deliverables:
+          - android/
+          - ios/
+          - macos/
+        status: completed
+        notes:
+          - "各平台签名指引与示例属性文件已就绪，支持发布流程。"
+      - id: R2
+        description: 编写上线清单、营销文案与支持 FAQ
+        owners:
+          - 产品
+          - 客服
+        deliverables:
+          - documents/launch_checklist.md
+        status: completed
+        notes:
+          - "上线清单覆盖技术验证、营销素材与客服预案。"
+      - id: R3
+        description: 召开 go-live 评审，覆盖变现与隐私要求
+        owners:
+          - 产品
+          - 法务
+        deliverables:
+          - documents/go_live_report.md
+        status: completed
+        notes:
+          - "Go-live 评审记录完成，明确风险与后续行动。"
+  - name: 扩展能力规划
+    status: completed
+    duration_days_estimate: 2
+    exit_criteria:
+      - 完成隐私合规与用户协议准备
+      - 明确应用内购买与数据同步的技术路线
+    tasks:
+      - id: G1
+        description: 编写/审阅隐私政策与用户协议，确认存储与数据访问合规
+        owners:
+          - 产品
+          - 法务
+        deliverables:
+          - documents/privacy_policy.md
+          - documents/terms_of_service.md
+        status: completed
+        notes:
+          - "隐私政策与用户协议已成文，涵盖离线存储与订阅条款。"
+      - id: G2
+        description: 设计应用内购买/订阅流程，更新服务与架构文档
+        owners:
+          - 工程
+          - 产品
+        deliverables:
+          - documents/architecture/monetization.md
+          - lib/core/monetization
+        status: completed
+        notes:
+          - "Monetization 架构文档与服务实现已补齐，描述试用/订阅流程。"
+      - id: G3
+        description: 定义离线同步策略与后端接口约束，更新迁移/风控方案
+        owners:
+          - 工程
+        deliverables:
+          - documents/architecture/sync_strategy.yaml
+          - documents/storage_migrations.md
+        status: completed
+        notes:
+          - "离线同步策略与接口约束以 YAML 形式记录，迁移流程已同步。"
+quality_gates:
+  - name: 编码规范
+    reference: AGENTS.md
+    checks:
+      - flutter analyze
+      - dart format . --line-length 100
+  - name: 测试覆盖率
+    reference: AGENTS.md
+    checks:
+      - flutter test --coverage
+      - flutter test integration_test
+  - name: 安全与数据保护
+    reference: documents/251022-技术规范.yaml
+    checks:
+      - 合并前审阅 Isar 迁移说明
+      - 确认仓库未包含敏感产物
+communication_cadence:
+  - 每日跨职能站会同步进度
+  - 每两日向干系人演示最新流程
+  - 上线前两日进行发布就绪评审

@@ -1,0 +1,103 @@
+{
+  "tags": [
+    {
+      "slug": "@home",
+      "kind": "context",
+      "localizations": {
+        "en": "Home",
+        "zh_Hans": "居家",
+        "zh_Hant": "居家"
+      }
+    },
+    {
+      "slug": "@work",
+      "kind": "context",
+      "localizations": {
+        "en": "Work",
+        "zh_Hans": "工作",
+        "zh_Hant": "工作"
+      }
+    },
+    {
+      "slug": "@mobile",
+      "kind": "context",
+      "localizations": {
+        "en": "On the go",
+        "zh_Hans": "移动中",
+        "zh_Hant": "移動中"
+      }
+    },
+    {
+      "slug": "@city",
+      "kind": "context",
+      "localizations": {
+        "en": "In the city",
+        "zh_Hans": "城区",
+        "zh_Hant": "城區"
+      }
+    },
+    {
+      "slug": "@country",
+      "kind": "context",
+      "localizations": {
+        "en": "Out of town",
+        "zh_Hans": "郊外",
+        "zh_Hant": "郊外"
+      }
+    },
+    {
+      "slug": "@world",
+      "kind": "context",
+      "localizations": {
+        "en": "Travel",
+        "zh_Hans": "差旅",
+        "zh_Hant": "差旅"
+      }
+    },
+    {
+      "slug": "#urgent",
+      "kind": "priority",
+      "localizations": {
+        "en": "Urgent",
+        "zh_Hans": "紧急",
+        "zh_Hant": "緊急"
+      }
+    },
+    {
+      "slug": "#important",
+      "kind": "priority",
+      "localizations": {
+        "en": "Important",
+        "zh_Hans": "重要",
+        "zh_Hant": "重要"
+      }
+    },
+    {
+      "slug": "#not_urgent",
+      "kind": "priority",
+      "localizations": {
+        "en": "Not urgent",
+        "zh_Hans": "不紧急",
+        "zh_Hant": "不緊急"
+      }
+    },
+    {
+      "slug": "#not_important",
+      "kind": "priority",
+      "localizations": {
+        "en": "Not important",
+        "zh_Hans": "不重要",
+        "zh_Hant": "不重要"
+      }
+    },
+    {
+      "slug": "wasted",
+      "kind": "special",
+      "localizations": {
+        "en": "Wasted time",
+        "zh_Hans": "浪费时间",
+        "zh_Hant": "浪費時間"
+      }
+    }
+  ]
+}

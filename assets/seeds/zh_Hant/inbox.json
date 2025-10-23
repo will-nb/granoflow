@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "slug": "inbox_try_yoga_template",
+      "title": "安排明早的瑜伽練習",
+      "note": "從模板開始，看看自動填入的父任務與標籤。",
+      "suggestedTemplateSlug": "tmpl_morning_yoga"
+    },
+    {
+      "slug": "inbox_weekly_review",
+      "title": "週日晚預留時間做每週回顧",
+      "note": "把它加入任務清單，並考慮設定為每週重覆的模板。",
+      "suggestedTemplateSlug": "tmpl_weekly_review"
+    },
+    {
+      "slug": "inbox_vocab_boost",
+      "title": "複習商務會議常用詞彙",
+      "note": "搭配詞彙模板，安排 30 分鐘的集中特訓。",
+      "suggestedTemplateSlug": "tmpl_vocab_review"
+    },
+    {
+      "slug": "inbox_granostack_feedback",
+      "title": "紀錄今天使用 GranoStack 的心得",
+      "note": "寫下你最喜歡的功能或想改進的地方，之後可以歸檔。",
+      "suggestedTemplateSlug": "tmpl_granostack_daily"
+    }
+  ]
+}

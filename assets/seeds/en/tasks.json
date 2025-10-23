@@ -1,0 +1,142 @@
+{
+  "tasks": [
+    {
+      "slug": "tutorial_granoflow",
+      "title": "Complete the GranoFlow onboarding checklist",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": []
+    },
+    {
+      "slug": "tutorial_granoflow_home",
+      "title": "Review the four dashboard metrics on Home",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_open_inbox",
+      "title": "Open the inbox and capture a new task",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_promote_inbox",
+      "title": "Promote an inbox item into the list with a due date",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_enter_edit_mode",
+      "title": "Switch to edit mode to inspect the hierarchy",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_drag_task",
+      "title": "Drag a task in edit mode to reorder it",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_apply_template",
+      "title": "Apply a template from the task input field",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_start_focus",
+      "title": "Start a focus timer from the task list",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_end_session",
+      "title": "End the focus session and choose immediate completion",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+    {
+      "slug": "tutorial_review_completed",
+      "title": "Open the completed view to inspect task states",
+      "parentSlug": "tutorial_granoflow",
+      "allowInstantComplete": true
+    },
+
+    {
+      "slug": "anchor_wellness",
+      "title": "Maintain the health and fitness list",
+      "status": "pending",
+      "tags": ["@home"]
+    },
+    {
+      "slug": "task_sample_yoga_intro",
+      "title": "Complete a 20-minute morning yoga session",
+      "parentSlug": "anchor_wellness",
+      "status": "pending",
+      "tags": ["@home", "#important"]
+    },
+    {
+      "slug": "task_sample_run_interval",
+      "title": "Complete four rounds of city interval running",
+      "parentSlug": "anchor_wellness",
+      "status": "pending",
+      "tags": ["@city", "#urgent"]
+    },
+    {
+      "slug": "task_sample_weight_reflection",
+      "title": "Log this week's weight and jot three status notes",
+      "parentSlug": "anchor_wellness",
+      "status": "pending",
+      "tags": ["@home", "#not_urgent"]
+    },
+
+    {
+      "slug": "anchor_learning",
+      "title": "Maintain the learning and growth list",
+      "status": "pending",
+      "tags": ["@home"]
+    },
+    {
+      "slug": "task_sample_vocab_review",
+      "title": "Review 30 English words and flag difficult ones",
+      "parentSlug": "anchor_learning",
+      "status": "pending",
+      "tags": ["@mobile", "#important"]
+    },
+    {
+      "slug": "task_sample_reading_session",
+      "title": "Read one chapter of Atomic Habits and capture key points",
+      "parentSlug": "anchor_learning",
+      "status": "pending",
+      "tags": ["@home", "#not_urgent"]
+    },
+    {
+      "slug": "task_sample_granostack_review",
+      "title": "Review GranoStack tips and record three insights",
+      "parentSlug": "anchor_learning",
+      "status": "pending",
+      "tags": ["@work", "#not_urgent"]
+    },
+
+    {
+      "slug": "anchor_life_admin",
+      "title": "Maintain the life administration list",
+      "status": "pending",
+      "tags": ["@home"]
+    },
+    {
+      "slug": "task_sample_weekly_review",
+      "title": "Complete the weekly review and list next week's top three",
+      "parentSlug": "anchor_life_admin",
+      "status": "pending",
+      "tags": ["@home", "#important"]
+    },
+    {
+      "slug": "task_sample_finance_check",
+      "title": "Reconcile this month's spending and check budget variance",
+      "parentSlug": "anchor_life_admin",
+      "status": "pending",
+      "tags": ["@home", "#urgent"]
+    }
+  ]
+}
