@@ -92,6 +92,7 @@ $RECYCLE.BIN/
 *.bak
 *.backup
 .cache/
+temp_file
 
 # Logs
 *.log
