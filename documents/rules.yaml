@@ -1,13 +1,264 @@
-rules:
-  - id: R1
-    description: >
-      Do not modify or create files unless the user explicitly requests it.
-  - id: R2
-    description: >
-      Dart source files may only be edited when the relevant YAML specifications
-      have been updated; every Dart change must align with the documented YAML rules.
-  - id: R3
-    description: >
-      Avoid hard-coded literals. Use l10n entries for user-facing text, theming
-      variables from lib/theme, and define environment variables in the config
-      module.
+# Cursor AI Rules for GranoFlow Project
+# Consolidated from .cursor/rules/ directory
+
+# =============================================================================
+# 00-global.mdc - Global Rules
+# =============================================================================
+
+- 变更最小：只修 blocker + 当前里程碑必需。
+- 必须规格先行：每个变更先提交 `documents/` 下的相关文档。
+- CI 门禁：必须通过 `flutter analyze` 与 `flutter test`（具体细则由 `analysis_options.yaml` 保障）。
+- 页面/Widget 禁止在 `build` 触发副作用（网络/存储/导航）。
+- 文案本地化：禁止硬编码用户可见字符串，统一使用 l10n（`flutter gen-l10n`）。
+- 新代码必须附最小测试（happy + error）。
+- 受保护路径见文档中的配置说明。
+
+### 单行忽略（lint）规范
+- 仅在无法通过合理重构或上下文检查满足 lint 时，允许"单行忽略"。
+- 必须在同一行追加中文理由，说明为何可安全忽略、已做何防护。
+- 示例：
+  ```dart
+  // ignore: use_build_context_synchronously // 理由：已在上一行 mounted 检查，避免跨异步gap使用context
+  ```
+
+### 规格模板与路径
+- 变更需先提交前端规格：使用 `documents/` 目录下的相应文档格式。
+- 路径规范：`documents/spec/YYMMDD-<module>/` 目录结构。
+
+## YAML 文档约束系统
+- `documents/` 下的文档是代码的"设计契约"（Design Contract），用于锁定架构版本，防止 AI 修改偏离既定设计
+- **修改代码前必读**：修改任何被文档描述的文件前，必须先读取对应的文档理解设计意图
+- **契约优先原则**：如果代码实现和文档描述不一致，优先以文档为准；如果文档描述不合理，应停下来讨论而非自行修改
+- **同步更新要求**：重构后必须同步更新对应的文档；如果文件被拆分/删除，对应的文档也要更新/删除
+- **文档类型**：
+  - `documents/architecture/*.yaml` - 架构设计契约
+  - `documents/config.yaml` - 配置设计契约
+  - `documents/theme.yaml` - 主题设计契约
+
+## 版本控制策略
+- 如果没有明确的rules要求`git commit`，那就不进行 `git add`/`git commit`。
+- 如果没有明确的rules要求`git push`，那就不进行 `git push`，大多数`git commit`都是不需要立刻`git push`的。
+- 如果本次修改的只有markdown文件或mdc文件，则不要自动`git commit`,除非用户主动要求或与其他rules相抵触。
+
+## flutter analyze（静态分析）报错和flutter test报错
+  - 打开并读取报错的文件，阅读整个代码文件；
+  - 分析原因，用打比方举例子的方式进行尽可能通俗的解释。
+  - 提出修改意见，包括1:要修改的文件；2.行号；3.原内容；4.修改内容
+  - 如果修改量不大，直接修改，如果要改超过三个文件，停下来等待我确认后再继续
+  - 修改完成后，判断当前修改用单元测试验证合适还是集成测试合适，看看当前测试是否需要修改，然后执行测试。
+  - 我说的集成测试是指项目根目录下的integration_test，直接用macos测试这样就不用连接手机了
+  - 测试全部通过后进行flutter analyze进行测试，同样要保证所有failed和error都必须解决，不可绕过递交
+  - 所有warning和info请自行判断是按提示解决还是直接屏蔽
+  - 通过后git commit提交，但是不要push
+  - 到此修改完成
+
+### 界面与交互规则
+- 未经用户确认，助手不得修改UI表现。
+- 助手在编写任何代码时，如果发现设计存在潜在优化空间（包括 UI 表现、API 契约、交互流程），必须先提出 改进建议，明确说明：
+  - 参考的大厂或官方规范；
+  - 变更的预期收益；
+  - 潜在的影响范围。
+- 如果改动没有带来 明显且可度量的收益，应避免调整，保持现状。
+
+### 防止编译错误
+如果写代码时遇到flutter analyze或flutter run报错，应该要阅读相关的g.dart文件，精确调用当前版本。这种库经常更新，你所知的版本未必适合我们。
+
+# =============================================================================
+# 10-style-dart.mdc - Dart Style Rules
+# =============================================================================
+
+- 命名：类 UpperCamelCase，成员 lowerCamelCase，文件 snake_case。
+- 控制流：早返回；空安全优先；避免深嵌套。
+- 日志：使用适当的日志记录方式，避免 print（测试目录除外）。
+- 静态检查零容忍（analyzer 无 info/warn）：
+  - no_leading_underscores_for_local_identifiers：本地变量、函数名不以下划线开头（以下划线表示库私有，不适用于局部标识符）。
+  - unintended_html_in_doc_comment：文档注释内避免使用尖括号 <...>；若需展示占位符，使用 `{name}` 或 `[...]`。
+  - unused_element / dead_code：删除未使用的方法、变量、导入；或在更合适位置使用。
+  - asset_does_not_exist：pubspec 中不声明不存在的资产或目录；可选资产以运行时 try/catch 读取，不入 pubspec。
+  - prefer_const_* / unnecessary_*：在不影响可读性的前提下，遵循 lints 提示优化。
+
+## 资产与可选资源声明
+- 仅将"确定存在、版本受控"的资产写入 pubspec.yaml；可选/运行时生成的文件（如种子数据）不得写入 pubspec 以免打包失败。
+- 运行时可选加载必须使用 try/catch 包裹，缺失时静默降级（不抛异常、不打印错误）。
+
+## 文档注释与代码注释
+- 避免在 dartdoc 中使用 `<tag>` 形式；统一使用 `{tag}` 或 `\\<tag\\>` 转义。
+- 注释描述"为什么"，避免解释"如何"。
+
+## 命名与可读性
+- 局部变量、局部函数名不得以下划线 `_` 开头；库私有成员才使用 `_` 前缀。
+- 使用完整单词，避免晦涩缩写；对评分/排序等逻辑使用含义明确的函数名（如 `scoreFor`, `top3For`）。
+
+## 目录：
+  - `lib/core/` 应用配置、共享工具、主题、状态管理
+  - `lib/data/` 数据模型、仓库、服务
+  - `lib/presentation/` UI 组件、页面、路由
+- 分析/格式：具体 lint 由 `analysis_options.yaml` 统一保障，此处不赘述具体条目。
+- 提交信息：`type(scope): subject`。
+
+# =============================================================================
+# 11-development-workflow.mdc - Development Workflow
+# =============================================================================
+
+## 功能开发流程
+
+### 1. 分支准备
+```bash
+# 创建功能分支
+git switch -c feature/YYMMDD-<short-description>
+```
+
+### 2. 测试先行（Red → Green）
+- 在 `test/unit/` 编写最小失败用例
+- 运行测试确保先红：
+  ```bash
+  flutter test test/unit -r compact
+  ```
+
+### 3. 最小实现
+- 实现功能使测试通过
+- 遵循代码规范和架构原则
+- 本地验证：
+  ```bash
+  flutter analyze
+  flutter test test/unit -r compact
+  ```
+
+### 4. 提交规范
+```bash
+# 单次提交格式
+git commit -m "feat(scope): 简短描述功能
+
+- 详细说明变更内容
+- 涉及的文件或模块
+- 相关测试用例"
+```
+
+## Bug 修复流程
+
+### 1. 分支准备
+```bash
+# 创建修复分支
+git switch -c fix/YYMMDD-<short-description>
+```
+
+### 2. 编写复现用例（先红）
+- 在 `test/unit/` 编写能稳定复现问题的测试
+- 确保测试失败（红色）
+- 如果测试通过，说明复现用例不够准确，继续完善
+
+### 3. 最小修复
+- 以最小变更修复问题
+- 避免"顺便优化"或扩大影响范围
+- 遵循代码规范
+
+### 4. 防回归测试
+- 保留复现用例作为回归测试
+- 补充边界条件和异常场景测试
+- 确保覆盖问题根因
+
+### 5. 提交规范
+```bash
+# 提交格式
+git commit -m "fix(scope): 简短描述问题
+
+问题现象：
+- 具体的错误表现
+
+根本原因：
+- 问题的根本原因分析
+
+修复方案：
+- 采取的修复措施
+- 影响范围评估
+
+测试：
+- 复现用例路径
+- 回归测试覆盖"
+```
+
+## 质量门禁
+- ✅ `flutter analyze` 无错误
+- ✅ `flutter test test/unit` 通过
+- ✅ 新增代码有对应测试
+- ✅ 复现用例从失败变为通过（修复场景）
+
+## 停机-回顾触发器
+以下情况立即停止并复盘：
+- 连续 3 次同一测试失败
+- 连续 3 次 `flutter analyze` 不通过
+- 实现与预期明显偏离
+- 修复与预期不符
+
+固定动作：
+```bash
+# 创建 checkpoint
+git add -A && git commit -m "chore: checkpoint for review"
+```
+
+## 注意事项
+- 详细的 commit message 即为最好的文档
+- 按实际需要补充注释说明复杂逻辑
+
+# =============================================================================
+# 17-ci-cd-workflow.mdc - CI/CD Workflow
+# =============================================================================
+
+## 代码质量门禁
+- 必须通过 `flutter analyze` 与 `flutter test`
+- 必须通过 `dart format` 格式化检查
+- 禁止遗留调试代码（print、debugPrint、TODO、FIXME）
+
+## Pre-commit 钩子
+- 运行 `flutter analyze`
+- 扫描 `lib/` 目录中的调试代码
+- 检查高优先级 TODO/FIXME
+
+## Pre-push 钩子
+- 验证构建（Android APK + iOS 无签名）
+- 运行单元测试和组件测试
+- 最终扫描遗留调试代码
+
+## 构建验证
+- Android: `flutter build apk --debug`
+- iOS: `flutter build ios --no-codesign`
+- Web: `flutter build web`
+
+## 测试策略
+- 单元测试：`flutter test test/unit`
+- 组件测试：`flutter test test/presentation`
+- 集成测试：`flutter test integration_test -d macos`
+
+# =============================================================================
+# 50-testing.mdc - Testing Rules
+# =============================================================================
+
+- 分层：unit（纯 Dart）、widget（关键组件）、integration（端到端）。
+- 远程依赖：全部 mock；单元测试不连接真实服务。
+- 遵循 `analysis_options.yaml` 的分析规则。
+
+## 常用测试命令
+```bash
+flutter test test/unit -r compact
+flutter test test/presentation -r compact
+flutter test integration_test -d macos
+```
+
+## 单元测试调试流程
+**⚠️ 说明：此规则仅适用于单元测试调试。不连接真实服务器/设备/第三方。**
+
+### 执行步骤
+1) 标记上下文：输出"开始调试单元测试问题"。
+2) 收集信息：从对话与上下文提取测试文件与报错；信息不足则执行测试获取详细信息。
+3) 分析：列出报错文件与行上下文、可能原因（代码缺陷/测试用例/fixture）。
+4) 解释：用通俗语言说明错误本质与知识点。
+5) 决策：修代码/改测试/移除不必要测试（三选一，给出理由）。
+6) 修改并重跑：
+   ```bash
+   flutter analyze && flutter test {测试文件名} -r compact -v
+   ```
+7) 重试上限：同一测试文件最多 3 次；若无进展，停止该文件调试并恢复到最接近正确的状态。
+8) 小结：说明问题根因、有效修改与当前结果。
+
+## 失败阈值与停机-回顾
+- 同一测试用例连续失败 ≥ 3 次：触发停机-回顾流程，先 checkpoint 再复盘与回退/再立项。
