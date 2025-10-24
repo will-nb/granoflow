@@ -1,0 +1,30 @@
+# 10-style-dart.mdc - Dart Style Rules
+
+- 命名：类 UpperCamelCase，成员 lowerCamelCase，文件 snake_case。
+- 控制流：早返回；空安全优先；避免深嵌套。
+- 日志：使用适当的日志记录方式，避免 print（测试目录除外）。
+- 静态检查零容忍（analyzer 无 info/warn）：
+  - no_leading_underscores_for_local_identifiers：本地变量、函数名不以下划线开头（以下划线表示库私有，不适用于局部标识符）。
+  - unintended_html_in_doc_comment：文档注释内避免使用尖括号 <...>；若需展示占位符，使用 `{name}` 或 `[...]`。
+  - unused_element / dead_code：删除未使用的方法、变量、导入；或在更合适位置使用。
+  - asset_does_not_exist：pubspec 中不声明不存在的资产或目录；可选资产以运行时 try/catch 读取，不入 pubspec。
+  - prefer_const_* / unnecessary_*：在不影响可读性的前提下，遵循 lints 提示优化。
+
+## 资产与可选资源声明
+- 仅将"确定存在、版本受控"的资产写入 pubspec.yaml；可选/运行时生成的文件（如种子数据）不得写入 pubspec 以免打包失败。
+- 运行时可选加载必须使用 try/catch 包裹，缺失时静默降级（不抛异常、不打印错误）。
+
+## 文档注释与代码注释
+- 避免在 dartdoc 中使用 `<tag>` 形式；统一使用 `{tag}` 或 `\\<tag\\>` 转义。
+- 注释描述"为什么"，避免解释"如何"。
+
+## 命名与可读性
+- 局部变量、局部函数名不得以下划线 `_` 开头；库私有成员才使用 `_` 前缀。
+- 使用完整单词，避免晦涩缩写；对评分/排序等逻辑使用含义明确的函数名（如 `scoreFor`, `top3For`）。
+
+## 目录：
+  - `lib/core/` 应用配置、共享工具、主题、状态管理
+  - `lib/data/` 数据模型、仓库、服务
+  - `lib/presentation/` UI 组件、页面、路由
+- 分析/格式：具体 lint 由 `analysis_options.yaml` 统一保障，此处不赘述具体条目。
+- 提交信息：`type(scope): subject`。

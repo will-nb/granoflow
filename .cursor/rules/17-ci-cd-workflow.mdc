@@ -1,0 +1,26 @@
+# 17-ci-cd-workflow.mdc - CI/CD Workflow
+
+## 代码质量门禁
+- 必须通过 `flutter analyze` 与 `flutter test`
+- 必须通过 `dart format` 格式化检查
+- 禁止遗留调试代码（print、debugPrint、TODO、FIXME）
+
+## Pre-commit 钩子
+- 运行 `flutter analyze`
+- 扫描 `lib/` 目录中的调试代码
+- 检查高优先级 TODO/FIXME
+
+## Pre-push 钩子
+- 验证构建（Android APK + iOS 无签名）
+- 运行单元测试和组件测试
+- 最终扫描遗留调试代码
+
+## 构建验证
+- Android: `flutter build apk --debug`
+- iOS: `flutter build ios --no-codesign`
+- Web: `flutter build web`
+
+## 测试策略
+- 单元测试：`flutter test test/unit`
+- 组件测试：`flutter test test/presentation`
+- 集成测试：`flutter test integration_test -d macos`

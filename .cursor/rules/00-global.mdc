@@ -1,4 +1,4 @@
-# 00-global (GranoFlow)
+# 00-global.mdc - Global Rules
 
 - 变更最小：只修 blocker + 当前里程碑必需。
 - 必须规格先行：每个变更先提交 `documents/` 下的相关文档。

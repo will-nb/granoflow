@@ -1,0 +1,101 @@
+# 11-development-workflow.mdc - Development Workflow
+
+## 功能开发流程
+
+### 1. 分支准备
+```bash
+# 创建功能分支
+git switch -c feature/YYMMDD-<short-description>
+```
+
+### 2. 测试先行（Red → Green）
+- 在 `test/unit/` 编写最小失败用例
+- 运行测试确保先红：
+  ```bash
+  flutter test test/unit -r compact
+  ```
+
+### 3. 最小实现
+- 实现功能使测试通过
+- 遵循代码规范和架构原则
+- 本地验证：
+  ```bash
+  flutter analyze
+  flutter test test/unit -r compact
+  ```
+
+### 4. 提交规范
+```bash
+# 单次提交格式
+git commit -m "feat(scope): 简短描述功能
+
+- 详细说明变更内容
+- 涉及的文件或模块
+- 相关测试用例"
+```
+
+## Bug 修复流程
+
+### 1. 分支准备
+```bash
+# 创建修复分支
+git switch -c fix/YYMMDD-<short-description>
+```
+
+### 2. 编写复现用例（先红）
+- 在 `test/unit/` 编写能稳定复现问题的测试
+- 确保测试失败（红色）
+- 如果测试通过，说明复现用例不够准确，继续完善
+
+### 3. 最小修复
+- 以最小变更修复问题
+- 避免"顺便优化"或扩大影响范围
+- 遵循代码规范
+
+### 4. 防回归测试
+- 保留复现用例作为回归测试
+- 补充边界条件和异常场景测试
+- 确保覆盖问题根因
+
+### 5. 提交规范
+```bash
+# 提交格式
+git commit -m "fix(scope): 简短描述问题
+
+问题现象：
+- 具体的错误表现
+
+根本原因：
+- 问题的根本原因分析
+
+修复方案：
+- 采取的修复措施
+- 影响范围评估
+
+测试：
+- 复现用例路径
+- 回归测试覆盖"
+```
+
+## 质量门禁
+- ✅ `flutter analyze` 无错误
+- ✅ `flutter test test/unit` 通过
+- ✅ 新增代码有对应测试
+- ✅ 复现用例从失败变为通过（修复场景）
+
+## 停机-回顾触发器
+以下情况立即停止并复盘：
+- 连续 3 次同一测试失败
+- 连续 3 次 `flutter analyze` 不通过
+- 实现与预期明显偏离
+- 修复与预期不符
+
+固定动作：
+```bash
+# 创建 checkpoint
+git add -A && git commit -m "chore: checkpoint for review"
+```
+
+## 注意事项
+- 详细的 commit message 即为最好的文档
+- 按实际需要补充注释说明复杂逻辑
