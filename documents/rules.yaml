@@ -37,6 +37,7 @@
 
 ## 版本控制策略
 - **时间触发条件**：比对和上次递交是否超过半小时，超过半小时则提交，否则只用pre-commit验证代码质量。
+- **规则同步要求**：当rules发生修改时，`.cursor/rules`和`documents/rules.yaml`应该保持同步。
 - 如果没有明确的rules要求`git push`，那就不进行 `git push`，大多数`git commit`都是不需要立刻`git push`的。
 - 如果本次修改的只有markdown文件或mdc文件，则不要自动`git commit`,除非用户主动要求或与其他rules相抵触。
 
