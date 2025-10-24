@@ -4,7 +4,7 @@ meta:
     Colors derived from Material Theme Builder using seed #2B5797 to align with
     brand guidelines and cards_flutter palette.
   seed_color: "#2B5797"
-  last_updated: 2025-10-23
+  last_updated: 2025-01-27
   maintainers:
     - design
     - engineering
@@ -35,6 +35,7 @@ palette:
   outline: "#72777F"
   success: "#2E7D32"
   warning: "#F57F17"
+  info: "#1565C0"
 
 typography:
   font_family: "Inter"

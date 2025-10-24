@@ -32,8 +32,8 @@ class SettingsControlsPage extends ConsumerWidget {
 
     final localeOptions = <String, String>{
       'en': l10n.settingsLanguageEnglish,
-      'zh_Hans': l10n.settingsLanguageSimplifiedChinese,
-      'zh_Hant': l10n.settingsLanguageTraditionalChinese,
+      'zh_CN': l10n.settingsLanguageSimplifiedChinese,
+      'zh_HK': l10n.settingsLanguageTraditionalChinese,
     };
 
     const fontOptions = <double>[0.875, 1.0, 1.125, 1.25];
@@ -44,118 +44,119 @@ class SettingsControlsPage extends ConsumerWidget {
       ThemeMode.dark: l10n.settingsThemeDark,
     };
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.navSettingsSectionTitle)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _SettingCard(
-            title: l10n.settingsLanguageLabel,
-            child: DropdownMenu<String>(
-              initialSelection: locale.languageCode,
-              enabled: !isLoading,
-              onSelected: (value) async {
-                if (value != null && value != locale.languageCode) {
-                  await actionsNotifier.updateLocale(value);
-                }
-              },
-              dropdownMenuEntries: localeOptions.entries
-                  .map(
-                    (entry) => DropdownMenuEntry<String>(
-                      value: entry.key,
-                      label: entry.value,
-                    ),
-                  )
-                  .toList(),
-            ),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _SettingCard(
+          title: l10n.settingsLanguageLabel,
+          child: DropdownMenu<String>(
+            initialSelection: locale.languageCode + (locale.countryCode != null ? '_${locale.countryCode}' : ''),
+            enabled: !isLoading,
+            onSelected: (value) async {
+              final currentLocale = locale.languageCode + (locale.countryCode != null ? '_${locale.countryCode}' : '');
+              print('Language selection: $value, current: $currentLocale');
+              if (value != null && value != currentLocale) {
+                print('Updating locale to: $value');
+                await actionsNotifier.updateLocale(value);
+              } else {
+                print('No locale change needed');
+              }
+            },
+            dropdownMenuEntries: localeOptions.entries
+                .map(
+                  (entry) => DropdownMenuEntry<String>(
+                    value: entry.key,
+                    label: entry.value,
+                  ),
+                )
+                .toList(),
           ),
-          const SizedBox(height: 16),
-          _SettingCard(
-            title: l10n.settingsFontSizeLabel,
-            child: SegmentedButton<double>(
-              segments: fontOptions
-                  .map(
-                    (value) => ButtonSegment<double>(
-                      value: value,
-                      label: Text(value.toStringAsFixed(2)),
-                    ),
-                  )
-                  .toList(),
-              selected: <double>{fontScale},
-              onSelectionChanged: isLoading
-                  ? null
-                  : (selection) async {
-                      final selected = selection.first;
-                      if (selected != fontScale) {
-                        await actionsNotifier.updateFontScale(selected);
-                      }
-                    },
-            ),
-          ),
-          const SizedBox(height: 16),
-          _SettingCard(
-            title: l10n.settingsThemeLabel,
-            child: SegmentedButton<ThemeMode>(
-              segments: themeOptions.entries
-                  .map(
-                    (entry) => ButtonSegment<ThemeMode>(
-                      value: entry.key,
-                      label: Text(entry.value),
-                    ),
-                  )
-                  .toList(),
-              selected: <ThemeMode>{themeMode},
-              onSelectionChanged: isLoading
-                  ? null
-                  : (selection) async {
-                      final selected = selection.first;
-                      if (selected != themeMode) {
-                        await actionsNotifier.updateTheme(selected);
-                      }
-                    },
-            ),
-          ),
-          const SizedBox(height: 16),
-          _SettingCard(
-            title: '任务管理', // TODO: Add to localizations
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.task_alt),
-                  title: Text(l10n.appShellCompleted),
-                  subtitle: const Text('查看已完成的任务'),
-                  onTap: () {
-                    // Navigate to completed tasks
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const CompletedPage(),
-                      ),
-                    );
+        ),
+        const SizedBox(height: 16),
+        _SettingCard(
+          title: l10n.settingsFontSizeLabel,
+          child: SegmentedButton<double>(
+            segments: fontOptions
+                .map(
+                  (value) => ButtonSegment<double>(
+                    value: value,
+                    label: Text(value.toStringAsFixed(2)),
+                  ),
+                )
+                .toList(),
+            selected: <double>{fontScale},
+            onSelectionChanged: isLoading
+                ? null
+                : (selection) async {
+                    final selected = selection.first;
+                    if (selected != fontScale) {
+                      await actionsNotifier.updateFontScale(selected);
+                    }
                   },
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.delete_outline),
-                  title: Text(l10n.appShellTrash),
-                  subtitle: const Text('查看已删除的任务'),
-                  onTap: () {
-                    // Navigate to trash
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const TrashPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        _SettingCard(
+          title: l10n.settingsThemeLabel,
+          child: SegmentedButton<ThemeMode>(
+            segments: themeOptions.entries
+                .map(
+                  (entry) => ButtonSegment<ThemeMode>(
+                    value: entry.key,
+                    label: Text(entry.value),
+                  ),
+                )
+                .toList(),
+            selected: <ThemeMode>{themeMode},
+            onSelectionChanged: isLoading
+                ? null
+                : (selection) async {
+                    final selected = selection.first;
+                    if (selected != themeMode) {
+                      await actionsNotifier.updateTheme(selected);
+                    }
+                  },
+          ),
+        ),
+        const SizedBox(height: 16),
+        _SettingCard(
+          title: '任务管理', // TODO: Add to localizations
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.task_alt),
+                title: Text(l10n.appShellCompleted),
+                subtitle: const Text('查看已完成的任务'),
+                onTap: () {
+                  // Navigate to completed tasks
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const CompletedPage(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text(l10n.appShellTrash),
+                subtitle: const Text('查看已删除的任务'),
+                onTap: () {
+                  // Navigate to trash
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const TrashPage(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
-
 class _SettingCard extends StatelessWidget {
   const _SettingCard({required this.title, required this.child});
 

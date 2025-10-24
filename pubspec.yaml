@@ -34,5 +34,5 @@ flutter:
     - assets/seeds/version.json
     - assets/seeds/tags.json
     - assets/seeds/en/
-    - assets/seeds/zh_Hans/
-    - assets/seeds/zh_Hant/
+    - assets/seeds/zh_CN/
+    - assets/seeds/zh_HK/

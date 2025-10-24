@@ -439,6 +439,7 @@ ui_rules:
     today: "#81C784"
     tomorrow: "#64B5F6"
     later: "#FFF176"
+    info: "#1565C0"
   accent: "#455A64"
   font: "Inter / Noto Sans"
   task_icons:

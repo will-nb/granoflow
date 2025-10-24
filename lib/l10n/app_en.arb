@@ -676,6 +676,10 @@
   "@appShellTrash": {
     "description": "Label for trash destination"
   },
+  "appShellAchievements": "Achievements",
+  "@appShellAchievements": {
+    "description": "Label for achievements destination"
+  },
   "appShellSettings": "Settings",
   "@appShellSettings": {
     "description": "Label for settings destination"

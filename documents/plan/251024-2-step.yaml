@@ -1,0 +1,279 @@
+meta:
+  version: 1
+  type: step
+  iteration: "251024-2"
+  description: "添加左上角主菜单按钮，实现侧边栏显示/隐藏功能"
+  single_requirement: true
+
+change_summary:
+  user_request: "在顶部栏左侧添加主菜单按钮显示左侧边栏（收集箱、任务、已完成、已归档、垃圾箱），右侧添加头像按钮显示右侧边栏（settings页面）"
+  scope: "修改AppShell组件的顶部菜单栏和drawer/endDrawer"
+  risk_level: low
+  estimated_changes: 3
+
+affected_files:
+  - file: lib/presentation/navigation/app_shell.dart
+    change_type: modify
+    change_scope: AppBar和drawer部分
+    backup_required: true
+
+implementation_steps:
+  - id: "STEP-1"
+    description: "在AppShell顶部添加主菜单按钮widget"
+    file: lib/presentation/navigation/app_shell.dart
+    action: "在Scaffold的body中添加顶部菜单区域"
+    code_change: |
+      // 修改Scaffold的body，从简单的content改为Column布局
+      body: Column(
+        children: [
+          // 顶部菜单栏
+          SafeArea(
+            child: Container(
+              height: 56, // 标准AppBar高度
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  // 左侧菜单按钮
+                  IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  ),
+                  // 中间标题
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'GranoFlow',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // 右侧头像按钮
+                  IconButton(
+                    icon: const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, size: 20, color: Colors.white),
+                    ),
+                    onPressed: () {
+                      Scaffold.of(context).openEndDrawer();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // 主要内容区域
+          Expanded(child: content),
+        ],
+      )
+    verification: "检查顶部菜单栏正确显示，菜单按钮在左上角，标题居中"
+
+  - id: "STEP-2"
+    description: "更新侧边栏内容为指定的5个项目"
+    file: lib/presentation/navigation/app_shell.dart
+    action: "修改drawer的ListView内容"
+    code_change: |
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue, // 可以根据主题调整
+              ),
+              child: Text(
+                'GranoFlow',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.inbox),
+              title: const Text('收集箱'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.checklist),
+              title: const Text('任务'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.task_alt),
+              title: const Text('已完成'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.archive),
+              title: const Text('已归档'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('垃圾箱'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      )
+    verification: "检查侧边栏是否显示正确的5个项目"
+
+  - id: "STEP-3"
+    description: "添加右侧边栏(endDrawer)显示settings页面"
+    file: lib/presentation/navigation/app_shell.dart
+    action: "在Scaffold中添加endDrawer属性"
+    code_change: |
+      // 在Scaffold中添加endDrawer
+      endDrawer: Drawer(
+        child: const SettingsControlsPage(),
+      )
+    verification: "检查点击头像按钮能打开右侧边栏显示settings页面"
+
+testing_plan:
+  unit_tests:
+    - name: "test_menu_button_presence"
+      description: "验证顶部菜单栏中的菜单按钮存在"
+      type: widget_test
+      implementation: |
+        testWidgets('menu button is present in top menu bar', (WidgetTester tester) async {
+          await tester.pumpWidget(createTestApp(AppShell()));
+
+          // 查找菜单按钮
+          expect(find.byIcon(Icons.menu), findsOneWidget);
+
+          // 验证按钮在SafeArea容器中
+          expect(find.descendant(of: find.byType(SafeArea), matching: find.byIcon(Icons.menu)), findsOneWidget);
+
+          // 验证标题文本存在
+          expect(find.text('GranoFlow'), findsOneWidget);
+
+          // 验证头像按钮存在
+          expect(find.byType(CircleAvatar), findsOneWidget);
+        });
+      expect: "菜单按钮和头像按钮都正确显示在顶部菜单栏，标题居中显示"
+
+    - name: "test_drawer_content"
+      description: "验证侧边栏包含正确的5个项目"
+      type: widget_test
+      implementation: |
+        testWidgets('drawer contains correct items', (WidgetTester tester) async {
+          await tester.pumpWidget(createTestApp(AppShell()));
+
+          // 打开侧边栏
+          await tester.tap(find.byIcon(Icons.menu));
+          await tester.pumpAndSettle();
+
+          // 验证侧边栏打开
+          expect(find.byType(Drawer), findsOneWidget);
+
+          // 验证5个主要项目
+          expect(find.text('收集箱'), findsOneWidget);
+          expect(find.text('任务'), findsOneWidget);
+          expect(find.text('已完成'), findsOneWidget);
+          expect(find.text('已归档'), findsOneWidget);
+          expect(find.text('垃圾箱'), findsOneWidget);
+        });
+      expect: "侧边栏显示指定的5个导航项目"
+
+    - name: "test_avatar_button_presence"
+      description: "验证顶部菜单栏中的头像按钮存在"
+      type: widget_test
+      implementation: |
+        testWidgets('avatar button is present in top menu bar', (WidgetTester tester) async {
+          await tester.pumpWidget(createTestApp(AppShell()));
+
+          // 验证头像按钮存在
+          expect(find.byType(CircleAvatar), findsOneWidget);
+
+          // 验证头像内有person图标
+          expect(find.descendant(of: find.byType(CircleAvatar), matching: find.byIcon(Icons.person)), findsOneWidget);
+        });
+      expect: "头像按钮正确显示在顶部菜单栏右侧"
+
+  integration_tests:
+    - name: "test_menu_drawer_interaction"
+      description: "验证菜单按钮与侧边栏的交互"
+      type: integration_test
+      implementation: |
+        testWidgets('menu button opens and closes drawer', (WidgetTester tester) async {
+          await tester.pumpWidget(createTestApp(AppShell()));
+
+          // 初始状态：侧边栏关闭
+          expect(find.byType(Drawer), findsNothing);
+
+          // 点击菜单按钮
+          await tester.tap(find.byIcon(Icons.menu));
+          await tester.pumpAndSettle();
+
+          // 侧边栏打开
+          expect(find.byType(Drawer), findsOneWidget);
+
+          // 点击侧边栏项目
+          await tester.tap(find.text('收集箱'));
+          await tester.pumpAndSettle();
+
+          // 侧边栏关闭
+          expect(find.byType(Drawer), findsNothing);
+        });
+      expect: "菜单按钮能正确打开/关闭侧边栏"
+
+    - name: "test_avatar_end_drawer_interaction"
+      description: "验证头像按钮与右侧边栏的交互"
+      type: integration_test
+      implementation: |
+        testWidgets('avatar button opens end drawer with settings', (WidgetTester tester) async {
+          await tester.pumpWidget(createTestApp(AppShell()));
+
+          // 初始状态：右侧边栏关闭
+          expect(find.byType(Drawer), findsNothing);
+
+          // 点击头像按钮
+          await tester.tap(find.byType(CircleAvatar));
+          await tester.pumpAndSettle();
+
+          // 右侧边栏打开
+          expect(find.byType(Drawer), findsOneWidget);
+
+          // 验证显示settings页面内容
+          expect(find.text('Settings'), findsOneWidget);
+
+          // 点击关闭
+          await tester.tap(find.byType(Drawer));
+          await tester.pumpAndSettle();
+
+          // 边栏关闭
+          expect(find.byType(Drawer), findsNothing);
+        });
+      expect: "头像按钮能正确打开右侧边栏显示settings页面"
+
+rollback_plan:
+  - condition: "顶部菜单栏显示异常"
+    action: "移除Column布局，恢复简单的body: content结构"
+    restore_files: ["lib/presentation/navigation/app_shell.dart"]
+
+  - condition: "菜单按钮位置错误"
+    action: "移除SafeArea容器和菜单按钮，恢复原有布局"
+    restore_files: ["lib/presentation/navigation/app_shell.dart"]
+
+  - condition: "侧边栏内容错误"
+    action: "恢复原有的drawer实现"
+    restore_files: ["lib/presentation/navigation/app_shell.dart"]
+
+  - condition: "点击交互失效"
+    action: "移除菜单按钮和drawer，恢复原有导航结构"
+    restore_files: ["lib/presentation/navigation/app_shell.dart"]
+
+success_criteria:
+  - "顶部菜单栏正确显示，菜单按钮在左上角，头像按钮在右上角，标题居中"
+  - "点击菜单按钮能打开左侧边栏"
+  - "点击头像按钮能打开右侧边栏显示settings页面"
+  - "侧边栏显示指定的5个项目：收集箱、任务、已完成、已归档、垃圾箱"
+  - "点击侧边栏项目能关闭侧边栏"
+  - "所有测试通过"
+  - "UI在不同屏幕尺寸下正常显示"

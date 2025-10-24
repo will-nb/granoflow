@@ -1,5 +1,5 @@
 {
-  "@@locale": "zh_Hans",
+  "@@locale": "zh_CN",
   "appTitle": "GranoFlow",
   "homeGreeting": "你好，GranoFlow",
   "homeTagline": "专注空间，适配每一块屏幕。",
@@ -146,7 +146,7 @@
   "timerTemplatesEmpty": "暂无可用模板。",
   "timerTemplateApplyError": "套用模板失败。",
   "timerIdleTitle": "尚未开始专注",
-  "timerIdleHint": "选择一个任务并点击“开始计时”即可启动专注。",
+  "timerIdleHint": "选择一个任务并点击\"开始计时\"即可启动专注。",
   "timerNoPlannedTasks": "当前没有计划中的任务。",
   "timerGoPlan": "前往任务清单规划",
   "timerControlTitle": "专注控制",

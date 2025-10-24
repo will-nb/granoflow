@@ -135,6 +135,7 @@ theme_design:
       success: "#2E7D32" (深绿色成功色)
       warning: "#F57F17" (深橙色警告色)
       error: "#B71C1C" (深红色错误色)
+      info: "#1565C0" (信息蓝色)
     text_colors:
       text_primary: "#000000" (主要文字)
       text_secondary: "#4A4A4A" (次要文字)

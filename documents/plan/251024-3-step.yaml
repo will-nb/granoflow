@@ -1,0 +1,214 @@
+meta:
+  version: 1
+  type: step
+  iteration: "251024-3"
+  description: "统一顶部导航栏管理，标题随页面切换动态改变"
+  single_requirement: true
+
+change_summary:
+  user_request: "很多页面有自己的导航栏，和主流app不一样，应该共用顶部导航栏，标题随着页面切换改变"
+  scope: "app_shell.dart和多个页面文件的导航栏统一管理"
+  risk_level: "medium"
+  estimated_changes: 8  # app_shell.dart + 6个页面文件
+
+affected_files:
+  - file: "lib/presentation/navigation/app_shell.dart"
+    change_type: "modify"
+    change_scope: "顶部导航栏标题部分"
+    backup_required: true
+  - file: "lib/presentation/home/home_page.dart"
+    change_type: "modify"
+    change_scope: "移除Scaffold，保留body内容"
+    backup_required: true
+  - file: "lib/presentation/tasks/task_list_page.dart"
+    change_type: "modify"
+    change_scope: "移除Scaffold和AppBar，保留body内容"
+    backup_required: true
+  - file: "lib/presentation/achievements/achievements_page.dart"
+    change_type: "modify"
+    change_scope: "移除Scaffold和AppBar，保留body内容"
+    backup_required: true
+  - file: "lib/presentation/navigation/settings_controls.dart"
+    change_type: "modify"
+    change_scope: "移除Scaffold和AppBar，保留body内容"
+    backup_required: true
+  - file: "lib/presentation/inbox/inbox_page.dart"
+    change_type: "modify"
+    change_scope: "移除SliverAppBar，保留body内容"
+    backup_required: true
+  - file: "lib/presentation/completion_management/completed_page.dart"
+    change_type: "modify"
+    change_scope: "移除Scaffold和AppBar，保留body内容"
+    backup_required: true
+  - file: "lib/presentation/completion_management/trash_page.dart"
+    change_type: "modify"
+    change_scope: "移除Scaffold和AppBar，保留body内容"
+    backup_required: true
+
+execution_status:
+  overall_status: "in_progress"  # pending|in_progress|completed|failed
+  completed_steps: ["STEP-1", "STEP-2", "STEP-3", "STEP-4", "STEP-5", "STEP-6", "STEP-7", "STEP-8", "STEP-9"]
+  failed_steps: []
+  current_step: null
+
+implementation_steps:
+  - id: "STEP-1"
+    status: "completed"
+    status: "pending"  # pending|in_progress|completed|failed
+    description: "修改AppShell顶部导航栏，让标题根据selectedIndex动态改变"
+    file: "lib/presentation/navigation/app_shell.dart"
+    action: "添加_getCurrentPageTitle方法，根据selectedIndex返回对应标题"
+    code_change: |
+      // 在AppShell类中添加方法
+      String _getCurrentPageTitle(BuildContext context, int selectedIndex) {
+        final l10n = AppLocalizations.of(context);
+        final destinations = NavigationDestinations.values;
+        if (selectedIndex >= 0 && selectedIndex < destinations.length) {
+          switch (destinations[selectedIndex]) {
+            case NavigationDestinations.home:
+              return l10n.homeGreeting; // 或其他合适的标题
+            case NavigationDestinations.tasks:
+              return l10n.taskListTitle;
+            case NavigationDestinations.achievements:
+              return l10n.appShellAchievements;
+            case NavigationDestinations.settings:
+              return l10n.navSettingsSectionTitle;
+          }
+        }
+        return 'GranoFlow'; // 默认标题
+      }
+    verification: "检查代码编译通过"
+
+  - id: "STEP-2"
+    status: "completed"
+    description: "在AppShell中使用动态标题替换固定标题"
+    file: "lib/presentation/navigation/app_shell.dart"
+    action: "修改顶部导航栏的标题部分，调用_getCurrentPageTitle方法"
+    code_change: |
+      // 替换固定标题部分
+      child: Text(
+        _getCurrentPageTitle(context, selectedIndex),
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      )
+    verification: "检查AppShell编译通过，标题显示正确"
+
+  - id: "STEP-3"
+    status: "completed"
+    description: "移除home_page.dart的Scaffold，只保留body内容"
+    file: "lib/presentation/home/home_page.dart"
+    action: "移除Scaffold包装，直接返回SafeArea内的内容"
+    code_change: |
+      // 移除整个Scaffold，返回其body部分
+      @override
+      Widget build(BuildContext context, WidgetRef ref) {
+        ref.watch(seedInitializerProvider);
+        return SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // ... 其余内容保持不变
+            },
+          ),
+        );
+      }
+    verification: "检查HomePage编译通过，布局正常"
+
+  - id: "STEP-4"
+    status: "completed"
+    description: "移除task_list_page.dart的Scaffold和AppBar，只保留body内容"
+    file: "lib/presentation/tasks/task_list_page.dart"
+    action: "移除Scaffold和appBar，只返回body的ListView"
+    code_change: |
+      // 移除Scaffold和appBar，直接返回ListView
+      return ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        children: sectionMetas
+            .map(
+              (meta) => TaskSectionPanel(
+                // ... 其余内容保持不变
+              ),
+            )
+            .toList(growable: false),
+      );
+    verification: "检查TaskListPage编译通过，布局正常"
+
+  - id: "STEP-5"
+    status: "completed"
+    description: "移除achievements_page.dart的Scaffold和AppBar，只保留body内容"
+    file: "lib/presentation/achievements/achievements_page.dart"
+    action: "移除Scaffold和appBar，只返回body内容"
+    code_change: |
+      // 移除Scaffold，直接返回Center内容
+      return const Center(
+        child: Column(
+          // ... 其余内容保持不变
+        ),
+      );
+    verification: "检查AchievementsPage编译通过，布局正常"
+
+  - id: "STEP-6"
+    status: "completed"
+    description: "移除settings_controls.dart的Scaffold和AppBar，只保留body内容"
+    file: "lib/presentation/navigation/settings_controls.dart"
+    action: "移除Scaffold和appBar，只返回ListView"
+    code_change: |
+      // 移除Scaffold，直接返回ListView
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ... 其余内容保持不变
+        ],
+      );
+    verification: "检查SettingsControlsPage编译通过，布局正常"
+
+  - id: "STEP-7"
+    status: "completed"
+    description: "移除inbox_page.dart的SliverAppBar，只保留body内容"
+    file: "lib/presentation/inbox/inbox_page.dart"
+    action: "移除SliverAppBar相关的代码，只保留主要内容"
+    code_change: |
+      // 根据实际代码结构移除SliverAppBar部分
+      // 保留CustomScrollView或主要内容区域
+    verification: "检查InboxPage编译通过，布局正常"
+
+  - id: "STEP-8"
+    status: "completed"
+    description: "移除completed_page.dart的Scaffold和AppBar，只保留body内容"
+    file: "lib/presentation/completion_management/completed_page.dart"
+    action: "移除Scaffold和appBar，只返回主要内容"
+    code_change: |
+      // 根据实际代码结构移除Scaffold和AppBar
+    verification: "检查CompletedPage编译通过，布局正常"
+
+  - id: "STEP-9"
+    status: "completed"
+    description: "移除trash_page.dart的Scaffold和AppBar，只保留body内容"
+    file: "lib/presentation/completion_management/trash_page.dart"
+    action: "移除Scaffold和appBar，只返回主要内容"
+    code_change: |
+      // 根据实际代码结构移除Scaffold和AppBar
+    verification: "检查TrashPage编译通过，布局正常"
+
+testing_plan:
+  unit_tests: []
+  integration_tests:
+    - name: "test_navigation_title_change"
+      description: "测试页面切换时顶部导航栏标题正确改变"
+      expectation: "从首页切换到任务页时，标题从'Welcome to GranoFlow'变为'Tasks'"
+
+    - name: "test_page_layout_integrity"
+      description: "测试各页面布局在移除AppBar后仍然正常显示"
+      expectation: "所有页面内容完整显示，无布局错乱"
+
+rollback_plan:
+  - condition: "编译失败或布局错乱"
+    action: "恢复所有页面的AppBar和Scaffold包装"
+    restore_files: ["所有修改过的页面文件"]
+
+success_criteria:
+  - "所有页面编译通过，无语法错误"
+  - "顶部导航栏标题随页面切换正确改变"
+  - "各页面布局和功能保持正常"
+  - "用户验收通过"

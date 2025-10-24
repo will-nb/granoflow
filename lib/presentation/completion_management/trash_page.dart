@@ -16,18 +16,7 @@ class TrashPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(taskSectionsProvider(TaskSection.trash));
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.navTrashTitle),
-        actions: [
-          IconButton(
-            tooltip: l10n.actionEmptyTrash,
-            icon: const Icon(Icons.delete_forever_outlined),
-            onPressed: () => _emptyTrash(context, ref),
-          ),
-        ],
-      ),
-      body: tasksAsync.when(
+    return tasksAsync.when(
         data: (tasks) {
           if (tasks.isEmpty) {
             return _EmptyState(message: l10n.trashEmptyMessage);
@@ -44,8 +33,7 @@ class TrashPage extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _ErrorState(message: '$error'),
-      ),
-    );
+      );
   }
 
   Future<void> _emptyTrash(BuildContext context, WidgetRef ref) async {

@@ -1,0 +1,267 @@
+meta:
+  version: 1
+  owner: design/engineering
+  iteration: 251024-配色统一与导航重构更新
+
+phases:
+  - name: 规划与需求梳理
+    tasks:
+      - id: PLAN-1
+        description: "分析cards_flutter的完整配色方案，确认所有颜色变量"
+        status: completed
+        findings:
+          cards_flutter_colors:
+            - primaryColor: "#2B5797" (深蓝色，对色盲友好)
+            - onPrimaryColor: "#FFFFFF" (纯白色)
+            - backgroundColor: "#F5F5F5" (浅灰色)
+            - surfaceColor: "#FFFFFF" (纯白色)
+            - onSurfaceColor: "#000000" (纯黑色)
+            - secondaryColor: "#4A4A4A" (深灰色)
+            - accentColor: "#9C27B0" (紫色强调色)
+            - errorColor: "#B71C1C" (深红色)
+            - successColor: "#2E7D32" (深绿色)
+            - warningColor: "#F57F17" (深橙色)
+            - infoColor: "#1565C0" (信息蓝色)
+            - textPrimary: "#000000" (主要文本)
+            - textSecondary: "#4A4A4A" (次要文本)
+            - textHint: "#757575" (提示文本)
+            - dividerColor: "#E0E0E0" (分割线)
+      - id: PLAN-2
+        description: "评估当前GranoFlow配色与cards_flutter的差异"
+        status: completed
+        findings:
+          current_status: "技术规范配色已与cards_flutter一致，但theme.yaml缺少部分颜色"
+          issues_found:
+            - "theme.yaml缺少infoColor (#1565C0)"
+            - "Material Design 3调色板与手动配色需要协调"
+
+  - name: 文档配置更新
+    tasks:
+      - id: DOC-1
+        description: "更新 documents/theme.yaml，添加缺失的颜色变量并保持Material Design 3兼容性"
+        status: pending
+        details:
+          files_to_change:
+            - path: documents/theme.yaml
+              changes:
+                - field: "palette.info"
+                  action: "add"
+                  new_value: "#1565C0"
+                  reason: "添加cards_flutter中定义的infoColor，保持配色完整性"
+                - field: "palette.on_info"
+                  action: "add"
+                  new_value: "#FFFFFF"
+                  reason: "为infoColor添加对应的on_info颜色"
+                - field: "palette.info_container"
+                  action: "add"
+                  new_value: "#D1E4FF"
+                  reason: "为infoColor添加容器变体，保持Material Design 3规范"
+                - field: "palette.on_info_container"
+                  action: "add"
+                  new_value: "#001B3C"
+                  reason: "为info容器添加对应的文字颜色"
+      - id: DOC-2
+        description: "验证 documents/251022-技术规范.yaml 中的颜色系统是否完整"
+        status: pending
+        details:
+          verification:
+            - "确认所有cards_flutter颜色都已在技术规范中定义"
+            - "检查颜色值是否完全一致"
+            - "确认infoColor (#1565C0) 是否已在技术规范中"
+      - id: DOC-3
+        description: "更新 documents/product_requirements.yaml 中的颜色配置"
+        status: pending
+        details:
+          files_to_change:
+            - path: documents/product_requirements.yaml
+              section: ui_rules.color_scheme
+              changes:
+                - field: "color_scheme"
+                  old_value: |
+                    today: "#81C784"
+                    tomorrow: "#64B5F6"
+                    later: "#FFF176"
+                  new_value: |
+                    today: "#81C784"
+                    tomorrow: "#64B5F6"
+                    later: "#FFF176"
+                    info: "#1565C0"
+                  reason: "添加infoColor到产品需求文档，保持与cards_flutter一致"
+
+  - name: 验证与同步
+    tasks:
+      - id: VERIFY-1
+        description: "交叉验证所有文档中的颜色定义"
+        status: pending
+        checklist:
+          - "theme.yaml包含所有cards_flutter颜色"
+          - "技术规范颜色与cards_flutter完全一致"
+          - "产品需求颜色配置完整"
+      - id: VERIFY-2
+        description: "确认Material Design 3调色板兼容性"
+        status: pending
+        checklist:
+          - "新颜色遵循Material Design 3命名规范"
+          - "颜色对比度满足可访问性要求"
+          - "调色板在亮色/暗色主题下都有效"
+
+  - name: 文档与交付
+    tasks:
+      - id: DELIVER-1
+        description: "更新 PROGRESS.md 记录配色统一完成"
+        status: pending
+      - id: DELIVER-2
+        description: "整理配色统一变更摘要和验证结果"
+        status: completed
+
+  - name: 导航重构实施
+    tasks:
+      - id: NAV-1
+        description: "创建成就页面占位符 (lib/presentation/achievements/achievements_page.dart)"
+        status: pending
+        details:
+          files_to_create:
+            - path: lib/presentation/achievements/achievements_page.dart
+              content_type: "成就页面基础组件"
+          dependencies:
+            - 需要在 user_stories.md 中定义成就页面的验收标准
+            - 需要在 architecture/pages.yaml 中记录页面结构
+      - id: NAV-2
+        description: "更新底部导航配置，添加成就页面并移除已完成/垃圾箱页面"
+        status: pending
+        details:
+          files_to_modify:
+            - path: lib/presentation/navigation/app_shell.dart
+              changes:
+                - field: "_pages列表"
+                  old_value: "[HomePage(), TaskListPage(), CompletedPage(), TrashPage(), SettingsControlsPage()]"
+                  new_value: "[HomePage(), TaskListPage(), AchievementsPage(), SettingsControlsPage()]"
+                  reason: "简化主导航，从6个选项减少到4个核心功能"
+                - field: "NavigationDestinations枚举"
+                  old_value: "home, tasks, completed, trash, settings"
+                  new_value: "home, tasks, achievements, settings"
+                  reason: "移除completed和trash，添加achievements"
+      - id: NAV-3
+        description: "添加悬浮操作按钮 (FAB) 和创建任务弹窗"
+        status: pending
+        details:
+          files_to_modify:
+            - path: lib/presentation/navigation/app_shell.dart
+              changes:
+                - field: "floatingActionButton"
+                  action: "add"
+                  new_value: "Reddit风格的圆角悬浮按钮"
+                  reason: "实现快速任务创建功能"
+                - field: "floatingActionButtonLocation"
+                  action: "add"
+                  new_value: "FloatingActionButtonLocation.centerDocked"
+                  reason: "中间 docked 位置符合移动端最佳实践"
+          files_to_create:
+            - path: lib/presentation/widgets/create_task_dialog.dart
+              content_type: "Reddit风格的任务创建弹窗组件"
+      - id: NAV-4
+        description: "实现侧边栏导航，包含收集箱、任务栏、已完成、已归档、垃圾箱"
+        status: pending
+        details:
+          files_to_modify:
+            - path: lib/presentation/navigation/app_shell.dart
+              changes:
+                - field: "drawer"
+                  action: "add"
+                  new_value: "Drawer组件包含5个辅助功能入口"
+                  reason: "实现功能分层，将不常用的功能放在侧边栏"
+            - path: lib/presentation/navigation/settings_controls.dart
+              changes:
+                - field: "AppBar actions"
+                  action: "add"
+                  new_value: "右上角菜单按钮打开侧边栏"
+                  reason: "提供侧边栏访问入口"
+          pages_to_create:
+            - InboxPage (收集箱)
+            - CompletedPage (已完成)
+            - ArchivedPage (已归档)
+            - TrashPage (垃圾箱)
+      - id: NAV-5
+        description: "更新路由配置，支持新的页面结构"
+        status: pending
+        details:
+          files_to_modify:
+            - path: lib/core/router/app_router.dart
+              changes:
+                - field: "路由表"
+                  action: "update"
+                  new_value: "添加成就、收集箱、已完成、已归档、垃圾箱路由"
+                  reason: "支持新的导航架构"
+          files_to_update:
+            - path: documents/architecture/routers.yaml
+              changes:
+                - field: "路由定义"
+                  action: "update"
+                  new_value: "记录新的页面路由和导航关系"
+      - id: NAV-6
+        description: "更新产品需求和用户故事文档"
+        status: pending
+        details:
+          files_to_modify:
+            - path: documents/product_requirements.yaml
+              changes:
+                - field: "ui_rules.navigation"
+                  action: "update"
+                  new_value: "记录新的导航架构：底部4核心 + 中间FAB + 侧边栏5辅助"
+                  reason: "保持需求文档与实现同步"
+            - path: documents/user_stories.md
+              changes:
+                - field: "成就页面验收标准"
+                  action: "add"
+                  new_value: "定义成就页面的用户故事和验收标准"
+                  reason: "为新页面建立完整的用户需求"
+
+  - name: 测试与验收
+    tasks:
+      - id: QA-NAV-1
+        description: "测试新的导航架构用户体验"
+        status: pending
+        checklist:
+          - "底部4个核心功能导航正常"
+          - "悬浮按钮创建任务流程顺畅"
+          - "侧边栏5个辅助功能访问正常"
+          - "页面间切换动画流畅"
+      - id: QA-NAV-2
+        description: "验证Reddit风格设计一致性"
+        status: pending
+        checklist:
+          - "悬浮按钮样式符合Reddit风格"
+          - "创建弹窗交互符合移动端最佳实践"
+          - "侧边栏布局简洁现代"
+          - "整体视觉风格统一"
+
+checklists:
+  consistency:
+    - 所有文档中的颜色值与cards_flutter完全一致
+    - Material Design 3调色板与传统配色兼容
+    - 技术规范、主题配置、产品需求文档同步
+  completeness:
+    - 包含所有cards_flutter定义的颜色变量
+    - 每个主色都有对应的容器和文字变体
+    - 亮色/暗色主题支持完整
+  documentation:
+    - documents/theme.yaml (Material Design 3调色板)
+    - documents/251022-技术规范.yaml (完整颜色系统)
+    - documents/product_requirements.yaml (UI颜色配置)
+    - documents/PROGRESS.md (变更记录)
+  navigation_architecture:
+    - 底部导航：首页、任务、成就、设置 (4个核心功能)
+    - 中间悬浮按钮：快速创建任务 (Reddit风格)
+    - 侧边栏：收集箱、任务栏、已完成、已归档、垃圾箱 (5个辅助功能)
+    - 信息层次清晰：核心功能突出，辅助功能分层
+  reddit_style_consistency:
+    - 悬浮按钮：圆角设计 (borderRadius: 16)
+    - 创建弹窗：底部弹出式，类似Reddit发帖
+    - 视觉风格：现代Material Design，简洁有社区感
+    - 用户体验：符合移动端最佳实践
+
+signoff:
+  required_approvals:
+    - design: 确认配色方案符合设计规范，导航重构符合Reddit风格和用户体验
+    - engineering: 验证Material Design 3兼容性和导航架构的实现质量
+    - product: 确认新的导航架构满足用户需求和使用场景

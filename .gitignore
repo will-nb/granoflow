@@ -142,3 +142,6 @@ flutter_*.tar.xz
 
 # Cursor AI specific
 .cursor/
+
+# Documents backup folder
+documents/temp/

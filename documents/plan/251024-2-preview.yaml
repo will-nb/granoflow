@@ -1,0 +1,52 @@
+meta:
+  version: 1
+  type: preview
+  iteration: "251024-2"
+  generated_at: "2024-10-24"
+
+summary:
+  objective: "在应用左上角添加主菜单按钮，实现侧边栏的显示/隐藏功能"
+  requirements:
+    - "在AppShell的AppBar左侧添加菜单按钮"
+    - "点击菜单按钮显示/隐藏侧边栏"
+    - "侧边栏包含：收集箱、任务、已完成、已归档、垃圾箱"
+    - "点击侧边栏外部区域关闭侧边栏"
+
+affected_documents:
+  - file: lib/presentation/navigation/app_shell.dart你
+    changes:
+      - field: "AppBar"
+        current_value: "只有标题"
+        new_value: "左侧添加菜单按钮，标题居中"
+        purpose: "提供侧边栏访问入口"
+        reason: "用户需要便捷访问辅助功能"
+    validation:
+      - "菜单按钮正确显示在左上角"
+      - "点击菜单按钮能打开/关闭侧边栏"
+      - "侧边栏内容包含指定的5个项目"
+
+  - file: lib/presentation/navigation/app_shell.dart
+    changes:
+      - field: "drawer"
+        current_value: "现有drawer实现"
+        new_value: "更新为用户指定的侧边栏内容"
+        purpose: "提供正确的功能导航"
+        reason: "侧边栏应包含用户需要的辅助功能"
+    validation:
+      - "侧边栏显示：收集箱、任务、已完成、已归档、垃圾箱"
+      - "每个项目都有正确的图标"
+      - "点击外部区域能关闭侧边栏"
+
+implementation_notes:
+  - "需要使用Scaffold.of(context).openDrawer()来打开侧边栏"
+  - "确保侧边栏在移动设备上正常工作"
+  - "保持现有的Reddit风格设计一致性"
+
+risk_assessment:
+  - level: low
+  - potential_issues:
+    - "侧边栏在不同屏幕尺寸下的显示效果"
+    - "与现有导航的交互冲突"
+  - mitigation:
+    - "在不同设备上测试侧边栏功能"
+    - "确保与底部导航的协调工作"

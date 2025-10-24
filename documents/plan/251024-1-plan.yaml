@@ -1,0 +1,546 @@
+meta:
+  version: 1
+  owner: design/engineering
+  iteration: 251024-配色统一与导航重构实施计划
+  description: "详细的代码实施计划，每项修改包含实现步骤、文档更新、单元测试要求"
+
+phases:
+  - name: 配色统一实施
+    description: "确保所有文档与cards_flutter项目配色完全一致"
+    tasks:
+      - id: COLOR-1
+        description: "更新 documents/theme.yaml，添加缺失的颜色变量"
+        status: pending
+        implementation:
+          steps:
+            - "在theme.yaml的palette部分添加info颜色定义"
+            - "确保Material Design 3调色板兼容性"
+            - "验证颜色值与cards_flutter完全一致"
+        yaml_updates:
+          - file: documents/theme.yaml
+            changes:
+              - "添加palette.info: \"#1565C0\""
+        unit_tests:
+          - name: "test_theme_yaml_info_color"
+            description: "验证theme.yaml中info颜色正确定义"
+            type: "yaml_content_verification"
+            implementation: |
+              // 不使用硬编码，读取yaml文件内容验证
+              test('theme.yaml contains correct info color', () async {
+                final themeYaml = await loadYamlFile('documents/theme.yaml');
+                expect(themeYaml['palette']['info'], equals('#1565C0'));
+              });
+            expect: "yaml文件正确包含info颜色定义，值为#1565C0"
+          - name: "test_cards_flutter_color_consistency"
+            description: "验证所有颜色与cards_flutter保持一致"
+            type: "cross_project_verification"
+            implementation: |
+              // 读取两个项目的配色配置进行比较
+              test('colors match cards_flutter palette', () async {
+                final granoflowTheme = await loadYamlFile('documents/theme.yaml');
+                final cardsFlutterColors = await loadCardsFlutterColors();
+
+                expect(granoflowTheme['palette']['primary'], equals(cardsFlutterColors.primary));
+                expect(granoflowTheme['palette']['info'], equals(cardsFlutterColors.info));
+                // ... 验证其他颜色
+              });
+            expect: "GranoFlow的所有颜色定义与cards_flutter完全一致"
+
+      - id: COLOR-2
+        description: "更新 documents/251022-技术规范.yaml 中的颜色系统"
+        status: pending
+        implementation:
+          steps:
+            - "确认技术规范中的所有颜色都与cards_flutter一致"
+            - "验证infoColor已正确添加"
+        yaml_updates:
+          - file: documents/251022-技术规范.yaml
+            changes:
+              - "确保accent_colors部分包含info: \"#1565C0\" (信息蓝色)"
+        unit_tests:
+          - name: "test_tech_spec_color_completeness"
+            description: "验证技术规范包含所有必需的颜色定义"
+            type: "yaml_content_verification"
+            implementation: |
+              test('technical specification contains all required colors', () async {
+                final techSpec = await loadYamlFile('documents/251022-技术规范.yaml');
+                final colorSystem = techSpec['theme_design']['color_system'];
+
+                expect(colorSystem['accent_colors']['info'], equals('#1565C0'));
+                expect(colorSystem['primary_colors']['primary'], equals('#2B5797'));
+                // 验证所有必需的颜色都存在
+              });
+            expect: "技术规范文档包含完整且正确的颜色系统定义"
+
+      - id: COLOR-3
+        description: "更新 documents/product_requirements.yaml 中的颜色配置"
+        status: pending
+        implementation:
+          steps:
+            - "在color_scheme中添加info颜色"
+            - "确保与其他文档保持一致"
+        yaml_updates:
+          - file: documents/product_requirements.yaml
+            changes:
+              - "在ui_rules.color_scheme中添加info: \"#1565C0\""
+        unit_tests:
+          - name: "test_product_req_color_scheme"
+            description: "验证产品需求文档的颜色方案完整性"
+            type: "yaml_content_verification"
+            implementation: |
+              test('product requirements color scheme is complete', () async {
+                final productReq = await loadYamlFile('documents/product_requirements.yaml');
+                final colorScheme = productReq['ui_rules']['color_scheme'];
+
+                expect(colorScheme['info'], equals('#1565C0'));
+                expect(colorScheme['today'], equals('#81C784'));
+                // 验证颜色方案的完整性
+              });
+            expect: "产品需求文档包含完整的颜色方案定义"
+
+  - name: 导航重构实施
+    description: "实施Reddit风格的导航架构重构"
+    tasks:
+      - id: NAV-ACHIEVEMENT-1
+        description: "创建成就页面占位符"
+        status: pending
+        implementation:
+          steps:
+            - "创建 lib/presentation/achievements/achievements_page.dart"
+            - "实现基本的成就页面布局和占位符内容"
+            - "确保页面符合Material Design 3规范"
+        yaml_updates:
+          - file: documents/architecture/pages.yaml
+            changes:
+              - "添加AchievementsPage页面定义"
+              - "描述页面结构、Provider依赖、控件组合"
+        unit_tests:
+          - name: "test_achievements_page_creation"
+            description: "验证成就页面成功创建且基本功能正常"
+            type: "widget_test"
+            implementation: |
+              testWidgets('achievements page renders correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AchievementsPage()));
+
+                // 验证页面标题存在
+                expect(find.text('Achievements'), findsOneWidget);
+
+                // 验证页面结构正确
+                expect(find.byType(ListView), findsOneWidget);
+
+                // 验证占位符内容存在
+                expect(find.text('Coming Soon'), findsOneWidget);
+              });
+            expect: "成就页面成功渲染，包含标题和占位符内容"
+          - name: "test_achievements_page_navigation"
+            description: "验证成就页面在导航中正确集成"
+            type: "integration_test"
+            implementation: |
+              testWidgets('achievements page accessible via navigation', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AppShell()));
+
+                // 点击成就导航项
+                await tester.tap(find.byIcon(Icons.emoji_events));
+                await tester.pumpAndSettle();
+
+                // 验证成就页面被显示
+                expect(find.byType(AchievementsPage), findsOneWidget);
+              });
+            expect: "通过底部导航可以成功访问成就页面"
+
+      - id: NAV-BOTTOM-1
+        description: "更新底部导航配置"
+        status: pending
+        implementation:
+          steps:
+            - "修改 lib/presentation/navigation/app_shell.dart"
+            - "将6个导航项减少到4个：首页、任务、成就、设置"
+            - "更新NavigationDestinations枚举"
+            - "调整页面列表和导航栏配置"
+        yaml_updates:
+          - file: documents/architecture/routers.yaml
+            changes:
+              - "更新导航结构定义"
+              - "记录新的路由关系"
+        unit_tests:
+          - name: "test_bottom_navigation_reduction"
+            description: "验证底部导航从6项减少到4项"
+            type: "widget_test"
+            implementation: |
+              testWidgets('bottom navigation contains exactly 4 items', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AppShell()));
+
+                // 验证底部导航栏存在
+                expect(find.byType(NavigationBar), findsOneWidget);
+
+                // 验证只有4个导航目的地
+                final navigationBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+                expect(navigationBar.destinations.length, equals(4));
+
+                // 验证导航项标签正确
+                expect(find.text('Home'), findsOneWidget);
+                expect(find.text('Tasks'), findsOneWidget);
+                expect(find.text('Achievements'), findsOneWidget);
+                expect(find.text('Settings'), findsOneWidget);
+              });
+            expect: "底部导航栏包含且仅包含4个正确配置的导航项"
+          - name: "test_navigation_destinations_enum"
+            description: "验证NavigationDestinations枚举正确更新"
+            type: "unit_test"
+            implementation: |
+              test('NavigationDestinations enum contains correct values', () {
+                // 验证枚举值存在
+                expect(NavigationDestinations.home, isNotNull);
+                expect(NavigationDestinations.tasks, isNotNull);
+                expect(NavigationDestinations.achievements, isNotNull);
+                expect(NavigationDestinations.settings, isNotNull);
+
+                // 验证已移除的枚举值不存在
+                expect(() => NavigationDestinations.completed, throwsNoSuchMethodError);
+                expect(() => NavigationDestinations.trash, throwsNoSuchMethodError);
+
+                // 验证枚举长度为4
+                final enumValues = NavigationDestinations.values;
+                expect(enumValues.length, equals(4));
+              });
+            expect: "NavigationDestinations枚举正确包含4个值，已移除不需要的值"
+
+      - id: NAV-FAB-1
+        description: "添加悬浮操作按钮 (FAB)"
+        status: pending
+        implementation:
+          steps:
+            - "在AppShell中添加FloatingActionButton"
+            - "实现Reddit风格的圆角设计 (borderRadius: 16)"
+            - "设置居中docked位置"
+            - "配置点击事件调用创建任务弹窗"
+        yaml_updates:
+          - file: documents/product_requirements.yaml
+            changes:
+              - "更新ui_rules.navigation部分，记录FAB功能"
+        unit_tests:
+          - name: "test_fab_visibility_and_styling"
+            description: "验证悬浮按钮正确显示和样式"
+            type: "widget_test"
+            implementation: |
+              testWidgets('FAB is visible and styled correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AppShell()));
+
+                // 验证FAB存在
+                expect(find.byType(FloatingActionButton), findsOneWidget);
+
+                // 验证FAB位置为centerDocked
+                final fab = tester.widget<FloatingActionButton>(find.byType(FloatingActionButton));
+                expect(fab, isNotNull);
+
+                // 验证FAB图标为add
+                expect(find.byIcon(Icons.add), findsOneWidget);
+              });
+            expect: "悬浮按钮正确显示在中间位置，样式符合Reddit风格"
+          - name: "test_fab_click_opens_dialog"
+            description: "验证FAB点击打开创建任务弹窗"
+            type: "widget_test"
+            implementation: |
+              testWidgets('FAB click opens create task dialog', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AppShell()));
+
+                // 点击FAB
+                await tester.tap(find.byType(FloatingActionButton));
+                await tester.pumpAndSettle();
+
+                // 验证弹窗打开
+                expect(find.byType(ModalBottomSheet), findsOneWidget);
+
+                // 验证弹窗标题
+                expect(find.text('创建新任务'), findsOneWidget);
+
+                // 验证输入字段存在
+                expect(find.byType(TextField), findsWidgets);
+              });
+            expect: "点击悬浮按钮成功打开创建任务弹窗"
+
+      - id: NAV-DIALOG-1
+        description: "创建任务创建弹窗组件"
+        status: pending
+        implementation:
+          steps:
+            - "创建 lib/presentation/widgets/create_task_dialog.dart"
+            - "实现Reddit风格的底部弹出弹窗"
+            - "添加任务标题输入框"
+            - "添加标签选择器"
+            - "添加上级任务选择器"
+            - "添加发布按钮"
+        yaml_updates:
+          - file: documents/architecture/widgets.yaml
+            changes:
+              - "添加CreateTaskDialog组件定义"
+        unit_tests:
+          - name: "test_create_task_dialog_structure"
+            description: "验证创建任务弹窗的UI结构"
+            type: "widget_test"
+            implementation: |
+              testWidgets('create task dialog has correct structure', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(CreateTaskDialog()));
+
+                // 验证标题输入框
+                expect(find.byType(TextField), findsOneWidget);
+
+                // 验证标签选择器
+                expect(find.byType(Wrap), findsOneWidget); // 标签使用Wrap布局
+
+                // 验证上级任务选择器
+                expect(find.byType(DropdownButtonFormField), findsOneWidget);
+
+                // 验证发布按钮
+                expect(find.byType(FilledButton), findsOneWidget);
+                expect(find.text('创建任务'), findsOneWidget);
+              });
+            expect: "创建任务弹窗包含所有必需的UI组件"
+          - name: "test_task_creation_flow"
+            description: "验证完整的任务创建流程"
+            type: "integration_test"
+            implementation: |
+              testWidgets('complete task creation flow works', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(CreateTaskDialog()));
+
+                // 输入任务标题
+                await tester.enterText(find.byType(TextField).first, '测试任务');
+
+                // 选择标签 (假设有标签选项)
+                await tester.tap(find.text('工作')); // 示例标签
+                await tester.pump();
+
+                // 选择上级任务
+                await tester.tap(find.byType(DropdownButtonFormField));
+                await tester.pump();
+                await tester.tap(find.text('根任务').last); // 选择根任务
+                await tester.pump();
+
+                // 点击创建按钮
+                await tester.tap(find.text('创建任务'));
+                await tester.pumpAndSettle();
+
+                // 验证弹窗关闭
+                expect(find.byType(ModalBottomSheet), findsNothing);
+
+                // 验证任务被创建 (需要mock或集成测试)
+                // 这里可能需要更复杂的设置来验证实际的任务创建
+              });
+            expect: "用户可以完成整个任务创建流程，弹窗正确关闭"
+
+      - id: NAV-SIDEBAR-1
+        description: "实现侧边栏导航"
+        status: pending
+        implementation:
+          steps:
+            - "在AppShell中添加Drawer组件"
+            - "添加5个侧边栏项目：收集箱、任务栏、已完成、已归档、垃圾箱"
+            - "在SettingsControlsPage添加右上角菜单按钮"
+            - "实现侧边栏项目的点击导航"
+        yaml_updates:
+          - file: documents/architecture/widgets.yaml
+            changes:
+              - "添加Drawer组件定义"
+        unit_tests:
+          - name: "test_drawer_structure"
+            description: "验证侧边栏的结构和内容"
+            type: "widget_test"
+            implementation: |
+              testWidgets('drawer has correct structure and items', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AppShell()));
+
+                // 打开抽屉
+                await tester.tap(find.byIcon(Icons.menu));
+                await tester.pumpAndSettle();
+
+                // 验证抽屉存在
+                expect(find.byType(Drawer), findsOneWidget);
+
+                // 验证所有侧边栏项目
+                expect(find.text('收集箱'), findsOneWidget);
+                expect(find.text('任务栏'), findsOneWidget);
+                expect(find.text('已完成'), findsOneWidget);
+                expect(find.text('已归档'), findsOneWidget);
+                expect(find.text('垃圾箱'), findsOneWidget);
+
+                // 验证项目图标
+                expect(find.byIcon(Icons.inbox), findsOneWidget);
+                expect(find.byIcon(Icons.checklist), findsOneWidget);
+                expect(find.byIcon(Icons.task_alt), findsOneWidget);
+                expect(find.byIcon(Icons.archive), findsOneWidget);
+                expect(find.byIcon(Icons.delete), findsOneWidget);
+              });
+            expect: "侧边栏包含所有5个导航项目，结构正确"
+          - name: "test_drawer_navigation"
+            description: "验证侧边栏项目的导航功能"
+            type: "integration_test"
+            implementation: |
+              testWidgets('drawer items navigate correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AppShell()));
+
+                // 打开抽屉
+                await tester.tap(find.byIcon(Icons.menu));
+                await tester.pumpAndSettle();
+
+                // 点击收集箱
+                await tester.tap(find.text('收集箱'));
+                await tester.pumpAndSettle();
+
+                // 验证导航到收集箱页面
+                expect(find.byType(InboxPage), findsOneWidget);
+
+                // 验证抽屉关闭
+                expect(find.byType(Drawer), findsNothing);
+              });
+            expect: "点击侧边栏项目成功导航到对应页面，抽屉自动关闭"
+
+      - id: NAV-ROUTING-1
+        description: "更新路由配置"
+        status: pending
+        implementation:
+          steps:
+            - "更新 lib/core/router/app_router.dart"
+            - "添加成就、收集箱、已完成、已归档、垃圾箱等新路由"
+            - "确保路由参数和守卫正确配置"
+        yaml_updates:
+          - file: documents/architecture/routers.yaml
+            changes:
+              - "更新路由表定义"
+              - "添加新的页面路由"
+        unit_tests:
+          - name: "test_new_routes_registered"
+            description: "验证新路由正确注册"
+            type: "unit_test"
+            implementation: |
+              test('new routes are properly registered', () {
+                final router = AppRouter();
+
+                // 验证成就路由存在
+                expect(router.canNavigate('/achievements'), isTrue);
+
+                // 验证收集箱路由存在
+                expect(router.canNavigate('/inbox'), isTrue);
+
+                // 验证其他新路由
+                expect(router.canNavigate('/completed'), isTrue);
+                expect(router.canNavigate('/archived'), isTrue);
+                expect(router.canNavigate('/trash'), isTrue);
+              });
+            expect: "所有新页面路由都正确注册在路由器中"
+          - name: "test_route_navigation"
+            description: "验证路由导航功能"
+            type: "integration_test"
+            implementation: |
+              testWidgets('route navigation works correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestAppWithRouter());
+
+                // 导航到成就页面
+                await tester.tap(find.text('Navigate to Achievements'));
+                await tester.pumpAndSettle();
+
+                // 验证页面正确显示
+                expect(find.byType(AchievementsPage), findsOneWidget);
+                expect(find.text('Achievements'), findsOneWidget);
+              });
+            expect: "路由导航功能正常，新页面可以正确访问"
+
+  - name: 文档与验收
+    description: "更新相关文档并进行最终验收"
+    tasks:
+      - id: DOCS-UPDATE-1
+        description: "更新用户故事和产品需求文档"
+        status: pending
+        implementation:
+          steps:
+            - "在user_stories.md中添加成就页面的验收标准"
+            - "在product_requirements.yaml中记录新的导航架构"
+        yaml_updates:
+          - file: documents/user_stories.md
+            changes:
+              - "添加成就页面用户故事和验收标准"
+          - file: documents/product_requirements.yaml
+            changes:
+              - "更新ui_rules.navigation部分"
+        unit_tests:
+          - name: "test_documentation_consistency"
+            description: "验证文档更新的一致性"
+            type: "yaml_content_verification"
+            implementation: |
+              test('documentation reflects new navigation architecture', () async {
+                final userStories = await loadMarkdownFile('documents/user_stories.md');
+                final productReq = await loadYamlFile('documents/product_requirements.yaml');
+
+                // 验证产品需求包含新的导航架构
+                final navigationRules = productReq['ui_rules']['navigation'];
+                expect(navigationRules, isNotNull);
+
+                // 验证用户故事包含成就页面
+                expect(userStories.contains('成就页面'), isTrue);
+                expect(userStories.contains('验收标准'), isTrue);
+              });
+            expect: "所有相关文档都反映了新的导航架构和功能"
+
+      - id: FINAL-TEST-1
+        description: "执行端到端验收测试"
+        status: pending
+        implementation:
+          steps:
+            - "运行所有单元测试"
+            - "运行集成测试"
+            - "手动验证导航流程"
+        unit_tests:
+          - name: "test_complete_navigation_flow"
+            description: "验证完整的导航重构功能"
+            type: "end_to_end_test"
+            implementation: |
+              testWidgets('complete navigation refactor works end-to-end', (WidgetTester tester) async {
+                await tester.pumpWidget(createTestApp(AppShell()));
+
+                // 1. 验证底部导航 (4项)
+                expect(find.byType(NavigationBar), findsOneWidget);
+                final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+                expect(navBar.destinations.length, equals(4));
+
+                // 2. 验证FAB存在
+                expect(find.byType(FloatingActionButton), findsOneWidget);
+
+                // 3. 测试FAB点击打开弹窗
+                await tester.tap(find.byType(FloatingActionButton));
+                await tester.pumpAndSettle();
+                expect(find.byType(ModalBottomSheet), findsOneWidget);
+
+                // 4. 测试侧边栏访问
+                await tester.tap(find.byIcon(Icons.menu));
+                await tester.pumpAndSettle();
+                expect(find.byType(Drawer), findsOneWidget);
+
+                // 5. 测试侧边栏导航项目数量
+                final drawerItems = find.descendant(
+                  of: find.byType(Drawer),
+                  matching: find.byType(ListTile)
+                );
+                expect(tester.widgetList(drawerItems).length, equals(5));
+              });
+            expect: "整个导航重构功能完整工作，所有组件正确集成"
+
+implementation_guidelines:
+  - "每个修改完成后必须立即运行对应的单元测试"
+  - "测试失败时不能进行下一个修改"
+  - "颜色和文本相关测试必须读取yaml文件内容，不使用硬编码"
+  - "多文件修改的功能需要在所有文件修改完成后统一测试"
+  - "测试用例命名规则：test_[功能]_[具体行为]"
+  - "所有测试都必须有明确的expect描述"
+
+testing_strategy:
+  - "yaml内容验证测试：用于验证配置文件的正确性"
+  - "单元测试：用于验证单个组件的功能"
+  - "widget测试：用于验证UI组件的渲染和交互"
+  - "集成测试：用于验证跨组件的功能流程"
+  - "端到端测试：用于验证完整用户流程"
+
+success_criteria:
+  - "所有单元测试通过 (100%)"
+  - "导航架构符合Reddit风格设计"
+  - "所有文档与实现保持同步"
+  - "配色与cards_flutter完全一致"
+  - "新功能满足用户需求和验收标准"

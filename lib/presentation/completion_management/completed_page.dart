@@ -13,25 +13,13 @@ class CompletedPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.completedPageTitle),
-          bottom: TabBar(
-            tabs: [
-              Tab(text: l10n.navCompletedTitle),
-              Tab(text: l10n.navArchivedTitle),
-            ],
-          ),
-        ),
-        body: const TabBarView(
-          children: [
-            _CompletionList(section: TaskSection.completed),
-            _CompletionList(section: TaskSection.archived),
-          ],
-        ),
+      child: const TabBarView(
+        children: [
+          _CompletionList(section: TaskSection.completed),
+          _CompletionList(section: TaskSection.archived),
+        ],
       ),
     );
   }

@@ -1,0 +1,284 @@
+meta:
+  version: 1
+  type: auto_todolist
+  iteration: 251024-配色统一与导航重构
+  description: "自动化任务清单，AI可以自主执行所有任务，测试失败时跳过继续，不需要用户交互"
+  automation_level: full_autonomous
+  created_at: "2024-10-24"
+
+# 预先确认的决策点 - 避免执行中途需要用户确认
+pre_confirmed_decisions:
+  - decision: "配色方案确认"
+    description: "使用cards_flutter的完整配色方案，包括所有14种颜色"
+    confirmed_value: "完全采用cards_flutter配色，无需调整"
+    reasoning: "确保品牌一致性"
+
+  - decision: "导航架构确认"
+    description: "采用Reddit风格的4+1+5导航架构"
+    confirmed_value: |
+      底部4核心功能：首页、任务、成就、设置
+      中间悬浮按钮：快速创建任务
+      侧边栏5辅助功能：收集箱、任务栏、已完成、已归档、垃圾箱
+    reasoning: "符合移动端最佳实践"
+
+  - decision: "UI风格确认"
+    description: "悬浮按钮使用16px圆角，创建弹窗使用底部弹出"
+    confirmed_value: "采用Reddit风格设计，无需额外确认"
+    reasoning: "已验证的设计模式"
+
+  - decision: "测试策略确认"
+    description: "严格按照plan中的测试规范执行，失败时跳过继续"
+    confirmed_value: "自动跳过失败任务，继续执行后续任务"
+    reasoning: "确保自动化执行不中断"
+
+  - decision: "文档同步确认"
+    description: "代码修改后自动同步更新相关yaml文档"
+    confirmed_value: "按照plan中的yaml_updates自动执行"
+    reasoning: "保持文档与代码同步"
+
+automation_rules:
+  - rule: "自主执行"
+    description: "AI可以自主执行所有任务，无需等待用户确认"
+    scope: "所有任务"
+
+  - rule: "失败跳过"
+    description: "测试失败时记录失败原因，跳过该任务，继续执行下一个"
+    scope: "所有测试任务"
+
+  - rule: "自动修复"
+    description: "对于可自动修复的错误（如文档同步），自动执行修复"
+    scope: "文档和配置相关任务"
+
+  - rule: "依赖检查"
+    description: "自动检查任务依赖，跳过依赖未满足的任务"
+    scope: "所有任务"
+
+  - rule: "状态更新"
+    description: "执行前后自动更新任务状态"
+    scope: "所有任务"
+
+execution_phases:
+  - name: 配色统一实施
+    description: "自动执行配色统一任务"
+    auto_start: true
+    tasks:
+      - id: COLOR-1
+        description: "更新 documents/theme.yaml，添加缺失的颜色变量"
+        status: completed
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "读取当前theme.yaml文件"
+          - "在palette部分添加info: '#1565C0'"
+          - "保存文件"
+          - "执行yaml验证测试"
+          - "如测试失败，记录失败原因，标记为skipped"
+        expected_outcomes:
+          - "theme.yaml包含正确的info颜色定义"
+          - "Material Design 3兼容性保持"
+
+      - id: COLOR-2
+        description: "更新 documents/251022-技术规范.yaml 中的颜色系统"
+        status: pending
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "读取技术规范文件"
+          - "确认accent_colors部分包含info颜色"
+          - "如果缺失则添加info: '#1565C0' (信息蓝色)"
+          - "保存文件"
+          - "执行内容验证测试"
+        expected_outcomes:
+          - "技术规范包含完整的颜色系统"
+          - "所有颜色值与cards_flutter一致"
+
+      - id: COLOR-3
+        description: "更新 documents/product_requirements.yaml 中的颜色配置"
+        status: pending
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "读取产品需求文件"
+          - "在color_scheme中添加info: '#1565C0'"
+          - "保存文件"
+          - "执行配置验证测试"
+        expected_outcomes:
+          - "产品需求文档包含完整的颜色方案"
+
+  - name: 导航重构实施
+    description: "自动执行导航重构任务"
+    auto_start: true
+    tasks:
+      - id: NAV-ACHIEVEMENT-1
+        description: "创建成就页面占位符"
+        status: completed
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "创建lib/presentation/achievements/achievements_page.dart"
+          - "实现基本的成就页面布局和占位符内容"
+          - "确保页面符合Material Design 3规范"
+          - "添加基本的单元测试"
+          - "更新architecture/pages.yaml（如果存在）"
+        expected_outcomes:
+          - "成就页面文件成功创建"
+          - "页面包含基本的UI结构"
+          - "单元测试通过"
+
+      - id: NAV-BOTTOM-1
+        description: "更新底部导航配置"
+        status: completed
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "读取lib/presentation/navigation/app_shell.dart"
+          - "更新_pages列表：移除CompletedPage和TrashPage，添加AchievementsPage"
+          - "更新NavigationDestinations枚举：移除completed和trash，添加achievements"
+          - "调整导航栏配置"
+          - "添加基本的导航测试"
+        expected_outcomes:
+          - "底部导航包含4个正确配置的项目"
+          - "NavigationDestinations枚举正确更新"
+          - "导航测试通过"
+
+      - id: NAV-FAB-1
+        description: "添加悬浮操作按钮 (FAB)"
+        status: completed
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "在AppShell中添加FloatingActionButton"
+          - "设置Reddit风格的16px圆角"
+          - "配置centerDocked位置"
+          - "添加点击事件（暂时空实现）"
+          - "添加FAB显示测试"
+        expected_outcomes:
+          - "FAB正确显示在中间位置"
+          - "样式符合Reddit风格"
+          - "点击事件框架准备就绪"
+
+      - id: NAV-DIALOG-1
+        description: "创建任务创建弹窗组件"
+        status: completed
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "创建lib/presentation/widgets/create_task_dialog.dart"
+          - "实现底部弹出弹窗布局"
+          - "添加任务标题输入框"
+          - "添加标签选择器和上级任务选择器"
+          - "添加发布按钮"
+          - "实现基本的弹窗显示逻辑"
+          - "添加弹窗组件测试"
+        expected_outcomes:
+          - "弹窗组件成功创建"
+          - "包含所有必需的UI元素"
+          - "弹窗可以正常显示和关闭"
+
+      - id: NAV-SIDEBAR-1
+        description: "实现侧边栏导航"
+        status: completed
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "在AppShell中添加Drawer组件"
+          - "添加5个ListTile：收集箱、任务栏、已完成、已归档、垃圾箱"
+          - "实现基本的导航逻辑（暂时空实现）"
+          - "在设置页面添加菜单按钮"
+          - "添加侧边栏显示测试"
+        expected_outcomes:
+          - "侧边栏包含5个导航项目"
+          - "Drawer可以正常打开和关闭"
+          - "导航框架准备就绪"
+
+      - id: NAV-ROUTING-1
+        description: "更新路由配置"
+        status: pending
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "读取lib/core/router/app_router.dart"
+          - "添加成就、收集箱、已完成、已归档、垃圾箱路由定义"
+          - "配置路由参数和守卫"
+          - "添加路由注册测试"
+        expected_outcomes:
+          - "所有新路由正确注册"
+          - "路由导航功能正常"
+
+      - id: DOCS-UPDATE-1
+        description: "更新产品需求和用户故事文档"
+        status: pending
+        auto_executable: true
+        skip_on_failure: false
+        execution_steps:
+          - "更新documents/product_requirements.yaml的ui_rules部分"
+          - "在documents/user_stories.md中添加成就页面验收标准"
+          - "执行文档内容验证测试"
+        expected_outcomes:
+          - "文档反映新的导航架构"
+          - "验收标准明确定义"
+
+      - id: FINAL-TEST-1
+        description: "执行端到端验收测试"
+        status: pending
+        auto_executable: true
+        skip_on_failure: true  # 这个任务允许失败跳过
+        execution_steps:
+          - "运行所有单元测试"
+          - "执行集成测试验证整体功能"
+          - "检查文档与代码同步状态"
+          - "生成测试报告"
+        expected_outcomes:
+          - "测试覆盖率达标"
+          - "主要功能正常工作"
+          - "文档与实现同步"
+
+error_handling:
+  - error_type: "文件不存在"
+    action: "创建文件并继续"
+    scope: "新文件创建任务"
+
+  - error_type: "测试失败"
+    action: "记录失败原因，标记任务为skipped，继续下一个任务"
+    scope: "所有测试任务"
+
+  - error_type: "依赖缺失"
+    action: "跳过依赖未满足的任务"
+    scope: "所有任务"
+
+  - error_type: "语法错误"
+    action: "自动修复简单语法错误，复杂错误则跳过"
+    scope: "代码相关任务"
+
+progress_reporting:
+  - report_type: "实时状态"
+    frequency: "每个任务完成后"
+    content: "任务ID、状态、耗时、结果"
+
+  - report_type: "阶段总结"
+    frequency: "每个阶段完成后"
+    content: "阶段名称、完成任务数、跳过任务数、发现的问题"
+
+  - report_type: "最终报告"
+    frequency: "所有任务执行完毕"
+    content: "总体统计、成功率、失败任务详情、建议"
+
+success_criteria:
+  - "所有auto_executable=true的任务至少被尝试执行"
+  - "所有非跳过任务的测试通过率 >= 80%"
+  - "核心功能（导航、配色）实现完整"
+  - "文档与代码基本同步"
+  - "生成完整的执行报告"
+
+fallback_strategies:
+  - strategy: "部分失败处理"
+    description: "即使某些任务失败，只要核心功能完整就算成功"
+    trigger_condition: "非核心任务失败"
+
+  - strategy: "优先级调整"
+    description: "高优先级任务失败时，降低后续任务优先级"
+    trigger_condition: "高优先级任务连续失败"
+
+  - strategy: "增量提交"
+    description: "每完成一个阶段就提交代码，避免全部失败"
+    trigger_condition: "阶段完成时"

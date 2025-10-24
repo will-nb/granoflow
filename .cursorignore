@@ -1,0 +1,68 @@
+# Cursor ignore file
+# This file tells Cursor which files to ignore for AI processing
+
+# Build artifacts and generated files
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+coverage/
+lib/generated/
+
+# Platform specific build outputs
+android/app/build/
+ios/Pods/
+macos/Pods/
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+web/build/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs and temporary files
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+google-services.json
+GoogleService-Info.plist
+
+# Signing keys and certificates
+*.p12
+*.pem
+*.cer
+*.crt
+*.key
+*.pfx
+*.jks
+*.keystore
+
+# Large binary files
+*.apk
+*.ipa
+*.aab
+*.aar
+*.app
+*.xcarchive
+
+# Note: documents/temp/ is NOT ignored here
+# This allows Cursor to read/write backup files in documents/temp/
+# while still keeping them out of git version control

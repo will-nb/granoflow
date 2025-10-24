@@ -161,7 +161,7 @@ models:
         isar_id: true
       - name: localeCode
         type: String
-        notes: Defaults to system; matches supported locales (en, zh, zh_Hans, zh_Hant).
+        notes: Defaults to system; matches supported locales (en, zh_CN, zh_HK, zh).
       - name: themeMode
         type: String
         notes: "light" | "dark" | "system".

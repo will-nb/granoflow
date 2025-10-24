@@ -48,23 +48,8 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
     final priorityTagsAsync = ref.watch(priorityTagOptionsProvider);
 
-    final hasFilters = filter.hasFilters;
-
-    return Scaffold(
-      body: CustomScrollView(
+    return CustomScrollView(
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            title: Text(l10n.navInboxTitle),
-            actions: [
-              if (hasFilters)
-                IconButton(
-                  icon: const Icon(Icons.filter_alt_off),
-                  tooltip: l10n.inboxFilterReset,
-                  onPressed: () => ref.read(inboxFilterProvider.notifier).reset(),
-                ),
-            ],
-          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -167,8 +152,7 @@ class _InboxPageState extends ConsumerState<InboxPage> {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 48)),
         ],
-      ),
-    );
+      );
   }
 
   Future<void> _handleSubmit(BuildContext context, String value) async {

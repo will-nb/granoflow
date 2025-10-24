@@ -20,7 +20,14 @@ final appLocaleProvider = StreamProvider<Locale>((ref) {
   return ref
       .watch(preferenceServiceProvider)
       .watch()
-      .map((pref) => Locale(pref.localeCode));
+      .map((pref) {
+        final parts = pref.localeCode.split('_');
+        if (parts.length == 2) {
+          return Locale(parts[0], parts[1]);
+        } else {
+          return Locale(pref.localeCode);
+        }
+      });
 });
 
 final themeProvider = StreamProvider<ThemeMode>((ref) {

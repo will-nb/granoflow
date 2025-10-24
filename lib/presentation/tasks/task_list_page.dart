@@ -28,54 +28,56 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
       _SectionMeta(section: TaskSection.later, title: l10n.plannerSectionLaterTitle),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_editMode ? l10n.taskListTitleEdit : l10n.taskListTitle),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ToggleButtons(
-              isSelected: <bool>[!_editMode, _editMode],
-              onPressed: (index) {
-                setState(() {
-                  _editMode = index == 1;
-                });
-              },
-              constraints: const BoxConstraints(minHeight: 36, minWidth: 72),
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(l10n.taskListModeBasic),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(l10n.taskListModeEdit),
-                ),
-              ],
-            ),
-          ),
-        ],
-        bottom: showLinearProgress
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(4),
-                child: LinearProgressIndicator(),
-              )
-            : null,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        children: sectionMetas
-            .map(
-              (meta) => TaskSectionPanel(
-                key: ValueKey('${meta.section}-${_editMode.toString()}'),
-                section: meta.section,
-                title: meta.title,
-                editMode: _editMode,
-                onQuickAdd: () => _handleQuickAdd(context, meta.section),
+    return Column(
+      children: [
+        // 模式切换控件
+        if (showLinearProgress)
+          const LinearProgressIndicator(),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ToggleButtons(
+                isSelected: <bool>[!_editMode, _editMode],
+                onPressed: (index) {
+                  setState(() {
+                    _editMode = index == 1;
+                  });
+                },
+                constraints: const BoxConstraints(minHeight: 36, minWidth: 72),
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(l10n.taskListModeBasic),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(l10n.taskListModeEdit),
+                  ),
+                ],
               ),
-            )
-            .toList(growable: false),
-      ),
+            ],
+          ),
+        ),
+        // 主要内容列表
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            children: sectionMetas
+                .map(
+                  (meta) => TaskSectionPanel(
+                    key: ValueKey('${meta.section}-${_editMode.toString()}'),
+                    section: meta.section,
+                    title: meta.title,
+                    editMode: _editMode,
+                    onQuickAdd: () => _handleQuickAdd(context, meta.section),
+                  ),
+                )
+                .toList(growable: false),
+          ),
+        ),
+      ],
     );
   }
 

@@ -130,8 +130,9 @@ class IsarSeedRepository implements SeedRepository {
 
 Future<SeedPayload> loadSeedPayload(String localeCode) async {
   final normalized = switch (localeCode) {
-    final code when code.startsWith('zh_Hant') => 'zh_Hant',
-    final code when code.startsWith('zh') => 'zh_Hans',
+    final code when code.startsWith('zh_HK') => 'zh_HK',
+    final code when code.startsWith('zh_CN') => 'zh_CN',
+    final code when code.startsWith('zh') => 'zh_HK', // 兜底中文使用繁体中文
     final code when code.startsWith('en') => 'en',
     _ => 'en',
   };
