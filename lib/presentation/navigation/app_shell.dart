@@ -18,8 +18,6 @@ class AppShell extends ConsumerWidget {
     HomePage(),
     InboxPage(),
     TaskListPage(),
-    CompletedPage(),
-    TrashPage(),
     SettingsControlsPage(),
   ];
 
@@ -31,6 +29,35 @@ class AppShell extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final useRail = constraints.maxWidth >= 960;
+
+        // 尝试标签页导航作为替代方案（仅用于演示）
+        final showTabsDemo = false; // 设置为 true 可以看到标签页导航效果
+
+        if (showTabsDemo) {
+          return DefaultTabController(
+            length: navigation.length,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('GranoFlow'),
+                bottom: TabBar(
+                  isScrollable: true, // 允许滚动以展示更多标签
+                  tabs: navigation
+                      .map(
+                        (destination) => Tab(
+                          icon: Icon(destination.icon),
+                          text: destination.label(context),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+              body: TabBarView(
+                children: _pages,
+              ),
+            ),
+          );
+        }
+
         final Widget navigationWidget = useRail
             ? NavigationRail(
                 selectedIndex: selectedIndex,
@@ -86,8 +113,6 @@ enum NavigationDestinations {
   home,
   inbox,
   tasks,
-  completed,
-  trash,
   settings;
 
   IconData get icon {
@@ -98,10 +123,6 @@ enum NavigationDestinations {
         return Icons.inbox_outlined;
       case NavigationDestinations.tasks:
         return Icons.checklist;
-      case NavigationDestinations.completed:
-        return Icons.task_alt;
-      case NavigationDestinations.trash:
-        return Icons.delete_outline;
       case NavigationDestinations.settings:
         return Icons.settings_outlined;
     }
@@ -115,10 +136,6 @@ enum NavigationDestinations {
         return Icons.inbox;
       case NavigationDestinations.tasks:
         return Icons.fact_check;
-      case NavigationDestinations.completed:
-        return Icons.task;
-      case NavigationDestinations.trash:
-        return Icons.delete;
       case NavigationDestinations.settings:
         return Icons.settings;
     }
@@ -133,10 +150,6 @@ enum NavigationDestinations {
         return l10n.appShellInbox;
       case NavigationDestinations.tasks:
         return l10n.appShellTasks;
-      case NavigationDestinations.completed:
-        return l10n.appShellCompleted;
-      case NavigationDestinations.trash:
-        return l10n.appShellTrash;
       case NavigationDestinations.settings:
         return l10n.appShellSettings;
     }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../generated/l10n/app_localizations.dart';
+import '../completion_management/completed_page.dart';
+import '../completion_management/trash_page.dart';
 
 class SettingsControlsPage extends ConsumerWidget {
   const SettingsControlsPage({super.key});
@@ -111,6 +113,41 @@ class SettingsControlsPage extends ConsumerWidget {
                         await actionsNotifier.updateTheme(selected);
                       }
                     },
+            ),
+          ),
+          const SizedBox(height: 16),
+          _SettingCard(
+            title: '任务管理', // TODO: Add to localizations
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.task_alt),
+                  title: Text(l10n.appShellCompleted),
+                  subtitle: const Text('查看已完成的任务'),
+                  onTap: () {
+                    // Navigate to completed tasks
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const CompletedPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline),
+                  title: Text(l10n.appShellTrash),
+                  subtitle: const Text('查看已删除的任务'),
+                  onTap: () {
+                    // Navigate to trash
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const TrashPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ],
