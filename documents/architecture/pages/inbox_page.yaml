@@ -1,0 +1,75 @@
+meta:
+  name: InboxPage
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    收集箱页面 - 管理收集箱任务，提供快速添加输入、模板建议和筛选功能。
+
+page_definition:
+  name: InboxPage
+  route: /inbox
+  type: screen
+
+providers:
+  - inboxTasksProvider (filtered)
+  - inboxFilterProvider
+  - templateSuggestionsProvider(query)
+  - templateActionsNotifier
+
+layout:
+  structure:
+    - CustomScrollView:
+        - SliverAppBar(
+            pinned: true,
+            title: AppLocalizations.navInboxTitle,
+            actions: [FilterResetButton]
+          )
+        - SliverToBoxAdapter(
+            child: Column(
+                children: [
+                  PersistentInboxInput,
+                  SizedBox(height: 12),
+                  TemplateSuggestionWrap,
+                  SizedBox(height: 8),
+                  ChipToggleGroup(contextTags),
+                  SizedBox(height: 8),
+                  ChipToggleGroup(priorityTags)
+                ]
+              )
+          )
+        - SliverPadding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            sliver: SliverList(
+                delegate: InboxTaskItemBuilder
+              )
+          )
+        - SliverToBoxAdapter(EmptyStateCallout when list empty)
+
+interactions:
+  - PersistentInboxInput.onSubmit: captureInboxTask -> clear text; sends analytics
+  - TemplateSuggestionChip.onTap: TaskTemplateService.applyTemplate -> focus new task (optional plan)
+  - Context/priority ChipToggleGroup: update inboxFilterProvider state
+  - InboxTaskItem.expand: reveal TagPanel + ParentSelector (autocomplete via TaskRepository.searchByTitle)
+  - SwipeRight: QuickPlan (move to Today via TaskService.planTask)
+  - SwipeLeft: show actions EditTitle / Delete (soft delete)
+  - ActionButton.MoveToList: opens DatePicker + section selection, calls TaskService.planTask
+  - TagPanel changes call TaskService.updateTags
+  - ParentSelector search results limited to root + pending tasks
+
+notes:
+  - 模板建议限制为 6 个，按最近使用排序；输入时缩小匹配范围
+  - FilterResetButton 在任何筛选生效时显示，点击恢复默认
+  - 空状态消息提示可先从模板开始，调用 TemplateActionsNotifier
+
+accessibility:
+  - 屏幕阅读器支持
+  - 键盘导航支持
+  - 语义标签
+  - 拖拽操作支持
+
+performance:
+  - 懒加载任务列表
+  - 防抖搜索输入
+  - 缓存筛选状态
+  - 优化滚动性能

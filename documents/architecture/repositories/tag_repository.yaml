@@ -1,0 +1,80 @@
+meta:
+  name: TagRepository
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    标签仓库 - 标签字典的 CRUD 操作，按类型查找过滤器。
+    管理标签的创建、更新、删除和查询功能。
+
+repository_definition:
+  name: TagRepository
+  depends_on: [Isar]
+  storage: isar_collection
+  primary_model: Tag
+
+responsibilities:
+  - 种子化默认的上下文/优先级/特殊标签
+  - 提供本地化标签而不重复访问本地化层
+
+methods:
+  - name: ensureSeeded
+    returns: Future<void>
+    notes: 确保默认标签已种子化
+
+  - name: listByKind
+    params:
+      - kind: TagKind
+    returns: Future<List<Tag>>
+    notes: 按类型获取标签列表
+
+  - name: findBySlug
+    params:
+      - slug: String
+    returns: Future<Tag?>
+    notes: 通过 slug 查找特定标签
+
+  - name: createTag
+    params:
+      - draft: TagDraft
+    returns: Future<Tag>
+    notes: 创建新标签
+
+  - name: updateTag
+    params:
+      - tagId: int
+      - payload: TagUpdate
+    returns: Future<void>
+    notes: 更新标签信息
+
+  - name: deleteTag
+    params:
+      - tagId: int
+    returns: Future<void>
+    notes: 删除标签（需要检查是否被任务使用）
+
+business_rules:
+  - slug 必须是唯一的
+  - 标签类型决定在 UI 中的过滤行为
+  - 支持多语言显示名称
+  - 排序顺序控制显示顺序
+
+tag_types:
+  - context: 上下文标签（如 @home, @office）
+  - priority: 优先级标签（如 #urgent, #low）
+  - special: 特殊标签（如 wasted, recurring）
+
+localization:
+  - 支持多语言显示名称
+  - 使用 Map<String, String> 存储不同语言环境的翻译
+  - 默认语言环境为 "en"
+
+error_handling:
+  - DuplicateSlug: 当尝试创建重复 slug 的标签时
+  - TagInUse: 当尝试删除正在使用的标签时
+  - InvalidTagKind: 当标签类型无效时
+
+performance_considerations:
+  - 使用索引优化按类型查询
+  - 缓存常用标签列表
+  - 批量操作使用事务

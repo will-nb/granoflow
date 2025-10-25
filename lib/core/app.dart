@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:granoflow/generated/l10n/app_localizations.dart';
-import '../presentation/navigation/app_shell.dart';
+import '../presentation/navigation/app_router.dart';
 import 'providers/app_providers.dart';
 import 'providers/service_providers.dart';
 import 'theme/app_theme.dart';
@@ -26,7 +26,7 @@ class GranoFlowApp extends ConsumerWidget {
         .watch(fontScaleProvider)
         .maybeWhen(data: (value) => value, orElse: () => 1.0);
     final config = ref.watch(appConfigProvider);
-    return MaterialApp(
+    return MaterialApp.router(
       locale: localeValue,
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: AppTheme.light(),
@@ -46,7 +46,7 @@ class GranoFlowApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const AppShell(),
+      routerConfig: AppRouter.router,
     );
   }
 }

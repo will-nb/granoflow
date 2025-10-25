@@ -1,0 +1,869 @@
+meta:
+  version: 1
+  type: preview
+  iteration: "251025-1"
+  generated_at: "2025-01-25 11:15:00"
+
+summary:
+  objective: "重构导航架构，采用统一DrawerMenu方案，支持三种显示状态（隐藏/图标/完整）"
+  requirements: 
+    - "重构 App Shell 为条件渲染侧边栏的应用壳"
+    - "移除 AppNavigationRail，统一使用 DrawerMenu"
+    - "保留底部导航组件（NavigationBar）用于竖屏"
+    - "增强抽屉菜单组件支持三种显示模式"
+    - "拆分响应式导航容器"
+    - "拆分导航目的地定义"
+    - "重构所有现有页面支持页面级导航"
+    - "集成路由系统支持二级页面"
+    - "实现基于屏幕方向的智能显示逻辑"
+
+# DrawerMenu 三种显示状态设计
+drawer_display_modes:
+  description: "统一DrawerMenu方案支持三种显示状态，根据屏幕方向和用户操作自动切换"
+  
+  modes:
+    - name: "hidden"
+      description: "完全隐藏状态"
+      trigger: "竖屏模式默认状态"
+      width: "0px"
+      content: "无内容显示"
+      icon: "Icons.menu"
+      use_case: "竖屏时节省屏幕空间"
+    
+    - name: "iconOnly"
+      description: "仅图标模式"
+      trigger: "横屏模式默认状态"
+      width: "80px"
+      content: "只显示导航图标，无文字"
+      icon: "Icons.menu_open"
+      use_case: "横屏时提供快速导航，节省空间"
+    
+    - name: "full"
+      description: "完整显示模式"
+      trigger: "用户点击主导航按钮切换"
+      width: "280px"
+      content: "显示图标+文字+应用标题"
+      icon: "Icons.close"
+      use_case: "需要详细信息时使用"
+  
+  state_transitions:
+    description: "状态切换逻辑"
+    transitions:
+      - from: "hidden"
+        to: "iconOnly"
+        trigger: "用户点击主导航按钮"
+        condition: "横屏模式"
+      
+      - from: "hidden"
+        to: "full"
+        trigger: "用户点击主导航按钮"
+        condition: "竖屏模式"
+      
+      - from: "iconOnly"
+        to: "full"
+        trigger: "用户点击主导航按钮"
+        condition: "任意屏幕方向"
+      
+      - from: "full"
+        to: "hidden"
+        trigger: "用户点击主导航按钮"
+        condition: "任意屏幕方向"
+      
+      - from: "任意状态"
+        to: "iconOnly"
+        trigger: "屏幕旋转到横屏"
+        condition: "自动触发"
+      
+      - from: "任意状态"
+        to: "hidden"
+        trigger: "屏幕旋转到竖屏"
+        condition: "自动触发"
+
+# 新建文件详细设计
+new_files:
+  # 导航目的地定义
+  - file: "lib/presentation/navigation/navigation_destinations.dart"
+    type: "enum"
+    class_name: "NavigationDestinations"
+    description: "定义应用中所有导航目的地的枚举，包含图标、标签和路由信息"
+    
+    properties:
+      - name: "values"
+        type: "List<NavigationDestinations>"
+        values: ["home", "tasks", "achievements", "settings"]
+      
+      - name: "icon"
+        type: "IconData"
+        description: "未选中状态的图标"
+        values:
+          home: "Icons.home_outlined"
+          tasks: "Icons.checklist"
+          achievements: "Icons.emoji_events_outlined"
+          settings: "Icons.settings_outlined"
+      
+      - name: "selectedIcon"
+        type: "IconData"
+        description: "选中状态的图标"
+        values:
+          home: "Icons.home"
+          tasks: "Icons.fact_check"
+          achievements: "Icons.emoji_events"
+          settings: "Icons.settings"
+      
+      - name: "route"
+        type: "String"
+        description: "对应的路由路径"
+        values:
+          home: "/"
+          tasks: "/tasks"
+          achievements: "/achievements"
+          settings: "/settings"
+    
+    methods:
+      - name: "label"
+        return_type: "String"
+        parameters:
+          - name: "context"
+            type: "BuildContext"
+            required: true
+        description: "获取本地化的标签文本"
+        implementation: |
+          String label(BuildContext context) {
+            final l10n = AppLocalizations.of(context);
+            switch (this) {
+              case NavigationDestinations.home:
+                return l10n.appShellHome;
+              case NavigationDestinations.tasks:
+                return l10n.taskListTitle;
+              case NavigationDestinations.achievements:
+                return l10n.appShellAchievements;
+              case NavigationDestinations.settings:
+                return l10n.navSettingsSectionTitle;
+            }
+          }
+    
+    dependencies:
+      - "package:flutter/material.dart"
+      - "package:granoflow/generated/l10n/app_localizations.dart"
+    
+    called_by:
+      - "lib/presentation/navigation/drawer_menu.dart"
+      - "lib/presentation/navigation/navigation_rail.dart"
+      - "lib/presentation/navigation/navigation_bar.dart"
+      - "lib/presentation/navigation/responsive_navigation.dart"
+      - "lib/presentation/navigation/app_shell.dart"
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+      - "package:granoflow/generated/l10n/app_localizations.dart"
+
+  # 增强抽屉菜单组件
+  - file: "lib/presentation/navigation/drawer_menu.dart"
+    type: "StatelessWidget"
+    class_name: "DrawerMenu"
+    description: "增强抽屉菜单组件，支持三种显示模式：隐藏/图标/完整"
+    
+    enums:
+      - name: "DrawerDisplayMode"
+        values: ["hidden", "iconOnly", "full"]
+        description: "抽屉显示模式枚举"
+    
+    properties:
+      - name: "displayMode"
+        type: "DrawerDisplayMode"
+        description: "当前显示模式"
+        required: true
+      
+      - name: "onDestinationSelected"
+        type: "ValueChanged<NavigationDestinations>?"
+        description: "菜单项选择回调"
+        required: false
+        default: "null"
+      
+      - name: "onClose"
+        type: "VoidCallback?"
+        description: "抽屉关闭回调"
+        required: false
+        default: "null"
+    
+    children:
+      - name: "Drawer"
+        type: "Drawer"
+        properties:
+          width: "根据 displayMode 动态设置 (0/80/280)"
+        children:
+          - name: "DrawerHeader"
+            type: "DrawerHeader"
+            condition: "displayMode == DrawerDisplayMode.full"
+            properties:
+              decoration: "BoxDecoration with primary color"
+              child: "Text widget with app name"
+          
+          - name: "MenuItems"
+            type: "ListView"
+            children:
+              - name: "NavigationItems"
+                type: "ListTile"
+                properties:
+                  leading: "Icon(destination.icon)"
+                  title: "根据 displayMode 条件显示文字"
+                  onTap: "Navigate and close drawer"
+    
+    methods:
+      - name: "_getDrawerWidth"
+        return_type: "double"
+        description: "根据显示模式获取抽屉宽度"
+        implementation: |
+          double _getDrawerWidth() {
+            switch (displayMode) {
+              case DrawerDisplayMode.hidden:
+                return 0;
+              case DrawerDisplayMode.iconOnly:
+                return 80;
+              case DrawerDisplayMode.full:
+                return 280;
+            }
+          }
+    
+    dependencies:
+      - "package:flutter/material.dart"
+      - "navigation_destinations.dart"
+    
+    called_by:
+      - "lib/presentation/navigation/app_shell.dart"
+      - "lib/presentation/navigation/responsive_navigation.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+      - "lib/presentation/navigation/navigation_destinations.dart"
+
+  # 移除 AppNavigationRail 组件
+  # 原因: 统一使用 DrawerMenu 方案，不再需要独立的侧边导航栏组件
+
+  # 底部导航栏组件
+  - file: "lib/presentation/navigation/navigation_bar.dart"
+    type: "StatelessWidget"
+    class_name: "AppNavigationBar"
+    description: "竖屏模式底部导航栏组件，用于小屏幕设备的水平导航"
+    
+    properties:
+      - name: "selectedIndex"
+        type: "int"
+        description: "当前选中的导航项索引"
+        required: true
+      
+      - name: "onDestinationSelected"
+        type: "ValueChanged<int>"
+        description: "导航项选择回调"
+        required: true
+      
+      - name: "destinations"
+        type: "List<NavigationDestination>"
+        description: "导航目的地列表"
+        required: false
+        default: "从 NavigationDestinations 自动生成"
+    
+    children:
+      - name: "NavigationBar"
+        type: "NavigationBar"
+        properties:
+          selectedIndex: "selectedIndex"
+          onDestinationSelected: "onDestinationSelected"
+          destinations: "destinations"
+    
+    dependencies:
+      - "package:flutter/material.dart"
+      - "navigation_destinations.dart"
+    
+    called_by:
+      - "lib/presentation/navigation/responsive_navigation.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+      - "lib/presentation/navigation/navigation_destinations.dart"
+
+  # 响应式导航容器组件
+  - file: "lib/presentation/navigation/responsive_navigation.dart"
+    type: "StatefulWidget"
+    class_name: "ResponsiveNavigation"
+    description: "响应式导航容器组件，根据屏幕方向自动选择导航方式，支持DrawerMenu三种状态"
+    
+    properties:
+      - name: "selectedIndex"
+        type: "int"
+        description: "当前选中的导航项索引"
+        required: true
+      
+      - name: "onDestinationSelected"
+        type: "ValueChanged<int>"
+        description: "导航项选择回调"
+        required: true
+      
+      - name: "child"
+        type: "Widget"
+        description: "页面内容"
+        required: true
+      
+      - name: "drawerMode"
+        type: "DrawerDisplayMode"
+        description: "当前抽屉显示模式"
+        required: false
+        default: "根据屏幕方向自动判断"
+    
+    state_properties:
+      - name: "_isLandscape"
+        type: "bool"
+        description: "当前是否为横屏"
+      
+      - name: "_currentDrawerMode"
+        type: "DrawerDisplayMode"
+        description: "当前抽屉显示模式"
+    
+    children:
+      - name: "LayoutBuilder"
+        type: "LayoutBuilder"
+        children:
+          - name: "LandscapeLayout"
+            condition: "MediaQuery.of(context).orientation == Orientation.landscape"
+            children:
+              - name: "Row"
+                children:
+                  - name: "AnimatedContainer"
+                    properties:
+                      duration: "Duration(milliseconds: 300)"
+                      width: "_getDrawerWidth()"
+                    child: "DrawerMenu(displayMode: _currentDrawerMode)"
+                  - name: "Expanded"
+                    child: "child"
+          
+          - name: "PortraitLayout"
+            condition: "MediaQuery.of(context).orientation == Orientation.portrait"
+            children:
+              - name: "Scaffold"
+                children:
+                  - name: "body"
+                    child: "child"
+                  - name: "bottomNavigationBar"
+                    child: "AppNavigationBar"
+    
+    methods:
+      - name: "_checkOrientation"
+        return_type: "void"
+        description: "检查屏幕方向并设置默认抽屉模式"
+        implementation: |
+          void _checkOrientation() {
+            final orientation = MediaQuery.of(context).orientation;
+            setState(() {
+              _isLandscape = orientation == Orientation.landscape;
+              // 横屏时默认图标模式，竖屏时隐藏
+              _currentDrawerMode = _isLandscape 
+                ? DrawerDisplayMode.iconOnly 
+                : DrawerDisplayMode.hidden;
+            });
+          }
+      
+      - name: "_getDrawerWidth"
+        return_type: "double"
+        description: "根据抽屉模式获取宽度"
+        implementation: |
+          double _getDrawerWidth() {
+            switch (_currentDrawerMode) {
+              case DrawerDisplayMode.hidden:
+                return 0;
+              case DrawerDisplayMode.iconOnly:
+                return 80;
+              case DrawerDisplayMode.full:
+                return 280;
+            }
+          }
+      
+      - name: "toggleDrawerMode"
+        return_type: "void"
+        description: "切换抽屉显示模式"
+        implementation: |
+          void toggleDrawerMode() {
+            setState(() {
+              switch (_currentDrawerMode) {
+                case DrawerDisplayMode.hidden:
+                  _currentDrawerMode = DrawerDisplayMode.iconOnly;
+                  break;
+                case DrawerDisplayMode.iconOnly:
+                  _currentDrawerMode = DrawerDisplayMode.full;
+                  break;
+                case DrawerDisplayMode.full:
+                  _currentDrawerMode = DrawerDisplayMode.hidden;
+                  break;
+              }
+            });
+          }
+    
+    dependencies:
+      - "package:flutter/material.dart"
+      - "drawer_menu.dart"
+      - "navigation_bar.dart"
+    
+    called_by:
+      - "lib/presentation/navigation/app_shell.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+      - "lib/presentation/navigation/drawer_menu.dart"
+      - "lib/presentation/navigation/navigation_bar.dart"
+
+  # 路由系统组件
+  - file: "lib/presentation/navigation/app_router.dart"
+    type: "static_class"
+    class_name: "AppRouter"
+    description: "应用路由系统，集成 go_router 支持复杂导航结构，适配统一DrawerMenu方案"
+    
+    properties:
+      - name: "router"
+        type: "GoRouter"
+        description: "go_router 实例"
+        static: true
+    
+    routes:
+      - path: "/"
+        name: "home"
+        builder: "HomePage"
+        shell_route: true
+      
+      - path: "/tasks"
+        name: "tasks"
+        builder: "TaskListPage"
+        shell_route: true
+      
+      - path: "/achievements"
+        name: "achievements"
+        builder: "AchievementsPage"
+        shell_route: true
+      
+      - path: "/settings"
+        name: "settings"
+        builder: "SettingsPage"
+        shell_route: true
+      
+      - path: "/inbox"
+        name: "inbox"
+        builder: "InboxPage"
+        shell_route: true
+      
+      - path: "/completed"
+        name: "completed"
+        builder: "CompletedPage"
+        shell_route: true
+      
+      - path: "/trash"
+        name: "trash"
+        builder: "TrashPage"
+        shell_route: true
+    
+    dependencies:
+      - "package:go_router/go_router.dart"
+      - "package:flutter/material.dart"
+      - "app_shell.dart"
+      - "../home/home_page.dart"
+      - "../tasks/task_list_page.dart"
+      - "../achievements/achievements_page.dart"
+      - "../navigation/settings_controls.dart"
+      - "../inbox/inbox_page.dart"
+      - "../completion_management/completed_page.dart"
+      - "../completion_management/trash_page.dart"
+    
+    called_by:
+      - "lib/core/app.dart"
+    
+    calls:
+      - "package:go_router/go_router.dart"
+      - "package:flutter/material.dart"
+      - "lib/presentation/navigation/app_shell.dart"
+      - "lib/presentation/home/home_page.dart"
+      - "lib/presentation/tasks/task_list_page.dart"
+      - "lib/presentation/achievements/achievements_page.dart"
+      - "lib/presentation/navigation/settings_controls.dart"
+      - "lib/presentation/inbox/inbox_page.dart"
+      - "lib/presentation/completion_management/completed_page.dart"
+      - "lib/presentation/completion_management/trash_page.dart"
+
+# 修改文件详细差异
+modified_files:
+  # 应用壳组件重构
+  - file: "lib/presentation/navigation/app_shell.dart"
+    type: "ConsumerWidget"
+    class_name: "AppShell"
+    description: "应用壳组件，管理统一DrawerMenu的三种显示状态"
+    
+    current_structure:
+      - "包含所有导航逻辑的单一文件"
+      - "直接管理 NavigationRail 和 NavigationBar"
+      - "包含 Drawer 和 EndDrawer 的完整实现"
+      - "使用 IndexedStack 管理页面切换"
+      - "包含响应式布局逻辑"
+    
+    new_structure:
+      - "使用 ResponsiveNavigation 处理屏幕方向判断"
+      - "支持 DrawerMenu 三种显示模式切换"
+      - "页面内容通过 child 参数传入"
+      - "主导航按钮支持状态切换"
+    
+    properties_changes:
+      - name: "child"
+        type: "Widget"
+        description: "页面内容"
+        required: true
+        change_type: "新增"
+      
+      - name: "showEndDrawer"
+        type: "bool"
+        description: "是否显示右侧抽屉菜单"
+        required: false
+        default: "true"
+        change_type: "新增"
+    
+    removed_properties:
+      - name: "_pages"
+        type: "List<Widget>"
+        description: "页面列表"
+        reason: "页面通过 child 参数传入"
+      
+      - name: "_scaffoldKey"
+        type: "GlobalKey<ScaffoldState>"
+        description: "Scaffold 全局键"
+        reason: "不再需要直接控制 Scaffold"
+      
+      - name: "showDrawer"
+        type: "bool"
+        description: "左侧抽屉显示控制"
+        reason: "由 ResponsiveNavigation 根据屏幕方向自动管理"
+    
+    implementation_changes:
+      - field: "build 方法"
+        current: "直接创建 NavigationRail/NavigationBar 和 Scaffold"
+        new: "使用 ResponsiveNavigation 处理所有导航逻辑"
+        reason: "统一使用 DrawerMenu 方案"
+      
+      - field: "响应式逻辑"
+        current: "在 AppShell 中直接处理"
+        new: "委托给 ResponsiveNavigation 处理"
+        reason: "单一职责原则"
+      
+      - field: "抽屉菜单"
+        current: "直接在 Scaffold 中定义"
+        new: "使用增强的 DrawerMenu 组件支持三种模式"
+        reason: "支持图标/完整/隐藏三种状态"
+      
+      - field: "主导航按钮"
+        current: "简单的菜单按钮"
+        new: "支持三种状态的切换按钮"
+        reason: "提供更丰富的交互体验"
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+      - "package:flutter_riverpod/flutter_riverpod.dart"
+      - "lib/presentation/navigation/responsive_navigation.dart"
+      - "lib/presentation/navigation/settings_controls.dart"
+      - "../../core/providers/app_providers.dart"
+
+  # 首页重构
+  - file: "lib/presentation/home/home_page.dart"
+    type: "StatelessWidget"
+    class_name: "HomePage"
+    description: "首页组件，支持页面级导航"
+    
+    current_structure:
+      - "作为 AppShell 中 _pages 列表的一部分"
+      - "不包含自己的 AppBar"
+      - "依赖 AppShell 的导航逻辑"
+    
+    new_structure:
+      - "独立的页面组件"
+      - "包含自己的 AppBar"
+      - "支持条件渲染侧边栏"
+      - "通过路由系统访问"
+    
+    properties_changes:
+      - name: "appBar"
+        type: "AppBar"
+        description: "页面级顶部导航栏"
+        required: true
+        change_type: "新增"
+        implementation: |
+          AppBar(
+            title: Text('Home'),
+            actions: [],
+          )
+      
+      - name: "body"
+        type: "Widget"
+        description: "页面主体内容"
+        required: true
+        change_type: "修改"
+        current: "直接返回页面内容"
+        new: "包装在 Scaffold 中"
+    
+    implementation_changes:
+      - field: "整体结构"
+        current: "直接返回页面内容 Widget"
+        new: "返回包含 AppBar 的 Scaffold"
+        reason: "支持页面级导航"
+      
+      - field: "导航逻辑"
+        current: "依赖 AppShell 的 IndexedStack"
+        new: "通过路由系统管理"
+        reason: "采用模式2架构"
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+
+  # 任务列表页重构
+  - file: "lib/presentation/tasks/task_list_page.dart"
+    type: "StatelessWidget"
+    class_name: "TaskListPage"
+    description: "任务列表页组件，支持页面级导航"
+    
+    changes: "与 HomePage 相同的重构模式"
+    
+    properties_changes:
+      - name: "appBar"
+        type: "AppBar"
+        description: "页面级顶部导航栏"
+        required: true
+        change_type: "新增"
+        implementation: |
+          AppBar(
+            title: Text('Tasks'),
+            actions: [],
+          )
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+
+  # 成就页重构
+  - file: "lib/presentation/achievements/achievements_page.dart"
+    type: "StatelessWidget"
+    class_name: "AchievementsPage"
+    description: "成就页组件，支持页面级导航"
+    
+    changes: "与 HomePage 相同的重构模式"
+    
+    properties_changes:
+      - name: "appBar"
+        type: "AppBar"
+        description: "页面级顶部导航栏"
+        required: true
+        change_type: "新增"
+        implementation: |
+          AppBar(
+            title: Text('Achievements'),
+            actions: [],
+          )
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+
+  # 设置页重构
+  - file: "lib/presentation/navigation/settings_controls.dart"
+    type: "StatelessWidget"
+    class_name: "SettingsControlsPage"
+    description: "设置页组件，支持页面级导航"
+    
+    changes: "与 HomePage 相同的重构模式"
+    
+    properties_changes:
+      - name: "appBar"
+        type: "AppBar"
+        description: "页面级顶部导航栏"
+        required: true
+        change_type: "新增"
+        implementation: |
+          AppBar(
+            title: Text('Settings'),
+            actions: [],
+          )
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+      - "lib/presentation/navigation/app_shell.dart (作为 EndDrawer)"
+    
+    calls:
+      - "package:flutter/material.dart"
+
+  # 收集箱页重构
+  - file: "lib/presentation/inbox/inbox_page.dart"
+    type: "StatelessWidget"
+    class_name: "InboxPage"
+    description: "收集箱页组件，统一导航架构"
+    
+    current_structure:
+      - "独立页面，但导航逻辑不统一"
+      - "可能包含自己的 AppBar 实现"
+    
+    new_structure:
+      - "统一的页面级导航架构"
+      - "支持条件渲染侧边栏"
+      - "通过路由系统访问"
+    
+    properties_changes:
+      - name: "appBar"
+        type: "AppBar"
+        description: "页面级顶部导航栏"
+        required: true
+        change_type: "新增或修改"
+        implementation: |
+          AppBar(
+            title: Text('Inbox'),
+            actions: [],
+          )
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+
+  # 已完成页重构
+  - file: "lib/presentation/completion_management/completed_page.dart"
+    type: "StatelessWidget"
+    class_name: "CompletedPage"
+    description: "已完成页组件，统一导航架构"
+    
+    changes: "与 InboxPage 相同的重构模式"
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+
+  # 垃圾箱页重构
+  - file: "lib/presentation/completion_management/trash_page.dart"
+    type: "StatelessWidget"
+    class_name: "TrashPage"
+    description: "垃圾箱页组件，统一导航架构"
+    
+    changes: "与 InboxPage 相同的重构模式"
+    
+    called_by:
+      - "lib/presentation/navigation/app_router.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+
+  # 应用入口修改
+  - file: "lib/core/app.dart"
+    type: "StatelessWidget"
+    class_name: "GranoFlowApp"
+    description: "应用入口，集成路由系统，支持统一DrawerMenu方案"
+    
+    current_structure:
+      - "直接使用 AppShell 作为 home"
+      - "使用 MaterialApp 包装"
+    
+    new_structure:
+      - "使用路由系统作为应用入口"
+      - "集成 go_router"
+      - "支持复杂导航结构"
+      - "适配统一DrawerMenu方案"
+    
+    properties_changes:
+      - name: "router"
+        type: "GoRouter"
+        description: "路由系统实例"
+        required: true
+        change_type: "新增"
+        implementation: "AppRouter.router"
+    
+    implementation_changes:
+      - field: "MaterialApp 配置"
+        current: "home: AppShell()"
+        new: "routerConfig: AppRouter.router"
+        reason: "使用路由系统管理导航"
+    
+    called_by:
+      - "lib/main.dart"
+    
+    calls:
+      - "package:flutter/material.dart"
+      - "lib/presentation/navigation/app_router.dart"
+
+  # 架构文档更新
+  architecture_updates:
+    - file: "documents/architecture/widgets.yaml"
+      changes:
+        - field: "新增导航组件"
+          current_value: "现有组件列表"
+          new_value: "添加新的导航组件定义，移除AppNavigationRail"
+          components:
+            - "NavigationDestinations"
+            - "DrawerMenu (增强版，支持三种显示模式)"
+            - "AppNavigationBar"
+            - "ResponsiveNavigation (增强版，支持屏幕方向判断)"
+            - "AppShell (重构)"
+            - "AppRouter"
+          purpose: "更新架构文档以反映统一DrawerMenu方案"
+          reason: "采用统一DrawerMenu方案，移除AppNavigationRail组件"
+
+  - file: "documents/architecture/pages.yaml"
+    changes:
+      - field: "页面架构"
+        current_value: "基于 IndexedStack 的页面结构"
+        new_value: "基于路由系统的页面级导航架构"
+        updates:
+          - "所有页面都支持页面级 AppBar"
+          - "所有页面都支持条件渲染侧边栏"
+          - "所有页面都通过路由系统访问"
+          - "移除对 IndexedStack 的依赖"
+        purpose: "更新页面架构文档以反映新的导航模式"
+        reason: "采用模式2架构，需要更新页面架构文档"
+
+# 测试策略
+testing_strategy:
+  unit_tests:
+    description: "验证每个组件的独立功能"
+    coverage_target: "≥80%"
+    test_files:
+      - "test/presentation/navigation/navigation_destinations_test.dart"
+      - "test/presentation/navigation/drawer_menu_test.dart"
+      - "test/presentation/navigation/navigation_rail_test.dart"
+      - "test/presentation/navigation/navigation_bar_test.dart"
+      - "test/presentation/navigation/responsive_navigation_test.dart"
+      - "test/presentation/navigation/app_shell_test.dart"
+      - "test/presentation/navigation/app_router_test.dart"
+  
+  widget_tests:
+    description: "验证 UI 组件的渲染和交互"
+    test_files:
+      - "test/presentation/navigation/widgets/"
+  
+  integration_tests:
+    description: "验证页面级导航的完整流程"
+    test_files:
+      - "integration_test/navigation_flow_test.dart"
+
+  # 成功标准
+  success_criteria:
+    - "所有测试通过（单元测试、组件测试、集成测试）"
+    - "代码覆盖率 ≥80%"
+    - "文档与代码同步"
+    - "功能完整实现"
+    - "支持DrawerMenu三种显示模式（隐藏/图标/完整）"
+    - "支持基于屏幕方向的智能显示逻辑"
+    - "支持主导航按钮状态切换"
+    - "支持页面级导航"
+    - "支持路由系统"
+    - "保持现有功能不变"
+    - "符合 Flutter 最佳实践"
+    - "通过 flutter analyze 检查"

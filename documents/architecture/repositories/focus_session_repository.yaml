@@ -1,0 +1,81 @@
+meta:
+  name: FocusSessionRepository
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    专注会话仓库 - 管理专注会话生命周期，确保与叶子任务的关联。
+    处理会话的启动/停止，强制每个任务最多一个活跃会话。
+
+repository_definition:
+  name: FocusSessionRepository
+  depends_on: [Isar, TaskRepository]
+  storage: isar_collection
+  primary_model: FocusSession
+
+responsibilities:
+  - 启动/停止会话，强制每个任务最多一个活跃会话
+  - 聚合每个任务/天的总分钟数用于指标
+  - 支持快速子任务转移和审计跟踪
+
+methods:
+  - name: startSession
+    params:
+      - taskId: int
+      - estimateMinutes: int?
+      - alarmEnabled: bool
+    returns: Future<FocusSession>
+    notes: 创建新的专注会话，验证任务是否为叶子任务
+
+  - name: endSession
+    params:
+      - sessionId: int
+      - actualMinutes: int
+      - transferToTaskId: int?
+      - reflectionNote: String?
+    returns: Future<void>
+    notes: 验证叶子约束，如果请求则翻转任务状态为已完成
+
+  - name: watchActiveSession
+    params:
+      - taskId: int
+    returns: Stream<FocusSession?>
+    notes: 观察特定任务的活跃会话
+
+  - name: listRecentSessions
+    params:
+      - taskId: int
+      - limit: int
+    returns: Future<List<FocusSession>>
+    notes: 获取任务的最近会话历史
+
+  - name: totalMinutesForTask
+    params:
+      - taskId: int
+    returns: Future<int>
+    notes: 计算特定任务的总专注分钟数
+
+  - name: totalMinutesOverall
+    returns: Future<int>
+    notes: 计算所有任务的总专注分钟数
+
+business_rules:
+  - 每个任务最多只能有一个活跃会话
+  - 只有叶子任务可以创建专注会话
+  - 会话结束时必须记录实际分钟数
+  - 转移会话时保持审计跟踪
+
+constraints:
+  - 叶子任务约束：只有没有子任务的任务可以运行专注会话
+  - 唯一活跃会话：每个任务同时只能有一个进行中的会话
+  - 时间验证：实际分钟数必须大于 0
+
+error_handling:
+  - TaskNotLeaf: 当尝试为非叶子任务创建会话时
+  - SessionAlreadyActive: 当任务已有活跃会话时
+  - InvalidSessionState: 当会话状态无效时
+
+performance_considerations:
+  - 使用索引优化查询性能
+  - 批量计算聚合数据
+  - 缓存常用统计结果

@@ -1,0 +1,68 @@
+meta:
+  name: FocusSession Model
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    专注会话模型 - 记录叶子任务的定时专注会话，包括估计切换和闹钟使用，
+    以提供历史记录、总计和结束会话决策。
+
+model_definition:
+  name: FocusSession
+  storage: isar_collection
+  indexes:
+    - field: taskId
+    - field: startedAtUtc
+
+fields:
+  - name: id
+    type: int
+    isar_id: true
+
+  - name: taskId
+    type: int
+    notes: 外键到 Task.id；在创建前验证叶子约束
+
+  - name: startedAtUtc
+    type: DateTime
+
+  - name: endedAtUtc
+    type: DateTime?
+    notes: 会话进行中时为 null
+
+  - name: actualMinutes
+    type: int
+    notes: 会话停止时四舍五入；用于聚合统计
+
+  - name: estimateMinutes
+    type: int?
+    notes: 来自闹钟切换的可选用户提供的估计
+
+  - name: alarmEnabled
+    type: bool
+
+  - name: transferredToTaskId
+    type: int?
+    notes: >
+      当快速子任务创建新的子任务并移动已用时间时，
+      我们记录目标任务以供审计
+
+  - name: reflectionNote
+    type: String?
+    notes: 在结束会话时捕获的可选简短笔记，最大 200 字符
+
+business_rules:
+  - 只有叶子任务可以创建专注会话
+  - 会话进行中时 endedAtUtc 为 null
+  - 实际分钟数在会话停止时四舍五入
+  - 反思笔记限制在 200 字符以内
+
+relationships:
+  - task: Task (taskId -> Task.id)
+  - transferred_task: Task? (transferredToTaskId -> Task.id)
+
+lifecycle:
+  - created: 用户开始专注会话时
+  - updated: 会话进行中更新状态
+  - completed: 用户结束会话时
+  - transferred: 快速子任务创建时转移到新任务

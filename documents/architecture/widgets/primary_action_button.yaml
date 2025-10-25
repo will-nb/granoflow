@@ -1,0 +1,64 @@
+meta:
+  name: PrimaryActionButton
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    主要操作按钮 - 用于主要 CTA 的胶囊形按钮（例如"进入收集箱"）。
+
+widget_definition:
+  name: PrimaryActionButton
+  type: StatelessWidget
+  category: interactive
+
+props:
+  - name: label
+    type: String
+    required: true
+    description: 按钮标签
+
+  - name: subtitle
+    type: String?
+    required: false
+    description: 副标题（可选）
+
+  - name: onPressed
+    type: VoidCallback
+    required: true
+    description: 按下回调
+
+  - name: icon
+    type: IconData?
+    required: false
+    description: 图标（可选）
+
+behaviors:
+  layout:
+    description: 当存在副标题时使用两行布局；否则居中标签
+    implementation: 使用 Column 和条件渲染
+
+  focus_state:
+    description: 通过键盘聚焦时显示高度和主色轮廓
+    implementation: 使用 Focus 和 AnimatedContainer
+
+usage:
+  - presentation/home/home_page.dart
+  - 主要操作入口
+  - 导航按钮
+
+styling:
+  - 胶囊形状：圆角矩形
+  - 主题颜色：使用主色调
+  - 图标样式：与文本对齐
+  - 悬停效果：阴影和颜色变化
+
+accessibility_features:
+  - 键盘导航支持
+  - 焦点指示器
+  - 语义标签
+  - 屏幕阅读器支持
+
+performance_considerations:
+  - 使用 const 构造函数
+  - 避免不必要的重建
+  - 优化动画性能

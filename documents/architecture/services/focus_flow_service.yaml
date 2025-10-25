@@ -1,0 +1,81 @@
+meta:
+  name: FocusFlowService
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    专注流程服务 - 端到端管理专注会话，包括快速子任务创建、
+    会话跟踪和与任务的状态同步。
+
+service_definition:
+  name: FocusFlowService
+  depends_on: [FocusSessionRepository, TaskRepository, TaskService, MetricRepository]
+  layer: business_logic
+
+responsibilities:
+  - 确保任务最多有一个活跃会话
+  - 启动/停止会话，持久化闹钟偏好和估计
+  - 在会话期间创建快速子任务并转移已用分钟
+  - 通过结束会话对话框选择关闭会话（完成、添加子任务、标记浪费）
+
+methods:
+  - name: startFocus
+    params:
+      - taskId: int
+      - estimateMinutes: int?
+      - alarmEnabled: bool
+    returns: Future<FocusSession>
+    notes: 开始专注会话
+
+  - name: pauseFocus
+    params:
+      - sessionId: int
+    returns: Future<void>
+    notes: 保持会话开放但暂停；UI 级计时器处理状态
+
+  - name: endFocus
+    params:
+      - sessionId: int
+      - outcome: FocusOutcome
+      - transferToTaskId: int?
+      - reflectionNote: String?
+    returns: Future<void>
+    notes: >
+      通过 TaskService 更新任务状态，在需要时记录浪费标签，
+      重新计算指标。支持教程任务的 `complete_without_timer` 结果
+
+  - name: quickSubtask
+    params:
+      - parentTaskId: int
+      - title: String
+    returns: Future<Task>
+    notes: 创建子任务，转移已用时间，确保父任务未完成
+
+business_rules:
+  - 每个任务最多只能有一个活跃会话
+  - 只有叶子任务可以开始专注会话
+  - 会话结束时必须记录结果
+  - 快速子任务创建时转移已用时间
+
+focus_outcomes:
+  - complete: 正常完成
+  - add_subtask: 添加子任务
+  - log_multiple: 记录多个
+  - mark_wasted: 标记浪费
+  - complete_without_timer: 无计时器完成（教程任务）
+
+error_handling:
+  - SessionAlreadyActive: 当任务已有活跃会话时
+  - TaskNotLeaf: 当任务不是叶子任务时
+  - InvalidSessionState: 当会话状态无效时
+  - ParentTaskCompleted: 当父任务已完成时
+
+metrics_integration:
+  - 会话开始后触发指标重新计算
+  - 会话结束后触发指标重新计算
+  - 快速子任务创建后触发指标重新计算
+
+performance_considerations:
+  - 使用事务确保数据一致性
+  - 缓存活跃会话状态
+  - 优化时间计算

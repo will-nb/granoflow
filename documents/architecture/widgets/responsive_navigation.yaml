@@ -1,0 +1,87 @@
+name: "ResponsiveNavigation"
+type: "StatefulWidget"
+file_path: "lib/presentation/navigation/responsive_navigation.dart"
+description: "响应式导航容器组件，根据屏幕方向自动选择导航方式，支持DrawerMenu三种状态"
+
+properties:
+  - name: "selectedIndex"
+    type: "int"
+    description: "当前选中的导航项索引"
+    required: true
+
+  - name: "onDestinationSelected"
+    type: "ValueChanged<int>"
+    description: "导航项选择回调"
+    required: true
+
+  - name: "child"
+    type: "Widget"
+    description: "页面内容"
+    required: true
+
+  - name: "drawerMode"
+    type: "DrawerDisplayMode"
+    description: "自定义抽屉模式，如果为null则根据屏幕方向自动决定"
+    required: false
+    default: "根据屏幕方向自动判断"
+
+state_properties:
+  - name: "_isLandscape"
+    type: "bool"
+    description: "当前是否为横屏"
+
+  - name: "_currentDrawerMode"
+    type: "DrawerDisplayMode"
+    description: "当前抽屉显示模式"
+
+children:
+  - name: "LayoutBuilder"
+    type: "LayoutBuilder"
+    children:
+      - name: "LandscapeLayout"
+        condition: "MediaQuery.of(context).orientation == Orientation.landscape"
+        children:
+          - name: "Row"
+            children:
+              - name: "AnimatedContainer"
+                properties:
+                  duration: "Duration(milliseconds: 300)"
+                  width: "_getDrawerWidth()"
+                child: "DrawerMenu(displayMode: _currentDrawerMode)"
+              - name: "Expanded"
+                child: "child"
+
+      - name: "PortraitLayout"
+        condition: "MediaQuery.of(context).orientation == Orientation.portrait"
+        children:
+          - name: "Scaffold"
+            children:
+              - name: "body"
+                child: "child"
+              - name: "bottomNavigationBar"
+                child: "AppNavigationBar"
+
+methods:
+  - name: "_checkOrientation"
+    return_type: "void"
+    description: "检查屏幕方向并设置默认抽屉模式"
+
+  - name: "_getDrawerWidth"
+    return_type: "double"
+    description: "根据抽屉模式获取宽度"
+
+  - name: "toggleDrawerMode"
+    return_type: "void"
+    description: "切换抽屉显示模式"
+
+dependencies:
+  - "package:flutter/material.dart"
+  - "navigation_rail.dart"
+  - "navigation_bar.dart"
+
+tests:
+  widget_tests:
+    - name: "test_responsive_navigation_desktop"
+      description: "验证桌面端响应式导航"
+    - name: "test_responsive_navigation_mobile"
+      description: "验证移动端响应式导航"

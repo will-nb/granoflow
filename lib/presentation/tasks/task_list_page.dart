@@ -28,8 +28,13 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
       _SectionMeta(section: TaskSection.later, title: l10n.plannerSectionLaterTitle),
     ];
 
-    return Column(
-      children: [
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tasks'),
+        actions: [],
+      ),
+      body: Column(
+        children: [
         // 模式切换控件
         if (showLinearProgress)
           const LinearProgressIndicator(),
@@ -78,6 +83,7 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
           ),
         ),
       ],
+    ),
     );
   }
 

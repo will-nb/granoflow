@@ -1,0 +1,56 @@
+name: "AppShell"
+type: "ConsumerWidget"
+file_path: "lib/presentation/navigation/app_shell.dart"
+description: "应用壳组件，管理统一DrawerMenu的三种显示状态"
+
+properties:
+  - name: "child"
+    type: "Widget"
+    description: "页面内容"
+    required: true
+
+  - name: "showEndDrawer"
+    type: "bool"
+    description: "是否显示右侧抽屉"
+    required: false
+    default: "true"
+
+children:
+  - name: "ResponsiveNavigation"
+    type: "ResponsiveNavigation"
+    properties:
+      selectedIndex: "ref.watch(navigationIndexProvider)"
+      onDestinationSelected: "ref.read(navigationIndexProvider.notifier).state = index"
+      child: "child"
+      drawerMode: "null (根据屏幕方向自动决定)"
+
+implementation_changes:
+  - field: "整体结构"
+    current: "直接创建 NavigationRail/NavigationBar 和 Scaffold"
+    new: "使用 ResponsiveNavigation 处理所有导航逻辑"
+    reason: "统一使用 DrawerMenu 方案"
+
+  - field: "响应式逻辑"
+    current: "在 AppShell 中直接处理"
+    new: "委托给 ResponsiveNavigation 处理"
+    reason: "单一职责原则"
+
+  - field: "抽屉菜单"
+    current: "直接在 Scaffold 中定义"
+    new: "使用增强的 DrawerMenu 组件支持三种模式"
+    reason: "支持图标/完整/隐藏三种状态"
+
+dependencies:
+  - "package:flutter/material.dart"
+  - "package:flutter_riverpod/flutter_riverpod.dart"
+  - "responsive_navigation.dart"
+  - "drawer_menu.dart"
+  - "settings_controls.dart"
+  - "../../core/providers/app_providers.dart"
+
+tests:
+  widget_tests:
+    - name: "test_app_shell_conditional_drawer"
+      description: "验证应用壳条件渲染侧边栏"
+    - name: "test_app_shell_responsive_layout"
+      description: "验证应用壳响应式布局"

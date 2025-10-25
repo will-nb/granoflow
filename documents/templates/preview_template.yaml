@@ -1,0 +1,186 @@
+meta:
+  version: 1
+  type: preview
+  iteration: "YYMMDD-N"
+  generated_at: "YYYY-MM-DD HH:MM:SS"
+
+summary:
+  objective: "简要描述本次重构/开发的目标"
+  requirements: 
+    - "需求1: 具体描述"
+    - "需求2: 具体描述"
+    - "需求3: 具体描述"
+
+# 组件设计状态说明（可选）
+component_design_states:
+  description: "如果涉及复杂的状态设计，在此说明"
+  
+  states:
+    - name: "状态名称"
+      description: "状态描述"
+      trigger: "触发条件"
+      properties:
+        - name: "属性名"
+          type: "类型"
+          description: "属性描述"
+      use_case: "使用场景"
+  
+  state_transitions:
+    description: "状态切换逻辑"
+    transitions:
+      - from: "源状态"
+        to: "目标状态"
+        trigger: "触发条件"
+        condition: "触发条件"
+
+# 新建文件详细设计
+new_files:
+  # 文件1
+  - file: "文件路径"
+    type: "文件类型 (enum/StatelessWidget/StatefulWidget/static_class)"
+    class_name: "类名"
+    description: "文件描述"
+    
+    # 如果是枚举
+    enums:
+      - name: "枚举名"
+        values: ["值1", "值2", "值3"]
+        description: "枚举描述"
+    
+    # 属性定义
+    properties:
+      - name: "属性名"
+        type: "类型"
+        description: "属性描述"
+        required: true/false
+        default: "默认值"
+    
+    # 状态属性（仅StatefulWidget）
+    state_properties:
+      - name: "状态属性名"
+        type: "类型"
+        description: "状态属性描述"
+    
+    # 子组件结构
+    children:
+      - name: "子组件名"
+        type: "子组件类型"
+        properties:
+          - name: "子属性名"
+            value: "子属性值"
+        children:
+          - name: "嵌套子组件"
+            type: "类型"
+    
+    # 方法定义
+    methods:
+      - name: "方法名"
+        return_type: "返回类型"
+        description: "方法描述"
+        parameters:
+          - name: "参数名"
+            type: "参数类型"
+            required: true/false
+        implementation: |
+          方法实现代码
+    
+    # 依赖关系
+    dependencies:
+      - "package:flutter/material.dart"
+      - "相对路径依赖"
+    
+    # 调用关系
+    called_by:
+      - "调用此文件的文件路径"
+    
+    calls:
+      - "此文件调用的文件路径"
+
+# 修改文件详细差异
+modified_files:
+  # 文件1
+  - file: "文件路径"
+    type: "文件类型"
+    class_name: "类名"
+    description: "文件描述"
+    
+    # 当前结构
+    current_structure:
+      - "当前结构描述1"
+      - "当前结构描述2"
+    
+    # 新结构
+    new_structure:
+      - "新结构描述1"
+      - "新结构描述2"
+    
+    # 属性变更
+    properties_changes:
+      - name: "属性名"
+        type: "类型"
+        description: "属性描述"
+        required: true/false
+        change_type: "新增/修改/删除"
+        implementation: |
+          实现代码
+    
+    # 移除的属性
+    removed_properties:
+      - name: "属性名"
+        type: "类型"
+        description: "属性描述"
+        reason: "移除原因"
+    
+    # 实现变更
+    implementation_changes:
+      - field: "字段名"
+        current: "当前实现"
+        new: "新实现"
+        reason: "变更原因"
+    
+    # 调用关系
+    called_by:
+      - "调用此文件的文件路径"
+    
+    calls:
+      - "此文件调用的文件路径"
+
+# 架构文档更新
+architecture_updates:
+  - file: "文档路径"
+    changes:
+      - field: "字段名"
+        current_value: "当前值"
+        new_value: "新值"
+        purpose: "更新目的"
+        reason: "更新原因"
+
+# 测试策略
+testing_strategy:
+  unit_tests:
+    description: "单元测试描述"
+    coverage_target: "≥80%"
+    test_files:
+      - "测试文件路径1"
+      - "测试文件路径2"
+  
+  widget_tests:
+    description: "组件测试描述"
+    test_files:
+      - "测试文件路径1"
+      - "测试文件路径2"
+  
+  integration_tests:
+    description: "集成测试描述"
+    test_files:
+      - "测试文件路径1"
+      - "测试文件路径2"
+
+# 成功标准
+success_criteria:
+  - "所有测试通过（单元测试、组件测试、集成测试）"
+  - "代码覆盖率 ≥80%"
+  - "文档与代码同步"
+  - "功能完整实现"
+  - "符合 Flutter 最佳实践"
+  - "通过 flutter analyze 检查"

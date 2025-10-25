@@ -1,241 +1,80 @@
 meta:
   summary: >
-    Core domain models planned for the GranoFlow offline-first stack.
-    Each model maps to an Isar collection unless noted, with fields kept
-    under 100 characters and camelCase naming to align with AGENTS.md.
+    GranoFlow 离线优先堆栈的核心领域模型索引。
+    每个模型映射到一个 Isar 集合（除非另有说明），字段保持在 100 字符以下，
+    使用 camelCase 命名以符合 AGENTS.md 规范。
   source_of_truth:
     - documents/product_requirements.yaml
     - documents/user_stories.md
     - documents/251022-技术规范.yaml
+  last_updated: 251024
 
-models:
+model_index:
   - name: Task
-    description: >
-      Canonical representation of a user task or idea regardless of its lifecycle
-      stage (inbox, planned, doing, completed, archived, trashed, pseudo-deleted).
-      Parents can own child tasks, but only leaf tasks may run focus sessions.
+    file: models/task.yaml
+    description: 核心任务模型，代表用户的任务或想法
     storage: isar_collection
-    indexes:
-      - field: status
-      - field: dueAtUtc
-      - field: parentId
-      - field: updatedAtUtc
-      - composite:
-          fields: [status, dueAtUtc]
-    fields:
-      - name: id
-        type: int
-        isar_id: true
-        notes: Auto-increment primary key managed by Isar.
-      - name: taskId
-        type: String
-        notes: >
-          Human-visible identifier (immutable) surfaced in UI to keep traceability
-          with notes and external tools.
-      - name: title
-        type: String
-        notes: Required, max 120 chars.
-      - name: status
-        type: TaskStatus
-        notes: Enum documented below; drives page visibility.
-      - name: dueAtUtc
-        type: DateTime?
-        notes: Stored in UTC; null for inbox tasks until scheduled.
-      - name: startedAtUtc
-        type: DateTime?
-        notes: Timestamp when the task entered `doing` state.
-      - name: endedAtUtc
-        type: DateTime?
-        notes: Captured when task transitions to completed or archived.
-      - name: parentId
-        type: int?
-        notes: Links to another Task.id when this is a child task.
-      - name: sortIndex
-        type: double
-        notes: Fractional index to keep manual ordering within a section.
-      - name: tags
-        type: List<String>
-        notes: Inline storage of tag ids for quick filtering (context, priority, wasted).
-      - name: templateLockCount
-        type: int
-        notes: >
-          Number of TaskTemplate definitions referencing this task as parent.
-          Greater than zero implies delete/archive/complete operations must be blocked.
-      - name: seedSlug
-        type: String?
-        notes: Optional slug assigned during seed import to reconcile references; removed/ignored on subsequent updates.
-      - name: createdAtUtc
-        type: DateTime
-      - name: updatedAtUtc
-        type: DateTime
-    enums:
-      - name: TaskStatus
-        values:
-          - inbox
-          - pending
-          - doing
-          - completed_active
-          - archived
-          - trashed
-          - pseudo_deleted
-        notes:
-          pending: Planned but not yet active.
-          doing: Currently in progress (may have active focus session).
-          completed_active: Completed but still visible for review/reactivation.
-          pseudo_deleted: Retained only for sync conflict detection; auto-purged after SLA.
+    key_fields: [id, taskId, status, dueAtUtc]
 
   - name: FocusSession
-    description: >
-      Records a timed focus session for a leaf task, including estimate toggles
-      and alarm usage to provide history, totals, and end-session decisions.
+    file: models/focus_session.yaml
+    description: 专注会话记录，用于时间跟踪和统计
     storage: isar_collection
-    indexes:
-      - field: taskId
-      - field: startedAtUtc
-    fields:
-      - name: id
-        type: int
-        isar_id: true
-      - name: taskId
-        type: int
-        notes: FK to Task.id; validates leaf constraint before creation.
-      - name: startedAtUtc
-        type: DateTime
-      - name: endedAtUtc
-        type: DateTime?
-        notes: Null while session is ongoing.
-      - name: actualMinutes
-        type: int
-        notes: Rounded when session stops; used for aggregate stats.
-      - name: estimateMinutes
-        type: int?
-        notes: Optional user-supplied estimate from alarm toggle.
-      - name: alarmEnabled
-        type: bool
-      - name: transferredToTaskId
-        type: int?
-        notes: >
-          When quick-subtask creates a new child and moves elapsed time,
-          we record the destination task for auditing.
-      - name: reflectionNote
-        type: String?
-        notes: Optional short note captured at end-session, max 200 chars.
+    key_fields: [id, taskId, startedAtUtc, actualMinutes]
 
   - name: Tag
-    description: >
-      Dictionary of available tags surfaced to the user (context, priority,
-      system-level flags like `wasted`). Stored separately for future
-      multi-language names or ordering without patching each Task.
+    file: models/tag.yaml
+    description: 标签字典，用于任务分类和过滤
     storage: isar_collection
-    indexes:
-      - field: kind
-      - field: slug
-    fields:
-      - name: id
-        type: int
-        isar_id: true
-      - name: slug
-        type: String
-        notes: Stable identifier used in Task.tags (e.g. "@home", "#urgent", "wasted").
-      - name: localizedKeys
-        type: Map<String, String>
-        notes: Maps locale (e.g. "en") to display name for future i18n.
-      - name: kind
-        type: TagKind
-        notes: Helps drive filtering in UI.
-      - name: sortOrder
-        type: int
-        notes: Controls display ordering within each kind.
-    enums:
-      - name: TagKind
-        values: [context, priority, special]
+    key_fields: [id, slug, kind, sortOrder]
 
   - name: Preference
-    description: >
-      Stores per-device UI preferences so the app can restore theme, locale,
-      and font size offline. Sync scope is device-only, so no user identity required.
+    file: models/preference.yaml
+    description: 设备偏好设置，包括主题、语言和字体
     storage: isar_collection
-    fields:
-      - name: id
-        type: int
-        isar_id: true
-      - name: localeCode
-        type: String
-        notes: Defaults to system; matches supported locales (en, zh_CN, zh_HK, zh).
-      - name: themeMode
-        type: String
-        notes: "light" | "dark" | "system".
-      - name: fontScale
-        type: double
-        notes: Multipliers for typography (0.875/1.0/1.125 etc.).
-      - name: updatedAtUtc
-        type: DateTime
+    key_fields: [id, localeCode, themeMode, fontScale]
 
   - name: MetricSnapshot
-    description: >
-      Cached aggregates supporting the home dashboard cards. Snapshotting
-      avoids recomputing totals on every frame and simplifies future sync.
+    file: models/metric_snapshot.yaml
+    description: 缓存的聚合指标，支持仪表板显示
     storage: isar_collection
-    retention: rolling_singleton
-    fields:
-      - name: id
-        type: int
-        isar_id: true
-      - name: totalCompletedTasks
-        type: int
-      - name: totalFocusMinutes
-        type: int
-      - name: pendingTasks
-        type: int
-      - name: pendingTodayTasks
-        type: int
-      - name: calculatedAtUtc
-        type: DateTime
-    notes:
-      - Recomputed after significant Task or FocusSession mutations.
-      - Acts as the single source for homepage metrics to keep UI simple.
+    key_fields: [id, totalCompletedTasks, totalFocusMinutes, calculatedAtUtc]
 
   - name: TaskTemplate
-    description: >
-      Defines reusable task blueprints for recurring activities (e.g., running, yoga).
-      Applying a template instantiates a leaf task inheriting title, parent, and tags.
+    file: models/task_template.yaml
+    description: 可重用的任务模板，用于快速创建重复任务
     storage: isar_collection
-    indexes:
-      - field: title
-      - field: lastUsedAtUtc
-      - field: parentTaskId
-    fields:
-      - name: id
-        type: int
-        isar_id: true
-      - name: title
-        type: String
-        notes: Required; surfaced in auto-complete suggestions.
-      - name: parentTaskId
-        type: int?
-        notes: Optional parent link; when set, referenced task's templateLockCount increments.
-      - name: defaultTags
-        type: List<String>
-      - name: createdAtUtc
-        type: DateTime
-      - name: updatedAtUtc
-        type: DateTime
-      - name: lastUsedAtUtc
-        type: DateTime?
-        notes: Updated whenever template instantiates a task; used for sorting suggestions.
-      - name: seedSlug
-        type: String?
-        notes: Temporary identifier for seed import; not exposed to UI.
+    key_fields: [id, title, parentTaskId, lastUsedAtUtc]
 
   - name: SeedImportLog
-    description: Tracks execution of seed data migrations to prevent duplicate imports.
+    file: models/seed_import_log.yaml
+    description: 种子数据导入日志，防止重复导入
     storage: isar_collection
-    fields:
-      - name: id
-        type: int
-        isar_id: true
-      - name: version
-        type: String
-        notes: Matches assets/seeds/version.json.
-      - name: importedAtUtc
-        type: DateTime
+    key_fields: [id, version, importedAtUtc]
+
+model_relationships:
+  - parent: Task -> Task (parentId)
+  - focus: Task -> FocusSession (taskId)
+  - tags: Task -> Tag (tags list)
+  - templates: Task -> TaskTemplate (parentTaskId)
+  - preferences: Preference (singleton)
+  - metrics: MetricSnapshot (singleton)
+  - imports: SeedImportLog (version tracking)
+
+storage_strategy:
+  - primary: Isar 本地数据库
+  - sync: 离线优先，未来支持云同步
+  - backup: 本地备份和恢复
+  - migration: 版本化模式迁移
+
+naming_conventions:
+  - fields: camelCase
+  - enums: snake_case
+  - collections: PascalCase
+  - indexes: descriptive names
+
+validation_rules:
+  - required_fields: 所有必需字段必须提供
+  - field_lengths: 字符串字段长度限制
+  - enum_values: 枚举值必须在预定义范围内
+  - relationships: 外键关系必须有效

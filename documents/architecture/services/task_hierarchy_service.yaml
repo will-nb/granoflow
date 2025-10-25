@@ -1,0 +1,69 @@
+meta:
+  name: TaskHierarchyService
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务层次结构服务 - 处理拖放操作，包括重新排序和形成父子关系。
+    应用护栏，使已完成的叶子任务保持不可变，并尊重深度限制。
+
+service_definition:
+  name: TaskHierarchyService
+  depends_on: [TaskRepository, MetricRepository]
+  layer: business_logic
+
+responsibilities:
+  - 维护每个分区/根的一致 sortIndex
+  - 允许在编辑模式下拖入/拖出根节点，单个根展开
+  - 拒绝尝试向已完成/已归档或模板锁定的叶子添加子任务
+  - 在跨分区移动时传播截止日期变更
+
+methods:
+  - name: reorderWithinSection
+    params:
+      - taskId: int
+      - targetIndex: double
+      - section: TaskSection
+    returns: Future<void>
+    notes: 在分区内重新排序任务
+
+  - name: moveToParent
+    params:
+      - taskId: int
+      - parentId: int?
+      - targetIndex: double
+    returns: Future<void>
+    notes: parentId null => 提升为根；验证父任务未完成/已归档
+
+  - name: moveAcrossSections
+    params:
+      - taskId: int
+      - section: TaskSection
+      - sortIndex: double
+      - dueDateLocal: DateTime
+    returns: Future<void>
+    notes: 包装 TaskRepository.moveTask，标准化截止日期，如果分区变更则触发指标
+
+business_rules:
+  - 已完成的叶子任务不能有子任务
+  - 已归档的任务不能有子任务
+  - 模板锁定的任务不能有子任务
+  - 深度限制：任务层次结构不能超过预定义深度
+  - 排序索引必须在分区内唯一
+
+constraints:
+  - 叶子任务约束：只有没有子任务的任务可以运行专注会话
+  - 父任务约束：父任务不能是已完成或已归档状态
+  - 模板锁定约束：模板锁定的任务不能修改结构
+
+error_handling:
+  - InvalidHierarchyOperation: 当层次结构操作无效时
+  - TaskNotLeaf: 当尝试向非叶子任务添加子任务时
+  - ParentTaskCompleted: 当父任务已完成时
+  - DepthLimitExceeded: 当超过深度限制时
+
+performance_considerations:
+  - 批量更新排序索引
+  - 使用事务确保一致性
+  - 缓存层次结构信息
+  - 优化拖放操作

@@ -1,0 +1,74 @@
+meta:
+  name: PreferenceService
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    偏好设置服务 - 用领域语义和验证包装 PreferenceRepository
+    （例如确保字体缩放保持在允许的预设范围内）。
+
+service_definition:
+  name: PreferenceService
+  depends_on: [PreferenceRepository]
+  layer: business_logic
+
+responsibilities:
+  - 为 Riverpod 提供者加载当前设备偏好设置
+  - 在持久化前验证更新
+
+methods:
+  - name: watch
+    returns: Stream<Preference>
+    notes: 观察偏好设置变化
+
+  - name: update
+    params:
+      - payload: PreferenceUpdate
+    returns: Future<void>
+    notes: 更新偏好设置
+
+  - name: getCurrent
+    returns: Future<Preference>
+    notes: 获取当前偏好设置
+
+  - name: resetToDefaults
+    returns: Future<void>
+    notes: 重置为默认偏好设置
+
+business_rules:
+  - 每个设备只有一个偏好设置记录
+  - 主题模式必须是预定义的值之一
+  - 字体缩放必须在合理范围内（0.5 - 2.0）
+  - 语言环境必须匹配支持的语言列表
+
+validation_rules:
+  - localeCode: 必须是支持的语言环境之一
+  - themeMode: 必须是 "light"、"dark" 或 "system"
+  - fontScale: 必须在 0.5 到 2.0 之间
+
+preference_fields:
+  - localeCode: 语言环境代码
+  - themeMode: 主题模式
+  - fontScale: 字体缩放
+  - updatedAtUtc: 更新时间戳
+
+default_values:
+  - localeCode: "en"
+  - themeMode: "system"
+  - fontScale: 1.0
+
+error_handling:
+  - InvalidPreferenceValue: 当偏好设置值无效时
+  - PreferenceNotFound: 当偏好设置不存在时
+  - ValidationError: 当验证失败时
+
+ui_integration:
+  - 控制应用的主题外观
+  - 管理字体大小设置
+  - 处理语言切换
+  - 响应系统主题变化
+
+performance_considerations:
+  - 单例模式，避免重复查询
+  - 使用流式更新减少重建
+  - 缓存当前偏好设置

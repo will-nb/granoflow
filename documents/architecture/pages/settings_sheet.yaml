@@ -1,0 +1,44 @@
+meta:
+  name: SettingsSheet
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    设置面板 - 底部面板，提供语言、主题和字体大小设置。
+
+page_definition:
+  name: SettingsSheet
+  type: bottom_sheet
+  type: modal
+
+providers:
+  - appLocaleProvider
+  - themeProvider
+  - fontScaleProvider
+  - preferenceActionsNotifier
+
+layout:
+  structure:
+    - ListTile for language (ChipToggleGroup)
+    - ListTile for theme (radio group)
+    - ListTile for font scale (slider or segmented control)
+
+interactions:
+  - Changes call preferenceActionsNotifier.update
+
+notes:
+  - 从导航菜单和工具栏操作访问
+  - 支持实时预览
+  - 设置立即生效
+
+accessibility:
+  - 屏幕阅读器支持
+  - 键盘导航支持
+  - 语义标签
+  - 设置说明
+
+performance:
+  - 优化设置更新
+  - 缓存设置状态
+  - 避免不必要的重建
+  - 延迟应用设置

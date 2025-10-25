@@ -1,0 +1,70 @@
+meta:
+  name: MetricOrchestrator
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    指标协调器 - 集中化指标重新计算触发器，并向感兴趣的提供者
+    （主页仪表板、报告）提供缓存快照。
+
+service_definition:
+  name: MetricOrchestrator
+  depends_on: [MetricRepository]
+  layer: business_logic
+
+responsibilities:
+  - 防抖快速重新计算请求以避免重写
+  - 为主页提供 MetricSnapshot 的实时流
+  - 在维护期间提供手动失效钩子
+
+methods:
+  - name: requestRecompute
+    params:
+      - reason: MetricRecomputeReason
+    returns: Future<MetricSnapshot>
+    notes: 请求重新计算指标
+
+  - name: latest
+    returns: Stream<MetricSnapshot?>
+    notes: 获取最新指标快照流
+
+  - name: invalidate
+    returns: Future<void>
+    notes: 使缓存失效，强制重新计算
+
+  - name: getHistoricalMetrics
+    params:
+      - days: int
+    returns: Future<List<MetricSnapshot>>
+    notes: 获取历史指标数据
+
+business_rules:
+  - 防抖机制：避免频繁重新计算
+  - 缓存策略：提供快速读取
+  - 一致性：确保指标数据准确
+
+recompute_reasons:
+  - task_created: 任务创建
+  - task_updated: 任务更新
+  - task_deleted: 任务删除
+  - task_status_changed: 任务状态变更
+  - focus_session_created: 专注会话创建
+  - focus_session_ended: 专注会话结束
+  - manual_refresh: 手动刷新
+
+performance_optimization:
+  - 防抖机制：避免频繁重新计算
+  - 缓存策略：减少数据库访问
+  - 批量计算：提高效率
+  - 异步处理：不阻塞 UI
+
+error_handling:
+  - MetricCalculationError: 当指标计算失败时
+  - CacheCorruption: 当缓存数据损坏时
+  - RecomputeTimeout: 当重新计算超时时
+
+monitoring:
+  - 计算时间监控
+  - 缓存命中率监控
+  - 错误率监控
+  - 性能指标监控

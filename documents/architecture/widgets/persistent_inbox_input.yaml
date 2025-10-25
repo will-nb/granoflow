@@ -1,0 +1,65 @@
+meta:
+  name: PersistentInboxInput
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    持久收集箱输入框 - 顶部常驻输入框，支持快捷提交与模板提示。
+
+widget_definition:
+  name: PersistentInboxInput
+  type: StatefulWidget
+  category: input
+
+props:
+  - name: controller
+    type: TextEditingController
+    required: true
+    description: 文本控制器
+
+  - name: onSubmit
+    type: ValueChanged<String>
+    required: true
+    description: 提交回调
+
+  - name: onChanged
+    type: ValueChanged<String>
+    required: true
+    description: 文本变化回调
+
+  - name: isSubmitting
+    type: bool
+    required: true
+    description: 是否正在提交
+
+behaviors:
+  focus:
+    description: 自动聚焦，提交后保留焦点；空字符串时禁用提交
+    implementation: 使用 FocusNode 和自动聚焦
+
+  shortcuts:
+    description: Cmd/Ctrl+Enter 触发提交；Esc 清除内容
+    implementation: 使用 Shortcuts 和 Actions
+
+usage:
+  - presentation/inbox/inbox_page.dart
+  - 收集箱输入
+  - 快速任务创建
+
+styling:
+  - 输入框样式：圆角、边框、主题颜色
+  - 按钮样式：提交按钮状态
+  - 占位符：提示文本
+  - 错误状态：验证错误显示
+
+accessibility_features:
+  - 键盘快捷键支持
+  - 屏幕阅读器支持
+  - 焦点管理
+  - 语义标签
+
+performance_considerations:
+  - 防抖输入变化
+  - 优化文本渲染
+  - 避免不必要的重建
+  - 缓存输入状态

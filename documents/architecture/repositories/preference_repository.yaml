@@ -1,0 +1,68 @@
+meta:
+  name: PreferenceRepository
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    偏好设置仓库 - 存储每台设备的 UI 偏好设置。
+    管理语言环境、主题、字体大小和未来的 UX 切换选项。
+
+repository_definition:
+  name: PreferenceRepository
+  depends_on: [Isar]
+  storage: isar_collection
+  primary_model: Preference
+
+responsibilities:
+  - 读取/写入语言环境、主题、字体大小和未来的 UX 切换选项
+  - 暴露流用于响应式 UI 更新
+
+methods:
+  - name: watchPreferences
+    returns: Stream<Preference>
+    notes: 观察偏好设置变化
+
+  - name: updatePreferences
+    params:
+      - payload: PreferenceUpdate
+    returns: Future<void>
+    notes: 更新偏好设置
+
+  - name: getPreferences
+    returns: Future<Preference>
+    notes: 获取当前偏好设置
+
+  - name: resetToDefaults
+    returns: Future<void>
+    notes: 重置为默认偏好设置
+
+business_rules:
+  - 每个设备只有一个偏好设置记录
+  - 主题模式必须是预定义的值之一
+  - 字体缩放必须在合理范围内（0.5 - 2.0）
+  - 语言环境必须匹配支持的语言列表
+
+preference_fields:
+  - localeCode: 语言环境代码
+  - themeMode: 主题模式（light/dark/system）
+  - fontScale: 字体缩放倍数
+  - updatedAtUtc: 更新时间戳
+
+default_values:
+  - localeCode: "en"
+  - themeMode: "system"
+  - fontScale: 1.0
+
+validation_rules:
+  - localeCode: 必须是支持的语言环境之一
+  - themeMode: 必须是 "light"、"dark" 或 "system"
+  - fontScale: 必须在 0.5 到 2.0 之间
+
+error_handling:
+  - InvalidPreferenceValue: 当偏好设置值无效时
+  - PreferenceNotFound: 当偏好设置不存在时
+
+performance_considerations:
+  - 单例模式，避免重复查询
+  - 使用流式更新减少重建
+  - 缓存当前偏好设置

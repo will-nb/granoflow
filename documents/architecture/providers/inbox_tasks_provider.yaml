@@ -1,0 +1,44 @@
+meta:
+  name: inboxTasksProvider
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    收集箱任务提供者 - 按创建时间倒序输出收集箱任务流，并根据上下文/优先级筛选。
+
+provider_definition:
+  name: inboxTasksProvider
+  type: StreamProvider<List<Task>>
+  scope: inbox_screen
+  depends_on: [TaskService, inboxFilterProvider]
+
+responsibility: 按创建时间倒序输出收集箱任务流，并根据上下文/优先级筛选
+
+implementation:
+  - 监听 TaskService 的收集箱任务变更
+  - 应用上下文和优先级筛选
+  - 按创建时间倒序排序
+
+filtering:
+  - contextTag: 上下文标签筛选
+  - priorityTag: 优先级标签筛选
+  - searchQuery: 搜索查询筛选
+
+usage:
+  - 收集箱页面
+  - 任务筛选功能
+  - 任务搜索功能
+
+dependencies:
+  - TaskService.watchInboxFiltered()
+  - inboxFilterProvider
+  - TagRepository
+
+error_handling:
+  - 筛选失败时显示所有任务
+  - 任务加载失败时显示空列表
+
+performance_considerations:
+  - 使用服务器端筛选减少 UI 过滤开销
+  - 缓存筛选结果
+  - 优化搜索性能

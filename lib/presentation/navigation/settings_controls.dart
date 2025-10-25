@@ -44,9 +44,14 @@ class SettingsControlsPage extends ConsumerWidget {
       ThemeMode.dark: l10n.settingsThemeDark,
     };
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        actions: [],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         _SettingCard(
           title: l10n.settingsLanguageLabel,
           child: DropdownMenu<String>(
@@ -154,6 +159,7 @@ class SettingsControlsPage extends ConsumerWidget {
           ),
         ),
       ],
+    ),
     );
   }
 }

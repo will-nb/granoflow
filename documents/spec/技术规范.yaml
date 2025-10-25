@@ -30,7 +30,26 @@ tech_stack:
     reason: 功能强大、拦截器支持、错误处理完善（项目实际使用）
   ui_framework:
     name: Material Design 3 + 自定义设计系统
-    reason: 现代化设计语言、组件丰富、主题系统完善（基于项目设计系统）
+    reason: 现代化设计语言、组件丰富、主题系统完善（基于cards_flutter项目实际使用）
+
+  navigation:
+    name: 主导航菜单 + 路由导航
+    reason: 右上角主导航按钮，统一页面访问和设置（基于cards_flutter项目成功经验）
+    implementation:
+      main_button_icon: "⋮" (三点菜单图标)
+      popup_position: 右上角弹出，从按钮下方展开
+      menu_sections:
+        pages_section: 首页、收集箱、任务列表、已完成、垃圾箱
+        settings_section: 字体大小、语言、主题切换
+      translations:
+        achievements: 任务成就 (替代原来的学习成就，更贴合项目定位)
+        achievements_overview: 成就总览
+        home: 首页
+        inbox: 收集箱
+        task_list: 任务列表
+        completed: 已完成
+        trash: 垃圾箱
+    code_example: 参考主导航实现规范.yaml和主导航菜单规范.yaml
 
 development_environment:
   required_tools:

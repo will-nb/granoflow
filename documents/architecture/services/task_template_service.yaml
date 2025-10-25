@@ -1,0 +1,85 @@
+meta:
+  name: TaskTemplateService
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务模板服务 - 管理任务模板的生命周期，并桥接模板应用与任务创建。
+    处理模板的创建、更新、删除和应用。
+
+service_definition:
+  name: TaskTemplateService
+  depends_on: [TaskTemplateRepository, TaskRepository, TaskService, MetricRepository]
+  layer: business_logic
+
+responsibilities:
+  - 在确保父任务保持受保护的同时创建/更新/删除模板
+  - 为输入自动完成提供建议列表
+  - 应用模板实例化任务并更新 lastUsed 时间戳
+
+methods:
+  - name: createTemplate
+    params:
+      - draft: TaskTemplateDraft
+    returns: Future<TaskTemplate>
+    notes: 创建新模板
+
+  - name: updateTemplate
+    params:
+      - templateId: int
+      - payload: TaskTemplateUpdate
+    returns: Future<void>
+    notes: 更新模板
+
+  - name: deleteTemplate
+    params:
+      - templateId: int
+    returns: Future<void>
+    notes: 删除模板
+
+  - name: suggestTemplates
+    params:
+      - query: String?
+      - limit: int
+    returns: Future<List<TaskTemplate>>
+    notes: 根据查询提供模板建议
+
+  - name: applyTemplate
+    params:
+      - templateId: int
+      - overrides: TaskTemplateOverrides
+    returns: Future<Task>
+    notes: 通过 TaskService 创建任务，更新 lastUsedAtUtc，触发指标
+
+business_rules:
+  - 标题是必需字段
+  - 应用模板时更新 lastUsedAtUtc
+  - 父任务存在时递增其 templateLockCount
+  - 模板可以没有父任务（独立模板）
+
+template_application:
+  - 创建新的叶子任务
+  - 继承模板的标题和标签
+  - 设置可选的父任务
+  - 更新使用时间戳
+
+suggestions_system:
+  - 基于 lastUsedAtUtc 排序
+  - 在任务创建时提供建议
+  - 支持快速重复任务创建
+
+error_handling:
+  - TemplateNotFound: 当模板不存在时
+  - InvalidTemplateData: 当模板数据无效时
+  - ParentTaskLocked: 当父任务被锁定时
+  - ApplicationFailed: 当模板应用失败时
+
+metrics_integration:
+  - 模板创建后触发指标重新计算
+  - 模板应用后触发指标重新计算
+  - 模板删除后触发指标重新计算
+
+performance_considerations:
+  - 缓存常用模板列表
+  - 使用索引优化查询
+  - 批量操作使用事务

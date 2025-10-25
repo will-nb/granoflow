@@ -1,0 +1,213 @@
+meta:
+  version: 1
+  type: step
+  iteration: "YYMMDD-N"
+  generated_at: "YYYY-MM-DD HH:MM:SS"
+  based_on_preview: "documents/plan/YYMMDD-N-preview.yaml"
+  description: "基于preview文档的代码实现计划"
+
+# 执行状态跟踪
+execution_status:
+  overall_status: "pending"  # pending|in_progress|completed|failed
+  current_phase: "analysis"
+  completed_phases: []
+  
+  phases:
+    - name: "analysis"
+      description: "需求分析和实现规划"
+      status: "pending"
+      tasks:
+        - task: "分析preview文档需求"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "确定实现文件列表"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "分析依赖关系"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "implementation"
+      description: "代码实现"
+      status: "pending"
+      tasks:
+        - task: "创建新文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "修改现有文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "添加依赖包"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "verification"
+      description: "代码验证"
+      status: "pending"
+      tasks:
+        - task: "编译检查"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "基本功能验证"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "集成检查"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+
+# 实现计划（基于preview文档）
+implementation_plan:
+  description: "基于preview文档的代码实现计划"
+  
+  new_files:
+    description: "需要创建的新文件"
+    files:
+      - file: "文件路径"
+        based_on: "preview中对应的文件设计"
+        class_name: "类名"
+        type: "文件类型"
+        description: "文件描述"
+        implementation: |
+          // 基于preview设计的完整代码实现
+        dependencies:
+          - "依赖包1"
+          - "依赖包2"
+        called_by:
+          - "调用此文件的文件"
+        calls:
+          - "此文件调用的文件"
+  
+  modified_files:
+    description: "需要修改的现有文件"
+    files:
+      - file: "文件路径"
+        based_on: "preview中对应的文件变更"
+        change_type: "modify"
+        description: "修改描述"
+        current_structure: "当前结构描述"
+        new_structure: "新结构描述"
+        changes:
+          - type: "class_modification|method_addition|property_change"
+            description: "具体修改内容"
+            implementation: |
+              // 基于preview设计的修改代码
+        dependencies:
+          - "新增依赖包"
+        called_by:
+          - "调用此文件的文件"
+        calls:
+          - "此文件调用的文件"
+  
+  dependencies:
+    description: "需要添加的依赖包"
+    packages:
+      - name: "包名"
+        version: "版本号"
+        purpose: "用途说明"
+        pubspec_section: "dependencies|dev_dependencies"
+
+# 代码变更内容
+code_changes:
+  description: "具体的代码变更内容"
+  
+  new_files:
+    - file: "文件路径"
+      action: "create"
+      based_on: "preview中new_files的对应设计"
+      content: |
+        // 基于preview设计的完整代码实现
+        // 包含所有必需的类、方法、属性
+        // 确保代码可以直接编译运行
+  
+  modified_files:
+    - file: "文件路径"
+      action: "modify"
+      based_on: "preview中modified_files的对应变更"
+      changes:
+        - type: "class_modification"
+          description: "类修改"
+          implementation: |
+            // 基于preview设计的修改代码
+        - type: "method_addition"
+          description: "方法添加"
+          implementation: |
+            // 基于preview设计的新方法
+        - type: "property_change"
+          description: "属性变更"
+          implementation: |
+            // 基于preview设计的属性修改
+
+# 验证计划
+verification_plan:
+  description: "代码验证计划"
+  
+  compilation_check:
+    description: "编译检查"
+    steps:
+      - step: "运行flutter analyze"
+        command: "flutter analyze"
+        expectation: "无错误和警告"
+      - step: "运行flutter pub get"
+        command: "flutter pub get"
+        expectation: "依赖包安装成功"
+      - step: "检查语法错误"
+        command: "dart analyze"
+        expectation: "无语法错误"
+  
+  basic_functionality:
+    description: "基本功能验证"
+    steps:
+      - step: "验证新文件创建"
+        method: "检查文件是否存在且内容正确"
+        expectation: "所有新文件按preview设计创建"
+      - step: "验证文件修改"
+        method: "检查修改内容是否符合preview设计"
+        expectation: "所有修改按preview设计完成"
+      - step: "验证依赖关系"
+        method: "检查import语句和依赖包"
+        expectation: "所有依赖关系正确建立"
+  
+  integration_check:
+    description: "集成检查"
+    steps:
+      - step: "验证文件间调用关系"
+        method: "检查called_by和calls关系"
+        expectation: "文件间调用关系与preview一致"
+      - step: "验证整体结构"
+        method: "检查整体代码结构"
+        expectation: "代码结构符合preview设计"
+      - step: "验证功能完整性"
+        method: "检查功能实现完整性"
+        expectation: "所有功能按preview设计实现"
+
+# 成功标准
+success_criteria:
+  - "所有新文件按preview设计创建"
+  - "所有现有文件按preview设计修改"
+  - "代码编译无错误"
+  - "基本功能验证通过"
+  - "集成检查通过"
+  - "用户手工测试通过"
+  - "代码结构符合preview设计"
+  - "文件间调用关系正确"
+
+# 重试机制
+retry_mechanism:
+  max_retries: 3
+  retry_conditions:
+    - "编译错误"
+    - "语法错误"
+    - "依赖包问题"
+    - "文件创建失败"
+    - "文件修改失败"
+  
+  skip_records: []

@@ -1,0 +1,48 @@
+meta:
+  name: SeedImportLog Model
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    种子导入日志模型 - 跟踪种子数据迁移的执行，防止重复导入。
+
+model_definition:
+  name: SeedImportLog
+  storage: isar_collection
+
+fields:
+  - name: id
+    type: int
+    isar_id: true
+
+  - name: version
+    type: String
+    notes: 匹配 assets/seeds/version.json
+
+  - name: importedAtUtc
+    type: DateTime
+    notes: 导入完成时间
+
+business_rules:
+  - 每个版本只能导入一次
+  - 版本必须匹配种子文件中的版本
+  - 用于防止重复导入
+
+import_validation:
+  - 检查版本是否已存在
+  - 验证种子文件完整性
+  - 记录导入时间戳
+
+migration_safety:
+  - 防止重复数据导入
+  - 跟踪导入历史
+  - 支持回滚操作
+
+seed_management:
+  - 版本控制
+  - 导入状态跟踪
+  - 错误恢复支持
+
+relationships:
+  - 与种子文件版本关联
+  - 支持导入历史查询

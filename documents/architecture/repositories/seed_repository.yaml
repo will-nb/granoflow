@@ -1,0 +1,80 @@
+meta:
+  name: SeedRepository
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    种子仓库 - 从资源加载种子数据并跟踪导入版本。
+    管理种子数据的导入、版本控制和重复导入防护。
+
+repository_definition:
+  name: SeedRepository
+  depends_on: [Isar]
+  storage: isar_collection
+  primary_model: SeedImportLog
+
+responsibilities:
+  - 读取标签、任务、模板、收集箱项目的 JSON 资源
+  - 在事务中应用插入，尊重模板锁定和状态规则
+  - 记录执行的版本以避免重复导入
+  - 支持语言环境范围目录（例如 `assets/seeds/en/`），回退到英语
+
+methods:
+  - name: wasImported
+    params:
+      - version: String
+    returns: Future<bool>
+    notes: 检查特定版本是否已导入
+
+  - name: importSeeds
+    params:
+      - payload: SeedPayload
+    returns: Future<void>
+    notes: 导入种子数据，解析 slug 引用并通过 TaskRepository/TaskTemplateRepository 辅助方法持久化
+
+  - name: latestVersion
+    returns: Future<String?>
+    notes: 获取最新导入的版本
+
+  - name: getAvailableVersions
+    returns: Future<List<String>>
+    notes: 获取可用的种子版本列表
+
+  - name: clearImportHistory
+    returns: Future<void>
+    notes: 清除导入历史（用于测试或重置）
+
+business_rules:
+  - 每个版本只能导入一次
+  - 版本必须匹配种子文件中的版本
+  - 用于防止重复导入
+
+import_validation:
+  - 检查版本是否已存在
+  - 验证种子文件完整性
+  - 记录导入时间戳
+
+migration_safety:
+  - 防止重复数据导入
+  - 跟踪导入历史
+  - 支持回滚操作
+
+seed_management:
+  - 版本控制
+  - 导入状态跟踪
+  - 错误恢复支持
+
+locale_support:
+  - 支持语言环境特定目录
+  - 回退到英语默认值
+  - 动态选择种子包
+
+error_handling:
+  - VersionAlreadyImported: 当版本已导入时
+  - InvalidSeedData: 当种子数据无效时
+  - ImportFailed: 当导入过程失败时
+
+performance_considerations:
+  - 使用事务确保原子性
+  - 批量导入减少数据库访问
+  - 缓存版本信息

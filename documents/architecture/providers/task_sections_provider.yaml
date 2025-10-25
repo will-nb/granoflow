@@ -1,0 +1,46 @@
+meta:
+  name: taskSectionsProvider
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务分区提供者 - 为基础模式提供每个分区的叶子任务流。
+
+provider_definition:
+  name: taskSectionsProvider
+  type: StreamProvider.family<List<Task>, TaskSection>
+  scope: home_screen
+  depends_on: [TaskService]
+
+responsibility: 为基础模式提供每个分区的叶子任务流
+
+implementation:
+  - 监听 TaskService 的任务变更
+  - 按分区过滤任务
+  - 只返回叶子任务（无子任务）
+
+task_sections:
+  - today: 今日任务
+  - tomorrow: 明日任务
+  - later: 稍后任务
+  - completed: 已完成任务
+  - archived: 已归档任务
+  - trash: 垃圾箱任务
+
+usage:
+  - 主页仪表板
+  - 任务列表页面
+  - 任务分区显示
+
+dependencies:
+  - TaskService.watchSection()
+  - TaskSection 枚举
+
+error_handling:
+  - 任务加载失败时显示空列表
+  - 分区无效时返回空列表
+
+performance_considerations:
+  - 使用 family 提供者避免重复查询
+  - 缓存分区数据
+  - 优化任务过滤性能

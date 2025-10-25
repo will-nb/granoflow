@@ -1,0 +1,55 @@
+meta:
+  name: TaskListPage
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务列表页面 - 显示任务分区，支持基础模式和编辑模式。
+
+page_definition:
+  name: TaskListPage
+  route: /tasks
+  type: screen
+
+providers:
+  - taskSectionsProvider(section)
+  - rootTasksProvider
+  - taskTreeProvider(rootId)
+  - expandedRootTaskIdProvider
+  - taskEditActionsNotifier
+
+layout:
+  structure:
+    - AppBar(actions: toggle edit mode, filters)
+    - AnimatedCrossFade(baseMode, editMode)
+    - BaseMode:
+        - TabBar: Today/Tomorrow/Later
+        - TabBarView:
+            - TaskSectionList (leaf tasks only)
+    - EditMode:
+        - ListView of RootTask cards:
+            - TaskEditItem for root
+            - AnimatedList of children when expanded
+
+interactions:
+  - BaseMode tap: start focus via FocusFlowService
+  - BaseMode longPressDrag: reorder or change section
+  - EditMode drag: TaskHierarchyService.moveToParent/moveAcrossSections
+  - EditMode action icons: add subtask, edit title (inline text field), archive
+
+notes:
+  - 一次只能展开一个根任务，由 expandedRootTaskIdProvider 控制
+  - 基础模式只显示叶子任务
+  - 编辑模式支持拖拽和层次结构操作
+
+accessibility:
+  - 屏幕阅读器支持
+  - 键盘导航支持
+  - 拖拽操作支持
+  - 语义标签
+
+performance:
+  - 懒加载任务数据
+  - 优化拖拽性能
+  - 缓存展开状态
+  - 避免不必要的重建

@@ -1,0 +1,40 @@
+name: "AppNavigationBar"
+type: "StatelessWidget"
+file_path: "lib/presentation/navigation/navigation_bar.dart"
+description: "移动端底部导航栏组件，用于小屏幕设备的水平导航"
+
+properties:
+  - name: "selectedIndex"
+    type: "int"
+    description: "当前选中的导航项索引"
+    required: true
+
+  - name: "onDestinationSelected"
+    type: "ValueChanged<int>"
+    description: "导航项选择回调"
+    required: true
+
+  - name: "destinations"
+    type: "List<NavigationDestination>"
+    description: "导航目的地列表"
+    required: false
+    default: "从 NavigationDestinations 自动生成"
+
+children:
+  - name: "NavigationBar"
+    type: "NavigationBar"
+    properties:
+      selectedIndex: "selectedIndex"
+      onDestinationSelected: "onDestinationSelected"
+      destinations: "destinations"
+
+dependencies:
+  - "package:flutter/material.dart"
+  - "navigation_destinations.dart"
+
+tests:
+  widget_tests:
+    - name: "test_navigation_bar_creation"
+      description: "验证底部导航栏组件的创建"
+    - name: "test_navigation_bar_selection"
+      description: "验证底部导航栏选择功能"

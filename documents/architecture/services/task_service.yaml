@@ -1,0 +1,111 @@
+meta:
+  name: TaskService
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务服务 - 任务创建、计划、编辑和生命周期转换的中央协调器。
+    保护已完成的叶子任务免受结构编辑，并在持久化前标准化截止日期。
+
+service_definition:
+  name: TaskService
+  depends_on: [TaskRepository, TagRepository, MetricRepository]
+  layer: business_logic
+
+responsibilities:
+  - 将新想法捕获到收集箱并生成 taskId
+  - 通过应用截止日期来安排任务（转换为本地 23:59:59）
+  - 使用护栏更新任务元数据（标题、描述、标签）
+  - 通过辅助 API 维护收集箱标签选择以进行上下文/优先级过滤
+  - 协调状态转换（pending↔doing、complete、archive），同时尊重模板锁定
+  - 在重要变更后触发指标重新计算
+
+methods:
+  - name: captureInboxTask
+    params:
+      - title: String
+      - description: String?
+      - tags: List<String>
+    returns: Future<Task>
+    notes: 创建新的收集箱任务
+
+  - name: planTask
+    params:
+      - taskId: int
+      - dueDateLocal: DateTime
+      - section: TaskSection
+    returns: Future<void>
+    notes: 转换为本地 23:59:59，通过仓库持久化，重新计算指标
+
+  - name: updateDetails
+    params:
+      - taskId: int
+      - payload: TaskUpdate
+    returns: Future<void>
+    notes: 更新任务详细信息
+
+  - name: updateTags
+    params:
+      - taskId: int
+      - contextTag: String?
+      - priorityTag: String?
+    returns: Future<void>
+    notes: 合并成标准 tags 列表并调用 updateDetails；空值表示清除对应类别
+
+  - name: markInProgress
+    params:
+      - taskId: int
+    returns: Future<void>
+    notes: 将任务标记为进行中
+
+  - name: markCompleted
+    params:
+      - taskId: int
+    returns: Future<void>
+    notes: >
+      确保任务是叶子任务且未被模板锁定。支持教程任务的即时完成流程，
+      允许在没有活跃会话的情况下完成
+
+  - name: archive
+    params:
+      - taskId: int
+    returns: Future<void>
+    notes: 归档任务
+
+  - name: softDelete
+    params:
+      - taskId: int
+    returns: Future<void>
+    notes: 移动到垃圾箱，安排清除作业，触发指标重新计算；当 templateLockCount > 0 时禁止
+
+  - name: applyTemplate
+    params:
+      - templateId: int
+      - overrides: TaskTemplateOverrides
+    returns: Future<Task>
+    notes: 委托给 TaskTemplateService 获取蓝图，然后使用继承字段创建任务
+
+business_rules:
+  - 只有叶子任务可以运行专注会话
+  - 已完成的叶子任务不能进行结构编辑
+  - 模板锁定的任务不能被删除/归档/完成
+  - 截止日期必须标准化为本地时间 23:59:59
+  - 状态转换必须遵循预定义的规则
+
+error_handling:
+  - InvalidTaskOperation: 当业务规则被违反时
+  - TaskNotFound: 当任务不存在时
+  - TemplateLocked: 当任务被模板锁定时
+  - InvalidStatusTransition: 当状态转换无效时
+
+metrics_integration:
+  - 任务创建后触发指标重新计算
+  - 任务状态变更后触发指标重新计算
+  - 任务删除后触发指标重新计算
+  - 任务归档后触发指标重新计算
+
+validation_rules:
+  - 标题不能为空
+  - 截止日期必须在未来
+  - 标签必须是有效的标签 slug
+  - 状态转换必须有效

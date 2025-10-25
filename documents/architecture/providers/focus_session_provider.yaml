@@ -1,0 +1,44 @@
+meta:
+  name: focusSessionProvider
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    专注会话提供者 - 观察特定任务的活跃专注会话。
+
+provider_definition:
+  name: focusSessionProvider
+  type: StreamProvider.family<FocusSession?, int>
+  scope: timer_screen
+  depends_on: [FocusFlowService]
+
+responsibility: 观察特定任务的活跃专注会话
+
+implementation:
+  - 监听 FocusFlowService 的会话变更
+  - 按任务 ID 过滤会话
+  - 返回活跃会话或 null
+
+session_states:
+  - active: 活跃会话
+  - paused: 暂停会话
+  - ended: 已结束会话
+  - null: 无活跃会话
+
+usage:
+  - 专注计时器页面
+  - 会话状态显示
+  - 会话控制功能
+
+dependencies:
+  - FocusFlowService.watchActiveSession()
+  - FocusSession 模型
+
+error_handling:
+  - 会话加载失败时返回 null
+  - 任务不存在时返回 null
+
+performance_considerations:
+  - 使用 family 提供者避免重复查询
+  - 缓存会话状态
+  - 优化会话查询性能

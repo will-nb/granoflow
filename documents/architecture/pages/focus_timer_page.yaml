@@ -1,0 +1,55 @@
+meta:
+  name: FocusTimerPage
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    专注计时器页面 - 管理专注会话，包括计时器显示和控制按钮。
+
+page_definition:
+  name: FocusTimerPage
+  route: /focus/:taskId
+  type: screen
+
+providers:
+  - focusSessionProvider(taskId)
+  - focusActionsNotifier
+  - metricSnapshotProvider (for summary callout)
+
+layout:
+  structure:
+    - AppBar(title: Task title, actions: close)
+    - Column:
+        - FocusTimerDisplay
+        - SizedBox(24)
+        - Row(
+            children: [
+              Expanded(ElevatedButton pause/resume),
+              SizedBox(16),
+              Expanded(ElevatedButton end session)
+            ]
+          )
+        - SwitchListTile(alarm toggle)
+        - TemplateSuggestionChip row (quick subtask)
+
+interactions:
+  - Pause/resume uses focusActionsNotifier.start/pause
+  - End session opens FocusEndDialog
+  - QuickSubtask -> focusActionsNotifier.quickSubtask
+
+notes:
+  - `complete_without_timer` 结果在不需要时绕过反思文本
+  - 支持闹钟功能
+  - 快速子任务创建
+
+accessibility:
+  - 屏幕阅读器支持
+  - 键盘导航支持
+  - 计时器状态通知
+  - 语义标签
+
+performance:
+  - 优化计时器更新
+  - 缓存会话状态
+  - 避免不必要的重建
+  - 优化动画性能

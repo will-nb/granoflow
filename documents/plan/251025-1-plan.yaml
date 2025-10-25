@@ -1,0 +1,1472 @@
+meta:
+  version: 1
+  type: plan
+  iteration: "251025-1"
+  generated_at: "2025-01-25 12:30:00"
+  based_on_preview: "documents/plan/251025-1-preview.yaml"
+
+# 实现规范YAML生成/修改计划
+yaml_specification_updates:
+  description: "根据preview文档生成/修改对应的实现规范YAML文件"
+  
+  updates:
+    # 新建导航组件规范文件
+    - file: "documents/architecture/widgets/navigation_destinations.yaml"
+      action: "create"
+      based_on: "preview中new_files的navigation_destinations.dart设计"
+      changes:
+        - field: "class_name"
+          value: "NavigationDestinations"
+          source: "preview中navigation_destinations.dart的class_name定义"
+        - field: "type"
+          value: "enum"
+          source: "preview中navigation_destinations.dart的type定义"
+        - field: "properties"
+          value: "values, icon, selectedIcon, route"
+          source: "preview中navigation_destinations.dart的properties部分"
+        - field: "methods"
+          value: "label方法"
+          source: "preview中navigation_destinations.dart的methods部分"
+        - field: "called_by"
+          value: "drawer_menu.dart, navigation_bar.dart, responsive_navigation.dart, app_shell.dart, app_router.dart"
+          source: "preview中navigation_destinations.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart, package:granoflow/generated/l10n/app_localizations.dart"
+          source: "preview中navigation_destinations.dart的calls字段"
+
+    - file: "documents/architecture/widgets/drawer_menu.yaml"
+      action: "create"
+      based_on: "preview中new_files的drawer_menu.dart设计"
+      changes:
+        - field: "class_name"
+          value: "DrawerMenu"
+          source: "preview中drawer_menu.dart的class_name定义"
+        - field: "type"
+          value: "StatelessWidget"
+          source: "preview中drawer_menu.dart的type定义"
+        - field: "enums"
+          value: "DrawerDisplayMode (hidden, iconOnly, full)"
+          source: "preview中drawer_menu.dart的enums部分"
+        - field: "properties"
+          value: "displayMode, onDestinationSelected, onClose"
+          source: "preview中drawer_menu.dart的properties部分"
+        - field: "methods"
+          value: "_getDrawerWidth方法"
+          source: "preview中drawer_menu.dart的methods部分"
+        - field: "called_by"
+          value: "app_shell.dart, responsive_navigation.dart"
+          source: "preview中drawer_menu.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart, navigation_destinations.dart"
+          source: "preview中drawer_menu.dart的calls字段"
+
+    - file: "documents/architecture/widgets/navigation_bar.yaml"
+      action: "create"
+      based_on: "preview中new_files的navigation_bar.dart设计"
+      changes:
+        - field: "class_name"
+          value: "AppNavigationBar"
+          source: "preview中navigation_bar.dart的class_name定义"
+        - field: "type"
+          value: "StatelessWidget"
+          source: "preview中navigation_bar.dart的type定义"
+        - field: "properties"
+          value: "selectedIndex, onDestinationSelected, destinations"
+          source: "preview中navigation_bar.dart的properties部分"
+        - field: "called_by"
+          value: "responsive_navigation.dart"
+          source: "preview中navigation_bar.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart, navigation_destinations.dart"
+          source: "preview中navigation_bar.dart的calls字段"
+
+    - file: "documents/architecture/widgets/responsive_navigation.yaml"
+      action: "create"
+      based_on: "preview中new_files的responsive_navigation.dart设计"
+      changes:
+        - field: "class_name"
+          value: "ResponsiveNavigation"
+          source: "preview中responsive_navigation.dart的class_name定义"
+        - field: "type"
+          value: "StatefulWidget"
+          source: "preview中responsive_navigation.dart的type定义"
+        - field: "properties"
+          value: "selectedIndex, onDestinationSelected, child, drawerMode"
+          source: "preview中responsive_navigation.dart的properties部分"
+        - field: "state_properties"
+          value: "_isLandscape, _currentDrawerMode"
+          source: "preview中responsive_navigation.dart的state_properties部分"
+        - field: "methods"
+          value: "_checkOrientation, _getDrawerWidth, toggleDrawerMode"
+          source: "preview中responsive_navigation.dart的methods部分"
+        - field: "called_by"
+          value: "app_shell.dart"
+          source: "preview中responsive_navigation.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart, drawer_menu.dart, navigation_bar.dart"
+          source: "preview中responsive_navigation.dart的calls字段"
+
+    - file: "documents/architecture/widgets/app_router.yaml"
+      action: "create"
+      based_on: "preview中new_files的app_router.dart设计"
+      changes:
+        - field: "class_name"
+          value: "AppRouter"
+          source: "preview中app_router.dart的class_name定义"
+        - field: "type"
+          value: "static_class"
+          source: "preview中app_router.dart的type定义"
+        - field: "properties"
+          value: "router (GoRouter)"
+          source: "preview中app_router.dart的properties部分"
+        - field: "routes"
+          value: "所有路由定义"
+          source: "preview中app_router.dart的routes部分"
+        - field: "called_by"
+          value: "lib/core/app.dart"
+          source: "preview中app_router.dart的called_by字段"
+        - field: "calls"
+          value: "package:go_router/go_router.dart, package:flutter/material.dart, app_shell.dart, 所有页面组件"
+          source: "preview中app_router.dart的calls字段"
+
+    # 修改现有组件规范文件
+    - file: "documents/architecture/widgets/app_shell.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的app_shell.dart变更"
+      changes:
+        - field: "description"
+          value: "应用壳组件，管理统一DrawerMenu的三种显示状态"
+          source: "preview中app_shell.dart的description"
+        - field: "properties"
+          value: "child (新增), showEndDrawer (新增), 移除showDrawer"
+          source: "preview中app_shell.dart的properties_changes部分"
+        - field: "implementation_changes"
+          value: "使用ResponsiveNavigation处理所有导航逻辑"
+          source: "preview中app_shell.dart的implementation_changes部分"
+        - field: "called_by"
+          value: "app_router.dart"
+          source: "preview中app_shell.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart, package:flutter_riverpod/flutter_riverpod.dart, responsive_navigation.dart, settings_controls.dart, app_providers.dart"
+          source: "preview中app_shell.dart的calls字段"
+
+    # 更新页面规范文件
+    - file: "documents/architecture/pages/home_page.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的home_page.dart变更"
+      changes:
+        - field: "description"
+          value: "首页组件，支持页面级导航"
+          source: "preview中home_page.dart的description"
+        - field: "properties"
+          value: "appBar (新增)"
+          source: "preview中home_page.dart的properties_changes部分"
+        - field: "implementation_changes"
+          value: "返回包含AppBar的Scaffold，通过路由系统管理"
+          source: "preview中home_page.dart的implementation_changes部分"
+        - field: "called_by"
+          value: "app_router.dart"
+          source: "preview中home_page.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart"
+          source: "preview中home_page.dart的calls字段"
+
+    - file: "documents/architecture/pages/task_list_page.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的task_list_page.dart变更"
+      changes:
+        - field: "description"
+          value: "任务列表页组件，支持页面级导航"
+          source: "preview中task_list_page.dart的description"
+        - field: "properties"
+          value: "appBar (新增)"
+          source: "preview中task_list_page.dart的properties_changes部分"
+        - field: "called_by"
+          value: "app_router.dart"
+          source: "preview中task_list_page.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart"
+          source: "preview中task_list_page.dart的calls字段"
+
+    - file: "documents/architecture/pages/achievements_page.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的achievements_page.dart变更"
+      changes:
+        - field: "description"
+          value: "成就页组件，支持页面级导航"
+          source: "preview中achievements_page.dart的description"
+        - field: "properties"
+          value: "appBar (新增)"
+          source: "preview中achievements_page.dart的properties_changes部分"
+        - field: "called_by"
+          value: "app_router.dart"
+          source: "preview中achievements_page.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart"
+          source: "preview中achievements_page.dart的calls字段"
+
+    - file: "documents/architecture/pages/settings_controls.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的settings_controls.dart变更"
+      changes:
+        - field: "description"
+          value: "设置页组件，支持页面级导航"
+          source: "preview中settings_controls.dart的description"
+        - field: "properties"
+          value: "appBar (新增)"
+          source: "preview中settings_controls.dart的properties_changes部分"
+        - field: "called_by"
+          value: "app_router.dart, app_shell.dart (作为EndDrawer)"
+          source: "preview中settings_controls.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart"
+          source: "preview中settings_controls.dart的calls字段"
+
+    - file: "documents/architecture/pages/inbox_page.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的inbox_page.dart变更"
+      changes:
+        - field: "description"
+          value: "收集箱页组件，统一导航架构"
+          source: "preview中inbox_page.dart的description"
+        - field: "properties"
+          value: "appBar (新增或修改)"
+          source: "preview中inbox_page.dart的properties_changes部分"
+        - field: "called_by"
+          value: "app_router.dart"
+          source: "preview中inbox_page.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart"
+          source: "preview中inbox_page.dart的calls字段"
+
+    - file: "documents/architecture/pages/completed_page.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的completed_page.dart变更"
+      changes:
+        - field: "description"
+          value: "已完成页组件，统一导航架构"
+          source: "preview中completed_page.dart的description"
+        - field: "called_by"
+          value: "app_router.dart"
+          source: "preview中completed_page.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart"
+          source: "preview中completed_page.dart的calls字段"
+
+    - file: "documents/architecture/pages/trash_page.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的trash_page.dart变更"
+      changes:
+        - field: "description"
+          value: "垃圾箱页组件，统一导航架构"
+          source: "preview中trash_page.dart的description"
+        - field: "called_by"
+          value: "app_router.dart"
+          source: "preview中trash_page.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart"
+          source: "preview中trash_page.dart的calls字段"
+
+    # 更新应用入口规范文件
+    - file: "documents/architecture/app.yaml"
+      action: "modify"
+      based_on: "preview中modified_files的app.dart变更"
+      changes:
+        - field: "description"
+          value: "应用入口，集成路由系统，支持统一DrawerMenu方案"
+          source: "preview中app.dart的description"
+        - field: "properties"
+          value: "router (新增)"
+          source: "preview中app.dart的properties_changes部分"
+        - field: "implementation_changes"
+          value: "使用routerConfig: AppRouter.router"
+          source: "preview中app.dart的implementation_changes部分"
+        - field: "called_by"
+          value: "lib/main.dart"
+          source: "preview中app.dart的called_by字段"
+        - field: "calls"
+          value: "package:flutter/material.dart, app_router.dart"
+          source: "preview中app.dart的calls字段"
+
+    # 更新架构索引文件
+    - file: "documents/architecture/widgets.yaml"
+      action: "modify"
+      based_on: "preview中architecture_updates的widgets.yaml变更"
+      changes:
+        - field: "新增导航组件"
+          value: "NavigationDestinations, DrawerMenu, AppNavigationBar, ResponsiveNavigation, AppRouter"
+          source: "preview中architecture_updates的widgets.yaml新增组件"
+        - field: "移除组件"
+          value: "AppNavigationRail"
+          source: "preview中architecture_updates的widgets.yaml移除组件"
+        - field: "修改组件"
+          value: "AppShell (重构)"
+          source: "preview中architecture_updates的widgets.yaml修改组件"
+
+    - file: "documents/architecture/pages.yaml"
+      action: "modify"
+      based_on: "preview中architecture_updates的pages.yaml变更"
+      changes:
+        - field: "页面架构"
+          value: "基于路由系统的页面级导航架构"
+          source: "preview中architecture_updates的pages.yaml页面架构变更"
+        - field: "更新内容"
+          value: "所有页面都支持页面级AppBar、条件渲染侧边栏、通过路由系统访问"
+          source: "preview中architecture_updates的pages.yaml更新内容"
+
+# 验收测试用例计划
+testing_plan:
+  description: "根据preview需求制定详细的测试计划，区分现有测试修改和新测试创建"
+  
+  existing_tests:
+    description: "需要修改的现有测试用例"
+    tests:
+      - file: "test/presentation/navigation/app_shell_test.dart"
+        test_name: "test_app_shell_navigation"
+        modification_type: "modify"
+        reason: "根据preview变更，AppShell不再直接管理NavigationRail，改为使用ResponsiveNavigation"
+        current_expectation: "测试AppShell直接创建NavigationRail和NavigationBar"
+        new_expectation: "测试AppShell使用ResponsiveNavigation处理导航逻辑"
+        implementation_changes:
+          - "移除对NavigationRail的直接测试"
+          - "添加对ResponsiveNavigation的测试"
+          - "测试child参数传递"
+          - "测试showEndDrawer参数"
+
+      - file: "test/presentation/home/home_page_test.dart"
+        test_name: "test_home_page_structure"
+        modification_type: "modify"
+        reason: "根据preview变更，HomePage需要支持页面级导航，包含AppBar"
+        current_expectation: "测试HomePage作为AppShell中_pages列表的一部分"
+        new_expectation: "测试HomePage作为独立页面组件，包含AppBar和Scaffold"
+        implementation_changes:
+          - "添加AppBar存在性测试"
+          - "测试Scaffold结构"
+          - "测试页面级导航功能"
+
+      - file: "test/presentation/tasks/task_list_page_test.dart"
+        test_name: "test_task_list_page_structure"
+        modification_type: "modify"
+        reason: "与HomePage相同的重构模式，需要支持页面级导航"
+        current_expectation: "测试TaskListPage作为AppShell中_pages列表的一部分"
+        new_expectation: "测试TaskListPage作为独立页面组件，包含AppBar和Scaffold"
+        implementation_changes:
+          - "添加AppBar存在性测试"
+          - "测试Scaffold结构"
+          - "测试页面级导航功能"
+
+      - file: "test/presentation/achievements/achievements_page_test.dart"
+        test_name: "test_achievements_page_structure"
+        modification_type: "modify"
+        reason: "与HomePage相同的重构模式，需要支持页面级导航"
+        current_expectation: "测试AchievementsPage作为AppShell中_pages列表的一部分"
+        new_expectation: "测试AchievementsPage作为独立页面组件，包含AppBar和Scaffold"
+        implementation_changes:
+          - "添加AppBar存在性测试"
+          - "测试Scaffold结构"
+          - "测试页面级导航功能"
+
+      - file: "test/presentation/navigation/settings_controls_test.dart"
+        test_name: "test_settings_controls_structure"
+        modification_type: "modify"
+        reason: "与HomePage相同的重构模式，需要支持页面级导航"
+        current_expectation: "测试SettingsControlsPage作为AppShell中_pages列表的一部分"
+        new_expectation: "测试SettingsControlsPage作为独立页面组件，包含AppBar和Scaffold"
+        implementation_changes:
+          - "添加AppBar存在性测试"
+          - "测试Scaffold结构"
+          - "测试页面级导航功能"
+
+  new_tests:
+    description: "需要新建的测试用例"
+    tests:
+      - file: "test/presentation/navigation/navigation_destinations_test.dart"
+        test_name: "test_navigation_destinations_enum"
+        test_type: "unit_test"
+        description: "测试NavigationDestinations枚举的基本功能"
+        expectation: "验证枚举值、图标、标签、路由的正确性"
+        implementation: |
+          void main() {
+            group('NavigationDestinations', () {
+              test('should have correct enum values', () {
+                expect(NavigationDestinations.values.length, 4);
+                expect(NavigationDestinations.values, contains(NavigationDestinations.home));
+                expect(NavigationDestinations.values, contains(NavigationDestinations.tasks));
+                expect(NavigationDestinations.values, contains(NavigationDestinations.achievements));
+                expect(NavigationDestinations.values, contains(NavigationDestinations.settings));
+              });
+              
+              test('should have correct icons', () {
+                expect(NavigationDestinations.home.icon, Icons.home_outlined);
+                expect(NavigationDestinations.home.selectedIcon, Icons.home);
+                // ... 其他图标测试
+              });
+              
+              test('should have correct routes', () {
+                expect(NavigationDestinations.home.route, '/');
+                expect(NavigationDestinations.tasks.route, '/tasks');
+                // ... 其他路由测试
+              });
+              
+              test('should return localized labels', () {
+                // 测试label方法的本地化功能
+              });
+            });
+          }
+
+      - file: "test/presentation/navigation/drawer_menu_test.dart"
+        test_name: "test_drawer_menu_display_modes"
+        test_type: "widget_test"
+        description: "测试DrawerMenu的三种显示模式"
+        expectation: "验证hidden/iconOnly/full三种模式正确切换，宽度和内容正确显示"
+        implementation: |
+          void main() {
+            group('DrawerMenu', () {
+              testWidgets('should display hidden mode correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: DrawerMenu(
+                      displayMode: DrawerDisplayMode.hidden,
+                      onDestinationSelected: null,
+                    ),
+                  ),
+                );
+                
+                // 验证隐藏模式下宽度为0
+                final drawer = tester.widget<Drawer>(find.byType(Drawer));
+                expect(drawer.width, 0);
+              });
+              
+              testWidgets('should display iconOnly mode correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: DrawerMenu(
+                      displayMode: DrawerDisplayMode.iconOnly,
+                      onDestinationSelected: null,
+                    ),
+                  ),
+                );
+                
+                // 验证图标模式下宽度为80，只显示图标
+                final drawer = tester.widget<Drawer>(find.byType(Drawer));
+                expect(drawer.width, 80);
+                expect(find.byType(Icon), findsWidgets);
+                expect(find.text('Home'), findsNothing);
+              });
+              
+              testWidgets('should display full mode correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: DrawerMenu(
+                      displayMode: DrawerDisplayMode.full,
+                      onDestinationSelected: null,
+                    ),
+                  ),
+                );
+                
+                // 验证完整模式下宽度为280，显示图标和文字
+                final drawer = tester.widget<Drawer>(find.byType(Drawer));
+                expect(drawer.width, 280);
+                expect(find.byType(Icon), findsWidgets);
+                expect(find.text('Home'), findsWidgets);
+              });
+            });
+          }
+
+      - file: "test/presentation/navigation/navigation_bar_test.dart"
+        test_name: "test_navigation_bar_functionality"
+        test_type: "widget_test"
+        description: "测试AppNavigationBar的导航功能"
+        expectation: "验证导航栏正确显示，点击切换页面"
+        implementation: |
+          void main() {
+            group('AppNavigationBar', () {
+              testWidgets('should display navigation items', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: Scaffold(
+                      bottomNavigationBar: AppNavigationBar(
+                        selectedIndex: 0,
+                        onDestinationSelected: (index) {},
+                      ),
+                    ),
+                  ),
+                );
+                
+                // 验证导航项存在
+                expect(find.byType(NavigationBar), findsOneWidget);
+                expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+              });
+              
+              testWidgets('should handle destination selection', (WidgetTester tester) async {
+                int? selectedIndex;
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: Scaffold(
+                      bottomNavigationBar: AppNavigationBar(
+                        selectedIndex: 0,
+                        onDestinationSelected: (index) {
+                          selectedIndex = index;
+                        },
+                      ),
+                    ),
+                  ),
+                );
+                
+                // 点击第二个导航项
+                await tester.tap(find.byIcon(Icons.checklist));
+                await tester.pump();
+                
+                expect(selectedIndex, 1);
+              });
+            });
+          }
+
+      - file: "test/presentation/navigation/responsive_navigation_test.dart"
+        test_name: "test_responsive_navigation_orientation"
+        test_type: "widget_test"
+        description: "测试ResponsiveNavigation的屏幕方向响应"
+        expectation: "验证横屏显示DrawerMenu，竖屏显示NavigationBar"
+        implementation: |
+          void main() {
+            group('ResponsiveNavigation', () {
+              testWidgets('should show DrawerMenu in landscape', (WidgetTester tester) async {
+                await tester.binding.setSurfaceSize(const Size(800, 600));
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: ResponsiveNavigation(
+                      selectedIndex: 0,
+                      onDestinationSelected: (index) {},
+                      child: Container(),
+                    ),
+                  ),
+                );
+                
+                // 验证横屏时显示DrawerMenu
+                expect(find.byType(DrawerMenu), findsOneWidget);
+                expect(find.byType(AppNavigationBar), findsNothing);
+              });
+              
+              testWidgets('should show NavigationBar in portrait', (WidgetTester tester) async {
+                await tester.binding.setSurfaceSize(const Size(400, 800));
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: ResponsiveNavigation(
+                      selectedIndex: 0,
+                      onDestinationSelected: (index) {},
+                      child: Container(),
+                    ),
+                  ),
+                );
+                
+                // 验证竖屏时显示NavigationBar
+                expect(find.byType(AppNavigationBar), findsOneWidget);
+                expect(find.byType(DrawerMenu), findsNothing);
+              });
+              
+              testWidgets('should toggle drawer mode', (WidgetTester tester) async {
+                // 测试主导航按钮切换DrawerMenu状态
+              });
+            });
+          }
+
+      - file: "test/presentation/navigation/app_router_test.dart"
+        test_name: "test_app_router_routes"
+        test_type: "unit_test"
+        description: "测试AppRouter的路由配置"
+        expectation: "验证所有路由正确配置，页面正确加载"
+        implementation: |
+          void main() {
+            group('AppRouter', () {
+              test('should have correct routes configured', () {
+                final router = AppRouter.router;
+                expect(router, isNotNull);
+                
+                // 验证路由配置
+                final routes = router.configuration.routes;
+                expect(routes.length, greaterThan(0));
+              });
+              
+              test('should navigate to correct pages', () {
+                // 测试路由导航功能
+              });
+            });
+          }
+
+      - file: "test/presentation/inbox/inbox_page_test.dart"
+        test_name: "test_inbox_page_structure"
+        test_type: "widget_test"
+        description: "测试InboxPage的页面级导航结构"
+        expectation: "验证InboxPage包含AppBar和Scaffold，支持页面级导航"
+        implementation: |
+          void main() {
+            group('InboxPage', () {
+              testWidgets('should have AppBar and Scaffold', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: InboxPage(),
+                  ),
+                );
+                
+                expect(find.byType(AppBar), findsOneWidget);
+                expect(find.byType(Scaffold), findsOneWidget);
+                expect(find.text('Inbox'), findsOneWidget);
+              });
+            });
+          }
+
+      - file: "test/presentation/completion_management/completed_page_test.dart"
+        test_name: "test_completed_page_structure"
+        test_type: "widget_test"
+        description: "测试CompletedPage的页面级导航结构"
+        expectation: "验证CompletedPage包含AppBar和Scaffold，支持页面级导航"
+        implementation: |
+          void main() {
+            group('CompletedPage', () {
+              testWidgets('should have AppBar and Scaffold', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: CompletedPage(),
+                  ),
+                );
+                
+                expect(find.byType(AppBar), findsOneWidget);
+                expect(find.byType(Scaffold), findsOneWidget);
+                expect(find.text('Completed'), findsOneWidget);
+              });
+            });
+          }
+
+      - file: "test/presentation/completion_management/trash_page_test.dart"
+        test_name: "test_trash_page_structure"
+        test_type: "widget_test"
+        description: "测试TrashPage的页面级导航结构"
+        expectation: "验证TrashPage包含AppBar和Scaffold，支持页面级导航"
+        implementation: |
+          void main() {
+            group('TrashPage', () {
+              testWidgets('should have AppBar and Scaffold', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: TrashPage(),
+                  ),
+                );
+                
+                expect(find.byType(AppBar), findsOneWidget);
+                expect(find.byType(Scaffold), findsOneWidget);
+                expect(find.text('Trash'), findsOneWidget);
+              });
+            });
+          }
+
+  configuration_tests:
+    description: "配置相关测试，验证无硬编码且与YAML文件一致"
+    tests:
+      - test_name: "test_navigation_destinations_configuration_consistency"
+        description: "验证NavigationDestinations配置与YAML文件一致"
+        validation_method: "读取documents/architecture/widgets/navigation_destinations.yaml进行验证"
+        expectation: "配置值不是硬编码，且与YAML文件内容一致"
+        yaml_files:
+          - "documents/architecture/widgets/navigation_destinations.yaml"
+        implementation: |
+          void main() {
+            group('NavigationDestinations Configuration', () {
+              test('should match YAML configuration', () {
+                // 读取YAML文件
+                final yamlFile = File('documents/architecture/widgets/navigation_destinations.yaml');
+                final yamlContent = yamlFile.readAsStringSync();
+                final yamlData = loadYaml(yamlFile.readAsStringSync());
+                
+                // 验证枚举值与YAML一致
+                expect(NavigationDestinations.values.length, yamlData['properties']['values'].length);
+                
+                // 验证图标配置
+                for (final destination in NavigationDestinations.values) {
+                  final yamlProps = yamlData['properties'];
+                  expect(destination.icon.toString(), contains(yamlProps['icon'][destination.name]));
+                }
+              });
+            });
+          }
+
+      - test_name: "test_drawer_menu_configuration_consistency"
+        description: "验证DrawerMenu配置与YAML文件一致"
+        validation_method: "读取documents/architecture/widgets/drawer_menu.yaml进行验证"
+        expectation: "配置值不是硬编码，且与YAML文件内容一致"
+        yaml_files:
+          - "documents/architecture/widgets/drawer_menu.yaml"
+        implementation: |
+          void main() {
+            group('DrawerMenu Configuration', () {
+              test('should match YAML configuration', () {
+                // 读取YAML文件
+                final yamlFile = File('documents/architecture/widgets/drawer_menu.yaml');
+                final yamlData = loadYaml(yamlFile.readAsStringSync());
+                
+                // 验证枚举值与YAML一致
+                final yamlEnums = yamlData['enums'][0]['values'];
+                expect(DrawerDisplayMode.values.length, yamlEnums.length);
+                
+                // 验证宽度配置
+                final yamlMethods = yamlData['methods'];
+                // 验证_getDrawerWidth方法的实现与YAML一致
+              });
+            });
+          }
+
+      - test_name: "test_theme_configuration_consistency"
+        description: "验证主题配置与YAML文件一致"
+        validation_method: "读取documents/config/theme.yaml进行验证"
+        expectation: "配置值不是硬编码，且与YAML文件内容一致"
+        yaml_files:
+          - "documents/config/theme.yaml"
+        implementation: |
+          void main() {
+            group('Theme Configuration', () {
+              test('should match YAML configuration', () {
+                // 读取YAML文件
+                final yamlFile = File('documents/config/theme.yaml');
+                final yamlData = loadYaml(yamlFile.readAsStringSync());
+                
+                // 验证主题配置与YAML一致
+                // 检查颜色、字体等配置
+              });
+            });
+          }
+
+      - test_name: "test_localization_configuration_consistency"
+        description: "验证本地化配置与YAML文件一致"
+        validation_method: "读取documents/config/app_*.arb文件进行验证"
+        expectation: "配置值不是硬编码，且与YAML文件内容一致"
+        yaml_files:
+          - "documents/config/app_en.arb"
+          - "documents/config/app_zh_Hans.arb"
+          - "documents/config/app_zh_Hant.arb"
+        implementation: |
+          void main() {
+            group('Localization Configuration', () {
+              test('should match ARB files', () {
+                // 读取ARB文件
+                final enFile = File('documents/config/app_en.arb');
+                final enData = jsonDecode(enFile.readAsStringSync());
+                
+                // 验证本地化字符串与ARB文件一致
+                // 检查NavigationDestinations的label方法
+              });
+            });
+          }
+
+# 实现代码计划
+implementation_plan:
+  description: "根据preview设计实现具体的代码"
+  
+  code_changes:
+    # 新建文件实现
+    - file: "lib/presentation/navigation/navigation_destinations.dart"
+      action: "create"
+      based_on: "preview中new_files的navigation_destinations.dart设计"
+      changes:
+        - type: "enum_creation"
+          description: "创建NavigationDestinations枚举"
+          implementation: |
+            enum NavigationDestinations {
+              home,
+              tasks,
+              achievements,
+              settings;
+              
+              IconData get icon {
+                switch (this) {
+                  case NavigationDestinations.home:
+                    return Icons.home_outlined;
+                  case NavigationDestinations.tasks:
+                    return Icons.checklist;
+                  case NavigationDestinations.achievements:
+                    return Icons.emoji_events_outlined;
+                  case NavigationDestinations.settings:
+                    return Icons.settings_outlined;
+                }
+              }
+              
+              IconData get selectedIcon {
+                switch (this) {
+                  case NavigationDestinations.home:
+                    return Icons.home;
+                  case NavigationDestinations.tasks:
+                    return Icons.fact_check;
+                  case NavigationDestinations.achievements:
+                    return Icons.emoji_events;
+                  case NavigationDestinations.settings:
+                    return Icons.settings;
+                }
+              }
+              
+              String get route {
+                switch (this) {
+                  case NavigationDestinations.home:
+                    return '/';
+                  case NavigationDestinations.tasks:
+                    return '/tasks';
+                  case NavigationDestinations.achievements:
+                    return '/achievements';
+                  case NavigationDestinations.settings:
+                    return '/settings';
+                }
+              }
+              
+              String label(BuildContext context) {
+                final l10n = AppLocalizations.of(context);
+                switch (this) {
+                  case NavigationDestinations.home:
+                    return l10n.appShellHome;
+                  case NavigationDestinations.tasks:
+                    return l10n.taskListTitle;
+                  case NavigationDestinations.achievements:
+                    return l10n.appShellAchievements;
+                  case NavigationDestinations.settings:
+                    return l10n.navSettingsSectionTitle;
+                }
+              }
+            }
+
+    - file: "lib/presentation/navigation/drawer_menu.dart"
+      action: "create"
+      based_on: "preview中new_files的drawer_menu.dart设计"
+      changes:
+        - type: "enum_creation"
+          description: "创建DrawerDisplayMode枚举"
+          implementation: |
+            enum DrawerDisplayMode {
+              hidden,
+              iconOnly,
+              full,
+            }
+        - type: "class_creation"
+          description: "创建DrawerMenu类"
+          implementation: |
+            class DrawerMenu extends StatelessWidget {
+              const DrawerMenu({
+                super.key,
+                required this.displayMode,
+                this.onDestinationSelected,
+                this.onClose,
+              });
+              
+              final DrawerDisplayMode displayMode;
+              final ValueChanged<NavigationDestinations>? onDestinationSelected;
+              final VoidCallback? onClose;
+              
+              @override
+              Widget build(BuildContext context) {
+                return Drawer(
+                  width: _getDrawerWidth(),
+                  child: Column(
+                    children: [
+                      if (displayMode == DrawerDisplayMode.full)
+                        const DrawerHeader(
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                          ),
+                          child: Text('GranoFlow'),
+                        ),
+                      Expanded(
+                        child: ListView(
+                          children: NavigationDestinations.values.map((destination) {
+                            return ListTile(
+                              leading: Icon(destination.icon),
+                              title: displayMode == DrawerDisplayMode.full 
+                                ? Text(destination.label(context))
+                                : null,
+                              onTap: () {
+                                onDestinationSelected?.call(destination);
+                                onClose?.call();
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              
+              double _getDrawerWidth() {
+                switch (displayMode) {
+                  case DrawerDisplayMode.hidden:
+                    return 0;
+                  case DrawerDisplayMode.iconOnly:
+                    return 80;
+                  case DrawerDisplayMode.full:
+                    return 280;
+                }
+              }
+            }
+
+    - file: "lib/presentation/navigation/navigation_bar.dart"
+      action: "create"
+      based_on: "preview中new_files的navigation_bar.dart设计"
+      changes:
+        - type: "class_creation"
+          description: "创建AppNavigationBar类"
+          implementation: |
+            class AppNavigationBar extends StatelessWidget {
+              const AppNavigationBar({
+                super.key,
+                required this.selectedIndex,
+                required this.onDestinationSelected,
+                this.destinations,
+              });
+              
+              final int selectedIndex;
+              final ValueChanged<int> onDestinationSelected;
+              final List<NavigationDestination>? destinations;
+              
+              @override
+              Widget build(BuildContext context) {
+                return NavigationBar(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: onDestinationSelected,
+                  destinations: destinations ?? _getDefaultDestinations(context),
+                );
+              }
+              
+              List<NavigationDestination> _getDefaultDestinations(BuildContext context) {
+                return NavigationDestinations.values.map((destination) {
+                  return NavigationDestination(
+                    icon: Icon(destination.icon),
+                    selectedIcon: Icon(destination.selectedIcon),
+                    label: destination.label(context),
+                  );
+                }).toList();
+              }
+            }
+
+    - file: "lib/presentation/navigation/responsive_navigation.dart"
+      action: "create"
+      based_on: "preview中new_files的responsive_navigation.dart设计"
+      changes:
+        - type: "class_creation"
+          description: "创建ResponsiveNavigation类"
+          implementation: |
+            class ResponsiveNavigation extends StatefulWidget {
+              const ResponsiveNavigation({
+                super.key,
+                required this.selectedIndex,
+                required this.onDestinationSelected,
+                required this.child,
+                this.drawerMode,
+              });
+              
+              final int selectedIndex;
+              final ValueChanged<int> onDestinationSelected;
+              final Widget child;
+              final DrawerDisplayMode? drawerMode;
+              
+              @override
+              State<ResponsiveNavigation> createState() => _ResponsiveNavigationState();
+            }
+            
+            class _ResponsiveNavigationState extends State<ResponsiveNavigation> {
+              bool _isLandscape = false;
+              DrawerDisplayMode _currentDrawerMode = DrawerDisplayMode.hidden;
+              
+              @override
+              void initState() {
+                super.initState();
+                _checkOrientation();
+              }
+              
+              @override
+              void didChangeDependencies() {
+                super.didChangeDependencies();
+                _checkOrientation();
+              }
+              
+              void _checkOrientation() {
+                final orientation = MediaQuery.of(context).orientation;
+                setState(() {
+                  _isLandscape = orientation == Orientation.landscape;
+                  _currentDrawerMode = widget.drawerMode ?? 
+                    (_isLandscape ? DrawerDisplayMode.iconOnly : DrawerDisplayMode.hidden);
+                });
+              }
+              
+              double _getDrawerWidth() {
+                switch (_currentDrawerMode) {
+                  case DrawerDisplayMode.hidden:
+                    return 0;
+                  case DrawerDisplayMode.iconOnly:
+                    return 80;
+                  case DrawerDisplayMode.full:
+                    return 280;
+                }
+              }
+              
+              void toggleDrawerMode() {
+                setState(() {
+                  switch (_currentDrawerMode) {
+                    case DrawerDisplayMode.hidden:
+                      _currentDrawerMode = DrawerDisplayMode.iconOnly;
+                      break;
+                    case DrawerDisplayMode.iconOnly:
+                      _currentDrawerMode = DrawerDisplayMode.full;
+                      break;
+                    case DrawerDisplayMode.full:
+                      _currentDrawerMode = DrawerDisplayMode.hidden;
+                      break;
+                  }
+                });
+              }
+              
+              @override
+              Widget build(BuildContext context) {
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (_isLandscape) {
+                      return Row(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: _getDrawerWidth(),
+                            child: DrawerMenu(
+                              displayMode: _currentDrawerMode,
+                              onDestinationSelected: (destination) {
+                                final index = NavigationDestinations.values.indexOf(destination);
+                                widget.onDestinationSelected(index);
+                              },
+                            ),
+                          ),
+                          Expanded(child: widget.child),
+                        ],
+                      );
+                    } else {
+                      return Scaffold(
+                        body: widget.child,
+                        bottomNavigationBar: AppNavigationBar(
+                          selectedIndex: widget.selectedIndex,
+                          onDestinationSelected: widget.onDestinationSelected,
+                        ),
+                      );
+                    }
+                  },
+                );
+              }
+            }
+
+    - file: "lib/presentation/navigation/app_router.dart"
+      action: "create"
+      based_on: "preview中new_files的app_router.dart设计"
+      changes:
+        - type: "class_creation"
+          description: "创建AppRouter类"
+          implementation: |
+            class AppRouter {
+              static final GoRouter router = GoRouter(
+                routes: [
+                  ShellRoute(
+                    builder: (context, state, child) {
+                      return AppShell(child: child);
+                    },
+                    routes: [
+                      GoRoute(
+                        path: '/',
+                        name: 'home',
+                        builder: (context, state) => const HomePage(),
+                      ),
+                      GoRoute(
+                        path: '/tasks',
+                        name: 'tasks',
+                        builder: (context, state) => const TaskListPage(),
+                      ),
+                      GoRoute(
+                        path: '/achievements',
+                        name: 'achievements',
+                        builder: (context, state) => const AchievementsPage(),
+                      ),
+                      GoRoute(
+                        path: '/settings',
+                        name: 'settings',
+                        builder: (context, state) => const SettingsControlsPage(),
+                      ),
+                      GoRoute(
+                        path: '/inbox',
+                        name: 'inbox',
+                        builder: (context, state) => const InboxPage(),
+                      ),
+                      GoRoute(
+                        path: '/completed',
+                        name: 'completed',
+                        builder: (context, state) => const CompletedPage(),
+                      ),
+                      GoRoute(
+                        path: '/trash',
+                        name: 'trash',
+                        builder: (context, state) => const TrashPage(),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }
+
+    # 修改文件实现
+    - file: "lib/presentation/navigation/app_shell.dart"
+      action: "modify"
+      based_on: "preview中modified_files的app_shell.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构AppShell类"
+          implementation: |
+            class AppShell extends ConsumerWidget {
+              const AppShell({
+                super.key,
+                required this.child,
+                this.showEndDrawer = true,
+              });
+              
+              final Widget child;
+              final bool showEndDrawer;
+              
+              @override
+              Widget build(BuildContext context, WidgetRef ref) {
+                return ResponsiveNavigation(
+                  selectedIndex: ref.watch(navigationIndexProvider),
+                  onDestinationSelected: (index) {
+                    ref.read(navigationIndexProvider.notifier).state = index;
+                  },
+                  child: child,
+                );
+              }
+            }
+
+    - file: "lib/presentation/home/home_page.dart"
+      action: "modify"
+      based_on: "preview中modified_files的home_page.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构HomePage类支持页面级导航"
+          implementation: |
+            class HomePage extends StatelessWidget {
+              const HomePage({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Home'),
+                    actions: [],
+                  ),
+                  body: const Center(
+                    child: Text('Home Page'),
+                  ),
+                );
+              }
+            }
+
+    - file: "lib/presentation/tasks/task_list_page.dart"
+      action: "modify"
+      based_on: "preview中modified_files的task_list_page.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构TaskListPage类支持页面级导航"
+          implementation: |
+            class TaskListPage extends StatelessWidget {
+              const TaskListPage({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Tasks'),
+                    actions: [],
+                  ),
+                  body: const Center(
+                    child: Text('Task List Page'),
+                  ),
+                );
+              }
+            }
+
+    - file: "lib/presentation/achievements/achievements_page.dart"
+      action: "modify"
+      based_on: "preview中modified_files的achievements_page.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构AchievementsPage类支持页面级导航"
+          implementation: |
+            class AchievementsPage extends StatelessWidget {
+              const AchievementsPage({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Achievements'),
+                    actions: [],
+                  ),
+                  body: const Center(
+                    child: Text('Achievements Page'),
+                  ),
+                );
+              }
+            }
+
+    - file: "lib/presentation/navigation/settings_controls.dart"
+      action: "modify"
+      based_on: "preview中modified_files的settings_controls.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构SettingsControlsPage类支持页面级导航"
+          implementation: |
+            class SettingsControlsPage extends StatelessWidget {
+              const SettingsControlsPage({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Settings'),
+                    actions: [],
+                  ),
+                  body: const Center(
+                    child: Text('Settings Page'),
+                  ),
+                );
+              }
+            }
+
+    - file: "lib/presentation/inbox/inbox_page.dart"
+      action: "modify"
+      based_on: "preview中modified_files的inbox_page.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构InboxPage类支持页面级导航"
+          implementation: |
+            class InboxPage extends StatelessWidget {
+              const InboxPage({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Inbox'),
+                    actions: [],
+                  ),
+                  body: const Center(
+                    child: Text('Inbox Page'),
+                  ),
+                );
+              }
+            }
+
+    - file: "lib/presentation/completion_management/completed_page.dart"
+      action: "modify"
+      based_on: "preview中modified_files的completed_page.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构CompletedPage类支持页面级导航"
+          implementation: |
+            class CompletedPage extends StatelessWidget {
+              const CompletedPage({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Completed'),
+                    actions: [],
+                  ),
+                  body: const Center(
+                    child: Text('Completed Page'),
+                  ),
+                );
+              }
+            }
+
+    - file: "lib/presentation/completion_management/trash_page.dart"
+      action: "modify"
+      based_on: "preview中modified_files的trash_page.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构TrashPage类支持页面级导航"
+          implementation: |
+            class TrashPage extends StatelessWidget {
+              const TrashPage({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Trash'),
+                    actions: [],
+                  ),
+                  body: const Center(
+                    child: Text('Trash Page'),
+                  ),
+                );
+              }
+            }
+
+    - file: "lib/core/app.dart"
+      action: "modify"
+      based_on: "preview中modified_files的app.dart变更"
+      changes:
+        - type: "class_modification"
+          description: "重构GranoFlowApp类集成路由系统"
+          implementation: |
+            class GranoFlowApp extends StatelessWidget {
+              const GranoFlowApp({super.key});
+              
+              @override
+              Widget build(BuildContext context) {
+                return MaterialApp.router(
+                  title: 'GranoFlow',
+                  routerConfig: AppRouter.router,
+                );
+              }
+            }
+
+  dependencies:
+    - "package:go_router/go_router.dart"
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+    - "package:granoflow/generated/l10n/app_localizations.dart"
+
+# 执行状态跟踪
+execution_tracking:
+  description: "类似todolist的执行状态跟踪，记录每个环节的进展"
+  
+  overall_status: "pending"
+  current_phase: "yaml_updates"
+  completed_phases: []
+  
+  phases:
+    - name: "yaml_updates"
+      description: "更新实现规范YAML文件"
+      status: "pending"
+      tasks:
+        - task: "创建navigation_destinations.yaml"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建drawer_menu.yaml"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建navigation_bar.yaml"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建responsive_navigation.yaml"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建app_router.yaml"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "修改app_shell.yaml"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "修改所有页面YAML文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "更新架构索引文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "testing"
+      description: "创建和修改测试用例"
+      status: "pending"
+      tasks:
+        - task: "修改现有测试用例"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建新测试用例"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建配置验证测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "implementation"
+      description: "实现代码"
+      status: "pending"
+      tasks:
+        - task: "创建navigation_destinations.dart"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建drawer_menu.dart"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建navigation_bar.dart"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建responsive_navigation.dart"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建app_router.dart"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "修改app_shell.dart"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "修改所有页面文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "修改app.dart"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "validation"
+      description: "验证实现"
+      status: "pending"
+      tasks:
+        - task: "运行单元测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "运行组件测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "运行集成测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "运行配置验证测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "运行flutter analyze"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "验证功能完整性"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+
+  retry_mechanism:
+    max_retries: 3
+    retry_conditions:
+      - "测试失败"
+      - "编译错误"
+      - "YAML格式错误"
+      - "配置不一致"
+    
+  skip_records: []

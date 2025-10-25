@@ -1,0 +1,74 @@
+meta:
+  name: TaskTemplate Model
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务模板模型 - 定义可重用的任务蓝图，用于重复活动（例如跑步、瑜伽）。
+    应用模板会实例化一个继承标题、父任务和标签的叶子任务。
+
+model_definition:
+  name: TaskTemplate
+  storage: isar_collection
+  indexes:
+    - field: title
+    - field: lastUsedAtUtc
+    - field: parentTaskId
+
+fields:
+  - name: id
+    type: int
+    isar_id: true
+
+  - name: title
+    type: String
+    notes: 必需字段；在自动完成建议中显示
+
+  - name: parentTaskId
+    type: int?
+    notes: 可选的父任务链接；设置时，引用任务的 templateLockCount 递增
+
+  - name: defaultTags
+    type: List<String>
+    notes: 默认标签列表
+
+  - name: createdAtUtc
+    type: DateTime
+
+  - name: updatedAtUtc
+    type: DateTime
+
+  - name: lastUsedAtUtc
+    type: DateTime?
+    notes: 模板实例化任务时更新；用于排序建议
+
+  - name: seedSlug
+    type: String?
+    notes: 种子导入的临时标识符；不暴露给 UI
+
+business_rules:
+  - 标题是必需字段
+  - 应用模板时更新 lastUsedAtUtc
+  - 父任务存在时递增其 templateLockCount
+  - 模板可以没有父任务（独立模板）
+
+template_application:
+  - 创建新的叶子任务
+  - 继承模板的标题和标签
+  - 设置可选的父任务
+  - 更新使用时间戳
+
+suggestions_system:
+  - 基于 lastUsedAtUtc 排序
+  - 在任务创建时提供建议
+  - 支持快速重复任务创建
+
+relationships:
+  - parent_task: Task? (parentTaskId -> Task.id)
+  - created_tasks: List<Task> (通过模板应用创建)
+
+lifecycle:
+  - created: 用户创建模板时
+  - updated: 模板信息修改时
+  - used: 应用模板创建任务时
+  - deleted: 用户删除模板时（需要检查依赖）

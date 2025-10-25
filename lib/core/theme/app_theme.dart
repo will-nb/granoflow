@@ -82,13 +82,30 @@ class AppTheme {
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 1,
         shadowColor: colorScheme.shadow.withOpacity(0.1),
-        labelTextStyle: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        // 使用主题色作为选中状态的颜色，去掉椭圆背景
+        indicatorColor: Colors.transparent,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return _buildTextTheme(colorScheme, Brightness.light).labelMedium?.copyWith(
               fontWeight: FontWeight.w600,
+              color: colorScheme.primary, // 选中状态使用主题色
             );
           }
-          return _buildTextTheme(colorScheme, Brightness.light).labelMedium;
+          return _buildTextTheme(colorScheme, Brightness.light).labelMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant, // 未选中状态使用次要文本色
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(
+              color: colorScheme.primary, // 选中状态使用主题色
+              size: 24,
+            );
+          }
+          return IconThemeData(
+            color: colorScheme.onSurfaceVariant, // 未选中状态使用次要文本色
+            size: 24,
+          );
         }),
       ),
 
@@ -196,13 +213,30 @@ class AppTheme {
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 1,
         shadowColor: colorScheme.shadow.withOpacity(0.2),
-        labelTextStyle: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        // 使用主题色作为选中状态的颜色，去掉椭圆背景
+        indicatorColor: Colors.transparent,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return _buildTextTheme(colorScheme, Brightness.dark).labelMedium?.copyWith(
               fontWeight: FontWeight.w600,
+              color: colorScheme.primary, // 选中状态使用主题色
             );
           }
-          return _buildTextTheme(colorScheme, Brightness.dark).labelMedium;
+          return _buildTextTheme(colorScheme, Brightness.dark).labelMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant, // 未选中状态使用次要文本色
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(
+              color: colorScheme.primary, // 选中状态使用主题色
+              size: 24,
+            );
+          }
+          return IconThemeData(
+            color: colorScheme.onSurfaceVariant, // 未选中状态使用次要文本色
+            size: 24,
+          );
         }),
       ),
 

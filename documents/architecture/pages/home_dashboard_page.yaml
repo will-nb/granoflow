@@ -1,0 +1,70 @@
+meta:
+  name: HomeDashboardPage
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    主页仪表板页面 - 应用的主页，显示指标卡片和快速操作按钮。
+
+page_definition:
+  name: HomeDashboardPage
+  route: /
+  type: screen
+
+providers:
+  - metricSnapshotProvider
+  - seedInitializerProvider
+
+layout:
+  breakpoints:
+    - maxWidth: 600
+      structure:
+        - AppBar(title: AppLocalizations.homeGreeting)
+        - Padding(16)
+        - Column:
+            - DashboardMetricCard x4 (vertical)
+            - SizedBox(24)
+            - PrimaryActionButton (进入收集箱)
+            - SizedBox(12)
+            - PrimaryActionButton (打开任务列表)
+            - SizedBox(24)
+            - SeedCalloutCard (visible when tutorial tasks incomplete)
+
+    - minWidth: 600
+      structure:
+        - AppBar(title: AppLocalizations.homeGreeting)
+        - LayoutBuilder (grid):
+            - Grid(
+                columns: 2,
+                children: DashboardMetricCard x4
+              )
+            - Row(
+                children: [
+                  Expanded(PrimaryActionButton plan),
+                  SizedBox(16),
+                  Expanded(PrimaryActionButton work)
+                ]
+              )
+            - SeedCalloutCard
+
+interactions:
+  - PullToRefresh: MetricRefreshHeader + metricRefreshNotifier
+  - PrimaryActionButton: Navigate to InboxPage / TaskListPage
+  - SeedCalloutCard action: Navigate to tutorial root task in edit mode
+
+notes:
+  - 种子初始化器在指标之前运行以确保教程任务存在
+  - 响应式布局根据屏幕宽度调整
+  - 支持下拉刷新指标
+
+accessibility:
+  - 屏幕阅读器支持
+  - 键盘导航支持
+  - 语义标签
+  - 焦点管理
+
+performance:
+  - 懒加载指标数据
+  - 缓存指标快照
+  - 优化网格布局
+  - 避免不必要的重建

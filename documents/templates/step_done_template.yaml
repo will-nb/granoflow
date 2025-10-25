@@ -1,0 +1,353 @@
+meta:
+  version: 1
+  type: step_done
+  iteration: "YYMMDD-N"
+  generated_at: "YYYY-MM-DD HH:MM:SS"
+  based_on_step: "documents/plan/YYMMDD-N-step.yaml"
+  description: "基于step文档的YAML和测试补充计划"
+
+# 执行状态跟踪
+execution_status:
+  overall_status: "pending"  # pending|in_progress|completed|failed
+  current_phase: "yaml_updates"
+  completed_phases: []
+  
+  phases:
+    - name: "yaml_updates"
+      description: "规范YAML文件更新"
+      status: "pending"
+      tasks:
+        - task: "生成新组件YAML文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "更新现有组件YAML文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "更新架构索引文件"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "test_creation"
+      description: "测试用例创建"
+      status: "pending"
+      tasks:
+        - task: "创建单元测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建组件测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "创建集成测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "verification"
+      description: "验证和测试"
+      status: "pending"
+      tasks:
+        - task: "运行YAML一致性验证"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "运行所有测试"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "检查测试覆盖率"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+    
+    - name: "git_commit"
+      description: "Git提交处理"
+      status: "pending"
+      tasks:
+        - task: "检查上次提交时间"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "执行pre-commit或直接提交"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+        - task: "处理提交错误"
+          status: "pending"
+          retry_count: 0
+          failure_reasons: []
+
+# 规范YAML文件更新计划
+yaml_updates:
+  description: "根据step文档中的代码实现生成/修改规范YAML文件"
+  
+  new_yaml_files:
+    description: "需要创建的新YAML文件"
+    files:
+      - file: "documents/architecture/widgets/组件名.yaml"
+        based_on: "step文档中对应的代码实现"
+        class_name: "类名"
+        type: "文件类型"
+        description: "组件描述"
+        properties:
+          - name: "属性名"
+            type: "属性类型"
+            description: "属性描述"
+        methods:
+          - name: "方法名"
+            return_type: "返回类型"
+            description: "方法描述"
+        dependencies:
+          - "依赖包1"
+          - "依赖包2"
+        called_by:
+          - "调用此组件的文件"
+        calls:
+          - "此组件调用的文件"
+  
+  modified_yaml_files:
+    description: "需要修改的现有YAML文件"
+    files:
+      - file: "documents/architecture/widgets/组件名.yaml"
+        based_on: "step文档中对应的代码修改"
+        change_type: "modify"
+        description: "修改描述"
+        changes:
+          - field: "属性名"
+            current_value: "当前值"
+            new_value: "新值"
+            reason: "修改原因"
+          - field: "方法名"
+            current_value: "当前实现"
+            new_value: "新实现"
+            reason: "修改原因"
+        called_by:
+          - "调用此组件的文件"
+        calls:
+          - "此组件调用的文件"
+  
+  architecture_updates:
+    description: "架构索引文件更新"
+    files:
+      - file: "documents/architecture/widgets.yaml"
+        changes:
+          - field: "新增组件"
+            value: "组件列表"
+            reason: "根据step文档新增"
+          - field: "修改组件"
+            value: "组件列表"
+            reason: "根据step文档修改"
+      - file: "documents/architecture/pages.yaml"
+        changes:
+          - field: "页面更新"
+            value: "页面列表"
+            reason: "根据step文档更新"
+
+# 测试用例创建计划
+test_creation:
+  description: "根据step文档中的代码实现创建测试用例"
+  
+  unit_tests:
+    description: "单元测试创建"
+    tests:
+      - file: "test/presentation/navigation/组件名_test.dart"
+        test_name: "test_组件功能"
+        test_type: "unit_test"
+        description: "测试组件的基本功能"
+        based_on: "step文档中对应的代码实现"
+        implementation: |
+          void main() {
+            group('组件名', () {
+              test('should have correct properties', () {
+                // 测试属性
+              });
+              
+              test('should have correct methods', () {
+                // 测试方法
+              });
+            });
+          }
+        expectation: "验证组件基本功能正确"
+  
+  widget_tests:
+    description: "组件测试创建"
+    tests:
+      - file: "test/presentation/navigation/组件名_widget_test.dart"
+        test_name: "test_组件渲染"
+        test_type: "widget_test"
+        description: "测试组件的UI渲染"
+        based_on: "step文档中对应的代码实现"
+        implementation: |
+          void main() {
+            group('组件名 Widget', () {
+              testWidgets('should render correctly', (WidgetTester tester) async {
+                await tester.pumpWidget(
+                  MaterialApp(
+                    home: 组件名(),
+                  ),
+                );
+                
+                // 验证UI渲染
+                expect(find.byType(组件名), findsOneWidget);
+              });
+            });
+          }
+        expectation: "验证组件UI渲染正确"
+  
+  integration_tests:
+    description: "集成测试创建"
+    tests:
+      - file: "integration_test/功能名_test.dart"
+        test_name: "test_功能集成"
+        test_type: "integration_test"
+        description: "测试功能的完整集成"
+        based_on: "step文档中对应的代码实现"
+        implementation: |
+          void main() {
+            group('功能集成测试', () {
+              testWidgets('should work end-to-end', (WidgetTester tester) async {
+                // 集成测试实现
+              });
+            });
+          }
+        expectation: "验证功能完整集成"
+
+# 验证计划
+verification:
+  description: "验证YAML文件和测试用例"
+  
+  yaml_consistency:
+    description: "YAML文件一致性验证"
+    steps:
+      - step: "验证YAML文件格式"
+        method: "检查YAML文件语法"
+        expectation: "YAML文件格式正确"
+      - step: "验证YAML内容与代码一致"
+        method: "对比YAML文件与代码实现"
+        expectation: "YAML内容与代码实现一致"
+      - step: "验证调用关系"
+        method: "检查called_by和calls关系"
+        expectation: "调用关系正确"
+  
+  test_execution:
+    description: "测试执行验证"
+    steps:
+      - step: "运行单元测试"
+        command: "flutter test test/unit/"
+        expectation: "所有单元测试通过"
+      - step: "运行组件测试"
+        command: "flutter test test/widget/"
+        expectation: "所有组件测试通过"
+      - step: "运行集成测试"
+        command: "flutter test integration_test/"
+        expectation: "所有集成测试通过"
+  
+  coverage_check:
+    description: "覆盖率检查"
+    steps:
+      - step: "生成测试覆盖率报告"
+        command: "flutter test --coverage"
+        expectation: "覆盖率报告生成成功"
+      - step: "检查覆盖率阈值"
+        method: "检查覆盖率是否达到80%"
+        expectation: "测试覆盖率≥80%"
+
+# 成功标准
+success_criteria:
+  - "所有YAML文件与代码实现一致"
+  - "所有测试用例创建完成"
+  - "所有测试通过"
+  - "测试覆盖率≥80%"
+  - "YAML文件格式正确"
+  - "调用关系正确"
+  - "架构文档更新完成"
+
+# Git提交处理
+git_commit_handling:
+  description: "Git提交处理机制"
+  
+  time_check:
+    description: "检查上次提交时间"
+    method: "读取git logs获取上次提交时间"
+    threshold: "30分钟"
+    logic: |
+      if (当前时间 - 上次提交时间) < 30分钟:
+        执行pre_commit_check()
+      else:
+        执行direct_commit()
+  
+  pre_commit_check:
+    description: "pre-commit验证（未超过半小时）"
+    command: "pre-commit run --all-files"
+    expectation: "pre-commit检查通过"
+    on_success: "执行git commit"
+    on_failure: "记录错误并重试"
+  
+  direct_commit:
+    description: "直接提交（超过半小时）"
+    command: "git commit -m 'feat: 基于step-done的YAML和测试补充'"
+    expectation: "提交成功"
+    on_success: "完成step-done流程"
+    on_failure: "记录错误并重试"
+  
+  error_handling:
+    description: "错误处理和重试机制"
+    max_retries: 5
+    log_directory: "documents/plan-logs"
+    log_format: "json"
+    log_fields:
+      - "timestamp": "错误发生时间"
+      - "error_content": "报错内容"
+      - "estimated_cause": "估计原因"
+      - "solution_attempted": "解决方式"
+      - "failure_manifestation": "失败表现"
+      - "excluded_possibilities": "排除可能"
+      - "retry_count": "重试次数"
+      - "step_name": "当前步骤名称"
+  
+  retry_conditions:
+    - "pre-commit检查失败"
+    - "git commit失败"
+    - "文件冲突"
+    - "权限问题"
+    - "网络问题"
+
+# 重试机制
+retry_mechanism:
+  max_retries: 3
+  retry_conditions:
+    - "YAML文件格式错误"
+    - "测试用例创建失败"
+    - "测试执行失败"
+    - "覆盖率不达标"
+  
+  skip_records: []
+
+# 错误日志记录
+error_logging:
+  description: "错误日志记录机制"
+  max_retries: 5
+  log_directory: "documents/plane-logs"
+  log_filename_format: "step_done_error_YYYYMMDD_HHMMSS.json"
+  log_format: "json"
+  
+  log_entry_template:
+    timestamp: "YYYY-MM-DD HH:MM:SS"
+    step_name: "当前步骤名称"
+    error_content: "具体报错内容"
+    estimated_cause: "估计的错误原因"
+    solution_attempted: "尝试的解决方式"
+    failure_manifestation: "失败的具体表现"
+    excluded_possibilities: "排除的可能性"
+    retry_count: 0
+    max_retries: 5
+    status: "failed|retrying|skipped"
+  
+  auto_exit_conditions:
+    - "重试次数达到5次"
+    - "连续3次相同错误"
+    - "严重系统错误"

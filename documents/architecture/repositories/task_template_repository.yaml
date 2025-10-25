@@ -1,0 +1,93 @@
+meta:
+  name: TaskTemplateRepository
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务模板仓库 - 持久化任务模板并支持建议流程。
+    管理模板的创建、更新、删除和查询功能。
+
+repository_definition:
+  name: TaskTemplateRepository
+  depends_on: [Isar, TaskRepository]
+  storage: isar_collection
+  primary_model: TaskTemplate
+
+responsibilities:
+  - 使用父任务保护逻辑创建/更新/删除任务模板
+  - 提供排序的建议列表（最近使用、搜索过滤）
+  - 在应用模板时更新 lastUsedAtUtc
+
+methods:
+  - name: listRecent
+    params:
+      - limit: int
+    returns: Future<List<TaskTemplate>>
+    notes: 获取最近使用的模板列表
+
+  - name: search
+    params:
+      - query: String
+      - limit: int
+    returns: Future<List<TaskTemplate>>
+    notes: 搜索模板
+
+  - name: createTemplate
+    params:
+      - draft: TaskTemplateDraft
+    returns: Future<TaskTemplate>
+    notes: 当提供 parentTaskId 时递增父任务的 templateLockCount
+
+  - name: createTemplateWithSeed
+    params:
+      - draft: SeedTemplateDraft
+      - parentId: int?
+    returns: Future<TaskTemplate>
+    notes: 在种子导入期间使用 slug 引用插入模板
+
+  - name: updateTemplate
+    params:
+      - templateId: int
+      - payload: TaskTemplateUpdate
+    returns: Future<void>
+    notes: 更新模板信息
+
+  - name: deleteTemplate
+    params:
+      - templateId: int
+    returns: Future<void>
+    notes: 删除模板，递减父任务的 templateLockCount
+
+  - name: markUsed
+    params:
+      - templateId: int
+      - usedAt: DateTime
+    returns: Future<void>
+    notes: 标记模板为已使用，更新 lastUsedAtUtc
+
+business_rules:
+  - 标题是必需字段
+  - 应用模板时更新 lastUsedAtUtc
+  - 父任务存在时递增其 templateLockCount
+  - 模板可以没有父任务（独立模板）
+
+template_application:
+  - 创建新的叶子任务
+  - 继承模板的标题和标签
+  - 设置可选的父任务
+  - 更新使用时间戳
+
+suggestions_system:
+  - 基于 lastUsedAtUtc 排序
+  - 在任务创建时提供建议
+  - 支持快速重复任务创建
+
+error_handling:
+  - TemplateNotFound: 当模板不存在时
+  - InvalidTemplateData: 当模板数据无效时
+  - ParentTaskLocked: 当父任务被锁定时
+
+performance_considerations:
+  - 使用索引优化查询性能
+  - 缓存常用模板列表
+  - 批量操作使用事务

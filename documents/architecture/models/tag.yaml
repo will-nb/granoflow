@@ -1,0 +1,64 @@
+meta:
+  name: Tag Model
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    标签模型 - 向用户展示的可用标签字典（上下文、优先级、
+    系统级标志如 `wasted`）。单独存储以便将来进行多语言名称或排序，
+    而无需修补每个任务。
+
+model_definition:
+  name: Tag
+  storage: isar_collection
+  indexes:
+    - field: kind
+    - field: slug
+
+fields:
+  - name: id
+    type: int
+    isar_id: true
+
+  - name: slug
+    type: String
+    notes: 在 Task.tags 中使用的稳定标识符（例如 "@home"、"#urgent"、"wasted"）
+
+  - name: localizedKeys
+    type: Map<String, String>
+    notes: 将语言环境（例如 "en"）映射到显示名称以供将来国际化
+
+  - name: kind
+    type: TagKind
+    notes: 帮助驱动 UI 中的过滤
+
+  - name: sortOrder
+    type: int
+    notes: 控制每种类型内的显示顺序
+
+enums:
+  - name: TagKind
+    values: [context, priority, special]
+    notes:
+      context: 上下文标签（如 @home, @office）
+      priority: 优先级标签（如 #urgent, #low）
+      special: 特殊标签（如 wasted, recurring）
+
+business_rules:
+  - slug 必须是唯一的
+  - 标签类型决定在 UI 中的过滤行为
+  - 支持多语言显示名称
+  - 排序顺序控制显示顺序
+
+relationships:
+  - tasks: List<Task> (Tag.slug -> Task.tags)
+
+localization:
+  - 支持多语言显示名称
+  - 使用 Map<String, String> 存储不同语言环境的翻译
+  - 默认语言环境为 "en"
+
+ui_integration:
+  - 用于任务过滤和分类
+  - 在创建任务时提供建议
+  - 支持快速搜索和选择

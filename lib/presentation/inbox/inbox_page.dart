@@ -12,7 +12,7 @@ import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
 import '../../data/models/task_template.dart';
 import '../../generated/l10n/app_localizations.dart';
-import '../navigation/app_shell.dart';
+import '../navigation/navigation_destinations.dart';
 import '../widgets/chip_toggle_group.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
@@ -48,7 +48,12 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
     final priorityTagsAsync = ref.watch(priorityTagOptionsProvider);
 
-    return CustomScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Inbox'),
+        actions: [],
+      ),
+      body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -152,7 +157,8 @@ class _InboxPageState extends ConsumerState<InboxPage> {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 48)),
         ],
-      );
+      ),
+    );
   }
 
   Future<void> _handleSubmit(BuildContext context, String value) async {

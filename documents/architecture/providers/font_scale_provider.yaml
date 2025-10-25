@@ -1,0 +1,44 @@
+meta:
+  name: fontScaleProvider
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    字体缩放提供者 - 提供字体缩放乘数。
+
+provider_definition:
+  name: fontScaleProvider
+  type: StreamProvider<double>
+  scope: global
+  depends_on: [PreferenceService]
+
+responsibility: 提供字体缩放乘数
+
+implementation:
+  - 监听 PreferenceService 的字体缩放变更
+  - 提供 double 类型的缩放值
+  - 支持实时字体大小调整
+
+font_scale_range:
+  - minimum: 0.5
+  - maximum: 2.0
+  - default: 1.0
+  - step: 0.125
+
+usage:
+  - Text 组件的 textScaleFactor
+  - 字体大小设置界面
+  - 响应式字体调整
+
+dependencies:
+  - PreferenceService.watch()
+  - MediaQuery.textScaleFactor
+
+error_handling:
+  - 无效缩放值时回退到默认值
+  - 缩放值超出范围时限制在有效范围内
+
+performance_considerations:
+  - 使用 StreamProvider 避免不必要的重建
+  - 缓存缩放值
+  - 优化文本渲染性能

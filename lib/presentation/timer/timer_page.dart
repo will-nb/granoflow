@@ -10,7 +10,7 @@ import '../../core/services/focus_flow_service.dart';
 import '../../data/models/focus_session.dart';
 import '../../data/models/task.dart';
 import '../../data/models/task_template.dart';
-import '../navigation/app_shell.dart';
+import '../navigation/navigation_destinations.dart';
 import '../end_session/end_session_dialog.dart';
 
 class TimerPage extends ConsumerStatefulWidget {

@@ -1,0 +1,59 @@
+meta:
+  name: Preference Model
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    偏好设置模型 - 存储每台设备的 UI 偏好设置，以便应用可以离线恢复主题、
+    语言环境和字体大小。同步范围仅限于设备，因此不需要用户身份。
+
+model_definition:
+  name: Preference
+  storage: isar_collection
+
+fields:
+  - name: id
+    type: int
+    isar_id: true
+
+  - name: localeCode
+    type: String
+    notes: 默认为系统；匹配支持的语言环境（en, zh_CN, zh_HK, zh）
+
+  - name: themeMode
+    type: String
+    notes: "light" | "dark" | "system"
+
+  - name: fontScale
+    type: double
+    notes: 字体大小的乘数（0.875/1.0/1.125 等）
+
+  - name: updatedAtUtc
+    type: DateTime
+
+business_rules:
+  - 每个设备只有一个偏好设置记录
+  - 主题模式必须是预定义的值之一
+  - 字体缩放必须在合理范围内（0.5 - 2.0）
+  - 语言环境必须匹配支持的语言列表
+
+validation_rules:
+  - localeCode: 必须是支持的语言环境之一
+  - themeMode: 必须是 "light"、"dark" 或 "system"
+  - fontScale: 必须在 0.5 到 2.0 之间
+
+default_values:
+  - localeCode: "en"
+  - themeMode: "system"
+  - fontScale: 1.0
+
+ui_integration:
+  - 控制应用的主题外观
+  - 管理字体大小设置
+  - 处理语言切换
+  - 响应系统主题变化
+
+device_scope:
+  - 仅限设备本地存储
+  - 不进行跨设备同步
+  - 用户身份不是必需的

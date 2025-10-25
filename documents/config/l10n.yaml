@@ -1,6 +1,254 @@
-arb-dir: lib/l10n
-template-arb-file: app_en.arb
-output-localization-file: app_localizations.dart
-output-class: AppLocalizations
-output-dir: lib/generated/l10n
-nullable-getter: false
+meta:
+  name: GranoFlow本地化配置
+  version: 1.0
+  author: 开发团队
+  created_date: 251024
+  description: >
+    GranoFlow项目的本地化配置，定义支持的语言和翻译键值。
+    基于cards_flutter项目的多语言架构设计。
+
+supported_locales:
+  - en: 英文 (English)
+  - zh: 简体中文 (Simplified Chinese)
+  - zh_Hant: 繁体中文 (Traditional Chinese)
+
+arb_files:
+  app_en.arb: 英文翻译源文件
+  app_zh.arb: 简体中文翻译源文件
+  app_zh_Hant.arb: 繁体中文翻译源文件
+
+navigation_translations:
+  menu_items:
+    home:
+      en: "Home"
+      zh: "首页"
+      zh_Hant: "首頁"
+    inbox:
+      en: "Inbox"
+      zh: "收集箱"
+      zh_Hant: "收集箱"
+    task_list:
+      en: "Tasks"
+      zh: "任务列表"
+      zh_Hant: "任務清單"
+    completed_page:
+      en: "Completed"
+      zh: "已完成"
+      zh_Hant: "已完成"
+    trash_page:
+      en: "Trash"
+      zh: "垃圾箱"
+      zh_Hant: "垃圾桶"
+    settings:
+      en: "Settings"
+      zh: "设置"
+      zh_Hant: "設定"
+    profile:
+      en: "Profile"
+      zh: "个人资料"
+      zh_Hant: "個人資料"
+
+  menu_actions:
+    navigation_menu:
+      en: "Navigation Menu"
+      zh: "主菜单"
+      zh_Hant: "主選單"
+    page_navigation:
+      en: "Page Navigation"
+      zh: "页面导航"
+      zh_Hant: "頁面導航"
+    settings_section:
+      en: "Settings"
+      zh: "设置选项"
+      zh_Hant: "設定選項"
+    switch_theme:
+      en: "Switch Theme"
+      zh: "切换主题"
+      zh_Hant: "切換主題"
+    change_font_size:
+      en: "Change Font Size"
+      zh: "更改字体大小"
+      zh_Hant: "更改字體大小"
+    change_language:
+      en: "Change Language"
+      zh: "更改语言"
+      zh_Hant: "更改語言"
+
+  achievements_translations:
+    achievements:
+      en: "Task Achievements"
+      zh: "任务成就"
+      zh_Hant: "任務成就"
+      zh_Hans: "任务成就"
+    achievements_overview:
+      en: "Achievements Overview"
+      zh: "成就总览"
+      zh_Hant: "成就總覽"
+      zh_Hans: "成就总览"
+
+  settings_options:
+    theme:
+      en: "Theme"
+      zh: "主题"
+      zh_Hant: "主題"
+    font_size:
+      en: "Font Size"
+      zh: "字体大小"
+      zh_Hant: "字體大小"
+    language:
+      en: "Language"
+      zh: "语言"
+      zh_Hant: "語言"
+    notifications:
+      en: "Notifications"
+      zh: "通知"
+      zh_Hant: "通知"
+
+  task_achievements:
+    # 基于cards_flutter项目的achievements功能
+    # 但为GranoFlow项目定制更贴切的任务管理翻译
+    achievements:
+      en: "Task Achievements"
+      zh: "任务成就"
+      zh_Hant: "任務成就"
+    achievements_overview:
+      en: "Achievements Overview"
+      zh: "成就总览"
+      zh_Hant: "成就總覽"
+    daily_achievements:
+      en: "Today's Achievements"
+      zh: "今日成就"
+      zh_Hant: "今日成就"
+    weekly_achievements:
+      en: "This Week's Achievements"
+      zh: "本周成就"
+      zh_Hant: "本週成就"
+
+task_management_translations:
+  task_actions:
+    start_timer:
+      en: "Start Timer"
+      zh: "开始计时"
+      zh_Hant: "開始計時"
+    stop_timer:
+      en: "Stop Timer"
+      zh: "停止计时"
+      zh_Hant: "停止計時"
+    complete_task:
+      en: "Complete Task"
+      zh: "完成任务"
+      zh_Hant: "完成任務"
+    edit_task:
+      en: "Edit Task"
+      zh: "编辑任务"
+      zh_Hant: "編輯任務"
+    delete_task:
+      en: "Delete Task"
+      zh: "删除任务"
+      zh_Hant: "刪除任務"
+    create_subtask:
+      en: "Create Subtask"
+      zh: "创建子任务"
+      zh_Hant: "建立子任務"
+
+  task_status:
+    inbox:
+      en: "Inbox"
+      zh: "收集箱"
+      zh_Hant: "收集箱"
+    pending:
+      en: "Pending"
+      zh: "待处理"
+      zh_Hant: "待處理"
+    doing:
+      en: "In Progress"
+      zh: "进行中"
+      zh_Hant: "進行中"
+    completed:
+      en: "Completed"
+      zh: "已完成"
+      zh_Hant: "已完成"
+    archived:
+      en: "Archived"
+      zh: "已归档"
+      zh_Hant: "已歸檔"
+    trashed:
+      en: "Deleted"
+      zh: "已删除"
+      zh_Hant: "已刪除"
+
+  completion_dialog:
+    dialog_title:
+      en: "Session Complete"
+      zh: "专注时段完成"
+      zh_Hant: "專注時段完成"
+    complete_current:
+      en: "Complete Current Task"
+      zh: "完成当前任务"
+      zh_Hant: "完成當前任務"
+    create_subtask:
+      en: "Create Subtask"
+      zh: "创建子任务"
+      zh_Hant: "建立子任務"
+    add_multiple_tasks:
+      en: "Add Multiple Tasks"
+      zh: "添加多个任务"
+      zh_Hant: "新增多個任務"
+    mark_as_wasted:
+      en: "Mark as Wasted Time"
+      zh: "标记为浪费时间"
+      zh_Hant: "標記為浪費時間"
+
+technical_terms:
+  timer_functionality:
+    pomodoro_timer:
+      en: "Pomodoro Timer"
+      zh: "番茄时钟"
+      zh_Hant: "番茄時鐘"
+    focus_session:
+      en: "Focus Session"
+      zh: "专注时段"
+      zh_Hant: "專注時段"
+    time_estimate:
+      en: "Time Estimate"
+      zh: "时间预估"
+      zh_Hant: "時間預估"
+    actual_time:
+      en: "Actual Time"
+      zh: "实际用时"
+      zh_Hant: "實際用時"
+
+  task_hierarchy:
+    parent_task:
+      en: "Parent Task"
+      zh: "父任务"
+      zh_Hant: "父任務"
+    child_task:
+      en: "Child Task"
+      zh: "子任务"
+      zh_Hant: "子任務"
+    leaf_task:
+      en: "Leaf Task"
+      zh: "叶子任务"
+      zh_Hant: "葉子任務"
+    task_chain:
+      en: "Task Chain"
+      zh: "任务链"
+      zh_Hant: "任務鏈"
+
+  data_identifiers:
+    task_id:
+      en: "Task ID"
+      zh: "任务编号"
+      zh_Hant: "任務編號"
+    global_unique:
+      en: "Global Unique ID"
+      zh: "全局唯一编号"
+      zh_Hant: "全域唯一編號"
+
+implementation_notes:
+  translation_source: 基于cards_flutter项目的本地化架构
+  arb_file_structure: 标准Flutter国际化文件格式
+  pluralization_support: 支持复数形式翻译
+  context_support: 支持上下文相关翻译
+  fallback_strategy: 英文作为后备语言

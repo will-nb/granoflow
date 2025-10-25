@@ -1,0 +1,65 @@
+name: "AppRouter"
+type: "static_class"
+file_path: "lib/presentation/navigation/app_router.dart"
+description: "应用路由系统，集成 go_router 支持复杂导航结构"
+
+properties:
+  - name: "router"
+    type: "GoRouter"
+    description: "go_router 实例"
+    static: true
+
+routes:
+  - path: "/"
+    name: "home"
+    builder: "HomePage"
+    shell_route: true
+
+  - path: "/tasks"
+    name: "tasks"
+    builder: "TaskListPage"
+    shell_route: true
+
+  - path: "/achievements"
+    name: "achievements"
+    builder: "AchievementsPage"
+    shell_route: true
+
+  - path: "/settings"
+    name: "settings"
+    builder: "SettingsPage"
+    shell_route: true
+
+  - path: "/inbox"
+    name: "inbox"
+    builder: "InboxPage"
+    shell_route: true
+
+  - path: "/completed"
+    name: "completed"
+    builder: "CompletedPage"
+    shell_route: true
+
+  - path: "/trash"
+    name: "trash"
+    builder: "TrashPage"
+    shell_route: true
+
+dependencies:
+  - "package:go_router/go_router.dart"
+  - "package:flutter/material.dart"
+  - "app_shell.dart"
+  - "../home/home_page.dart"
+  - "../tasks/task_list_page.dart"
+  - "../achievements/achievements_page.dart"
+  - "../navigation/settings_controls.dart"
+  - "../inbox/inbox_page.dart"
+  - "../completion_management/completed_page.dart"
+  - "../completion_management/trash_page.dart"
+
+tests:
+  unit_tests:
+    - name: "test_app_router_configuration"
+      description: "验证路由系统配置"
+    - name: "test_app_router_navigation"
+      description: "验证路由导航功能"

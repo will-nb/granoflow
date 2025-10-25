@@ -16,7 +16,12 @@ class TrashPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(taskSectionsProvider(TaskSection.trash));
     final l10n = AppLocalizations.of(context);
-    return tasksAsync.when(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Trash'),
+        actions: [],
+      ),
+      body: tasksAsync.when(
         data: (tasks) {
           if (tasks.isEmpty) {
             return _EmptyState(message: l10n.trashEmptyMessage);
@@ -33,7 +38,8 @@ class TrashPage extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _ErrorState(message: '$error'),
-      );
+      ),
+    );
   }
 
   Future<void> _emptyTrash(BuildContext context, WidgetRef ref) async {

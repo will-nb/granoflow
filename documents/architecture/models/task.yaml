@@ -1,0 +1,109 @@
+meta:
+  name: Task Model
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    任务模型 - GranoFlow 的核心领域模型，代表用户的任务或想法，
+    无论其生命周期阶段如何（收集箱、计划中、进行中、已完成、已归档、已删除、伪删除）。
+    父任务可以拥有子任务，但只有叶子任务可以运行专注会话。
+
+model_definition:
+  name: Task
+  storage: isar_collection
+  indexes:
+    - field: status
+    - field: dueAtUtc
+    - field: parentId
+    - field: updatedAtUtc
+    - composite:
+        fields: [status, dueAtUtc]
+
+fields:
+  - name: id
+    type: int
+    isar_id: true
+    notes: 由 Isar 管理的自动递增主键
+
+  - name: taskId
+    type: String
+    notes: >
+      用户可见的标识符（不可变），在 UI 中显示以保持与笔记和外部工具的可追溯性
+
+  - name: title
+    type: String
+    notes: 必需字段，最大 120 字符
+
+  - name: status
+    type: TaskStatus
+    notes: 枚举类型，驱动页面可见性
+
+  - name: dueAtUtc
+    type: DateTime?
+    notes: 以 UTC 存储；收集箱任务在安排前为 null
+
+  - name: startedAtUtc
+    type: DateTime?
+    notes: 任务进入 `doing` 状态时的时间戳
+
+  - name: endedAtUtc
+    type: DateTime?
+    notes: 任务转换到已完成或已归档时捕获
+
+  - name: parentId
+    type: int?
+    notes: 当这是子任务时链接到另一个 Task.id
+
+  - name: sortIndex
+    type: double
+    notes: 分数索引，用于在部分内保持手动排序
+
+  - name: tags
+    type: List<String>
+    notes: 标签 id 的内联存储，用于快速过滤（上下文、优先级、浪费）
+
+  - name: templateLockCount
+    type: int
+    notes: >
+      引用此任务作为父任务的 TaskTemplate 定义数量。
+      大于零意味着必须阻止删除/归档/完成操作
+
+  - name: seedSlug
+    type: String?
+    notes: >
+      种子导入期间分配的可选 slug，用于协调引用；
+      在后续更新中删除/忽略
+
+  - name: createdAtUtc
+    type: DateTime
+
+  - name: updatedAtUtc
+    type: DateTime
+
+enums:
+  - name: TaskStatus
+    values:
+      - inbox
+      - pending
+      - doing
+      - completed_active
+      - archived
+      - trashed
+      - pseudo_deleted
+    notes:
+      pending: 已计划但尚未激活
+      doing: 当前正在进行中（可能有活跃的专注会话）
+      completed_active: 已完成但仍可见以供审查/重新激活
+      pseudo_deleted: 仅保留用于同步冲突检测；在 SLA 后自动清除
+
+business_rules:
+  - 只有叶子任务可以运行专注会话
+  - 父任务不能直接运行专注会话
+  - 模板锁定计数大于零时，任务不能被删除/归档/完成
+  - 任务状态驱动页面可见性
+
+relationships:
+  - parent: Task (parentId -> Task.id)
+  - children: List<Task> (Task.id -> Task.parentId)
+  - focus_sessions: List<FocusSession> (Task.id -> FocusSession.taskId)
+  - templates: List<TaskTemplate> (Task.id -> TaskTemplate.parentTaskId)

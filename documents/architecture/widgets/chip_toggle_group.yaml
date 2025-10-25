@@ -1,0 +1,66 @@
+meta:
+  name: ChipToggleGroup
+  version: 1.0
+  created_date: 251024
+  last_updated: 251024
+  description: >
+    芯片切换组 - 用于标签或筛选器的可重用分段控件。
+
+widget_definition:
+  name: ChipToggleGroup
+  type: StatelessWidget
+  category: interactive
+
+props:
+  - name: options
+    type: List<ChipOption>
+    required: true
+    description: 选项列表
+
+  - name: selected
+    type: Set<String>
+    required: true
+    description: 选中的选项
+
+  - name: onChanged
+    type: ValueChanged<Set<String>>
+    required: true
+    description: 选择变化回调
+
+  - name: multiSelect
+    type: bool
+    required: true
+    description: 是否多选
+
+behaviors:
+  keyboard:
+    description: 支持箭头导航和空格/回车选择
+    implementation: 使用 Focus 和键盘事件处理
+
+  selection:
+    description: 单选或多选模式
+    implementation: 根据 multiSelect 参数调整选择逻辑
+
+usage:
+  - presentation/inbox/filter_bar.dart
+  - presentation/task_list/filter_bar.dart
+  - 标签选择
+  - 筛选器
+
+styling:
+  - 芯片样式：圆角、主题颜色
+  - 选中状态：高亮显示
+  - 悬停效果：颜色变化
+  - 禁用状态：灰色显示
+
+accessibility_features:
+  - 键盘导航支持
+  - 屏幕阅读器支持
+  - 语义标签
+  - 焦点指示器
+
+performance_considerations:
+  - 使用 const 构造函数
+  - 避免不必要的重建
+  - 优化选择状态更新
+  - 缓存选项列表

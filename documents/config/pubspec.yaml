@@ -1,0 +1,110 @@
+name: granoflow
+description: 离线任务时间管理工具
+version: 1.0.0+1
+homepage: https://github.com/yourusername/granoflow
+repository: https://github.com/yourusername/granoflow.git
+publish_to: "none"
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # 状态管理（基于cards_flutter项目）
+  provider: ^6.1.1
+  flutter_riverpod: ^2.6.1
+
+  # 路由导航
+  go_router: ^16.0.0
+
+  # 本地数据库
+  isar: ^3.1.0
+  isar_flutter_libs: ^3.1.0+1
+
+  # HTTP客户端
+  dio: ^5.9.0
+
+  # 工具库
+  intl: ^0.20.2
+  path_provider: ^2.1.2
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.2.2
+  file_picker: ^8.1.2
+  url_launcher: ^6.2.5
+  permission_handler: ^12.0.1
+
+  # UI组件
+  flutter_svg: ^2.0.10
+  cupertino_icons: ^1.0.8
+
+  # 其他实用库
+  uuid: ^4.0.0
+  equatable: ^2.0.5
+
+  # 代码生成
+  json_annotation: ^4.8.1
+  freezed_annotation: ^2.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.11
+  isar_generator: ^3.1.0
+  json_serializable: ^6.7.1
+  freezed: ^2.4.6
+  flutter_lints: ^6.0.0
+  mockito: ^5.4.4
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/
+    - assets/icons/
+    - assets/images/
+    - assets/fonts/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-VariableFont_opsz,wght.ttf
+        - asset: assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf
+          style: italic
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/NotoSansSC-VariableFont_wght.ttf
+    - family: NotoSansTC
+      fonts:
+        - asset: assets/fonts/NotoSansTC-VariableFont_wght.ttf
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/granoflow_icon.png"
+  min_sdk_android: 21
+
+  web:
+    generate: true
+    image_path: "assets/icons/granoflow_icon.png"
+    background_color: "#4A90E2"
+    theme_color: "#B0BEC5"
+
+  windows:
+    generate: true
+    image_path: "assets/icons/granoflow_icon.png"
+    icon_size: 48
+
+  macos:
+    generate: true
+    image_path: "assets/icons/granoflow_icon.png"
+
+  linux:
+    generate: true
+    image_path: "assets/icons/granoflow_icon.png"
