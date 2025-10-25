@@ -79,6 +79,18 @@ children:
                   font_weight: "selectedIndex == index ? FontWeight.w600 : FontWeight.normal"
                   icon_size: "24"
 
+              - name: "FloatingActionButton"
+                condition: "MediaQuery.of(context).orientation == Orientation.landscape"
+                type: "FloatingActionButton"
+                properties:
+                  onPressed: "_showCreateTaskDialog"
+                  child: "Icon(Icons.add)"
+                  shape: "RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))"
+                  backgroundColor: "Theme.of(context).colorScheme.primary"
+                  foregroundColor: "Theme.of(context).colorScheme.onPrimary"
+                  elevation: "4"
+                description: "横屏模式下集成在侧边栏底部的FAB"
+
 methods:
   - name: "_getDrawerWidth"
     return_type: "double"
@@ -93,6 +105,35 @@ methods:
           case DrawerDisplayMode.full:
             return 280;
         }
+      }
+
+  - name: "_showCreateTaskDialog"
+    return_type: "void"
+    description: "显示创建任务弹窗（横屏模式）"
+    implementation: |
+      void _showCreateTaskDialog(BuildContext context) {
+        showGeneralDialog(
+          context: context,
+          barrierDismissible: true,
+          barrierLabel: '',
+          barrierColor: Colors.black54,
+          transitionDuration: const Duration(milliseconds: 300),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return const CreateTaskDialog();
+          },
+          transitionBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(-1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              )),
+              child: child,
+            );
+          },
+        );
       }
 
 features:

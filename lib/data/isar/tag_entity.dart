@@ -8,7 +8,7 @@ part 'tag_entity.g.dart';
 class TagEntity {
   TagEntity();
 
-  Id id = Isar.autoIncrement;
+  Id id = 0;
 
   late String slug;
 

@@ -1,66 +1,111 @@
 meta:
-  name: MetricSnapshot Model
-  version: 1.0
-  created_date: 251024
-  last_updated: 251024
-  description: >
-    指标快照模型 - 支持主页仪表板卡片的缓存聚合。
-    快照避免在每一帧上重新计算总计，并简化未来的同步。
+  name: "MetricSnapshot Model"
+  type: "model"
+  file_path: "lib/data/models/metric_snapshot.dart"
+  description: "指标快照模型，记录应用性能指标"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
 
 model_definition:
-  name: MetricSnapshot
-  storage: isar_collection
-  retention: rolling_singleton
-
+  name: "MetricSnapshot"
+  storage: "isar_collection"
+  immutable: true
+  annotation: "@immutable"
+  
 fields:
-  - name: id
-    type: int
-    isar_id: true
-
-  - name: totalCompletedTasks
-    type: int
-    notes: 总完成任务数
-
-  - name: totalFocusMinutes
-    type: int
-    notes: 总专注分钟数
-
-  - name: pendingTasks
-    type: int
-    notes: 待处理任务数
-
-  - name: pendingTodayTasks
-    type: int
-    notes: 今日待处理任务数
-
-  - name: calculatedAtUtc
-    type: DateTime
-    notes: 计算时间戳
-
+  - name: "id"
+    type: "int"
+    required: true
+    nullable: false
+    final: true
+    description: "Isar 数据库主键"
+    
+  - name: "totalCompletedTasks"
+    type: "int"
+    required: true
+    nullable: false
+    final: true
+    description: "总完成任务数"
+    
+  - name: "totalFocusMinutes"
+    type: "int"
+    required: true
+    nullable: false
+    final: true
+    description: "总专注分钟数"
+    
+  - name: "pendingTasks"
+    type: "int"
+    required: true
+    nullable: false
+    final: true
+    description: "待处理任务数"
+    
+  - name: "pendingTodayTasks"
+    type: "int"
+    required: true
+    nullable: false
+    final: true
+    description: "今日待处理任务数"
+    
+  - name: "calculatedAt"
+    type: "DateTime"
+    required: true
+    nullable: false
+    final: true
+    description: "计算时间"
+    
+constructors:
+  - type: "const"
+    name: "MetricSnapshot"
+    parameters:
+      - name: "id"
+        type: "int"
+        required: true
+      - name: "totalCompletedTasks"
+        type: "int"
+        required: true
+      - name: "totalFocusMinutes"
+        type: "int"
+        required: true
+      - name: "pendingTasks"
+        type: "int"
+        required: true
+      - name: "pendingTodayTasks"
+        type: "int"
+        required: true
+      - name: "calculatedAt"
+        type: "DateTime"
+        required: true
+    description: "主构造函数"
+    
+imports:
+  - "package:flutter/foundation.dart"
+  
+dependencies: []
+  
+relationships: []
+  
+validation_rules:
+  - field: "totalCompletedTasks"
+    rule: "non_negative"
+    description: "总完成任务数不能为负数"
+  - field: "totalFocusMinutes"
+    rule: "non_negative"
+    description: "总专注分钟数不能为负数"
+  - field: "pendingTasks"
+    rule: "non_negative"
+    description: "待处理任务数不能为负数"
+  - field: "pendingTodayTasks"
+    rule: "non_negative"
+    description: "今日待处理任务数不能为负数"
+    
 business_rules:
-  - 只保留一个快照记录（滚动单例）
-  - 在重要的任务或专注会话变更后重新计算
-  - 作为主页指标的唯一来源以保持 UI 简单
-
-calculation_triggers:
-  - 任务状态变更
-  - 专注会话创建/更新
-  - 任务创建/删除
-  - 任务归档/恢复
-
-performance_benefits:
-  - 避免实时计算聚合数据
-  - 减少主页加载时间
-  - 简化 UI 状态管理
-  - 为未来同步做准备
-
-ui_integration:
-  - 主页仪表板卡片数据源
-  - 统计概览显示
-  - 进度跟踪指标
-  - 成就系统基础数据
-
-maintenance:
-  - 定期重新计算（建议每小时）
-  - 在数据变更时触发更新
-  - 保持数据一致性
+  - name: "metric_calculation"
+    description: "指标计算规则"
+    implementation: "定期计算并存储指标快照"
+    
+storage_config:
+  indexes:
+    - field: "calculatedAt"

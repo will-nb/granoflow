@@ -6,7 +6,7 @@ part 'focus_session_entity.g.dart';
 class FocusSessionEntity {
   FocusSessionEntity();
 
-  Id id = Isar.autoIncrement;
+  Id id = 0;
 
   late int taskId;
 

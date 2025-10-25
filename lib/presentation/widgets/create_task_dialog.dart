@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../generated/l10n/app_localizations.dart';
-
 class CreateTaskDialog extends ConsumerStatefulWidget {
   const CreateTaskDialog({super.key});
 
@@ -26,20 +24,11 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
               // 标题
               Text(
                 '创建新任务',
@@ -99,7 +88,7 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
 
               // 父任务选择
               DropdownButtonFormField<String>(
-                value: _selectedParent,
+                initialValue: _selectedParent,
                 decoration: InputDecoration(
                   labelText: '上级任务',
                   hintText: '选择上级任务',
@@ -154,9 +143,6 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
                 ],
               ),
             ],
-          ),
-        ),
-      ),
     );
   }
 

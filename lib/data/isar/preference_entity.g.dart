@@ -37,7 +37,7 @@ const PreferenceEntitySchema = CollectionSchema(
       id: 3,
       name: r'updatedAt',
       type: IsarType.dateTime,
-    ),
+    )
   },
   estimateSize: _preferenceEntityEstimateSize,
   serialize: _preferenceEntitySerialize,
@@ -85,10 +85,8 @@ PreferenceEntity _preferenceEntityDeserialize(
   object.fontScale = reader.readDouble(offsets[0]);
   object.id = id;
   object.localeCode = reader.readString(offsets[1]);
-  object.themeMode =
-      _PreferenceEntitythemeModeValueEnumMap[reader.readByteOrNull(
-        offsets[2],
-      )] ??
+  object.themeMode = _PreferenceEntitythemeModeValueEnumMap[
+          reader.readByteOrNull(offsets[2])] ??
       ThemeMode.system;
   object.updatedAt = reader.readDateTime(offsets[3]);
   return object;
@@ -106,11 +104,9 @@ P _preferenceEntityDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (_PreferenceEntitythemeModeValueEnumMap[reader.readByteOrNull(
-                offset,
-              )] ??
-              ThemeMode.system)
-          as P;
+      return (_PreferenceEntitythemeModeValueEnumMap[
+              reader.readByteOrNull(offset)] ??
+          ThemeMode.system) as P;
     case 3:
       return (reader.readDateTime(offset)) as P;
     default:
@@ -138,10 +134,7 @@ List<IsarLinkBase<dynamic>> _preferenceEntityGetLinks(PreferenceEntity object) {
 }
 
 void _preferenceEntityAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  PreferenceEntity object,
-) {
+    IsarCollection<dynamic> col, Id id, PreferenceEntity object) {
   object.id = id;
 }
 
@@ -157,15 +150,17 @@ extension PreferenceEntityQueryWhereSort
 extension PreferenceEntityQueryWhere
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QWhereClause> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterWhereClause> idEqualTo(
-    Id id,
-  ) {
+      Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterWhereClause>
-  idNotEqualTo(Id id) {
+      idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -188,7 +183,7 @@ extension PreferenceEntityQueryWhere
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterWhereClause>
-  idGreaterThan(Id id, {bool include = false}) {
+      idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -197,7 +192,7 @@ extension PreferenceEntityQueryWhere
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterWhereClause>
-  idLessThan(Id id, {bool include = false}) {
+      idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -212,14 +207,12 @@ extension PreferenceEntityQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.between(
-          lower: lowerId,
-          includeLower: includeLower,
-          upper: upperId,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -227,56 +220,53 @@ extension PreferenceEntityQueryWhere
 extension PreferenceEntityQueryFilter
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QFilterCondition> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  fontScaleEqualTo(double value, {double epsilon = Query.epsilon}) {
+      fontScaleEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'fontScale',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fontScale',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  fontScaleGreaterThan(
+      fontScaleGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'fontScale',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'fontScale',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  fontScaleLessThan(
+      fontScaleLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'fontScale',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'fontScale',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  fontScaleBetween(
+      fontScaleBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -284,125 +274,121 @@ extension PreferenceEntityQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'fontScale',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'fontScale',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  idEqualTo(Id value) {
+      idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'id', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  idGreaterThan(Id value, {bool include = false}) {
+      idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  idLessThan(Id value, {bool include = false}) {
+      idLessThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  idBetween(
+      idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'id',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeEqualTo(String value, {bool caseSensitive = true}) {
+      localeCodeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'localeCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localeCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeGreaterThan(
+      localeCodeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'localeCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localeCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeLessThan(
+      localeCodeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'localeCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localeCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeBetween(
+      localeCodeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -410,196 +396,196 @@ extension PreferenceEntityQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'localeCode',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localeCode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeStartsWith(String value, {bool caseSensitive = true}) {
+      localeCodeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'localeCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localeCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeEndsWith(String value, {bool caseSensitive = true}) {
+      localeCodeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'localeCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localeCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeContains(String value, {bool caseSensitive = true}) {
+      localeCodeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'localeCode',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localeCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeMatches(String pattern, {bool caseSensitive = true}) {
+      localeCodeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'localeCode',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localeCode',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeIsEmpty() {
+      localeCodeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'localeCode', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localeCode',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  localeCodeIsNotEmpty() {
+      localeCodeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'localeCode', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localeCode',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  themeModeEqualTo(ThemeMode value) {
+      themeModeEqualTo(ThemeMode value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'themeMode', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'themeMode',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  themeModeGreaterThan(ThemeMode value, {bool include = false}) {
+      themeModeGreaterThan(
+    ThemeMode value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'themeMode',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'themeMode',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  themeModeLessThan(ThemeMode value, {bool include = false}) {
+      themeModeLessThan(
+    ThemeMode value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'themeMode',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'themeMode',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  themeModeBetween(
+      themeModeBetween(
     ThemeMode lower,
     ThemeMode upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'themeMode',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'themeMode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  updatedAtEqualTo(DateTime value) {
+      updatedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'updatedAt', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'updatedAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  updatedAtGreaterThan(DateTime value, {bool include = false}) {
+      updatedAtGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'updatedAt',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'updatedAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  updatedAtLessThan(DateTime value, {bool include = false}) {
+      updatedAtLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'updatedAt',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'updatedAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-  updatedAtBetween(
+      updatedAtBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'updatedAt',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'updatedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -613,56 +599,56 @@ extension PreferenceEntityQueryLinks
 extension PreferenceEntityQuerySortBy
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QSortBy> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByFontScale() {
+      sortByFontScale() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fontScale', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByFontScaleDesc() {
+      sortByFontScaleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fontScale', Sort.desc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByLocaleCode() {
+      sortByLocaleCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localeCode', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByLocaleCodeDesc() {
+      sortByLocaleCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localeCode', Sort.desc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByThemeMode() {
+      sortByThemeMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'themeMode', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByThemeModeDesc() {
+      sortByThemeModeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'themeMode', Sort.desc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByUpdatedAt() {
+      sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  sortByUpdatedAtDesc() {
+      sortByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -672,14 +658,14 @@ extension PreferenceEntityQuerySortBy
 extension PreferenceEntityQuerySortThenBy
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QSortThenBy> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByFontScale() {
+      thenByFontScale() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fontScale', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByFontScaleDesc() {
+      thenByFontScaleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fontScale', Sort.desc);
     });
@@ -692,49 +678,49 @@ extension PreferenceEntityQuerySortThenBy
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByIdDesc() {
+      thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByLocaleCode() {
+      thenByLocaleCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localeCode', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByLocaleCodeDesc() {
+      thenByLocaleCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localeCode', Sort.desc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByThemeMode() {
+      thenByThemeMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'themeMode', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByThemeModeDesc() {
+      thenByThemeModeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'themeMode', Sort.desc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByUpdatedAt() {
+      thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-  thenByUpdatedAtDesc() {
+      thenByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -744,28 +730,28 @@ extension PreferenceEntityQuerySortThenBy
 extension PreferenceEntityQueryWhereDistinct
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
-  distinctByFontScale() {
+      distinctByFontScale() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fontScale');
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
-  distinctByLocaleCode({bool caseSensitive = true}) {
+      distinctByLocaleCode({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'localeCode', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
-  distinctByThemeMode() {
+      distinctByThemeMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'themeMode');
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
-  distinctByUpdatedAt() {
+      distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
     });
@@ -787,21 +773,21 @@ extension PreferenceEntityQueryProperty
   }
 
   QueryBuilder<PreferenceEntity, String, QQueryOperations>
-  localeCodeProperty() {
+      localeCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'localeCode');
     });
   }
 
   QueryBuilder<PreferenceEntity, ThemeMode, QQueryOperations>
-  themeModeProperty() {
+      themeModeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'themeMode');
     });
   }
 
   QueryBuilder<PreferenceEntity, DateTime, QQueryOperations>
-  updatedAtProperty() {
+      updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'updatedAt');
     });

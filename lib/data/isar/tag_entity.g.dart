@@ -29,7 +29,11 @@ const TagEntitySchema = CollectionSchema(
       type: IsarType.objectList,
       target: r'TagLocalizationEntry',
     ),
-    r'slug': PropertySchema(id: 2, name: r'slug', type: IsarType.string),
+    r'slug': PropertySchema(
+      id: 2,
+      name: r'slug',
+      type: IsarType.string,
+    )
   },
   estimateSize: _tagEntityEstimateSize,
   serialize: _tagEntitySerialize,
@@ -56,11 +60,8 @@ int _tagEntityEstimateSize(
     final offsets = allOffsets[TagLocalizationEntry]!;
     for (var i = 0; i < object.localizedLabels.length; i++) {
       final value = object.localizedLabels[i];
-      bytesCount += TagLocalizationEntrySchema.estimateSize(
-        value,
-        offsets,
-        allOffsets,
-      );
+      bytesCount +=
+          TagLocalizationEntrySchema.estimateSize(value, offsets, allOffsets);
     }
   }
   bytesCount += 3 + object.slug.length * 3;
@@ -91,11 +92,9 @@ TagEntity _tagEntityDeserialize(
 ) {
   final object = TagEntity();
   object.id = id;
-  object.kind =
-      _TagEntitykindValueEnumMap[reader.readByteOrNull(offsets[0])] ??
+  object.kind = _TagEntitykindValueEnumMap[reader.readByteOrNull(offsets[0])] ??
       TagKind.context;
-  object.localizedLabels =
-      reader.readObjectList<TagLocalizationEntry>(
+  object.localizedLabels = reader.readObjectList<TagLocalizationEntry>(
         offsets[1],
         TagLocalizationEntrySchema.deserialize,
         allOffsets,
@@ -115,17 +114,15 @@ P _tagEntityDeserializeProp<P>(
   switch (propertyId) {
     case 0:
       return (_TagEntitykindValueEnumMap[reader.readByteOrNull(offset)] ??
-              TagKind.context)
-          as P;
+          TagKind.context) as P;
     case 1:
       return (reader.readObjectList<TagLocalizationEntry>(
-                offset,
-                TagLocalizationEntrySchema.deserialize,
-                allOffsets,
-                TagLocalizationEntry(),
-              ) ??
-              [])
-          as P;
+            offset,
+            TagLocalizationEntrySchema.deserialize,
+            allOffsets,
+            TagLocalizationEntry(),
+          ) ??
+          []) as P;
     case 2:
       return (reader.readString(offset)) as P;
     default:
@@ -133,7 +130,11 @@ P _tagEntityDeserializeProp<P>(
   }
 }
 
-const _TagEntitykindEnumValueMap = {'context': 0, 'priority': 1, 'special': 2};
+const _TagEntitykindEnumValueMap = {
+  'context': 0,
+  'priority': 1,
+  'special': 2,
+};
 const _TagEntitykindValueEnumMap = {
   0: TagKind.context,
   1: TagKind.priority,
@@ -165,7 +166,10 @@ extension TagEntityQueryWhere
     on QueryBuilder<TagEntity, TagEntity, QWhereClause> {
   QueryBuilder<TagEntity, TagEntity, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
 
@@ -191,10 +195,8 @@ extension TagEntityQueryWhere
     });
   }
 
-  QueryBuilder<TagEntity, TagEntity, QAfterWhereClause> idGreaterThan(
-    Id id, {
-    bool include = false,
-  }) {
+  QueryBuilder<TagEntity, TagEntity, QAfterWhereClause> idGreaterThan(Id id,
+      {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -202,10 +204,8 @@ extension TagEntityQueryWhere
     });
   }
 
-  QueryBuilder<TagEntity, TagEntity, QAfterWhereClause> idLessThan(
-    Id id, {
-    bool include = false,
-  }) {
+  QueryBuilder<TagEntity, TagEntity, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -220,14 +220,12 @@ extension TagEntityQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.between(
-          lower: lowerId,
-          includeLower: includeLower,
-          upper: upperId,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -235,12 +233,12 @@ extension TagEntityQueryWhere
 extension TagEntityQueryFilter
     on QueryBuilder<TagEntity, TagEntity, QFilterCondition> {
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition> idEqualTo(
-    Id value,
-  ) {
+      Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'id', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -249,13 +247,11 @@ extension TagEntityQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -264,13 +260,11 @@ extension TagEntityQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -281,25 +275,23 @@ extension TagEntityQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'id',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition> kindEqualTo(
-    TagKind value,
-  ) {
+      TagKind value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'kind', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'kind',
+        value: value,
+      ));
     });
   }
 
@@ -308,13 +300,11 @@ extension TagEntityQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'kind',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'kind',
+        value: value,
+      ));
     });
   }
 
@@ -323,13 +313,11 @@ extension TagEntityQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'kind',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'kind',
+        value: value,
+      ));
     });
   }
 
@@ -340,48 +328,76 @@ extension TagEntityQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'kind',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'kind',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
+      localizedLabelsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'localizedLabels',
+        length,
+        true,
+        length,
+        true,
       );
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
-  localizedLabelsLengthEqualTo(int length) {
+      localizedLabelsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'localizedLabels', length, true, length, true);
+      return query.listLength(
+        r'localizedLabels',
+        0,
+        true,
+        0,
+        true,
+      );
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
-  localizedLabelsIsEmpty() {
+      localizedLabelsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'localizedLabels', 0, true, 0, true);
+      return query.listLength(
+        r'localizedLabels',
+        0,
+        false,
+        999999,
+        true,
+      );
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
-  localizedLabelsIsNotEmpty() {
+      localizedLabelsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'localizedLabels', 0, false, 999999, true);
+      return query.listLength(
+        r'localizedLabels',
+        0,
+        true,
+        length,
+        include,
+      );
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
-  localizedLabelsLengthLessThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(r'localizedLabels', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
-  localizedLabelsLengthGreaterThan(int length, {bool include = false}) {
+      localizedLabelsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'localizedLabels',
@@ -394,7 +410,7 @@ extension TagEntityQueryFilter
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
-  localizedLabelsLengthBetween(
+      localizedLabelsLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -416,13 +432,11 @@ extension TagEntityQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'slug',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'slug',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -432,14 +446,12 @@ extension TagEntityQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'slug',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'slug',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -449,14 +461,12 @@ extension TagEntityQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'slug',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'slug',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -468,16 +478,14 @@ extension TagEntityQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'slug',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'slug',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -486,13 +494,11 @@ extension TagEntityQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'slug',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'slug',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -501,59 +507,53 @@ extension TagEntityQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'slug',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'slug',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition> slugContains(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+      String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'slug',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'slug',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition> slugMatches(
-    String pattern, {
-    bool caseSensitive = true,
-  }) {
+      String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'slug',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'slug',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition> slugIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'slug', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'slug',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition> slugIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'slug', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'slug',
+        value: '',
+      ));
     });
   }
 }
@@ -561,7 +561,7 @@ extension TagEntityQueryFilter
 extension TagEntityQueryObject
     on QueryBuilder<TagEntity, TagEntity, QFilterCondition> {
   QueryBuilder<TagEntity, TagEntity, QAfterFilterCondition>
-  localizedLabelsElement(FilterQuery<TagLocalizationEntry> q) {
+      localizedLabelsElement(FilterQuery<TagLocalizationEntry> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'localizedLabels');
     });
@@ -644,9 +644,8 @@ extension TagEntityQueryWhereDistinct
     });
   }
 
-  QueryBuilder<TagEntity, TagEntity, QDistinct> distinctBySlug({
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<TagEntity, TagEntity, QDistinct> distinctBySlug(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'slug', caseSensitive: caseSensitive);
     });
@@ -668,7 +667,7 @@ extension TagEntityQueryProperty
   }
 
   QueryBuilder<TagEntity, List<TagLocalizationEntry>, QQueryOperations>
-  localizedLabelsProperty() {
+      localizedLabelsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'localizedLabels');
     });
@@ -692,8 +691,16 @@ const TagLocalizationEntrySchema = Schema(
   name: r'TagLocalizationEntry',
   id: -3316085670089004353,
   properties: {
-    r'label': PropertySchema(id: 0, name: r'label', type: IsarType.string),
-    r'locale': PropertySchema(id: 1, name: r'locale', type: IsarType.string),
+    r'label': PropertySchema(
+      id: 0,
+      name: r'label',
+      type: IsarType.string,
+    ),
+    r'locale': PropertySchema(
+      id: 1,
+      name: r'locale',
+      type: IsarType.string,
+    )
   },
   estimateSize: _tagLocalizationEntryEstimateSize,
   serialize: _tagLocalizationEntrySerialize,
@@ -750,80 +757,56 @@ P _tagLocalizationEntryDeserializeProp<P>(
   }
 }
 
-extension TagLocalizationEntryQueryFilter
-    on
-        QueryBuilder<
-          TagLocalizationEntry,
-          TagLocalizationEntry,
-          QFilterCondition
-        > {
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelEqualTo(String value, {bool caseSensitive = true}) {
+extension TagLocalizationEntryQueryFilter on QueryBuilder<TagLocalizationEntry,
+    TagLocalizationEntry, QFilterCondition> {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'label',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelGreaterThan(
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'label',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelLessThan(
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'label',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelBetween(
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -831,180 +814,137 @@ extension TagLocalizationEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'label',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'label',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'label',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'label',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+          QAfterFilterCondition>
+      labelContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'label',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+          QAfterFilterCondition>
+      labelMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'label',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'label',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelIsEmpty() {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'label', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'label',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  labelIsNotEmpty() {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> labelIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'label', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'label',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeEqualTo(String value, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'locale',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'locale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeGreaterThan(
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'locale',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'locale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeLessThan(
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'locale',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'locale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeBetween(
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1012,118 +952,89 @@ extension TagLocalizationEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'locale',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'locale',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeStartsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'locale',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'locale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeEndsWith(String value, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'locale',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'locale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+          QAfterFilterCondition>
+      localeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'locale',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'locale',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+          QAfterFilterCondition>
+      localeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'locale',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'locale',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeIsEmpty() {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'locale', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'locale',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<
-    TagLocalizationEntry,
-    TagLocalizationEntry,
-    QAfterFilterCondition
-  >
-  localeIsNotEmpty() {
+  QueryBuilder<TagLocalizationEntry, TagLocalizationEntry,
+      QAfterFilterCondition> localeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'locale', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'locale',
+        value: '',
+      ));
     });
   }
 }
 
-extension TagLocalizationEntryQueryObject
-    on
-        QueryBuilder<
-          TagLocalizationEntry,
-          TagLocalizationEntry,
-          QFilterCondition
-        > {}
+extension TagLocalizationEntryQueryObject on QueryBuilder<TagLocalizationEntry,
+    TagLocalizationEntry, QFilterCondition> {}

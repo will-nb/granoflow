@@ -5,6 +5,8 @@ import 'package:granoflow/generated/l10n/app_localizations.dart';
 import '../../core/providers/app_providers.dart';
 import '../navigation/navigation_destinations.dart';
 import '../timer/timer_page.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -18,10 +20,10 @@ class HomePage extends ConsumerWidget {
     debugPrint('HomePage greeting: ${l10n.homeGreeting}');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [],
+      appBar: const PageAppBar(
+        title: 'Home',
       ),
+      drawer: const MainDrawer(),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 600;

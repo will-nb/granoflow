@@ -8,6 +8,8 @@ import '../../core/providers/repository_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/services/task_service.dart';
 import '../../data/models/task.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 
 class TrashPage extends ConsumerWidget {
   const TrashPage({super.key});
@@ -17,10 +19,10 @@ class TrashPage extends ConsumerWidget {
     final tasksAsync = ref.watch(taskSectionsProvider(TaskSection.trash));
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trash'),
-        actions: [],
+      appBar: const PageAppBar(
+        title: 'Trash',
       ),
+      drawer: const MainDrawer(),
       body: tasksAsync.when(
         data: (tasks) {
           if (tasks.isEmpty) {
@@ -42,52 +44,6 @@ class TrashPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _emptyTrash(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = AppLocalizations.of(context);
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.trashConfirmTitle),
-        content: Text(l10n.trashConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.trashConfirmAccept),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) {
-      return;
-    }
-
-    try {
-      final repository = ref.read(taskRepositoryProvider);
-      final service = ref.read(taskServiceProvider);
-      final allTasks = await repository.listAll();
-      final trashed = allTasks.where((task) => task.status == TaskStatus.trashed);
-      for (final task in trashed) {
-        await service.updateDetails(
-          taskId: task.id,
-          payload: const TaskUpdate(status: TaskStatus.pseudoDeleted),
-        );
-      }
-      await repository.purgeObsolete(DateTime.now());
-      messenger.showSnackBar(SnackBar(content: Text(l10n.trashEmptySuccess)));
-    } catch (error, stackTrace) {
-      debugPrint('Failed to empty trash: $error\n$stackTrace');
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.trashEmptyError)),
-        );
-      }
-    }
-  }
 }
 
 class _TrashTile extends ConsumerWidget {

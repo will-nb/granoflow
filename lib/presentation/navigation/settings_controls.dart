@@ -5,6 +5,8 @@ import '../../core/providers/app_providers.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../completion_management/completed_page.dart';
 import '../completion_management/trash_page.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 
 class SettingsControlsPage extends ConsumerWidget {
   const SettingsControlsPage({super.key});
@@ -45,10 +47,10 @@ class SettingsControlsPage extends ConsumerWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        actions: [],
+      appBar: const PageAppBar(
+        title: 'Settings',
       ),
+      drawer: const MainDrawer(),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

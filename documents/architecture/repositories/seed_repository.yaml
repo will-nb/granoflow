@@ -1,80 +1,215 @@
 meta:
-  name: SeedRepository
-  version: 1.0
-  created_date: 251024
-  last_updated: 251024
-  description: >
-    种子仓库 - 从资源加载种子数据并跟踪导入版本。
-    管理种子数据的导入、版本控制和重复导入防护。
+  name: "SeedRepository"
+  type: "repository"
+  file_path: "lib/data/repositories/seed_repository.dart"
+  description: "种子数据仓库，负责种子数据的导入和管理"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
 
 repository_definition:
-  name: SeedRepository
-  depends_on: [Isar]
-  storage: isar_collection
-  primary_model: SeedImportLog
-
+  abstract_class: "SeedRepository"
+  implementation_class: "IsarSeedRepository"
+  storage_backend: "isar"
+  layer: "data_access"
+  
+abstract_methods:
+  - name: "importSeedData"
+    return_type: "Future<void>"
+    parameters:
+      - name: "payload"
+        type: "SeedPayload"
+        required: true
+    description: "导入种子数据"
+    visibility: "public"
+    
+  - name: "checkImportStatus"
+    return_type: "Future<bool>"
+    parameters:
+      - name: "version"
+        type: "String"
+        required: true
+    description: "检查导入状态"
+    visibility: "public"
+    
+  - name: "getImportHistory"
+    return_type: "Future<List<SeedImportLog>>"
+    parameters: []
+    description: "获取导入历史"
+    visibility: "public"
+    
+implementation_details:
+  constructor:
+    parameters:
+      - name: "_isar"
+        type: "Isar"
+        required: true
+        description: "Isar 数据库实例"
+    dependencies:
+      - name: "Isar"
+        type: "package:isar/isar.dart"
+        description: "Isar 数据库依赖"
+        
+  private_fields:
+    - name: "_isar"
+      type: "Isar"
+      description: "Isar 数据库实例"
+      
+  private_methods:
+    - name: "_importTags"
+      return_type: "Future<void>"
+      parameters:
+        - name: "tags"
+          type: "List<SeedTag>"
+          required: true
+      description: "导入标签数据"
+      visibility: "private"
+      
+    - name: "_importTasks"
+      return_type: "Future<void>"
+      parameters:
+        - name: "tasks"
+          type: "List<SeedTask>"
+          required: true
+      description: "导入任务数据"
+      visibility: "private"
+      
+    - name: "_importTemplates"
+      return_type: "Future<void>"
+      parameters:
+        - name: "templates"
+          type: "List<SeedTemplate>"
+          required: true
+      description: "导入模板数据"
+      visibility: "private"
+      
+    - name: "_importInboxItems"
+      return_type: "Future<void>"
+      parameters:
+        - name: "inboxItems"
+          type: "List<SeedInboxItem>"
+          required: true
+      description: "导入收集箱数据"
+      visibility: "private"
+      
+    - name: "_logImport"
+      return_type: "Future<void>"
+      parameters:
+        - name: "version"
+          type: "String"
+          required: true
+      description: "记录导入日志"
+      visibility: "private"
+      
+dependencies:
+  - name: "Isar"
+    type: "package:isar/isar.dart"
+    description: "Isar 数据库依赖"
+  - name: "SeedImportLogEntity"
+    type: "../isar/seed_import_log_entity.dart"
+    description: "种子导入日志实体类依赖"
+  - name: "Tag"
+    type: "../models/tag.dart"
+    description: "标签领域模型依赖"
+  - name: "Task"
+    type: "../models/task.dart"
+    description: "任务领域模型依赖"
+    
+imports:
+  - "dart:async"
+  - "dart:convert"
+  - "package:flutter/services.dart"
+  - "package:isar/isar.dart"
+  - "../models/tag.dart"
+  - "../models/task.dart"
+  - "../isar/seed_import_log_entity.dart"
+  
 responsibilities:
-  - 读取标签、任务、模板、收集箱项目的 JSON 资源
-  - 在事务中应用插入，尊重模板锁定和状态规则
-  - 记录执行的版本以避免重复导入
-  - 支持语言环境范围目录（例如 `assets/seeds/en/`），回退到英语
-
-methods:
-  - name: wasImported
-    params:
-      - version: String
-    returns: Future<bool>
-    notes: 检查特定版本是否已导入
-
-  - name: importSeeds
-    params:
-      - payload: SeedPayload
-    returns: Future<void>
-    notes: 导入种子数据，解析 slug 引用并通过 TaskRepository/TaskTemplateRepository 辅助方法持久化
-
-  - name: latestVersion
-    returns: Future<String?>
-    notes: 获取最新导入的版本
-
-  - name: getAvailableVersions
-    returns: Future<List<String>>
-    notes: 获取可用的种子版本列表
-
-  - name: clearImportHistory
-    returns: Future<void>
-    notes: 清除导入历史（用于测试或重置）
-
+  - "种子数据导入"
+  - "种子数据验证"
+  - "种子数据转换"
+  - "导入历史记录"
+  - "导入状态管理"
+  
+data_operations:
+  create:
+    - name: "importSeedData"
+      description: "导入种子数据"
+      parameters: ["SeedPayload"]
+    - name: "logImport"
+      description: "记录导入日志"
+      parameters: ["String"]
+      
+  read:
+    - name: "checkImportStatus"
+      description: "检查导入状态"
+      parameters: ["String"]
+    - name: "getImportHistory"
+      description: "获取导入历史"
+      parameters: []
+      
+validation_rules:
+  - field: "version"
+    rule: "not_empty"
+    description: "版本号不能为空"
+  - field: "payload"
+    rule: "not_null"
+    description: "种子数据载荷不能为空"
+    
 business_rules:
-  - 每个版本只能导入一次
-  - 版本必须匹配种子文件中的版本
-  - 用于防止重复导入
-
-import_validation:
-  - 检查版本是否已存在
-  - 验证种子文件完整性
-  - 记录导入时间戳
-
-migration_safety:
-  - 防止重复数据导入
-  - 跟踪导入历史
-  - 支持回滚操作
-
-seed_management:
-  - 版本控制
-  - 导入状态跟踪
-  - 错误恢复支持
-
-locale_support:
-  - 支持语言环境特定目录
-  - 回退到英语默认值
-  - 动态选择种子包
-
+  - name: "seed_import_lifecycle"
+    description: "种子数据导入生命周期"
+    implementation: "验证、转换、导入、记录日志"
+  - name: "import_version_control"
+    description: "导入版本控制"
+    implementation: "防止重复导入相同版本"
+    
 error_handling:
-  - VersionAlreadyImported: 当版本已导入时
-  - InvalidSeedData: 当种子数据无效时
-  - ImportFailed: 当导入过程失败时
-
+  - exception: "IsarException"
+    description: "数据库操作异常"
+    handling: "记录日志并重新抛出"
+  - exception: "FormatException"
+    description: "数据格式异常"
+    handling: "验证数据格式并抛出描述性错误"
+  - exception: "ArgumentError"
+    description: "参数错误"
+    handling: "验证参数并抛出描述性错误"
+    
 performance_considerations:
-  - 使用事务确保原子性
-  - 批量导入减少数据库访问
-  - 缓存版本信息
+  - operation: "importSeedData"
+    optimization: "批量导入"
+    description: "种子数据导入性能优化"
+  - operation: "checkImportStatus"
+    optimization: "索引查询"
+    description: "导入状态检查性能优化"
+    
+testing_strategy:
+  unit_tests:
+    - name: "test_import_seed_data"
+      description: "测试导入种子数据功能"
+    - name: "test_check_import_status"
+      description: "测试检查导入状态功能"
+    - name: "test_get_import_history"
+      description: "测试获取导入历史功能"
+    - name: "test_import_tags"
+      description: "测试导入标签数据功能"
+    - name: "test_import_tasks"
+      description: "测试导入任务数据功能"
+    - name: "test_import_templates"
+      description: "测试导入模板数据功能"
+    - name: "test_import_inbox_items"
+      description: "测试导入收集箱数据功能"
+    - name: "test_log_import"
+      description: "测试记录导入日志功能"
+      
+  integration_tests:
+    - name: "test_repository_integration"
+      description: "测试 Repository 集成"
+    - name: "test_seed_data_import_flow"
+      description: "测试种子数据导入流程"
+    - name: "test_import_version_control"
+      description: "测试导入版本控制功能"
+      
+  mock_strategy:
+    - name: "MockSeedRepository"
+      description: "Mock 实现用于测试"

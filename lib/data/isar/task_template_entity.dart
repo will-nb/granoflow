@@ -6,7 +6,7 @@ part 'task_template_entity.g.dart';
 class TaskTemplateEntity {
   TaskTemplateEntity();
 
-  Id id = Isar.autoIncrement;
+  Id id = 0;
 
   late String title;
 

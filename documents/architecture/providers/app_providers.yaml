@@ -1,0 +1,483 @@
+meta:
+  name: "AppProviders"
+  type: "provider"
+  file_path: "lib/core/providers/app_providers.dart"
+  description: "应用级 Provider 集合，管理全局状态和依赖注入"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
+
+provider_definition:
+  name: "AppProviders"
+  layer: "dependency_injection"
+  pattern: "provider"
+  scope: "global"
+  auto_dispose: false
+  
+provider_types:
+  - name: "Provider"
+    description: "基础 Provider，用于依赖注入"
+    usage: "依赖注入、单例管理"
+    
+  - name: "StreamProvider"
+    description: "流 Provider，用于异步数据流"
+    usage: "实时数据、数据库监听、网络流"
+    
+  - name: "FutureProvider"
+    description: "未来 Provider，用于异步操作"
+    usage: "一次性异步操作、初始化、配置加载"
+    
+providers:
+  - name: "appLocaleProvider"
+    type: "StreamProvider"
+    return_type: "Locale"
+    dependencies:
+      - name: "preferenceServiceProvider"
+        type: "PreferenceService"
+        description: "偏好设置服务依赖"
+    description: "应用语言设置 Provider"
+    auto_dispose: false
+    
+  - name: "themeProvider"
+    type: "StreamProvider"
+    return_type: "ThemeMode"
+    dependencies:
+      - name: "preferenceServiceProvider"
+        type: "PreferenceService"
+        description: "偏好设置服务依赖"
+    description: "应用主题设置 Provider"
+    auto_dispose: false
+    
+  - name: "fontScaleProvider"
+    type: "StreamProvider"
+    return_type: "double"
+    dependencies:
+      - name: "preferenceServiceProvider"
+        type: "PreferenceService"
+        description: "偏好设置服务依赖"
+    description: "应用字体缩放设置 Provider"
+    auto_dispose: false
+    
+  - name: "seedInitializerProvider"
+    type: "FutureProvider"
+    return_type: "void"
+    dependencies:
+      - name: "seedImportServiceProvider"
+        type: "SeedImportService"
+        description: "种子数据导入服务依赖"
+      - name: "appLocaleProvider"
+        type: "StreamProvider<Locale>"
+        description: "应用语言设置依赖"
+    description: "种子数据初始化 Provider"
+    auto_dispose: false
+    keep_alive: true
+    
+  - name: "taskListProvider"
+    type: "StreamProvider"
+    return_type: "List<Task>"
+    dependencies:
+      - name: "taskServiceProvider"
+        type: "TaskService"
+        description: "任务服务依赖"
+    description: "任务列表 Provider"
+    auto_dispose: false
+    
+  - name: "inboxProvider"
+    type: "StreamProvider"
+    return_type: "List<Task>"
+    dependencies:
+      - name: "taskServiceProvider"
+        type: "TaskService"
+        description: "任务服务依赖"
+    description: "收集箱任务 Provider"
+    auto_dispose: false
+    
+  - name: "completedProvider"
+    type: "StreamProvider"
+    return_type: "List<Task>"
+    dependencies:
+      - name: "taskServiceProvider"
+        type: "TaskService"
+        description: "任务服务依赖"
+    description: "已完成任务 Provider"
+    auto_dispose: false
+    
+  - name: "archivedProvider"
+    type: "StreamProvider"
+    return_type: "List<Task>"
+    dependencies:
+      - name: "taskServiceProvider"
+        type: "TaskService"
+        description: "任务服务依赖"
+    description: "已归档任务 Provider"
+    auto_dispose: false
+    
+  - name: "trashProvider"
+    type: "StreamProvider"
+    return_type: "List<Task>"
+    dependencies:
+      - name: "taskServiceProvider"
+        type: "TaskService"
+        description: "任务服务依赖"
+    description: "已删除任务 Provider"
+    auto_dispose: false
+    
+  - name: "activeFocusSessionProvider"
+    type: "StreamProvider"
+    return_type: "FocusSession?"
+    dependencies:
+      - name: "focusFlowServiceProvider"
+        type: "FocusFlowService"
+        description: "专注流程服务依赖"
+    description: "活跃专注会话 Provider"
+    auto_dispose: false
+    
+  - name: "metricSnapshotProvider"
+    type: "StreamProvider"
+    return_type: "MetricSnapshot?"
+    dependencies:
+      - name: "metricOrchestratorProvider"
+        type: "MetricOrchestrator"
+        description: "指标协调器依赖"
+    description: "指标快照 Provider"
+    auto_dispose: false
+    
+  - name: "taskTemplateListProvider"
+    type: "StreamProvider"
+    return_type: "List<TaskTemplate>"
+    dependencies:
+      - name: "taskTemplateServiceProvider"
+        type: "TaskTemplateService"
+        description: "任务模板服务依赖"
+    description: "任务模板列表 Provider"
+    auto_dispose: false
+    
+  - name: "tagListProvider"
+    type: "StreamProvider"
+    return_type: "List<Tag>"
+    dependencies:
+      - name: "tagRepositoryProvider"
+        type: "TagRepository"
+        description: "标签仓库依赖"
+    description: "标签列表 Provider"
+    auto_dispose: false
+    
+  - name: "monetizationStateProvider"
+    type: "StreamProvider"
+    return_type: "MonetizationState"
+    dependencies:
+      - name: "monetizationServiceProvider"
+        type: "MonetizationService"
+        description: "货币化服务依赖"
+    description: "货币化状态 Provider"
+    auto_dispose: false
+    
+imports:
+  - "package:flutter/material.dart"
+  - "package:flutter_riverpod/flutter_riverpod.dart"
+  - "../../data/models/focus_session.dart"
+  - "../../data/models/tag.dart"
+  - "../../data/models/task.dart"
+  - "../../data/models/task_template.dart"
+  - "../services/focus_flow_service.dart"
+  - "../services/metric_orchestrator.dart"
+  - "../services/preference_service.dart"
+  - "../services/task_hierarchy_service.dart"
+  - "../services/task_service.dart"
+  - "../services/task_template_service.dart"
+  - "../monetization/monetization_service.dart"
+  - "../monetization/monetization_state.dart"
+  - "repository_providers.dart"
+  - "service_providers.dart"
+  
+dependencies:
+  - name: "PreferenceService"
+    type: "core/services/preference_service.dart"
+    description: "偏好设置服务依赖"
+  - name: "TaskService"
+    type: "core/services/task_service.dart"
+    description: "任务服务依赖"
+  - name: "FocusFlowService"
+    type: "core/services/focus_flow_service.dart"
+    description: "专注流程服务依赖"
+  - name: "MetricOrchestrator"
+    type: "core/services/metric_orchestrator.dart"
+    description: "指标协调器依赖"
+  - name: "TaskTemplateService"
+    type: "core/services/task_template_service.dart"
+    description: "任务模板服务依赖"
+  - name: "SeedImportService"
+    type: "core/services/seed_import_service.dart"
+    description: "种子数据导入服务依赖"
+  - name: "TagRepository"
+    type: "data/repositories/tag_repository.dart"
+    description: "标签仓库依赖"
+  - name: "MonetizationService"
+    type: "core/monetization/monetization_service.dart"
+    description: "货币化服务依赖"
+  - name: "Task"
+    type: "data/models/task.dart"
+    description: "任务领域模型依赖"
+  - name: "FocusSession"
+    type: "data/models/focus_session.dart"
+    description: "专注会话领域模型依赖"
+  - name: "TaskTemplate"
+    type: "data/models/task_template.dart"
+    description: "任务模板领域模型依赖"
+  - name: "Tag"
+    type: "data/models/tag.dart"
+    description: "标签领域模型依赖"
+  - name: "MetricSnapshot"
+    type: "data/models/metric_snapshot.dart"
+    description: "指标快照领域模型依赖"
+  - name: "MonetizationState"
+    type: "core/monetization/monetization_state.dart"
+    description: "货币化状态依赖"
+    
+responsibilities:
+  - "全局状态管理"
+  - "依赖注入管理"
+  - "应用配置管理"
+  - "用户偏好设置管理"
+  - "任务状态管理"
+  - "专注会话管理"
+  - "指标数据管理"
+  - "模板数据管理"
+  - "标签数据管理"
+  - "货币化状态管理"
+  
+provider_categories:
+  repository_providers:
+    - name: "tagRepositoryProvider"
+      description: "标签仓库 Provider"
+      type: "Provider"
+      return_type: "TagRepository"
+      
+  service_providers:
+    - name: "taskServiceProvider"
+      description: "任务服务 Provider"
+      type: "Provider"
+      return_type: "TaskService"
+    - name: "focusFlowServiceProvider"
+      description: "专注流程服务 Provider"
+      type: "Provider"
+      return_type: "FocusFlowService"
+    - name: "metricOrchestratorProvider"
+      description: "指标协调器 Provider"
+      type: "Provider"
+      return_type: "MetricOrchestrator"
+    - name: "taskTemplateServiceProvider"
+      description: "任务模板服务 Provider"
+      type: "Provider"
+      return_type: "TaskTemplateService"
+    - name: "seedImportServiceProvider"
+      description: "种子数据导入服务 Provider"
+      type: "Provider"
+      return_type: "SeedImportService"
+    - name: "monetizationServiceProvider"
+      description: "货币化服务 Provider"
+      type: "Provider"
+      return_type: "MonetizationService"
+      
+  stream_providers:
+    - name: "appLocaleProvider"
+      description: "应用语言设置流 Provider"
+      type: "StreamProvider"
+      return_type: "Locale"
+    - name: "themeProvider"
+      description: "应用主题设置流 Provider"
+      type: "StreamProvider"
+      return_type: "ThemeMode"
+    - name: "fontScaleProvider"
+      description: "应用字体缩放设置流 Provider"
+      type: "StreamProvider"
+      return_type: "double"
+    - name: "taskListProvider"
+      description: "任务列表流 Provider"
+      type: "StreamProvider"
+      return_type: "List<Task>"
+    - name: "inboxProvider"
+      description: "收集箱任务流 Provider"
+      type: "StreamProvider"
+      return_type: "List<Task>"
+    - name: "completedProvider"
+      description: "已完成任务流 Provider"
+      type: "StreamProvider"
+      return_type: "List<Task>"
+    - name: "archivedProvider"
+      description: "已归档任务流 Provider"
+      type: "StreamProvider"
+      return_type: "List<Task>"
+    - name: "trashProvider"
+      description: "已删除任务流 Provider"
+      type: "StreamProvider"
+      return_type: "List<Task>"
+    - name: "activeFocusSessionProvider"
+      description: "活跃专注会话流 Provider"
+      type: "StreamProvider"
+      return_type: "FocusSession?"
+    - name: "metricSnapshotProvider"
+      description: "指标快照流 Provider"
+      type: "StreamProvider"
+      return_type: "MetricSnapshot?"
+    - name: "taskTemplateListProvider"
+      description: "任务模板列表流 Provider"
+      type: "StreamProvider"
+      return_type: "List<TaskTemplate>"
+    - name: "tagListProvider"
+      description: "标签列表流 Provider"
+      type: "StreamProvider"
+      return_type: "List<Tag>"
+    - name: "monetizationStateProvider"
+      description: "货币化状态流 Provider"
+      type: "StreamProvider"
+      return_type: "MonetizationState"
+      
+  future_providers:
+    - name: "seedInitializerProvider"
+      description: "种子数据初始化未来 Provider"
+      type: "FutureProvider"
+      return_type: "void"
+      
+  app_providers:
+    - name: "appLocaleProvider"
+      description: "应用语言设置 Provider"
+      type: "StreamProvider"
+      return_type: "Locale"
+    - name: "themeProvider"
+      description: "应用主题设置 Provider"
+      type: "StreamProvider"
+      return_type: "ThemeMode"
+    - name: "fontScaleProvider"
+      description: "应用字体缩放设置 Provider"
+      type: "StreamProvider"
+      return_type: "double"
+    - name: "seedInitializerProvider"
+      description: "种子数据初始化 Provider"
+      type: "FutureProvider"
+      return_type: "void"
+      
+lifecycle_management:
+  - phase: "initialization"
+    description: "初始化阶段"
+    operations: ["依赖注入", "配置加载", "状态初始化", "种子数据初始化"]
+  - phase: "operation"
+    description: "运行阶段"
+    operations: ["状态管理", "数据监听", "服务协调", "用户偏好管理"]
+  - phase: "disposal"
+    description: "清理阶段"
+    operations: ["资源释放", "状态重置", "连接关闭"]
+    
+state_management:
+  - pattern: "StreamProvider"
+    description: "流式状态管理"
+    implementation: "使用 StreamProvider 管理异步数据流"
+    benefits: "实时数据更新、自动状态同步"
+  - pattern: "FutureProvider"
+    description: "未来状态管理"
+    implementation: "使用 FutureProvider 管理异步操作"
+    benefits: "一次性操作、初始化管理"
+  - pattern: "Provider"
+    description: "依赖注入管理"
+    implementation: "使用 Provider 管理服务依赖"
+    benefits: "依赖注入、单例管理"
+    
+error_handling:
+  - exception: "ProviderException"
+    description: "Provider 异常"
+    handling: "记录日志并重新抛出"
+    recovery: "重试机制"
+  - exception: "StateException"
+    description: "状态异常"
+    handling: "验证状态并抛出描述性错误"
+    recovery: "状态重置"
+  - exception: "DependencyException"
+    description: "依赖异常"
+    handling: "验证依赖并抛出描述性错误"
+    recovery: "依赖重新注入"
+    
+performance_considerations:
+  - operation: "stream_providers"
+    optimization: "流式更新"
+    description: "流 Provider 性能优化"
+    caching: "状态缓存策略"
+  - operation: "future_providers"
+    optimization: "异步操作优化"
+    description: "未来 Provider 性能优化"
+    caching: "结果缓存策略"
+  - operation: "dependency_injection"
+    optimization: "依赖注入优化"
+    description: "依赖注入性能优化"
+    caching: "依赖缓存策略"
+    
+testing_strategy:
+  unit_tests:
+    - name: "test_provider_creation"
+      description: "测试 Provider 创建"
+    - name: "test_provider_dependencies"
+      description: "测试 Provider 依赖"
+    - name: "test_provider_state"
+      description: "测试 Provider 状态"
+    - name: "test_provider_lifecycle"
+      description: "测试 Provider 生命周期"
+    - name: "test_provider_disposal"
+      description: "测试 Provider 清理"
+    - name: "test_stream_providers"
+      description: "测试流 Provider"
+    - name: "test_future_providers"
+      description: "测试未来 Provider"
+    - name: "test_app_providers"
+      description: "测试应用 Provider"
+      
+  integration_tests:
+    - name: "test_provider_integration"
+      description: "测试 Provider 集成"
+    - name: "test_provider_coordination"
+      description: "测试 Provider 协调"
+    - name: "test_provider_state_flow"
+      description: "测试 Provider 状态流"
+    - name: "test_app_provider_flow"
+      description: "测试应用 Provider 流程"
+      
+  mock_strategy:
+    - name: "MockAppProviders"
+      description: "Mock 实现用于测试"
+    - name: "FakeAppProviders"
+      description: "Fake 实现用于测试"
+    - name: "TestAppProviders"
+      description: "测试专用 Provider"
+      
+provider_families:
+  - name: "taskProviderFamily"
+    description: "任务 Provider 家族"
+    parameters:
+      - name: "taskId"
+        type: "int"
+        description: "任务 ID 参数"
+    usage: "参数化的任务 Provider"
+    benefits: "支持多个任务实例"
+    
+  - name: "templateProviderFamily"
+    description: "模板 Provider 家族"
+    parameters:
+      - name: "templateId"
+        type: "int"
+        description: "模板 ID 参数"
+    usage: "参数化的模板 Provider"
+    benefits: "支持多个模板实例"
+    
+provider_scopes:
+  - name: "global"
+    description: "全局作用域"
+    usage: "应用级别的 Provider"
+    lifecycle: "应用生命周期"
+    
+  - name: "local"
+    description: "局部作用域"
+    usage: "组件级别的 Provider"
+    lifecycle: "组件生命周期"
+    
+  - name: "family"
+    description: "家族作用域"
+    usage: "参数化的 Provider"
+    lifecycle: "参数生命周期"

@@ -1,72 +1,164 @@
 meta:
-  name: MetricRepository
-  version: 1.0
-  created_date: 251024
-  last_updated: 251024
-  description: >
-    指标仓库 - 计算和缓存主页仪表板使用的指标快照。
-    提供快速读取而不扫描整个任务表。
+  name: "MetricRepository"
+  type: "repository"
+  file_path: "lib/data/repositories/metric_repository.dart"
+  description: "指标数据访问层，负责应用性能指标的持久化和查询"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
 
 repository_definition:
-  name: MetricRepository
-  depends_on: [Isar, TaskRepository, FocusSessionRepository]
-  storage: isar_collection
-  primary_model: MetricSnapshot
-
+  abstract_class: "MetricRepository"
+  implementation_class: "InMemoryMetricRepository"
+  storage_backend: "memory"
+  layer: "data_access"
+  
+abstract_methods:
+  - name: "recompute"
+    return_type: "Future<MetricSnapshot>"
+    parameters:
+      - name: "tasks"
+        type: "Iterable<Task>"
+        required: true
+      - name: "totalFocusMinutes"
+        type: "int"
+        required: true
+    description: "重新计算指标"
+    visibility: "public"
+    
+  - name: "watchLatest"
+    return_type: "Stream<MetricSnapshot?>"
+    parameters: []
+    description: "监听最新指标"
+    visibility: "public"
+    
+  - name: "invalidate"
+    return_type: "Future<void>"
+    parameters: []
+    description: "使指标失效"
+    visibility: "public"
+    
+implementation_details:
+  constructor:
+    parameters: []
+    dependencies: []
+        
+  private_fields:
+    - name: "_latest"
+      type: "MetricSnapshot?"
+      description: "最新指标快照"
+    - name: "_controller"
+      type: "StreamController<MetricSnapshot?>"
+      description: "指标流控制器"
+    - name: "_nextId"
+      type: "int"
+      description: "下一个 ID"
+      
+  private_methods:
+    - name: "_calculateMetrics"
+      return_type: "MetricSnapshot"
+      parameters:
+        - name: "tasks"
+          type: "Iterable<Task>"
+          required: true
+        - name: "totalFocusMinutes"
+          type: "int"
+          required: true
+      description: "计算指标"
+      visibility: "private"
+      
+dependencies:
+  - name: "MetricSnapshot"
+    type: "../models/metric_snapshot.dart"
+    description: "指标快照领域模型依赖"
+  - name: "Task"
+    type: "../models/task.dart"
+    description: "任务领域模型依赖"
+    
+imports:
+  - "dart:async"
+  - "../models/metric_snapshot.dart"
+  - "../models/task.dart"
+  
 responsibilities:
-  - 在任务/状态/会话变更后重新计算总计
-  - 为表示层提供快速读取而不扫描整个任务表
-
-methods:
-  - name: recompute
-    params:
-      - reason: MetricRecomputeReason
-    returns: Future<MetricSnapshot>
-    notes: 在重要变更后由服务/钩子调用
-
-  - name: latest
-    returns: Stream<MetricSnapshot?>
-    notes: 获取最新的指标快照
-
-  - name: invalidateCache
-    returns: Future<void>
-    notes: 使缓存失效，强制重新计算
-
-  - name: getHistoricalMetrics
-    params:
-      - days: int
-    returns: Future<List<MetricSnapshot>>
-    notes: 获取历史指标数据
-
+  - "指标数据计算"
+  - "指标数据缓存"
+  - "指标数据监听"
+  - "指标数据失效管理"
+  
+data_operations:
+  create:
+    - name: "recompute"
+      description: "重新计算指标"
+      parameters: ["Iterable<Task>", "int"]
+      
+  read:
+    - name: "watchLatest"
+      description: "监听最新指标"
+      parameters: []
+      
+  update:
+    - name: "invalidate"
+      description: "使指标失效"
+      parameters: []
+      
+stream_operations:
+  - name: "watchLatest"
+    description: "监听最新指标"
+    return_type: "Stream<MetricSnapshot?>"
+    
+validation_rules:
+  - field: "totalCompletedTasks"
+    rule: "non_negative"
+    description: "总完成任务数不能为负数"
+  - field: "totalFocusMinutes"
+    rule: "non_negative"
+    description: "总专注分钟数不能为负数"
+  - field: "pendingTasks"
+    rule: "non_negative"
+    description: "待处理任务数不能为负数"
+  - field: "pendingTodayTasks"
+    rule: "non_negative"
+    description: "今日待处理任务数不能为负数"
+    
 business_rules:
-  - 只保留一个快照记录（滚动单例）
-  - 在重要的任务或专注会话变更后重新计算
-  - 作为主页指标的唯一来源以保持 UI 简单
-
-metric_fields:
-  - totalCompletedTasks: 总完成任务数
-  - totalFocusMinutes: 总专注分钟数
-  - pendingTasks: 待处理任务数
-  - pendingTodayTasks: 今日待处理任务数
-  - calculatedAtUtc: 计算时间戳
-
-recompute_triggers:
-  - 任务状态变更
-  - 专注会话创建/更新
-  - 任务创建/删除
-  - 任务归档/恢复
-
-performance_benefits:
-  - 避免实时计算聚合数据
-  - 减少主页加载时间
-  - 简化 UI 状态管理
-  - 为未来同步做准备
-
+  - name: "metric_calculation"
+    description: "指标计算规则"
+    implementation: "基于任务状态和专注时间计算指标"
+  - name: "metric_caching"
+    description: "指标缓存规则"
+    implementation: "内存缓存最新指标快照"
+    
 error_handling:
-  - MetricCalculationError: 当指标计算失败时
-  - CacheCorruption: 当缓存数据损坏时
-
+  - exception: "ArgumentError"
+    description: "参数错误"
+    handling: "验证参数并抛出描述性错误"
+    
 performance_considerations:
-  - 使用事务确保数据一致性
-  - 批量计算减少数据库访问
-  - 缓存策略优化查询性能
+  - operation: "recompute"
+    optimization: "增量计算"
+    description: "指标重新计算性能优化"
+  - operation: "watchLatest"
+    optimization: "流式更新"
+    description: "指标监听性能优化"
+    
+testing_strategy:
+  unit_tests:
+    - name: "test_recompute_metrics"
+      description: "测试重新计算指标功能"
+    - name: "test_watch_latest"
+      description: "测试监听最新指标功能"
+    - name: "test_invalidate"
+      description: "测试使指标失效功能"
+    - name: "test_calculate_metrics"
+      description: "测试计算指标功能"
+      
+  integration_tests:
+    - name: "test_repository_integration"
+      description: "测试 Repository 集成"
+    - name: "test_metric_stream"
+      description: "测试指标流功能"
+      
+  mock_strategy:
+    - name: "MockMetricRepository"
+      description: "Mock 实现用于测试"

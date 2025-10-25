@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
+
 class AchievementsPage extends ConsumerWidget {
   const AchievementsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Achievements'),
-        actions: [],
+      appBar: const PageAppBar(
+        title: 'Achievements',
       ),
+      drawer: const MainDrawer(),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

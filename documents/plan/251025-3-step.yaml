@@ -1,0 +1,101 @@
+meta:
+  id: "251025-3-step"
+  title: "统一顶部导航栏组件 - 实施步骤"
+  description: "基于preview文档的具体实施计划"
+  author: "Assistant"
+  created_at: "2025-01-25"
+  type: "step"
+
+summary:
+  objective: "创建PageAppBar组件并替换各页面的硬编码AppBar"
+  phases:
+    - "Phase 1: 创建PageAppBar组件"
+    - "Phase 2: 替换现有页面AppBar"
+    - "Phase 3: 集成测试和优化"
+    - "Phase 4: 最终验证"
+
+implementation_steps:
+  step_1:
+    name: "创建PageAppBar组件"
+    description: "创建统一的顶部导航栏组件"
+    files:
+      - "lib/presentation/widgets/page_app_bar.dart"
+    tasks:
+      - "创建PageAppBar类"
+      - "实现PreferredSizeWidget接口"
+      - "添加主题支持"
+      - "实现菜单按钮逻辑"
+      - "添加操作按钮支持"
+
+  step_2:
+    name: "替换HomePage"
+    description: "将HomePage的硬编码AppBar替换为PageAppBar"
+    files:
+      - "lib/presentation/home/home_page.dart"
+    tasks:
+      - "导入PageAppBar组件"
+      - "替换现有AppBar"
+      - "测试功能正常"
+
+  step_3:
+    name: "替换AchievementsPage"
+    description: "将AchievementsPage的硬编码AppBar替换为PageAppBar"
+    files:
+      - "lib/presentation/achievements/achievements_page.dart"
+    tasks:
+      - "导入PageAppBar组件"
+      - "替换现有AppBar"
+      - "测试功能正常"
+
+  step_4:
+    name: "替换TaskListPage"
+    description: "将TaskListPage的硬编码AppBar替换为PageAppBar"
+    files:
+      - "lib/presentation/tasks/task_list_page.dart"
+    tasks:
+      - "导入PageAppBar组件"
+      - "替换现有AppBar"
+      - "保持现有操作按钮"
+      - "测试功能正常"
+
+  step_5:
+    name: "替换其他页面"
+    description: "替换剩余页面的硬编码AppBar"
+    files:
+      - "lib/presentation/completion_management/trash_page.dart"
+      - "lib/presentation/completion_management/completed_page.dart"
+      - "lib/presentation/inbox/inbox_page.dart"
+      - "lib/presentation/timer/timer_page.dart"
+      - "lib/presentation/navigation/settings_controls.dart"
+    tasks:
+      - "批量替换AppBar"
+      - "测试各页面功能"
+      - "验证侧边栏集成"
+
+  step_6:
+    name: "集成测试"
+    description: "测试PageAppBar与侧边栏的集成"
+    files:
+      - "lib/presentation/navigation/responsive_navigation.dart"
+    tasks:
+      - "测试菜单按钮功能"
+      - "测试侧边栏打开/关闭"
+      - "测试主题切换"
+      - "测试响应式行为"
+
+  step_7:
+    name: "最终验证"
+    description: "验证所有功能正常工作"
+    tasks:
+      - "运行flutter analyze"
+      - "测试所有页面导航"
+      - "验证视觉一致性"
+      - "检查性能影响"
+
+success_criteria:
+  - "所有页面使用统一的PageAppBar"
+  - "左侧菜单按钮能正确打开侧边栏"
+  - "标题显示正确"
+  - "主题样式一致"
+  - "无编译错误"
+  - "功能完全正常"

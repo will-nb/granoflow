@@ -7,7 +7,7 @@ part 'preference_entity.g.dart';
 class PreferenceEntity {
   PreferenceEntity();
 
-  Id id = Isar.autoIncrement;
+  Id id = 0;
 
   late String localeCode;
 

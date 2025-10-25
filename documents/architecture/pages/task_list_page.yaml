@@ -1,55 +1,394 @@
 meta:
-  name: TaskListPage
-  version: 1.0
-  created_date: 251024
-  last_updated: 251024
-  description: >
-    任务列表页面 - 显示任务分区，支持基础模式和编辑模式。
+  name: "TaskListPage"
+  type: "page"
+  file_path: "lib/presentation/tasks/task_list_page.dart"
+  description: "任务列表页面，显示和管理任务列表"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
 
 page_definition:
-  name: TaskListPage
-  route: /tasks
-  type: screen
-
-providers:
-  - taskSectionsProvider(section)
-  - rootTasksProvider
-  - taskTreeProvider(rootId)
-  - expandedRootTaskIdProvider
-  - taskEditActionsNotifier
-
-layout:
-  structure:
-    - AppBar(actions: toggle edit mode, filters)
-    - AnimatedCrossFade(baseMode, editMode)
-    - BaseMode:
-        - TabBar: Today/Tomorrow/Later
-        - TabBarView:
-            - TaskSectionList (leaf tasks only)
-    - EditMode:
-        - ListView of RootTask cards:
-            - TaskEditItem for root
-            - AnimatedList of children when expanded
-
-interactions:
-  - BaseMode tap: start focus via FocusFlowService
-  - BaseMode longPressDrag: reorder or change section
-  - EditMode drag: TaskHierarchyService.moveToParent/moveAcrossSections
-  - EditMode action icons: add subtask, edit title (inline text field), archive
-
-notes:
-  - 一次只能展开一个根任务，由 expandedRootTaskIdProvider 控制
-  - 基础模式只显示叶子任务
-  - 编辑模式支持拖拽和层次结构操作
-
-accessibility:
-  - 屏幕阅读器支持
-  - 键盘导航支持
-  - 拖拽操作支持
-  - 语义标签
-
-performance:
-  - 懒加载任务数据
-  - 优化拖拽性能
-  - 缓存展开状态
-  - 避免不必要的重建
+  name: "TaskListPage"
+  layer: "presentation"
+  pattern: "consumer_stateful"
+  category: "main"
+  route: "/tasks"
+  title: "Tasks"
+  reusable: true
+  
+page_types:
+  - name: "ConsumerStatefulWidget"
+    description: "有状态消费者 Widget，用于 Riverpod 状态管理"
+    usage: "状态管理、数据绑定、复杂交互"
+    
+page_properties:
+  - name: "key"
+    type: "Key?"
+    required: false
+    description: "Widget 键"
+    validation: "可选"
+    
+page_methods:
+  - name: "createState"
+    return_type: "ConsumerState<TaskListPage>"
+    parameters: []
+    description: "创建状态"
+    visibility: "public"
+    async: false
+    
+  - name: "build"
+    return_type: "Widget"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+        description: "构建上下文"
+      - name: "ref"
+        type: "WidgetRef"
+        required: true
+        description: "Widget 引用"
+    description: "构建页面"
+    visibility: "public"
+    async: false
+    
+page_state:
+  - name: "_editMode"
+    type: "bool"
+    description: "编辑模式"
+    initial_value: "false"
+    validation: "布尔值"
+    
+page_lifecycle:
+  - phase: "initialization"
+    description: "初始化阶段"
+    operations: ["状态初始化", "依赖注入", "配置加载"]
+  - phase: "build"
+    description: "构建阶段"
+    operations: ["UI 构建", "状态渲染", "事件绑定"]
+  - phase: "disposal"
+    description: "清理阶段"
+    operations: ["资源释放", "状态重置"]
+    
+page_events:
+  - name: "onEditModeToggle"
+    description: "编辑模式切换事件"
+    trigger: "用户切换编辑模式"
+    handler: "编辑模式处理函数"
+    parameters: "编辑状态"
+    
+  - name: "onTaskAction"
+    description: "任务操作事件"
+    trigger: "用户执行任务操作"
+    handler: "任务操作处理函数"
+    parameters: "操作类型"
+    
+page_styling:
+  - name: "pageStyle"
+    description: "页面样式"
+    properties:
+      - name: "backgroundColor"
+        type: "Color"
+        value: "Theme.of(context).colorScheme.surface"
+        description: "背景色"
+      - name: "padding"
+        type: "EdgeInsets"
+        value: "EdgeInsets.all(16)"
+        description: "内边距"
+    responsive: true
+    theme_aware: true
+    
+  - name: "listStyle"
+    description: "列表样式"
+    properties:
+      - name: "itemSpacing"
+        type: "double"
+        value: "12"
+        description: "项目间距"
+      - name: "itemPadding"
+        type: "EdgeInsets"
+        value: "EdgeInsets.all(16)"
+        description: "项目内边距"
+    responsive: true
+    theme_aware: true
+    
+page_responsive:
+  - breakpoint: "mobile"
+    description: "移动端响应式"
+    properties:
+      - name: "layout"
+        value: "Column"
+        description: "移动端布局"
+      - name: "spacing"
+        value: "16"
+        description: "移动端间距"
+    layout: "Column 布局"
+    behavior: "垂直排列"
+    
+  - breakpoint: "tablet"
+    description: "平板端响应式"
+    properties:
+      - name: "layout"
+        value: "Column"
+        description: "平板端布局"
+      - name: "spacing"
+        value: "20"
+        description: "平板端间距"
+    layout: "Column 布局"
+    behavior: "垂直排列"
+    
+  - breakpoint: "desktop"
+    description: "桌面端响应式"
+    properties:
+      - name: "layout"
+        value: "Column"
+        description: "桌面端布局"
+      - name: "spacing"
+        value: "24"
+        description: "桌面端间距"
+    layout: "Column 布局"
+    behavior: "垂直排列"
+    
+page_accessibility:
+  - name: "semanticLabel"
+    description: "语义标签"
+    implementation: "为页面提供语义标签"
+    testing: "无障碍测试"
+    compliance: "WCAG 2.1"
+    
+  - name: "keyboardNavigation"
+    description: "键盘导航"
+    implementation: "支持键盘导航"
+    testing: "键盘测试"
+    compliance: "WCAG 2.1"
+    
+page_performance:
+  - operation: "build"
+    optimization: "构建优化"
+    description: "构建性能优化"
+    caching: "状态缓存"
+    rendering: "渲染优化"
+    
+  - operation: "taskManagement"
+    optimization: "任务管理优化"
+    description: "任务管理性能优化"
+    caching: "任务状态缓存"
+    rendering: "任务渲染优化"
+    
+page_testing:
+  - name: "testTaskListPage"
+    description: "测试任务列表页面"
+    type: "widget"
+    coverage: "100%"
+    scenarios: "任务显示、编辑模式、任务操作、响应式、无障碍"
+    
+page_dependencies:
+  - name: "Riverpod"
+    type: "状态管理"
+    description: "Riverpod 状态管理"
+    required: true
+    version: "2.0"
+    
+  - name: "AppLocalizations"
+    type: "国际化"
+    description: "应用本地化"
+    required: true
+    version: "1.0"
+    
+page_imports:
+  - "package:flutter/material.dart"
+  - "package:flutter_riverpod/flutter_riverpod.dart"
+  - "package:granoflow/generated/l10n/app_localizations.dart"
+  - "../../core/providers/app_providers.dart"
+  - "../../core/providers/service_providers.dart"
+  - "../../core/theme/app_color_tokens.dart"
+  - "../../data/models/task.dart"
+  - "../widgets/page_app_bar.dart"
+  - "../widgets/main_drawer.dart"
+  
+page_categories:
+  main_pages:
+    - name: "TaskListPage"
+      description: "任务列表页面"
+      type: "ConsumerStatefulWidget"
+      category: "main"
+      
+page_interactions:
+  - name: "editModeToggle"
+    description: "编辑模式切换交互"
+    type: "tap"
+    handler: "编辑模式处理函数"
+    feedback: "视觉反馈"
+    accessibility: "支持无障碍"
+    
+  - name: "taskAction"
+    description: "任务操作交互"
+    type: "tap"
+    handler: "任务操作处理函数"
+    feedback: "视觉反馈"
+    accessibility: "支持无障碍"
+    
+page_animations:
+  - name: "pageAnimation"
+    description: "页面动画"
+    type: "fade"
+    duration: "300ms"
+    curve: "easeInOut"
+    trigger: "页面显示"
+    
+page_validation:
+  - field: "taskData"
+    rule: "not_null"
+    description: "任务数据不能为 null"
+    message: "任务数据不能为 null"
+    required: true
+    
+page_error_handling:
+  - exception: "TaskOperationException"
+    description: "任务操作异常"
+    handling: "处理任务操作错误并显示错误消息"
+    recovery: "重试机制"
+    user_feedback: "显示错误消息"
+    
+page_internationalization:
+  - name: "taskListPage"
+    description: "任务列表页面国际化"
+    languages: "zh_CN, en_US"
+    fallback: "en_US"
+    context: "任务列表"
+    
+page_theme_integration:
+  - name: "pageTheme"
+    description: "页面主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+  - name: "listTheme"
+    description: "列表主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+page_state_management:
+  - pattern: "Riverpod 状态管理"
+    description: "使用 Riverpod 管理状态"
+    implementation: "使用 ConsumerStatefulWidget"
+    benefits: "响应式、可测试"
+    considerations: "需要 Provider 配置"
+    
+page_navigation:
+  - name: "taskListNavigation"
+    description: "任务列表导航"
+    type: "route"
+    destination: "任务列表"
+    parameters: "无"
+    
+page_routing:
+  - name: "taskListRoute"
+    description: "任务列表路由"
+    path: "/tasks"
+    parameters: "无"
+    guards: "无"
+    
+page_data_flow:
+  - name: "taskDataFlow"
+    description: "任务数据流"
+    source: "任务服务"
+    destination: "任务列表"
+    transformation: "任务数据转换"
+    
+page_business_logic:
+  - name: "taskListLogic"
+    description: "任务列表逻辑"
+    implementation: "任务列表管理"
+    dependencies: "任务服务"
+    testing: "单元测试"
+    
+page_user_experience:
+  - name: "taskManagementExperience"
+    description: "任务管理体验"
+    implementation: "直观的任务管理界面"
+    benefits: "提升任务管理效率"
+    considerations: "编辑模式切换"
+    
+page_security:
+  - name: "taskSecurity"
+    description: "任务安全"
+    implementation: "任务数据验证"
+    testing: "安全测试"
+    compliance: "基础安全标准"
+    
+page_testing_strategy:
+  unit_tests:
+    - name: "test_page_creation"
+      description: "测试页面创建"
+    - name: "test_page_properties"
+      description: "测试页面属性"
+    - name: "test_page_state"
+      description: "测试页面状态"
+    - name: "test_page_lifecycle"
+      description: "测试页面生命周期"
+    - name: "test_page_interactions"
+      description: "测试页面交互"
+    - name: "test_page_events"
+      description: "测试页面事件"
+    - name: "test_page_styling"
+      description: "测试页面样式"
+    - name: "test_page_responsive"
+      description: "测试页面响应式"
+    - name: "test_page_accessibility"
+      description: "测试页面无障碍"
+    - name: "test_page_performance"
+      description: "测试页面性能"
+      
+  widget_tests:
+    - name: "test_page_rendering"
+      description: "测试页面渲染"
+    - name: "test_page_interactions"
+      description: "测试页面交互"
+    - name: "test_page_state_changes"
+      description: "测试页面状态变化"
+    - name: "test_page_animations"
+      description: "测试页面动画"
+    - name: "test_page_responsive_behavior"
+      description: "测试页面响应式行为"
+    - name: "test_page_accessibility"
+      description: "测试页面无障碍"
+    - name: "test_page_theme_integration"
+      description: "测试页面主题集成"
+    - name: "test_page_error_handling"
+      description: "测试页面错误处理"
+    - name: "test_page_validation"
+      description: "测试页面验证"
+    - name: "test_page_internationalization"
+      description: "测试页面国际化"
+      
+  integration_tests:
+    - name: "test_page_integration"
+      description: "测试页面集成"
+    - name: "test_page_coordination"
+      description: "测试页面协调"
+    - name: "test_page_data_flow"
+      description: "测试页面数据流"
+    - name: "test_page_navigation"
+      description: "测试页面导航"
+    - name: "test_page_state_management"
+      description: "测试页面状态管理"
+    - name: "test_page_performance"
+      description: "测试页面性能"
+    - name: "test_page_accessibility"
+      description: "测试页面无障碍"
+    - name: "test_page_responsive"
+      description: "测试页面响应式"
+    - name: "test_page_theme"
+      description: "测试页面主题"
+    - name: "test_page_internationalization"
+      description: "测试页面国际化"
+      
+  mock_strategy:
+    - name: "MockTaskListPage"
+      description: "Mock 实现用于测试"
+    - name: "FakeTaskListPage"
+      description: "Fake 实现用于测试"
+    - name: "TestTaskListPage"
+      description: "测试专用页面"

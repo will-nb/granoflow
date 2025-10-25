@@ -1,0 +1,283 @@
+meta:
+  name: "RepositoryProviders"
+  type: "provider"
+  file_path: "lib/core/providers/repository_providers.dart"
+  description: "仓库层 Provider 集合，管理数据访问层的依赖注入"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
+
+provider_definition:
+  name: "RepositoryProviders"
+  layer: "dependency_injection"
+  pattern: "provider"
+  scope: "global"
+  auto_dispose: false
+  
+provider_types:
+  - name: "Provider"
+    description: "基础 Provider，用于依赖注入"
+    usage: "依赖注入、单例管理"
+    
+providers:
+  - name: "isarProvider"
+    type: "Provider"
+    return_type: "Isar"
+    dependencies: []
+    description: "Isar 数据库实例 Provider"
+    auto_dispose: false
+    
+  - name: "taskRepositoryProvider"
+    type: "Provider"
+    return_type: "TaskRepository"
+    dependencies:
+      - name: "isarProvider"
+        type: "Isar"
+        description: "Isar 数据库实例依赖"
+    description: "任务仓库 Provider"
+    auto_dispose: false
+    
+  - name: "focusSessionRepositoryProvider"
+    type: "Provider"
+    return_type: "FocusSessionRepository"
+    dependencies:
+      - name: "isarProvider"
+        type: "Isar"
+        description: "Isar 数据库实例依赖"
+    description: "专注会话仓库 Provider"
+    auto_dispose: false
+    
+  - name: "tagRepositoryProvider"
+    type: "Provider"
+    return_type: "TagRepository"
+    dependencies:
+      - name: "isarProvider"
+        type: "Isar"
+        description: "Isar 数据库实例依赖"
+    description: "标签仓库 Provider"
+    auto_dispose: false
+    
+  - name: "preferenceRepositoryProvider"
+    type: "Provider"
+    return_type: "PreferenceRepository"
+    dependencies:
+      - name: "isarProvider"
+        type: "Isar"
+        description: "Isar 数据库实例依赖"
+    description: "偏好设置仓库 Provider"
+    auto_dispose: false
+    
+  - name: "metricRepositoryProvider"
+    type: "Provider"
+    return_type: "MetricRepository"
+    dependencies: []
+    description: "指标仓库 Provider"
+    auto_dispose: false
+    
+  - name: "taskTemplateRepositoryProvider"
+    type: "Provider"
+    return_type: "TaskTemplateRepository"
+    dependencies:
+      - name: "isarProvider"
+        type: "Isar"
+        description: "Isar 数据库实例依赖"
+    description: "任务模板仓库 Provider"
+    auto_dispose: false
+    
+  - name: "seedRepositoryProvider"
+    type: "Provider"
+    return_type: "SeedRepository"
+    dependencies:
+      - name: "isarProvider"
+        type: "Isar"
+        description: "Isar 数据库实例依赖"
+    description: "种子数据仓库 Provider"
+    auto_dispose: false
+    
+imports:
+  - "package:flutter_riverpod/flutter_riverpod.dart"
+  - "package:isar/isar.dart"
+  - "../../data/repositories/focus_session_repository.dart"
+  - "../../data/repositories/metric_repository.dart"
+  - "../../data/repositories/preference_repository.dart"
+  - "../../data/repositories/seed_repository.dart"
+  - "../../data/repositories/tag_repository.dart"
+  - "../../data/repositories/task_repository.dart"
+  - "../../data/repositories/task_template_repository.dart"
+  
+dependencies:
+  - name: "Isar"
+    type: "package:isar/isar.dart"
+    description: "Isar 数据库依赖"
+  - name: "TaskRepository"
+    type: "data/repositories/task_repository.dart"
+    description: "任务仓库依赖"
+  - name: "FocusSessionRepository"
+    type: "data/repositories/focus_session_repository.dart"
+    description: "专注会话仓库依赖"
+  - name: "TagRepository"
+    type: "data/repositories/tag_repository.dart"
+    description: "标签仓库依赖"
+  - name: "PreferenceRepository"
+    type: "data/repositories/preference_repository.dart"
+    description: "偏好设置仓库依赖"
+  - name: "MetricRepository"
+    type: "data/repositories/metric_repository.dart"
+    description: "指标仓库依赖"
+  - name: "TaskTemplateRepository"
+    type: "data/repositories/task_template_repository.dart"
+    description: "任务模板仓库依赖"
+  - name: "SeedRepository"
+    type: "data/repositories/seed_repository.dart"
+    description: "种子数据仓库依赖"
+    
+responsibilities:
+  - "数据访问层依赖注入"
+  - "数据库实例管理"
+  - "仓库实例管理"
+  - "数据访问协调"
+  - "数据库连接管理"
+  - "仓库生命周期管理"
+  
+provider_categories:
+  repository_providers:
+    - name: "taskRepositoryProvider"
+      description: "任务仓库 Provider"
+      type: "Provider"
+      return_type: "TaskRepository"
+    - name: "focusSessionRepositoryProvider"
+      description: "专注会话仓库 Provider"
+      type: "Provider"
+      return_type: "FocusSessionRepository"
+    - name: "tagRepositoryProvider"
+      description: "标签仓库 Provider"
+      type: "Provider"
+      return_type: "TagRepository"
+    - name: "preferenceRepositoryProvider"
+      description: "偏好设置仓库 Provider"
+      type: "Provider"
+      return_type: "PreferenceRepository"
+    - name: "metricRepositoryProvider"
+      description: "指标仓库 Provider"
+      type: "Provider"
+      return_type: "MetricRepository"
+    - name: "taskTemplateRepositoryProvider"
+      description: "任务模板仓库 Provider"
+      type: "Provider"
+      return_type: "TaskTemplateRepository"
+    - name: "seedRepositoryProvider"
+      description: "种子数据仓库 Provider"
+      type: "Provider"
+      return_type: "SeedRepository"
+      
+  database_providers:
+    - name: "isarProvider"
+      description: "Isar 数据库 Provider"
+      type: "Provider"
+      return_type: "Isar"
+      
+lifecycle_management:
+  - phase: "initialization"
+    description: "初始化阶段"
+    operations: ["数据库连接", "仓库实例创建", "依赖注入"]
+  - phase: "operation"
+    description: "运行阶段"
+    operations: ["数据访问", "仓库协调", "数据库操作"]
+  - phase: "disposal"
+    description: "清理阶段"
+    operations: ["资源释放", "连接关闭", "状态重置"]
+    
+state_management:
+  - pattern: "Provider"
+    description: "依赖注入管理"
+    implementation: "使用 Provider 管理仓库依赖"
+    benefits: "依赖注入、单例管理、生命周期管理"
+    
+error_handling:
+  - exception: "RepositoryException"
+    description: "仓库异常"
+    handling: "记录日志并重新抛出"
+    recovery: "重试机制"
+  - exception: "DatabaseException"
+    description: "数据库异常"
+    handling: "验证数据库连接并抛出描述性错误"
+    recovery: "连接重试"
+  - exception: "DependencyException"
+    description: "依赖异常"
+    handling: "验证依赖并抛出描述性错误"
+    recovery: "依赖重新注入"
+    
+performance_considerations:
+  - operation: "repository_creation"
+    optimization: "仓库创建优化"
+    description: "仓库实例创建性能优化"
+    caching: "仓库实例缓存策略"
+  - operation: "database_connection"
+    optimization: "数据库连接优化"
+    description: "数据库连接性能优化"
+    caching: "连接池策略"
+  - operation: "dependency_injection"
+    optimization: "依赖注入优化"
+    description: "依赖注入性能优化"
+    caching: "依赖缓存策略"
+    
+testing_strategy:
+  unit_tests:
+    - name: "test_provider_creation"
+      description: "测试 Provider 创建"
+    - name: "test_provider_dependencies"
+      description: "测试 Provider 依赖"
+    - name: "test_provider_state"
+      description: "测试 Provider 状态"
+    - name: "test_provider_lifecycle"
+      description: "测试 Provider 生命周期"
+    - name: "test_provider_disposal"
+      description: "测试 Provider 清理"
+    - name: "test_repository_providers"
+      description: "测试仓库 Provider"
+    - name: "test_database_providers"
+      description: "测试数据库 Provider"
+      
+  integration_tests:
+    - name: "test_provider_integration"
+      description: "测试 Provider 集成"
+    - name: "test_provider_coordination"
+      description: "测试 Provider 协调"
+    - name: "test_repository_coordination"
+      description: "测试仓库协调"
+    - name: "test_database_connection"
+      description: "测试数据库连接"
+      
+  mock_strategy:
+    - name: "MockRepositoryProviders"
+      description: "Mock 实现用于测试"
+    - name: "FakeRepositoryProviders"
+      description: "Fake 实现用于测试"
+    - name: "TestRepositoryProviders"
+      description: "测试专用 Provider"
+      
+provider_families:
+  - name: "repositoryProviderFamily"
+    description: "仓库 Provider 家族"
+    parameters:
+      - name: "repositoryType"
+        type: "String"
+        description: "仓库类型参数"
+    usage: "参数化的仓库 Provider"
+    benefits: "支持多种仓库类型"
+    
+provider_scopes:
+  - name: "global"
+    description: "全局作用域"
+    usage: "应用级别的 Provider"
+    lifecycle: "应用生命周期"
+    
+  - name: "local"
+    description: "局部作用域"
+    usage: "组件级别的 Provider"
+    lifecycle: "组件生命周期"
+    
+  - name: "family"
+    description: "家族作用域"
+    usage: "参数化的 Provider"
+    lifecycle: "参数生命周期"

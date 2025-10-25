@@ -1,0 +1,369 @@
+meta:
+  id: "251025-4"
+  title: "双侧边栏架构重构"
+  description: "创建MainDrawer组件，实现DrawerMenu永远显示 + 主菜单按钮控制抽屉的双侧边栏架构"
+  author: "Assistant"
+  created_at: "2025-01-25"
+  type: "preview"
+
+summary:
+  objective: "重构侧边栏架构，实现DrawerMenu永远显示 + 主菜单按钮控制抽屉的双侧边栏设计"
+  requirements:
+    - "DrawerMenu永远显示：横屏作为左侧边栏，竖屏作为底部导航栏"
+    - "创建MainDrawer组件：显示SidebarDestinations，由主菜单按钮控制"
+    - "修改PageAppBar：主菜单按钮控制MainDrawer抽屉"
+    - "保持现有功能不变"
+    - "确保两个侧边栏不冲突"
+
+component_design:
+  current_architecture:
+    name: "当前架构问题"
+    issues:
+      - "DrawerMenu在竖屏模式下被误用为抽屉"
+      - "主菜单按钮控制的是DrawerMenu而不是专门的抽屉"
+      - "缺少专门的页面导航抽屉"
+      - "用户体验混乱"
+
+  target_architecture:
+    name: "目标架构"
+    components:
+      - name: "DrawerMenu"
+        description: "永远显示的侧边栏"
+        display_modes:
+          landscape: "左侧边栏显示"
+          portrait: "底部导航栏显示"
+        content: "应用主要功能"
+        control: "自动显示，无需用户操作"
+
+      - name: "MainDrawer"
+        description: "页面导航抽屉"
+        display_modes:
+          landscape: "不显示（DrawerMenu已提供导航）"
+          portrait: "抽屉显示"
+        content: "SidebarDestinations导航选项"
+        control: "主菜单按钮控制显示/隐藏"
+
+      - name: "PageAppBar"
+        description: "页面顶部导航栏"
+        features:
+          - "主菜单按钮：控制MainDrawer"
+          - "动态标题：根据页面显示"
+          - "操作按钮：页面特有功能"
+
+modified_files:
+  lib/presentation/widgets/main_drawer.dart:
+    description: "新建页面导航抽屉组件"
+    new_structure: |
+      class MainDrawer extends StatelessWidget {
+        const MainDrawer({super.key});
+
+        @override
+        Widget build(BuildContext context) {
+          return Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  child: Text(
+                    'GranoFlow',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+                ...SidebarDestinations.values.map((destination) {
+                  return ListTile(
+                    leading: Icon(destination.icon),
+                    title: Text(destination.label),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      // 处理路由跳转
+                    },
+                  );
+                }).toList(),
+              ],
+            ),
+          );
+        }
+      }
+
+  lib/presentation/widgets/page_app_bar.dart:
+    description: "修改PageAppBar组件，主菜单按钮控制MainDrawer"
+    changes:
+      - "主菜单按钮控制MainDrawer而不是DrawerMenu"
+      - "保持现有功能不变"
+      - "确保抽屉功能正常"
+    implementation: |
+      // 主菜单按钮现在控制MainDrawer
+      leading: showMenuButton ? Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+          tooltip: '打开主菜单',
+        ),
+      ) : null,
+
+  lib/presentation/navigation/responsive_navigation.dart:
+    description: "修改ResponsiveNavigation，让DrawerMenu永远显示"
+    changes:
+      - "移除竖屏模式下的drawer属性"
+      - "让DrawerMenu在竖屏模式下作为底部导航栏显示"
+      - "调整布局结构"
+    implementation: |
+      // 竖屏模式下显示DrawerMenu作为底部导航栏
+      } else {
+        return Scaffold(
+          body: Row(
+            children: [
+              // DrawerMenu永远显示
+              DrawerMenu(
+                displayMode: DrawerDisplayMode.full,
+                selectedIndex: widget.selectedIndex,
+                onDestinationSelected: (destination) {
+                  // 处理DrawerMenu导航
+                },
+              ),
+              Expanded(child: widget.child),
+            ],
+          ),
+          bottomNavigationBar: AppNavigationBar(
+            selectedIndex: widget.selectedIndex,
+            onDestinationSelected: widget.onDestinationSelected,
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _showCreateTaskDialog(context),
+            child: const Icon(Icons.add),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            elevation: 0,
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        );
+      }
+
+  lib/presentation/home/home_page.dart:
+    description: "首页添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: const PageAppBar(
+          title: 'Home',
+        ),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+  lib/presentation/achievements/achievements_page.dart:
+    description: "成就页面添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: const PageAppBar(
+          title: 'Achievements',
+        ),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+  lib/presentation/tasks/task_list_page.dart:
+    description: "任务列表页面添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: const PageAppBar(
+          title: 'Tasks',
+        ),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+  lib/presentation/completion_management/trash_page.dart:
+    description: "垃圾箱页面添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: const PageAppBar(
+          title: 'Trash',
+        ),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+  lib/presentation/completion_management/completed_page.dart:
+    description: "已完成页面添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: const PageAppBar(
+          title: 'Completed',
+        ),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+  lib/presentation/inbox/inbox_page.dart:
+    description: "收集箱页面添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: const PageAppBar(
+          title: 'Inbox',
+        ),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+  lib/presentation/timer/timer_page.dart:
+    description: "计时器页面添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: PageAppBar(title: l10n.actionStartTimer),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+  lib/presentation/navigation/settings_controls.dart:
+    description: "设置页面添加MainDrawer"
+    changes:
+      - "添加drawer属性使用MainDrawer"
+      - "保持现有功能不变"
+    implementation: |
+      return Scaffold(
+        appBar: const PageAppBar(
+          title: 'Settings',
+        ),
+        drawer: const MainDrawer(),
+        body: // 现有内容
+      ),
+
+architecture_updates:
+  responsive_navigation:
+    description: "ResponsiveNavigation架构调整"
+    changes:
+      - "DrawerMenu永远显示：横屏左侧边栏，竖屏底部导航栏"
+      - "移除竖屏模式下的drawer属性"
+      - "调整布局结构确保DrawerMenu永远可见"
+    benefits:
+      - "用户体验一致"
+      - "导航功能清晰"
+      - "避免侧边栏冲突"
+
+  drawer_integration:
+    description: "抽屉集成"
+    changes:
+      - "MainDrawer作为页面导航抽屉"
+      - "PageAppBar主菜单按钮控制MainDrawer"
+      - "确保两个侧边栏功能不冲突"
+    benefits:
+      - "导航层次清晰"
+      - "功能分离明确"
+      - "用户体验优化"
+
+testing_strategy:
+  unit_tests:
+    - "test_main_drawer_creation"
+    - "test_main_drawer_navigation"
+    - "test_page_app_bar_drawer_control"
+    - "test_responsive_navigation_layout"
+
+  widget_tests:
+    - "test_main_drawer_rendering"
+    - "test_main_drawer_interactions"
+    - "test_drawer_menu_always_visible"
+    - "test_dual_sidebar_integration"
+
+  integration_tests:
+    - "test_landscape_mode"
+    - "test_portrait_mode"
+    - "test_navigation_flow"
+    - "test_sidebar_conflicts"
+
+success_criteria:
+  functionality:
+    - "DrawerMenu永远显示：横屏左侧边栏，竖屏底部导航栏"
+    - "MainDrawer正确显示SidebarDestinations"
+    - "主菜单按钮正确控制MainDrawer"
+    - "两个侧边栏功能不冲突"
+    - "所有页面导航正常"
+
+  user_experience:
+    - "导航层次清晰"
+    - "功能分离明确"
+    - "用户体验一致"
+    - "响应式设计良好"
+
+  code_quality:
+    - "架构清晰"
+    - "组件职责明确"
+    - "代码复用性高"
+    - "维护性良好"
+
+implementation_phases:
+  phase_1:
+    name: "创建MainDrawer组件"
+    tasks:
+      - "创建MainDrawer组件文件"
+      - "实现SidebarDestinations显示"
+      - "添加路由跳转逻辑"
+      - "编写单元测试"
+
+  phase_2:
+    name: "修改ResponsiveNavigation"
+    tasks:
+      - "让DrawerMenu永远显示"
+      - "移除竖屏模式下的drawer属性"
+      - "调整布局结构"
+      - "测试布局效果"
+
+  phase_3:
+    name: "更新所有页面"
+    tasks:
+      - "为所有页面添加MainDrawer"
+      - "测试抽屉功能"
+      - "验证导航跳转"
+      - "检查功能完整性"
+
+  phase_4:
+    name: "集成测试和优化"
+    tasks:
+      - "测试双侧边栏集成"
+      - "验证响应式行为"
+      - "性能优化"
+      - "最终验证"
+
+benefits:
+  architecture:
+    - "清晰的导航层次"
+    - "组件职责明确"
+    - "架构可维护性高"
+
+  user_experience:
+    - "导航功能清晰"
+    - "用户体验一致"
+    - "响应式设计良好"
+
+  development:
+    - "代码结构清晰"
+    - "组件复用性高"
+    - "易于扩展和维护"

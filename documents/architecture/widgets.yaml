@@ -33,6 +33,21 @@ components:
     description: "应用路由系统，集成 go_router"
     type: "static_class"
 
+  - name: "MainDrawer"
+    file: "widgets/main_drawer.yaml"
+    description: "主抽屉组件，显示页面导航选项，由主菜单按钮控制"
+    type: "StatelessWidget"
+
+  - name: "PageAppBar"
+    file: "widgets/page_app_bar.yaml"
+    description: "统一的页面顶部导航栏组件，支持主菜单按钮和动态标题"
+    type: "StatelessWidget"
+
+  - name: "CreateTaskDialog"
+    file: "widgets/create_task_dialog.yaml"
+    description: "创建任务对话框组件，支持任务标题、标签和父任务选择"
+    type: "ConsumerStatefulWidget"
+
   # 业务组件
   - name: "DashboardMetricCard"
     file: "widgets/dashboard_metric_card.yaml"
@@ -75,6 +90,8 @@ categories:
       - "ResponsiveNavigation"
       - "AppShell"
       - "AppRouter"
+      - "MainDrawer"
+      - "PageAppBar"
 
   business:
     description: "业务逻辑组件"
@@ -85,6 +102,7 @@ categories:
       - "ChipToggleGroup"
       - "TaskSectionList"
       - "FocusTimerDisplay"
+      - "CreateTaskDialog"
 
 # 组件依赖关系
 dependencies:
@@ -115,6 +133,18 @@ dependencies:
     - "package:flutter/material.dart"
     - "AppShell"
     - "所有页面组件"
+
+  MainDrawer:
+    - "package:flutter/material.dart"
+    - "package:go_router/go_router.dart"
+    - "sidebar_destinations.dart"
+
+  PageAppBar:
+    - "package:flutter/material.dart"
+
+  CreateTaskDialog:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
 
 # 测试策略
 testing:

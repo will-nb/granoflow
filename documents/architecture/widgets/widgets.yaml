@@ -1,0 +1,228 @@
+# GranoFlow 组件架构文档
+# 
+# 这个文件定义了所有 UI 组件的架构信息，包括导航组件、业务组件、依赖关系和测试策略。
+
+# 组件列表
+components:
+  # 导航组件
+  - name: "NavigationDestinations"
+    file: "navigation_destinations.yaml"
+    description: "导航目标枚举，定义应用的主要导航选项"
+    type: "Enum"
+
+  - name: "DrawerMenu"
+    file: "drawer_menu.yaml"
+    description: "抽屉菜单组件，支持横屏侧边栏和竖屏底部导航"
+    type: "StatelessWidget"
+
+  - name: "AppNavigationBar"
+    file: "navigation_bar.yaml"
+    description: "应用底部导航栏组件"
+    type: "StatelessWidget"
+
+  - name: "ResponsiveNavigation"
+    file: "responsive_navigation.yaml"
+    description: "响应式导航组件，根据屏幕方向切换导航方式"
+    type: "StatefulWidget"
+
+  - name: "AppShell"
+    file: "app_shell.yaml"
+    description: "应用外壳组件，包装主要内容并提供导航"
+    type: "ConsumerWidget"
+
+  - name: "AppRouter"
+    file: "app_router.yaml"
+    description: "应用路由配置，定义页面导航规则"
+    type: "GoRouter"
+
+  - name: "MainDrawer"
+    file: "main_drawer.yaml"
+    description: "主抽屉组件，显示页面导航选项，由主菜单按钮控制"
+    type: "StatelessWidget"
+
+  - name: "PageAppBar"
+    file: "page_app_bar.yaml"
+    description: "统一的页面顶部导航栏组件，支持主菜单按钮和动态标题"
+    type: "StatelessWidget"
+
+  # 业务组件
+  - name: "DashboardMetricCard"
+    file: "dashboard_metric_card.yaml"
+    description: "仪表板指标卡片组件"
+    type: "StatelessWidget"
+
+  - name: "PrimaryActionButton"
+    file: "primary_action_button.yaml"
+    description: "主要操作按钮组件"
+    type: "StatelessWidget"
+
+  - name: "PersistentInboxInput"
+    file: "persistent_inbox_input.yaml"
+    description: "持久化收集箱输入组件"
+    type: "StatefulWidget"
+
+  - name: "ChipToggleGroup"
+    file: "chip_toggle_group.yaml"
+    description: "芯片切换组组件"
+    type: "StatelessWidget"
+
+  - name: "TaskSectionList"
+    file: "task_section_list.yaml"
+    description: "任务分区列表组件"
+    type: "StatelessWidget"
+
+  - name: "FocusTimerDisplay"
+    file: "focus_timer_display.yaml"
+    description: "专注计时器显示组件"
+    type: "StatefulWidget"
+
+  - name: "CreateTaskDialog"
+    file: "create_task_dialog.yaml"
+    description: "创建任务对话框组件，支持任务标题、标签和父任务选择"
+    type: "ConsumerStatefulWidget"
+
+# 组件分类
+categories:
+  navigation:
+    description: "导航相关组件"
+    components:
+      - "NavigationDestinations"
+      - "DrawerMenu"
+      - "AppNavigationBar"
+      - "ResponsiveNavigation"
+      - "AppShell"
+      - "AppRouter"
+      - "MainDrawer"
+      - "PageAppBar"
+
+  business:
+    description: "业务逻辑组件"
+    components:
+      - "DashboardMetricCard"
+      - "PrimaryActionButton"
+      - "PersistentInboxInput"
+      - "ChipToggleGroup"
+      - "TaskSectionList"
+      - "FocusTimerDisplay"
+      - "CreateTaskDialog"
+
+# 依赖关系
+dependencies:
+  NavigationDestinations:
+    - "package:flutter/material.dart"
+
+  DrawerMenu:
+    - "package:flutter/material.dart"
+    - "navigation_destinations.dart"
+
+  AppNavigationBar:
+    - "package:flutter/material.dart"
+    - "navigation_destinations.dart"
+
+  ResponsiveNavigation:
+    - "package:flutter/material.dart"
+    - "DrawerMenu"
+    - "AppNavigationBar"
+
+  AppShell:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+    - "ResponsiveNavigation"
+
+  AppRouter:
+    - "package:go_router/go_router.dart"
+    - "package:flutter/material.dart"
+
+  MainDrawer:
+    - "package:flutter/material.dart"
+    - "package:go_router/go_router.dart"
+    - "navigation_destinations.dart"
+
+  PageAppBar:
+    - "package:flutter/material.dart"
+
+  DashboardMetricCard:
+    - "package:flutter/material.dart"
+
+  PrimaryActionButton:
+    - "package:flutter/material.dart"
+
+  PersistentInboxInput:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+
+  ChipToggleGroup:
+    - "package:flutter/material.dart"
+
+  TaskSectionList:
+    - "package:flutter/material.dart"
+
+  FocusTimerDisplay:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+
+  CreateTaskDialog:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+
+# 测试策略
+testing:
+  unit_tests:
+    description: "单元测试，测试组件的独立功能"
+    coverage_target: "80%"
+    tools:
+      - "flutter_test"
+      - "mockito"
+
+  widget_tests:
+    description: "组件测试，测试组件的渲染和交互"
+    coverage_target: "70%"
+    tools:
+      - "flutter_test"
+      - "flutter_test/widget_test.dart"
+
+  integration_tests:
+    description: "集成测试，测试组件间的协作"
+    coverage_target: "60%"
+    tools:
+      - "flutter_test"
+      - "integration_test"
+
+# 性能优化
+performance:
+  rendering:
+    description: "渲染性能优化"
+    techniques:
+      - "使用 const 构造函数"
+      - "避免不必要的重建"
+      - "使用 RepaintBoundary"
+
+  memory:
+    description: "内存使用优化"
+    techniques:
+      - "及时释放资源"
+      - "使用 WeakReference"
+      - "避免内存泄漏"
+
+  cpu:
+    description: "CPU 使用优化"
+    techniques:
+      - "使用 Isolate 处理重计算"
+      - "优化算法复杂度"
+      - "使用缓存机制"
+
+# 安全考虑
+security:
+  data_protection:
+    description: "数据保护"
+    measures:
+      - "本地数据加密"
+      - "敏感信息脱敏"
+      - "访问权限控制"
+
+  code_security:
+    description: "代码安全"
+    measures:
+      - "输入验证"
+      - "防止注入攻击"
+      - "安全编码实践"

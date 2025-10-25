@@ -1,74 +1,177 @@
 meta:
-  name: TaskTemplate Model
-  version: 1.0
-  created_date: 251024
-  last_updated: 251024
-  description: >
-    任务模板模型 - 定义可重用的任务蓝图，用于重复活动（例如跑步、瑜伽）。
-    应用模板会实例化一个继承标题、父任务和标签的叶子任务。
+  name: "TaskTemplate Model"
+  type: "model"
+  file_path: "lib/data/models/task_template.dart"
+  description: "任务模板模型，用于快速创建相似任务"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
 
 model_definition:
-  name: TaskTemplate
-  storage: isar_collection
-  indexes:
-    - field: title
-    - field: lastUsedAtUtc
-    - field: parentTaskId
-
+  name: "TaskTemplate"
+  storage: "isar_collection"
+  immutable: true
+  annotation: "@immutable"
+  
 fields:
-  - name: id
-    type: int
-    isar_id: true
-
-  - name: title
-    type: String
-    notes: 必需字段；在自动完成建议中显示
-
-  - name: parentTaskId
-    type: int?
-    notes: 可选的父任务链接；设置时，引用任务的 templateLockCount 递增
-
-  - name: defaultTags
-    type: List<String>
-    notes: 默认标签列表
-
-  - name: createdAtUtc
-    type: DateTime
-
-  - name: updatedAtUtc
-    type: DateTime
-
-  - name: lastUsedAtUtc
-    type: DateTime?
-    notes: 模板实例化任务时更新；用于排序建议
-
-  - name: seedSlug
-    type: String?
-    notes: 种子导入的临时标识符；不暴露给 UI
-
-business_rules:
-  - 标题是必需字段
-  - 应用模板时更新 lastUsedAtUtc
-  - 父任务存在时递增其 templateLockCount
-  - 模板可以没有父任务（独立模板）
-
-template_application:
-  - 创建新的叶子任务
-  - 继承模板的标题和标签
-  - 设置可选的父任务
-  - 更新使用时间戳
-
-suggestions_system:
-  - 基于 lastUsedAtUtc 排序
-  - 在任务创建时提供建议
-  - 支持快速重复任务创建
-
+  - name: "id"
+    type: "int"
+    required: true
+    nullable: false
+    final: true
+    description: "Isar 数据库主键"
+    
+  - name: "title"
+    type: "String"
+    required: true
+    nullable: false
+    final: true
+    description: "模板标题"
+    
+  - name: "parentTaskId"
+    type: "int?"
+    required: false
+    nullable: true
+    final: true
+    description: "父任务 ID"
+    
+  - name: "defaultTags"
+    type: "List<String>"
+    required: false
+    nullable: false
+    default: "const <String>[]"
+    final: true
+    description: "默认标签列表"
+    
+  - name: "createdAt"
+    type: "DateTime"
+    required: true
+    nullable: false
+    final: true
+    description: "创建时间"
+    
+  - name: "updatedAt"
+    type: "DateTime"
+    required: true
+    nullable: false
+    final: true
+    description: "最后更新时间"
+    
+  - name: "lastUsedAt"
+    type: "DateTime?"
+    required: false
+    nullable: true
+    final: true
+    description: "最后使用时间"
+    
+  - name: "seedSlug"
+    type: "String?"
+    required: false
+    nullable: true
+    final: true
+    description: "种子数据标识符"
+    
+  - name: "suggestedEstimateMinutes"
+    type: "int?"
+    required: false
+    nullable: true
+    final: true
+    description: "建议的预估分钟数"
+    
+constructors:
+  - type: "const"
+    name: "TaskTemplate"
+    parameters:
+      - name: "id"
+        type: "int"
+        required: true
+      - name: "title"
+        type: "String"
+        required: true
+      - name: "createdAt"
+        type: "DateTime"
+        required: true
+      - name: "updatedAt"
+        type: "DateTime"
+        required: true
+      - name: "parentTaskId"
+        type: "int?"
+        required: false
+      - name: "defaultTags"
+        type: "List<String>"
+        required: false
+        default: "const <String>[]"
+      - name: "lastUsedAt"
+        type: "DateTime?"
+        required: false
+      - name: "seedSlug"
+        type: "String?"
+        required: false
+      - name: "suggestedEstimateMinutes"
+        type: "int?"
+        required: false
+    description: "主构造函数"
+    
+methods:
+  - name: "copyWith"
+    return_type: "TaskTemplate"
+    parameters:
+      - name: "id"
+        type: "int?"
+        required: false
+      - name: "title"
+        type: "String?"
+        required: false
+      - name: "parentTaskId"
+        type: "int?"
+        required: false
+      - name: "defaultTags"
+        type: "List<String>?"
+        required: false
+      - name: "createdAt"
+        type: "DateTime?"
+        required: false
+      - name: "updatedAt"
+        type: "DateTime?"
+        required: false
+      - name: "lastUsedAt"
+        type: "DateTime?"
+        required: false
+      - name: "seedSlug"
+        type: "String?"
+        required: false
+      - name: "suggestedEstimateMinutes"
+        type: "int?"
+        required: false
+    visibility: "public"
+    description: "创建任务模板副本"
+    
+imports:
+  - "package:flutter/foundation.dart"
+  
+dependencies: []
+  
 relationships:
-  - parent_task: Task? (parentTaskId -> Task.id)
-  - created_tasks: List<Task> (通过模板应用创建)
-
-lifecycle:
-  - created: 用户创建模板时
-  - updated: 模板信息修改时
-  - used: 应用模板创建任务时
-  - deleted: 用户删除模板时（需要检查依赖）
+  - type: "many_to_one"
+    target: "Task"
+    field: "parentTaskId"
+    description: "关联父任务"
+    
+validation_rules:
+  - field: "title"
+    rule: "not_empty"
+    description: "模板标题不能为空"
+  - field: "suggestedEstimateMinutes"
+    rule: "positive"
+    description: "建议预估分钟数必须为正数"
+    
+business_rules:
+  - name: "template_usage_tracking"
+    description: "跟踪模板使用情况"
+    implementation: "更新 lastUsedAt 字段"
+    
+storage_config:
+  indexes:
+    - field: "parentTaskId"
+    - field: "lastUsedAt"
+    - field: "createdAt"

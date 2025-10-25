@@ -1,0 +1,90 @@
+meta:
+  id: "251025-4-step"
+  title: "双侧边栏架构重构 - 实施步骤"
+  description: "基于preview文档的具体实施计划"
+  author: "Assistant"
+  created_at: "2025-01-25"
+  type: "step"
+
+summary:
+  objective: "创建MainDrawer组件，实现DrawerMenu永远显示 + 主菜单按钮控制抽屉的双侧边栏架构"
+  phases:
+    - "Phase 1: 创建MainDrawer组件"
+    - "Phase 2: 修改ResponsiveNavigation让DrawerMenu永远显示"
+    - "Phase 3: 更新所有页面添加MainDrawer"
+    - "Phase 4: 集成测试和优化"
+
+implementation_steps:
+  step_1:
+    name: "创建MainDrawer组件"
+    description: "创建页面导航抽屉组件"
+    files:
+      - "lib/presentation/widgets/main_drawer.dart"
+    tasks:
+      - "创建MainDrawer类"
+      - "实现SidebarDestinations显示"
+      - "添加路由跳转逻辑"
+      - "添加DrawerHeader"
+      - "编写单元测试"
+
+  step_2:
+    name: "修改ResponsiveNavigation"
+    description: "让DrawerMenu永远显示，移除竖屏模式下的drawer属性"
+    files:
+      - "lib/presentation/navigation/responsive_navigation.dart"
+    tasks:
+      - "移除竖屏模式下的drawer属性"
+      - "让DrawerMenu在竖屏模式下作为底部导航栏显示"
+      - "调整布局结构"
+      - "测试布局效果"
+
+  step_3:
+    name: "更新所有页面"
+    description: "为所有页面添加MainDrawer抽屉"
+    files:
+      - "lib/presentation/home/home_page.dart"
+      - "lib/presentation/achievements/achievements_page.dart"
+      - "lib/presentation/tasks/task_list_page.dart"
+      - "lib/presentation/completion_management/trash_page.dart"
+      - "lib/presentation/completion_management/completed_page.dart"
+      - "lib/presentation/inbox/inbox_page.dart"
+      - "lib/presentation/timer/timer_page.dart"
+      - "lib/presentation/navigation/settings_controls.dart"
+    tasks:
+      - "为所有页面添加drawer属性"
+      - "使用MainDrawer组件"
+      - "测试抽屉功能"
+      - "验证导航跳转"
+
+  step_4:
+    name: "集成测试"
+    description: "测试双侧边栏集成和响应式行为"
+    files:
+      - "lib/presentation/navigation/responsive_navigation.dart"
+      - "lib/presentation/widgets/page_app_bar.dart"
+    tasks:
+      - "测试横屏模式：DrawerMenu左侧边栏"
+      - "测试竖屏模式：DrawerMenu底部导航栏 + MainDrawer抽屉"
+      - "测试主菜单按钮功能"
+      - "测试导航跳转"
+      - "验证两个侧边栏不冲突"
+
+  step_5:
+    name: "最终验证"
+    description: "验证所有功能正常工作"
+    tasks:
+      - "运行flutter analyze"
+      - "测试所有页面导航"
+      - "验证响应式行为"
+      - "检查性能影响"
+      - "确保功能完整性"
+
+success_criteria:
+  - "DrawerMenu永远显示：横屏左侧边栏，竖屏底部导航栏"
+  - "MainDrawer正确显示SidebarDestinations"
+  - "主菜单按钮正确控制MainDrawer"
+  - "两个侧边栏功能不冲突"
+  - "所有页面导航正常"
+  - "响应式设计良好"
+  - "无编译错误"
+  - "功能完全正常"

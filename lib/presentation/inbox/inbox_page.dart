@@ -14,6 +14,8 @@ import '../../data/models/task_template.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../navigation/navigation_destinations.dart';
 import '../widgets/chip_toggle_group.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
   const InboxPage({super.key});
@@ -49,10 +51,10 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     final priorityTagsAsync = ref.watch(priorityTagOptionsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inbox'),
-        actions: [],
+      appBar: const PageAppBar(
+        title: 'Inbox',
       ),
+      drawer: const MainDrawer(),
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(

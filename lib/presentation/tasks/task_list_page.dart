@@ -6,6 +6,8 @@ import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/theme/app_color_tokens.dart';
 import '../../data/models/task.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 
 class TaskListPage extends ConsumerStatefulWidget {
   const TaskListPage({super.key});
@@ -29,10 +31,10 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tasks'),
-        actions: [],
+      appBar: const PageAppBar(
+        title: 'Tasks',
       ),
+      drawer: const MainDrawer(),
       body: Column(
         children: [
         // 模式切换控件

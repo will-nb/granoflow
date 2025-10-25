@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'navigation_destinations.dart';
+import '../widgets/create_task_dialog.dart';
 
 /// 抽屉菜单显示模式
 enum DrawerDisplayMode {
@@ -134,6 +135,21 @@ class DrawerMenu extends StatelessWidget {
                       }).toList(),
                     ),
             ),
+            // 横屏模式下集成 FAB
+            if (MediaQuery.of(context).orientation == Orientation.landscape)
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: FloatingActionButton(
+                  onPressed: () => _showCreateTaskDialog(context),
+                  child: const Icon(Icons.add),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16), // Reddit 风格圆角
+                  ),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  elevation: 4, // 悬浮突出效果
+                ),
+              ),
           ],
         ),
       ),
@@ -150,5 +166,32 @@ class DrawerMenu extends StatelessWidget {
       case DrawerDisplayMode.full:
         return 280;
     }
+  }
+
+  /// 显示创建任务弹窗
+  void _showCreateTaskDialog(BuildContext context) {
+    // 横屏模式：从左往右滑出
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return const CreateTaskDialog();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-1.0, 0.0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut,
+          )),
+          child: child,
+        );
+      },
+    );
   }
 }

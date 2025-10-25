@@ -12,6 +12,8 @@ import '../../data/models/task.dart';
 import '../../data/models/task_template.dart';
 import '../navigation/navigation_destinations.dart';
 import '../end_session/end_session_dialog.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({super.key});
@@ -38,7 +40,8 @@ class _TimerPageState extends ConsumerState<TimerPage> {
         : ref.watch(focusSessionProvider(_selectedTask!.id));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.actionStartTimer)),
+      appBar: PageAppBar(title: l10n.actionStartTimer),
+      drawer: const MainDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

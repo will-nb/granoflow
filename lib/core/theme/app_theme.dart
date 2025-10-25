@@ -20,7 +20,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
         elevation: 2,
-        shadowColor: colorScheme.shadow.withOpacity(0.1),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
         surfaceTintColor: colorScheme.surfaceTint,
         titleTextStyle: _buildTextTheme(colorScheme, Brightness.light).titleLarge?.copyWith(
           fontWeight: FontWeight.w600,
@@ -30,7 +30,7 @@ class AppTheme {
       // Modern Card design
       cardTheme: CardThemeData(
         elevation: 1,
-        shadowColor: colorScheme.shadow.withOpacity(0.1),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
         surfaceTintColor: colorScheme.surfaceTint,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -41,7 +41,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 1,
-          shadowColor: colorScheme.shadow.withOpacity(0.1),
+          shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -81,7 +81,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 1,
-        shadowColor: colorScheme.shadow.withOpacity(0.1),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
         // 使用主题色作为选中状态的颜色，去掉椭圆背景
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -114,7 +114,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 4,
-        shadowColor: colorScheme.shadow.withOpacity(0.2),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
@@ -125,7 +125,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 4,
-        shadowColor: colorScheme.shadow.withOpacity(0.2),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -151,7 +151,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
         elevation: 2,
-        shadowColor: colorScheme.shadow.withOpacity(0.2),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
         surfaceTintColor: colorScheme.surfaceTint,
         titleTextStyle: _buildTextTheme(colorScheme, Brightness.dark).titleLarge?.copyWith(
           fontWeight: FontWeight.w600,
@@ -161,7 +161,7 @@ class AppTheme {
       // Modern Card design
       cardTheme: CardThemeData(
         elevation: 1,
-        shadowColor: colorScheme.shadow.withOpacity(0.2),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
         surfaceTintColor: colorScheme.surfaceTint,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -172,7 +172,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 1,
-          shadowColor: colorScheme.shadow.withOpacity(0.2),
+          shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -212,7 +212,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 1,
-        shadowColor: colorScheme.shadow.withOpacity(0.2),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
         // 使用主题色作为选中状态的颜色，去掉椭圆背景
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -245,7 +245,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 4,
-        shadowColor: colorScheme.shadow.withOpacity(0.3),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
@@ -256,7 +256,7 @@ class AppTheme {
         backgroundColor: colorScheme.surface,
         surfaceTintColor: colorScheme.surfaceTint,
         elevation: 4,
-        shadowColor: colorScheme.shadow.withOpacity(0.3),
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),

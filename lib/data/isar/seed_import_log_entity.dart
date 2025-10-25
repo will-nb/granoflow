@@ -6,7 +6,7 @@ part 'seed_import_log_entity.g.dart';
 class SeedImportLogEntity {
   SeedImportLogEntity();
 
-  Id id = Isar.autoIncrement;
+  Id id = 0;
 
   late String version;
 

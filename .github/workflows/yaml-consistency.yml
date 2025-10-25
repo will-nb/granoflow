@@ -1,0 +1,252 @@
+name: YAML Consistency Tests
+
+# 触发条件
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+# 环境变量
+env:
+  FLUTTER_VERSION: '3.24.0'
+
+jobs:
+  yaml-consistency:
+    name: YAML Consistency Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: Get Flutter dependencies
+        run: flutter pub get
+        
+      - name: Verify Flutter installation
+        run: flutter doctor
+        
+      - name: Check YAML files exist
+        run: |
+          echo "🔍 检查必需的 YAML 文件..."
+          REQUIRED_FILES=(
+            "documents/architecture/widgets/navigation_destinations.yaml"
+            "documents/architecture/widgets/drawer_menu.yaml"
+            "documents/architecture/widgets/responsive_navigation.yaml"
+            "documents/architecture/widgets/main_drawer.yaml"
+            "documents/architecture/widgets/page_app_bar.yaml"
+            "documents/architecture/widgets/create_task_dialog.yaml"
+            "documents/architecture/widgets/widgets.yaml"
+          )
+          
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "❌ 必需的 YAML 文件不存在: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ 所有必需的 YAML 文件存在"
+          
+      - name: Validate YAML syntax
+        run: |
+          echo "🔍 验证 YAML 语法..."
+          REQUIRED_FILES=(
+            "documents/architecture/widgets/navigation_destinations.yaml"
+            "documents/architecture/widgets/drawer_menu.yaml"
+            "documents/architecture/widgets/responsive_navigation.yaml"
+            "documents/architecture/widgets/main_drawer.yaml"
+            "documents/architecture/widgets/page_app_bar.yaml"
+            "documents/architecture/widgets/create_task_dialog.yaml"
+            "documents/architecture/widgets/widgets.yaml"
+          )
+          
+          for file in "${REQUIRED_FILES[@]}"; do
+            echo "验证 $file..."
+            if ! python3 -c "import yaml; yaml.safe_load(open('$file'))" 2>/dev/null; then
+              echo "❌ YAML 语法错误: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ 所有 YAML 文件语法正确"
+          
+      - name: Run Navigation Consistency Tests
+        run: |
+          echo "📱 运行导航组件一致性测试..."
+          flutter test test/presentation/navigation/yaml_based_consistency_test.dart --reporter=expanded
+          
+      - name: Run Widget Consistency Tests
+        run: |
+          echo "🧩 运行组件一致性测试..."
+          flutter test test/presentation/widgets/yaml_based_widget_test.dart --reporter=expanded
+          
+      - name: Run YAML Integrity Tests
+        run: |
+          echo "📋 运行 YAML 完整性测试..."
+          flutter test test/documentation/yaml_integrity_test.dart --reporter=expanded
+          
+      - name: Run Integration Consistency Tests
+        run: |
+          echo "🔗 运行集成一致性测试..."
+          flutter test test/presentation/navigation/integration_consistency_test.dart --reporter=expanded
+          
+      - name: Generate Test Report
+        if: always()
+        run: |
+          echo "📊 生成测试报告..."
+          mkdir -p test_reports
+          
+          # 创建测试报告
+          cat > test_reports/yaml_consistency_report.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "workflow": "YAML Consistency Tests",
+            "status": "${{ job.status }}",
+            "tests": {
+              "navigation_consistency": {
+                "file": "test/presentation/navigation/yaml_based_consistency_test.dart",
+                "status": "completed"
+              },
+              "widget_consistency": {
+                "file": "test/presentation/widgets/yaml_based_widget_test.dart",
+                "status": "completed"
+              },
+              "yaml_integrity": {
+                "file": "test/documentation/yaml_integrity_test.dart",
+                "status": "completed"
+              },
+              "integration_consistency": {
+                "file": "test/presentation/navigation/integration_consistency_test.dart",
+                "status": "completed"
+              }
+            },
+            "yaml_files_checked": [
+              "documents/architecture/widgets/navigation_destinations.yaml",
+              "documents/architecture/widgets/drawer_menu.yaml",
+              "documents/architecture/widgets/responsive_navigation.yaml",
+              "documents/architecture/widgets/main_drawer.yaml",
+              "documents/architecture/widgets/page_app_bar.yaml",
+              "documents/architecture/widgets/create_task_dialog.yaml",
+              "documents/architecture/widgets/widgets.yaml"
+            ]
+          }
+          EOF
+          
+          echo "✅ 测试报告已生成: test_reports/yaml_consistency_report.json"
+          
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yaml-consistency-report
+          path: test_reports/yaml_consistency_report.json
+          
+      - name: Comment on PR
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('YAML 一致性测试失败')
+            );
+            
+            const commentBody = `## ❌ YAML 一致性测试失败
+            
+            **工作流**: YAML Consistency Tests
+            **状态**: 失败
+            **时间**: ${new Date().toISOString()}
+            
+            ### 失败原因
+            - 代码与 YAML 文档不一致
+            - 请检查以下文件：
+              - \`documents/architecture/widgets/navigation_destinations.yaml\`
+              - \`documents/architecture/widgets/drawer_menu.yaml\`
+              - \`documents/architecture/widgets/responsive_navigation.yaml\`
+              - \`documents/architecture/widgets/main_drawer.yaml\`
+              - \`documents/architecture/widgets/page_app_bar.yaml\`
+              - \`documents/architecture/widgets/create_task_dialog.yaml\`
+              - \`documents/architecture/widgets/widgets.yaml\`
+            
+            ### 修复步骤
+            1. 检查 YAML 文件是否存在且语法正确
+            2. 确保代码实现与 YAML 文档一致
+            3. 运行本地测试: \`./scripts/run_yaml_tests.sh --all\`
+            4. 重新提交代码
+            
+            ### 约束规则
+            - ✅ 允许增加新的图标、路由、文本
+            - ❌ 禁止减少现有的图标、路由、文本
+            - ❌ 禁止重命名现有的变量名、路由名、图标名
+            - ❌ 禁止修改现有的图标、路由、文本定义
+            - ❌ 禁止删除现有的组件定义
+            - ❌ 禁止删除现有的测试用例
+            
+            ### 变更流程
+            1. 必须先修改 YAML 文档
+            2. 然后修改代码实现
+            3. 最后运行一致性测试
+            4. 测试通过后才能提交
+            `;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+            
+      - name: Success Comment on PR
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('YAML 一致性测试失败')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: `## ✅ YAML 一致性测试通过
+                
+                **工作流**: YAML Consistency Tests
+                **状态**: 成功
+                **时间**: ${new Date().toISOString()}
+                
+                🎉 所有 YAML 一致性测试通过！代码与设计文档保持一致。
+                `
+              });
+            }

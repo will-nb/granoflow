@@ -7,6 +7,8 @@ import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/services/task_service.dart';
 import '../../data/models/task.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 
 class CompletedPage extends ConsumerWidget {
   const CompletedPage({super.key});
@@ -14,10 +16,10 @@ class CompletedPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Completed'),
-        actions: [],
+      appBar: const PageAppBar(
+        title: 'Completed',
       ),
+      drawer: const MainDrawer(),
       body: DefaultTabController(
         length: 2,
         child: const TabBarView(
