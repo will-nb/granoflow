@@ -16,6 +16,7 @@ import '../navigation/navigation_destinations.dart';
 import '../widgets/chip_toggle_group.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/gradient_page_scaffold.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
   const InboxPage({super.key});
@@ -50,7 +51,7 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
     final priorityTagsAsync = ref.watch(priorityTagOptionsProvider);
 
-    return Scaffold(
+    return GradientPageScaffold(
       appBar: const PageAppBar(
         title: 'Inbox',
       ),
@@ -469,6 +470,8 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
     final l10n = AppLocalizations.of(context);
     final contextTags = ref.watch(contextTagOptionsProvider);
     final priorityTags = ref.watch(priorityTagOptionsProvider);
+    contextTags.whenData((tags) => debugPrint('UI: context tags loaded ${tags.length}'));
+    priorityTags.whenData((tags) => debugPrint('UI: priority tags loaded ${tags.length}'));
     final task = widget.task;
     final contextTag = task.tags.firstWhere((tag) => tag.startsWith('@'), orElse: () => '');
     final priorityTag = task.tags.firstWhere((tag) => tag.startsWith('#'), orElse: () => '');

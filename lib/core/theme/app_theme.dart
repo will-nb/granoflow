@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_color_schemes.dart';
 import 'app_color_tokens.dart';
+import 'app_gradients.dart';
 
 class AppTheme {
   const AppTheme._();
@@ -133,6 +134,7 @@ class AppTheme {
 
       extensions: const <ThemeExtension<dynamic>>[
         AppColorTokens.light,
+        AppGradientsExtension.light,
       ],
     );
   }
@@ -142,7 +144,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor: const Color(0xFF0E1B20), // 深海夜色主背景
       fontFamily: 'Inter',
       textTheme: _buildTextTheme(colorScheme, Brightness.dark),
 
@@ -264,6 +266,7 @@ class AppTheme {
 
       extensions: const <ThemeExtension<dynamic>>[
         AppColorTokens.dark,
+        AppGradientsExtension.dark,
       ],
     );
   }

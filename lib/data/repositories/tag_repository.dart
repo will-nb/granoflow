@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
 import '../isar/tag_entity.dart';
@@ -18,6 +19,9 @@ class IsarTagRepository implements TagRepository {
 
   @override
   Future<void> ensureSeeded(List<Tag> tags) async {
+    debugPrint('TagRepository.ensureSeeded: incoming=${tags.length}, slugs=${tags.map((t)=>t.slug).join(', ')}');
+    var created = 0;
+    var updated = 0;
     await _isar.writeTxn(() async {
       for (final tag in tags) {
         final existing = await _isar.tagEntitys
@@ -35,6 +39,7 @@ class IsarTagRepository implements TagRepository {
                 )
                 .toList();
           await _isar.tagEntitys.put(existing);
+          updated++;
           continue;
         }
         final entity = TagEntity()
@@ -48,8 +53,11 @@ class IsarTagRepository implements TagRepository {
               )
               .toList();
         await _isar.tagEntitys.put(entity);
+        created++;
       }
     });
+    final total = await _isar.tagEntitys.count();
+    debugPrint('TagRepository.ensureSeeded: done (created=$created, updated=$updated, total=$total)');
   }
 
   @override
@@ -58,6 +66,7 @@ class IsarTagRepository implements TagRepository {
         .filter()
         .kindEqualTo(kind)
         .findAll();
+    debugPrint('TagRepository.listByKind($kind): count=${entities.length}, slugs=${entities.map((e)=>e.slug).join(', ')}');
     return entities.map(_toDomain).toList(growable: false);
   }
 

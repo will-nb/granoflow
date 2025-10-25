@@ -24,11 +24,16 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
 
   @override
   Widget build(BuildContext context) {
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        child: SizedBox(
+          width: double.infinity, // 确保 Column 占据全宽以允许居中
+          child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
               // 标题
               Text(
                 '创建新任务',
@@ -40,109 +45,129 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
               const SizedBox(height: 24),
 
               // 任务标题输入
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: '任务标题',
-                  hintText: '请输入任务标题',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: '任务标题',
+                    hintText: '请输入任务标题',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    prefixIcon: const Icon(Icons.title),
                   ),
-                  prefixIcon: const Icon(Icons.title),
+                  maxLines: 1,
                 ),
-                maxLines: 1,
               ),
               const SizedBox(height: 16),
 
               // 标签选择
-              const Text(
-                '标签',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '标签',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: _availableTags.map((tag) {
+                        final isSelected = tag == _selectedTag;
+                        return FilterChip(
+                          label: Text(tag),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() => _selectedTag = tag);
+                            }
+                          },
+                          backgroundColor: isSelected
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : null,
+                          checkmarkColor: isSelected
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : null,
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _availableTags.map((tag) {
-                  final isSelected = tag == _selectedTag;
-                  return FilterChip(
-                    label: Text(tag),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() => _selectedTag = tag);
-                      }
-                    },
-                    backgroundColor: isSelected
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : null,
-                    checkmarkColor: isSelected
-                        ? Theme.of(context).colorScheme.onPrimaryContainer
-                        : null,
-                  );
-                }).toList(),
               ),
               const SizedBox(height: 16),
 
               // 父任务选择
-              DropdownButtonFormField<String>(
-                initialValue: _selectedParent,
-                decoration: InputDecoration(
-                  labelText: '上级任务',
-                  hintText: '选择上级任务',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: DropdownButtonFormField<String>(
+                  initialValue: _selectedParent,
+                  decoration: InputDecoration(
+                    labelText: '上级任务',
+                    hintText: '选择上级任务',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    prefixIcon: const Icon(Icons.account_tree),
                   ),
-                  prefixIcon: const Icon(Icons.account_tree),
+                  items: _availableParents.map((parent) {
+                    return DropdownMenuItem(
+                      value: parent,
+                      child: Text(parent),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedParent = value);
+                    }
+                  },
                 ),
-                items: _availableParents.map((parent) {
-                  return DropdownMenuItem(
-                    value: parent,
-                    child: Text(parent),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedParent = value);
-                  }
-                },
               ),
               const SizedBox(height: 24),
 
               // 按钮行
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      child: const Text('取消'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _createTask,
-                      icon: const Icon(Icons.send),
-                      label: const Text('创建任务'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        child: const Text('取消'),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: _createTask,
+                        icon: const Icon(Icons.send),
+                        label: const Text('创建任务'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
+          ),
+        ),
+      ),
     );
   }
 

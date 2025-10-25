@@ -73,13 +73,13 @@ class SeedInboxItem {
     required this.slug,
     required this.title,
     required this.note,
-    required this.suggestedTemplateSlug,
+    this.suggestedTemplateSlug,
   });
 
   final String slug;
   final String title;
   final String note;
-  final String suggestedTemplateSlug;
+  final String? suggestedTemplateSlug;
 }
 
 abstract class SeedRepository {
@@ -211,7 +211,7 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
             slug: raw['slug'] as String,
             title: raw['title'] as String,
             note: raw['note'] as String,
-            suggestedTemplateSlug: raw['suggestedTemplateSlug'] as String,
+            suggestedTemplateSlug: raw['suggestedTemplateSlug'] as String?,
           ),
         )
         .toList(),

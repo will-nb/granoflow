@@ -62,9 +62,23 @@ class IsarPreferenceRepository implements PreferenceRepository {
     if (entity != null) {
       return entity;
     }
+    // 使用系统默认语言，支持 zh_CN, zh_HK, en 等
+    String systemLocale = 'en';
+    try {
+      final platformLocale = WidgetsBinding.instance.platformDispatcher.locale;
+      if (platformLocale.countryCode != null) {
+        systemLocale = '${platformLocale.languageCode}_${platformLocale.countryCode}';
+      } else {
+        systemLocale = platformLocale.languageCode;
+      }
+    } catch (e) {
+      // 如果无法获取系统语言，使用默认值 'en'
+      systemLocale = 'en';
+    }
+    
     final newEntity = PreferenceEntity()
       ..id = _singletonId
-      ..localeCode = 'en'
+      ..localeCode = systemLocale
       ..themeMode = ThemeMode.system
       ..fontScale = 1.0
       ..updatedAt = DateTime.now();

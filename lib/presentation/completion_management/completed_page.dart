@@ -9,13 +9,14 @@ import '../../core/services/task_service.dart';
 import '../../data/models/task.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/gradient_page_scaffold.dart';
 
 class CompletedPage extends ConsumerWidget {
   const CompletedPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
+    return GradientPageScaffold(
       appBar: const PageAppBar(
         title: 'Completed',
       ),

@@ -1,0 +1,305 @@
+meta:
+  version: 1
+  type: step
+  iteration: "251025-6"
+  based_on: "documents/plan/251025-6-preview.yaml"
+  description: "Ocean Breeze 渐变背景系统实现"
+
+execution_status:
+  overall_status: "completed"
+  current_step: "step_5"
+  completed_steps: ["step_1", "step_2", "step_3", "step_4", "step_5"]
+  failed_steps: []
+  start_time: "2025-01-25T20:20:00Z"
+  end_time: "2025-01-25T20:45:00Z"
+
+implementation_plan:
+  step_1:
+    id: "step_1"
+    description: "创建渐变背景定义文件"
+    status: "completed"
+    files_to_create:
+      - "lib/core/theme/app_gradients.dart"
+    dependencies: []
+  
+  step_2:
+    id: "step_2"
+    description: "创建渐变背景组件"
+    status: "completed"
+    files_to_create:
+      - "lib/presentation/widgets/gradient_background.dart"
+    dependencies: ["step_1"]
+  
+  step_3:
+    id: "step_3"
+    description: "集成渐变到主题系统"
+    status: "completed"
+    files_to_modify:
+      - "lib/core/theme/app_theme.dart"
+    dependencies: ["step_1", "step_2"]
+  
+  step_4:
+    id: "step_4"
+    description: "创建渐变背景测试"
+    status: "completed"
+    files_to_create:
+      - "test/core/theme/app_gradients_test.dart"
+      - "test/presentation/widgets/gradient_background_test.dart"
+    dependencies: ["step_1", "step_2", "step_3"]
+  
+  step_5:
+    id: "step_5"
+    description: "验证渐变背景系统"
+    status: "completed"
+    verification_commands:
+      - "flutter analyze"
+      - "flutter test test/core/theme/app_gradients_test.dart"
+      - "flutter test test/presentation/widgets/gradient_background_test.dart"
+    dependencies: ["step_4"]
+
+code_changes:
+  new_files:
+    - name: "lib/core/theme/app_gradients.dart"
+      content: |
+        import 'package:flutter/material.dart';
+
+        /// Ocean Breeze 渐变背景系统
+        /// 基于清爽水蓝配色方案的多层次渐变定义
+        class AppGradients {
+          const AppGradients._();
+
+          /// 渐变方向枚举
+          enum GradientDirection {
+            vertical,
+            horizontal,
+            diagonal45,
+            diagonal135,
+            radial,
+          }
+
+          /// 渐变类型枚举
+          enum GradientType {
+            primary,
+            secondary,
+            accent,
+            success,
+            warning,
+            error,
+            info,
+          }
+
+          /// 海盐蓝天际渐变 - 主页面背景
+          static const LinearGradient seaSaltSky = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF6EC6DA), // 海盐蓝
+              Color(0xFFF5FAFC), // 天际白
+            ],
+          );
+
+          /// 薄荷青湖光渐变 - 按钮和强调区域
+          static const LinearGradient mintLake = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFA5E1EB), // 薄荷青
+              Color(0xFF4FAFC9), // 湖光青
+            ],
+          );
+
+          /// 天际白海军渐变 - 内容区域背景
+          static const LinearGradient skyNavy = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF5FAFC), // 天际白
+              Color(0xFF1E4D67), // 海军蓝
+            ],
+          );
+
+          /// 水波涟漪渐变 - 特殊页面背景
+          static const RadialGradient waterRipple = RadialGradient(
+            center: Alignment.center,
+            radius: 1.0,
+            colors: [
+              Color(0xFF6EC6DA), // 海盐蓝
+              Color(0xFFA5E1EB), // 薄荷青
+              Color(0xFFF5FAFC), // 天际白
+            ],
+            stops: [0.0, 0.6, 1.0],
+          );
+
+          /// 海洋深度渐变 - 深色主题背景
+          static const LinearGradient oceanDepth = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFA5E1EB), // 薄荷青
+              Color(0xFF6EC6DA), // 海盐蓝
+              Color(0xFF4FAFC9), // 湖光青
+              Color(0xFF1E4D67), // 海军蓝
+            ],
+            stops: [0.0, 0.3, 0.7, 1.0],
+          );
+
+          /// 成功状态渐变
+          static const LinearGradient success = LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Color(0xFF7ED2A8), // 柔和薄荷绿
+              Color(0xFFA5E1EB), // 薄荷青
+            ],
+          );
+
+          /// 警告状态渐变
+          static const LinearGradient warning = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFD48A), // 柔暖黄
+              Color(0xFFF5FAFC), // 天际白
+            ],
+          );
+
+          /// 错误状态渐变
+          static const LinearGradient error = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF48B8B), // 柔粉红
+              Color(0xFFF5FAFC), // 天际白
+            ],
+          );
+
+          /// 信息状态渐变
+          static const LinearGradient info = LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Color(0xFF81C8DD), // 较浅蓝灰
+              Color(0xFFA5E1EB), // 薄荷青
+            ],
+          );
+
+          /// 根据类型获取渐变
+          static Gradient getGradient(GradientType type) {
+            switch (type) {
+              case GradientType.primary:
+                return seaSaltSky;
+              case GradientType.secondary:
+                return mintLake;
+              case GradientType.accent:
+                return skyNavy;
+              case GradientType.success:
+                return success;
+              case GradientType.warning:
+                return warning;
+              case GradientType.error:
+                return error;
+              case GradientType.info:
+                return info;
+            }
+          }
+
+          /// 根据方向创建自定义渐变
+          static LinearGradient createLinearGradient({
+            required List<Color> colors,
+            required GradientDirection direction,
+            List<double>? stops,
+          }) {
+            AlignmentGeometry begin, end;
+            
+            switch (direction) {
+              case GradientDirection.vertical:
+                begin = Alignment.topCenter;
+                end = Alignment.bottomCenter;
+                break;
+              case GradientDirection.horizontal:
+                begin = Alignment.centerLeft;
+                end = Alignment.centerRight;
+                break;
+              case GradientDirection.diagonal45:
+                begin = Alignment.topLeft;
+                end = Alignment.bottomRight;
+                break;
+              case GradientDirection.diagonal135:
+                begin = Alignment.topRight;
+                end = Alignment.bottomLeft;
+                break;
+              case GradientDirection.radial:
+                throw ArgumentError('Use RadialGradient for radial gradients');
+            }
+
+            return LinearGradient(
+              begin: begin,
+              end: end,
+              colors: colors,
+              stops: stops,
+            );
+          }
+
+          /// 创建径向渐变
+          static RadialGradient createRadialGradient({
+            required List<Color> colors,
+            AlignmentGeometry center = Alignment.center,
+            double radius = 1.0,
+            List<double>? stops,
+          }) {
+            return RadialGradient(
+              center: center,
+              radius: radius,
+              colors: colors,
+              stops: stops,
+            );
+          }
+        }
+
+        /// 渐变背景工具类
+        class GradientHelper {
+          const GradientHelper._();
+
+          /// 检查渐变是否适合深色主题
+          static bool isSuitableForDarkTheme(Gradient gradient) {
+            if (gradient is LinearGradient) {
+              return gradient.colors.any((color) => 
+                color.computeLuminance() < 0.5);
+            }
+            return false;
+          }
+
+          /// 获取渐变的平均亮度
+          static double getAverageLuminance(Gradient gradient) {
+            if (gradient is LinearGradient) {
+              double totalLuminance = 0;
+              for (final color in gradient.colors) {
+                totalLuminance += color.computeLuminance();
+              }
+              return totalLuminance / gradient.colors.length;
+            }
+            return 0.5;
+          }
+
+          /// 根据亮度调整渐变颜色
+          static LinearGradient adjustBrightness(
+            LinearGradient gradient,
+            double factor,
+          ) {
+            final adjustedColors = gradient.colors.map((color) {
+              return Color.fromARGB(
+                color.alpha,
+                (color.red * factor).clamp(0, 255).round(),
+                (color.green * factor).clamp(0, 255).round(),
+                (color.blue * factor).clamp(0, 255).round(),
+              );
+            }).toList();
+
+            return LinearGradient(
+              begin: gradient.begin,
+              end: gradient.end,
+              colors: adjustedColors,
+              stops: gradient.stops,
+            );
+          }
+        }

@@ -8,6 +8,7 @@ import '../../core/theme/app_color_tokens.dart';
 import '../../data/models/task.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/gradient_page_scaffold.dart';
 
 class TaskListPage extends ConsumerStatefulWidget {
   const TaskListPage({super.key});
@@ -30,7 +31,7 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
       _SectionMeta(section: TaskSection.later, title: l10n.plannerSectionLaterTitle),
     ];
 
-    return Scaffold(
+    return GradientPageScaffold(
       appBar: const PageAppBar(
         title: 'Tasks',
       ),

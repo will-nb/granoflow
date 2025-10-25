@@ -31,7 +31,7 @@
       "slug": "@local",
       "kind": "context",
       "localizations": {
-        "en": "local",
+        "en": "Local",
         "zh_CN": "本地",
         "zh_HK": "當地"
       }
@@ -40,7 +40,7 @@
       "slug": "@domestic",
       "kind": "context",
       "localizations": {
-        "en": "domestic",
+        "en": "Domestic",
         "zh_CN": "国内",
         "zh_HK": "國內"
       }
@@ -49,7 +49,7 @@
       "slug": "@international",
       "kind": "context",
       "localizations": {
-        "en": "international",
+        "en": "International",
         "zh_CN": "国际",
         "zh_HK": "國際"
       }

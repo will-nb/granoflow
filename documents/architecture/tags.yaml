@@ -1,0 +1,273 @@
+meta:
+  name: "Tag System"
+  type: "architecture"
+  file_path: "documents/architecture/tags.yaml"
+  description: "标签系统架构定义 - 定义系统中所有可用的标签类型和约束"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
+
+tag_system_definition:
+  name: "Tag System"
+  layer: "data_model"
+  pattern: "enum_constraint"
+  immutable: true
+  singleton: true
+
+tag_categories:
+  context_tags:
+    name: "Context Tags"
+    description: "地理位置和场所标签，以@开头"
+    prefix: "@"
+    kind: "context"
+    tags:
+      - slug: "@home"
+        name: "Home"
+        description: "居家环境"
+        localizations:
+          en: "Home"
+          zh_CN: "居家"
+          zh_HK: "居家"
+        usage: "在家中的任务"
+        examples: ["在家办公", "居家学习", "家庭事务"]
+        
+      - slug: "@desk"
+        name: "Desk"
+        description: "书桌/办公桌"
+        localizations:
+          en: "Desk"
+          zh_CN: "书桌"
+          zh_HK: "書桌"
+        usage: "在书桌或办公桌的任务"
+        examples: ["办公", "学习", "写作"]
+        
+      - slug: "@mobile"
+        name: "Mobile"
+        description: "移动中"
+        localizations:
+          en: "On the go"
+          zh_CN: "手机"
+          zh_HK: "手機"
+        usage: "在移动设备上完成的任务"
+        examples: ["手机阅读", "移动办公", "通勤学习"]
+        
+      - slug: "@local"
+        name: "Local"
+        description: "本地/本市"
+        localizations:
+          en: "Local"
+          zh_CN: "本地"
+          zh_HK: "當地"
+        usage: "在本市范围内的任务"
+        examples: ["本地购物", "市内会议", "本地活动"]
+        
+      - slug: "@domestic"
+        name: "Domestic"
+        description: "国内"
+        localizations:
+          en: "Domestic"
+          zh_CN: "国内"
+          zh_HK: "國內"
+        usage: "国内范围的任务"
+        examples: ["国内旅行", "国内业务", "国内学习"]
+        
+      - slug: "@international"
+        name: "International"
+        description: "国际"
+        localizations:
+          en: "International"
+          zh_CN: "国际"
+          zh_HK: "國際"
+        usage: "国际范围的任务"
+        examples: ["国际旅行", "国际业务", "国际学习"]
+
+  priority_tags:
+    name: "Priority Tags"
+    description: "优先级标签，以#开头"
+    prefix: "#"
+    kind: "priority"
+    tags:
+      - slug: "#urgent"
+        name: "Urgent"
+        description: "紧急"
+        localizations:
+          en: "Urgent"
+          zh_CN: "紧急"
+          zh_HK: "緊急"
+        usage: "需要立即处理的任务"
+        examples: ["紧急会议", "紧急修复", "紧急学习"]
+        
+      - slug: "#important"
+        name: "Important"
+        description: "重要"
+        localizations:
+          en: "Important"
+          zh_CN: "重要"
+          zh_HK: "重要"
+        usage: "重要的任务"
+        examples: ["重要项目", "重要学习", "重要决策"]
+        
+      - slug: "#not_urgent"
+        name: "Not Urgent"
+        description: "不紧急"
+        localizations:
+          en: "Not urgent"
+          zh_CN: "不紧急"
+          zh_HK: "不緊急"
+        usage: "不紧急的任务"
+        examples: ["长期项目", "休闲学习", "日常维护"]
+        
+      - slug: "#not_important"
+        name: "Not Important"
+        description: "不重要"
+        localizations:
+          en: "Not important"
+          zh_CN: "不重要"
+          zh_HK: "不重要"
+        usage: "不重要的任务"
+        examples: ["娱乐活动", "琐碎事务", "消遣时间"]
+
+  special_tags:
+    name: "Special Tags"
+    description: "特殊标签，无前缀"
+    prefix: ""
+    kind: "special"
+    tags:
+      - slug: "wasted"
+        name: "Wasted Time"
+        description: "浪费时间"
+        localizations:
+          en: "Wasted time"
+          zh_CN: "浪费时间"
+          zh_HK: "浪費時間"
+        usage: "标记为浪费时间的任务"
+        examples: ["无效会议", "无意义活动", "时间浪费"]
+
+tag_constraints:
+  allowed_tags:
+    description: "系统中只允许使用以下预定义标签"
+    total_count: 11
+    context_tags: 6
+    priority_tags: 4
+    special_tags: 1
+    
+  validation_rules:
+    - rule: "tag_slug_validation"
+      description: "标签slug必须完全匹配预定义列表"
+      implementation: "TagRepository.validateTagSlug()"
+      
+    - rule: "tag_kind_validation"
+      description: "标签类型必须为context、priority或special"
+      implementation: "TagRepository.validateTagKind()"
+      
+    - rule: "tag_prefix_validation"
+      description: "标签前缀必须符合规范（@、#或无前缀）"
+      implementation: "TagRepository.validateTagPrefix()"
+
+tag_usage_rules:
+  context_tags:
+    description: "上下文标签使用规则"
+    rules:
+      - "每个任务最多只能有一个上下文标签"
+      - "上下文标签用于标识任务执行的地理位置或环境"
+      - "上下文标签在任务列表中用于过滤和分组"
+      
+  priority_tags:
+    description: "优先级标签使用规则"
+    rules:
+      - "每个任务可以有多个优先级标签"
+      - "优先级标签用于标识任务的重要性和紧急性"
+      - "优先级标签在任务列表中用于排序和筛选"
+      
+  special_tags:
+    description: "特殊标签使用规则"
+    rules:
+      - "特殊标签用于标记特殊的任务状态"
+      - "wasted标签只能通过结束会话对话框添加"
+      - "特殊标签不能与其他标签组合使用"
+
+tag_implementation:
+  data_model:
+    - name: "Tag"
+      description: "标签数据模型"
+      file_path: "lib/data/models/tag.dart"
+      fields:
+        - name: "id"
+          type: "int"
+          description: "数据库主键"
+        - name: "slug"
+          type: "String"
+          description: "标签唯一标识符"
+        - name: "kind"
+          type: "TagKind"
+          description: "标签类型枚举"
+        - name: "labels"
+          type: "Map<String, String>"
+          description: "多语言标签名称"
+          
+  repository:
+    - name: "TagRepository"
+      description: "标签数据访问层"
+      file_path: "lib/data/repositories/tag_repository.dart"
+      methods:
+        - name: "getAllTags"
+          description: "获取所有预定义标签"
+        - name: "validateTagSlug"
+          description: "验证标签slug是否在预定义列表中"
+        - name: "getTagsByKind"
+          description: "根据类型获取标签"
+          
+  service:
+    - name: "TagService"
+      description: "标签业务逻辑层"
+      file_path: "lib/core/services/tag_service.dart"
+      methods:
+        - name: "validateTaskTags"
+          description: "验证任务标签是否符合规则"
+        - name: "getAvailableTags"
+          description: "获取可用的标签列表"
+        - name: "filterTagsByContext"
+          description: "根据上下文过滤标签"
+
+tag_testing:
+  unit_tests:
+    - name: "TagValidationTest"
+      description: "标签验证测试"
+      file_path: "test/data/models/tag_test.dart"
+      scenarios:
+        - "验证预定义标签列表完整性"
+        - "验证标签slug格式"
+        - "验证标签类型枚举"
+        - "验证多语言标签名称"
+        
+  integration_tests:
+    - name: "TagSystemIntegrationTest"
+      description: "标签系统集成测试"
+      file_path: "test/integration/tag_system_test.dart"
+      scenarios:
+        - "验证标签在任务中的使用"
+        - "验证标签过滤功能"
+        - "验证标签多语言支持"
+        - "验证标签约束规则"
+
+tag_migration:
+  version_control:
+    current_version: "1.0"
+    migration_strategy: "immutable"
+    description: "标签系统为不可变设计，不允许动态添加或删除标签"
+    
+  future_considerations:
+    - "如需添加新标签，必须通过版本迁移"
+    - "标签变更需要更新所有相关文档和测试"
+    - "标签变更需要通知所有用户"
+
+tag_documentation:
+  user_guide:
+    - "标签使用指南"
+    - "标签过滤和搜索"
+    - "标签最佳实践"
+    
+  developer_guide:
+    - "标签系统架构"
+    - "标签验证规则"
+    - "标签扩展指南"

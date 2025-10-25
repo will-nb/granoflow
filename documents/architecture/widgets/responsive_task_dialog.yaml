@@ -1,0 +1,120 @@
+meta:
+  name: "响应式任务对话框"
+  type: "widget"
+  file_path: "lib/presentation/widgets/responsive_task_dialog.dart"
+  description: "响应式任务对话框包装器，根据屏幕宽度调整 CreateTaskDialog 的显示方式"
+  version: "1.0"
+  created_date: "251025"
+  last_updated: "251025"
+
+widget_definition:
+  name: "ResponsiveTaskDialog"
+  layer: "presentation"
+  pattern: "stateless"
+  category: "dialog"
+  reusable: true
+  
+widget_types:
+  - name: "StatelessWidget"
+    description: "无状态 Widget，用于响应式布局适配"
+    usage: "根据屏幕宽度调整对话框显示方式"
+    
+widget_properties: []
+    
+widget_methods:
+  - name: "build"
+    return_type: "Widget"
+    description: "构建响应式任务对话框"
+    parameters: "BuildContext context"
+    implementation: |
+      1. 使用 LayoutBuilder 获取可用宽度
+      2. 如果 maxWidth > 600（宽屏模式）：
+         - 使用 Center 居中显示
+         - 使用 ConstrainedBox 限制最大宽度 500 和最大高度 600
+      3. 如果 maxWidth <= 600（窄屏模式）：
+         - 直接显示 CreateTaskDialog，使用全宽
+    
+dependencies:
+  external:
+    - package: "flutter"
+      version: ">=3.0.0"
+      usage: "Material Design widgets and theming"
+      
+  internal:
+    - path: "create_task_dialog.dart"
+      usage: "实际的任务创建对话框内容"
+      
+state_management:
+  type: "none"
+  description: "无状态组件，不需要状态管理"
+  
+ui_interactions:
+  user_actions: []
+  system_events:
+    - event: "屏幕尺寸变化"
+      description: "LayoutBuilder 会在屏幕尺寸变化时重新构建"
+  navigation: []
+  
+responsive_behavior:
+  breakpoints:
+    - width: 600
+      behavior: "宽屏模式"
+      description: "居中显示，限制最大宽度和高度"
+      
+  mobile_layout:
+    description: "全宽显示，无尺寸限制"
+    max_width: "100%"
+    
+  desktop_layout:
+    description: "居中显示，固定尺寸"
+    max_width: "500px"
+    max_height: "600px"
+    alignment: "center"
+    
+usage_examples:
+  - name: "桌面端使用"
+    description: "使用 showGeneralDialog 从左侧滑入"
+    code: |
+      showGeneralDialog(
+        context: context,
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(-1, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: const ResponsiveTaskDialog(),
+          );
+        },
+      );
+      
+  - name: "移动端使用"
+    description: "使用 showModalBottomSheet 从底部弹出"
+    code: |
+      showModalBottomSheet(
+        context: context,
+        builder: (context) => const ResponsiveTaskDialog(),
+      );
+      
+related_widgets:
+  - name: "CreateTaskDialog"
+    relationship: "wraps"
+    description: "包装此组件，提供响应式布局"
+    
+  - name: "ResponsiveNavigation"
+    relationship: "usage"
+    description: "从 ResponsiveNavigation 的 FAB 触发此对话框"
+    
+design_decisions:
+  - decision: "使用 LayoutBuilder 而不是 MediaQuery"
+    rationale: "LayoutBuilder 提供的是可用空间的约束，比 MediaQuery 更准确"
+    
+  - decision: "600px 作为断点"
+    rationale: "Material Design 推荐的平板/桌面断点"
+    
+  - decision: "宽屏模式限制最大尺寸"
+    rationale: "在大屏幕上，过大的对话框会影响用户体验，限制尺寸更易于聚焦"
+    
+  - decision: "窄屏模式使用全宽"
+    rationale: "移动设备屏幕有限，全宽显示更符合移动端 UX 规范"
+

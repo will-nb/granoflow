@@ -10,6 +10,7 @@ import '../../core/services/task_service.dart';
 import '../../data/models/task.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/gradient_page_scaffold.dart';
 
 class TrashPage extends ConsumerWidget {
   const TrashPage({super.key});
@@ -18,7 +19,7 @@ class TrashPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(taskSectionsProvider(TaskSection.trash));
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
+    return GradientPageScaffold(
       appBar: const PageAppBar(
         title: 'Trash',
       ),

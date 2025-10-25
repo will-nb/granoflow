@@ -1,0 +1,189 @@
+meta:
+  version: 1
+  type: step
+  iteration: "251025-5"
+  based_on: "documents/plan/251025-5-preview.yaml"
+  description: "Ocean Breeze 清爽水蓝配色方案实现"
+
+execution_status:
+  overall_status: "completed"
+  current_step: "step_4"
+  completed_steps: ["step_1", "step_2", "step_3", "step_4"]
+  failed_steps: []
+  start_time: "2025-01-25T19:58:00Z"
+  end_time: "2025-01-25T20:15:00Z"
+
+implementation_plan:
+  step_1:
+    id: "step_1"
+    description: "创建 Ocean Breeze 配色方案文件"
+    status: "completed"
+    files_to_create:
+      - "lib/core/theme/ocean_breeze_color_schemes.dart"
+    dependencies: []
+  
+  step_2:
+    id: "step_2"
+    description: "更新 app_color_schemes.dart 使用新配色"
+    status: "completed"
+    files_to_modify:
+      - "lib/core/theme/app_color_schemes.dart"
+    dependencies: ["step_1"]
+  
+  step_3:
+    id: "step_3"
+    description: "更新 app_color_tokens.dart 颜色令牌"
+    status: "completed"
+    files_to_modify:
+      - "lib/core/theme/app_color_tokens.dart"
+    dependencies: ["step_2"]
+  
+  step_4:
+    id: "step_4"
+    description: "验证主题应用和编译"
+    status: "completed"
+    verification_commands:
+      - "flutter analyze"
+      - "flutter test test/core/theme/"
+    dependencies: ["step_3"]
+
+code_changes:
+  new_files:
+    - name: "lib/core/theme/ocean_breeze_color_schemes.dart"
+      content: |
+        import 'package:flutter/material.dart';
+
+        /// Ocean Breeze 清爽水蓝配色方案
+        /// 基于 ALLIE 夏日防晒主题的完整配色系统
+        class OceanBreezeColorSchemes {
+          const OceanBreezeColorSchemes._();
+
+          /// Ocean Breeze 浅色主题配色方案
+          static const ColorScheme light = ColorScheme(
+            brightness: Brightness.light,
+            // 主色调 - 海盐蓝
+            primary: Color(0xFF6EC6DA),
+            onPrimary: Color(0xFFFFFFFF),
+            primaryContainer: Color(0xFFA5E1EB), // 薄荷青
+            onPrimaryContainer: Color(0xFF1E4D67), // 海军蓝
+            
+            // 辅色调 - 湖光青
+            secondary: Color(0xFF4FAFC9),
+            onSecondary: Color(0xFFFFFFFF),
+            secondaryContainer: Color(0xFFD9E4EA), // 银灰
+            onSecondaryContainer: Color(0xFF1E4D67),
+            
+            // 第三色 - 薄荷青
+            tertiary: Color(0xFFA5E1EB),
+            onTertiary: Color(0xFF1E4D67),
+            tertiaryContainer: Color(0xFFF5FAFC), // 天际白
+            onTertiaryContainer: Color(0xFF1E4D67),
+            
+            // 错误色 - 柔粉红
+            error: Color(0xFFF48B8B),
+            onError: Color(0xFFFFFFFF),
+            errorContainer: Color(0xFFFFE5E5),
+            onErrorContainer: Color(0xFF690005),
+            
+            // 表面色
+            surface: Color(0xFFFFFFFF), // 卡片背景
+            onSurface: Color(0xFF1E4D67), // 主文字
+            surfaceContainerHighest: Color(0xFFD9E4EA), // 银灰
+            onSurfaceVariant: Color(0xFF4C6F80), // 次文字
+            outline: Color(0xFFD9E4EA), // 边框色
+            shadow: Color(0xFF000000),
+            
+            // 反向色
+            inverseSurface: Color(0xFF1E4D67),
+            onInverseSurface: Color(0xFFF5FAFC),
+            inversePrimary: Color(0xFF4FAFC9),
+            surfaceTint: Color(0xFF6EC6DA),
+          );
+
+          /// Ocean Breeze 深色主题配色方案
+          static const ColorScheme dark = ColorScheme(
+            brightness: Brightness.dark,
+            // 主色调 - 海盐蓝（深色模式调整）
+            primary: Color(0xFF4FAFC9), // 湖光青作为主色
+            onPrimary: Color(0xFF1E4D67),
+            primaryContainer: Color(0xFF6EC6DA), // 海盐蓝作为容器色
+            onPrimaryContainer: Color(0xFFFFFFFF),
+            
+            // 辅色调 - 薄荷青
+            secondary: Color(0xFFA5E1EB),
+            onSecondary: Color(0xFF1E4D67),
+            secondaryContainer: Color(0xFF4C6F80),
+            onSecondaryContainer: Color(0xFFD9E4EA),
+            
+            // 第三色 - 天际白
+            tertiary: Color(0xFFF5FAFC),
+            onTertiary: Color(0xFF1E4D67),
+            tertiaryContainer: Color(0xFF4C6F80),
+            onTertiaryContainer: Color(0xFFF5FAFC),
+            
+            // 错误色 - 柔粉红
+            error: Color(0xFFF48B8B),
+            onError: Color(0xFF690005),
+            errorContainer: Color(0xFF93000A),
+            onErrorContainer: Color(0xFFFFDAD5),
+            
+            // 表面色
+            surface: Color(0xFF1E4D67), // 深色背景
+            onSurface: Color(0xFFF5FAFC), // 浅色文字
+            surfaceContainerHighest: Color(0xFF4C6F80),
+            onSurfaceVariant: Color(0xFFA5B7C0), // 禁用文字
+            outline: Color(0xFF4C6F80),
+            shadow: Color(0xFF000000),
+            
+            // 反向色
+            inverseSurface: Color(0xFFF5FAFC),
+            onInverseSurface: Color(0xFF1E4D67),
+            inversePrimary: Color(0xFF6EC6DA),
+            surfaceTint: Color(0xFF4FAFC9),
+          );
+
+          /// 功能性颜色
+          static const Map<String, Color> functionalColors = {
+            'success': Color(0xFF7ED2A8), // 柔和薄荷绿
+            'warning': Color(0xFFFFD48A), // 柔暖黄
+            'error': Color(0xFFF48B8B), // 柔粉红
+            'info': Color(0xFF81C8DD), // 较浅蓝灰
+          };
+
+          /// 渐变定义
+          static const Map<String, List<Color>> gradients = {
+            'primary': [Color(0xFF6EC6DA), Color(0xFFA5E1EB)],
+            'hover': [Color(0xFF4FAFC9), Color(0xFF6EC6DA)],
+            'background': [Color(0xFFE9F9FC), Color(0xFFF5FAFC)],
+          };
+        }
+
+  modified_files:
+    - name: "lib/core/theme/app_color_schemes.dart"
+      changes:
+        - "导入 OceanBreezeColorSchemes"
+        - "更新 light 配色方案为 Ocean Breeze"
+        - "更新 dark 配色方案为 Ocean Breeze"
+    
+    - name: "lib/core/theme/app_color_tokens.dart"
+      changes:
+        - "更新所有颜色令牌以匹配新配色"
+        - "添加功能性颜色令牌"
+        - "添加渐变颜色令牌"
+
+verification_plan:
+  compilation_check:
+    - "flutter analyze"
+    - "检查所有导入和类型定义"
+  basic_functionality:
+    - "flutter test test/core/theme/"
+    - "验证主题切换功能"
+  integration_check:
+    - "检查 UI 组件颜色一致性"
+    - "验证无障碍标准"
+
+success_criteria:
+  - "所有文件编译通过"
+  - "主题应用正常"
+  - "颜色对比度符合标准"
+  - "测试全部通过"

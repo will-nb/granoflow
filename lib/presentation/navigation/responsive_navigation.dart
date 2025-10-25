@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'drawer_menu.dart';
 import 'navigation_bar.dart';
 import '../widgets/create_task_dialog.dart';
+import '../widgets/responsive_task_dialog.dart';
 
 /// 响应式导航组件
 /// 根据屏幕方向自动切换导航方式：
@@ -146,7 +147,11 @@ class _ResponsiveNavigationState extends State<ResponsiveNavigation> {
         barrierColor: Colors.black54,
         transitionDuration: const Duration(milliseconds: 300),
         pageBuilder: (context, animation, secondaryAnimation) {
-          return const CreateTaskDialog();
+          return Material(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            child: const ResponsiveTaskDialog(),
+          );
         },
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(

@@ -27,30 +27,32 @@ class AppColorTokens extends ThemeExtension<AppColorTokens> {
   final Color disabled;
   final Color onDisabled;
 
+  /// Ocean Breeze 浅色主题颜色令牌
   static const AppColorTokens light = AppColorTokens(
-    success: Color(0xFF2E7D32),
-    onSuccess: Color(0xFFFFFFFF),
-    warning: Color(0xFFF57F17),
-    onWarning: Color(0xFF000000),
-    info: Color(0xFF1565C0),
-    onInfo: Color(0xFFFFFFFF),
-    highlight: Color(0xFFF5F5F5),
-    onHighlight: Color(0xFF000000),
-    disabled: Color(0xFF757575),
-    onDisabled: Color(0xFFFFFFFF),
+    success: Color(0xFF7ED2A8), // 柔和薄荷绿
+    onSuccess: Color(0xFF1E4D67), // 海军蓝
+    warning: Color(0xFFFFD48A), // 柔暖黄
+    onWarning: Color(0xFF1E4D67), // 海军蓝
+    info: Color(0xFF81C8DD), // 较浅蓝灰
+    onInfo: Color(0xFF1E4D67), // 海军蓝
+    highlight: Color(0xFFF5FAFC), // 天际白
+    onHighlight: Color(0xFF1E4D67), // 海军蓝
+    disabled: Color(0xFFA5B7C0), // 禁用文字
+    onDisabled: Color(0xFF4C6F80), // 次文字
   );
 
+  /// Ocean Breeze Dark - 深海流光功能色令牌
   static const AppColorTokens dark = AppColorTokens(
-    success: Color(0xFF81C784),
-    onSuccess: Color(0xFF00310A),
-    warning: Color(0xFFFFB74D),
-    onWarning: Color(0xFF1F1400),
-    info: Color(0xFF90A4AE),
-    onInfo: Color(0xFFE2E2E6),
-    highlight: Color(0xFF3C3830),
-    onHighlight: Color(0xFFE2E2E6),
-    disabled: Color(0xFF6B6B6B),
-    onDisabled: Color(0xFFE2E2E6),
+    success: Color(0xFF7ED2A8),
+    onSuccess: Color(0xFF1E4D67),
+    warning: Color(0xFFFFD48A),
+    onWarning: Color(0xFF1E4D67),
+    info: Color(0xFF81C8DD),
+    onInfo: Color(0xFF1E4D67),
+    highlight: Color(0xFF4C6F80),
+    onHighlight: Color(0xFFF5FAFC),
+    disabled: Color(0xFFA5B7C0),
+    onDisabled: Color(0xFF4C6F80),
   );
 
   @override

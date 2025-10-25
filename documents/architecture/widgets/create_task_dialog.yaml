@@ -117,8 +117,16 @@ widget_styling:
         description: "圆角半径"
       - name: "padding"
         type: "EdgeInsets"
-        value: "EdgeInsets.all(24)"
+        value: "EdgeInsets.symmetric(vertical: 32, horizontal: 16)"
         description: "内边距"
+      - name: "backgroundColor"
+        type: "Color"
+        value: "Theme.of(context).colorScheme.surface"
+        description: "背景色，使用主题的 surface 色"
+      - name: "maxWidth"
+        type: "double"
+        value: "400"
+        description: "表单元素的最大宽度"
     responsive: true
     theme_aware: true
     

@@ -47,9 +47,30 @@ final fontScaleProvider = StreamProvider<double>((ref) {
 final seedInitializerProvider = FutureProvider<void>((ref) async {
   ref.keepAlive();
   final service = ref.watch(seedImportServiceProvider);
-  final locale = ref
-      .watch(appLocaleProvider)
-      .maybeWhen(data: (value) => value.languageCode, orElse: () => 'en');
+  
+  // 等待 appLocaleProvider 加载完成，而不是使用默认值
+  final localeAsync = ref.watch(appLocaleProvider);
+  final localeValue = await localeAsync.when(
+    data: (value) => Future.value(value),
+    loading: () async {
+      // 如果还在加载，直接从 PreferenceRepository 加载
+      final pref = await ref.read(preferenceRepositoryProvider).load();
+      final parts = pref.localeCode.split('_');
+      if (parts.length == 2) {
+        return Locale(parts[0], parts[1]);
+      } else {
+        return Locale(pref.localeCode);
+      }
+    },
+    error: (_, __) => Future.value(const Locale('en')),
+  );
+  
+  // 构造完整的 locale 代码 (如 zh_CN, zh_HK, en)
+  final locale = localeValue.countryCode != null
+      ? '${localeValue.languageCode}_${localeValue.countryCode}'
+      : localeValue.languageCode;
+  
+  debugPrint('SeedInitializer: locale = $locale');
   await service.importIfNeeded(locale);
 });
 
@@ -276,10 +297,14 @@ final templateSuggestionsProvider =
     });
 
 final contextTagOptionsProvider = FutureProvider<List<Tag>>((ref) {
+  // 依赖种子初始化：导入完成后会刷新本 Provider
+  ref.watch(seedInitializerProvider);
   return ref.watch(taskServiceProvider).listTagsByKind(TagKind.context);
 });
 
 final priorityTagOptionsProvider = FutureProvider<List<Tag>>((ref) {
+  // 依赖种子初始化：导入完成后会刷新本 Provider
+  ref.watch(seedInitializerProvider);
   return ref.watch(taskServiceProvider).listTagsByKind(TagKind.priority);
 });
 

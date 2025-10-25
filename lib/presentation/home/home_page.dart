@@ -7,6 +7,7 @@ import '../navigation/navigation_destinations.dart';
 import '../timer/timer_page.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/gradient_page_scaffold.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -19,7 +20,7 @@ class HomePage extends ConsumerWidget {
     debugPrint('HomePage locale: ${Localizations.localeOf(context)}');
     debugPrint('HomePage greeting: ${l10n.homeGreeting}');
 
-    return Scaffold(
+    return GradientPageScaffold(
       appBar: const PageAppBar(
         title: 'Home',
       ),

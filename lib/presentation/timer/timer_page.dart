@@ -14,6 +14,7 @@ import '../navigation/navigation_destinations.dart';
 import '../end_session/end_session_dialog.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/gradient_page_scaffold.dart';
 
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({super.key});
@@ -39,7 +40,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
         ? const AsyncValue<FocusSession?>.data(null)
         : ref.watch(focusSessionProvider(_selectedTask!.id));
 
-    return Scaffold(
+    return GradientPageScaffold(
       appBar: PageAppBar(title: l10n.actionStartTimer),
       drawer: const MainDrawer(),
       body: SingleChildScrollView(
