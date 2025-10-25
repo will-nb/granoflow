@@ -736,18 +736,18 @@ testing_plan:
 
       - test_name: "test_localization_configuration_consistency"
         description: "验证本地化配置与YAML文件一致"
-        validation_method: "读取documents/config/app_*.arb文件进行验证"
+        validation_method: "读取lib/l10n/app_*.arb文件进行验证"
         expectation: "配置值不是硬编码，且与YAML文件内容一致"
         yaml_files:
-          - "documents/config/app_en.arb"
-          - "documents/config/app_zh_Hans.arb"
-          - "documents/config/app_zh_Hant.arb"
+          - "lib/l10n/app_en.arb"
+          - "lib/l10n/app_zh_Hans.arb"
+          - "lib/l10n/app_zh_Hant.arb"
         implementation: |
           void main() {
             group('Localization Configuration', () {
               test('should match ARB files', () {
                 // 读取ARB文件
-                final enFile = File('documents/config/app_en.arb');
+                final enFile = File('lib/l10n/app_en.arb');
                 final enData = jsonDecode(enFile.readAsStringSync());
                 
                 // 验证本地化字符串与ARB文件一致

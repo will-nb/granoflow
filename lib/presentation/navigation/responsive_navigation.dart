@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'drawer_menu.dart';
 import 'navigation_bar.dart';
+import 'navigation_destinations.dart';
 import '../widgets/create_task_dialog.dart';
 import '../widgets/responsive_task_dialog.dart';
 
@@ -102,9 +103,10 @@ class _ResponsiveNavigationState extends State<ResponsiveNavigation> {
                 width: _getDrawerWidth(),
                 child: DrawerMenu(
                   displayMode: _currentDrawerMode,
-                  selectedIndex: 0, // 侧边栏有自己的选中状态
+                  selectedIndex: widget.selectedIndex, // 使用正确的选中索引
                   onDestinationSelected: (destination) {
-                    // 处理侧边栏导航，直接跳转到对应路由
+                    // 处理侧边栏导航，更新状态并跳转
+                    widget.onDestinationSelected(NavigationDestinations.values.indexOf(destination));
                     context.go(destination.route);
                   },
                 ),

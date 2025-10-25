@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import '../../data/models/task.dart';
 import '../../data/models/task_template.dart';
-import '../../data/models/tag.dart';
 import '../../data/repositories/seed_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import '../../data/repositories/task_repository.dart';
@@ -59,8 +58,9 @@ class SeedImportService {
     try {
       debugPrint('SeedImportService: Starting import...');
       
-      await _applyTags(payload.tags);
-      debugPrint('SeedImportService: Tags applied');
+      // 标签现在通过配置文件初始化，不再从种子数据导入
+      await _tags.initializeTags();
+      debugPrint('SeedImportService: Tags initialized from config');
       
       final slugToId = await _applyTasks(payload.tasks);
       debugPrint('SeedImportService: Tasks applied');
@@ -83,20 +83,7 @@ class SeedImportService {
     }
   }
 
-  Future<void> _applyTags(List<SeedTag> tags) async {
-    final tagModels = tags
-        .map(
-          (tag) => Tag(
-            id: 0,
-            slug: tag.slug,
-            kind: tag.kind,
-            localizedLabels: tag.labels,
-          ),
-        )
-        .toList();
-    debugPrint('SeedImportService: applying ${tagModels.length} tags...');
-    await _tags.ensureSeeded(tagModels);
-  }
+  // 移除 _applyTags 方法，标签现在通过配置文件初始化
 
   Future<Map<String, int>> _applyTasks(List<SeedTask> tasks) async {
     final Map<String, int> slugToId = <String, int>{};

@@ -140,9 +140,6 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
   final versionJson = await rootBundle
       .loadString('assets/seeds/version.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
-  final tagsJson = await rootBundle
-      .loadString('assets/seeds/tags.json')
-      .then((value) => jsonDecode(value) as Map<String, dynamic>);
   final tasksJson = await rootBundle
       .loadString('assets/seeds/$normalized/tasks.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
@@ -155,18 +152,7 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
 
   return SeedPayload(
     version: versionJson['version'] as String,
-    tags: (tagsJson['tags'] as List<dynamic>)
-        .map((raw) => raw as Map<String, dynamic>)
-        .map(
-          (raw) => SeedTag(
-            slug: raw['slug'] as String,
-            kind: TagKind.values.byName(raw['kind'] as String),
-            labels: (raw['localizations'] as Map<String, dynamic>).map(
-              (key, value) => MapEntry(key, value as String),
-            ),
-          ),
-        )
-        .toList(),
+    tags: const [], // 标签现在通过配置文件初始化，不再从种子数据加载
     tasks: (tasksJson['tasks'] as List<dynamic>)
         .map((raw) => raw as Map<String, dynamic>)
         .map((raw) {

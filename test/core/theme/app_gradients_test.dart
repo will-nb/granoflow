@@ -159,7 +159,7 @@ void main() {
       expect(extension.warning, AppGradients.warning);
       expect(extension.error, AppGradients.error);
       expect(extension.info, AppGradients.info);
-      expect(extension.pageBackground, AppGradients.seaSaltSky);
+      expect(extension.pageBackground, AppGradients.skyLight); // 使用更浅的渐变
       expect(extension.cardBackground, AppGradients.skyNavy);
     });
 
@@ -173,7 +173,7 @@ void main() {
       expect(extension.warning, AppGradients.warning);
       expect(extension.error, AppGradients.error);
       expect(extension.info, AppGradients.info);
-      expect(extension.pageBackground, AppGradients.oceanDepth);
+      expect(extension.pageBackground, AppGradients.deepSeaGlow); // 使用深海流光渐变
       expect(extension.cardBackground, AppGradients.skyNavy);
     });
 

@@ -1,0 +1,34 @@
+# 标签配置文件
+# 定义系统标签的slug和类型，翻译通过ARB文件处理
+
+tags:
+  # 上下文标签 (Context Tags)
+  context:
+    - slug: "@anywhere"
+      key: "tag_anywhere"
+    - slug: "@home" 
+      key: "tag_home"
+    - slug: "@workplace"
+      key: "tag_workplace"
+    - slug: "@local"
+      key: "tag_local"
+    - slug: "@travel"
+      key: "tag_travel"
+
+  # 优先级标签 (Priority Tags)
+  priority:
+    - slug: "#urgent"
+      key: "tag_urgent"
+    - slug: "#important"
+      key: "tag_important"
+    - slug: "#not_urgent"
+      key: "tag_not_urgent"
+    - slug: "#not_important"
+      key: "tag_not_important"
+
+  # 特殊标签 (Special Tags)
+  special:
+    - slug: "#waiting"
+      key: "tag_waiting"
+    - slug: "wasted"
+      key: "tag_wasted"

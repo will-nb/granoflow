@@ -6,6 +6,7 @@ import '../achievements/achievements_page.dart';
 import 'settings_controls.dart';
 import '../inbox/inbox_page.dart';
 import '../completion_management/completed_page.dart';
+import '../completion_management/archived_page.dart';
 import '../completion_management/trash_page.dart';
 
 /// 应用路由配置
@@ -47,6 +48,11 @@ class AppRouter {
             path: '/completed',
             name: 'completed',
             builder: (context, state) => const CompletedPage(),
+          ),
+          GoRoute(
+            path: '/archived',
+            name: 'archived',
+            builder: (context, state) => const ArchivedPage(),
           ),
           GoRoute(
             path: '/trash',

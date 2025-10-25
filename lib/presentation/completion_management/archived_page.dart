@@ -11,8 +11,8 @@ import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
 
-class CompletedPage extends ConsumerWidget {
-  const CompletedPage({super.key});
+class ArchivedPage extends ConsumerWidget {
+  const ArchivedPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,23 +20,21 @@ class CompletedPage extends ConsumerWidget {
     
     return GradientPageScaffold(
       appBar: PageAppBar(
-        title: l10n.completedTabLabel,
+        title: l10n.archivedTabLabel,
       ),
       drawer: const MainDrawer(),
-      body: const _CompletionList(section: TaskSection.completed),
+      body: const _ArchivedList(),
     );
   }
 }
 
-class _CompletionList extends ConsumerWidget {
-  const _CompletionList({required this.section});
-
-  final TaskSection section;
+class _ArchivedList extends ConsumerWidget {
+  const _ArchivedList();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final tasksAsync = ref.watch(taskSectionsProvider(section));
+    final tasksAsync = ref.watch(taskSectionsProvider(TaskSection.archived));
     return tasksAsync.when(
       data: (tasks) {
         if (tasks.isEmpty) {
@@ -48,7 +46,7 @@ class _CompletionList extends ConsumerWidget {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final task = tasks[index];
-            return _CompletionTile(section: section, task: task);
+            return _ArchivedTile(task: task);
           },
         );
       },
@@ -58,10 +56,9 @@ class _CompletionList extends ConsumerWidget {
   }
 }
 
-class _CompletionTile extends ConsumerWidget {
-  const _CompletionTile({required this.section, required this.task});
+class _ArchivedTile extends ConsumerWidget {
+  const _ArchivedTile({required this.task});
 
-  final TaskSection section;
   final Task task;
 
   @override
@@ -69,43 +66,16 @@ class _CompletionTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final subtitle = 'ID: ${task.taskId}';
-    final actions = _actions(context, ref, l10n);
+    final taskService = ref.read(taskServiceProvider);
+    
     return ListTile(
       tileColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       title: Text(task.title, style: theme.textTheme.titleMedium),
       subtitle: Text(subtitle),
-      trailing: Wrap(spacing: 4, children: actions),
-    );
-  }
-
-  List<Widget> _actions(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-  ) {
-    final taskService = ref.read(taskServiceProvider);
-    switch (section) {
-      case TaskSection.completed:
-        return [
-          IconButton(
-            tooltip: l10n.actionReactivate,
-            icon: const Icon(Icons.refresh_outlined),
-            onPressed: () => _reactivate(context, ref, task, taskService),
-          ),
-          IconButton(
-            tooltip: l10n.actionArchive,
-            icon: const Icon(Icons.archive_outlined),
-            onPressed: () => _archive(context, ref, task, taskService),
-          ),
-          IconButton(
-            tooltip: l10n.actionMoveToTrash,
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _moveToTrash(context, ref, task, taskService),
-          ),
-        ];
-      case TaskSection.archived:
-        return [
+      trailing: Wrap(
+        spacing: 4,
+        children: [
           IconButton(
             tooltip: l10n.actionRestore,
             icon: const Icon(Icons.unarchive_outlined),
@@ -116,10 +86,9 @@ class _CompletionTile extends ConsumerWidget {
             icon: const Icon(Icons.delete_outline),
             onPressed: () => _moveToTrash(context, ref, task, taskService),
           ),
-        ];
-      default:
-        return const <Widget>[];
-    }
+        ],
+      ),
+    );
   }
 
   Future<void> _reactivate(
@@ -145,31 +114,6 @@ class _CompletionTile extends ConsumerWidget {
       if (context.mounted) {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.completedReactivateError)),
-        );
-      }
-    }
-  }
-
-  Future<void> _archive(
-    BuildContext context,
-    WidgetRef ref,
-    Task task,
-    TaskService service,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await service.archive(task.id);
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.completedArchiveSuccess)),
-        );
-      }
-    } catch (error, stackTrace) {
-      debugPrint('Failed to archive task: $error\n$stackTrace');
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.completedArchiveError)),
         );
       }
     }
@@ -235,3 +179,4 @@ class _ErrorState extends StatelessWidget {
     );
   }
 }
+

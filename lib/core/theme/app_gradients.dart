@@ -313,7 +313,7 @@ class AppGradientsExtension extends ThemeExtension<AppGradientsExtension> {
     warning: AppGradients.warning,
     error: AppGradients.error,
     info: AppGradients.info,
-    pageBackground: AppGradients.seaSaltSky,
+    pageBackground: AppGradients.skyLight, // 使用更浅的渐变，提高对比度
     cardBackground: AppGradients.skyNavy,
   );
 
@@ -326,7 +326,7 @@ class AppGradientsExtension extends ThemeExtension<AppGradientsExtension> {
     warning: AppGradients.warning,
     error: AppGradients.error,
     info: AppGradients.info,
-    pageBackground: AppGradients.oceanDepth,
+    pageBackground: AppGradients.deepSeaGlow,
     cardBackground: AppGradients.skyNavy,
   );
 

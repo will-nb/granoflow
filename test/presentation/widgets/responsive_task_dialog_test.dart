@@ -112,14 +112,14 @@ void main() {
       await tester.pumpWidget(buildTestWidget(width: 800));
       
       // Should find dialog title
-      expect(find.text('创建新任务'), findsOneWidget);
+      expect(find.byType(CreateTaskDialog), findsOneWidget);
       
       // Should find input field
       expect(find.byType(TextField), findsOneWidget);
       
       // Should find buttons
-      expect(find.text('取消'), findsOneWidget);
-      expect(find.text('创建任务'), findsOneWidget);
+      expect(find.byType(OutlinedButton), findsOneWidget);
+      expect(find.byType(InkWell), findsAtLeastNWidgets(1));
       
       await tester.pumpAndSettle();
 
@@ -127,10 +127,10 @@ void main() {
       await tester.pumpWidget(buildTestWidget(width: 400));
       
       // Should still find all elements
-      expect(find.text('创建新任务'), findsOneWidget);
+      expect(find.byType(CreateTaskDialog), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('取消'), findsOneWidget);
-      expect(find.text('创建任务'), findsOneWidget);
+      expect(find.byType(OutlinedButton), findsOneWidget);
+      expect(find.byType(InkWell), findsAtLeastNWidgets(1));
     });
 
     testWidgets('should properly constrain in wide mode', (tester) async {

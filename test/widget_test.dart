@@ -37,6 +37,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('Hello, GranoFlow'), findsOneWidget);
+    // 验证应用标题存在（不依赖具体翻译文本）
+    expect(find.textContaining('GranoFlow'), findsOneWidget);
   });
 }

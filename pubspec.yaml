@@ -33,7 +33,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/seeds/version.json
-    - assets/seeds/tags.json
     - assets/seeds/en/
     - assets/seeds/zh_CN/
     - assets/seeds/zh_HK/
+    - assets/images/background.light.png
+    - assets/images/background.dark.png

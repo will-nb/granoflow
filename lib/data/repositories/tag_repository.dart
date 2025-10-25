@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
+import '../../core/services/tag_config_service.dart';
 import '../isar/tag_entity.dart';
 import '../models/tag.dart';
 
 abstract class TagRepository {
-  Future<void> ensureSeeded(List<Tag> tags);
+  /// 初始化标签数据（从配置文件加载）
+  Future<void> initializeTags();
 
   Future<List<Tag>> listByKind(TagKind kind);
 
@@ -18,46 +20,43 @@ class IsarTagRepository implements TagRepository {
   final Isar _isar;
 
   @override
-  Future<void> ensureSeeded(List<Tag> tags) async {
-    debugPrint('TagRepository.ensureSeeded: incoming=${tags.length}, slugs=${tags.map((t)=>t.slug).join(', ')}');
+  Future<void> initializeTags() async {
+    debugPrint('TagRepository.initializeTags: Loading tags from config...');
+    
+    final configService = TagConfigService.instance;
+    final tagConfigs = await configService.getTags();
+    
+    debugPrint('TagRepository.initializeTags: Found ${tagConfigs.length} tag configs');
+    
     var created = 0;
     var updated = 0;
+    
     await _isar.writeTxn(() async {
-      for (final tag in tags) {
+      for (final config in tagConfigs) {
         final existing = await _isar.tagEntitys
             .filter()
-            .slugEqualTo(tag.slug)
+            .slugEqualTo(config.slug)
             .findFirst();
+            
         if (existing != null) {
-          existing
-            ..kind = tag.kind
-            ..localizedLabels = tag.localizedLabels.entries
-                .map(
-                  (entry) => TagLocalizationEntry()
-                    ..locale = entry.key
-                    ..label = entry.value,
-                )
-                .toList();
+          // 更新现有标签
+          existing.kind = config.kind;
           await _isar.tagEntitys.put(existing);
           updated++;
-          continue;
+        } else {
+          // 创建新标签
+          final entity = TagEntity()
+            ..slug = config.slug
+            ..kind = config.kind
+            ..localizedLabels = []; // 翻译通过ARB处理，这里不需要存储
+          await _isar.tagEntitys.put(entity);
+          created++;
         }
-        final entity = TagEntity()
-          ..slug = tag.slug
-          ..kind = tag.kind
-          ..localizedLabels = tag.localizedLabels.entries
-              .map(
-                (entry) => TagLocalizationEntry()
-                  ..locale = entry.key
-                  ..label = entry.value,
-              )
-              .toList();
-        await _isar.tagEntitys.put(entity);
-        created++;
       }
     });
+    
     final total = await _isar.tagEntitys.count();
-    debugPrint('TagRepository.ensureSeeded: done (created=$created, updated=$updated, total=$total)');
+    debugPrint('TagRepository.initializeTags: done (created=$created, updated=$updated, total=$total)');
   }
 
   @override
@@ -80,14 +79,13 @@ class IsarTagRepository implements TagRepository {
   }
 
   Tag _toDomain(TagEntity entity) {
-    final map = <String, String>{
-      for (final entry in entity.localizedLabels) entry.locale: entry.label,
-    };
+    // 翻译通过ARB处理，这里返回空的localizedLabels
+    // 实际显示时通过TagConfigService获取翻译key，然后在UI层使用Localizations
     return Tag(
       id: entity.id,
       slug: entity.slug,
       kind: entity.kind,
-      localizedLabels: map,
+      localizedLabels: const {}, // 不再存储翻译，通过ARB处理
     );
   }
 }

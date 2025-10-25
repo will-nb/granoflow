@@ -369,8 +369,13 @@ class StubTagRepository implements TagRepository {
   final Map<String, Tag> _tags = <String, Tag>{};
 
   @override
-  Future<void> ensureSeeded(List<Tag> tags) async {
-    for (final tag in tags) {
+  Future<void> initializeTags() async {
+    // 测试实现：初始化一些测试标签
+    final testTags = [
+      Tag(id: 1, slug: '@home', kind: TagKind.context, localizedLabels: {'en': 'Home'}),
+      Tag(id: 2, slug: '#urgent', kind: TagKind.priority, localizedLabels: {'en': 'Urgent'}),
+    ];
+    for (final tag in testTags) {
       _tags[tag.slug] = tag;
     }
   }

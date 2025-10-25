@@ -137,17 +137,20 @@ class DrawerMenu extends StatelessWidget {
             ),
             // 横屏模式下集成 FAB
             if (MediaQuery.of(context).orientation == Orientation.landscape)
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: FloatingActionButton(
-                  onPressed: () => _showCreateTaskDialog(context),
-                  child: const Icon(Icons.add),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16), // Reddit 风格圆角
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: FloatingActionButton(
+                      onPressed: () => _showCreateTaskDialog(context),
+                      child: const Icon(Icons.add, size: 24),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      elevation: 4, // 悬浮突出效果
+                    ),
                   ),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  elevation: 4, // 悬浮突出效果
                 ),
               ),
           ],

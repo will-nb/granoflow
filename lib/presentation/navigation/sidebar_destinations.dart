@@ -8,10 +8,10 @@ enum SidebarDestinations {
   taskList(Icons.list_alt, '任务清单', '/tasks'),
   /// 已完成
   completed(Icons.check_circle, '已完成', '/completed'),
+  /// 已归档
+  archived(Icons.archive, '已归档', '/archived'),
   /// 垃圾箱
-  trash(Icons.delete, '垃圾箱', '/trash'),
-  /// 设置
-  settings(Icons.settings, '设置', '/settings');
+  trash(Icons.delete, '垃圾箱', '/trash');
 
   const SidebarDestinations(this.icon, this.label, this.route);
 
