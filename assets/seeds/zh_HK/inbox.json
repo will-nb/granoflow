@@ -1,28 +1,34 @@
 {
   "items": [
     {
-      "slug": "inbox_try_yoga_template",
-      "title": "安排明早的瑜伽練習",
-      "note": "從模板開始，看看自動填入的父任務與標籤。",
-      "suggestedTemplateSlug": "tmpl_morning_yoga"
+      "slug": "inbox_add_to_task_list",
+      "title": "把當前任務加入任務列表，然後完成它",
+      "note": "從收集箱將任務添加到任務列表，然後標記為完成",
+      "suggestedTemplateSlug": null
     },
     {
-      "slug": "inbox_weekly_review",
-      "title": "週日晚預留時間做每週回顧",
-      "note": "把它加入任務清單，並考慮設定為每週重覆的模板。",
-      "suggestedTemplateSlug": "tmpl_weekly_review"
+      "slug": "inbox_edit_task_content",
+      "title": "修改當前任務的內容和標籤",
+      "note": "編輯任務標題、描述和標籤信息",
+      "suggestedTemplateSlug": null
     },
     {
-      "slug": "inbox_vocab_boost",
-      "title": "複習商務會議常用詞彙",
-      "note": "搭配詞彙模板，安排 30 分鐘的集中特訓。",
-      "suggestedTemplateSlug": "tmpl_vocab_review"
+      "slug": "inbox_register_account",
+      "title": "註冊賬號並登錄",
+      "note": "創建新用戶賬號並完成登錄流程",
+      "suggestedTemplateSlug": null
     },
     {
-      "slug": "inbox_granostack_feedback",
-      "title": "紀錄今天使用 GranoStack 的心得",
-      "note": "寫下你最喜歡的功能或想改進的地方，之後可以歸檔。",
-      "suggestedTemplateSlug": "tmpl_granostack_daily"
+      "slug": "inbox_export_data",
+      "title": "導出任務數據",
+      "note": "將當前的任務數據導出為文件",
+      "suggestedTemplateSlug": null
+    },
+    {
+      "slug": "inbox_import_data",
+      "title": "導入剛才導出的任務數據",
+      "note": "從文件中導入之前導出的任務數據",
+      "suggestedTemplateSlug": null
     }
   ]
 }

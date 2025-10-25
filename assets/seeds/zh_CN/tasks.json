@@ -1,142 +1,39 @@
 {
   "tasks": [
     {
-      "slug": "tutorial_granoflow",
-      "title": "完成 GranoFlow 操作指南任务列表",
+      "slug": "task_archive",
+      "title": "归档这个任务",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": []
+      "tags": ["@home", "#not_urgent", "#important"]
     },
     {
-      "slug": "tutorial_granoflow_home",
-      "title": "在首页查看四个效率指标卡片",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_open_inbox",
-      "title": "打开收集箱并新增一条待办",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_promote_inbox",
-      "title": "将收集箱待办加入任务清单并设定截止日期",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_enter_edit_mode",
-      "title": "切换到编辑模式了解任务层级",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_drag_task",
-      "title": "在编辑模式拖动任务调整顺序",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_apply_template",
-      "title": "在任务输入框套用一个模板",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_start_focus",
-      "title": "从任务列表启动一次专注计时",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_end_session",
-      "title": "结束专注并选择立即完成",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-    {
-      "slug": "tutorial_review_completed",
-      "title": "打开已完成页面检查任务状态",
-      "parentSlug": "tutorial_granoflow",
-      "allowInstantComplete": true
-    },
-
-    {
-      "slug": "anchor_wellness",
-      "title": "维护健康与运动计划清单",
+      "slug": "task_archive_to_trash",
+      "title": "把这个任务归档，然后丢进垃圾箱",
       "status": "pending",
-      "tags": ["@home"]
+      "allowInstantComplete": true,
+      "tags": ["@home", "#not_urgent", "#important"]
     },
     {
-      "slug": "task_sample_yoga_intro",
-      "title": "完成 20 分钟晨间瑜伽练习",
-      "parentSlug": "anchor_wellness",
+      "slug": "task_trash_to_delete",
+      "title": "把这个任务丢进垃圾箱，然后删除",
       "status": "pending",
-      "tags": ["@home", "#important"]
+      "allowInstantComplete": true,
+      "tags": ["@home", "#not_urgent", "#important"]
     },
     {
-      "slug": "task_sample_run_interval",
-      "title": "完成 4 轮城市间歇跑训练",
-      "parentSlug": "anchor_wellness",
+      "slug": "task_activate_from_inbox",
+      "title": "从收集箱激活一条任务",
       "status": "pending",
-      "tags": ["@city", "#urgent"]
+      "allowInstantComplete": true,
+      "tags": ["@home", "#not_urgent", "#important"]
     },
     {
-      "slug": "task_sample_weight_reflection",
-      "title": "记录本周体重并写下三条状态备注",
-      "parentSlug": "anchor_wellness",
+      "slug": "task_timer_and_complete",
+      "title": "为这个任务计时，然后选择完成",
       "status": "pending",
-      "tags": ["@home", "#not_urgent"]
-    },
-
-    {
-      "slug": "anchor_learning",
-      "title": "维护学习与成长计划清单",
-      "status": "pending",
-      "tags": ["@home"]
-    },
-    {
-      "slug": "task_sample_vocab_review",
-      "title": "复习 30 个英语词汇并标记难点",
-      "parentSlug": "anchor_learning",
-      "status": "pending",
-      "tags": ["@mobile", "#important"]
-    },
-    {
-      "slug": "task_sample_reading_session",
-      "title": "阅读《原子习惯》一章并整理要点",
-      "parentSlug": "anchor_learning",
-      "status": "pending",
-      "tags": ["@home", "#not_urgent"]
-    },
-    {
-      "slug": "task_sample_granostack_review",
-      "title": "回顾 GranoStack 技巧并记录三条心得",
-      "parentSlug": "anchor_learning",
-      "status": "pending",
-      "tags": ["@work", "#not_urgent"]
-    },
-
-    {
-      "slug": "anchor_life_admin",
-      "title": "维护生活管理事项清单",
-      "status": "pending",
-      "tags": ["@home"]
-    },
-    {
-      "slug": "task_sample_weekly_review",
-      "title": "完成一次每周生活回顾并列出下周三项重点",
-      "parentSlug": "anchor_life_admin",
-      "status": "pending",
-      "tags": ["@home", "#important"]
-    },
-    {
-      "slug": "task_sample_finance_check",
-      "title": "整理本月支出并核对预算差异",
-      "parentSlug": "anchor_life_admin",
-      "status": "pending",
-      "tags": ["@home", "#urgent"]
+      "allowInstantComplete": true,
+      "tags": ["@home", "#not_urgent", "#important"]
     }
   ]
 }

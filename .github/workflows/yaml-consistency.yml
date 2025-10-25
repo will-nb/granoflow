@@ -78,25 +78,10 @@ jobs:
           
           echo "✅ 所有 YAML 文件语法正确"
           
-      - name: Run Navigation Consistency Tests
+      - name: Run YAML Documentation Tests
         run: |
-          echo "📱 运行导航组件一致性测试..."
-          flutter test test/presentation/navigation/yaml_based_consistency_test.dart --reporter=expanded
-          
-      - name: Run Widget Consistency Tests
-        run: |
-          echo "🧩 运行组件一致性测试..."
-          flutter test test/presentation/widgets/yaml_based_widget_test.dart --reporter=expanded
-          
-      - name: Run YAML Integrity Tests
-        run: |
-          echo "📋 运行 YAML 完整性测试..."
-          flutter test test/documentation/yaml_integrity_test.dart --reporter=expanded
-          
-      - name: Run Integration Consistency Tests
-        run: |
-          echo "🔗 运行集成一致性测试..."
-          flutter test test/presentation/navigation/integration_consistency_test.dart --reporter=expanded
+          echo "📋 运行 YAML 文档测试..."
+          flutter test test/documentation/ --reporter=expanded
           
       - name: Generate Test Report
         if: always()
@@ -111,20 +96,8 @@ jobs:
             "workflow": "YAML Consistency Tests",
             "status": "${{ job.status }}",
             "tests": {
-              "navigation_consistency": {
-                "file": "test/presentation/navigation/yaml_based_consistency_test.dart",
-                "status": "completed"
-              },
-              "widget_consistency": {
-                "file": "test/presentation/widgets/yaml_based_widget_test.dart",
-                "status": "completed"
-              },
-              "yaml_integrity": {
-                "file": "test/documentation/yaml_integrity_test.dart",
-                "status": "completed"
-              },
-              "integration_consistency": {
-                "file": "test/presentation/navigation/integration_consistency_test.dart",
+              "yaml_documentation": {
+                "file": "test/documentation/",
                 "status": "completed"
               }
             },

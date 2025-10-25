@@ -10,12 +10,12 @@
       }
     },
     {
-      "slug": "@work",
+      "slug": "@desk",
       "kind": "context",
       "localizations": {
-        "en": "Work",
-        "zh_CN": "工作",
-        "zh_HK": "工作"
+        "en": "Desk",
+        "zh_CN": "书桌",
+        "zh_HK": "書桌"
       }
     },
     {
@@ -23,35 +23,35 @@
       "kind": "context",
       "localizations": {
         "en": "On the go",
-        "zh_CN": "移动中",
-        "zh_HK": "移動中"
+        "zh_CN": "手机",
+        "zh_HK": "手機"
       }
     },
     {
-      "slug": "@city",
+      "slug": "@local",
       "kind": "context",
       "localizations": {
-        "en": "In the city",
-        "zh_CN": "城区",
-        "zh_HK": "城區"
+        "en": "local",
+        "zh_CN": "本地",
+        "zh_HK": "當地"
       }
     },
     {
-      "slug": "@country",
+      "slug": "@domestic",
       "kind": "context",
       "localizations": {
-        "en": "Out of town",
-        "zh_CN": "郊外",
-        "zh_HK": "郊外"
+        "en": "domestic",
+        "zh_CN": "国内",
+        "zh_HK": "國內"
       }
     },
     {
-      "slug": "@world",
+      "slug": "@international",
       "kind": "context",
       "localizations": {
-        "en": "Travel",
-        "zh_CN": "差旅",
-        "zh_HK": "差旅"
+        "en": "international",
+        "zh_CN": "国际",
+        "zh_HK": "國際"
       }
     },
     {
