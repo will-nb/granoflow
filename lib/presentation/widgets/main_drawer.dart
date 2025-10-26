@@ -56,11 +56,12 @@ class MainDrawer extends StatelessWidget {
                       // Logo 和标题
                       Row(
                         children: [
-                          const AppLogoIcon(
-                            size: 32.0,
+                          const AppLogo(
+                            size: 28.0,
+                            showText: false,
                             variant: AppLogoVariant.onPrimary,
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               l10n.homeGreeting,
