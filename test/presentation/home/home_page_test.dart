@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:granoflow/core/app.dart';
 import 'package:granoflow/core/providers/repository_providers.dart';
+import 'package:granoflow/presentation/widgets/app_logo.dart';
 import '../test_support/fakes.dart';
 
 void main() {
@@ -39,8 +40,8 @@ void main() {
     // 验证文本组件存在（验证UI渲染正常）
     expect(find.byType(Text), findsWidgets);
     
-    // 验证计时器图标存在
-    expect(find.byIcon(Icons.hourglass_top_outlined), findsOneWidget);
+    // 验证 AppLogo 存在（替换了原来的计时器图标）
+    expect(find.byType(AppLogo), findsOneWidget);
   });
 
   testWidgets('renders localized content in Chinese', (tester) async {
@@ -68,8 +69,8 @@ void main() {
     // 验证问候语存在（不依赖具体翻译文本）
     expect(find.textContaining('GranoFlow'), findsAtLeastNWidgets(1));
     
-    // 验证计时器图标存在
-    expect(find.byIcon(Icons.hourglass_top_outlined), findsOneWidget);
+    // 验证 AppLogo 存在（替换了原来的计时器图标）
+    expect(find.byType(AppLogo), findsOneWidget);
     
     // 验证页面包含文本内容（不依赖具体翻译）
     expect(find.byType(Text), findsAtLeastNWidgets(2));

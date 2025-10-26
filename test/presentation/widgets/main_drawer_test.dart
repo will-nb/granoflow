@@ -40,7 +40,7 @@ void main() {
       
       // 验证 AppLogo 组件的属性
       final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.size, equals(28.0));
+      expect(appLogo.size, equals(30.0)); // 更新为新的尺寸
       expect(appLogo.showText, isFalse);
       expect(appLogo.variant, equals(AppLogoVariant.onPrimary));
       expect(appLogo.withBackground, isFalse);
@@ -50,7 +50,7 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       
       final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.size, equals(28.0));
+      expect(appLogo.size, equals(30.0)); // 更新为新的尺寸
     });
 
     testWidgets('should maintain layout spacing', (tester) async {

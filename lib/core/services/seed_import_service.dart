@@ -50,7 +50,16 @@ class SeedImportService {
     debugPrint('SeedImportService: Already imported=$alreadyImported');
     
     if (alreadyImported) {
-      debugPrint('SeedImportService: Skipping import, already imported');
+      debugPrint('SeedImportService: Already imported=true, but reinitializing tags...');
+      // 即使已经导入过，也要重新初始化标签，确保标签分类正确
+      try {
+        // 先清空所有标签，然后重新创建
+        await _clearAllTags();
+        await _tags.initializeTags();
+        debugPrint('SeedImportService: Tags cleared and reinitialized from config');
+      } catch (error) {
+        debugPrint('SeedImportService: Error reinitializing tags: $error');
+      }
       _isImporting = false;
       return;
     }
@@ -59,6 +68,7 @@ class SeedImportService {
       debugPrint('SeedImportService: Starting import...');
       
       // 标签现在通过配置文件初始化，不再从种子数据导入
+      // 总是重新初始化标签，确保标签分类正确
       await _tags.initializeTags();
       debugPrint('SeedImportService: Tags initialized from config');
       
@@ -84,6 +94,12 @@ class SeedImportService {
   }
 
   // 移除 _applyTags 方法，标签现在通过配置文件初始化
+  
+  Future<void> _clearAllTags() async {
+    debugPrint('SeedImportService: Clearing all tags...');
+    await _tags.clearAll();
+    debugPrint('SeedImportService: All tags cleared');
+  }
 
   Future<Map<String, int>> _applyTasks(List<SeedTask> tasks) async {
     final Map<String, int> slugToId = <String, int>{};

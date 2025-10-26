@@ -49,7 +49,8 @@ class _InboxPageState extends ConsumerState<InboxPage> {
       ),
     );
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
-    final priorityTagsAsync = ref.watch(priorityTagOptionsProvider);
+    final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
+    final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
 
     return GradientPageScaffold(
       appBar: const PageAppBar(
@@ -83,33 +84,85 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                       onApply: (template) => _applyTemplate(context, template),
                       emptyLabel: l10n.inboxTemplateEmpty,
                     ),
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () => const SizedBox.shrink(), // 隐藏 loading 状态
                     error: (error, stackTrace) => _ErrorBanner(message: '$error'),
                   ),
                   const SizedBox(height: 16),
+                  
+                  // 上下文标签组 - 保持水平滚动
                   contextTagsAsync.when(
-                    data: (tags) => ChipToggleGroup(
-                      options: _toChipOptions(tags, l10n.localeName),
-                      selectedValues: {if (filter.contextTag != null) filter.contextTag!},
-                      onSelectionChanged: (values) {
-                        final next = values.isEmpty ? null : values.first;
-                        ref.read(inboxFilterProvider.notifier).setContextTag(next);
-                      },
-                      multiSelect: false,
+                    data: (tags) => SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: tags.map((tag) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              label: Text(_getTagLabel(tag.slug)),
+                              selected: filter.contextTag == tag.slug,
+                              onSelected: (selected) {
+                                ref.read(inboxFilterProvider.notifier).setContextTag(
+                                  selected ? tag.slug : null,
+                                );
+                              },
+                              selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                              checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                     loading: () => const SizedBox.shrink(),
                     error: (error, stackTrace) => _ErrorBanner(message: '$error'),
                   ),
                   const SizedBox(height: 8),
-                  priorityTagsAsync.when(
-                    data: (tags) => ChipToggleGroup(
-                      options: _toChipOptions(tags, l10n.localeName),
-                      selectedValues: {if (filter.priorityTag != null) filter.priorityTag!},
-                      onSelectionChanged: (values) {
-                        final next = values.isEmpty ? null : values.first;
-                        ref.read(inboxFilterProvider.notifier).setPriorityTag(next);
-                      },
-                      multiSelect: false,
+
+                  // 紧急程度和重要程度标签组 - 动态生成，合并为同一行
+                  urgencyTagsAsync.when(
+                    data: (urgencyTags) => importanceTagsAsync.when(
+                      data: (importanceTags) => SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            // 紧急程度标签
+                            ...urgencyTags.map((tag) => Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FilterChip(
+                                label: Text(_getTagLabel(tag.slug)),
+                                selected: filter.urgencyTag == tag.slug,
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    ref.read(inboxFilterProvider.notifier).setUrgencyTag(tag.slug);
+                                  } else {
+                                    ref.read(inboxFilterProvider.notifier).setUrgencyTag(null);
+                                  }
+                                },
+                                selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                                checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                              ),
+                            )),
+                            // 重要程度标签
+                            ...importanceTags.map((tag) => Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FilterChip(
+                                label: Text(_getTagLabel(tag.slug)),
+                                selected: filter.importanceTag == tag.slug,
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    ref.read(inboxFilterProvider.notifier).setImportanceTag(tag.slug);
+                                  } else {
+                                    ref.read(inboxFilterProvider.notifier).setImportanceTag(null);
+                                  }
+                                },
+                                selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                                checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                              ),
+                            )),
+                          ],
+                        ),
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (error, stackTrace) => _ErrorBanner(message: '$error'),
                     ),
                     loading: () => const SizedBox.shrink(),
                     error: (error, stackTrace) => _ErrorBanner(message: '$error'),
@@ -148,7 +201,15 @@ class _InboxPageState extends ConsumerState<InboxPage> {
             loading: () => const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.only(top: 80),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: Column(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading inbox tasks...'),
+                    ],
+                  ),
+                ),
               ),
             ),
             error: (error, stackTrace) => SliverToBoxAdapter(
@@ -222,10 +283,44 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     });
   }
 
-  List<ChipToggleOption> _toChipOptions(List<Tag> tags, String localeName) {
-    return tags
-        .map((tag) => ChipToggleOption(value: tag.slug, label: tag.labelForLocale(localeName)))
-        .toList(growable: false);
+  String _getTagLabel(String slug) {
+    // 根据 slug 获取对应的翻译键
+    final translationKey = _getTranslationKey(slug);
+    if (translationKey == null) return slug;
+    
+    // 使用 AppLocalizations 获取翻译
+    final l10n = AppLocalizations.of(context);
+    switch (translationKey) {
+      case 'tag_anywhere': return l10n.tag_anywhere;
+      case 'tag_home': return l10n.tag_home;
+      case 'tag_workplace': return l10n.tag_workplace;
+      case 'tag_local': return l10n.tag_local;
+      case 'tag_travel': return l10n.tag_travel;
+      case 'tag_urgent': return l10n.tag_urgent;
+      case 'tag_not_urgent': return l10n.tag_not_urgent;
+      case 'tag_important': return l10n.tag_important;
+      case 'tag_not_important': return l10n.tag_not_important;
+      case 'tag_waiting': return l10n.tag_waiting;
+      case 'tag_wasted': return l10n.tag_wasted;
+      default: return slug;
+    }
+  }
+
+  String? _getTranslationKey(String slug) {
+    switch (slug) {
+      case '@anywhere': return 'tag_anywhere';
+      case '@home': return 'tag_home';
+      case '@workplace': return 'tag_workplace';
+      case '@local': return 'tag_local';
+      case '@travel': return 'tag_travel';
+      case '#urgent': return 'tag_urgent';
+      case '#not_urgent': return 'tag_not_urgent';
+      case '#important': return 'tag_important';
+      case '#not_important': return 'tag_not_important';
+      case '#waiting': return 'tag_waiting';
+      case 'wasted': return 'tag_wasted';
+      default: return null;
+    }
   }
 }
 
@@ -681,8 +776,48 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
 
   List<ChipToggleOption> _toChipOptions(List<Tag> tags, String localeName) {
     return tags
-        .map((tag) => ChipToggleOption(value: tag.slug, label: tag.labelForLocale(localeName)))
+        .map((tag) => ChipToggleOption(value: tag.slug, label: _getTagLabel(tag.slug)))
         .toList(growable: false);
+  }
+
+  String _getTagLabel(String slug) {
+    // 根据 slug 获取对应的翻译键
+    final translationKey = _getTranslationKey(slug);
+    if (translationKey == null) return slug;
+    
+    // 使用 AppLocalizations 获取翻译
+    final l10n = AppLocalizations.of(context);
+    switch (translationKey) {
+      case 'tag_anywhere': return l10n.tag_anywhere;
+      case 'tag_home': return l10n.tag_home;
+      case 'tag_workplace': return l10n.tag_workplace;
+      case 'tag_local': return l10n.tag_local;
+      case 'tag_travel': return l10n.tag_travel;
+      case 'tag_urgent': return l10n.tag_urgent;
+      case 'tag_not_urgent': return l10n.tag_not_urgent;
+      case 'tag_important': return l10n.tag_important;
+      case 'tag_not_important': return l10n.tag_not_important;
+      case 'tag_waiting': return l10n.tag_waiting;
+      case 'tag_wasted': return l10n.tag_wasted;
+      default: return slug;
+    }
+  }
+
+  String? _getTranslationKey(String slug) {
+    switch (slug) {
+      case '@anywhere': return 'tag_anywhere';
+      case '@home': return 'tag_home';
+      case '@workplace': return 'tag_workplace';
+      case '@local': return 'tag_local';
+      case '@travel': return 'tag_travel';
+      case '#urgent': return 'tag_urgent';
+      case '#not_urgent': return 'tag_not_urgent';
+      case '#important': return 'tag_important';
+      case '#not_important': return 'tag_not_important';
+      case '#waiting': return 'tag_waiting';
+      case 'wasted': return 'tag_wasted';
+      default: return null;
+    }
   }
 }
 

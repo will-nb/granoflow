@@ -9,6 +9,9 @@ abstract class TagRepository {
   /// 初始化标签数据（从配置文件加载）
   Future<void> initializeTags();
 
+  /// 清空所有标签数据
+  Future<void> clearAll();
+
   Future<List<Tag>> listByKind(TagKind kind);
 
   Future<Tag?> findBySlug(String slug);
@@ -27,6 +30,9 @@ class IsarTagRepository implements TagRepository {
     final tagConfigs = await configService.getTags();
     
     debugPrint('TagRepository.initializeTags: Found ${tagConfigs.length} tag configs');
+    for (final config in tagConfigs) {
+      debugPrint('TagRepository.initializeTags: Config - slug=${config.slug}, kind=${config.kind}');
+    }
     
     var created = 0;
     var updated = 0;
@@ -40,11 +46,13 @@ class IsarTagRepository implements TagRepository {
             
         if (existing != null) {
           // 更新现有标签
+          debugPrint('TagRepository.initializeTags: Updating existing tag ${config.slug} from ${existing.kind} to ${config.kind}');
           existing.kind = config.kind;
           await _isar.tagEntitys.put(existing);
           updated++;
         } else {
           // 创建新标签
+          debugPrint('TagRepository.initializeTags: Creating new tag ${config.slug} with kind ${config.kind}');
           final entity = TagEntity()
             ..slug = config.slug
             ..kind = config.kind
@@ -57,6 +65,24 @@ class IsarTagRepository implements TagRepository {
     
     final total = await _isar.tagEntitys.count();
     debugPrint('TagRepository.initializeTags: done (created=$created, updated=$updated, total=$total)');
+    
+    // 验证结果
+    for (final kind in TagKind.values) {
+      final entities = await _isar.tagEntitys
+          .filter()
+          .kindEqualTo(kind)
+          .findAll();
+      debugPrint('TagRepository.initializeTags: After init - $kind: count=${entities.length}, slugs=${entities.map((e)=>e.slug).join(', ')}');
+    }
+  }
+
+  @override
+  Future<void> clearAll() async {
+    debugPrint('TagRepository.clearAll: Clearing all tags...');
+    await _isar.writeTxn(() async {
+      await _isar.tagEntitys.clear();
+    });
+    debugPrint('TagRepository.clearAll: All tags cleared');
   }
 
   @override
@@ -66,7 +92,7 @@ class IsarTagRepository implements TagRepository {
         .kindEqualTo(kind)
         .findAll();
     debugPrint('TagRepository.listByKind($kind): count=${entities.length}, slugs=${entities.map((e)=>e.slug).join(', ')}');
-    return entities.map(_toDomain).toList(growable: false);
+    return entities.map((entity) => _toDomain(entity, null)).toList(growable: false);
   }
 
   @override
@@ -75,10 +101,10 @@ class IsarTagRepository implements TagRepository {
         .filter()
         .slugEqualTo(slug)
         .findFirst();
-    return entity == null ? null : _toDomain(entity);
+    return entity == null ? null : _toDomain(entity, null);
   }
 
-  Tag _toDomain(TagEntity entity) {
+  Tag _toDomain(TagEntity entity, dynamic l10n) {
     // 翻译通过ARB处理，这里返回空的localizedLabels
     // 实际显示时通过TagConfigService获取翻译key，然后在UI层使用Localizations
     return Tag(

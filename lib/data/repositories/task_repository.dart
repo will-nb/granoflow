@@ -16,6 +16,8 @@ abstract class TaskRepository {
   Stream<List<Task>> watchInboxFiltered({
     String? contextTag,
     String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
   });
 
   Future<Task> createTask(TaskDraft draft);
@@ -93,6 +95,8 @@ class IsarTaskRepository implements TaskRepository {
   Stream<List<Task>> watchInboxFiltered({
     String? contextTag,
     String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
   }) {
     return _watchQuery(() async {
       final entities = await _isar.taskEntitys
@@ -109,6 +113,16 @@ class IsarTaskRepository implements TaskRepository {
         }
         if (priorityTag != null && priorityTag.isNotEmpty) {
           if (!tags.contains(priorityTag)) {
+            return false;
+          }
+        }
+        if (urgencyTag != null && urgencyTag.isNotEmpty) {
+          if (!tags.contains(urgencyTag)) {
+            return false;
+          }
+        }
+        if (importanceTag != null && importanceTag.isNotEmpty) {
+          if (!tags.contains(importanceTag)) {
             return false;
           }
         }

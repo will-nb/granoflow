@@ -25,11 +25,13 @@ class TagConfigService {
       TagConfig(slug: "@local", kind: TagKind.context, translationKey: "tag_local"),
       TagConfig(slug: "@travel", kind: TagKind.context, translationKey: "tag_travel"),
       
-      // 优先级标签 (Priority Tags)
-      TagConfig(slug: "#urgent", kind: TagKind.priority, translationKey: "tag_urgent"),
-      TagConfig(slug: "#important", kind: TagKind.priority, translationKey: "tag_important"),
-      TagConfig(slug: "#not_urgent", kind: TagKind.priority, translationKey: "tag_not_urgent"),
-      TagConfig(slug: "#not_important", kind: TagKind.priority, translationKey: "tag_not_important"),
+      // 紧急程度标签 (Urgency Tags)
+      TagConfig(slug: "#urgent", kind: TagKind.urgency, translationKey: "tag_urgent"),
+      TagConfig(slug: "#not_urgent", kind: TagKind.urgency, translationKey: "tag_not_urgent"),
+      
+      // 重要程度标签 (Importance Tags)
+      TagConfig(slug: "#important", kind: TagKind.importance, translationKey: "tag_important"),
+      TagConfig(slug: "#not_important", kind: TagKind.importance, translationKey: "tag_not_important"),
       
       // 特殊标签 (Special Tags)
       TagConfig(slug: "#waiting", kind: TagKind.special, translationKey: "tag_waiting"),

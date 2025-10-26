@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum TagKind { context, priority, special }
+enum TagKind { context, priority, special, urgency, importance }
 
 @immutable
 class Tag {

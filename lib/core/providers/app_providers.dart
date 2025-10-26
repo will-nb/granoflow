@@ -108,22 +108,35 @@ final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
 
 @immutable
 class InboxFilterState {
-  const InboxFilterState({this.contextTag, this.priorityTag});
+  const InboxFilterState({
+    this.contextTag,
+    this.priorityTag,
+    this.urgencyTag,
+    this.importanceTag,
+  });
 
   final String? contextTag;
   final String? priorityTag;
+  final String? urgencyTag;
+  final String? importanceTag;
 
   bool get hasFilters =>
       (contextTag != null && contextTag!.isNotEmpty) ||
-      (priorityTag != null && priorityTag!.isNotEmpty);
+      (priorityTag != null && priorityTag!.isNotEmpty) ||
+      (urgencyTag != null && urgencyTag!.isNotEmpty) ||
+      (importanceTag != null && importanceTag!.isNotEmpty);
 
   InboxFilterState copyWith({
     String? contextTag,
     String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
   }) {
     return InboxFilterState(
       contextTag: contextTag ?? this.contextTag,
       priorityTag: priorityTag ?? this.priorityTag,
+      urgencyTag: urgencyTag ?? this.urgencyTag,
+      importanceTag: importanceTag ?? this.importanceTag,
     );
   }
 
@@ -131,11 +144,13 @@ class InboxFilterState {
   bool operator ==(Object other) {
     return other is InboxFilterState &&
         other.contextTag == contextTag &&
-        other.priorityTag == priorityTag;
+        other.priorityTag == priorityTag &&
+        other.urgencyTag == urgencyTag &&
+        other.importanceTag == importanceTag;
   }
 
   @override
-  int get hashCode => Object.hash(contextTag, priorityTag);
+  int get hashCode => Object.hash(contextTag, priorityTag, urgencyTag, importanceTag);
 }
 
 class InboxFilterNotifier extends StateNotifier<InboxFilterState> {
@@ -146,10 +161,7 @@ class InboxFilterNotifier extends StateNotifier<InboxFilterState> {
     if (state.contextTag == normalized) {
       return;
     }
-    state = InboxFilterState(
-      contextTag: normalized,
-      priorityTag: state.priorityTag,
-    );
+    state = state.copyWith(contextTag: normalized);
   }
 
   void setPriorityTag(String? tag) {
@@ -157,10 +169,23 @@ class InboxFilterNotifier extends StateNotifier<InboxFilterState> {
     if (state.priorityTag == normalized) {
       return;
     }
-    state = InboxFilterState(
-      contextTag: state.contextTag,
-      priorityTag: normalized,
-    );
+    state = state.copyWith(priorityTag: normalized);
+  }
+
+  void setUrgencyTag(String? tag) {
+    final normalized = (tag != null && tag.isEmpty) ? null : tag;
+    if (state.urgencyTag == normalized) {
+      return;
+    }
+    state = state.copyWith(urgencyTag: normalized);
+  }
+
+  void setImportanceTag(String? tag) {
+    final normalized = (tag != null && tag.isEmpty) ? null : tag;
+    if (state.importanceTag == normalized) {
+      return;
+    }
+    state = state.copyWith(importanceTag: normalized);
   }
 
   void reset() {
@@ -178,6 +203,8 @@ final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
   return ref.watch(taskRepositoryProvider).watchInboxFiltered(
         contextTag: filter.contextTag,
         priorityTag: filter.priorityTag,
+        urgencyTag: filter.urgencyTag,
+        importanceTag: filter.importanceTag,
       );
 });
 
@@ -288,24 +315,61 @@ final templateSuggestionsProvider =
     FutureProvider.family<List<TaskTemplate>, TemplateSuggestionQuery>((
       ref,
       query,
-    ) {
-      final service = ref.watch(taskTemplateServiceProvider);
-      if (query.text?.isNotEmpty == true) {
-        return service.search(query.text!, limit: query.limit);
+    ) async {
+      try {
+        final service = ref.watch(taskTemplateServiceProvider);
+        if (query.text?.isNotEmpty == true) {
+          return await service.search(query.text!, limit: query.limit);
+        }
+        return await service.listRecent(query.limit);
+      } catch (error) {
+        debugPrint('TemplateSuggestionsProvider error: $error');
+        return <TaskTemplate>[]; // 返回空列表而不是抛出错误
       }
-      return service.listRecent(query.limit);
     });
 
-final contextTagOptionsProvider = FutureProvider<List<Tag>>((ref) {
-  // 依赖种子初始化：导入完成后会刷新本 Provider
-  ref.watch(seedInitializerProvider);
-  return ref.watch(taskServiceProvider).listTagsByKind(TagKind.context);
+final contextTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
+  try {
+    // 依赖种子初始化：导入完成后会刷新本 Provider
+    ref.watch(seedInitializerProvider);
+    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.context);
+  } catch (error) {
+    debugPrint('ContextTagOptionsProvider error: $error');
+    return <Tag>[]; // 返回空列表而不是抛出错误
+  }
 });
 
-final priorityTagOptionsProvider = FutureProvider<List<Tag>>((ref) {
-  // 依赖种子初始化：导入完成后会刷新本 Provider
-  ref.watch(seedInitializerProvider);
-  return ref.watch(taskServiceProvider).listTagsByKind(TagKind.priority);
+final priorityTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
+  try {
+    // 依赖种子初始化：导入完成后会刷新本 Provider
+    ref.watch(seedInitializerProvider);
+    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.priority);
+  } catch (error) {
+    debugPrint('PriorityTagOptionsProvider error: $error');
+    return <Tag>[]; // 返回空列表而不是抛出错误
+  }
+});
+
+final urgencyTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
+  try {
+    // 依赖种子初始化：导入完成后会刷新本 Provider
+    ref.watch(seedInitializerProvider);
+    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.urgency);
+  } catch (error) {
+    debugPrint('UrgencyTagOptionsProvider error: $error');
+    return <Tag>[]; // 返回空列表而不是抛出错误
+  }
+});
+
+final importanceTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
+  try {
+    // 依赖种子初始化：导入完成后会刷新本 Provider
+    ref.watch(seedInitializerProvider);
+    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.importance);
+  } catch (error) {
+    debugPrint('ImportanceTagOptionsProvider error: $error');
+    return <Tag>[]; // 返回空列表而不是抛出错误
+  }
 });
 
 final monetizationStateProvider = StreamProvider<MonetizationState>((ref) {

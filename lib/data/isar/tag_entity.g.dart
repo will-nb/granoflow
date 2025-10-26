@@ -134,11 +134,15 @@ const _TagEntitykindEnumValueMap = {
   'context': 0,
   'priority': 1,
   'special': 2,
+  'urgency': 3,
+  'importance': 4,
 };
 const _TagEntitykindValueEnumMap = {
   0: TagKind.context,
   1: TagKind.priority,
   2: TagKind.special,
+  3: TagKind.urgency,
+  4: TagKind.importance,
 };
 
 Id _tagEntityGetId(TagEntity object) {

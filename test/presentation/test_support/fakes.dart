@@ -40,6 +40,8 @@ class StubTaskRepository implements TaskRepository {
   Stream<List<Task>> watchInboxFiltered({
     String? contextTag,
     String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
   }) {
     final filtered = _tasks.values.where((task) {
       if (task.status != TaskStatus.inbox) {
@@ -52,6 +54,16 @@ class StubTaskRepository implements TaskRepository {
       }
       if (priorityTag != null && priorityTag.isNotEmpty) {
         if (!task.tags.contains(priorityTag)) {
+          return false;
+        }
+      }
+      if (urgencyTag != null && urgencyTag.isNotEmpty) {
+        if (!task.tags.contains(urgencyTag)) {
+          return false;
+        }
+      }
+      if (importanceTag != null && importanceTag.isNotEmpty) {
+        if (!task.tags.contains(importanceTag)) {
           return false;
         }
       }
@@ -386,6 +398,11 @@ class StubTagRepository implements TagRepository {
 
   @override
   Future<Tag?> findBySlug(String slug) async => _tags[slug];
+
+  @override
+  Future<void> clearAll() async {
+    _tags.clear();
+  }
 }
 
 class StubPreferenceRepository implements PreferenceRepository {

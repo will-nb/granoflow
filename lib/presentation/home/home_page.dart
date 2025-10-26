@@ -117,10 +117,10 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
               SizedBox(width: isWide ? 16 : 12),
-              // 右侧文本整体向左 3px，使两者更靠近
-              Transform.translate(
-                offset: const Offset(-3.0, 0.0),
-                child: Flexible(
+              // 修复：将 Flexible 放在 Row 的直接子级，而不是 Transform 内部
+              Flexible(
+                child: Transform.translate(
+                  offset: const Offset(-3.0, 0.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,

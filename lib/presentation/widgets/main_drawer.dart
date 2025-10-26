@@ -67,9 +67,10 @@ class MainDrawer extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Transform.translate(
-                            offset: const Offset(-5.0, 0.0),
-                            child: Expanded(
+                          // 修复：将 Expanded 放在 Row 的直接子级，而不是 Transform 内部
+                          Expanded(
+                            child: Transform.translate(
+                              offset: const Offset(-5.0, 0.0),
                               child: Text(
                                 l10n.homeGreeting,
                                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -89,7 +90,7 @@ class MainDrawer extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4), // 减少间距以解决溢出问题
                       // Tagline
                       Text(
                         l10n.homeTagline,

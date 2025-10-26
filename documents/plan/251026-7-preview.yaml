@@ -1,0 +1,193 @@
+meta:
+  name: "Priority Tags Grouping Preview"
+  type: "preview"
+  file_path: "documents/plan/251026-7-preview.yaml"
+  description: "将优先级标签分为紧急程度和重要程度两组单选的UI改进方案"
+  version: "1.0"
+  created_date: "251026"
+  last_updated: "251026"
+
+preview_definition:
+  name: "Priority Tags Grouping"
+  layer: "presentation"
+  pattern: "ui_enhancement"
+  category: "user_experience"
+  scope: "inbox_filtering"
+
+objective:
+  title: "优化优先级标签选择体验"
+  description: "将现有的单一优先级标签组拆分为紧急程度和重要程度两个独立的单选组，提升用户筛选体验"
+  business_value: "更直观的优先级分类，符合用户认知习惯，提高任务筛选效率"
+
+current_state:
+  description: "当前所有优先级标签（urgent, important, not_urgent, not_important）都在一个 ChipToggleGroup 中，用户只能选择一个优先级标签"
+  problems:
+    - "优先级概念混合：紧急程度和重要程度被混在一起"
+    - "选择限制：用户无法同时表达任务的紧急程度和重要程度"
+    - "认知负担：用户需要理解四个标签之间的关系"
+  current_implementation:
+    - "TagKind.priority 包含所有优先级相关标签"
+    - "inboxFilterProvider 只有一个 priorityTag 字段"
+    - "UI 中显示为单一的 ChipToggleGroup"
+
+proposed_solution:
+  title: "双维度优先级标签系统"
+  description: "将优先级标签分为两个独立的维度：紧急程度和重要程度，每组内部单选，组间可独立选择"
+  
+  design_principles:
+    - "分离关注点：紧急程度和重要程度是两个独立的维度"
+    - "单选约束：每组内部只能选择一个选项"
+    - "独立选择：两组可以独立选择，互不影响"
+    - "视觉分组：通过UI布局明确区分两个维度"
+
+  new_structure:
+    urgency_group:
+      title: "紧急程度"
+      options: ["urgent", "not_urgent"]
+      behavior: "单选"
+      description: "任务的时间紧迫性"
+      
+    importance_group:
+      title: "重要程度" 
+      options: ["important", "not_important"]
+      behavior: "单选"
+      description: "任务的价值重要性"
+
+user_experience:
+  interaction_flow:
+    - step: "用户进入 Inbox 页面"
+      description: "看到上下文标签和两个优先级标签组"
+      
+    - step: "选择紧急程度"
+      description: "在紧急程度组中选择 urgent 或 not_urgent，或保持未选择"
+      
+    - step: "选择重要程度"
+      description: "在重要程度组中选择 important 或 not_important，或保持未选择"
+      
+    - step: "查看筛选结果"
+      description: "系统根据选择的标签组合筛选任务列表"
+      
+    - step: "清除选择"
+      description: "可以独立清除任一组的选择，或清除所有选择"
+
+  visual_design:
+    layout: "垂直排列的两个标签组"
+    spacing: "组间有适当间距，组内标签紧凑排列"
+    labeling: "每组有明确的标题说明"
+    selection_state: "选中的标签高亮显示，未选中状态清晰可见"
+
+technical_requirements:
+  data_model_changes:
+    - "扩展 TagKind 枚举，添加 urgency 和 importance 类型"
+    - "修改 InboxFilterState，支持 urgencyTag 和 importanceTag 字段"
+    - "更新标签配置，将现有优先级标签重新分类"
+    
+  provider_changes:
+    - "创建 urgencyTagOptionsProvider 和 importanceTagOptionsProvider"
+    - "更新 inboxTasksProvider 的过滤逻辑"
+    - "修改 InboxFilterNotifier 支持新的标签类型"
+    
+  ui_changes:
+    - "在 InboxPage 中添加两个独立的 ChipToggleGroup"
+    - "更新 TagPanel 组件支持两组优先级标签"
+    - "调整布局和样式以清晰区分两个维度"
+
+implementation_phases:
+  phase_1:
+    title: "数据模型更新"
+    tasks:
+      - "修改 TagKind 枚举"
+      - "更新 TagConfigService 配置"
+      - "修改 InboxFilterState 结构"
+    deliverables: ["更新的数据模型", "标签配置"]
+    
+  phase_2:
+    title: "Provider 层更新"
+    tasks:
+      - "创建新的标签 Provider"
+      - "更新过滤逻辑"
+      - "修改状态管理"
+    deliverables: ["新的 Provider", "更新的过滤逻辑"]
+    
+  phase_3:
+    title: "UI 层实现"
+    tasks:
+      - "更新 InboxPage 布局"
+      - "修改 TagPanel 组件"
+      - "调整样式和交互"
+    deliverables: ["新的 UI 布局", "更新的组件"]
+
+success_criteria:
+  functional:
+    - "用户可以独立选择紧急程度和重要程度"
+    - "每组内部只能选择一个选项"
+    - "筛选功能正常工作"
+    - "清除选择功能正常"
+    
+  usability:
+    - "两个维度的区别清晰可见"
+    - "选择操作直观易懂"
+    - "视觉层次清晰"
+    - "响应式设计适配不同屏幕尺寸"
+    
+  performance:
+    - "标签加载速度无明显影响"
+    - "筛选操作响应及时"
+    - "UI 渲染流畅"
+
+risks_and_mitigations:
+  risks:
+    - risk: "用户学习成本"
+      mitigation: "保持标签名称不变，只改变分组方式"
+      
+    - risk: "现有数据兼容性"
+      mitigation: "保持现有标签 slug 不变，只调整分类"
+      
+    - risk: "UI 布局复杂化"
+      mitigation: "使用清晰的视觉分组和间距"
+      
+    - risk: "筛选逻辑复杂化"
+      mitigation: "保持简单的 AND 逻辑，两组标签独立筛选"
+
+testing_strategy:
+  unit_tests:
+    - "测试新的 TagKind 枚举值"
+    - "测试 InboxFilterState 的新字段"
+    - "测试 Provider 的过滤逻辑"
+    
+  widget_tests:
+    - "测试两个标签组的渲染"
+    - "测试选择交互"
+    - "测试清除功能"
+    
+  integration_tests:
+    - "测试完整的筛选流程"
+    - "测试与现有功能的兼容性"
+    - "测试不同屏幕尺寸的适配"
+
+future_considerations:
+  enhancements:
+    - "可以考虑添加标签组合的快捷选择"
+    - "可以添加标签使用统计"
+    - "可以考虑添加自定义标签组"
+    
+  scalability:
+    - "设计支持未来添加更多标签维度"
+    - "保持 Provider 结构的可扩展性"
+    - "确保 UI 组件可以复用"
+
+stakeholder_impact:
+  users:
+    - "更直观的优先级分类体验"
+    - "更灵活的任务筛选选项"
+    - "学习成本较低"
+    
+  developers:
+    - "需要更新数据模型和 Provider"
+    - "需要修改 UI 组件"
+    - "需要更新测试用例"
+    
+  designers:
+    - "需要设计两个标签组的视觉布局"
+    - "需要确保信息层次清晰"
+    - "需要保持整体设计一致性"
