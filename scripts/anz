@@ -151,16 +151,45 @@ build_aab() {
   fi
 }
 
+generate_icons_all() {
+  echo -e "${GREEN}🎨 开始生成所有平台图标...${NC}"
+  
+  if ! has_cmd python3; then
+    echo -e "${RED}❌ 需要 Python 3 环境${NC}"
+    return 1
+  fi
+  
+  if [ ! -f "assets/logo/granostack-logo-transparent.png" ]; then
+    echo -e "${RED}❌ 源文件不存在: assets/logo/granostack-logo-transparent.png${NC}"
+    return 1
+  fi
+  
+  echo -e "${BLUE}执行: python3 scripts/icons/generate.py${NC}"
+  run_with_timeout 120 python3 scripts/icons/generate.py
+  
+  if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ 所有平台图标生成成功！${NC}"
+  else
+    echo -e "${RED}❌ 图标生成失败${NC}"
+    return 1
+  fi
+}
+
 show_help() {
   cat << EOF
 GranoFlow 项目管理脚本
 
 用法: $(basename "$0") <命令>
 
-命令：
+项目管理命令：
   clean           清理项目并重建（清空数据库 + flutter clean + 删除构建文件夹 + gen-l10n + pub get + analyze）
   build:aab       构建 Android App Bundle (AAB) 文件
-  help            显示帮助
+
+图标生成命令：
+  icons:generate       生成所有平台的应用图标（macOS、iOS、Android）
+
+其他命令：
+  help            显示此帮助信息
 
 说明：
   - clean 命令会执行完整的项目清理和重建流程，包括：
@@ -169,6 +198,7 @@ GranoFlow 项目管理脚本
     * 重新生成本地化文件和获取依赖
     * 执行代码分析
   - build:aab 命令会构建 Android App Bundle 文件
+  - icons:generate 命令会生成所有平台的应用图标，使用 Ocean Breeze 主题色背景
   - 只删除构建相关文件夹，保留平台配置文件
 EOF
 }
@@ -177,6 +207,7 @@ cmd=${1:-help}
 case "$cmd" in
   clean) clean_project ;;
   build:aab) build_aab ;;
+  icons:generate) generate_icons_all ;;
   help|--help|-h) show_help ;;
   *) echo -e "${RED}未知命令: $cmd${NC}"; echo; show_help; exit 1 ;;
 esac

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_color_schemes.dart';
 import 'app_color_tokens.dart';
 import 'app_gradients.dart';
+import 'ocean_breeze_color_schemes.dart';
 
 class AppTheme {
   const AppTheme._();
@@ -144,7 +145,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: const Color(0xFF0E1B20), // 深海夜色主背景
+      scaffoldBackgroundColor: OceanBreezeColorSchemes.darkNight,
       fontFamily: 'Inter',
       textTheme: _buildTextTheme(colorScheme, Brightness.dark),
 

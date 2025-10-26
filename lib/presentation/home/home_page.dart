@@ -6,6 +6,7 @@ import '../../core/providers/app_providers.dart';
 import '../navigation/navigation_destinations.dart';
 import '../timer/timer_page.dart';
 import '../widgets/page_app_bar.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
 
@@ -33,15 +34,105 @@ class HomePage extends ConsumerWidget {
           final greeting = Text(
             l10n.homeGreeting,
             style: textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 0.3,
+            ),
+            textHeightBehavior: const TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
             ),
             textAlign: TextAlign.center,
           );
 
           final subtitle = Text(
             l10n.homeTagline,
-            style: textTheme.bodyLarge,
+            style: textTheme.bodyLarge?.copyWith(
+              color: Colors.white.withValues(alpha: 0.92),
+              height: 1.4,
+            ),
+            textHeightBehavior: const TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
+            ),
             textAlign: TextAlign.center,
+          );
+
+          // 计算两行文本高度，便于让左侧 Logo 精准与顶部/底部对齐
+          final textDirection = Directionality.of(context);
+          double _measureLineHeight(String text, TextStyle? style) {
+            final painter = TextPainter(
+              text: TextSpan(text: text, style: style),
+              maxLines: 1,
+              textDirection: textDirection,
+            )..layout(maxWidth: double.infinity);
+            return painter.height;
+          }
+          final double _greetingH = _measureLineHeight(
+            l10n.homeGreeting,
+            textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 0.3,
+            ),
+          );
+          final double _subtitleH = _measureLineHeight(
+            l10n.homeTagline,
+            textTheme.bodyLarge?.copyWith(
+              color: Colors.white.withValues(alpha: 0.92),
+              height: 1.4,
+            ),
+          );
+          const double _gapH = 8.0; // 与文本之间的实际间距保持一致
+          final double _logoTargetH = _greetingH + _gapH + _subtitleH;
+          const double _logoBottomTrim = 2.0; // 裁掉 SVG 底部留白（像素）
+
+          // 将 Logo + 标题 + 标语打包为一个横向 heroBlock
+          final heroBlock = Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐，便于下方延伸
+            children: [
+              // 左侧 Logo：在保持顶部不变的情况下向下延伸 3px，并整体向右 2px
+              Transform.translate(
+                offset: const Offset(2.0, 0.0),
+                child: SizedBox(
+                  height: _logoTargetH + 3.0,
+                  width: isWide ? 84 : 72,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        top: 0,
+                        bottom: _logoBottomTrim,
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          child: const AppLogo(
+                            size: 200.0,
+                            showText: false,
+                            variant: AppLogoVariant.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: isWide ? 16 : 12),
+              // 右侧文本整体向左 3px，使两者更靠近
+              Transform.translate(
+                offset: const Offset(-3.0, 0.0),
+                child: Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      greeting,
+                      const SizedBox(height: _gapH),
+                      subtitle,
+                    ],
+                  ),
+                ),
+              ),
+            ],
           );
 
           return Center(
@@ -50,21 +141,13 @@ class HomePage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.hourglass_top_outlined,
-                  size: isWide ? 96 : 72,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                SizedBox(width: isWide ? 40 : 0, height: isWide ? 0 : 32),
                 Flexible(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      greeting,
-                      const SizedBox(height: 12),
-                      subtitle,
-                      const SizedBox(height: 24),
+                      heroBlock,
+                      const SizedBox(height: 24), // 放在按钮上方
                       Wrap(
                         alignment: WrapAlignment.center,
                         spacing: 12,

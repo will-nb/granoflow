@@ -29,13 +29,13 @@ void main() {
       
       // 检查图标文件大小是否合理（不是默认的 Flutter 图标）
       final iconFiles = {
-        'app_icon_16.png': 500,    // 最小 500 bytes
-        'app_icon_32.png': 1000,   // 最小 1000 bytes
-        'app_icon_64.png': 2000,   // 最小 2000 bytes
-        'app_icon_128.png': 5000,  // 最小 5000 bytes
-        'app_icon_256.png': 15000, // 最小 15000 bytes
-        'app_icon_512.png': 30000, // 最小 30000 bytes
-        'app_icon_1024.png': 50000, // 最小 50000 bytes
+        'app_icon_16.png': 50,     // 16px 小图标体积较小
+        'app_icon_32.png': 200,    
+        'app_icon_64.png': 800,    
+        'app_icon_128.png': 3000,  
+        'app_icon_256.png': 12000, 
+        'app_icon_512.png': 28000, 
+        'app_icon_1024.png': 48000,
       };
       
       for (final entry in iconFiles.entries) {

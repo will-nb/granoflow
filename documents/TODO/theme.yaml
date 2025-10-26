@@ -1,0 +1,22 @@
+# GranoFlow 主题美化 TODO 需求
+
+requirements:
+  - id: "dark-nav-visibility"
+    title: "Dark 模式底部导航默认状态颜色分辨不清"
+    description: "底部导航栏的默认状态（未选中）颜色与背景对比度不足，用户难以清楚识别当前可用的导航选项"
+    current_state: "使用 colorScheme.onSurfaceVariant 作为默认状态颜色，在 Dark 模式下可能过于暗淡，与深色背景区分度不够"
+    affected_files:
+      - "lib/core/theme/app_theme.dart"
+      - "lib/presentation/navigation/navigation_bar.dart"
+    created_date: "2025-01-26"
+    last_updated: "2025-01-26"
+
+  - id: "light-home-readability"
+    title: "Home 页面内容在 Light 模式下看不清"
+    description: "Home 页面的文字内容在 Light 模式下对比度不足，可能由于渐变背景导致文字可读性下降"
+    current_state: "使用 skyLight 渐变作为页面背景，文字颜色可能没有针对 Light 模式进行优化"
+    affected_files:
+      - "lib/presentation/home/home_page.dart"
+      - "lib/core/theme/app_gradients.dart"
+    created_date: "2025-01-26"
+    last_updated: "2025-01-26"

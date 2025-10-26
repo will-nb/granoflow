@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'ocean_breeze_color_schemes.dart';
+
 /// Additional semantic colors that do not exist on [ColorScheme].
 @immutable
 class AppColorTokens extends ThemeExtension<AppColorTokens> {
@@ -29,30 +31,30 @@ class AppColorTokens extends ThemeExtension<AppColorTokens> {
 
   /// Ocean Breeze 浅色主题颜色令牌
   static const AppColorTokens light = AppColorTokens(
-    success: Color(0xFF7ED2A8), // 柔和薄荷绿
-    onSuccess: Color(0xFF1E4D67), // 海军蓝
-    warning: Color(0xFFFFD48A), // 柔暖黄
-    onWarning: Color(0xFF1E4D67), // 海军蓝
-    info: Color(0xFF81C8DD), // 较浅蓝灰
-    onInfo: Color(0xFF1E4D67), // 海军蓝
-    highlight: Color(0xFFF5FAFC), // 天际白
-    onHighlight: Color(0xFF1E4D67), // 海军蓝
-    disabled: Color(0xFFA5B7C0), // 禁用文字
-    onDisabled: Color(0xFF4C6F80), // 次文字
+    success: OceanBreezeColorSchemes.softGreen,
+    onSuccess: OceanBreezeColorSchemes.navyBlue,
+    warning: OceanBreezeColorSchemes.warmYellow,
+    onWarning: OceanBreezeColorSchemes.navyBlue,
+    info: OceanBreezeColorSchemes.lightBlueGray,
+    onInfo: OceanBreezeColorSchemes.navyBlue,
+    highlight: OceanBreezeColorSchemes.skyWhite,
+    onHighlight: OceanBreezeColorSchemes.navyBlue,
+    disabled: OceanBreezeColorSchemes.disabledGray,
+    onDisabled: OceanBreezeColorSchemes.secondaryText,
   );
 
   /// Ocean Breeze Dark - 深海流光功能色令牌
   static const AppColorTokens dark = AppColorTokens(
-    success: Color(0xFF7ED2A8),
-    onSuccess: Color(0xFF1E4D67),
-    warning: Color(0xFFFFD48A),
-    onWarning: Color(0xFF1E4D67),
-    info: Color(0xFF81C8DD),
-    onInfo: Color(0xFF1E4D67),
-    highlight: Color(0xFF4C6F80),
-    onHighlight: Color(0xFFF5FAFC),
-    disabled: Color(0xFFA5B7C0),
-    onDisabled: Color(0xFF4C6F80),
+    success: OceanBreezeColorSchemes.softGreen,
+    onSuccess: OceanBreezeColorSchemes.navyBlue,
+    warning: OceanBreezeColorSchemes.warmYellow,
+    onWarning: OceanBreezeColorSchemes.navyBlue,
+    info: OceanBreezeColorSchemes.lightBlueGray,
+    onInfo: OceanBreezeColorSchemes.navyBlue,
+    highlight: OceanBreezeColorSchemes.secondaryText,
+    onHighlight: OceanBreezeColorSchemes.skyWhite,
+    disabled: OceanBreezeColorSchemes.disabledGray,
+    onDisabled: OceanBreezeColorSchemes.secondaryText,
   );
 
   @override

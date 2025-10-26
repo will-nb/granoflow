@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:granoflow/presentation/widgets/app_logo.dart';
 
 void main() {
@@ -16,11 +17,8 @@ void main() {
         ),
       );
 
-      // 验证容器存在
-      expect(find.byType(Container), findsOneWidget);
-      
-      // 验证图标存在
-      expect(find.byIcon(Icons.water_drop_outlined), findsOneWidget);
+      // 验证 SVG 图标存在
+      expect(find.byType(SvgPicture), findsOneWidget);
       
       // 验证文字存在
       expect(find.text('GranoFlow'), findsOneWidget);
@@ -38,11 +36,8 @@ void main() {
         ),
       );
 
-      // 验证容器存在
-      expect(find.byType(Container), findsOneWidget);
-      
-      // 验证图标存在
-      expect(find.byIcon(Icons.water_drop_outlined), findsOneWidget);
+      // 验证 SVG 图标存在
+      expect(find.byType(SvgPicture), findsOneWidget);
       
       // 验证文字不存在
       expect(find.text('GranoFlow'), findsNothing);

@@ -41,6 +41,13 @@ widget_properties:
     description: "Logo 变体"
     validation: "枚举值"
     
+  - name: "withBackground"
+    type: "bool"
+    required: false
+    default_value: "false"
+    description: "是否显示背景"
+    validation: "布尔值"
+    
 widget_methods:
   - name: "build"
     return_type: "Widget"
@@ -177,8 +184,15 @@ widget_dependencies:
     required: true
     version: "1.0"
     
+  - name: "flutter_svg"
+    type: "包"
+    description: "SVG 渲染包"
+    required: true
+    version: "^2.0.10+1"
+    
 widget_imports:
   - "package:flutter/material.dart"
+  - "package:flutter_svg/flutter_svg.dart"
   
 widget_categories:
   ui_component:
@@ -256,6 +270,10 @@ widget_testing_strategy:
       description: "测试 Widget 尺寸"
     - name: "test_widget_theme_integration"
       description: "测试 Widget 主题集成"
+    - name: "test_svg_rendering"
+      description: "测试 SVG 渲染"
+    - name: "test_background_property"
+      description: "测试背景属性"
       
   widget_tests:
     - name: "test_widget_rendering"

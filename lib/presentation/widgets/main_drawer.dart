@@ -56,27 +56,34 @@ class MainDrawer extends StatelessWidget {
                       // Logo 和标题
                       Row(
                         children: [
-                          const AppLogo(
-                            size: 28.0,
-                            showText: false,
-                            variant: AppLogoVariant.onPrimary,
-                            withBackground: true,
+                          // Logo 容器：向下延伸 2px，宽度同步扩大
+                          SizedBox(
+                            height: 30.0, // 从 28.0 增加到 30.0（向下延伸 2px）
+                            width: 30.0,  // 宽度同步扩大
+                            child: const AppLogo(
+                              size: 30.0,  // 同步扩大
+                              showText: false,
+                              variant: AppLogoVariant.onPrimary,
+                            ),
                           ),
                           const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              l10n.homeGreeting,
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                                shadows: [
-                                  Shadow(
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 4,
-                                    color: Colors.black.withValues(alpha: 0.5),
-                                  ),
-                                ],
+                          Transform.translate(
+                            offset: const Offset(-5.0, 0.0),
+                            child: Expanded(
+                              child: Text(
+                                l10n.homeGreeting,
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                  shadows: [
+                                    Shadow(
+                                      offset: const Offset(0, 2),
+                                      blurRadius: 4,
+                                      color: Colors.black.withValues(alpha: 0.5),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

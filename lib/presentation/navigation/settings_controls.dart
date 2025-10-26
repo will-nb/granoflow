@@ -7,6 +7,7 @@ import '../completion_management/completed_page.dart';
 import '../completion_management/trash_page.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/gradient_page_scaffold.dart';
 
 class SettingsControlsPage extends ConsumerWidget {
   const SettingsControlsPage({super.key});
@@ -46,7 +47,7 @@ class SettingsControlsPage extends ConsumerWidget {
       ThemeMode.dark: l10n.settingsThemeDark,
     };
 
-    return Scaffold(
+    return GradientPageScaffold(
       appBar: const PageAppBar(
         title: 'Settings',
       ),

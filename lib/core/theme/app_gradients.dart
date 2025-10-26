@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'ocean_breeze_color_schemes.dart';
+
 /// 渐变方向枚举
 enum GradientDirection {
   vertical,
@@ -30,8 +32,8 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF6EC6DA), // 海盐蓝
-      Color(0xFFF5FAFC), // 天际白
+      OceanBreezeColorSchemes.seaSaltBlue,
+      OceanBreezeColorSchemes.skyWhite,
     ],
   );
 
@@ -40,8 +42,8 @@ class AppGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFA5E1EB), // 薄荷青
-      Color(0xFF4FAFC9), // 湖光青
+      OceanBreezeColorSchemes.mintCyan,
+      OceanBreezeColorSchemes.lakeCyan,
     ],
   );
 
@@ -50,8 +52,8 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFF5FAFC), // 天际白
-      Color(0xFF1E4D67), // 海军蓝
+      OceanBreezeColorSchemes.skyWhite,
+      OceanBreezeColorSchemes.navyBlue,
     ],
   );
 
@@ -60,9 +62,9 @@ class AppGradients {
     center: Alignment.center,
     radius: 1.0,
     colors: [
-      Color(0xFF6EC6DA), // 海盐蓝
-      Color(0xFFA5E1EB), // 薄荷青
-      Color(0xFFF5FAFC), // 天际白
+      OceanBreezeColorSchemes.seaSaltBlue,
+      OceanBreezeColorSchemes.mintCyan,
+      OceanBreezeColorSchemes.skyWhite,
     ],
     stops: [0.0, 0.6, 1.0],
   );
@@ -72,10 +74,10 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFA5E1EB), // 薄荷青
-      Color(0xFF6EC6DA), // 海盐蓝
-      Color(0xFF4FAFC9), // 湖光青
-      Color(0xFF1E4D67), // 海军蓝
+      OceanBreezeColorSchemes.mintCyan,
+      OceanBreezeColorSchemes.seaSaltBlue,
+      OceanBreezeColorSchemes.lakeCyan,
+      OceanBreezeColorSchemes.navyBlue,
     ],
     stops: [0.0, 0.3, 0.7, 1.0],
   );
@@ -85,9 +87,9 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFF5FAFC), // 顶部：天际白（与 AppBar 衔接）
-      Color(0xFF6EC6DA), // 中间：海盐蓝（视觉焦点）
-      Color(0xFFF5FAFC), // 底部：天际白（与 BottomNavigationBar 衔接）
+      OceanBreezeColorSchemes.skyWhite,
+      OceanBreezeColorSchemes.seaSaltBlue,
+      OceanBreezeColorSchemes.skyWhite,
     ],
     stops: [0.0, 0.5, 1.0],
   );
@@ -97,9 +99,9 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFF0F8FA), // 顶部：极浅天际蓝（与 AppBar 衔接）
-      Color(0xFFD4EEF4), // 中间：轻盈海盐蓝（明度 85%）
-      Color(0xFFF0F8FA), // 底部：极浅天际蓝（与 BottomNavigationBar 衔接）
+      OceanBreezeColorSchemes.veryLightSky,
+      OceanBreezeColorSchemes.lightSeaSalt,
+      OceanBreezeColorSchemes.veryLightSky,
     ],
     stops: [0.0, 0.5, 1.0],
   );
@@ -109,9 +111,9 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF1A2F36), // 顶部：深层海水（与 AppBar 衔接）
-      Color(0xFF14262C), // 中间：浮层水色（视觉焦点）
-      Color(0xFF1A2F36), // 底部：深层海水（与 BottomNavigationBar 衔接）
+      OceanBreezeColorSchemes.navyBlue,      // 顶部：海军蓝（与 AppBar 完美衔接）
+      OceanBreezeColorSchemes.floatingWater, // 中间：浮层水色（视觉焦点）
+      OceanBreezeColorSchemes.navyBlue,      // 底部：海军蓝（与 BottomNavigationBar 完美衔接）
     ],
     stops: [0.0, 0.5, 1.0],
   );
@@ -121,8 +123,8 @@ class AppGradients {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFF7ED2A8), // 柔和薄荷绿
-      Color(0xFFA5E1EB), // 薄荷青
+      OceanBreezeColorSchemes.softGreen,
+      OceanBreezeColorSchemes.mintCyan,
     ],
   );
 
@@ -131,8 +133,8 @@ class AppGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFFD48A), // 柔暖黄
-      Color(0xFFF5FAFC), // 天际白
+      OceanBreezeColorSchemes.warmYellow,
+      OceanBreezeColorSchemes.skyWhite,
     ],
   );
 
@@ -141,8 +143,8 @@ class AppGradients {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFFF48B8B), // 柔粉红
-      Color(0xFFF5FAFC), // 天际白
+      OceanBreezeColorSchemes.softPink,
+      OceanBreezeColorSchemes.skyWhite,
     ],
   );
 
@@ -151,8 +153,8 @@ class AppGradients {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFF81C8DD), // 较浅蓝灰
-      Color(0xFFA5E1EB), // 薄荷青
+      OceanBreezeColorSchemes.lightBlueGray,
+      OceanBreezeColorSchemes.mintCyan,
     ],
   );
 

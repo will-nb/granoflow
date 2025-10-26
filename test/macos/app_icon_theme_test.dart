@@ -65,7 +65,7 @@ void main() {
         ('app_icon_1024.png', 1024),
       ];
       
-      for (final (iconName, expectedSize) in sizeTests) {
+      for (final (iconName, _) in sizeTests) {
         final iconFile = File('${iconDir.path}/$iconName');
         expect(iconFile.existsSync(), isTrue, reason: 'Icon $iconName should exist');
         

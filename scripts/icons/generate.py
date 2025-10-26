@@ -8,30 +8,35 @@ import os
 from PIL import Image
 
 def create_icon_with_background(source_path, output_path, size, background_color):
-    """创建带有背景色的图标"""
+    """创建带有主题色背景并按比例缩放的图标（无安全边距）"""
     if not os.path.exists(source_path):
         print(f"❌ 源文件不存在: {source_path}")
         return False
-    
+
     try:
-        # 打开源图片
-        img = Image.open(source_path)
-        
-        # 创建新的图片，带有背景色
-        new_img = Image.new('RGBA', (size, size), background_color)
-        
-        # 计算居中位置
-        x = (size - img.width) // 2
-        y = (size - img.height) // 2
-        
-        # 将源图片粘贴到新图片上
-        new_img.paste(img, (x, y), img if img.mode == 'RGBA' else None)
-        
-        # 保存新图标
-        new_img.save(output_path)
+        img = Image.open(source_path).convert('RGBA')
+
+        if isinstance(background_color, tuple) and len(background_color) == 3:
+            bg = Image.new('RGBA', (size, size), (*background_color, 255))
+        else:
+            bg = Image.new('RGBA', (size, size), background_color)
+
+        # 取消安全边距，让 logo 填满整个画布
+        # 计算缩放比例，让 logo 适应整个画布
+        scale = min(size / img.width, size / img.height)
+        new_w = max(1, int(img.width * scale))
+        new_h = max(1, int(img.height * scale))
+        icon = img.resize((new_w, new_h), Image.LANCZOS)
+
+        # 居中放置 logo
+        x = (size - new_w) // 2
+        y = (size - new_h) // 2
+        bg.paste(icon, (x, y), icon)
+
+        bg.save(output_path)
         print(f"✅ 生成图标: {os.path.basename(output_path)} ({size}x{size})")
         return True
-        
+
     except Exception as e:
         print(f"❌ 生成图标失败: {e}")
         return False
@@ -39,9 +44,11 @@ def create_icon_with_background(source_path, output_path, size, background_color
 def generate_macos_icons():
     """生成 macOS 图标"""
     print("🍎 生成 macOS 图标...")
+    print("ℹ️  注意：macOS 系统会自动将正方形图标裁剪为圆角矩形")
+    print("🎨 使用 Navy Blue 背景，提供更好的白色前景对比度")
     
-    # Ocean Breeze 浅色主题主色调 - 海盐蓝
-    theme_color = (110, 198, 218)  # #6EC6DA
+    # 使用 Navy Blue 作为背景色，与白色前景对比度更好
+    theme_color = (30, 77, 103)  # navyBlue #1E4D67
     
     source_file = "assets/logo/granostack-logo-transparent.png"
     target_dir = "macos/Runner/Assets.xcassets/AppIcon.appiconset"
@@ -63,6 +70,7 @@ def generate_macos_icons():
     success = True
     for size, filename in icon_sizes:
         output_path = os.path.join(target_dir, filename)
+        # 使用正方形背景，让 macOS 系统处理圆角
         if not create_icon_with_background(source_file, output_path, size, theme_color):
             success = False
     
@@ -72,8 +80,8 @@ def generate_ios_icons():
     """生成 iOS 图标"""
     print("📱 生成 iOS 图标...")
     
-    # Ocean Breeze 浅色主题主色调 - 海盐蓝
-    theme_color = (110, 198, 218)  # #6EC6DA
+    # 使用 Navy Blue 作为背景色
+    theme_color = (30, 77, 103)  # navyBlue #1E4D67
     
     source_file = "assets/logo/granostack-logo-transparent.png"
     target_dir = "ios/Runner/Assets.xcassets/AppIcon.appiconset"
@@ -112,8 +120,8 @@ def generate_android_icons():
     """生成 Android 图标"""
     print("🤖 生成 Android 图标...")
     
-    # Ocean Breeze 浅色主题主色调 - 海盐蓝
-    theme_color = (110, 198, 218)  # #6EC6DA
+    # 使用 Navy Blue 作为背景色
+    theme_color = (30, 77, 103)  # navyBlue #1E4D67
     
     source_file = "assets/logo/granostack-logo-transparent.png"
     
@@ -140,7 +148,8 @@ def generate_android_icons():
 
 def main():
     print("🚀 开始生成带有主题色背景的全平台应用图标...")
-    print("🎨 使用 Ocean Breeze 主题色: #6EC6DA (海盐蓝)")
+    print("🎨 使用 Navy Blue 主题色: #1E4D67 (海军蓝)")
+    print("✨ 取消安全边距，让 logo 填满整个画布")
     
     source_file = "assets/logo/granostack-logo-transparent.png"
     
@@ -171,7 +180,8 @@ def main():
     
     if success_count == total_platforms:
         print("🎉 所有平台图标生成完成！")
-        print("🎨 所有图标都使用了 Ocean Breeze 主题色背景")
+        print("🎨 所有图标都使用了 Navy Blue 主题色背景")
+        print("✨ Logo 现在填满整个画布，macOS 将正确裁剪为圆角矩形")
     else:
         print(f"⚠️ 部分平台图标生成失败 ({success_count}/{total_platforms})")
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// 应用 Logo 组件
 /// 支持主题色动态切换和不同尺寸
@@ -25,6 +26,9 @@ class AppLogo extends StatelessWidget {
     Color textColor;
     Color? backgroundColor;
     
+    // 统一使用普通版本 SVG，通过 tint 实现前景着色（onPrimary => 纯白）
+    const String brandSvgPath = 'assets/logo/granostack-logo.svg';
+    
     if (withBackground) {
       // 带背景的 Logo
       if (theme.brightness == Brightness.light) {
@@ -49,30 +53,31 @@ class AppLogo extends StatelessWidget {
       textColor = logoColor;
     }
 
+    // 构建 SVG 图标（根据需要着色）
+    final String assetPath = brandSvgPath;
+    // 当需要前景色（如 withBackground 情况下的白/深色）时使用 tint；
+    // onPrimary 使用反色资源本身为白色，可不加色
+    final Color? svgTint = withBackground
+        ? logoColor
+        : switch (variant) {
+            AppLogoVariant.onPrimary => Colors.white, // 纯白着色
+            AppLogoVariant.onSurface => Theme.of(context).colorScheme.onSurface,
+            AppLogoVariant.secondary => Theme.of(context).colorScheme.secondary,
+            AppLogoVariant.primary => Theme.of(context).colorScheme.primary,
+          };
+
+    final Widget svgIcon = SvgPicture.asset(
+      assetPath,
+      width: size,
+      height: size,
+      colorFilter: svgTint == null ? null : ColorFilter.mode(svgTint, BlendMode.srcIn),
+    );
+
     Widget logoWidget = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Logo 图标
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: logoColor,
-            borderRadius: BorderRadius.circular(size * 0.2),
-            boxShadow: [
-              BoxShadow(
-                color: logoColor.withValues(alpha: 0.3),
-                blurRadius: size * 0.1,
-                offset: Offset(0, size * 0.05),
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.water_drop_outlined,
-            color: Colors.white,
-            size: size * 0.6,
-          ),
-        ),
+        // 品牌 SVG 图标
+        svgIcon,
         
         if (showText) ...[
           SizedBox(width: size * 0.3),

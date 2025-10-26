@@ -1,0 +1,250 @@
+meta:
+  name: "Color Scheme Service"
+  type: "service"
+  file_path: "lib/core/theme/ocean_breeze_color_schemes.dart"
+  description: "Ocean Breeze 颜色方案服务，提供统一的颜色定义"
+  version: "2.0"
+  created_date: "251026"
+  last_updated: "251026"
+
+service_definition:
+  name: "OceanBreezeColorSchemes"
+  layer: "core"
+  pattern: "singleton"
+  category: "theme"
+  stateless: true
+  
+service_types:
+  - name: "Color Constants"
+    description: "颜色常量定义"
+    usage: "主题系统、UI 组件"
+    
+service_properties:
+  - name: "seaSaltBlue"
+    type: "Color"
+    required: true
+    default_value: "Color(0xFF6EC6DA)"
+    description: "海盐蓝 - 主色调"
+    validation: "有效颜色值"
+    
+  - name: "navyBlue"
+    type: "Color"
+    required: true
+    default_value: "Color(0xFF1E4D67)"
+    description: "海军蓝 - 深色主色调"
+    validation: "有效颜色值"
+    
+  - name: "mintCyan"
+    type: "Color"
+    required: true
+    default_value: "Color(0xFFA5E1EB)"
+    description: "薄荷青 - 浅色主色调"
+    validation: "有效颜色值"
+    
+service_methods:
+  - name: "light"
+    return_type: "ColorScheme"
+    parameters: []
+    description: "浅色主题配色方案"
+    visibility: "public"
+    async: false
+    
+  - name: "dark"
+    return_type: "ColorScheme"
+    parameters: []
+    description: "深色主题配色方案"
+    visibility: "public"
+    async: false
+    
+service_state:
+  - name: "color_constants"
+    type: "Map<String, Color>"
+    description: "颜色常量映射"
+    initial_value: "预定义颜色常量"
+    validation: "非空映射"
+    
+service_lifecycle:
+  - phase: "initialization"
+    description: "初始化阶段"
+    operations: ["定义颜色常量", "创建配色方案"]
+  - phase: "usage"
+    description: "使用阶段"
+    operations: ["提供颜色值", "主题切换"]
+  - phase: "cleanup"
+    description: "清理阶段"
+    operations: ["资源释放"]
+    
+service_events:
+  - name: "on_theme_change"
+    description: "主题切换事件"
+    trigger: "主题模式改变"
+    handler: "颜色方案更新"
+    parameters: "主题模式"
+    
+service_styling:
+  - name: "color_palette"
+    description: "调色板"
+    properties:
+      - name: "primary_colors"
+        type: "List<Color>"
+        value: "[seaSaltBlue, navyBlue, mintCyan]"
+        description: "主色调"
+      - name: "secondary_colors"
+        type: "List<Color>"
+        value: "[softGreen, warmYellow, softPink]"
+        description: "辅助色"
+      - name: "neutral_colors"
+        type: "List<Color>"
+        value: "[skyWhite, silverGray, secondaryText]"
+        description: "中性色"
+    responsive: false
+    theme_aware: true
+    
+service_responsive:
+  - breakpoint: "light_theme"
+    description: "浅色主题"
+    properties:
+      - name: "primary"
+        value: "seaSaltBlue"
+        description: "主色调"
+    layout: "浅色配色"
+    behavior: "明亮、清爽"
+    
+  - breakpoint: "dark_theme"
+    description: "深色主题"
+    properties:
+      - name: "primary"
+        value: "lakeCyan"
+        description: "主色调"
+    layout: "深色配色"
+    behavior: "深沉、专业"
+    
+service_accessibility:
+  - name: "color_contrast"
+    description: "颜色对比度"
+    implementation: "确保颜色对比度符合 WCAG 标准"
+    testing: "对比度测试"
+    compliance: "WCAG 2.1 AA"
+    
+  - name: "color_blind_support"
+    description: "色盲支持"
+    implementation: "提供色盲友好的颜色组合"
+    testing: "色盲测试"
+    compliance: "无障碍标准"
+    
+service_performance:
+  - operation: "color_calculation"
+    optimization: "颜色计算优化"
+    description: "颜色计算性能优化"
+    caching: "颜色缓存"
+    rendering: "渲染优化"
+    
+service_testing:
+  - name: "test_color_schemes"
+    description: "测试颜色方案"
+    type: "unit"
+    coverage: "100%"
+    scenarios: "所有颜色、所有主题、对比度"
+    
+service_dependencies:
+  - name: "flutter/material"
+    type: "package"
+    description: "Flutter Material 包"
+    required: true
+    version: "最新版本"
+    
+service_imports:
+  - "package:flutter/material.dart"
+  
+service_categories:
+  theme:
+    - name: "OceanBreezeColorSchemes"
+      description: "颜色方案服务"
+      type: "Color Constants"
+      category: "theme"
+      
+service_interactions:
+  - name: "theme_integration"
+    description: "主题集成交互"
+    type: "theme"
+    handler: "主题切换处理"
+    feedback: "颜色更新"
+    accessibility: "支持无障碍"
+    
+service_animations:
+  - name: "color_transition"
+    description: "颜色过渡"
+    type: "color"
+    duration: "200ms"
+    curve: "easeInOut"
+    trigger: "主题切换"
+    
+service_validation:
+  - field: "color_values"
+    rule: "valid_color"
+    description: "颜色值必须有效"
+    message: "颜色值必须有效"
+    required: true
+    
+  - field: "contrast_ratio"
+    rule: "wcag_compliant"
+    description: "对比度必须符合 WCAG 标准"
+    message: "对比度必须符合 WCAG 标准"
+    required: true
+    
+service_error_handling:
+  - exception: "InvalidColorException"
+    description: "无效颜色异常"
+    handling: "使用默认颜色"
+    recovery: "回退到安全颜色"
+    user_feedback: "显示默认主题"
+    
+service_internationalization:
+  - name: "color_names"
+    description: "颜色名称国际化"
+    languages: "zh_CN, en_US"
+    fallback: "en_US"
+    context: "颜色方案"
+    
+service_theme_integration:
+  - name: "theme_switching"
+    description: "主题切换"
+    type: "dynamic"
+    default_value: "系统主题"
+    theme_aware: true
+    
+service_state_management:
+  - pattern: "无状态管理"
+    description: "通过常量管理状态"
+    implementation: "使用静态常量"
+    benefits: "简单、高效"
+    considerations: "无状态变化"
+    
+service_testing_strategy:
+  unit_tests:
+    - name: "test_color_constants"
+      description: "测试颜色常量"
+    - name: "test_color_schemes"
+      description: "测试颜色方案"
+    - name: "test_contrast_ratios"
+      description: "测试对比度"
+    - name: "test_theme_consistency"
+      description: "测试主题一致性"
+      
+  integration_tests:
+    - name: "test_theme_integration"
+      description: "测试主题集成"
+    - name: "test_color_switching"
+      description: "测试颜色切换"
+    - name: "test_accessibility"
+      description: "测试无障碍"
+    - name: "test_performance"
+      description: "测试性能"
+      
+  mock_strategy:
+    - name: "MockColorScheme"
+      description: "Mock 颜色方案"
+    - name: "FakeTheme"
+      description: "Fake 主题"
+    - name: "TestColorScheme"
+      description: "测试专用颜色方案"

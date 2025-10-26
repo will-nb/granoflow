@@ -5,46 +5,83 @@ import 'package:flutter/material.dart';
 class OceanBreezeColorSchemes {
   const OceanBreezeColorSchemes._();
 
+  // ============ 品牌色板（单一来源） ============
+  
+  // 主色调常量（Light & Dark 共用）
+  static const Color seaSaltBlue = Color(0xFF6EC6DA);      // 海盐蓝
+  static const Color mintCyan = Color(0xFFA5E1EB);         // 薄荷青
+  static const Color lakeCyan = Color(0xFF4FAFC9);         // 湖光青
+  static const Color navyBlue = Color(0xFF1E4D67);         // 海军蓝
+  static const Color skyWhite = Color(0xFFF5FAFC);         // 天际白
+  static const Color silverGray = Color(0xFFD9E4EA);       // 银灰
+  
+  // 功能色常量
+  static const Color softGreen = Color(0xFF7ED2A8);        // 柔和薄荷绿
+  static const Color warmYellow = Color(0xFFFFD48A);       // 柔暖黄
+  static const Color softPink = Color(0xFFF48B8B);         // 柔粉红
+  static const Color lightBlueGray = Color(0xFF81C8DD);    // 较浅蓝灰
+  static const Color secondaryText = Color(0xFF4C6F80);    // 次文字
+  static const Color disabledGray = Color(0xFFA5B7C0);     // 禁用文字
+  
+  // Deep 主题专用色
+  static const Color deepSeaWater = Color(0xFF1A2F36);     // 深层海水（保留用于其他渐变）
+  static const Color floatingWater = Color(0xFF14262C);    // 浮层水色
+  static const Color darkNight = Color(0xFF0E1B20);        // 深海夜色
+  static const Color darkSurface = Color(0xFF1E3C49);      // 深色表面
+  static const Color auroraBlue = Color(0xFFE7F1F3);       // 极光蓝
+  static const Color darkContainer = Color(0xFF254047);    // 深色容器
+  
+  // Light 主题专用渐变色
+  static const Color veryLightSky = Color(0xFFF0F8FA);     // 极浅天际蓝
+  static const Color lightSeaSalt = Color(0xFFD4EEF4);     // 轻盈海盐蓝
+  
+  // 其他固定色
+  static const Color pureWhite = Color(0xFFFFFFFF);        // 纯白
+  static const Color pureBlack = Color(0xFF000000);        // 纯黑
+  static const Color errorDark = Color(0xFF690005);        // 深色错误
+  static const Color errorContainerLight = Color(0xFFFFE5E5);  // 浅色错误容器
+  static const Color errorContainerDark = Color(0xFF8B0000);   // 深色错误容器
+
   /// Ocean Breeze 浅色主题配色方案
   static const ColorScheme light = ColorScheme(
     brightness: Brightness.light,
     // 主色调 - 海盐蓝
-    primary: Color(0xFF6EC6DA),
-    onPrimary: Color(0xFFFFFFFF),
-    primaryContainer: Color(0xFFA5E1EB), // 薄荷青
-    onPrimaryContainer: Color(0xFF1E4D67), // 海军蓝
+    primary: seaSaltBlue,
+    onPrimary: pureWhite,
+    primaryContainer: mintCyan,
+    onPrimaryContainer: navyBlue,
     
     // 辅色调 - 湖光青
-    secondary: Color(0xFF4FAFC9),
-    onSecondary: Color(0xFFFFFFFF),
-    secondaryContainer: Color(0xFFD9E4EA), // 银灰
-    onSecondaryContainer: Color(0xFF1E4D67),
+    secondary: lakeCyan,
+    onSecondary: pureWhite,
+    secondaryContainer: silverGray,
+    onSecondaryContainer: navyBlue,
     
     // 第三色 - 薄荷青
-    tertiary: Color(0xFFA5E1EB),
-    onTertiary: Color(0xFF1E4D67),
-    tertiaryContainer: Color(0xFFF5FAFC), // 天际白
-    onTertiaryContainer: Color(0xFF1E4D67),
+    tertiary: mintCyan,
+    onTertiary: navyBlue,
+    tertiaryContainer: skyWhite,
+    onTertiaryContainer: navyBlue,
     
     // 错误色 - 柔粉红
-    error: Color(0xFFF48B8B),
-    onError: Color(0xFFFFFFFF),
-    errorContainer: Color(0xFFFFE5E5),
-    onErrorContainer: Color(0xFF690005),
+    error: softPink,
+    onError: pureWhite,
+    errorContainer: errorContainerLight,
+    onErrorContainer: errorDark,
     
     // 表面色
-    surface: Color(0xFFFFFFFF), // 卡片背景
-    onSurface: Color(0xFF1E4D67), // 主文字
-    surfaceContainerHighest: Color(0xFFD9E4EA), // 银灰
-    onSurfaceVariant: Color(0xFF4C6F80), // 次文字
-    outline: Color(0xFFD9E4EA), // 边框色
-    shadow: Color(0xFF000000),
+    surface: pureWhite,
+    onSurface: navyBlue,
+    surfaceContainerHighest: silverGray,
+    onSurfaceVariant: secondaryText,
+    outline: silverGray,
+    shadow: pureBlack,
     
     // 反向色
-    inverseSurface: Color(0xFF1E4D67),
-    onInverseSurface: Color(0xFFF5FAFC),
-    inversePrimary: Color(0xFF4FAFC9),
-    surfaceTint: Color(0xFF6EC6DA),
+    inverseSurface: navyBlue,
+    onInverseSurface: skyWhite,
+    inversePrimary: lakeCyan,
+    surfaceTint: seaSaltBlue,
   );
 
   /// Ocean Breeze Dark - 深海流光配色方案
@@ -54,56 +91,56 @@ class OceanBreezeColorSchemes {
     brightness: Brightness.dark,
     
     // 主色调 - 湖光青 (与测试期望一致)
-    primary: Color(0xFF4FAFC9),
-    onPrimary: Color(0xFF1E4D67),
-    primaryContainer: Color(0xFF6EC6DA),
-    onPrimaryContainer: Color(0xFFFFFFFF),
+    primary: lakeCyan,
+    onPrimary: navyBlue,
+    primaryContainer: seaSaltBlue,
+    onPrimaryContainer: pureWhite,
     
     // 辅色调 - 薄荷青
-    secondary: Color(0xFFA5E1EB),
-    onSecondary: Color(0xFF1E4D67),
-    secondaryContainer: Color(0xFF4C6F80), // 次文字色，符合测试
-    onSecondaryContainer: Color(0xFFFFFFFF),
+    secondary: mintCyan,
+    onSecondary: navyBlue,
+    secondaryContainer: secondaryText,
+    onSecondaryContainer: pureWhite,
     
     // 第三色 - 极光青 (Highlight)
-    tertiary: Color(0xFFF5FAFC),
-    onTertiary: Color(0xFF1E4D67),
-    tertiaryContainer: Color(0xFF254047),
-    onTertiaryContainer: Color(0xFFE7F1F3),
+    tertiary: skyWhite,
+    onTertiary: navyBlue,
+    tertiaryContainer: darkContainer,
+    onTertiaryContainer: auroraBlue,
     
     // 错误色 - 柔粉红
-    error: Color(0xFFF48B8B),
-    onError: Color(0xFF1E3C49),
-    errorContainer: Color(0xFF8B0000),
-    onErrorContainer: Color(0xFFE7F1F3),
+    error: softPink,
+    onError: darkSurface,
+    errorContainer: errorContainerDark,
+    onErrorContainer: auroraBlue,
     
     // 背景与表面色
-    surface: Color(0xFF1E4D67),
-    onSurface: Color(0xFFF5FAFC),
-    surfaceContainerHighest: Color(0xFF1E3C49),
-    onSurfaceVariant: Color(0xFF4C6F80),
-    outline: Color(0xFF4C6F80),
-    shadow: Color(0xFF000000),
+    surface: navyBlue,
+    onSurface: skyWhite,
+    surfaceContainerHighest: darkSurface,
+    onSurfaceVariant: secondaryText,
+    outline: secondaryText,
+    shadow: pureBlack,
     
     // 反向色
-    inverseSurface: Color(0xFFF5FAFC),
-    onInverseSurface: Color(0xFF1E4D67),
-    inversePrimary: Color(0xFF6EC6DA),
-    surfaceTint: Color(0xFF4FAFC9),
+    inverseSurface: skyWhite,
+    onInverseSurface: navyBlue,
+    inversePrimary: seaSaltBlue,
+    surfaceTint: lakeCyan,
   );
 
   /// 功能性颜色
   static const Map<String, Color> functionalColors = {
-    'success': Color(0xFF7ED2A8), // 柔和薄荷绿
-    'warning': Color(0xFFFFD48A), // 柔暖黄
-    'error': Color(0xFFF48B8B), // 柔粉红
-    'info': Color(0xFF81C8DD), // 较浅蓝灰
+    'success': softGreen,
+    'warning': warmYellow,
+    'error': softPink,
+    'info': lightBlueGray,
   };
 
   /// 渐变定义
   static const Map<String, List<Color>> gradients = {
-    'primary': [Color(0xFF6EC6DA), Color(0xFFA5E1EB)],
-    'hover': [Color(0xFF4FAFC9), Color(0xFF6EC6DA)],
-    'background': [Color(0xFFE9F9FC), Color(0xFFF5FAFC)],
+    'primary': [seaSaltBlue, mintCyan],
+    'hover': [lakeCyan, seaSaltBlue],
+    'background': [Color(0xFFE9F9FC), skyWhite],
   };
 }
