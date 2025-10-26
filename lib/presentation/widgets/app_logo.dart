@@ -8,26 +8,48 @@ class AppLogo extends StatelessWidget {
     this.size = 32.0,
     this.showText = true,
     this.variant = AppLogoVariant.primary,
+    this.withBackground = false,
   });
 
   final double size;
   final bool showText;
   final AppLogoVariant variant;
+  final bool withBackground;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
-    // 根据变体选择颜色
-    final logoColor = switch (variant) {
-      AppLogoVariant.primary => colorScheme.primary,
-      AppLogoVariant.secondary => colorScheme.secondary,
-      AppLogoVariant.onSurface => colorScheme.onSurface,
-      AppLogoVariant.onPrimary => colorScheme.onPrimary,
-    };
+    Color logoColor;
+    Color textColor;
+    Color? backgroundColor;
+    
+    if (withBackground) {
+      // 带背景的 Logo
+      if (theme.brightness == Brightness.light) {
+        // 浅色主题：深色背景 + 白色前景
+        backgroundColor = colorScheme.primary;
+        logoColor = Colors.white;
+        textColor = Colors.white;
+      } else {
+        // 深色主题：浅色背景 + 深色前景
+        backgroundColor = colorScheme.surface;
+        logoColor = colorScheme.onSurface;
+        textColor = colorScheme.onSurface;
+      }
+    } else {
+      // 无背景的 Logo
+      logoColor = switch (variant) {
+        AppLogoVariant.primary => colorScheme.primary,
+        AppLogoVariant.secondary => colorScheme.secondary,
+        AppLogoVariant.onSurface => colorScheme.onSurface,
+        AppLogoVariant.onPrimary => colorScheme.onPrimary,
+      };
+      textColor = logoColor;
+    }
 
-    return Row(
+    Widget logoWidget = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         // Logo 图标
@@ -60,13 +82,26 @@ class AppLogo extends StatelessWidget {
             style: TextStyle(
               fontSize: size * 0.5,
               fontWeight: FontWeight.bold,
-              color: logoColor,
+              color: textColor,
               letterSpacing: 0.5,
             ),
           ),
         ],
       ],
     );
+
+    if (withBackground && backgroundColor != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: logoWidget,
+      );
+    }
+
+    return logoWidget;
   }
 }
 

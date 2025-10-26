@@ -43,6 +43,7 @@ void main() {
       expect(appLogo.size, equals(28.0));
       expect(appLogo.showText, isFalse);
       expect(appLogo.variant, equals(AppLogoVariant.onPrimary));
+      expect(appLogo.withBackground, isTrue);
     });
 
     testWidgets('should have correct logo size', (tester) async {
@@ -81,6 +82,13 @@ void main() {
       
       final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
       expect(appLogo.showText, isFalse);
+    });
+
+    testWidgets('should have background enabled', (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      
+      final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
+      expect(appLogo.withBackground, isTrue);
     });
   });
 }

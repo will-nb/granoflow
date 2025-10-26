@@ -67,6 +67,42 @@ void main() {
       // 验证所有变体都渲染了
       expect(find.byType(AppLogo), findsNWidgets(4));
     });
+
+    testWidgets('should render with background in light theme', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: const Scaffold(
+            body: AppLogo(
+              size: 40.0,
+              showText: true,
+              withBackground: true,
+            ),
+          ),
+        ),
+      );
+      
+      expect(find.byType(AppLogo), findsOneWidget);
+      expect(find.byType(Container), findsWidgets);
+    });
+
+    testWidgets('should render with background in dark theme', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: const Scaffold(
+            body: AppLogo(
+              size: 40.0,
+              showText: true,
+              withBackground: true,
+            ),
+          ),
+        ),
+      );
+      
+      expect(find.byType(AppLogo), findsOneWidget);
+      expect(find.byType(Container), findsWidgets);
+    });
   });
 
   group('AppLogoIcon', () {

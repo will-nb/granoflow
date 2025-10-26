@@ -60,6 +60,7 @@ class MainDrawer extends StatelessWidget {
                             size: 28.0,
                             showText: false,
                             variant: AppLogoVariant.onPrimary,
+                            withBackground: true,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
