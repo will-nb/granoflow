@@ -142,6 +142,8 @@ flutter_*.tar.xz
 
 # Cursor AI specific
 .cursor/
+# But allow rules to be tracked
+!.cursor/rules/
 
 # Documents backup folder
 documents/temp/
