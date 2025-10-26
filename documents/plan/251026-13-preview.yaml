@@ -1,0 +1,167 @@
+title: "Inbox日期选择器优化"
+date: "2025-10-26"
+version: "1.0"
+
+problem:
+  description: "当前inbox页面中日期选择器位置不够合理，按钮样式不够直观，用户难以理解其功能"
+  current_issues:
+    - "日期选择器位于标签面板上方，但设置截止日期后任务会移动到任务栏，应该放在底部"
+    - "使用IconButton + tooltip的方式不够直观，用户需要悬停才能看到功能说明"
+    - "按钮文案'移至任务列表'不够明确，用户不知道这是设置截止日期"
+  impact:
+    - "用户体验不够直观"
+    - "功能发现性差"
+    - "布局逻辑不够合理"
+
+solution:
+  approach: "重新设计日期选择器的位置和样式，使其更符合用户操作流程"
+  
+  layout_changes:
+    - "将日期选择器移动到底部，在标签面板和提示文字之后"
+    - "符合'设置截止日期 → 移动到任务栏'的操作逻辑"
+  
+  button_redesign:
+    - "从IconButton改为OutlinedButton.icon"
+    - "直接显示功能文字，无需tooltip"
+    - "使用简洁明了的文案"
+  
+  copywriting_strategy:
+    - "采用方案A：最简洁的文案"
+    - "简体中文：'截止日期'"
+    - "繁体中文(香港)：'截止日期'"
+    - "英文：'Due'"
+
+technical_changes:
+  files_to_modify:
+    - "lib/presentation/inbox/inbox_page.dart"
+    - "lib/l10n/app_zh_CN.arb"
+    - "lib/l10n/app_zh_HK.arb"
+    - "lib/l10n/app_en.arb"
+  
+  implementation_details:
+    layout_restructure:
+      current_order: |
+        Row(日期选择器)
+        SizedBox(height: 12)
+        TagPanel(标签面板)
+        Text(提示文字)
+      new_order: |
+        TagPanel(标签面板)
+        Text(提示文字)
+        SizedBox(height: 12)
+        OutlinedButton.icon(日期选择器)
+    
+    button_redesign:
+      current: |
+        IconButton(
+          tooltip: l10n.inboxPlanButtonLabel,
+          icon: const Icon(Icons.upload),
+          onPressed: _isPlanning ? null : () => _planTask(context, task),
+        )
+      new: |
+        OutlinedButton.icon(
+          onPressed: _isPlanning ? null : () => _planTask(context, task),
+          icon: const Icon(Icons.calendar_today, size: 16),
+          label: Text(l10n.inboxPlanButtonLabel),
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+        )
+    
+    localization_updates:
+      simplified_chinese: "inboxPlanButtonLabel": "截止日期"
+      traditional_chinese_hk: "inboxPlanButtonLabel": "截止日期"
+      english: "inboxPlanButtonLabel": "Due"
+
+user_experience:
+  benefits:
+    - "更直观的功能识别：用户一眼就知道这是设置截止日期"
+    - "更合理的操作流程：设置截止日期在底部，符合'移动到任务栏'的逻辑"
+    - "更好的可访问性：按钮文字直接可见，无需悬停"
+    - "更简洁的界面：减少不必要的tooltip和图标"
+  
+  user_flow:
+    - "用户查看任务详情（标签、优先级等）"
+    - "用户决定是否需要设置截止日期"
+    - "点击底部的'截止日期'按钮"
+    - "选择具体日期"
+    - "任务自动移动到相应的任务栏（今日/明日/稍后）"
+
+design_principles:
+  - "功能可见性：按钮文字直接显示功能"
+  - "操作逻辑性：设置截止日期在操作流程的末端"
+  - "界面简洁性：使用最简洁的文案"
+  - "地区适应性：符合各地区的语言习惯"
+
+acceptance_criteria:
+  functional:
+    - "日期选择器位于展开任务视图的底部"
+    - "按钮显示为OutlinedButton.icon样式"
+    - "按钮文字为'截止日期'/'Due'"
+    - "点击按钮正常打开日期选择器"
+    - "选择日期后任务正确移动到任务栏"
+  
+  visual:
+    - "按钮样式与整体设计一致"
+    - "布局层次清晰，逻辑合理"
+    - "文字大小和间距合适"
+    - "图标和文字对齐良好"
+  
+  localization:
+    - "简体中文显示'截止日期'"
+    - "繁体中文(香港)显示'截止日期'"
+    - "英文显示'Due'"
+    - "所有语言文案简洁明了"
+
+implementation_phases:
+  phase_1:
+    title: "更新本地化文案"
+    description: "修改三种语言的按钮文案"
+    changes:
+      - "更新app_zh_CN.arb中的inboxPlanButtonLabel"
+      - "更新app_zh_HK.arb中的inboxPlanButtonLabel"
+      - "更新app_en.arb中的inboxPlanButtonLabel"
+  
+  phase_2:
+    title: "调整布局结构"
+    description: "将日期选择器移动到底部"
+    changes:
+      - "重新排列Column中的子组件顺序"
+      - "调整SizedBox间距"
+      - "确保布局逻辑合理"
+  
+  phase_3:
+    title: "重新设计按钮样式"
+    description: "从IconButton改为OutlinedButton.icon"
+    changes:
+      - "替换IconButton为OutlinedButton.icon"
+      - "更新图标为Icons.calendar_today"
+      - "设置合适的padding和样式"
+      - "移除tooltip相关代码"
+
+testing:
+  manual_tests:
+    - "展开任务，确认日期选择器在底部"
+    - "点击'截止日期'按钮，确认日期选择器正常打开"
+    - "选择日期，确认任务移动到正确的任务栏"
+    - "检查三种语言的文案显示"
+    - "验证按钮样式和布局"
+  
+  edge_cases:
+    - "快速连续点击按钮"
+    - "取消日期选择"
+    - "选择过去的日期"
+    - "选择很远的未来日期"
+
+rollback_plan:
+  description: "如果出现问题，可以快速回滚到当前实现"
+  steps:
+    - "恢复IconButton样式"
+    - "恢复原来的布局顺序"
+    - "恢复原来的文案"
+
+success_metrics:
+  - "用户能够直观识别日期选择功能"
+  - "操作流程更加合理和直观"
+  - "界面更加简洁美观"
+  - "符合各地区的使用习惯"

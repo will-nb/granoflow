@@ -2,10 +2,10 @@ meta:
   name: "InboxPage"
   type: "page"
   file_path: "lib/presentation/inbox/inbox_page.dart"
-  description: "收集箱页面，用于快速添加和管理任务"
-  version: "1.0"
+  description: "收集箱页面，用于快速添加和管理任务，支持优先级过滤、内联编辑、自定义日期选择等功能"
+  version: "2.0"
   created_date: "251025"
-  last_updated: "251025"
+  last_updated: "251026"
 
 page_definition:
   name: "InboxPage"
@@ -83,6 +83,12 @@ page_state:
     initial_value: "空字符串"
     validation: "不能为 null"
     
+  - name: "_isPlanning"
+    type: "bool"
+    description: "是否正在计划任务"
+    initial_value: "false"
+    validation: "布尔值"
+    
 page_lifecycle:
   - phase: "initialization"
     description: "初始化阶段"
@@ -106,6 +112,30 @@ page_events:
     trigger: "用户改变过滤器"
     handler: "过滤器处理函数"
     parameters: "过滤器数据"
+    
+  - name: "onTaskExpand"
+    description: "任务展开事件"
+    trigger: "用户点击任务展开"
+    handler: "任务展开处理函数"
+    parameters: "任务ID"
+    
+  - name: "onTaskTitleEdit"
+    description: "任务标题编辑事件"
+    trigger: "用户编辑任务标题"
+    handler: "任务标题编辑处理函数"
+    parameters: "新标题"
+    
+  - name: "onTaskPlan"
+    description: "任务计划事件"
+    trigger: "用户计划任务到特定日期"
+    handler: "任务计划处理函数"
+    parameters: "计划日期"
+    
+  - name: "onTaskSwipe"
+    description: "任务滑动事件"
+    trigger: "用户滑动任务"
+    handler: "任务滑动处理函数"
+    parameters: "滑动方向"
     
 page_styling:
   - name: "pageStyle"
@@ -226,7 +256,6 @@ page_imports:
   - "package:intl/intl.dart"
   - "../../core/providers/app_providers.dart"
   - "../../core/providers/service_providers.dart"
-  - "../../core/providers/repository_providers.dart"
   - "../../core/theme/app_color_tokens.dart"
   - "../../data/models/tag.dart"
   - "../../data/models/task.dart"
@@ -236,6 +265,7 @@ page_imports:
   - "../widgets/chip_toggle_group.dart"
   - "../widgets/page_app_bar.dart"
   - "../widgets/main_drawer.dart"
+  - "../widgets/gradient_page_scaffold.dart"
   
 page_categories:
   main_pages:
@@ -243,6 +273,37 @@ page_categories:
       description: "收集箱页面"
       type: "ConsumerStatefulWidget"
       category: "main"
+      
+page_components:
+  - name: "InboxTaskTile"
+    description: "收集箱任务瓦片"
+    type: "ConsumerStatefulWidget"
+    features: ["任务显示", "内联编辑", "滑动操作", "展开/收起", "任务ID显示"]
+    
+  - name: "ExpandedInboxControls"
+    description: "展开的任务控制面板"
+    type: "ConsumerStatefulWidget"
+    features: ["标签管理", "日期选择", "任务操作"]
+    
+  - name: "QuickDatePicker"
+    description: "快速日期选择器"
+    type: "StatelessWidget"
+    features: ["今天", "明天", "本周", "当月", "自定义日期"]
+    
+  - name: "FilterChipGroup"
+    description: "过滤器芯片组"
+    type: "Widget"
+    features: ["紧急程度过滤", "重要程度过滤", "清除过滤器"]
+    
+  - name: "DismissibleTask"
+    description: "可滑动任务"
+    type: "Dismissible"
+    features: ["左滑删除", "右滑计划", "确认对话框"]
+    
+  - name: "TaskIdDisplay"
+    description: "任务ID显示组件"
+    type: "Text"
+    features: ["显示YYYYMMDD-XXXX格式ID", "小字体显示"]
       
 page_interactions:
   - name: "taskInput"
@@ -259,6 +320,34 @@ page_interactions:
     feedback: "视觉反馈"
     accessibility: "支持无障碍"
     
+  - name: "taskExpand"
+    description: "任务展开交互"
+    type: "tap"
+    handler: "任务展开处理函数"
+    feedback: "展开动画"
+    accessibility: "支持无障碍"
+    
+  - name: "taskTitleEdit"
+    description: "任务标题编辑交互"
+    type: "tap"
+    handler: "标题编辑处理函数"
+    feedback: "编辑状态变化"
+    accessibility: "支持无障碍"
+    
+  - name: "taskSwipe"
+    description: "任务滑动交互"
+    type: "swipe"
+    handler: "滑动处理函数"
+    feedback: "滑动动画和确认"
+    accessibility: "支持无障碍"
+    
+  - name: "datePicker"
+    description: "日期选择交互"
+    type: "tap"
+    handler: "日期选择处理函数"
+    feedback: "日期选择器"
+    accessibility: "支持无障碍"
+    
 page_animations:
   - name: "pageAnimation"
     description: "页面动画"
@@ -267,12 +356,51 @@ page_animations:
     curve: "easeInOut"
     trigger: "页面显示"
     
+  - name: "taskExpandAnimation"
+    description: "任务展开动画"
+    type: "slide"
+    duration: "200ms"
+    curve: "easeInOut"
+    trigger: "任务展开"
+    
+  - name: "swipeAnimation"
+    description: "滑动动画"
+    type: "slide"
+    duration: "150ms"
+    curve: "easeInOut"
+    trigger: "任务滑动"
+    
+  - name: "filterAnimation"
+    description: "过滤器动画"
+    type: "fade"
+    duration: "100ms"
+    curve: "easeInOut"
+    trigger: "过滤器变化"
+    
 page_validation:
   - field: "taskTitle"
     rule: "not_empty"
     description: "任务标题不能为空"
     message: "任务标题不能为空"
     required: true
+    
+  - field: "taskId"
+    rule: "format_validation"
+    description: "任务ID格式验证"
+    message: "任务ID格式必须为YYYYMMDD-XXXX"
+    required: true
+    
+  - field: "dueDate"
+    rule: "date_validation"
+    description: "截止日期验证"
+    message: "截止日期不能早于今天"
+    required: false
+    
+  - field: "tagSelection"
+    rule: "single_selection"
+    description: "标签单选验证"
+    message: "每个标签组只能选择一个"
+    required: false
     
 page_error_handling:
   - exception: "TaskSubmissionException"
@@ -281,12 +409,54 @@ page_error_handling:
     recovery: "重试机制"
     user_feedback: "显示错误消息"
     
+  - exception: "TaskIdGenerationException"
+    description: "任务ID生成异常"
+    handling: "处理任务ID生成错误并fallback到默认格式"
+    recovery: "使用默认ID格式"
+    user_feedback: "静默处理"
+    
+  - exception: "DatePickerException"
+    description: "日期选择器异常"
+    handling: "处理日期选择错误并显示错误消息"
+    recovery: "重新打开日期选择器"
+    user_feedback: "显示错误消息"
+    
+  - exception: "TaskUpdateException"
+    description: "任务更新异常"
+    handling: "处理任务更新错误并显示错误消息"
+    recovery: "重试机制"
+    user_feedback: "显示错误消息"
+    
+  - exception: "FilterException"
+    description: "过滤器异常"
+    handling: "处理过滤器错误并重置过滤器"
+    recovery: "重置过滤器状态"
+    user_feedback: "显示错误消息"
+    
 page_internationalization:
   - name: "inboxPage"
     description: "收集箱页面国际化"
-    languages: "zh_CN, en_US"
+    languages: "zh_CN, zh_HK, en_US"
     fallback: "en_US"
     context: "收集箱"
+    
+  - name: "priorityFilterLabels"
+    description: "优先级过滤器标签国际化"
+    languages: "zh_CN, zh_HK, en_US"
+    fallback: "en_US"
+    context: "紧急程度、重要程度"
+    
+  - name: "datePickerLabels"
+    description: "日期选择器标签国际化"
+    languages: "zh_CN, zh_HK, en_US"
+    fallback: "en_US"
+    context: "今天、明天、本周、当月"
+    
+  - name: "taskActions"
+    description: "任务操作国际化"
+    languages: "zh_CN, zh_HK, en_US"
+    fallback: "en_US"
+    context: "移动到今日任务、移动到回收站"
     
 page_theme_integration:
   - name: "pageTheme"
@@ -301,12 +471,48 @@ page_theme_integration:
     default_value: "主题色"
     theme_aware: true
     
+  - name: "filterChipTheme"
+    description: "过滤器芯片主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+  - name: "taskTileTheme"
+    description: "任务瓦片主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+  - name: "datePickerTheme"
+    description: "日期选择器主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
 page_state_management:
   - pattern: "Riverpod 状态管理"
     description: "使用 Riverpod 管理状态"
     implementation: "使用 ConsumerStatefulWidget"
     benefits: "响应式、可测试"
     considerations: "需要 Provider 配置"
+    
+  - pattern: "过滤器状态管理"
+    description: "使用 InboxFilterState 管理过滤器状态"
+    implementation: "使用 StateNotifierProvider"
+    benefits: "状态持久化、响应式更新"
+    considerations: "状态同步"
+    
+  - pattern: "任务状态管理"
+    description: "使用 TaskService 管理任务状态"
+    implementation: "使用 FutureProvider"
+    benefits: "异步数据管理、缓存"
+    considerations: "数据一致性"
+    
+  - pattern: "标签状态管理"
+    description: "使用 TagService 管理标签状态"
+    implementation: "使用 FutureProvider"
+    benefits: "标签数据管理、过滤"
+    considerations: "标签同步"
     
 page_navigation:
   - name: "inboxNavigation"
@@ -329,11 +535,71 @@ page_data_flow:
     destination: "任务服务"
     transformation: "任务创建"
     
+  - name: "filterDataFlow"
+    description: "过滤器数据流"
+    source: "用户选择"
+    destination: "过滤器状态"
+    transformation: "状态更新"
+    
+  - name: "taskUpdateDataFlow"
+    description: "任务更新数据流"
+    source: "用户编辑"
+    destination: "任务服务"
+    transformation: "任务更新"
+    
+  - name: "taskPlanDataFlow"
+    description: "任务计划数据流"
+    source: "用户选择日期"
+    destination: "任务服务"
+    transformation: "任务计划"
+    
+  - name: "taskDeleteDataFlow"
+    description: "任务删除数据流"
+    source: "用户滑动"
+    destination: "任务服务"
+    transformation: "任务软删除"
+    
+  - name: "taskIdGenerationDataFlow"
+    description: "任务ID生成数据流"
+    source: "任务创建请求"
+    destination: "任务仓库"
+    transformation: "基于日期的自增ID生成"
+    
 page_business_logic:
   - name: "taskManagementLogic"
     description: "任务管理逻辑"
     implementation: "任务创建和管理"
     dependencies: "任务服务、标签服务"
+    testing: "单元测试"
+    
+  - name: "priorityFilterLogic"
+    description: "优先级过滤逻辑"
+    implementation: "紧急程度和重要程度标签过滤"
+    dependencies: "标签服务、过滤器状态"
+    testing: "单元测试"
+    
+  - name: "inlineEditLogic"
+    description: "内联编辑逻辑"
+    implementation: "任务标题直接编辑"
+    dependencies: "任务服务、文本控制器"
+    testing: "单元测试"
+    
+  - name: "datePickerLogic"
+    description: "自定义日期选择逻辑"
+    implementation: "快速日期选择和自定义日期选择"
+    dependencies: "日期计算、任务服务"
+    testing: "单元测试"
+    
+  - name: "swipeActionLogic"
+    description: "滑动操作逻辑"
+    implementation: "左滑删除、右滑计划"
+    dependencies: "任务服务、确认对话框"
+    testing: "单元测试"
+    
+  - name: "taskIdGenerationLogic"
+    description: "任务ID生成逻辑"
+    implementation: "基于日期的自增ID生成，格式YYYYMMDD-XXXX"
+    dependencies: "任务仓库、数据库查询"
     testing: "单元测试"
     
 page_user_experience:
@@ -342,6 +608,36 @@ page_user_experience:
     implementation: "快速添加任务"
     benefits: "提升工作效率"
     considerations: "输入验证"
+    
+  - name: "priorityFilterExperience"
+    description: "优先级过滤体验"
+    implementation: "紧急程度和重要程度标签过滤"
+    benefits: "快速筛选任务"
+    considerations: "标签状态管理"
+    
+  - name: "inlineEditExperience"
+    description: "内联编辑体验"
+    implementation: "任务标题直接编辑"
+    benefits: "快速修改任务"
+    considerations: "编辑状态管理"
+    
+  - name: "customDatePickerExperience"
+    description: "自定义日期选择体验"
+    implementation: "快速日期选择和自定义日期选择"
+    benefits: "快速计划任务"
+    considerations: "日期计算和验证"
+    
+  - name: "swipeActionExperience"
+    description: "滑动操作体验"
+    implementation: "左滑删除、右滑计划"
+    benefits: "快速操作任务"
+    considerations: "操作确认和反馈"
+    
+  - name: "taskIdDisplayExperience"
+    description: "任务ID显示体验"
+    implementation: "显示YYYYMMDD-XXXX格式的任务ID"
+    benefits: "任务识别和追踪"
+    considerations: "ID格式一致性"
     
 page_security:
   - name: "inputSecurity"
@@ -372,6 +668,22 @@ page_testing_strategy:
       description: "测试页面无障碍"
     - name: "test_page_performance"
       description: "测试页面性能"
+    - name: "test_priority_filter"
+      description: "测试优先级过滤器"
+    - name: "test_inline_edit"
+      description: "测试内联编辑"
+    - name: "test_date_picker"
+      description: "测试日期选择器"
+    - name: "test_swipe_actions"
+      description: "测试滑动操作"
+    - name: "test_task_id_generation"
+      description: "测试任务ID生成"
+    - name: "test_task_id_format"
+      description: "测试任务ID格式"
+    - name: "test_task_id_increment"
+      description: "测试任务ID自增"
+    - name: "test_task_id_cross_day"
+      description: "测试任务ID跨天重置"
       
   widget_tests:
     - name: "test_page_rendering"
@@ -394,6 +706,18 @@ page_testing_strategy:
       description: "测试页面验证"
     - name: "test_page_internationalization"
       description: "测试页面国际化"
+    - name: "test_priority_filter_ui"
+      description: "测试优先级过滤器UI"
+    - name: "test_inline_edit_ui"
+      description: "测试内联编辑UI"
+    - name: "test_date_picker_ui"
+      description: "测试日期选择器UI"
+    - name: "test_swipe_actions_ui"
+      description: "测试滑动操作UI"
+    - name: "test_task_expansion_ui"
+      description: "测试任务展开UI"
+    - name: "test_task_id_display_ui"
+      description: "测试任务ID显示UI"
       
   integration_tests:
     - name: "test_page_integration"
@@ -416,6 +740,10 @@ page_testing_strategy:
       description: "测试页面主题"
     - name: "test_page_internationalization"
       description: "测试页面国际化"
+    - name: "test_task_id_generation_integration"
+      description: "测试任务ID生成集成"
+    - name: "test_task_id_display_integration"
+      description: "测试任务ID显示集成"
       
   mock_strategy:
     - name: "MockInboxPage"
@@ -424,3 +752,36 @@ page_testing_strategy:
       description: "Fake 实现用于测试"
     - name: "TestInboxPage"
       description: "测试专用页面"
+      
+page_features_summary:
+  core_features:
+    - "任务快速添加"
+    - "任务内联编辑"
+    - "任务滑动操作"
+    - "任务展开/收起"
+    - "任务ID显示"
+    
+  filter_features:
+    - "紧急程度过滤"
+    - "重要程度过滤"
+    - "清除过滤器"
+    - "标签管理"
+    
+  date_features:
+    - "快速日期选择"
+    - "自定义日期选择"
+    - "日期验证"
+    - "任务计划"
+    
+  id_features:
+    - "YYYYMMDD-XXXX格式"
+    - "每日自增"
+    - "跨天重置"
+    - "错误处理"
+    
+  ui_features:
+    - "响应式设计"
+    - "主题集成"
+    - "国际化支持"
+    - "无障碍支持"
+    - "动画效果"

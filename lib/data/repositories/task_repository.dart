@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
 import '../isar/task_entity.dart';
@@ -67,7 +67,6 @@ class IsarTaskRepository implements TaskRepository {
 
   final Isar _isar;
   final DateTime Function() _clock;
-  final Random _random = Random();
 
   @override
   Stream<List<Task>> watchSection(TaskSection section) {
@@ -136,8 +135,9 @@ class IsarTaskRepository implements TaskRepository {
   Future<Task> createTask(TaskDraft draft) async {
     return _isar.writeTxn<Task>(() async {
       final now = _clock();
+      final taskId = await _generateTaskId(now);
       final entity = TaskEntity()
-        ..taskId = _generateTaskId(now)
+        ..taskId = taskId
         ..title = draft.title
         ..status = draft.status
         ..dueAt = draft.dueAt
@@ -493,10 +493,77 @@ class IsarTaskRepository implements TaskRepository {
     }
   }
 
-  String _generateTaskId(DateTime now) {
-    final dateString =
-        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-    final suffix = _random.nextInt(9000) + 1000;
-    return '$dateString-$suffix';
+  /// 查询最新创建的任务
+  Future<Task?> _getLatestTask() async {
+    try {
+      final tasks = await _isar.taskEntitys
+        .where()
+        .sortByCreatedAtDesc()
+        .limit(1)
+        .findAll();
+      
+      return tasks.isNotEmpty ? _toDomain(tasks.first) : null;
+    } catch (e) {
+      debugPrint('Error querying latest task: $e');
+      return null;
+    }
+  }
+
+  /// 解析taskId格式，提取日期和后缀
+  Map<String, dynamic>? _parseTaskId(String taskId) {
+    try {
+      if (taskId.isEmpty) return null;
+      
+      final parts = taskId.split('-');
+      if (parts.length != 2) return null;
+      
+      final datePart = parts[0];
+      final suffixPart = parts[1];
+      
+      if (datePart.length != 8) return null;
+      
+      final suffixInt = int.tryParse(suffixPart);
+      if (suffixInt == null) return null;
+      
+      return {
+        'date': datePart,
+        'suffix': suffixInt,
+      };
+    } catch (e) {
+      debugPrint('Error parsing taskId: $e');
+      return null;
+    }
+  }
+
+  Future<String> _generateTaskId(DateTime now) async {
+    final dateString = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    
+    try {
+      final latestTask = await _getLatestTask();
+      
+      if (latestTask == null) {
+        return '$dateString-0001';
+      }
+      
+      final parsed = _parseTaskId(latestTask.taskId);
+      if (parsed == null) {
+        return '$dateString-0001';
+      }
+      
+      final latestDate = parsed['date'] as String;
+      final latestSuffix = parsed['suffix'] as int;
+      
+      if (latestDate == dateString) {
+        // 如果是今天，后缀+1
+        final nextSuffix = (latestSuffix + 1).toString().padLeft(4, '0');
+        return '$dateString-$nextSuffix';
+      } else {
+        // 如果不是今天，从0001开始
+        return '$dateString-0001';
+      }
+    } catch (e) {
+      debugPrint('Error generating taskId: $e');
+      return '$dateString-0001';
+    }
   }
 }

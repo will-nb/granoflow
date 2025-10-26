@@ -1,0 +1,112 @@
+title: "实现任务标题内联编辑功能"
+description: "将展开任务条目中的静态标题改为可编辑的TextField，用户可以直接编辑任务标题而无需点击编辑按钮"
+date: "2025-10-26"
+version: "1.0"
+
+problem:
+  description: "当前展开任务条目时，任务标题显示为静态Text组件，用户需要点击编辑按钮才能修改标题。这种设计不符合主流任务管理应用的用户体验，增加了不必要的操作步骤。"
+  current_behavior: |
+    - 展开任务条目时，标题显示为静态Text
+    - 用户需要点击编辑按钮才能修改标题
+    - 操作步骤繁琐，用户体验不够直观
+    - 不符合主流应用的设计模式（如Todoist、Any.do等）
+
+solution:
+  description: "采用方案A：自动进入编辑模式。当任务条目展开时，标题自动变为可编辑的TextField，用户可以直接编辑，按回车保存。"
+  benefits:
+    - "减少操作步骤，提高用户效率"
+    - "符合主流任务管理应用的设计模式"
+    - "提供更直观的编辑体验"
+    - "与用户期望保持一致"
+    - "简化界面，减少按钮数量"
+
+technical_changes:
+  files_to_modify:
+    - "lib/presentation/inbox/inbox_page.dart"
+  
+  changes:
+    - "将InboxTaskTile中的静态Text组件改为TextField"
+    - "添加TextEditingController管理编辑状态"
+    - "实现onSubmitted回调处理保存逻辑"
+    - "添加适当的样式和装饰"
+    - "处理焦点管理和键盘事件"
+
+implementation_details:
+  location: "lib/presentation/inbox/inbox_page.dart 第512行"
+  current_code: |
+    Text(task.title, style: Theme.of(context).textTheme.titleMedium),
+  
+  new_code: |
+    TextField(
+      controller: TextEditingController(text: task.title),
+      style: Theme.of(context).textTheme.titleMedium,
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+        hintText: 'Enter task title...',
+      ),
+      onSubmitted: (value) => _updateTaskTitle(context, task, value),
+      onChanged: (value) => _onTitleChanged(value),
+    ),
+  
+  new_methods:
+    - "_updateTaskTitle(BuildContext context, Task task, String newTitle)"
+    - "_onTitleChanged(String value)" // 可选：实时更新状态
+  
+  state_management:
+    - "添加TextEditingController状态管理"
+    - "处理编辑状态和保存状态"
+    - "实现防抖机制避免频繁保存"
+
+ui_considerations:
+  styling:
+    - "TextField样式与Text保持一致"
+    - "移除边框，保持视觉一致性"
+    - "适当的提示文本"
+    - "焦点状态的高亮显示"
+  
+  interaction:
+    - "展开时自动获得焦点"
+    - "按回车键保存"
+    - "失去焦点时自动保存"
+    - "ESC键取消编辑（可选）"
+
+acceptance_criteria:
+  - "展开任务条目时，标题自动变为可编辑状态"
+  - "用户可以直接输入修改标题"
+  - "按回车键保存修改"
+  - "失去焦点时自动保存"
+  - "编辑状态有适当的视觉反馈"
+  - "保存成功后显示确认提示"
+  - "编辑和计划按钮功能不受影响"
+
+testing_requirements:
+  - "验证展开时TextField正确显示"
+  - "测试直接编辑功能"
+  - "验证保存逻辑正确"
+  - "测试键盘事件处理"
+  - "检查样式和布局正确性"
+  - "测试与现有功能的兼容性"
+
+risks:
+  - "中等风险：需要处理状态管理和焦点控制"
+  - "用户可能意外修改标题"
+  - "需要处理网络错误和保存失败的情况"
+  - "键盘弹出可能影响布局"
+
+rollback_plan:
+  - "如果用户反馈不佳，可以快速恢复为静态Text"
+  - "保留编辑按钮作为备选方案"
+  - "可以添加开关控制是否启用内联编辑"
+
+user_experience_improvements:
+  - "操作步骤从2步减少到1步（点击展开→直接编辑）"
+  - "符合主流应用的用户期望"
+  - "提供更流畅的编辑体验"
+  - "减少界面元素，保持简洁"
+
+integration_considerations:
+  - "与现有的任务更新逻辑集成"
+  - "保持与滑动删除功能的兼容性"
+  - "确保与标签编辑功能不冲突"
+  - "维护现有的错误处理机制"

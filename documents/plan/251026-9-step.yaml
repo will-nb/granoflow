@@ -1,0 +1,69 @@
+title: "修复展开条目编辑时优先级标签不显示问题"
+description: "修复Inbox页面展开条目进行编辑时，优先级标签（紧急/不紧急/重要/不重要）不显示的问题"
+created_date: "2025-01-26"
+priority: "high"
+status: "planning"
+
+steps:
+  - id: "analyze-current-implementation"
+    title: "分析当前_ExpandedInboxControlsState的实现"
+    description: "检查当前展开编辑控件的实现，了解priorityTagOptionsProvider的使用方式"
+    status: "pending"
+    estimated_time: "5分钟"
+    
+  - id: "add-urgency-importance-providers"
+    title: "添加urgencyTagOptionsProvider和importanceTagOptionsProvider"
+    description: "在_ExpandedInboxControlsState中添加对urgency和importance标签Provider的引用"
+    status: "pending"
+    estimated_time: "10分钟"
+    
+  - id: "modify-tagpanel-call"
+    title: "修改TagPanel调用，合并两个Provider的结果"
+    description: "更新TagPanel的priorityOptions参数，将urgency和importance标签合并传递给TagPanel"
+    status: "pending"
+    estimated_time: "15分钟"
+    
+  - id: "test-priority-tags-display"
+    title: "测试展开条目时优先级标签的显示和选择功能"
+    description: "验证展开条目时能看到四个优先级标签，并能正常选择"
+    status: "pending"
+    estimated_time: "10分钟"
+    
+  - id: "verify-tag-save-logic"
+    title: "验证标签选择后的保存逻辑"
+    description: "确保选择优先级标签后能正确保存到任务中"
+    status: "pending"
+    estimated_time: "10分钟"
+
+implementation_details:
+  files_to_modify:
+    - "lib/presentation/inbox/inbox_page.dart"
+  
+  key_changes:
+    - "在_ExpandedInboxControlsState的build方法中添加urgencyTags和importanceTags变量"
+    - "移除priorityTags变量"
+    - "修改TagPanel的priorityOptions参数，使用嵌套的maybeWhen合并两个Provider的结果"
+    - "确保标签选择逻辑正确处理新的标签分类"
+
+testing_strategy:
+  manual_testing:
+    - "展开Inbox中的任意条目"
+    - "检查是否能看到紧急/不紧急/重要/不重要四个优先级标签"
+    - "测试选择优先级标签的功能"
+    - "验证标签选择后能正确保存"
+  
+  automated_testing:
+    - "运行现有的widget测试"
+    - "确保没有破坏现有功能"
+
+acceptance_criteria:
+  - "展开条目进行编辑时，能看到紧急/不紧急/重要/不重要四个优先级标签"
+  - "可以正常选择优先级标签"
+  - "选择的标签能正确保存到任务中"
+  - "标签显示与主页面保持一致"
+  - "标签选择状态正确反映当前任务的标签设置"
+
+rollback_plan:
+  - "如果修改导致问题，可以回退到使用priorityTagOptionsProvider"
+  - "保持现有的TagPanel接口不变"
+  - "确保不会影响主页面的标签显示功能"

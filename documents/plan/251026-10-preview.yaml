@@ -1,0 +1,66 @@
+title: "移除展开任务条目中的删除按钮"
+description: "移除Inbox页面展开任务条目中的删除按钮，因为已有滑动删除功能，避免功能重复"
+date: "2025-10-26"
+version: "1.0"
+
+problem:
+  description: "当前Inbox页面展开任务条目时，在操作按钮区域显示了三个按钮：编辑、计划、删除。由于已经实现了滑动删除功能，删除按钮显得冗余，影响界面简洁性。"
+  current_behavior: |
+    - 展开任务条目时显示三个操作按钮：编辑、计划、删除
+    - 删除按钮与滑动删除功能重复
+    - 界面元素过多，不够简洁
+
+solution:
+  description: "移除展开任务条目中的删除按钮，保留编辑和计划按钮，让用户通过滑动操作来删除任务。"
+  benefits:
+    - "界面更加简洁，减少冗余元素"
+    - "避免功能重复，用户体验更一致"
+    - "滑动删除是更直观的移动端交互方式"
+    - "减少误操作的可能性"
+
+technical_changes:
+  files_to_modify:
+    - "lib/presentation/inbox/inbox_page.dart"
+  
+  changes:
+    - "移除_ExpandedInboxControlsState中Row里的删除IconButton"
+    - "保留编辑和计划按钮"
+    - "确保滑动删除功能正常工作"
+
+implementation_details:
+  location: "lib/presentation/inbox/inbox_page.dart 第614-618行"
+  code_to_remove: |
+    IconButton(
+      tooltip: l10n.inboxDeleteAction,
+      icon: const Icon(Icons.delete_outline),
+      onPressed: _isDeleting ? null : () => _deleteTask(context, task),
+    ),
+  
+  affected_methods:
+    - "_ExpandedInboxControlsState.build()"
+  
+  dependencies:
+    - "滑动删除功能已存在且正常工作"
+    - "编辑和计划按钮功能保持不变"
+
+acceptance_criteria:
+  - "展开任务条目时只显示编辑和计划两个按钮"
+  - "删除按钮完全移除"
+  - "滑动删除功能正常工作"
+  - "编辑和计划按钮功能不受影响"
+  - "界面布局保持美观和一致"
+
+testing_requirements:
+  - "验证展开任务条目时按钮数量正确"
+  - "确认滑动删除功能仍然有效"
+  - "测试编辑和计划按钮功能正常"
+  - "检查界面布局没有异常"
+
+risks:
+  - "低风险：只是移除UI元素，不影响核心功能"
+  - "用户可能需要适应新的删除方式（滑动）"
+  - "确保滑动删除功能稳定可靠"
+
+rollback_plan:
+  - "如果用户反馈需要删除按钮，可以快速恢复"
+  - "恢复代码：重新添加删除IconButton到Row中"

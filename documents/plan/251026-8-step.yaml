@@ -181,3 +181,12 @@ implementation_notes:
     solution: "将所有ChoiceChip替换为FilterChip"
     reason: "FilterChip设计用于支持多选/取消选择场景，而ChoiceChip设计用于单选且不允许取消"
     impact: "用户现在可以点击已选中的标签来取消选择，显示所有内容"
+
+  clear_button:
+    title: "清除筛选条件按钮"
+    implementation: "在标签组最后添加ActionChip清除按钮"
+    features:
+      - "条件显示：只有在有筛选条件时才显示"
+      - "视觉设计：使用error主题色和清除图标"
+      - "功能完整：一键清除所有筛选条件"
+    user_experience: "用户可以快速清除所有筛选条件，重新查看完整内容列表"

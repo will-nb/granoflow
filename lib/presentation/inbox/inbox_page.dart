@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
-import '../../core/providers/repository_providers.dart';
 import '../../core/theme/app_color_tokens.dart';
 import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
@@ -158,6 +157,24 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                                 checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
                               ),
                             )),
+                            // 清除筛选按钮
+                            if (filter.hasFilters) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ActionChip(
+                                  label: Text(l10n.inboxFilterReset),
+                                  avatar: Icon(
+                                    Icons.clear_all,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                                  onPressed: () {
+                                    ref.read(inboxFilterProvider.notifier).reset();
+                                  },
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -409,20 +426,73 @@ class TemplateSuggestionWrap extends StatelessWidget {
   }
 }
 
-class InboxTaskTile extends ConsumerWidget {
+class InboxTaskTile extends ConsumerStatefulWidget {
   const InboxTaskTile({super.key, required this.task, required this.localeName});
 
   final Task task;
   final String localeName;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final expandedId = ref.watch(inboxExpandedTaskIdProvider);
-    final isExpanded = expandedId == task.id;
-    final l10n = AppLocalizations.of(context);
+  ConsumerState<InboxTaskTile> createState() => _InboxTaskTileState();
+}
 
-    final contextTag = task.tags.firstWhere((tag) => tag.startsWith('@'), orElse: () => '');
-    final priorityTag = task.tags.firstWhere((tag) => tag.startsWith('#'), orElse: () => '');
+class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
+  late TextEditingController _titleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.task.title);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _updateTaskTitle(BuildContext context, String newTitle) async {
+    if (newTitle.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task title cannot be empty')),
+      );
+      _titleController.text = widget.task.title;
+      return;
+    }
+
+    if (newTitle.trim() == widget.task.title) {
+      setState(() {});
+      return;
+    }
+
+    try {
+      final taskService = ref.read(taskServiceProvider);
+      await taskService.updateDetails(
+        taskId: widget.task.id,
+        payload: TaskUpdate(title: newTitle.trim()),
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Task title updated successfully')),
+        );
+        setState(() {});
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update task title: $error')),
+        );
+        _titleController.text = widget.task.title;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expandedId = ref.watch(inboxExpandedTaskIdProvider);
+    final isExpanded = expandedId == widget.task.id;
+    final l10n = AppLocalizations.of(context);
 
     final messenger = ScaffoldMessenger.of(context);
     final taskService = ref.read(taskServiceProvider);
@@ -430,7 +500,7 @@ class InboxTaskTile extends ConsumerWidget {
     final tokens = context.colorTokens;
 
     return Dismissible(
-      key: ValueKey('inbox-${task.id}-${task.updatedAt.millisecondsSinceEpoch}'),
+      key: ValueKey('inbox-${widget.task.id}-${widget.task.updatedAt.millisecondsSinceEpoch}'),
       background: _DismissBackground(
         alignment: Alignment.centerLeft,
         icon: Icons.calendar_today,
@@ -447,7 +517,7 @@ class InboxTaskTile extends ConsumerWidget {
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
-          await _quickPlan(context, ref, task);
+          await _quickPlan(context, ref, widget.task);
           return false;
         }
         final confirmed = await showDialog<bool>(
@@ -468,7 +538,7 @@ class InboxTaskTile extends ConsumerWidget {
           ),
         );
         if (confirmed == true) {
-          await taskService.softDelete(task.id);
+          await taskService.softDelete(widget.task.id);
           if (!context.mounted) {
             return false;
           }
@@ -480,7 +550,8 @@ class InboxTaskTile extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: InkWell(
           onTap: () {
-            ref.read(inboxExpandedTaskIdProvider.notifier).state = isExpanded ? null : task.id;
+            // 只有在点击非TextField区域时才展开/收起
+            ref.read(inboxExpandedTaskIdProvider.notifier).state = isExpanded ? null : widget.task.id;
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -494,28 +565,52 @@ class InboxTaskTile extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(task.title, style: Theme.of(context).textTheme.titleMedium),
+                          if (!isExpanded)
+                            Text(
+                              widget.task.title,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            )
+                          else
+                            TextField(
+                              controller: _titleController,
+                              style: Theme.of(context).textTheme.titleMedium,
+                              decoration: InputDecoration(
+                                border: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: colorScheme.primary,
+                                    width: 1,
+                                  ),
+                                ),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: colorScheme.primary.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: colorScheme.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                hintText: 'Enter task title...',
+                              ),
+                              onSubmitted: (value) => _updateTaskTitle(context, value),
+                              onChanged: (value) => setState(() {}),
+                            ),
                           const SizedBox(height: 4),
-                          Text('ID: ${task.taskId}', style: Theme.of(context).textTheme.bodySmall),
+                          Text('ID: ${widget.task.taskId}', style: Theme.of(context).textTheme.bodySmall),
                         ],
                       ),
                     ),
                     Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
                   ],
                 ),
-                if (contextTag.isNotEmpty || priorityTag.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      if (contextTag.isNotEmpty) Chip(label: Text(contextTag)),
-                      if (priorityTag.isNotEmpty) Chip(label: Text(priorityTag)),
-                    ],
-                  ),
-                ],
                 if (isExpanded) ...[
                   const SizedBox(height: 12),
-                  _ExpandedInboxControls(task: task, localeName: localeName),
+                  _ExpandedInboxControls(task: widget.task, localeName: widget.localeName),
                 ],
               ],
             ),
@@ -564,9 +659,23 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final contextTags = ref.watch(contextTagOptionsProvider);
-    final priorityTags = ref.watch(priorityTagOptionsProvider);
+    final urgencyTags = ref.watch(urgencyTagOptionsProvider);
+    final importanceTags = ref.watch(importanceTagOptionsProvider);
     contextTags.whenData((tags) => debugPrint('UI: context tags loaded ${tags.length}'));
-    priorityTags.whenData((tags) => debugPrint('UI: priority tags loaded ${tags.length}'));
+    urgencyTags.whenData((tags) => debugPrint('UI: urgency tags loaded ${tags.length}'));
+    importanceTags.whenData((tags) => debugPrint('UI: importance tags loaded ${tags.length}'));
+    
+    // 调试Provider状态
+    urgencyTags.when(
+      data: (tags) => debugPrint('UI: urgencyTags data state: ${tags.length} tags'),
+      loading: () => debugPrint('UI: urgencyTags loading state'),
+      error: (error, stack) => debugPrint('UI: urgencyTags error state: $error'),
+    );
+    importanceTags.when(
+      data: (tags) => debugPrint('UI: importanceTags data state: ${tags.length} tags'),
+      loading: () => debugPrint('UI: importanceTags loading state'),
+      error: (error, stack) => debugPrint('UI: importanceTags error state: $error'),
+    );
     final task = widget.task;
     final contextTag = task.tags.firstWhere((tag) => tag.startsWith('@'), orElse: () => '');
     final priorityTag = task.tags.firstWhere((tag) => tag.startsWith('#'), orElse: () => '');
@@ -574,6 +683,28 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        contextTags.when(
+          data: (tags) {
+            // 合并urgency和importance标签
+            final allPriorityTags = <Tag>[];
+            urgencyTags.whenData((urgencyTags) => allPriorityTags.addAll(urgencyTags));
+            importanceTags.whenData((importanceTags) => allPriorityTags.addAll(importanceTags));
+            
+            return TagPanel(
+              contextOptions: _toChipOptions(tags, widget.localeName),
+              priorityOptions: _toChipOptions(allPriorityTags, widget.localeName),
+              selectedContext: contextTag.isEmpty ? null : contextTag,
+              selectedPriority: priorityTag.isEmpty ? null : priorityTag,
+              onContextChanged: (tag) => _updateTags(context, task.id, tag, priorityTag),
+              onPriorityChanged: (tag) => _updateTags(context, task.id, contextTag, tag),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (error, stackTrace) => _ErrorBanner(message: '$error'),
+        ),
+        const SizedBox(height: 12),
+        Text(l10n.inboxSwipeHint, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
@@ -582,43 +713,16 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
-            IconButton(
-              tooltip: l10n.taskListRenameDialogTitle,
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: () => _renameTask(context, task),
-            ),
-            IconButton(
-              tooltip: l10n.inboxPlanButtonLabel,
-              icon: const Icon(Icons.upload),
+            OutlinedButton.icon(
               onPressed: _isPlanning ? null : () => _planTask(context, task),
-            ),
-            IconButton(
-              tooltip: l10n.inboxDeleteAction,
-              icon: const Icon(Icons.delete_outline),
-              onPressed: _isDeleting ? null : () => _deleteTask(context, task),
+              icon: const Icon(Icons.calendar_today, size: 16),
+              label: Text(l10n.inboxPlanButtonLabel),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        contextTags.when(
-          data: (tags) => TagPanel(
-            contextOptions: _toChipOptions(tags, widget.localeName),
-            priorityOptions: priorityTags.maybeWhen(
-              data: (value) => _toChipOptions(value, widget.localeName),
-              orElse: () => const <ChipToggleOption>[],
-            ),
-            selectedContext: contextTag.isEmpty ? null : contextTag,
-            selectedPriority: priorityTag.isEmpty ? null : priorityTag,
-            onContextChanged: (tag) => _updateTags(context, task.id, tag, priorityTag),
-            onPriorityChanged: (tag) => _updateTags(context, task.id, contextTag, tag),
-          ),
-          loading: () => const SizedBox.shrink(),
-          error: (error, stackTrace) => _ErrorBanner(message: '$error'),
-        ),
-        const SizedBox(height: 12),
-        _ParentSelectorTile(task: task),
-        const SizedBox(height: 8),
-        Text(l10n.inboxSwipeHint, style: Theme.of(context).textTheme.bodySmall),
         if (_isPlanning || _isDeleting)
           Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -633,62 +737,48 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
     );
   }
 
-  Future<void> _renameTask(BuildContext context, Task task) async {
-    final controller = TextEditingController(text: task.title);
-    final l10n = AppLocalizations.of(context);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.inboxRenameTitle),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.commonCancel)),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: Text(l10n.commonSave),
-          ),
-        ],
-      ),
-    );
-    if (result == null || result.isEmpty || result == task.title) {
-      return;
-    }
-    try {
-      await ref
-          .read(taskServiceProvider)
-          .updateDetails(
-            taskId: task.id,
-            payload: TaskUpdate(title: result),
-          );
-      if (!context.mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.inboxRenameSuccess)));
-    } catch (error, stackTrace) {
-      debugPrint('Failed to rename inbox task: $error\n$stackTrace');
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${l10n.inboxRenameError}: $error')));
-      }
-    }
-  }
 
   Future<void> _planTask(BuildContext context, Task task) async {
     final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
-    final selectedDate = await showDatePicker(
+    
+    // 计算特殊日期
+    final today = now;
+    final tomorrow = now.add(const Duration(days: 1));
+    final thisWeek = _getThisWeekSaturday(now);
+    final thisMonth = _getEndOfMonth(now);
+    
+    // 显示快速选择对话框
+    final quickChoice = await showModalBottomSheet<DateTime>(
       context: context,
-      initialDate: now,
-      firstDate: now.subtract(const Duration(days: 30)),
-      lastDate: now.add(const Duration(days: 365)),
+      builder: (context) => _QuickDatePicker(
+        today: today,
+        tomorrow: tomorrow,
+        thisWeek: thisWeek,
+        thisMonth: thisMonth,
+      ),
     );
+    
+    DateTime? selectedDate = quickChoice;
+    
+    // 如果没有选择快速选项，显示标准日期选择器
+    if (selectedDate == null) {
+      selectedDate = await showDatePicker(
+        context: context,
+        initialDate: now,
+        firstDate: now, // 今天以前不可选择
+        lastDate: now.add(const Duration(days: 365)),
+      );
+    }
+    
     if (selectedDate == null) {
       return;
     }
+    
     setState(() {
       _isPlanning = true;
     });
+    
     try {
       final section = _sectionForDate(selectedDate);
       await ref
@@ -714,31 +804,6 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
     }
   }
 
-  Future<void> _deleteTask(BuildContext context, Task task) async {
-    setState(() {
-      _isDeleting = true;
-    });
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(taskServiceProvider).softDelete(task.id);
-      if (!context.mounted) {
-        return;
-      }
-      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxDeletedToast)));
-    } catch (error, stackTrace) {
-      debugPrint('Failed to delete inbox task: $error\n$stackTrace');
-      if (context.mounted) {
-        messenger.showSnackBar(SnackBar(content: Text('${l10n.inboxDeleteError}: $error')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isDeleting = false;
-        });
-      }
-    }
-  }
 
   Future<void> _updateTags(
     BuildContext context,
@@ -760,6 +825,12 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
     }
   }
 
+  List<ChipToggleOption> _toChipOptions(List<Tag> tags, String localeName) {
+    return tags
+        .map((tag) => ChipToggleOption(value: tag.slug, label: _getTagLabel(tag.slug)))
+        .toList(growable: false);
+  }
+
   TaskSection _sectionForDate(DateTime date) {
     final now = DateTime.now();
     final normalizedNow = DateTime(now.year, now.month, now.day);
@@ -774,10 +845,16 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
     return TaskSection.later;
   }
 
-  List<ChipToggleOption> _toChipOptions(List<Tag> tags, String localeName) {
-    return tags
-        .map((tag) => ChipToggleOption(value: tag.slug, label: _getTagLabel(tag.slug)))
-        .toList(growable: false);
+  /// 计算本周六的日期
+  /// 如果今天是周六，则返回下周六
+  DateTime _getThisWeekSaturday(DateTime now) {
+    final daysUntilSaturday = (DateTime.saturday - now.weekday) % 7;
+    return now.add(Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday));
+  }
+
+  /// 计算本月最后一天的日期
+  DateTime _getEndOfMonth(DateTime now) {
+    return DateTime(now.year, now.month + 1, 0);
   }
 
   String _getTagLabel(String slug) {
@@ -841,12 +918,9 @@ class TagPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.inboxContextFilterLabel, style: Theme.of(context).textTheme.bodyMedium),
-        const SizedBox(height: 4),
         ChipToggleGroup(
           options: contextOptions,
           selectedValues: {if (selectedContext != null) selectedContext!},
@@ -856,8 +930,6 @@ class TagPanel extends StatelessWidget {
           multiSelect: false,
         ),
         const SizedBox(height: 12),
-        Text(l10n.inboxPriorityFilterLabel, style: Theme.of(context).textTheme.bodyMedium),
-        const SizedBox(height: 4),
         ChipToggleGroup(
           options: priorityOptions,
           selectedValues: {if (selectedPriority != null) selectedPriority!},
@@ -871,199 +943,7 @@ class TagPanel extends StatelessWidget {
   }
 }
 
-class _ParentSelectorTile extends ConsumerWidget {
-  const _ParentSelectorTile({required this.task});
 
-  final Task task;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final taskRepository = ref.read(taskRepositoryProvider);
-    return FutureBuilder<Task?>(
-      future: task.parentId == null
-          ? Future<Task?>.value(null)
-          : taskRepository.findById(task.parentId!),
-      builder: (context, snapshot) {
-        final parentTask = snapshot.data;
-        final title = parentTask?.title ?? l10n.inboxParentNone;
-        final messenger = ScaffoldMessenger.of(context);
-        return ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.account_tree_outlined),
-          title: Text(l10n.inboxParentLabel),
-          subtitle: Text(title),
-          trailing: TextButton(
-            onPressed: () async {
-              final selected = await showModalBottomSheet<int?>(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) =>
-                    ParentSelectorSheet(excludeTaskId: task.id, initialParentId: task.parentId),
-              );
-              if (selected == null && task.parentId == null) {
-                return;
-              }
-              if (selected == task.parentId) {
-                return;
-              }
-              await ref
-                  .read(taskServiceProvider)
-                  .updateDetails(
-                    taskId: task.id,
-                    payload: TaskUpdate(parentId: selected),
-                  );
-              if (!context.mounted) {
-                return;
-              }
-              messenger.showSnackBar(SnackBar(content: Text(l10n.inboxParentUpdated)));
-            },
-            child: Text(l10n.inboxParentChange),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class ParentSelectorSheet extends ConsumerStatefulWidget {
-  const ParentSelectorSheet({
-    super.key,
-    required this.excludeTaskId,
-    required this.initialParentId,
-  });
-
-  final int excludeTaskId;
-  final int? initialParentId;
-
-  @override
-  ConsumerState<ParentSelectorSheet> createState() => _ParentSelectorSheetState();
-}
-
-class _ParentSelectorSheetState extends ConsumerState<ParentSelectorSheet> {
-  final TextEditingController _controller = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  List<Task> _results = const <Task>[];
-  bool _isLoading = false;
-  Timer? _debounce;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadInitial();
-    _focusNode.requestFocus();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    _debounce?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(l10n.inboxParentPickerTitle),
-              trailing: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                decoration: InputDecoration(
-                  hintText: l10n.inboxParentSearchPlaceholder,
-                  suffixIcon: _controller.text.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _controller.clear();
-                            _debounce?.cancel();
-                            _loadInitial();
-                          },
-                        ),
-                ),
-                onChanged: (value) {
-                  _debounce?.cancel();
-                  _debounce = Timer(const Duration(milliseconds: 250), () {
-                    _search(value);
-                  });
-                },
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.push_pin_outlined),
-              title: Text(l10n.inboxParentNone),
-              onTap: () => Navigator.of(context).pop(null),
-            ),
-            if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _results.length,
-                itemBuilder: (context, index) {
-                  final task = _results[index];
-                  return ListTile(
-                    title: Text(task.title),
-                    subtitle: Text('ID: ${task.taskId}'),
-                    onTap: () => Navigator.of(context).pop(task.id),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _loadInitial() async {
-    setState(() {
-      _isLoading = true;
-    });
-    final taskRepository = ref.read(taskRepositoryProvider);
-    final tasks = await taskRepository.listRoots();
-    _updateResults(tasks);
-  }
-
-  Future<void> _search(String query) async {
-    setState(() {
-      _isLoading = true;
-    });
-    final taskService = ref.read(taskServiceProvider);
-    final results = await taskService.searchTasksByTitle(
-      query,
-      status: TaskStatus.pending,
-      limit: 20,
-    );
-    _updateResults(results);
-  }
-
-  void _updateResults(List<Task> tasks) {
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _results = tasks
-          .where((task) => task.id != widget.excludeTaskId && task.parentId == null)
-          .toList(growable: false);
-      _isLoading = false;
-    });
-  }
-}
 
 class InboxEmptyStateCard extends StatelessWidget {
   const InboxEmptyStateCard({
@@ -1151,6 +1031,70 @@ class _ErrorBanner extends StatelessWidget {
         style: Theme.of(
           context,
         ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onErrorContainer),
+      ),
+    );
+  }
+}
+
+/// 快速日期选择对话框
+class _QuickDatePicker extends StatelessWidget {
+  const _QuickDatePicker({
+    required this.today,
+    required this.tomorrow,
+    required this.thisWeek,
+    required this.thisMonth,
+  });
+
+  final DateTime today;
+  final DateTime tomorrow;
+  final DateTime thisWeek;
+  final DateTime thisMonth;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text(
+              l10n.datePickerTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: Text(l10n.datePickerToday),
+            onTap: () => Navigator.of(context).pop(today),
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: Text(l10n.datePickerTomorrow),
+            onTap: () => Navigator.of(context).pop(tomorrow),
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: Text(l10n.datePickerThisWeek),
+            onTap: () => Navigator.of(context).pop(thisWeek),
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: Text(l10n.datePickerThisMonth),
+            onTap: () => Navigator.of(context).pop(thisMonth),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.calendar_month),
+            title: Text(l10n.datePickerCustom),
+            onTap: () => Navigator.of(context).pop(null),
+          ),
+        ],
       ),
     );
   }
