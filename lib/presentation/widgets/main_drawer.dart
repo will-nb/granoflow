@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import '../navigation/sidebar_destinations.dart';
+import 'app_logo.dart';
 
 /// 主抽屉组件
 /// 显示页面导航选项，由主菜单按钮控制
@@ -45,28 +46,39 @@ class MainDrawer extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 文字内容
+                // 内容区域
                 Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // GranoFlow 标题
-                      Text(
-                        l10n.homeGreeting,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                          shadows: [
-                            Shadow(
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
-                              color: Colors.black.withValues(alpha: 0.5),
+                      // Logo 和标题
+                      Row(
+                        children: [
+                          const AppLogoIcon(
+                            size: 32.0,
+                            variant: AppLogoVariant.onPrimary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              l10n.homeGreeting,
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                shadows: [
+                                  Shadow(
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 4,
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       // Tagline

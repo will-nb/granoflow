@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'navigation_destinations.dart';
 import '../widgets/create_task_dialog.dart';
+import '../widgets/app_logo.dart';
 
 /// 抽屉菜单显示模式
 enum DrawerDisplayMode {
@@ -65,13 +66,10 @@ class DrawerMenu extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 child: const Center(
-                  child: Text(
-                    'GranoFlow',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: AppLogo(
+                    size: 40.0,
+                    showText: true,
+                    variant: AppLogoVariant.onPrimary,
                   ),
                 ),
               ),
