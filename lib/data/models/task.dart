@@ -11,7 +11,7 @@ enum TaskStatus {
   pseudoDeleted,
 }
 
-enum TaskSection { today, tomorrow, later, completed, archived, trash }
+enum TaskSection { overdue, today, tomorrow, thisWeek, thisMonth, later, completed, archived, trash }
 
 @immutable
 class Task {

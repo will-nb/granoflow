@@ -41,7 +41,6 @@ class SeedImportService {
     debugPrint('SeedImportService: Loading payload for locale=$localeCode');
     final payload = await loadSeedPayload(localeCode);
     debugPrint('SeedImportService: Payload loaded, version=${payload.version}');
-    debugPrint('SeedImportService: Tags count=${payload.tags.length}');
     debugPrint('SeedImportService: Tasks count=${payload.tasks.length}');
     debugPrint('SeedImportService: Templates count=${payload.templates.length}');
     debugPrint('SeedImportService: Inbox items count=${payload.inboxItems.length}');

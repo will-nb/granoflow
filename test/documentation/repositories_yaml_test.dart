@@ -132,12 +132,13 @@ class RepositoriesYAMLTest {
     
     // 验证业务规则
     final businessRules = yamlToList(taskRepositoryYaml['business_rules']);
-    expect(businessRules.length, equals(5), reason: 'TaskRepository should have 5 business rules');
+    expect(businessRules.length, equals(6), reason: 'TaskRepository should have 6 business rules');
     expect(businessRules.any((rule) => rule['name'] == 'task_id_generation'), isTrue);
     expect(businessRules.any((rule) => rule['name'] == 'task_id_parsing'), isTrue);
     expect(businessRules.any((rule) => rule['name'] == 'leaf_task_filtering'), isTrue);
     expect(businessRules.any((rule) => rule['name'] == 'task_hierarchy'), isTrue);
     expect(businessRules.any((rule) => rule['name'] == 'task_status_transition'), isTrue);
+    expect(businessRules.any((rule) => rule['name'] == 'task_section_grouping'), isTrue);
     
     // 验证测试策略
     final testingStrategy = yamlToMap(taskRepositoryYaml['testing_strategy']);

@@ -1,41 +1,35 @@
 meta:
-  name: "ChipToggleGroup"
+  name: "ModernTagGroup"
   type: "widget"
-  file_path: "lib/presentation/widgets/chip_toggle_group.dart"
-  description: "芯片切换组组件，提供多选或单选的功能"
+  file_path: "lib/presentation/widgets/modern_tag_group.dart"
+  description: "现代化标签组组件，管理多个 ModernTag 的布局和选择逻辑"
   version: "1.0"
-  created_date: "251025"
+  created_date: "251026"
   last_updated: "251026"
-  status: "deprecated"
-  deprecation_date: "251026"
-  replacement: "ModernTagGroup"
-  deprecation_reason: "已被 ModernTagGroup 替代，提供更现代的 UI 设计和更好的用户体验"
 
 widget_definition:
-  name: "ChipToggleGroup"
+  name: "ModernTagGroup"
   layer: "presentation"
   pattern: "stateless"
   category: "ui_component"
   reusable: true
-  deprecated: true
-  migration_guide: "请使用 ModernTagGroup 替代，它提供更现代的 UI 设计和更好的用户体验"
   
 widget_types:
   - name: "StatelessWidget"
     description: "无状态 Widget，用于静态 UI 组件"
-    usage: "静态展示、简单交互"
+    usage: "标签组展示、多选或单选功能"
     
 widget_properties:
-  - name: "options"
-    type: "List<ChipToggleOption>"
+  - name: "tags"
+    type: "List<TagData>"
     required: true
-    description: "可选项列表"
+    description: "标签数据列表"
     validation: "不能为空"
     
-  - name: "selectedValues"
+  - name: "selectedTags"
     type: "Set<String>"
     required: true
-    description: "已选中的值集合"
+    description: "已选中的标签 slug 集合"
     validation: "不能为 null"
     
   - name: "onSelectionChanged"
@@ -43,6 +37,20 @@ widget_properties:
     required: true
     description: "选择变化回调"
     parameters: "Set<String> 新的选中值"
+    
+  - name: "variant"
+    type: "TagVariant"
+    required: false
+    default_value: "TagVariant.pill"
+    description: "标签变体（pill/dot/minimal）"
+    validation: "枚举值"
+    
+  - name: "size"
+    type: "TagSize"
+    required: false
+    default_value: "TagSize.medium"
+    description: "标签尺寸（small/medium/large）"
+    validation: "枚举值"
     
   - name: "multiSelect"
     type: "bool"
@@ -65,6 +73,20 @@ widget_properties:
     description: "垂直间距"
     validation: "非负数"
     
+  - name: "showIcon"
+    type: "bool"
+    required: false
+    default_value: "true"
+    description: "是否显示图标"
+    validation: "布尔值"
+    
+  - name: "animationDuration"
+    type: "Duration"
+    required: false
+    default_value: "Duration(milliseconds: 200)"
+    description: "动画持续时间"
+    validation: "非负数"
+    
 widget_methods:
   - name: "build"
     return_type: "Widget"
@@ -77,25 +99,32 @@ widget_methods:
     visibility: "public"
     async: false
     
-  - name: "_handleTap"
+  - name: "_handleTagTap"
     return_type: "void"
     parameters:
-      - name: "value"
+      - name: "tagSlug"
         type: "String"
         required: true
-        description: "选项值"
-      - name: "selected"
-        type: "bool"
+        description: "标签 slug"
+    description: "处理标签点击事件"
+    visibility: "private"
+    async: false
+    
+  - name: "_updateSelection"
+    return_type: "void"
+    parameters:
+      - name: "newSelection"
+        type: "Set<String>"
         required: true
-        description: "是否已选中"
-    description: "处理点击事件"
+        description: "新的选择集合"
+    description: "更新选择状态"
     visibility: "private"
     async: false
     
 widget_state:
-  - name: "selectedValues"
+  - name: "selectedTags"
     type: "Set<String>"
-    description: "当前选中的值集合"
+    description: "当前选中的标签 slug 集合"
     initial_value: "空集合"
     validation: "不能为 null"
     
@@ -113,13 +142,13 @@ widget_lifecycle:
 widget_events:
   - name: "onSelectionChanged"
     description: "选择变化事件"
-    trigger: "用户点击芯片"
-    handler: "_handleTap"
-    parameters: "String value, bool selected"
+    trigger: "用户点击标签"
+    handler: "_handleTagTap"
+    parameters: "String tagSlug"
     
 widget_styling:
-  - name: "chipStyle"
-    description: "芯片样式"
+  - name: "groupStyle"
+    description: "标签组样式"
     properties:
       - name: "spacing"
         type: "double"
@@ -129,7 +158,7 @@ widget_styling:
         type: "double"
         value: "8"
         description: "垂直间距"
-    responsive: false
+    responsive: true
     theme_aware: true
     
 widget_responsive:
@@ -137,42 +166,42 @@ widget_responsive:
     description: "移动端响应式"
     properties:
       - name: "spacing"
-        value: "8"
+        value: "6"
         description: "移动端间距"
       - name: "runSpacing"
-        value: "8"
+        value: "6"
         description: "移动端行间距"
     layout: "Wrap 布局"
-    behavior: "自动换行"
+    behavior: "自动换行，触摸友好"
     
   - breakpoint: "tablet"
     description: "平板端响应式"
     properties:
       - name: "spacing"
-        value: "12"
+        value: "8"
         description: "平板端间距"
       - name: "runSpacing"
-        value: "12"
+        value: "8"
         description: "平板端行间距"
     layout: "Wrap 布局"
-    behavior: "自动换行"
+    behavior: "自动换行，触摸友好"
     
   - breakpoint: "desktop"
     description: "桌面端响应式"
     properties:
       - name: "spacing"
-        value: "16"
+        value: "12"
         description: "桌面端间距"
       - name: "runSpacing"
-        value: "16"
+        value: "12"
         description: "桌面端行间距"
     layout: "Wrap 布局"
-    behavior: "自动换行"
+    behavior: "自动换行，鼠标悬停"
     
 widget_accessibility:
   - name: "semanticLabel"
     description: "语义标签"
-    implementation: "为每个芯片提供语义标签"
+    implementation: "为标签组提供语义标签"
     testing: "无障碍测试"
     compliance: "WCAG 2.1"
     
@@ -196,34 +225,42 @@ widget_performance:
     rendering: "选择渲染优化"
     
 widget_testing:
-  - name: "testChipToggleGroup"
-    description: "测试芯片切换组"
+  - name: "testModernTagGroup"
+    description: "测试现代化标签组"
     type: "widget"
     coverage: "100%"
-    scenarios: "单选、多选、间距、响应式"
+    scenarios: "单选、多选、间距、响应式、不同变体"
     
 widget_dependencies:
-  - name: "ChipToggleOption"
+  - name: "TagData"
     type: "数据模型"
-    description: "芯片选项数据模型"
+    description: "标签数据模型"
+    required: true
+    version: "1.0"
+    
+  - name: "ModernTag"
+    type: "UI 组件"
+    description: "现代化标签组件"
     required: true
     version: "1.0"
     
 widget_imports:
   - "package:flutter/material.dart"
+  - "modern_tag.dart"
+  - "tag_data.dart"
   
 widget_categories:
   ui_components:
-    - name: "ChipToggleGroup"
-      description: "芯片切换组组件"
+    - name: "ModernTagGroup"
+      description: "现代化标签组组件"
       type: "StatelessWidget"
       category: "ui_component"
       
 widget_interactions:
-  - name: "chipTap"
-    description: "芯片点击交互"
+  - name: "tagTap"
+    description: "标签点击交互"
     type: "tap"
-    handler: "_handleTap"
+    handler: "_handleTagTap"
     feedback: "视觉反馈"
     accessibility: "支持无障碍"
     
@@ -235,17 +272,24 @@ widget_animations:
     curve: "easeInOut"
     trigger: "选择变化"
     
+  - name: "hoverAnimation"
+    description: "悬停动画"
+    type: "scale"
+    duration: "150ms"
+    curve: "easeInOut"
+    trigger: "鼠标悬停"
+    
 widget_validation:
-  - field: "options"
+  - field: "tags"
     rule: "not_empty"
-    description: "选项列表不能为空"
-    message: "选项列表不能为空"
+    description: "标签列表不能为空"
+    message: "标签列表不能为空"
     required: true
     
-  - field: "selectedValues"
+  - field: "selectedTags"
     rule: "not_null"
-    description: "选中值不能为 null"
-    message: "选中值不能为 null"
+    description: "选中标签不能为 null"
+    message: "选中标签不能为 null"
     required: true
     
   - field: "spacing"
@@ -268,15 +312,15 @@ widget_error_handling:
     user_feedback: "显示错误消息"
     
 widget_internationalization:
-  - name: "chipToggleGroup"
-    description: "芯片切换组国际化"
+  - name: "modernTagGroup"
+    description: "现代化标签组国际化"
     languages: "zh_CN, en_US"
     fallback: "en_US"
     context: "UI 组件"
     
 widget_theme_integration:
-  - name: "chipTheme"
-    description: "芯片主题"
+  - name: "tagGroupTheme"
+    description: "标签组主题"
     type: "color"
     default_value: "主题色"
     theme_aware: true
@@ -362,9 +406,9 @@ widget_testing_strategy:
       description: "测试 Widget 国际化"
       
   mock_strategy:
-    - name: "MockChipToggleGroup"
+    - name: "MockModernTagGroup"
       description: "Mock 实现用于测试"
-    - name: "FakeChipToggleGroup"
+    - name: "FakeModernTagGroup"
       description: "Fake 实现用于测试"
-    - name: "TestChipToggleGroup"
+    - name: "TestModernTagGroup"
       description: "测试专用 Widget"

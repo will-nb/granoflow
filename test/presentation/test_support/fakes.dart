@@ -236,6 +236,10 @@ class StubTaskRepository implements TaskRepository {
     return _tasks.values
         .where((task) {
           switch (section) {
+            case TaskSection.overdue:
+              return task.status == TaskStatus.pending &&
+                  task.dueAt != null &&
+                  task.dueAt!.isBefore(todayStart);
             case TaskSection.today:
               return task.status == TaskStatus.pending &&
                   task.dueAt != null &&
@@ -247,6 +251,15 @@ class StubTaskRepository implements TaskRepository {
                   task.dueAt != null &&
                   !task.dueAt!.isBefore(tomorrowStart) &&
                   task.dueAt!.isBefore(dayAfter);
+            case TaskSection.thisWeek:
+              final dayAfterTomorrow = tomorrowStart.add(const Duration(days: 2));
+              return task.status == TaskStatus.pending &&
+                  task.dueAt != null &&
+                  !task.dueAt!.isBefore(dayAfterTomorrow);
+            case TaskSection.thisMonth:
+              return task.status == TaskStatus.pending &&
+                  task.dueAt != null &&
+                  task.dueAt!.isAfter(laterStart);
             case TaskSection.later:
               return task.status == TaskStatus.pending &&
                   task.dueAt != null &&
@@ -287,8 +300,11 @@ class StubTaskRepository implements TaskRepository {
 
   TaskStatus _sectionToStatus(TaskSection section) {
     switch (section) {
+      case TaskSection.overdue:
       case TaskSection.today:
       case TaskSection.tomorrow:
+      case TaskSection.thisWeek:
+      case TaskSection.thisMonth:
       case TaskSection.later:
         return TaskStatus.pending;
       case TaskSection.completed:

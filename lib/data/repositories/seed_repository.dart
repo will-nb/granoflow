@@ -4,32 +4,21 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:isar/isar.dart';
 
-import '../models/tag.dart';
 import '../models/task.dart';
 import '../isar/seed_import_log_entity.dart';
 
 class SeedPayload {
   const SeedPayload({
     required this.version,
-    required this.tags,
     required this.tasks,
     required this.templates,
     required this.inboxItems,
   });
 
   final String version;
-  final List<SeedTag> tags;
   final List<SeedTask> tasks;
   final List<SeedTemplate> templates;
   final List<SeedInboxItem> inboxItems;
-}
-
-class SeedTag {
-  const SeedTag({required this.slug, required this.kind, required this.labels});
-
-  final String slug;
-  final TagKind kind;
-  final Map<String, String> labels;
 }
 
 class SeedTask {
@@ -152,7 +141,6 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
 
   return SeedPayload(
     version: versionJson['version'] as String,
-    tags: const [], // 标签现在通过配置文件初始化，不再从种子数据加载
     tasks: (tasksJson['tasks'] as List<dynamic>)
         .map((raw) => raw as Map<String, dynamic>)
         .map((raw) {

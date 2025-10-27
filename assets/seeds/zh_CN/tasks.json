@@ -5,35 +5,35 @@
       "title": "归档这个任务",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_archive_to_trash",
       "title": "把这个任务归档，然后丢进垃圾箱",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_trash_to_delete",
       "title": "把这个任务丢进垃圾箱，然后删除",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_activate_from_inbox",
       "title": "从收集箱激活一条任务",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_timer_and_complete",
       "title": "为这个任务计时，然后选择完成",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     }
   ]
 }

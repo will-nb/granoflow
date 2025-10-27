@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
-import '../../core/services/task_service.dart';
-import '../../core/theme/app_color_tokens.dart';
 import '../../data/models/task.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import '../widgets/task_expanded_panel.dart';
+import '../widgets/dismissible_task_tile.dart';
+import '../widgets/swipe_configs.dart';
+import '../widgets/swipe_action_handler.dart';
+import '../widgets/swipe_action_type.dart';
 
 class TaskListPage extends ConsumerStatefulWidget {
   const TaskListPage({super.key});
@@ -27,9 +29,14 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     final l10n = AppLocalizations.of(context);
     final editActions = ref.watch(taskEditActionsNotifierProvider);
     final bool showLinearProgress = _editMode && editActions.isLoading;
+    
+    // 动态获取有任务的分组
     final sectionMetas = <_SectionMeta>[
+      _SectionMeta(section: TaskSection.overdue, title: l10n.plannerSectionOverdueTitle),
       _SectionMeta(section: TaskSection.today, title: l10n.plannerSectionTodayTitle),
       _SectionMeta(section: TaskSection.tomorrow, title: l10n.plannerSectionTomorrowTitle),
+      _SectionMeta(section: TaskSection.thisWeek, title: l10n.plannerSectionThisWeekTitle),
+      _SectionMeta(section: TaskSection.thisMonth, title: l10n.plannerSectionThisMonthTitle),
       _SectionMeta(section: TaskSection.later, title: l10n.plannerSectionLaterTitle),
     ];
 
@@ -75,15 +82,27 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             children: sectionMetas
-                .map(
-                  (meta) => TaskSectionPanel(
-                    key: ValueKey('${meta.section}-${_editMode.toString()}'),
-                    section: meta.section,
-                    title: meta.title,
-                    editMode: _editMode,
-                    onQuickAdd: () => _handleQuickAdd(context, meta.section),
-                  ),
-                )
+                .map((meta) => Consumer(
+                  builder: (context, ref, child) {
+                    // 检查该分组是否有任务
+                    final tasksAsync = ref.watch(taskSectionsProvider(meta.section));
+                    return tasksAsync.when(
+                      data: (tasks) {
+                        // 如果没有任务，不显示该分组
+                        if (tasks.isEmpty) return const SizedBox.shrink();
+                        return TaskSectionPanel(
+                          key: ValueKey('${meta.section}-${_editMode.toString()}'),
+                          section: meta.section,
+                          title: meta.title,
+                          editMode: _editMode,
+                          onQuickAdd: () => _handleQuickAdd(context, meta.section),
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                ))
                 .toList(growable: false),
           ),
         ),
@@ -662,34 +681,16 @@ class _TaskLeafTileState extends ConsumerState<_TaskLeafTile> {
     final expandedId = ref.watch(taskListExpandedTaskIdProvider);
     final isExpanded = expandedId == widget.task.id;
     final indentation = widget.depth * 16.0;
-    final tokens = context.colorTokens;
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: EdgeInsets.only(left: indentation),
-      child: Dismissible(
-        key: ValueKey('leaf-${widget.task.id}'),
-        background: Container(
-          alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          color: tokens.success,
-          child: Icon(Icons.check_circle_outline, color: tokens.onSuccess),
-        ),
-        secondaryBackground: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          color: tokens.warning,
-          child: Icon(Icons.archive_outlined, color: tokens.onWarning),
-        ),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd) {
-            await _completeTask(context, ref, widget.task.id);
-            return true;
-          }
-          await _archiveTask(context, ref, widget.task.id);
-          return true;
-        },
+      child: DismissibleTaskTile(
+        task: widget.task,
+        config: SwipeConfigs.tasksConfig,
+        onLeftAction: (task) => SwipeActionHandler.handleAction(context, ref, SwipeActionType.postpone, task),
+        onRightAction: (task) => SwipeActionHandler.handleAction(context, ref, SwipeActionType.archive, task),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -742,326 +743,41 @@ class _TaskLeafTileState extends ConsumerState<_TaskLeafTile> {
                     isExpanded ? null : widget.task.id;
               },
             ),
-            if (isExpanded) _ExpandedTaskControls(task: widget.task),
+            if (isExpanded) 
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    TaskExpandedPanel(
+                      task: widget.task,
+                      localeName: 'en', // TODO: 获取正确的locale
+                      showQuickPlan: false,
+                      showDateSection: true,
+                      showSwipeHint: true,
+                      leftActionKey: 'taskArchiveAction',
+                      rightActionKey: 'taskPostponeAction',
+                      onDateChanged: (date) {
+                        if (date != null) {
+                          _updateDueDateForTask(context, ref, widget.task.id, date);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-}
 
-class _ExpandedTaskControls extends ConsumerWidget {
-  const _ExpandedTaskControls({required this.task});
-
-  final Task task;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final taskService = ref.read(taskServiceProvider);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Divider(),
-          const SizedBox(height: 8),
-          // 标签编辑
-          _TagsSection(task: task, taskService: taskService),
-          const SizedBox(height: 16),
-          // 日期设置
-          _DateSection(task: task, taskService: taskService, colorScheme: colorScheme),
-        ],
-      ),
-    );
-  }
-}
-
-class _TagsSection extends ConsumerWidget {
-  const _TagsSection({required this.task, required this.taskService});
-
-  final Task task;
-  final TaskService taskService;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
-    final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
-    final contextTagsAsync = ref.watch(contextTagOptionsProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 紧急程度标签
-        urgencyTagsAsync.when(
-          data: (urgencyTags) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: urgencyTags.map((tag) {
-              final isSelected = task.tags.contains(tag.slug);
-              return FilterChip(
-                label: Text(_getTagLabel(context, tag.slug)),
-                selected: isSelected,
-                onSelected: (selected) async {
-                  await _toggleTag(context, ref, tag.slug, selected);
-                },
-              );
-            }).toList(),
-          ),
-          loading: () => const CircularProgressIndicator(),
-          error: (_, __) => const SizedBox.shrink(),
-        ),
-        const SizedBox(height: 8),
-        // 重要程度标签
-        importanceTagsAsync.when(
-          data: (importanceTags) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: importanceTags.map((tag) {
-              final isSelected = task.tags.contains(tag.slug);
-              return FilterChip(
-                label: Text(_getTagLabel(context, tag.slug)),
-                selected: isSelected,
-                onSelected: (selected) async {
-                  await _toggleTag(context, ref, tag.slug, selected);
-                },
-              );
-            }).toList(),
-          ),
-          loading: () => const CircularProgressIndicator(),
-          error: (_, __) => const SizedBox.shrink(),
-        ),
-        const SizedBox(height: 8),
-        // 情境标签
-        contextTagsAsync.when(
-          data: (contextTags) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: contextTags.map((tag) {
-              final isSelected = task.tags.contains(tag.slug);
-              return FilterChip(
-                label: Text(_getTagLabel(context, tag.slug)),
-                selected: isSelected,
-                onSelected: (selected) async {
-                  await _toggleTag(context, ref, tag.slug, selected);
-                },
-              );
-            }).toList(),
-          ),
-          loading: () => const CircularProgressIndicator(),
-          error: (_, __) => const SizedBox.shrink(),
-        ),
-      ],
-    );
-  }
-
-  String _getTagLabel(BuildContext context, String slug) {
-    final l10n = AppLocalizations.of(context);
+  Future<void> _updateDueDateForTask(BuildContext context, WidgetRef ref, int taskId, DateTime dueDate) async {
     try {
-      return l10n.localeName == 'en'
-          ? _getEnglishTagLabel(slug)
-          : l10n.localeName == 'zh_CN'
-              ? _getSimplifiedChineseTagLabel(slug)
-              : _getTraditionalChineseTagLabel(slug);
-    } catch (_) {
-      return slug;
-    }
-  }
-
-  String _getEnglishTagLabel(String slug) {
-    const labels = {
-      'urgent': 'Urgent',
-      'not_urgent': 'Not Urgent',
-      'important': 'Important',
-      'not_important': 'Not Important',
-      'home': 'Home',
-      'work': 'Work',
-      'errands': 'Errands',
-      'calls': 'Calls',
-      'online': 'Online',
-      'local': 'Local',
-    };
-    return labels[slug] ?? slug;
-  }
-
-  String _getSimplifiedChineseTagLabel(String slug) {
-    const labels = {
-      'urgent': '紧急',
-      'not_urgent': '不紧急',
-      'important': '重要',
-      'not_important': '不重要',
-      'home': '家',
-      'work': '工作',
-      'errands': '差事',
-      'calls': '电话',
-      'online': '在线',
-      'local': '本地',
-    };
-    return labels[slug] ?? slug;
-  }
-
-  String _getTraditionalChineseTagLabel(String slug) {
-    const labels = {
-      'urgent': '緊急',
-      'not_urgent': '不緊急',
-      'important': '重要',
-      'not_important': '不重要',
-      'home': '家',
-      'work': '工作',
-      'errands': '差事',
-      'calls': '電話',
-      'online': '在線',
-      'local': '本地',
-    };
-    return labels[slug] ?? slug;
-  }
-
-  Future<void> _toggleTag(
-    BuildContext context,
-    WidgetRef ref,
-    String tagSlug,
-    bool selected,
-  ) async {
-    final taskService = ref.read(taskServiceProvider);
-    final currentTags = Set<String>.from(task.tags);
-
-    if (selected) {
-      currentTags.add(tagSlug);
-    } else {
-      currentTags.remove(tagSlug);
-    }
-
-    try {
-      await taskService.updateDetails(
-        taskId: task.id,
-        payload: TaskUpdate(tags: currentTags.toList()),
-      );
-    } catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update tags: $error')),
-        );
-      }
-    }
-  }
-}
-
-class _DateSection extends StatelessWidget {
-  const _DateSection({
-    required this.task,
-    required this.taskService,
-    required this.colorScheme,
-  });
-
-  final Task task;
-  final TaskService taskService;
-  final ColorScheme colorScheme;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    
-    return OutlinedButton.icon(
-      onPressed: () => _selectDate(context),
-      icon: const Icon(Icons.calendar_today),
-      label: Text(
-        task.dueAt == null
-            ? l10n.inboxPlanButtonLabel
-            : DateFormat.yMMMd().add_jm().format(task.dueAt!),
-      ),
-      style: OutlinedButton.styleFrom(
-        alignment: Alignment.centerLeft,
-      ),
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // 显示快速选择对话框
-    final quickSelection = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.today),
-            title: Text(l10n.datePickerToday),
-            onTap: () => Navigator.pop(context, 'today'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_today),
-            title: Text(l10n.datePickerTomorrow),
-            onTap: () => Navigator.pop(context, 'tomorrow'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_view_week),
-            title: Text(l10n.datePickerThisWeek),
-            onTap: () => Navigator.pop(context, 'thisWeek'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_month),
-            title: Text(l10n.datePickerThisMonth),
-            onTap: () => Navigator.pop(context, 'thisMonth'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.event),
-            title: Text(l10n.datePickerCustom),
-            onTap: () => Navigator.pop(context, 'custom'),
-          ),
-        ],
-      ),
-    );
-
-    if (quickSelection == null || !context.mounted) return;
-
-    DateTime? selectedDate;
-
-    switch (quickSelection) {
-      case 'today':
-        selectedDate = today;
-        break;
-      case 'tomorrow':
-        selectedDate = today.add(const Duration(days: 1));
-        break;
-      case 'thisWeek':
-        selectedDate = _getThisWeekSaturday(today);
-        break;
-      case 'thisMonth':
-        selectedDate = _getEndOfMonth(today);
-        break;
-      case 'custom':
-        selectedDate = await showDatePicker(
-          context: context,
-          initialDate: task.dueAt ?? today,
-          firstDate: today,
-          lastDate: today.add(const Duration(days: 365 * 2)),
-        );
-        break;
-    }
-
-    if (selectedDate != null && context.mounted) {
-      await _updateDueDate(context, selectedDate);
-    }
-  }
-
-  DateTime _getThisWeekSaturday(DateTime today) {
-    final daysUntilSaturday = (DateTime.saturday - today.weekday + 7) % 7;
-    return today.add(Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday));
-  }
-
-  DateTime _getEndOfMonth(DateTime today) {
-    final nextMonth = DateTime(today.year, today.month + 1, 1);
-    return nextMonth.subtract(const Duration(days: 1));
-  }
-
-  Future<void> _updateDueDate(BuildContext context, DateTime dueDate) async {
-    try {
-      await taskService.updateDetails(
-        taskId: task.id,
+      await ref.read(taskServiceProvider).updateDetails(
+        taskId: taskId,
         payload: TaskUpdate(dueAt: dueDate),
       );
 
@@ -1287,10 +1003,16 @@ List<Task> _collectRoots(List<Task> tasks) {
 
 String _labelForSection(AppLocalizations l10n, TaskSection section) {
   switch (section) {
+    case TaskSection.overdue:
+      return l10n.plannerSectionOverdueTitle;
     case TaskSection.today:
       return l10n.plannerSectionTodayTitle;
     case TaskSection.tomorrow:
       return l10n.plannerSectionTomorrowTitle;
+    case TaskSection.thisWeek:
+      return l10n.plannerSectionThisWeekTitle;
+    case TaskSection.thisMonth:
+      return l10n.plannerSectionThisMonthTitle;
     case TaskSection.later:
       return l10n.plannerSectionLaterTitle;
     case TaskSection.completed:
@@ -1306,12 +1028,18 @@ DateTime _defaultDueDate(TaskSection section) {
   final now = DateTime.now();
   final base = DateTime(now.year, now.month, now.day);
   switch (section) {
+    case TaskSection.overdue:
+      return base.subtract(const Duration(days: 1));
     case TaskSection.today:
       return base;
     case TaskSection.tomorrow:
       return base.add(const Duration(days: 1));
-    case TaskSection.later:
+    case TaskSection.thisWeek:
       return base.add(const Duration(days: 2));
+    case TaskSection.thisMonth:
+      return base.add(const Duration(days: 7));
+    case TaskSection.later:
+      return base.add(const Duration(days: 30));
     case TaskSection.completed:
     case TaskSection.archived:
     case TaskSection.trash:
@@ -1351,25 +1079,6 @@ Future<void> _startFocus(BuildContext context, WidgetRef ref, int taskId) async 
       return;
     }
     messenger.showSnackBar(SnackBar(content: Text(l10n.taskListFocusError)));
-  }
-}
-
-Future<void> _completeTask(BuildContext context, WidgetRef ref, int taskId) async {
-  final taskService = ref.read(taskServiceProvider);
-  final messenger = ScaffoldMessenger.of(context);
-  final l10n = AppLocalizations.of(context);
-  try {
-    await taskService.markCompleted(taskId: taskId);
-    if (!context.mounted) {
-      return;
-    }
-    messenger.showSnackBar(SnackBar(content: Text(l10n.taskListTaskCompletedToast)));
-  } catch (error, stackTrace) {
-    debugPrint('Failed to complete task: $error\n$stackTrace');
-    if (!context.mounted) {
-      return;
-    }
-    messenger.showSnackBar(SnackBar(content: Text(l10n.taskListTaskCompletedError)));
   }
 }
 

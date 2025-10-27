@@ -252,7 +252,7 @@ implementation_details:
         - name: "section"
           type: "TaskSection"
           required: true
-      description: "获取分区任务"
+      description: "获取分区任务，支持新的5个时间分组：已逾期、今天、明天、本周、当月，使用精确的日期范围筛选避免重叠"
       visibility: "private"
       
     - name: "_buildTree"
@@ -277,6 +277,19 @@ implementation_details:
         - "不限制子任务的任何条件（status、dueAt等），避免跨section子任务导致的bug"
         - "利用parentId索引优化查询性能"
         - "返回的任务列表中不包含任何父任务"
+      
+    - name: "_getNextMonday"
+      return_type: "DateTime"
+      parameters:
+        - name: "today"
+          type: "DateTime"
+          required: true
+      description: "计算下周一日期，用于本周分组的结束边界"
+      visibility: "private"
+      notes:
+        - "如果今天是周一，返回下周一"
+        - "如果今天是其他日期，返回本周一"
+        - "用于确定本周分组的结束时间"
       
     - name: "_toDomain"
       return_type: "Task"
@@ -450,6 +463,19 @@ business_rules:
       - "不对子任务施加任何过滤条件（status、dueAt等）"
       - "利用parentId索引优化查询性能"
       - "确保跨section的子任务也能正确识别父任务"
+  
+  - name: "task_section_grouping"
+    description: "任务分组规则"
+    implementation: "将任务按时间分组为6个分区：已逾期、今天、明天、本周、当月、以后，使用精确的日期范围避免重叠"
+    notes:
+      - "已逾期：[~, <今天00:00:00)"
+      - "今天：[>=今天00:00:00, <明天00:00:00)"
+      - "明天：[>=明天00:00:00, <后天00:00:00)"
+      - "本周：[>=后天00:00:00, <下周一00:00:00)"
+      - "当月：[>=下周一00:00:00, <下月1日00:00:00)"
+      - "以后：[>=下月1日00:00:00, ~)"
+      - "使用includeUpper: false确保范围不重叠"
+      - "每个任务只出现在一个分组中"
     
 error_handling:
   - exception: "IsarException"

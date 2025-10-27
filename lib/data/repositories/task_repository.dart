@@ -351,28 +351,53 @@ class IsarTaskRepository implements TaskRepository {
     final now = _clock();
     final todayStart = DateTime(now.year, now.month, now.day);
     final tomorrowStart = todayStart.add(const Duration(days: 1));
-    final laterStart = todayStart.add(const Duration(days: 2));
+    final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
+    final nextMondayStart = _getNextMonday(todayStart);
+    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
 
     QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder;
     switch (section) {
-      case TaskSection.today:
+      case TaskSection.overdue:
+        // 已逾期：[~, <今天00:00:00)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(todayStart, tomorrowStart, includeUpper: true);
+            .dueAtLessThan(todayStart, include: false);
+        break;
+      case TaskSection.today:
+        // 今天：[>=今天00:00:00, <明天00:00:00)
+        builder = _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.pending)
+            .dueAtBetween(todayStart, tomorrowStart, includeUpper: false);
         break;
       case TaskSection.tomorrow:
-        final dayAfter = tomorrowStart.add(const Duration(days: 1));
+        // 明天：[>=明天00:00:00, <后天00:00:00)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(tomorrowStart, dayAfter, includeUpper: true);
+            .dueAtBetween(tomorrowStart, dayAfterTomorrowStart, includeUpper: false);
+        break;
+      case TaskSection.thisWeek:
+        // 本周：[>=后天00:00:00, <下周一00:00:00)
+        builder = _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.pending)
+            .dueAtBetween(dayAfterTomorrowStart, nextMondayStart, includeUpper: false);
+        break;
+      case TaskSection.thisMonth:
+        // 当月：[>=下周一00:00:00, <下月1日00:00:00)
+        builder = _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.pending)
+            .dueAtBetween(nextMondayStart, nextMonthStart, includeUpper: false);
         break;
       case TaskSection.later:
+        // 以后：[>=下月1日00:00:00, ~)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtGreaterThan(laterStart, include: false);
+            .dueAtGreaterThan(nextMonthStart, include: false);
         break;
       case TaskSection.completed:
         builder = _isar.taskEntitys.filter().statusEqualTo(
@@ -500,8 +525,11 @@ class IsarTaskRepository implements TaskRepository {
 
   TaskStatus _sectionToStatus(TaskSection section) {
     switch (section) {
+      case TaskSection.overdue:
       case TaskSection.today:
       case TaskSection.tomorrow:
+      case TaskSection.thisWeek:
+      case TaskSection.thisMonth:
       case TaskSection.later:
         return TaskStatus.pending;
       case TaskSection.completed:
@@ -585,5 +613,11 @@ class IsarTaskRepository implements TaskRepository {
       debugPrint('Error generating taskId: $e');
       return '$dateString-0001';
     }
+  }
+
+  // 辅助方法：获取下周一
+  DateTime _getNextMonday(DateTime today) {
+    final daysUntilNextMonday = (DateTime.monday - today.weekday + 7) % 7;
+    return today.add(Duration(days: daysUntilNextMonday == 0 ? 7 : daysUntilNextMonday));
   }
 }

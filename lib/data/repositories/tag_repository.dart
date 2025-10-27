@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
-import '../../core/services/tag_config_service.dart';
+import '../../core/config/app_constants.dart';
 import '../isar/tag_entity.dart';
 import '../models/tag.dart';
 
@@ -26,8 +26,8 @@ class IsarTagRepository implements TagRepository {
   Future<void> initializeTags() async {
     debugPrint('TagRepository.initializeTags: Loading tags from config...');
     
-    final configService = TagConfigService.instance;
-    final tagConfigs = await configService.getTags();
+    // 直接从 AppConstants 读取（同步、零开销）
+    final tagConfigs = AppConstants.tags;
     
     debugPrint('TagRepository.initializeTags: Found ${tagConfigs.length} tag configs');
     for (final config in tagConfigs) {

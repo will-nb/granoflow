@@ -1,0 +1,267 @@
+meta:
+  name: "任务列表分组优化 - Preview"
+  version: "1.0"
+  created_date: "251026"
+  last_updated: "251026"
+  author: "AI Assistant"
+  status: "planning"
+  type: "preview"
+
+overview:
+  title: "任务列表分组优化 - 重新设计时间分组逻辑"
+  description: >
+    重新设计任务列表的时间分组逻辑，从原来的[今天][明天][以后]改为[已逾期][今天][明天][本周][当月]，
+    修正日期筛选的临界点问题，实现空分组自动隐藏，提升用户的时间管理体验。
+
+problem_statement:
+  current_issues:
+    - name: "分组粒度不够细"
+      description: "当前只有[今天][明天][以后]三个分组，无法满足精细的时间管理需求"
+      impact: "用户难以快速定位特定时间范围的任务"
+    
+    - name: "日期筛选临界点错误"
+      description: "当前筛选逻辑存在严重的临界点问题，导致任务分组错误"
+      technical_details:
+        - "dueAt字段存储完整时间戳（包含时分秒）"
+        - "筛选使用includeUpper: true导致范围重叠"
+        - "今天分组只能匹配00:00:00的任务，其他时间点的任务被遗漏"
+      impact: "任务可能出现在错误的分组中或完全丢失"
+    
+    - name: "空分组仍然显示"
+      description: "即使某个分组没有任务，仍然显示空的分组标题"
+      impact: "界面冗余，影响用户体验"
+
+requirements:
+  functional:
+    - name: "重新设计分组结构"
+      description: "将分组从[今天][明天][以后]改为[已逾期][今天][明天][本周][当月]"
+      priority: "high"
+      
+    - name: "修正日期筛选逻辑"
+      description: "确保每个任务只出现在一个分组中，避免重叠和遗漏"
+      priority: "critical"
+      technical_requirements:
+        - "已逾期：[~, <今天00:00:00)"
+        - "今天：[>=今天00:00:00, <明天00:00:00)"
+        - "明天：[>=明天00:00:00, <后天00:00:00)"
+        - "本周：[>=后天00:00:00, <下周一00:00:00)"
+        - "当月：[>=下周一00:00:00, <下月1日00:00:00)"
+    
+    - name: "实现空分组隐藏"
+      description: "如果某个分组没有任务，则不显示该分组"
+      priority: "medium"
+    
+    - name: "保持叶任务过滤"
+      description: "确保只显示叶任务（没有子任务的任务）"
+      priority: "high"
+    
+    - name: "保持展开编辑功能"
+      description: "保持现有的任务展开编辑功能不变"
+      priority: "medium"
+
+  technical:
+    - name: "数据库查询优化"
+      description: "利用dueAt索引优化查询性能"
+      requirements:
+        - "使用dueAtBetween进行范围查询"
+        - "使用includeUpper: false避免重叠"
+        - "确保查询性能<10ms"
+    
+    - name: "状态管理"
+      description: "使用Riverpod管理分组状态"
+      requirements:
+        - "保持现有的taskSectionsProvider"
+        - "动态检查分组是否有任务"
+    
+    - name: "本地化支持"
+      description: "支持多语言的分组标题"
+      requirements:
+        - "英文：Overdue, Today, Tomorrow, This Week, This Month"
+        - "简体中文：已逾期, 今天, 明天, 本周, 当月"
+        - "繁体中文：已逾期, 今天, 明天, 本週, 當月"
+
+solution_approach:
+  data_layer:
+    - name: "修改TaskSection枚举"
+      file: "lib/data/models/task.dart"
+      changes:
+        - "添加overdue, thisWeek, thisMonth枚举值"
+        - "移除later枚举值"
+        - "保持completed, archived, trash不变"
+    
+    - name: "修正_fetchSection方法"
+      file: "lib/data/repositories/task_repository.dart"
+      changes:
+        - "重新实现日期范围计算逻辑"
+        - "修正所有分组的筛选条件"
+        - "添加_getNextMonday辅助方法"
+        - "确保使用includeUpper: false"
+    
+    - name: "添加本地化字符串"
+      files:
+        - "lib/l10n/app_en.arb"
+        - "lib/l10n/app_zh_CN.arb"
+        - "lib/l10n/app_zh_HK.arb"
+        - "lib/l10n/app_zh.arb"
+      changes:
+        - "添加新的分组标题本地化键"
+        - "移除不再使用的later相关键"
+
+  presentation_layer:
+    - name: "修改TaskListPage分组定义"
+      file: "lib/presentation/tasks/task_list_page.dart"
+      changes:
+        - "更新sectionMetas数组"
+        - "实现空分组动态隐藏逻辑"
+        - "使用Consumer包装TaskSectionPanel"
+        - "检查tasks.isEmpty决定是否显示分组"
+    
+    - name: "保持现有UI组件"
+      description: "不修改TaskSectionPanel、_TaskLeafTile等现有组件"
+      reason: "只改变分组逻辑，不改变UI交互"
+
+implementation_phases:
+  phase_1:
+    name: "数据层修改"
+    duration: "1-2小时"
+    tasks:
+      - "修改TaskSection枚举定义"
+      - "修正_fetchSection方法的日期筛选逻辑"
+      - "添加_getNextMonday辅助方法"
+      - "运行静态分析验证"
+    
+  phase_2:
+    name: "本地化更新"
+    duration: "30分钟"
+    tasks:
+      - "添加新的本地化字符串到所有ARB文件"
+      - "运行flutter gen-l10n重新生成本地化文件"
+      - "验证本地化字符串正确生成"
+    
+  phase_3:
+    name: "UI层修改"
+    duration: "1小时"
+    tasks:
+      - "修改TaskListPage的分组定义"
+      - "实现空分组动态隐藏逻辑"
+      - "测试分组显示/隐藏功能"
+    
+  phase_4:
+    name: "测试和验证"
+    duration: "1小时"
+    tasks:
+      - "运行所有单元测试"
+      - "手动测试分组逻辑"
+      - "验证日期临界点正确性"
+      - "测试空分组隐藏功能"
+    
+  phase_5:
+    name: "文档更新"
+    duration: "30分钟"
+    tasks:
+      - "更新task_repository.yaml文档"
+      - "更新task_list_page.yaml文档"
+      - "更新相关测试文档"
+
+testing_strategy:
+  unit_tests:
+    - name: "test_task_section_enum"
+      description: "测试TaskSection枚举包含正确的值"
+      assertions:
+        - "包含overdue, today, tomorrow, thisWeek, thisMonth"
+        - "不包含later"
+        - "保持completed, archived, trash"
+    
+    - name: "test_fetch_section_date_ranges"
+      description: "测试各分组的日期范围筛选"
+      test_cases:
+        - "overdue: dueAt < todayStart"
+        - "today: todayStart <= dueAt < tomorrowStart"
+        - "tomorrow: tomorrowStart <= dueAt < dayAfterTomorrowStart"
+        - "thisWeek: dayAfterTomorrowStart <= dueAt < nextMondayStart"
+        - "thisMonth: nextMondayStart <= dueAt < nextMonthStart"
+    
+    - name: "test_date_range_no_overlap"
+      description: "测试日期范围不重叠"
+      method: "创建测试任务，验证每个任务只出现在一个分组中"
+    
+    - name: "test_get_next_monday"
+      description: "测试_getNextMonday辅助方法"
+      test_cases:
+        - "周一输入返回下周一"
+        - "周日输入返回下周一"
+        - "其他日期输入返回正确的下周一"
+
+  integration_tests:
+    - name: "test_task_list_grouping_integration"
+      description: "测试任务列表分组集成功能"
+      scenarios:
+        - "创建不同日期的任务，验证分组正确"
+        - "测试空分组不显示"
+        - "测试叶任务过滤仍然有效"
+    
+    - name: "test_localization_integration"
+      description: "测试本地化集成"
+      scenarios:
+        - "切换语言验证分组标题正确"
+        - "验证所有语言都有对应的翻译"
+
+success_criteria:
+  functional:
+    - "任务列表显示[已逾期][今天][明天][本周][当月]五个分组"
+    - "每个任务只出现在一个分组中"
+    - "空分组自动隐藏"
+    - "叶任务过滤功能正常"
+    - "展开编辑功能正常"
+  
+  performance:
+    - "分组查询性能<10ms"
+    - "利用dueAt索引优化查询"
+    - "UI渲染性能无显著下降"
+  
+  quality:
+    - "所有单元测试通过"
+    - "静态分析无错误"
+    - "代码符合lint规则"
+    - "本地化字符串完整"
+
+risks_and_mitigation:
+  risks:
+    - name: "日期计算错误"
+      probability: "medium"
+      impact: "high"
+      mitigation: "编写详细的单元测试验证日期范围计算"
+    
+    - name: "性能下降"
+      probability: "low"
+      impact: "medium"
+      mitigation: "利用现有索引，避免全表扫描"
+    
+    - name: "现有功能破坏"
+      probability: "low"
+      impact: "high"
+      mitigation: "保持现有API不变，只修改内部实现"
+
+rollback_plan:
+  - step: "如果日期筛选有问题，回滚_fetchSection修改"
+  - step: "如果UI显示有问题，回滚TaskListPage修改"
+  - step: "如果本地化有问题，回滚ARB文件修改"
+  - step: "运行flutter test确保回滚后测试通过"
+
+notes:
+  - "此修改专注于分组逻辑优化，不涉及UI设计变更"
+  - "保持与Inbox页面的体验一致性"
+  - "确保向后兼容性，不影响现有功能"
+  - "重点关注日期临界点的正确性"
+  - "空分组隐藏提升用户体验"
+
+related_files:
+  - "lib/data/models/task.dart"
+  - "lib/data/repositories/task_repository.dart"
+  - "lib/presentation/tasks/task_list_page.dart"
+  - "lib/l10n/app_en.arb"
+  - "lib/l10n/app_zh_CN.arb"
+  - "lib/l10n/app_zh_HK.arb"
+  - "lib/l10n/app_zh.arb"
+  - "documents/architecture/repositories/task_repository.yaml"
+  - "documents/architecture/pages/task_list_page.yaml"

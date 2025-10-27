@@ -17,7 +17,7 @@ void main() {
       
       // 验证强调色 - 湖光青
       expect(theme.colorScheme.secondary, const Color(0xFF4FAFC9)); // 湖光青
-      expect(theme.colorScheme.secondaryContainer, const Color(0xFFD9E4EA)); // 银灰
+      expect(theme.colorScheme.secondaryContainer, const Color(0xFFB0C4CE)); // 银灰
       
       // 验证第三色 - 薄荷青
       expect(theme.colorScheme.tertiary, const Color(0xFFA5E1EB)); // 薄荷青
@@ -30,7 +30,7 @@ void main() {
       expect(theme.colorScheme.onSurface, const Color(0xFF1E4D67)); // 海军蓝
       
       // 验证边框色
-      expect(theme.colorScheme.outline, const Color(0xFFD9E4EA)); // 银灰
+      expect(theme.colorScheme.outline, const Color(0xFFB0C4CE)); // 银灰
     });
 
     testWidgets('light theme uses correct AppColorTokens', (tester) async {
@@ -55,7 +55,7 @@ void main() {
       
       // 验证强调色 - 湖光青
       expect(colorScheme.secondary, const Color(0xFF4FAFC9)); // 湖光青
-      expect(colorScheme.secondaryContainer, const Color(0xFFD9E4EA)); // 银灰
+      expect(colorScheme.secondaryContainer, const Color(0xFFB0C4CE)); // 银灰
       
       // 验证第三色 - 薄荷青
       expect(colorScheme.tertiary, const Color(0xFFA5E1EB)); // 薄荷青
@@ -68,7 +68,7 @@ void main() {
       expect(colorScheme.onSurface, const Color(0xFF1E4D67)); // 海军蓝
       
       // 验证边框色
-      expect(colorScheme.outline, const Color(0xFFD9E4EA)); // 银灰
+      expect(colorScheme.outline, const Color(0xFFB0C4CE)); // 银灰
     });
 
     testWidgets('AppColorTokens.light has correct values', (tester) async {

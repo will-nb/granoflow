@@ -2,7 +2,7 @@ meta:
   name: "InboxPage"
   type: "page"
   file_path: "lib/presentation/inbox/inbox_page.dart"
-  description: "收集箱页面，用于快速添加和管理任务，支持优先级过滤、内联编辑、自定义日期选择等功能"
+  description: "收集箱页面，用于快速添加和管理任务，支持优先级过滤、内联编辑、自定义日期选择、滑动操作等功能"
   version: "2.0"
   created_date: "251025"
   last_updated: "251026"

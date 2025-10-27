@@ -1,0 +1,267 @@
+ç# 展开区域统一化 Preview
+
+## 项目信息
+- **项目名称**: GranoFlow 展开区域统一化
+- **版本**: 1.0
+- **创建日期**: 2025-01-26
+- **负责人**: AI Assistant
+- **优先级**: 高
+
+## 目标
+统一Inbox和Tasks页面的展开区域，使其具有一致的外观和功能，通过参数化配置实现灵活的滑动提示文字构建。
+
+## 问题分析
+
+### 当前问题
+1. **展开区域不一致**
+   - Inbox: 标签面板 + 快速规划 + 滑动提示
+   - Tasks: 标签面板 + 日期选择
+   - 布局、样式、功能都不统一
+
+2. **滑动提示文字问题**
+   - 当前inboxSwipeHint描述错误："向右滑推迟，向左滑归档"
+   - 实际Inbox操作：右滑规划到今日，左滑删除
+   - Tasks页面缺少滑动提示
+
+3. **日期选择实现不同**
+   - Inbox: Row布局 (时间 + 按钮)
+   - Tasks: 单独按钮，样式不一致
+
+4. **代码重复**
+   - 两个页面有相似的展开区域逻辑
+   - 缺乏统一的Widget复用
+
+## 解决方案
+
+### 统一后的展开区域设计
+
+#### 标准展开区域内容
+1. **标签面板** (TagPanel) - 统一
+2. **滑动提示** - 动态构建，参数化
+3. **快速规划区域** - 统一布局和样式
+4. **日期选择区域** - 统一布局和样式
+5. **进度指示器** - 统一
+
+#### 动态滑动提示构建
+- **通用模板**: "提示：右滑{rightAction}，左滑{leftAction}。"
+- **参数化配置**: 每个页面传入实际的滑动操作文字键
+- **自动更新**: 修改滑动操作文字时，提示自动更新
+
+## 技术实现
+
+### 修改文件列表
+1. `lib/presentation/widgets/task_expanded_panel.dart`
+   - 添加滑动提示参数化支持
+   - 统一日期选择区域布局
+   - 实现动态提示文字构建
+
+2. `lib/l10n/*.arb` (所有语言文件)
+   - 添加滑动提示模板
+   - 修正现有滑动提示文字
+
+3. `lib/presentation/inbox/inbox_page.dart`
+   - 更新TaskExpandedPanel参数配置
+   - 添加滑动提示参数
+
+4. `lib/presentation/tasks/task_list_page.dart`
+   - 更新TaskExpandedPanel参数配置
+   - 添加滑动提示参数
+
+### 核心实现
+
+#### 1. TaskExpandedPanel参数扩展
+```dart
+class TaskExpandedPanel extends ConsumerStatefulWidget {
+  const TaskExpandedPanel({
+    super.key,
+    required this.task,
+    required this.localeName,
+    this.showQuickPlan = false,
+    this.showDateSection = false,
+    this.showSwipeHint = false,
+    this.leftActionKey,     // 新增：左滑操作本地化键
+    this.rightActionKey,    // 新增：右滑操作本地化键
+    this.onQuickPlan,
+    this.onDateChanged,
+  });
+
+  final String? leftActionKey;   // 如: 'inboxDeleteAction'
+  final String? rightActionKey;  // 如: 'inboxQuickPlanAction'
+  // ... 其他参数
+}
+```
+
+#### 2. 动态滑动提示构建
+```dart
+String _buildSwipeHintText(AppLocalizations l10n) {
+  if (widget.leftActionKey == null || widget.rightActionKey == null) {
+    return '';
+  }
+  
+  final leftAction = _getLocalizedText(l10n, widget.leftActionKey!);
+  final rightAction = _getLocalizedText(l10n, widget.rightActionKey!);
+  
+  return l10n.swipeHintTemplate
+      .replaceAll('{leftAction}', leftAction)
+      .replaceAll('{rightAction}', rightAction);
+}
+```
+
+#### 3. 统一日期选择布局
+```dart
+// 统一后的日期选择区域
+Row(
+  children: [
+    Expanded(
+      child: Text(
+        widget.task.dueAt == null 
+            ? 'No due date set'
+            : DateFormat.yMMMd().add_jm().format(widget.task.dueAt!),
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    ),
+    OutlinedButton.icon(
+      onPressed: () => _selectDate(context),
+      icon: const Icon(Icons.calendar_today, size: 16),
+      label: Text(l10n.inboxPlanButtonLabel),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+    ),
+  ],
+)
+```
+
+#### 4. 页面配置统一
+```dart
+// Inbox页面
+TaskExpandedPanel(
+  task: widget.task,
+  localeName: widget.localeName,
+  showQuickPlan: true,
+  showDateSection: false,
+  showSwipeHint: true,
+  leftActionKey: 'inboxDeleteAction',
+  rightActionKey: 'inboxQuickPlanAction',
+)
+
+// Tasks页面
+TaskExpandedPanel(
+  task: widget.task,
+  localeName: widget.localeName,
+  showQuickPlan: false,
+  showDateSection: true,
+  showSwipeHint: true,
+  leftActionKey: 'taskArchiveAction',
+  rightActionKey: 'taskPostponeAction',
+  onDateChanged: (date) => _updateDueDateForTask(context, ref, widget.task.id, date),
+)
+```
+
+### 本地化字符串
+
+#### 新增模板字符串
+```json
+// 英文
+"swipeHintTemplate": "Hint: Swipe right to {rightAction}, swipe left to {leftAction}.",
+
+// 中文
+"swipeHintTemplate": "提示：右滑{rightAction}，左滑{leftAction}。",
+```
+
+#### 修正现有字符串
+```json
+// 修正inboxSwipeHint（如果需要保留）
+"inboxSwipeHint": "Hint: Swipe right to plan to today, swipe left to delete.",
+```
+
+## 用户体验改进
+
+### 视觉一致性
+- **统一布局**: 两个页面的展开区域布局完全一致
+- **统一样式**: 按钮、文字、间距等样式统一
+- **统一交互**: 相同的交互模式和反馈
+
+### 功能完整性
+- **滑动提示**: 两个页面都有正确的滑动操作提示
+- **日期选择**: 统一的日期选择界面和功能
+- **标签管理**: 一致的标签编辑体验
+
+### 操作指导
+- **动态提示**: 根据实际滑动操作显示正确提示
+- **清晰说明**: 用户能清楚了解每个页面的滑动操作
+- **一致性**: 相同的操作在不同页面有相同的表现
+
+## 测试策略
+
+### 单元测试
+- 测试动态滑动提示文字构建
+- 验证参数化配置的正确性
+- 测试本地化字符串的替换逻辑
+
+### 集成测试
+- 测试两个页面的展开区域一致性
+- 验证滑动提示的显示和内容
+- 测试日期选择功能的统一性
+
+### 用户体验测试
+- 验证视觉一致性
+- 测试操作指导的清晰度
+- 验证功能完整性
+
+## 成功标准
+
+### 功能标准
+- [ ] 两个页面的展开区域布局完全一致
+- [ ] 滑动提示文字动态构建正确
+- [ ] 日期选择功能统一实现
+- [ ] 所有本地化字符串正确显示
+
+### 体验标准
+- [ ] 视觉样式完全统一
+- [ ] 交互模式一致
+- [ ] 滑动提示准确描述实际操作
+- [ ] 用户操作指导清晰
+
+### 技术标准
+- [ ] 代码复用性高
+- [ ] 参数化配置灵活
+- [ ] 维护性良好
+- [ ] 所有测试通过
+
+## 风险评估
+
+### 低风险
+- 参数化配置调整
+- 本地化字符串添加
+- 布局样式统一
+
+### 中风险
+- 动态文字构建逻辑
+- 现有功能兼容性
+
+### 缓解措施
+- 充分的单元测试
+- 渐进式功能部署
+- 用户反馈收集
+
+## 时间计划
+
+### 阶段1: 核心实现 (1天)
+- 修改TaskExpandedPanel参数
+- 实现动态滑动提示构建
+- 统一日期选择布局
+
+### 阶段2: 页面集成 (0.5天)
+- 更新Inbox页面配置
+- 更新Tasks页面配置
+- 添加本地化字符串
+
+### 阶段3: 测试验证 (0.5天)
+- 运行单元测试
+- 验证集成测试
+- 用户体验测试
+
+## 总结
+
+本次统一化将彻底解决Inbox和Tasks页面展开区域不一致的问题，通过参数化配置实现灵活的滑动提示文字构建，提供完全一致的视觉和交互体验。这种设计不仅提升了用户体验的一致性，还大大提高了代码的可维护性和可扩展性。

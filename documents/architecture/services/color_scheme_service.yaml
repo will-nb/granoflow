@@ -3,7 +3,7 @@ meta:
   type: "service"
   file_path: "lib/core/theme/ocean_breeze_color_schemes.dart"
   description: "Ocean Breeze 颜色方案服务，提供统一的颜色定义"
-  version: "2.0"
+  version: "2.1"
   created_date: "251026"
   last_updated: "251026"
 
@@ -96,7 +96,7 @@ service_styling:
       - name: "neutral_colors"
         type: "List<Color>"
         value: "[skyWhite, silverGray, secondaryText]"
-        description: "中性色"
+        description: "中性色（silverGray 已更新为 0xFFB0C4CE 以提高对比度）"
     responsive: false
     theme_aware: true
     
@@ -220,6 +220,16 @@ service_state_management:
     benefits: "简单、高效"
     considerations: "无状态变化"
     
+# 颜色变更记录
+color_changes:
+  - date: "251026"
+    color: "silverGray"
+    old_value: "Color(0xFFD9E4EA)"
+    new_value: "Color(0xFFB0C4CE)"
+    reason: "提高与背景渐变的对比度，解决 #not_important 标签在浅色主题下几乎看不见的问题"
+    impact: "影响所有使用 silverGray 的 UI 组件，包括 secondaryContainer、outline 等"
+    testing: "已更新相关测试用例以反映新的颜色值"
+
 service_testing_strategy:
   unit_tests:
     - name: "test_color_constants"

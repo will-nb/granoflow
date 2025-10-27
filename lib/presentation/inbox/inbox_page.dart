@@ -12,10 +12,13 @@ import '../../data/models/task.dart';
 import '../../data/models/task_template.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../navigation/navigation_destinations.dart';
-import '../widgets/chip_toggle_group.dart';
+import '../widgets/modern_tag.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import '../widgets/tag_data.dart';
+import '../widgets/tag_panel.dart';
+import '../widgets/task_expanded_panel.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
   const InboxPage({super.key});
@@ -90,27 +93,37 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                   
                   // 上下文标签组 - 保持水平滚动
                   contextTagsAsync.when(
-                    data: (tags) => SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: tags.map((tag) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: FilterChip(
-                              label: Text(_getTagLabel(tag.slug)),
-                              selected: filter.contextTag == tag.slug,
-                              onSelected: (selected) {
-                                ref.read(inboxFilterProvider.notifier).setContextTag(
-                                  selected ? tag.slug : null,
-                                );
-                              },
-                              selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                              checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                    data: (tags) {
+                      final locale = Localizations.localeOf(context).toString();
+                      final tagDataList = tags.map((tag) => TagData.fromTag(tag, locale)).toList();
+                      
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: tagDataList.map((tagData) {
+                            final isSelected = filter.contextTag == tagData.slug;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ModernTag(
+                                label: tagData.label,
+                                color: tagData.color,
+                                icon: tagData.icon,
+                                prefix: tagData.prefix,
+                                selected: isSelected,
+                                variant: TagVariant.dot,
+                                size: TagSize.medium,
+                                showCheckmark: false,
+                                onTap: () {
+                                  ref.read(inboxFilterProvider.notifier).setContextTag(
+                                    isSelected ? null : tagData.slug,
+                                  );
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    },
                     loading: () => const SizedBox.shrink(),
                     error: (error, stackTrace) => _ErrorBanner(message: '$error'),
                   ),
@@ -118,45 +131,61 @@ class _InboxPageState extends ConsumerState<InboxPage> {
 
                   // 紧急程度和重要程度标签组 - 动态生成，合并为同一行
                   urgencyTagsAsync.when(
-                    data: (urgencyTags) => importanceTagsAsync.when(
-                      data: (importanceTags) => SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            // 紧急程度标签
-                            ...urgencyTags.map((tag) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: FilterChip(
-                                label: Text(_getTagLabel(tag.slug)),
-                                selected: filter.urgencyTag == tag.slug,
-                                onSelected: (selected) {
-                                  if (selected) {
-                                    ref.read(inboxFilterProvider.notifier).setUrgencyTag(tag.slug);
-                                  } else {
-                                    ref.read(inboxFilterProvider.notifier).setUrgencyTag(null);
-                                  }
-                                },
-                                selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                                checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                              ),
-                            )),
-                            // 重要程度标签
-                            ...importanceTags.map((tag) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: FilterChip(
-                                label: Text(_getTagLabel(tag.slug)),
-                                selected: filter.importanceTag == tag.slug,
-                                onSelected: (selected) {
-                                  if (selected) {
-                                    ref.read(inboxFilterProvider.notifier).setImportanceTag(tag.slug);
-                                  } else {
-                                    ref.read(inboxFilterProvider.notifier).setImportanceTag(null);
-                                  }
-                                },
-                                selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                                checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-                              ),
-                            )),
+                    data: (urgencyTags) {
+                      return importanceTagsAsync.when(
+                        data: (importanceTags) {
+                        final locale = Localizations.localeOf(context).toString();
+                        final urgencyTagData = urgencyTags.map((tag) => TagData.fromTag(tag, locale)).toList();
+                        final importanceTagData = importanceTags.map((tag) => TagData.fromTag(tag, locale)).toList();
+                        
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              // 紧急程度标签
+                              ...urgencyTagData.map((tagData) {
+                                final isSelected = filter.urgencyTag == tagData.slug;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ModernTag(
+                                    label: tagData.label,
+                                    color: tagData.color,
+                                    icon: tagData.icon,
+                                    prefix: tagData.prefix,
+                                    selected: isSelected,
+                                    variant: TagVariant.dot,
+                                    size: TagSize.medium,
+                                    showCheckmark: false,
+                                    onTap: () {
+                                      ref.read(inboxFilterProvider.notifier).setUrgencyTag(
+                                        isSelected ? null : tagData.slug,
+                                      );
+                                    },
+                                  ),
+                                );
+                              }),
+                              // 重要程度标签
+                              ...importanceTagData.map((tagData) {
+                                final isSelected = filter.importanceTag == tagData.slug;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ModernTag(
+                                    label: tagData.label,
+                                    color: tagData.color,
+                                    icon: tagData.icon,
+                                    prefix: tagData.prefix,
+                                    selected: isSelected,
+                                    variant: TagVariant.dot,
+                                    size: TagSize.medium,
+                                    showCheckmark: false,
+                                    onTap: () {
+                                      ref.read(inboxFilterProvider.notifier).setImportanceTag(
+                                        isSelected ? null : tagData.slug,
+                                      );
+                                    },
+                                  ),
+                                );
+                              }),
                             // 清除筛选按钮
                             if (filter.hasFilters) ...[
                               Padding(
@@ -177,10 +206,12 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                             ],
                           ],
                         ),
-                      ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (error, stackTrace) => _ErrorBanner(message: '$error'),
-                    ),
+                      );
+                        },
+                        loading: () => const SizedBox.shrink(),
+                        error: (error, stackTrace) => _ErrorBanner(message: '$error'),
+                      );
+                    },
                     loading: () => const SizedBox.shrink(),
                     error: (error, stackTrace) => _ErrorBanner(message: '$error'),
                   ),
@@ -298,46 +329,6 @@ class _InboxPageState extends ConsumerState<InboxPage> {
         _inputFocusNode.requestFocus();
       }
     });
-  }
-
-  String _getTagLabel(String slug) {
-    // 根据 slug 获取对应的翻译键
-    final translationKey = _getTranslationKey(slug);
-    if (translationKey == null) return slug;
-    
-    // 使用 AppLocalizations 获取翻译
-    final l10n = AppLocalizations.of(context);
-    switch (translationKey) {
-      case 'tag_anywhere': return l10n.tag_anywhere;
-      case 'tag_home': return l10n.tag_home;
-      case 'tag_workplace': return l10n.tag_workplace;
-      case 'tag_local': return l10n.tag_local;
-      case 'tag_travel': return l10n.tag_travel;
-      case 'tag_urgent': return l10n.tag_urgent;
-      case 'tag_not_urgent': return l10n.tag_not_urgent;
-      case 'tag_important': return l10n.tag_important;
-      case 'tag_not_important': return l10n.tag_not_important;
-      case 'tag_waiting': return l10n.tag_waiting;
-      case 'tag_wasted': return l10n.tag_wasted;
-      default: return slug;
-    }
-  }
-
-  String? _getTranslationKey(String slug) {
-    switch (slug) {
-      case '@anywhere': return 'tag_anywhere';
-      case '@home': return 'tag_home';
-      case '@workplace': return 'tag_workplace';
-      case '@local': return 'tag_local';
-      case '@travel': return 'tag_travel';
-      case '#urgent': return 'tag_urgent';
-      case '#not_urgent': return 'tag_not_urgent';
-      case '#important': return 'tag_important';
-      case '#not_important': return 'tag_not_important';
-      case '#waiting': return 'tag_waiting';
-      case 'wasted': return 'tag_wasted';
-      default: return null;
-    }
   }
 }
 
@@ -610,7 +601,16 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
                 ),
                 if (isExpanded) ...[
                   const SizedBox(height: 12),
-                  _ExpandedInboxControls(task: widget.task, localeName: widget.localeName),
+                  TaskExpandedPanel(
+                    task: widget.task,
+                    localeName: widget.localeName,
+                    showQuickPlan: true,
+                    showDateSection: false,
+                    showSwipeHint: true,
+                    leftActionKey: 'inboxDeleteAction',
+                    rightActionKey: 'inboxQuickPlanAction',
+                    onQuickPlan: () => _quickPlan(context, ref, widget.task),
+                  ),
                 ],
               ],
             ),
@@ -691,8 +691,9 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
             importanceTags.whenData((importanceTags) => allPriorityTags.addAll(importanceTags));
             
             return TagPanel(
-              contextOptions: _toChipOptions(tags, widget.localeName),
-              priorityOptions: _toChipOptions(allPriorityTags, widget.localeName),
+              contextTags: tags,
+              priorityTags: allPriorityTags,
+              localeName: widget.localeName,
               selectedContext: contextTag.isEmpty ? null : contextTag,
               selectedPriority: priorityTag.isEmpty ? null : priorityTag,
               onContextChanged: (tag) => _updateTags(context, task.id, tag, priorityTag),
@@ -825,12 +826,6 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
     }
   }
 
-  List<ChipToggleOption> _toChipOptions(List<Tag> tags, String localeName) {
-    return tags
-        .map((tag) => ChipToggleOption(value: tag.slug, label: _getTagLabel(tag.slug)))
-        .toList(growable: false);
-  }
-
   TaskSection _sectionForDate(DateTime date) {
     final now = DateTime.now();
     final normalizedNow = DateTime(now.year, now.month, now.day);
@@ -856,94 +851,7 @@ class _ExpandedInboxControlsState extends ConsumerState<_ExpandedInboxControls> 
   DateTime _getEndOfMonth(DateTime now) {
     return DateTime(now.year, now.month + 1, 0);
   }
-
-  String _getTagLabel(String slug) {
-    // 根据 slug 获取对应的翻译键
-    final translationKey = _getTranslationKey(slug);
-    if (translationKey == null) return slug;
-    
-    // 使用 AppLocalizations 获取翻译
-    final l10n = AppLocalizations.of(context);
-    switch (translationKey) {
-      case 'tag_anywhere': return l10n.tag_anywhere;
-      case 'tag_home': return l10n.tag_home;
-      case 'tag_workplace': return l10n.tag_workplace;
-      case 'tag_local': return l10n.tag_local;
-      case 'tag_travel': return l10n.tag_travel;
-      case 'tag_urgent': return l10n.tag_urgent;
-      case 'tag_not_urgent': return l10n.tag_not_urgent;
-      case 'tag_important': return l10n.tag_important;
-      case 'tag_not_important': return l10n.tag_not_important;
-      case 'tag_waiting': return l10n.tag_waiting;
-      case 'tag_wasted': return l10n.tag_wasted;
-      default: return slug;
-    }
-  }
-
-  String? _getTranslationKey(String slug) {
-    switch (slug) {
-      case '@anywhere': return 'tag_anywhere';
-      case '@home': return 'tag_home';
-      case '@workplace': return 'tag_workplace';
-      case '@local': return 'tag_local';
-      case '@travel': return 'tag_travel';
-      case '#urgent': return 'tag_urgent';
-      case '#not_urgent': return 'tag_not_urgent';
-      case '#important': return 'tag_important';
-      case '#not_important': return 'tag_not_important';
-      case '#waiting': return 'tag_waiting';
-      case 'wasted': return 'tag_wasted';
-      default: return null;
-    }
-  }
 }
-
-class TagPanel extends StatelessWidget {
-  const TagPanel({
-    super.key,
-    required this.contextOptions,
-    required this.priorityOptions,
-    required this.selectedContext,
-    required this.selectedPriority,
-    required this.onContextChanged,
-    required this.onPriorityChanged,
-  });
-
-  final List<ChipToggleOption> contextOptions;
-  final List<ChipToggleOption> priorityOptions;
-  final String? selectedContext;
-  final String? selectedPriority;
-  final ValueChanged<String?> onContextChanged;
-  final ValueChanged<String?> onPriorityChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ChipToggleGroup(
-          options: contextOptions,
-          selectedValues: {if (selectedContext != null) selectedContext!},
-          onSelectionChanged: (values) {
-            onContextChanged(values.isEmpty ? null : values.first);
-          },
-          multiSelect: false,
-        ),
-        const SizedBox(height: 12),
-        ChipToggleGroup(
-          options: priorityOptions,
-          selectedValues: {if (selectedPriority != null) selectedPriority!},
-          onSelectionChanged: (values) {
-            onPriorityChanged(values.isEmpty ? null : values.first);
-          },
-          multiSelect: false,
-        ),
-      ],
-    );
-  }
-}
-
-
 
 class InboxEmptyStateCard extends StatelessWidget {
   const InboxEmptyStateCard({

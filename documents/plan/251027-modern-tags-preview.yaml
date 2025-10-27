@@ -1,0 +1,1134 @@
+meta:
+  version: 1
+  type: preview
+  iteration: "251027-modern-tags"
+  generated_at: "2025-10-27 17:00:00"
+
+summary:
+  objective: "重新设计标签(Tags)的视觉呈现，使其更现代、更具标签特性，符合2025年主流设计趋势"
+  requirements: 
+    - "需求1: 替换老旧的 FilterChip 设计，采用现代化的标签样式"
+    - "需求2: 展开面板中的标签使用 Pill-Shaped（药丸形）设计，带图标和柔和背景"
+    - "需求3: Inbox筛选标签使用 Colored Dot（彩色圆点）设计，极简且节省空间"
+    - "需求4: 为不同类型的标签分配合适的颜色和图标，符合 Ocean Breeze 主题"
+    - "需求5: 添加交互动画，提升用户体验（hover、selection动画）"
+
+# 设计理念
+design_philosophy:
+  description: "2025年现代标签设计的核心理念"
+  
+  principles:
+    - principle: "标签可识别性"
+      explanation: "通过图标前缀（@、#）、颜色和形状，让用户一眼识别这是标签而非普通按钮"
+      
+    - principle: "视觉层次感"
+      explanation: "使用半透明背景、柔和阴影和圆角，营造轻盈的浮动感"
+      
+    - principle: "场景适配"
+      explanation: "编辑场景（展开面板）强调功能性和完整信息，浏览场景（筛选）强调简洁和空间效率"
+      
+    - principle: "品牌一致性"
+      explanation: "配色和风格与 Ocean Breeze 清爽水蓝主题完美融合"
+      
+    - principle: "交互反馈"
+      explanation: "通过动画和状态变化，提供清晰的交互反馈"
+
+# 标签类型和配色方案
+tag_color_scheme:
+  description: "基于 Ocean Breeze 主题的标签配色方案"
+  
+  context_tags:
+    description: "上下文标签（@前缀）- 表示任务执行的场景"
+    color: "lakeCyan (#4FAFC9)"
+    icon: "Icons.place_outlined"
+    examples:
+      - slug: "@anywhere"
+        label_en: "Anywhere"
+        label_zh: "随时随地"
+      - slug: "@home"
+        label_en: "Home"
+        label_zh: "家"
+      - slug: "@workplace"
+        label_en: "Workplace"
+        label_zh: "工作场所"
+      - slug: "@local"
+        label_en: "Local"
+        label_zh: "本地"
+      - slug: "@travel"
+        label_en: "Travel"
+        label_zh: "旅行"
+  
+  urgency_tags:
+    description: "紧急程度标签（#前缀）- 表示任务的时间敏感性"
+    tags:
+      - slug: "#urgent"
+        label_en: "Urgent"
+        label_zh: "紧急"
+        color: "softPink (#F48B8B)"
+        icon: "Icons.priority_high"
+      - slug: "#not_urgent"
+        label_en: "Not Urgent"
+        label_zh: "不紧急"
+        color: "lightBlueGray (#81C8DD)"
+        icon: "Icons.schedule"
+  
+  importance_tags:
+    description: "重要程度标签（#前缀）- 表示任务的价值和影响"
+    tags:
+      - slug: "#important"
+        label_en: "Important"
+        label_zh: "重要"
+        color: "warmYellow (#FFD48A)"
+        icon: "Icons.star_outline"
+      - slug: "#not_important"
+        label_en: "Not Important"
+        label_zh: "不重要"
+        color: "silverGray (#D9E4EA)"
+        icon: "Icons.star_border"
+  
+  special_tags:
+    description: "特殊状态标签"
+    tags:
+      - slug: "#waiting"
+        label_en: "Waiting"
+        label_zh: "等待中"
+        color: "disabledGray (#A5B7C0)"
+        icon: "Icons.hourglass_empty"
+      - slug: "wasted"
+        label_en: "Wasted"
+        label_zh: "已废弃"
+        color: "secondaryText (#4C6F80)"
+        icon: "Icons.delete_outline"
+
+# 新建文件详细设计
+new_files:
+  # 文件1: 现代标签组件
+  - file: "lib/presentation/widgets/modern_tag.dart"
+    type: "StatelessWidget"
+    class_name: "ModernTag"
+    description: "现代化的标签组件，支持多种视觉变体和交互状态"
+    
+    enums:
+      - name: "TagVariant"
+        values: ["pill", "dot", "minimal"]
+        description: "标签视觉变体：pill（药丸形，用于编辑）、dot（圆点形，用于筛选）、minimal（极简形）"
+      
+      - name: "TagSize"
+        values: ["small", "medium", "large"]
+        description: "标签尺寸"
+    
+    properties:
+      - name: "label"
+        type: "String"
+        description: "标签文本"
+        required: true
+      
+      - name: "color"
+        type: "Color"
+        description: "标签主题色（用于背景、边框、图标）"
+        required: true
+      
+      - name: "icon"
+        type: "IconData?"
+        description: "标签图标（可选）"
+        required: false
+      
+      - name: "prefix"
+        type: "String?"
+        description: "标签前缀（如 @、#），会自动添加到 label 前"
+        required: false
+      
+      - name: "selected"
+        type: "bool"
+        description: "是否选中状态"
+        required: false
+        default: "false"
+      
+      - name: "variant"
+        type: "TagVariant"
+        description: "视觉变体"
+        required: false
+        default: "TagVariant.pill"
+      
+      - name: "size"
+        type: "TagSize"
+        description: "标签尺寸"
+        required: false
+        default: "TagSize.medium"
+      
+      - name: "onTap"
+        type: "VoidCallback?"
+        description: "点击回调"
+        required: false
+      
+      - name: "showCheckmark"
+        type: "bool"
+        description: "选中时是否显示对勾图标"
+        required: false
+        default: "true"
+    
+    methods:
+      - name: "build"
+        return_type: "Widget"
+        description: "根据 variant 渲染不同的标签样式"
+        implementation: |
+          @override
+          Widget build(BuildContext context) {
+            return switch (variant) {
+              TagVariant.pill => _buildPillTag(context),
+              TagVariant.dot => _buildDotTag(context),
+              TagVariant.minimal => _buildMinimalTag(context),
+            };
+          }
+      
+      - name: "_buildPillTag"
+        return_type: "Widget"
+        description: "构建药丸形标签（用于编辑场景）"
+        parameters:
+          - name: "context"
+            type: "BuildContext"
+            required: true
+        implementation: |
+          Widget _buildPillTag(BuildContext context) {
+            final opacity = selected ? 0.20 : 0.12;
+            final borderOpacity = selected ? 0.3 : 0.2;
+            
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: _getPadding(),
+              decoration: BoxDecoration(
+                color: color.withOpacity(opacity),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: color.withOpacity(borderOpacity),
+                  width: selected ? 1.5 : 1.0,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: _getIconSize(), color: color),
+                    SizedBox(width: _getSpacing()),
+                  ],
+                  Text(
+                    prefix != null ? '$prefix$label' : label,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: _getFontSize(),
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                  if (selected && showCheckmark) ...[
+                    SizedBox(width: _getSpacing()),
+                    Icon(Icons.check, size: _getIconSize() - 2, color: color),
+                  ],
+                ],
+              ),
+            );
+          }
+      
+      - name: "_buildDotTag"
+        return_type: "Widget"
+        description: "构建圆点标签（用于筛选场景）"
+        parameters:
+          - name: "context"
+            type: "BuildContext"
+            required: true
+        implementation: |
+          Widget _buildDotTag(BuildContext context) {
+            final bgOpacity = selected ? 0.10 : 0.0;
+            final dotSize = selected ? 8.0 : 6.0;
+            
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: _getPadding(),
+              decoration: BoxDecoration(
+                color: color.withOpacity(bgOpacity),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: dotSize,
+                    height: dotSize,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  SizedBox(width: _getSpacing()),
+                  Text(
+                    prefix != null ? '$prefix$label' : label,
+                    style: TextStyle(
+                      fontSize: _getFontSize(),
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color: selected 
+                        ? color 
+                        : Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+      
+      - name: "_buildMinimalTag"
+        return_type: "Widget"
+        description: "构建极简标签（用于密集场景）"
+        parameters:
+          - name: "context"
+            type: "BuildContext"
+            required: true
+        implementation: |
+          Widget _buildMinimalTag(BuildContext context) {
+            return Container(
+              padding: _getPadding(),
+              child: Text(
+                prefix != null ? '$prefix$label' : label,
+                style: TextStyle(
+                  fontSize: _getFontSize(),
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected ? color : Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
+            );
+          }
+      
+      - name: "_getPadding"
+        return_type: "EdgeInsets"
+        description: "根据尺寸获取内边距"
+        implementation: |
+          EdgeInsets _getPadding() {
+            return switch (size) {
+              TagSize.small => const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              TagSize.medium => const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              TagSize.large => const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            };
+          }
+      
+      - name: "_getIconSize"
+        return_type: "double"
+        description: "根据尺寸获取图标大小"
+        implementation: |
+          double _getIconSize() {
+            return switch (size) {
+              TagSize.small => 12.0,
+              TagSize.medium => 14.0,
+              TagSize.large => 16.0,
+            };
+          }
+      
+      - name: "_getFontSize"
+        return_type: "double"
+        description: "根据尺寸获取字体大小"
+        implementation: |
+          double _getFontSize() {
+            return switch (size) {
+              TagSize.small => 12.0,
+              TagSize.medium => 13.0,
+              TagSize.large => 14.0,
+            };
+          }
+      
+      - name: "_getSpacing"
+        return_type: "double"
+        description: "根据尺寸获取元素间距"
+        implementation: |
+          double _getSpacing() {
+            return switch (size) {
+              TagSize.small => 4.0,
+              TagSize.medium => 6.0,
+              TagSize.large => 8.0,
+            };
+          }
+    
+    dependencies:
+      - "package:flutter/material.dart"
+    
+    called_by:
+      - "lib/presentation/widgets/modern_tag_group.dart"
+      - "lib/presentation/widgets/tag_panel.dart"
+      - "lib/presentation/inbox/inbox_page.dart"
+
+  # 文件2: 现代标签组
+  - file: "lib/presentation/widgets/modern_tag_group.dart"
+    type: "StatelessWidget"
+    class_name: "ModernTagGroup"
+    description: "标签组容器，管理多个标签的布局和选择逻辑"
+    
+    properties:
+      - name: "tags"
+        type: "List<TagData>"
+        description: "标签数据列表"
+        required: true
+      
+      - name: "selectedTags"
+        type: "Set<String>"
+        description: "已选中的标签 slugs"
+        required: true
+      
+      - name: "onSelectionChanged"
+        type: "ValueChanged<Set<String>>"
+        description: "选择变化回调"
+        required: true
+      
+      - name: "multiSelect"
+        type: "bool"
+        description: "是否支持多选"
+        required: false
+        default: "false"
+      
+      - name: "variant"
+        type: "TagVariant"
+        description: "标签变体"
+        required: false
+        default: "TagVariant.pill"
+      
+      - name: "size"
+        type: "TagSize"
+        description: "标签尺寸"
+        required: false
+        default: "TagSize.medium"
+      
+      - name: "spacing"
+        type: "double"
+        description: "标签间距"
+        required: false
+        default: "8.0"
+      
+      - name: "runSpacing"
+        type: "double"
+        description: "行间距"
+        required: false
+        default: "8.0"
+    
+    methods:
+      - name: "build"
+        return_type: "Widget"
+        description: "使用 Wrap 布局渲染标签组"
+        implementation: |
+          @override
+          Widget build(BuildContext context) {
+            return Wrap(
+              spacing: spacing,
+              runSpacing: runSpacing,
+              children: tags.map((tagData) {
+                final isSelected = selectedTags.contains(tagData.slug);
+                return GestureDetector(
+                  onTap: () => _handleTap(tagData.slug, isSelected),
+                  child: ModernTag(
+                    label: tagData.label,
+                    color: tagData.color,
+                    icon: tagData.icon,
+                    prefix: tagData.prefix,
+                    selected: isSelected,
+                    variant: variant,
+                    size: size,
+                  ),
+                );
+              }).toList(),
+            );
+          }
+      
+      - name: "_handleTap"
+        return_type: "void"
+        description: "处理标签点击，支持单选和多选"
+        parameters:
+          - name: "slug"
+            type: "String"
+            required: true
+          - name: "isCurrentlySelected"
+            type: "bool"
+            required: true
+        implementation: |
+          void _handleTap(String slug, bool isCurrentlySelected) {
+            final updated = Set<String>.from(selectedTags);
+            if (multiSelect) {
+              if (isCurrentlySelected) {
+                updated.remove(slug);
+              } else {
+                updated.add(slug);
+              }
+            } else {
+              updated.clear();
+              if (!isCurrentlySelected) {
+                updated.add(slug);
+              }
+            }
+            onSelectionChanged(updated);
+          }
+    
+    dependencies:
+      - "package:flutter/material.dart"
+      - "modern_tag.dart"
+      - "tag_data.dart"
+    
+    called_by:
+      - "lib/presentation/widgets/tag_panel.dart"
+      - "lib/presentation/inbox/inbox_page.dart"
+
+  # 文件3: 标签数据模型
+  - file: "lib/presentation/widgets/tag_data.dart"
+    type: "immutable_class"
+    class_name: "TagData"
+    description: "标签的UI数据模型，包含显示所需的所有信息"
+    
+    properties:
+      - name: "slug"
+        type: "String"
+        description: "标签唯一标识（如 @home, #urgent）"
+        required: true
+      
+      - name: "label"
+        type: "String"
+        description: "标签显示文本（已本地化）"
+        required: true
+      
+      - name: "color"
+        type: "Color"
+        description: "标签主题色"
+        required: true
+      
+      - name: "icon"
+        type: "IconData?"
+        description: "标签图标"
+        required: false
+      
+      - name: "prefix"
+        type: "String?"
+        description: "标签前缀（@、#）"
+        required: false
+      
+      - name: "kind"
+        type: "TagKind"
+        description: "标签类型（context、urgency、importance等）"
+        required: true
+    
+    methods:
+      - name: "fromTag"
+        return_type: "TagData"
+        description: "从 Tag 模型转换为 TagData，自动分配颜色和图标"
+        parameters:
+          - name: "tag"
+            type: "Tag"
+            required: true
+          - name: "locale"
+            type: "String"
+            required: true
+        implementation: |
+          factory TagData.fromTag(Tag tag, String locale) {
+            final label = tag.labelForLocale(locale);
+            final (color, icon, prefix) = _getTagStyle(tag.slug, tag.kind);
+            
+            return TagData(
+              slug: tag.slug,
+              label: label,
+              color: color,
+              icon: icon,
+              prefix: prefix,
+              kind: tag.kind,
+            );
+          }
+      
+      - name: "_getTagStyle"
+        return_type: "(Color, IconData?, String?)"
+        description: "根据 slug 和 kind 获取标签样式"
+        parameters:
+          - name: "slug"
+            type: "String"
+            required: true
+          - name: "kind"
+            type: "TagKind"
+            required: true
+        implementation: |
+          static (Color, IconData?, String?) _getTagStyle(String slug, TagKind kind) {
+            // Context tags
+            if (slug.startsWith('@')) {
+              return (
+                OceanBreezeColorSchemes.lakeCyan,
+                Icons.place_outlined,
+                '@',
+              );
+            }
+            
+            // Priority tags
+            if (slug.startsWith('#')) {
+              switch (slug) {
+                case '#urgent':
+                  return (OceanBreezeColorSchemes.softPink, Icons.priority_high, '#');
+                case '#not_urgent':
+                  return (OceanBreezeColorSchemes.lightBlueGray, Icons.schedule, '#');
+                case '#important':
+                  return (OceanBreezeColorSchemes.warmYellow, Icons.star_outline, '#');
+                case '#not_important':
+                  return (OceanBreezeColorSchemes.silverGray, Icons.star_border, '#');
+                case '#waiting':
+                  return (OceanBreezeColorSchemes.disabledGray, Icons.hourglass_empty, '#');
+                default:
+                  return (OceanBreezeColorSchemes.seaSaltBlue, Icons.tag, '#');
+              }
+            }
+            
+            // Special tags
+            if (slug == 'wasted') {
+              return (OceanBreezeColorSchemes.secondaryText, Icons.delete_outline, null);
+            }
+            
+            // Default
+            return (OceanBreezeColorSchemes.seaSaltBlue, Icons.tag, null);
+          }
+    
+    dependencies:
+      - "package:flutter/foundation.dart"
+      - "package:flutter/material.dart"
+      - "../../core/theme/ocean_breeze_color_schemes.dart"
+      - "../../data/models/tag.dart"
+    
+    called_by:
+      - "lib/presentation/widgets/modern_tag_group.dart"
+      - "lib/presentation/widgets/tag_panel.dart"
+
+# 修改文件详细差异
+modified_files:
+  # 文件1: TagPanel
+  - file: "lib/presentation/widgets/tag_panel.dart"
+    type: "StatelessWidget"
+    class_name: "TagPanel"
+    description: "更新为使用 ModernTagGroup 替代 ChipToggleGroup"
+    
+    current_structure:
+      - "使用 ChipToggleGroup 渲染标签"
+      - "接收 ChipToggleOption 列表"
+      - "使用 Flutter 默认的 FilterChip"
+    
+    new_structure:
+      - "使用 ModernTagGroup 渲染标签"
+      - "接收 Tag 列表并转换为 TagData"
+      - "使用自定义的 ModernTag（pill变体）"
+    
+    properties_changes:
+      - name: "contextOptions"
+        type: "List<Tag>"
+        description: "改为接收 Tag 列表"
+        change_type: "修改"
+        implementation: |
+          // 旧: final List<ChipToggleOption> contextOptions;
+          // 新: final List<Tag> contextTags;
+      
+      - name: "priorityOptions"
+        type: "List<Tag>"
+        description: "改为接收 Tag 列表"
+        change_type: "修改"
+        implementation: |
+          // 旧: final List<ChipToggleOption> priorityOptions;
+          // 新: final List<Tag> priorityTags;
+      
+      - name: "localeName"
+        type: "String"
+        description: "新增：用于标签本地化"
+        change_type: "新增"
+        implementation: |
+          final String localeName;
+    
+    implementation_changes:
+      - field: "build方法"
+        current: |
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ChipToggleGroup(
+                options: contextOptions,
+                selectedValues: {if (selectedContext != null) selectedContext!},
+                onSelectionChanged: (values) {
+                  onContextChanged(values.isEmpty ? null : values.first);
+                },
+                multiSelect: false,
+              ),
+              const SizedBox(height: 12),
+              ChipToggleGroup(
+                options: priorityOptions,
+                selectedValues: {if (selectedPriority != null) selectedPriority!},
+                onSelectionChanged: (values) {
+                  onPriorityChanged(values.isEmpty ? null : values.first);
+                },
+                multiSelect: false,
+              ),
+            ],
+          );
+        new: |
+          final contextTagData = contextTags
+              .map((tag) => TagData.fromTag(tag, localeName))
+              .toList();
+          final priorityTagData = priorityTags
+              .map((tag) => TagData.fromTag(tag, localeName))
+              .toList();
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ModernTagGroup(
+                tags: contextTagData,
+                selectedTags: {if (selectedContext != null) selectedContext!},
+                onSelectionChanged: (values) {
+                  onContextChanged(values.isEmpty ? null : values.first);
+                },
+                variant: TagVariant.pill,
+                size: TagSize.medium,
+                multiSelect: false,
+              ),
+              const SizedBox(height: 12),
+              ModernTagGroup(
+                tags: priorityTagData,
+                selectedTags: {if (selectedPriority != null) selectedPriority!},
+                onSelectionChanged: (values) {
+                  onPriorityChanged(values.isEmpty ? null : values.first);
+                },
+                variant: TagVariant.pill,
+                size: TagSize.medium,
+                multiSelect: false,
+              ),
+            ],
+          );
+        reason: "使用现代化的标签组件，提供更好的视觉效果"
+
+  # 文件2: TaskExpandedPanel
+  - file: "lib/presentation/widgets/task_expanded_panel.dart"
+    type: "ConsumerStatefulWidget"
+    class_name: "_TaskExpandedPanelState"
+    description: "更新 TagPanel 调用，传递 Tag 对象而非 ChipToggleOption"
+    
+    implementation_changes:
+      - field: "TagPanel 实例化"
+        current: |
+          return TagPanel(
+            contextOptions: _toChipOptions(tags, widget.localeName),
+            priorityOptions: _toChipOptions(allPriorityTags, widget.localeName),
+            selectedContext: contextTag.isEmpty ? null : contextTag,
+            selectedPriority: priorityTag.isEmpty ? null : priorityTag,
+            onContextChanged: (tag) => _updateTags(context, ref, task.id, tag, priorityTag),
+            onPriorityChanged: (tag) => _updateTags(context, ref, task.id, contextTag, tag),
+          );
+        new: |
+          return TagPanel(
+            contextTags: tags,
+            priorityTags: allPriorityTags,
+            localeName: widget.localeName,
+            selectedContext: contextTag.isEmpty ? null : contextTag,
+            selectedPriority: priorityTag.isEmpty ? null : priorityTag,
+            onContextChanged: (tag) => _updateTags(context, ref, task.id, tag, priorityTag),
+            onPriorityChanged: (tag) => _updateTags(context, ref, task.id, contextTag, tag),
+          );
+        reason: "直接传递 Tag 对象，由 TagPanel 内部转换为 TagData"
+    
+    removed_properties:
+      - name: "_toChipOptions"
+        type: "方法"
+        description: "转换 Tag 到 ChipToggleOption 的辅助方法"
+        reason: "不再需要，TagPanel 内部使用 TagData.fromTag 转换"
+      
+      - name: "_getTagLabel"
+        type: "方法"
+        description: "获取标签本地化文本的辅助方法"
+        reason: "不再需要，Tag.labelForLocale 已提供此功能"
+      
+      - name: "_getTranslationKey"
+        type: "方法"
+        description: "获取翻译键的辅助方法"
+        reason: "不再需要，Tag.labelForLocale 已提供此功能"
+
+  # 文件3: InboxPage
+  - file: "lib/presentation/inbox/inbox_page.dart"
+    type: "ConsumerStatefulWidget"
+    class_name: "_InboxPageState"
+    description: "更新筛选标签使用 ModernTag（dot变体）"
+    
+    current_structure:
+      - "使用 FilterChip 渲染筛选标签"
+      - "水平滚动的 Row 布局"
+      - "selectedColor 和 checkmarkColor 配置"
+    
+    new_structure:
+      - "使用 ModernTag（dot变体）渲染筛选标签"
+      - "保持水平滚动的 Row 布局"
+      - "使用 TagData.fromTag 自动分配颜色和图标"
+    
+    implementation_changes:
+      - field: "上下文标签渲染（约第93-111行）"
+        current: |
+          contextTagsAsync.when(
+            data: (tags) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: tags.map((tag) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(_getTagLabel(tag.slug)),
+                      selected: filter.contextTag == tag.slug,
+                      onSelected: (selected) {
+                        ref.read(inboxFilterProvider.notifier).setContextTag(
+                          selected ? tag.slug : null,
+                        );
+                      },
+                      selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                      checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (error, stackTrace) => _ErrorBanner(message: '$error'),
+          )
+        new: |
+          contextTagsAsync.when(
+            data: (tags) {
+              final locale = Localizations.localeOf(context).toString();
+              final tagDataList = tags.map((tag) => TagData.fromTag(tag, locale)).toList();
+              
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: tagDataList.map((tagData) {
+                    final isSelected = filter.contextTag == tagData.slug;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () {
+                          ref.read(inboxFilterProvider.notifier).setContextTag(
+                            isSelected ? null : tagData.slug,
+                          );
+                        },
+                        child: ModernTag(
+                          label: tagData.label,
+                          color: tagData.color,
+                          icon: tagData.icon,
+                          prefix: tagData.prefix,
+                          selected: isSelected,
+                          variant: TagVariant.dot,
+                          size: TagSize.medium,
+                          showCheckmark: false,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (error, stackTrace) => _ErrorBanner(message: '$error'),
+          )
+        reason: "使用 dot 变体的现代标签，更简洁且节省空间"
+      
+      - field: "优先级标签渲染（约第117-160行）"
+        current: "使用 FilterChip"
+        new: "使用 ModernTag（dot变体）"
+        reason: "与上下文标签保持一致的现代化风格"
+    
+    removed_properties:
+      - name: "_getTagLabel"
+        type: "方法"
+        description: "获取标签本地化文本的辅助方法"
+        reason: "使用 TagData.fromTag 自动处理"
+
+# 视觉变化总结
+visual_changes:
+  expanded_panel_tags:
+    description: "展开面板中的标签变化（Tasks、Inbox编辑模式）"
+    before:
+      style: "方形 FilterChip，边框清晰，选中时填充背景色"
+      visual: "类似按钮，缺乏标签特性"
+      feedback: "简单的颜色填充"
+    after:
+      style: "完全圆角的药丸形，柔和半透明背景，细腻边框"
+      visual: "图标前缀（@、#）+ 文字 + 对勾（选中时），明确的标签特性"
+      feedback: "选中时背景加深、边框加粗、字体加粗、显示对勾，流畅动画过渡"
+    example:
+      unselected: "12%透明度背景 + 20%透明度边框 + 主题色图标和文字"
+      selected: "20%透明度背景 + 30%透明度边框 + 1.5px边框 + 600字重 + 对勾图标"
+  
+  inbox_filter_tags:
+    description: "Inbox筛选标签变化"
+    before:
+      style: "方形 FilterChip，水平排列"
+      visual: "与展开面板标签一致，占用较多空间"
+      feedback: "颜色填充"
+    after:
+      style: "圆点 + 文字，极简设计"
+      visual: "左侧彩色圆点（6px/8px）+ 文字，选中时圆点变大，文字加粗，浅色背景"
+      feedback: "圆点大小动画、背景淡入、字重变化，200ms流畅过渡"
+    example:
+      unselected: "6px圆点 + 灰色文字 + 无背景"
+      selected: "8px圆点 + 主题色加粗文字 + 10%透明度背景"
+
+# 交互动画设计
+interaction_animations:
+  selection_animation:
+    description: "标签选中/取消选中动画"
+    duration: "200ms"
+    curve: "Curves.easeInOut"
+    properties:
+      - "背景透明度：12% ↔ 20%（pill）/ 0% ↔ 10%（dot）"
+      - "边框透明度：20% ↔ 30%（pill）"
+      - "边框宽度：1.0px ↔ 1.5px（pill）"
+      - "字体粗细：400/500 ↔ 600"
+      - "圆点大小：6px ↔ 8px（dot）"
+  
+  hover_effect:
+    description: "鼠标悬停效果（桌面端）"
+    trigger: "onHover"
+    effect: "轻微放大（scale: 1.02）+ 阴影加深"
+    note: "移动端不显示hover效果"
+  
+  tap_feedback:
+    description: "点击反馈"
+    effect: "Material ripple effect，颜色为标签主题色的10%透明度"
+
+# 配色对比表
+color_comparison:
+  context_tags:
+    before: "primaryContainer（由主题决定，可能不一致）"
+    after: "lakeCyan (#4FAFC9) - 湖光青，所有 @ 标签统一"
+    icon: "Icons.place_outlined"
+  
+  urgent_tags:
+    urgent:
+      before: "primaryContainer"
+      after: "softPink (#F48B8B) - 柔粉红，传达紧迫感"
+      icon: "Icons.priority_high"
+    not_urgent:
+      before: "primaryContainer"
+      after: "lightBlueGray (#81C8DD) - 较浅蓝灰，传达从容"
+      icon: "Icons.schedule"
+  
+  importance_tags:
+    important:
+      before: "primaryContainer"
+      after: "warmYellow (#FFD48A) - 柔暖黄，传达价值"
+      icon: "Icons.star_outline"
+    not_important:
+      before: "primaryContainer"
+      after: "silverGray (#D9E4EA) - 银灰，传达低优先级"
+      icon: "Icons.star_border"
+
+# 用户体验改进
+ux_improvements:
+  - aspect: "标签可识别性"
+    improvement: "通过图标前缀（@、#）、独特颜色和圆角形状，用户一眼就能识别这是标签"
+    benefit: "降低认知负担，提升信息获取效率"
+  
+  - aspect: "视觉层次"
+    improvement: "使用半透明背景和柔和阴影，营造轻盈的浮动感，与背景形成微妙对比"
+    benefit: "标签既突出又不抢眼，视觉更舒适"
+  
+  - aspect: "语义传达"
+    improvement: "不同类型标签使用不同颜色（context用蓝、urgent用粉、important用黄），图标辅助理解"
+    benefit: "用户快速理解标签含义，无需阅读文字"
+  
+  - aspect: "空间效率"
+    improvement: "筛选场景使用 dot 变体，比 pill 形节省约30%空间"
+    benefit: "在水平滚动区域显示更多标签，减少滚动需求"
+  
+  - aspect: "交互反馈"
+    improvement: "200ms流畅动画，多维度状态变化（颜色、大小、字重、图标）"
+    benefit: "用户清晰感知操作结果，提升操作信心"
+  
+  - aspect: "品牌一致性"
+    improvement: "配色完全符合 Ocean Breeze 主题，圆角设计呼应整体清爽风格"
+    benefit: "提升品牌辨识度和专业形象"
+
+# 对比其他应用
+competitive_analysis:
+  notion:
+    design: "Pill-shaped tags with colored backgrounds"
+    strength: "清晰的标签特性，丰富的颜色选项"
+    our_approach: "采用类似的 pill 形状，但使用半透明背景更轻盈"
+  
+  linear:
+    design: "Rounded tags with icons and status indicators"
+    strength: "图标前缀增强可识别性"
+    our_approach: "学习图标前缀设计，并为不同类型自动分配图标"
+  
+  things3:
+    design: "Colored dots + minimal text"
+    strength: "极简且节省空间"
+    our_approach: "在筛选场景采用 dot 变体，提供类似的空间效率"
+  
+  todoist:
+    design: "Priority flags with colors"
+    strength: "颜色编码优先级"
+    our_approach: "为 urgency/importance 分配不同颜色，并扩展到 context 标签"
+
+# 测试策略
+testing_strategy:
+  unit_tests:
+    description: "组件逻辑测试"
+    coverage_target: "≥80%"
+    test_files:
+      - "test/presentation/widgets/modern_tag_test.dart"
+      - "test/presentation/widgets/modern_tag_group_test.dart"
+      - "test/presentation/widgets/tag_data_test.dart"
+  
+  widget_tests:
+    description: "UI渲染和交互测试"
+    test_cases:
+      - case: "ModernTag pill变体渲染"
+        verify: "药丸形、圆角、图标、文字、对勾（选中时）正确显示"
+      
+      - case: "ModernTag dot变体渲染"
+        verify: "圆点、文字正确显示，选中时圆点变大"
+      
+      - case: "ModernTag 选中/取消选中动画"
+        verify: "AnimatedContainer 正确触发，duration为200ms"
+      
+      - case: "ModernTagGroup 单选逻辑"
+        verify: "点击标签时，正确更新选中状态，回调参数正确"
+      
+      - case: "ModernTagGroup 多选逻辑"
+        verify: "multiSelect=true时，可同时选中多个标签"
+      
+      - case: "TagData.fromTag 转换"
+        verify: "正确分配颜色、图标、前缀"
+    test_files:
+      - "test/presentation/widgets/modern_tag_test.dart"
+      - "test/presentation/widgets/modern_tag_group_test.dart"
+  
+  integration_tests:
+    description: "集成场景测试"
+    test_cases:
+      - case: "展开面板标签编辑"
+        steps:
+          - "展开任务"
+          - "点击 context 标签"
+          - "验证标签选中状态和任务 tags 更新"
+        expected: "标签视觉正确更新，任务 tags 正确保存"
+      
+      - case: "Inbox 筛选标签"
+        steps:
+          - "打开 Inbox"
+          - "点击 context 标签筛选"
+          - "验证任务列表过滤"
+        expected: "标签选中，任务列表只显示匹配标签的任务"
+    test_files:
+      - "integration_test/tag_editing_test.dart"
+  
+  visual_regression_tests:
+    description: "视觉回归测试（可选）"
+    tool: "Golden tests"
+    test_cases:
+      - "各种标签变体的截图对比"
+      - "选中/未选中状态截图对比"
+      - "不同尺寸标签截图对比"
+
+# 成功标准
+success_criteria:
+  - "所有新组件（ModernTag、ModernTagGroup、TagData）创建完成"
+  - "TagPanel、TaskExpandedPanel、InboxPage 成功迁移到新组件"
+  - "所有标签显示正确的颜色、图标和文字"
+  - "选中/取消选中动画流畅（200ms）"
+  - "单选和多选逻辑正确"
+  - "通过 flutter analyze 检查，无错误和警告"
+  - "单元测试和组件测试覆盖率 ≥80%"
+  - "手动测试验证所有交互和视觉效果符合设计"
+  - "在不同屏幕尺寸和主题模式下显示正常"
+
+# 影响范围
+impact_scope:
+  files_modified: 3
+  files_added: 3
+  files_removed: 0
+  
+  affected_features:
+    - "展开面板中的标签编辑（Tasks、Inbox）"
+    - "Inbox 页面的标签筛选"
+    - "未来所有使用标签的场景"
+  
+  non_affected_features:
+    - "标签的数据模型和业务逻辑"
+    - "标签的本地化翻译"
+    - "标签的存储和同步"
+    - "任务的其他属性编辑"
+
+# 注意事项
+notes:
+  - note: "向后兼容性"
+    description: "ChipToggleGroup 和 ChipToggleOption 可以保留，以防其他地方使用。迁移完成后可考虑删除。"
+  
+  - note: "性能考虑"
+    description: "AnimatedContainer 在标签数量较多时可能影响性能。如遇卡顿，可考虑使用 AnimatedOpacity 替代部分动画。"
+  
+  - note: "主题适配"
+    description: "当前设计基于 Light 主题。Dark 主题下，需测试颜色对比度是否足够（WCAG AA标准）。"
+  
+  - note: "辅助功能"
+    description: "确保标签有足够的点击区域（≥44x44 pt），支持语音朗读（Semantics）。"
+  
+  - note: "国际化"
+    description: "标签文字通过 Tag.labelForLocale 获取，确保所有语言的翻译都已配置。"
+  
+  - note: "图标库"
+    description: "使用 Material Icons，确保所有图标在不同平台上都可用。"
+
+# 迁移计划
+migration_plan:
+  description: "分阶段迁移策略，降低风险"
+  
+  phases:
+    - phase: 1
+      name: "创建新组件"
+      tasks:
+        - "创建 ModernTag、ModernTagGroup、TagData"
+        - "编写单元测试和组件测试"
+        - "在独立页面验证新组件"
+      success_criteria: "新组件测试通过，视觉效果符合预期"
+    
+    - phase: 2
+      name: "迁移 TagPanel（展开面板）"
+      tasks:
+        - "更新 TagPanel 使用 ModernTagGroup"
+        - "更新 TaskExpandedPanel 调用"
+        - "测试任务标签编辑功能"
+      success_criteria: "展开面板标签显示和编辑正常"
+    
+    - phase: 3
+      name: "迁移 InboxPage（筛选标签）"
+      tasks:
+        - "更新 Inbox 筛选标签使用 ModernTag（dot变体）"
+        - "测试筛选功能"
+      success_criteria: "Inbox 筛选标签显示和筛选逻辑正常"
+    
+    - phase: 4
+      name: "清理和优化"
+      tasks:
+        - "移除未使用的 ChipToggleGroup（如无其他引用）"
+        - "优化性能（如需要）"
+        - "补充文档和注释"
+      success_criteria: "代码整洁，性能良好，文档完善"
+
+# 未来扩展
+future_enhancements:
+  - enhancement: "标签拖拽排序"
+    description: "支持用户自定义标签顺序"
+    complexity: "中"
+  
+  - enhancement: "标签颜色自定义"
+    description: "允许用户为标签选择自定义颜色"
+    complexity: "高"
+  
+  - enhancement: "标签组折叠"
+    description: "标签较多时，支持折叠部分标签"
+    complexity: "中"
+  
+  - enhancement: "标签搜索"
+    description: "在标签选择器中添加搜索功能"
+    complexity: "低"
+  
+  - enhancement: "标签使用统计"
+    description: "显示标签的使用频率，辅助用户决策"
+    complexity: "中"
+

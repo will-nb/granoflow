@@ -1,0 +1,471 @@
+meta:
+  name: "TaskExpandedPanel"
+  type: "widget"
+  file_path: "lib/presentation/widgets/task_expanded_panel.dart"
+  description: "任务展开面板组件，提供统一的任务编辑界面，支持标签编辑、日期设置、快速规划等功能"
+  version: "1.0"
+  created_date: "251026"
+  last_updated: "251026"
+
+widget_definition:
+  name: "TaskExpandedPanel"
+  layer: "presentation"
+  pattern: "stateful"
+  category: "ui_component"
+  reusable: true
+  
+widget_types:
+  - name: "ConsumerStatefulWidget"
+    description: "有状态 Widget，用于动态 UI 组件"
+    usage: "任务编辑、状态管理"
+    
+widget_properties:
+  - name: "task"
+    type: "Task"
+    required: true
+    description: "任务数据对象"
+    validation: "不能为 null"
+    
+  - name: "localeName"
+    type: "String"
+    required: true
+    description: "当前语言环境名称"
+    validation: "不能为空"
+    
+  - name: "showQuickPlan"
+    type: "bool"
+    required: false
+    default_value: "false"
+    description: "是否显示快速规划功能"
+    validation: "布尔值"
+    
+  - name: "showDateSection"
+    type: "bool"
+    required: false
+    default_value: "true"
+    description: "是否显示日期设置功能"
+    validation: "布尔值"
+    
+  - name: "showSwipeHint"
+    type: "bool"
+    required: false
+    default_value: "false"
+    description: "是否显示滑动提示"
+    validation: "布尔值"
+    
+  - name: "leftActionKey"
+    type: "String"
+    required: false
+    default_value: "''"
+    description: "左滑动作本地化键"
+    validation: "本地化键"
+    
+  - name: "rightActionKey"
+    type: "String"
+    required: false
+    default_value: "''"
+    description: "右滑动作本地化键"
+    validation: "本地化键"
+    
+  - name: "onQuickPlan"
+    type: "VoidCallback?"
+    required: false
+    default_value: "null"
+    description: "快速规划回调"
+    validation: "可选回调"
+    
+  - name: "onDateChanged"
+    type: "ValueChanged<DateTime>?"
+    required: false
+    default_value: "null"
+    description: "日期变化回调"
+    validation: "可选回调"
+    
+widget_methods:
+  - name: "build"
+    return_type: "Widget"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+        description: "构建上下文"
+    description: "构建 Widget"
+    visibility: "public"
+    async: false
+    
+  - name: "_buildQuickPlanSection"
+    return_type: "Widget"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+    description: "构建快速规划区域"
+    visibility: "private"
+    async: false
+    
+  - name: "_buildDateSection"
+    return_type: "Widget"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+    description: "构建日期设置区域"
+    visibility: "private"
+    async: false
+    
+  - name: "_buildSwipeHintText"
+    return_type: "Widget"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+    description: "构建滑动提示文本"
+    visibility: "private"
+    async: false
+    
+  - name: "_getLocalizedText"
+    return_type: "String"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+      - name: "key"
+        type: "String"
+        required: true
+    description: "获取本地化文本"
+    visibility: "private"
+    async: false
+    
+  - name: "_showDatePicker"
+    return_type: "Future<void>"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+    description: "显示日期选择器"
+    visibility: "private"
+    async: true
+    
+widget_state:
+  - name: "isExpanded"
+    type: "bool"
+    description: "是否展开状态"
+    initial_value: "false"
+    validation: "布尔值"
+    
+widget_lifecycle:
+  - phase: "initialization"
+    description: "初始化阶段"
+    operations: ["属性验证", "状态初始化"]
+  - phase: "build"
+    description: "构建阶段"
+    operations: ["UI 构建", "状态渲染", "事件绑定"]
+  - phase: "disposal"
+    description: "清理阶段"
+    operations: ["资源释放", "状态重置"]
+    
+widget_events:
+  - name: "onQuickPlan"
+    description: "快速规划事件"
+    trigger: "用户点击快速规划按钮"
+    handler: "onQuickPlan 回调"
+    parameters: "无参数"
+    
+  - name: "onDateChanged"
+    description: "日期变化事件"
+    trigger: "用户选择新日期"
+    handler: "onDateChanged 回调"
+    parameters: "DateTime newDate"
+    
+widget_styling:
+  - name: "panelStyle"
+    description: "面板样式"
+    properties:
+      - name: "padding"
+        type: "EdgeInsets"
+        value: "EdgeInsets.all(16)"
+        description: "内边距"
+      - name: "margin"
+        type: "EdgeInsets"
+        value: "EdgeInsets.symmetric(vertical: 8)"
+        description: "外边距"
+      - name: "backgroundColor"
+        type: "Color"
+        value: "Theme.of(context).colorScheme.surface"
+        description: "背景颜色"
+      - name: "borderRadius"
+        type: "BorderRadius"
+        value: "BorderRadius.circular(12)"
+        description: "圆角半径"
+    responsive: true
+    theme_aware: true
+    
+  - name: "sectionStyle"
+    description: "区域样式"
+    properties:
+      - name: "spacing"
+        type: "double"
+        value: "16"
+        description: "区域间距"
+      - name: "padding"
+        type: "EdgeInsets"
+        value: "EdgeInsets.symmetric(vertical: 8)"
+        description: "区域内边距"
+    responsive: true
+    theme_aware: true
+    
+widget_responsive:
+  - breakpoint: "mobile"
+    description: "移动端响应式"
+    properties:
+      - name: "panelPadding"
+        value: "EdgeInsets.all(12)"
+        description: "面板内边距"
+      - name: "sectionSpacing"
+        value: "12"
+        description: "区域间距"
+    layout: "垂直布局"
+    behavior: "触摸友好"
+    
+  - breakpoint: "tablet"
+    description: "平板端响应式"
+    properties:
+      - name: "panelPadding"
+        value: "EdgeInsets.all(16)"
+        description: "面板内边距"
+      - name: "sectionSpacing"
+        value: "16"
+        description: "区域间距"
+    layout: "垂直布局"
+    behavior: "触摸友好"
+    
+  - breakpoint: "desktop"
+    description: "桌面端响应式"
+    properties:
+      - name: "panelPadding"
+        value: "EdgeInsets.all(20)"
+        description: "面板内边距"
+      - name: "sectionSpacing"
+        value: "20"
+        description: "区域间距"
+    layout: "垂直布局"
+    behavior: "鼠标悬停"
+    
+widget_accessibility:
+  - name: "semanticLabel"
+    description: "语义标签"
+    implementation: "为面板提供语义标签"
+    testing: "无障碍测试"
+    compliance: "WCAG 2.1"
+    
+  - name: "keyboardNavigation"
+    description: "键盘导航"
+    implementation: "支持键盘导航"
+    testing: "键盘测试"
+    compliance: "WCAG 2.1"
+    
+widget_performance:
+  - operation: "build"
+    optimization: "构建优化"
+    description: "构建性能优化"
+    caching: "状态缓存"
+    rendering: "渲染优化"
+    
+  - operation: "date_picker"
+    optimization: "日期选择器优化"
+    description: "日期选择器性能优化"
+    caching: "日期状态缓存"
+    rendering: "日期选择器渲染优化"
+    
+widget_testing:
+  - name: "testTaskExpandedPanel"
+    description: "测试任务展开面板"
+    type: "widget"
+    coverage: "100%"
+    scenarios: "不同配置、交互、响应式"
+    
+widget_dependencies:
+  - name: "Task"
+    type: "数据模型"
+    description: "任务数据模型"
+    required: true
+    version: "1.0"
+    
+  - name: "TagPanel"
+    type: "UI 组件"
+    description: "标签面板组件"
+    required: true
+    version: "1.0"
+    
+  - name: "AppLocalizations"
+    type: "本地化"
+    description: "应用本地化"
+    required: true
+    version: "1.0"
+    
+widget_imports:
+  - "package:flutter/material.dart"
+  - "package:flutter_riverpod/flutter_riverpod.dart"
+  - "package:intl/intl.dart"
+  - "package:flutter_gen/gen_l10n/app_localizations.dart"
+  - "../../data/models/task.dart"
+  - "tag_panel.dart"
+  
+widget_categories:
+  ui_components:
+    - name: "TaskExpandedPanel"
+      description: "任务展开面板组件"
+      type: "ConsumerStatefulWidget"
+      category: "ui_component"
+      
+widget_interactions:
+  - name: "quickPlanTap"
+    description: "快速规划点击交互"
+    type: "tap"
+    handler: "onQuickPlan"
+    feedback: "视觉反馈"
+    accessibility: "支持无障碍"
+    
+  - name: "datePickerTap"
+    description: "日期选择器点击交互"
+    type: "tap"
+    handler: "_showDatePicker"
+    feedback: "日期选择器"
+    accessibility: "支持无障碍"
+    
+widget_animations:
+  - name: "expansionAnimation"
+    description: "展开动画"
+    type: "size"
+    duration: "300ms"
+    curve: "easeInOut"
+    trigger: "展开状态变化"
+    
+  - name: "datePickerAnimation"
+    description: "日期选择器动画"
+    type: "fade"
+    duration: "200ms"
+    curve: "easeInOut"
+    trigger: "日期选择器显示"
+    
+widget_validation:
+  - field: "task"
+    rule: "not_null"
+    description: "任务数据不能为 null"
+    message: "任务数据不能为 null"
+    required: true
+    
+  - field: "localeName"
+    rule: "not_empty"
+    description: "语言环境名称不能为空"
+    message: "语言环境名称不能为空"
+    required: true
+    
+widget_error_handling:
+  - exception: "ArgumentError"
+    description: "参数错误"
+    handling: "验证参数并抛出描述性错误"
+    recovery: "提供参数修正建议"
+    user_feedback: "显示错误消息"
+    
+widget_internationalization:
+  - name: "taskExpandedPanel"
+    description: "任务展开面板国际化"
+    languages: "zh_CN, en_US"
+    fallback: "en_US"
+    context: "UI 组件"
+    
+widget_theme_integration:
+  - name: "panelTheme"
+    description: "面板主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+  - name: "sectionTheme"
+    description: "区域主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+widget_state_management:
+  - pattern: "外部状态管理"
+    description: "通过 Riverpod 管理状态"
+    implementation: "使用 ConsumerStatefulWidget"
+    benefits: "解耦、可测试"
+    considerations: "需要 Riverpod 环境"
+    
+widget_testing_strategy:
+  unit_tests:
+    - name: "test_widget_creation"
+      description: "测试 Widget 创建"
+    - name: "test_widget_properties"
+      description: "测试 Widget 属性"
+    - name: "test_widget_state"
+      description: "测试 Widget 状态"
+    - name: "test_widget_lifecycle"
+      description: "测试 Widget 生命周期"
+    - name: "test_widget_interactions"
+      description: "测试 Widget 交互"
+    - name: "test_widget_events"
+      description: "测试 Widget 事件"
+    - name: "test_widget_styling"
+      description: "测试 Widget 样式"
+    - name: "test_widget_responsive"
+      description: "测试 Widget 响应式"
+    - name: "test_widget_accessibility"
+      description: "测试 Widget 无障碍"
+    - name: "test_widget_performance"
+      description: "测试 Widget 性能"
+      
+  widget_tests:
+    - name: "test_widget_rendering"
+      description: "测试 Widget 渲染"
+    - name: "test_widget_interactions"
+      description: "测试 Widget 交互"
+    - name: "test_widget_state_changes"
+      description: "测试 Widget 状态变化"
+    - name: "test_widget_animations"
+      description: "测试 Widget 动画"
+    - name: "test_widget_responsive_behavior"
+      description: "测试 Widget 响应式行为"
+    - name: "test_widget_accessibility"
+      description: "测试 Widget 无障碍"
+    - name: "test_widget_theme_integration"
+      description: "测试 Widget 主题集成"
+    - name: "test_widget_error_handling"
+      description: "测试 Widget 错误处理"
+    - name: "test_widget_validation"
+      description: "测试 Widget 验证"
+    - name: "test_widget_internationalization"
+      description: "测试 Widget 国际化"
+      
+  integration_tests:
+    - name: "test_widget_integration"
+      description: "测试 Widget 集成"
+    - name: "test_widget_coordination"
+      description: "测试 Widget 协调"
+    - name: "test_widget_data_flow"
+      description: "测试 Widget 数据流"
+    - name: "test_widget_navigation"
+      description: "测试 Widget 导航"
+    - name: "test_widget_state_management"
+      description: "测试 Widget 状态管理"
+    - name: "test_widget_performance"
+      description: "测试 Widget 性能"
+    - name: "test_widget_accessibility"
+      description: "测试 Widget 无障碍"
+    - name: "test_widget_responsive"
+      description: "测试 Widget 响应式"
+    - name: "test_widget_theme"
+      description: "测试 Widget 主题"
+    - name: "test_widget_internationalization"
+      description: "测试 Widget 国际化"
+      
+  mock_strategy:
+    - name: "MockTaskExpandedPanel"
+      description: "Mock 实现用于测试"
+    - name: "FakeTaskExpandedPanel"
+      description: "Fake 实现用于测试"
+    - name: "TestTaskExpandedPanel"
+      description: "测试专用 Widget"

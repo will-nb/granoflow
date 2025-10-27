@@ -63,8 +63,10 @@ components:
 
   - name: "ChipToggleGroup"
     file: "chip_toggle_group.yaml"
-    description: "芯片切换组组件"
+    description: "芯片切换组组件（已弃用，请使用 ModernTagGroup）"
     type: "StatelessWidget"
+    status: "deprecated"
+    replacement: "ModernTagGroup"
 
   - name: "TaskSectionList"
     file: "task_section_list.yaml"
@@ -79,6 +81,35 @@ components:
   - name: "CreateTaskDialog"
     file: "create_task_dialog.yaml"
     description: "创建任务对话框组件，支持任务标题、标签和父任务选择"
+    type: "ConsumerStatefulWidget"
+
+  # 现代化标签组件
+
+  - name: "ModernTag"
+    file: "modern_tag.yaml"
+    description: "现代化标签组件，支持多种变体和尺寸，提供 2025 年现代设计风格"
+    type: "StatelessWidget"
+
+  - name: "ModernTagGroup"
+    file: "modern_tag_group.yaml"
+    description: "现代化标签组组件，管理多个 ModernTag 的布局和选择逻辑"
+    type: "StatelessWidget"
+
+  # 滑动操作组件
+  - name: "DismissibleTaskTile"
+    file: "dismissible_task_tile.yaml"
+    description: "可滑动任务瓦片组件，支持左滑右滑操作，提供统一的滑动交互体验"
+    type: "StatelessWidget"
+
+  - name: "SwipeActionHandler"
+    file: "swipe_action_handler.yaml"
+    description: "滑动操作处理器，集中管理各种滑动动作的逻辑和用户反馈"
+    type: "Static Class"
+
+  # 任务编辑组件
+  - name: "TaskExpandedPanel"
+    file: "task_expanded_panel.yaml"
+    description: "任务展开面板组件，提供统一的任务编辑界面，支持标签编辑、日期设置、快速规划等功能"
     type: "ConsumerStatefulWidget"
 
 # 组件分类
@@ -105,6 +136,23 @@ categories:
       - "TaskSectionList"
       - "FocusTimerDisplay"
       - "CreateTaskDialog"
+      - "TaskExpandedPanel"
+
+  ui_components:
+    description: "UI 组件"
+    components:
+      - "ModernTag"
+      - "ModernTagGroup"
+      - "DismissibleTaskTile"
+
+  services:
+    description: "服务组件"
+    components:
+      - "SwipeActionHandler"
+
+  models:
+    description: "数据模型"
+    components: []
 
 # 依赖关系
 dependencies:
@@ -164,6 +212,40 @@ dependencies:
   CreateTaskDialog:
     - "package:flutter/material.dart"
     - "package:flutter_riverpod/flutter_riverpod.dart"
+
+  # 现代化标签组件依赖
+  ModernTag:
+    - "package:flutter/material.dart"
+    - "tag_data.dart"
+
+  ModernTagGroup:
+    - "package:flutter/material.dart"
+    - "modern_tag.dart"
+    - "tag_data.dart"
+
+  # 滑动操作组件依赖
+  DismissibleTaskTile:
+    - "package:flutter/material.dart"
+    - "package:flutter_gen/gen_l10n/app_localizations.dart"
+    - "../../data/models/task.dart"
+
+  SwipeActionHandler:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+    - "package:intl/intl.dart"
+    - "package:flutter_gen/gen_l10n/app_localizations.dart"
+    - "../../data/models/task.dart"
+    - "../../core/services/task_service.dart"
+    - "swipe_configs.dart"
+
+  # 任务编辑组件依赖
+  TaskExpandedPanel:
+    - "package:flutter/material.dart"
+    - "package:flutter_riverpod/flutter_riverpod.dart"
+    - "package:intl/intl.dart"
+    - "package:flutter_gen/gen_l10n/app_localizations.dart"
+    - "../../data/models/task.dart"
+    - "tag_panel.dart"
 
 # 测试策略
 testing:

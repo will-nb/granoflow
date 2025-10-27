@@ -1,0 +1,417 @@
+meta:
+  name: "SwipeActionHandler"
+  type: "widget"
+  file_path: "lib/presentation/widgets/swipe_action_handler.dart"
+  description: "滑动操作处理器，集中管理各种滑动动作的逻辑和用户反馈"
+  version: "1.0"
+  created_date: "251026"
+  last_updated: "251026"
+
+widget_definition:
+  name: "SwipeActionHandler"
+  layer: "presentation"
+  pattern: "static"
+  category: "service"
+  reusable: true
+  
+widget_types:
+  - name: "Static Class"
+    description: "静态类，用于集中管理滑动操作逻辑"
+    usage: "滑动操作处理、用户反馈"
+    
+widget_properties:
+  - name: "handleAction"
+    type: "static method"
+    required: true
+    description: "处理滑动动作的静态方法"
+    parameters: "BuildContext context, WidgetRef ref, SwipeActionType actionType, Task task"
+    return_type: "void"
+    
+enums:
+  - name: "SwipeActionType"
+    values: ["quickPlan", "postpone", "archive", "delete"]
+    description: "滑动动作类型枚举"
+    
+widget_methods:
+  - name: "handleAction"
+    return_type: "void"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+        description: "构建上下文"
+      - name: "ref"
+        type: "WidgetRef"
+        required: true
+        description: "Riverpod 引用"
+      - name: "actionType"
+        type: "SwipeActionType"
+        required: true
+        description: "滑动动作类型"
+      - name: "task"
+        type: "Task"
+        required: true
+        description: "任务对象"
+    description: "处理滑动动作的主方法"
+    visibility: "public"
+    async: false
+    static: true
+    
+  - name: "_handleQuickPlan"
+    return_type: "void"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+      - name: "ref"
+        type: "WidgetRef"
+        required: true
+      - name: "task"
+        type: "Task"
+        required: true
+    description: "处理快速规划动作"
+    visibility: "private"
+    async: false
+    static: true
+    
+  - name: "_handlePostpone"
+    return_type: "void"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+      - name: "ref"
+        type: "WidgetRef"
+        required: true
+      - name: "task"
+        type: "Task"
+        required: true
+    description: "处理延迟动作"
+    visibility: "private"
+    async: false
+    static: true
+    
+  - name: "_handleArchive"
+    return_type: "void"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+      - name: "ref"
+        type: "WidgetRef"
+        required: true
+      - name: "task"
+        type: "Task"
+        required: true
+    description: "处理归档动作"
+    visibility: "private"
+    async: false
+    static: true
+    
+  - name: "_handleDelete"
+    return_type: "void"
+    parameters:
+      - name: "context"
+        type: "BuildContext"
+        required: true
+      - name: "ref"
+        type: "WidgetRef"
+        required: true
+      - name: "task"
+        type: "Task"
+        required: true
+    description: "处理删除动作"
+    visibility: "private"
+    async: false
+    static: true
+    
+  - name: "_formatDateForDisplay"
+    return_type: "String"
+    parameters:
+      - name: "date"
+        type: "DateTime"
+        required: true
+    description: "格式化日期用于显示"
+    visibility: "private"
+    async: false
+    static: true
+    
+widget_lifecycle:
+  - phase: "initialization"
+    description: "初始化阶段"
+    operations: ["静态方法注册", "依赖注入"]
+  - phase: "execution"
+    description: "执行阶段"
+    operations: ["动作处理", "状态更新", "用户反馈"]
+  - phase: "cleanup"
+    description: "清理阶段"
+    operations: ["资源释放", "状态重置"]
+    
+widget_events:
+  - name: "quickPlanAction"
+    description: "快速规划动作事件"
+    trigger: "用户执行快速规划滑动"
+    handler: "_handleQuickPlan"
+    parameters: "Task task"
+    
+  - name: "postponeAction"
+    description: "延迟动作事件"
+    trigger: "用户执行延迟滑动"
+    handler: "_handlePostpone"
+    parameters: "Task task"
+    
+  - name: "archiveAction"
+    description: "归档动作事件"
+    trigger: "用户执行归档滑动"
+    handler: "_handleArchive"
+    parameters: "Task task"
+    
+  - name: "deleteAction"
+    description: "删除动作事件"
+    trigger: "用户执行删除滑动"
+    handler: "_handleDelete"
+    parameters: "Task task"
+    
+widget_styling:
+  - name: "snackBarStyle"
+    description: "SnackBar 样式"
+    properties:
+      - name: "backgroundColor"
+        type: "Color"
+        value: "Theme.of(context).colorScheme.surface"
+        description: "背景颜色"
+      - name: "duration"
+        type: "Duration"
+        value: "Duration(seconds: 4)"
+        description: "显示持续时间"
+      - name: "action"
+        type: "SnackBarAction"
+        value: "SnackBarAction"
+        description: "操作按钮"
+    responsive: true
+    theme_aware: true
+    
+widget_responsive:
+  - breakpoint: "mobile"
+    description: "移动端响应式"
+    properties:
+      - name: "snackBarDuration"
+        value: "Duration(seconds: 3)"
+        description: "SnackBar 持续时间"
+      - name: "actionButtonText"
+        value: "查看"
+        description: "操作按钮文本"
+    layout: "全屏 SnackBar"
+    behavior: "触摸友好"
+    
+  - breakpoint: "tablet"
+    description: "平板端响应式"
+    properties:
+      - name: "snackBarDuration"
+        value: "Duration(seconds: 4)"
+        description: "SnackBar 持续时间"
+      - name: "actionButtonText"
+        value: "查看"
+        description: "操作按钮文本"
+    layout: "居中 SnackBar"
+    behavior: "触摸友好"
+    
+  - breakpoint: "desktop"
+    description: "桌面端响应式"
+    properties:
+      - name: "snackBarDuration"
+        value: "Duration(seconds: 5)"
+        description: "SnackBar 持续时间"
+      - name: "actionButtonText"
+        value: "查看"
+        description: "操作按钮文本"
+    layout: "居中 SnackBar"
+    behavior: "鼠标悬停"
+    
+widget_accessibility:
+  - name: "semanticLabel"
+    description: "语义标签"
+    implementation: "为滑动操作提供语义标签"
+    testing: "无障碍测试"
+    compliance: "WCAG 2.1"
+    
+  - name: "keyboardNavigation"
+    description: "键盘导航"
+    implementation: "支持键盘导航"
+    testing: "键盘测试"
+    compliance: "WCAG 2.1"
+    
+widget_performance:
+  - operation: "action_handling"
+    optimization: "动作处理优化"
+    description: "动作处理性能优化"
+    caching: "状态缓存"
+    rendering: "渲染优化"
+    
+  - operation: "feedback"
+    optimization: "反馈优化"
+    description: "用户反馈性能优化"
+    caching: "反馈状态缓存"
+    rendering: "反馈渲染优化"
+    
+widget_testing:
+  - name: "testSwipeActionHandler"
+    description: "测试滑动操作处理器"
+    type: "unit"
+    coverage: "100%"
+    scenarios: "不同动作类型、错误处理、用户反馈"
+    
+widget_dependencies:
+  - name: "Task"
+    type: "数据模型"
+    description: "任务数据模型"
+    required: true
+    version: "1.0"
+    
+  - name: "TaskService"
+    type: "服务"
+    description: "任务服务"
+    required: true
+    version: "1.0"
+    
+  - name: "AppLocalizations"
+    type: "本地化"
+    description: "应用本地化"
+    required: true
+    version: "1.0"
+    
+widget_imports:
+  - "package:flutter/material.dart"
+  - "package:flutter_riverpod/flutter_riverpod.dart"
+  - "package:intl/intl.dart"
+  - "package:flutter_gen/gen_l10n/app_localizations.dart"
+  - "../../data/models/task.dart"
+  - "../../core/services/task_service.dart"
+  - "swipe_configs.dart"
+  
+widget_categories:
+  services:
+    - name: "SwipeActionHandler"
+      description: "滑动操作处理器"
+      type: "Static Class"
+      category: "service"
+      
+widget_interactions:
+  - name: "actionExecution"
+    description: "动作执行交互"
+    type: "programmatic"
+    handler: "handleAction"
+    feedback: "SnackBar 反馈"
+    accessibility: "支持无障碍"
+    
+widget_animations:
+  - name: "snackBarAnimation"
+    description: "SnackBar 动画"
+    type: "slide"
+    duration: "300ms"
+    curve: "easeInOut"
+    trigger: "动作执行完成"
+    
+widget_validation:
+  - field: "context"
+    rule: "not_null"
+    description: "构建上下文不能为 null"
+    message: "构建上下文不能为 null"
+    required: true
+    
+  - field: "ref"
+    rule: "not_null"
+    description: "Riverpod 引用不能为 null"
+    message: "Riverpod 引用不能为 null"
+    required: true
+    
+  - field: "actionType"
+    rule: "enum_value"
+    description: "动作类型必须是有效枚举值"
+    message: "动作类型必须是有效枚举值"
+    required: true
+    
+  - field: "task"
+    rule: "not_null"
+    description: "任务对象不能为 null"
+    message: "任务对象不能为 null"
+    required: true
+    
+widget_error_handling:
+  - exception: "ArgumentError"
+    description: "参数错误"
+    handling: "验证参数并抛出描述性错误"
+    recovery: "提供参数修正建议"
+    user_feedback: "显示错误消息"
+    
+  - exception: "ServiceException"
+    description: "服务异常"
+    handling: "捕获服务异常并显示用户友好消息"
+    recovery: "重试操作或回滚状态"
+    user_feedback: "显示错误 SnackBar"
+    
+widget_internationalization:
+  - name: "swipeActionHandler"
+    description: "滑动操作处理器国际化"
+    languages: "zh_CN, en_US"
+    fallback: "en_US"
+    context: "UI 组件"
+    
+widget_theme_integration:
+  - name: "actionTheme"
+    description: "动作主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+  - name: "feedbackTheme"
+    description: "反馈主题"
+    type: "color"
+    default_value: "主题色"
+    theme_aware: true
+    
+widget_state_management:
+  - pattern: "外部状态管理"
+    description: "通过 Riverpod 管理状态"
+    implementation: "使用 WidgetRef 访问服务"
+    benefits: "解耦、可测试"
+    considerations: "需要 Riverpod 环境"
+    
+widget_testing_strategy:
+  unit_tests:
+    - name: "test_action_handling"
+      description: "测试动作处理"
+    - name: "test_quick_plan"
+      description: "测试快速规划"
+    - name: "test_postpone"
+      description: "测试延迟"
+    - name: "test_archive"
+      description: "测试归档"
+    - name: "test_delete"
+      description: "测试删除"
+    - name: "test_error_handling"
+      description: "测试错误处理"
+    - name: "test_user_feedback"
+      description: "测试用户反馈"
+    - name: "test_date_formatting"
+      description: "测试日期格式化"
+      
+  integration_tests:
+    - name: "test_service_integration"
+      description: "测试服务集成"
+    - name: "test_state_management"
+      description: "测试状态管理"
+    - name: "test_user_feedback_flow"
+      description: "测试用户反馈流程"
+    - name: "test_error_recovery"
+      description: "测试错误恢复"
+    - name: "test_performance"
+      description: "测试性能"
+      
+  mock_strategy:
+    - name: "MockTaskService"
+      description: "Mock 任务服务用于测试"
+    - name: "FakeTaskService"
+      description: "Fake 任务服务用于测试"
+    - name: "TestSwipeActionHandler"
+      description: "测试专用处理器"

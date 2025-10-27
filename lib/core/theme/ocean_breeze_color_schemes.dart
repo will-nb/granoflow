@@ -13,7 +13,7 @@ class OceanBreezeColorSchemes {
   static const Color lakeCyan = Color(0xFF4FAFC9);         // 湖光青
   static const Color navyBlue = Color(0xFF1E4D67);         // 海军蓝
   static const Color skyWhite = Color(0xFFF5FAFC);         // 天际白
-  static const Color silverGray = Color(0xFFD9E4EA);       // 银灰
+  static const Color silverGray = Color(0xFFB0C4CE);       // 银灰（加深以提高与背景对比度）
   
   // 功能色常量
   static const Color softGreen = Color(0xFF7ED2A8);        // 柔和薄荷绿
