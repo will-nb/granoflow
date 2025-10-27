@@ -1,0 +1,423 @@
+meta:
+  name: "任务列表叶任务过滤优化 - 实施步骤"
+  version: "1.0"
+  created_date: "251026"
+  last_updated: "251026"
+  author: "AI Assistant"
+  status: "execution"
+  related_preview: "documents/plan/251026-16-preview.yaml"
+
+overview:
+  title: "任务列表叶任务过滤优化 - 详细实施步骤"
+  description: >
+    根据preview文档，详细列出实施步骤，包括数据库索引优化、
+    叶任务过滤逻辑实现、UI展开编辑功能等。
+
+execution_phases:
+  phase_1:
+    name: "数据库索引优化"
+    order: 1
+    status: "pending"
+    estimated_duration: "30分钟"
+    
+    steps:
+      - step_id: "1.1"
+        name: "添加status字段索引"
+        description: "为TaskEntity.status字段添加@Index注解"
+        files:
+          - path: "lib/data/isar/task_entity.dart"
+            action: "modify"
+            changes:
+              - line: 18
+                old: "  late TaskStatus status;"
+                new: "  @Index()\n  late TaskStatus status;"
+        validation:
+          - "确认@Index注解在@enumerated注解之后"
+          - "确认语法正确"
+      
+      - step_id: "1.2"
+        name: "添加dueAt字段索引"
+        description: "为TaskEntity.dueAt字段添加@Index注解"
+        files:
+          - path: "lib/data/isar/task_entity.dart"
+            action: "modify"
+            changes:
+              - line: 20
+                old: "  DateTime? dueAt;"
+                new: "  @Index()\n  DateTime? dueAt;"
+        validation:
+          - "确认@Index注解添加正确"
+          - "确认可空类型保持不变"
+      
+      - step_id: "1.3"
+        name: "添加parentId字段索引"
+        description: "为TaskEntity.parentId字段添加@Index注解"
+        files:
+          - path: "lib/data/isar/task_entity.dart"
+            action: "modify"
+            changes:
+              - line: 30
+                old: "  int? parentId;"
+                new: "  @Index()\n  int? parentId;"
+        validation:
+          - "确认@Index注解添加正确"
+          - "确认可空类型保持不变"
+      
+      - step_id: "1.4"
+        name: "重新生成Isar代码"
+        description: "运行build_runner重新生成数据库代码"
+        command: "flutter packages pub run build_runner build --delete-conflicting-outputs"
+        validation:
+          - "确认task_entity.g.dart文件已更新"
+          - "确认indexes字段不再为空"
+          - "确认没有编译错误"
+      
+      - step_id: "1.5"
+        name: "验证索引生成"
+        description: "检查生成的代码中索引是否正确"
+        files:
+          - path: "lib/data/isar/task_entity.g.dart"
+            action: "read"
+            validation:
+              - "确认indexes字段包含三个索引"
+              - "确认status索引存在"
+              - "确认dueAt索引存在"
+              - "确认parentId索引存在"
+
+  phase_2:
+    name: "叶任务过滤逻辑实现"
+    order: 2
+    status: "pending"
+    estimated_duration: "1.5小时"
+    
+    steps:
+      - step_id: "2.1"
+        name: "添加辅助方法_filterLeafTasks"
+        description: "实现叶任务过滤的辅助方法"
+        files:
+          - path: "lib/data/repositories/task_repository.dart"
+            action: "add_method"
+            location: "IsarTaskRepository class"
+            code: |
+              Future<List<TaskEntity>> _filterLeafTasks(List<TaskEntity> tasks) async {
+                if (tasks.isEmpty) return tasks;
+                
+                // 查询所有父任务ID（不限制子任务的任何条件）
+                final parentIds = await _isar.taskEntitys
+                    .filter()
+                    .parentIdIsNotNull()
+                    .distinctByParentId()
+                    .findAll()
+                    .then((entities) => entities.map((e) => e.parentId!).toSet());
+                
+                // 过滤叶任务
+                return tasks.where((task) => !parentIds.contains(task.id)).toList();
+              }
+        validation:
+          - "确认方法签名正确"
+          - "确认不限制子任务条件（避免bug）"
+          - "确认使用distinctByParentId优化性能"
+      
+      - step_id: "2.2"
+        name: "修改_fetchSection方法"
+        description: "在_fetchSection方法中添加叶任务过滤逻辑"
+        files:
+          - path: "lib/data/repositories/task_repository.dart"
+            action: "modify"
+            changes:
+              - location: "_fetchSection method, before return"
+                old: |
+                  final results = await builder.sortBySortIndex().findAll();
+                  return results.map(_toDomain).toList(growable: false);
+                new: |
+                  final results = await builder.sortBySortIndex().findAll();
+                  final leafTasks = await _filterLeafTasks(results);
+                  return leafTasks.map(_toDomain).toList(growable: false);
+        validation:
+          - "确认过滤逻辑在排序之后"
+          - "确认返回的是叶任务"
+          - "确认没有破坏现有逻辑"
+      
+      - step_id: "2.3"
+        name: "运行静态分析"
+        description: "确保没有编译错误和警告"
+        command: "flutter analyze"
+        validation:
+          - "确认没有错误"
+          - "确认没有警告"
+          - "确认代码符合lint规则"
+      
+      - step_id: "2.4"
+        name: "编写单元测试"
+        description: "为叶任务过滤逻辑编写单元测试"
+        files:
+          - path: "test/data/repositories/task_repository_leaf_filter_test.dart"
+            action: "create"
+            test_cases:
+              - name: "test_filter_returns_only_leaf_tasks"
+                description: "验证只返回叶任务"
+              - name: "test_filter_excludes_tasks_with_children"
+                description: "验证排除有子任务的任务"
+              - name: "test_filter_handles_empty_list"
+                description: "验证处理空列表"
+              - name: "test_filter_ignores_child_task_conditions"
+                description: "验证不限制子任务条件（关键测试）"
+        validation:
+          - "确认所有测试用例通过"
+          - "确认覆盖边界情况"
+          - "确认测试关键bug场景"
+      
+      - step_id: "2.5"
+        name: "运行单元测试"
+        description: "执行所有相关单元测试"
+        command: "flutter test test/data/repositories/"
+        validation:
+          - "确认所有测试通过"
+          - "确认没有测试失败"
+          - "确认测试覆盖率达标"
+
+  phase_3:
+    name: "UI展开编辑功能实现"
+    order: 3
+    status: "pending"
+    estimated_duration: "3-4小时"
+    
+    steps:
+      - step_id: "3.1"
+        name: "添加展开状态管理"
+        description: "添加任务展开状态的Provider"
+        files:
+          - path: "lib/core/providers/app_providers.dart"
+            action: "add"
+            code: |
+              final taskListExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
+        validation:
+          - "确认Provider命名正确"
+          - "确认初始值为null"
+      
+      - step_id: "3.2"
+        name: "修改TaskLeafTile组件"
+        description: "将TaskLeafTile改为ConsumerStatefulWidget并支持展开编辑"
+        files:
+          - path: "lib/presentation/tasks/task_list_page.dart"
+            action: "modify"
+            changes:
+              - "将_TaskLeafTile从ConsumerWidget改为ConsumerStatefulWidget"
+              - "添加TextEditingController管理标题编辑"
+              - "添加展开/收起逻辑"
+              - "实现内联标题编辑"
+        validation:
+          - "确认展开状态正确管理"
+          - "确认内联编辑工作正常"
+          - "确认与inbox页面体验一致"
+      
+      - step_id: "3.3"
+        name: "添加展开编辑界面"
+        description: "实现展开后的编辑界面组件"
+        files:
+          - path: "lib/presentation/tasks/task_list_page.dart"
+            action: "add_widget"
+            widget_name: "_ExpandedTaskControls"
+            features:
+              - "内联标题编辑"
+              - "标签编辑（urgencyTagOptionsProvider、importanceTagOptionsProvider）"
+              - "截止日期设置"
+              - "展开/收起按钮"
+        validation:
+          - "确认所有编辑功能工作正常"
+          - "确认UI与inbox页面一致"
+          - "确认数据保存正确"
+      
+      - step_id: "3.4"
+        name: "添加本地化字符串"
+        description: "为新功能添加必要的本地化字符串"
+        files:
+          - path: "lib/l10n/app_en.arb"
+            action: "add"
+            keys:
+              - "taskListExpandHint"
+              - "taskListCollapseHint"
+          - path: "lib/l10n/app_zh_CN.arb"
+            action: "add"
+          - path: "lib/l10n/app_zh_HK.arb"
+            action: "add"
+        validation:
+          - "确认所有语言都有翻译"
+          - "确认key命名一致"
+      
+      - step_id: "3.5"
+        name: "运行代码生成"
+        description: "重新生成本地化文件"
+        command: "flutter gen-l10n"
+        validation:
+          - "确认本地化文件生成成功"
+          - "确认没有错误"
+      
+      - step_id: "3.6"
+        name: "Widget测试"
+        description: "为UI组件编写Widget测试"
+        files:
+          - path: "test/presentation/tasks/task_list_expand_edit_test.dart"
+            action: "create"
+            test_cases:
+              - "test_task_expands_on_tap"
+              - "test_inline_title_edit_works"
+              - "test_tags_edit_works"
+              - "test_date_picker_works"
+              - "test_task_collapses_on_tap"
+        validation:
+          - "确认所有测试通过"
+          - "确认UI交互正常"
+
+  phase_4:
+    name: "集成测试和验证"
+    order: 4
+    status: "pending"
+    estimated_duration: "1小时"
+    
+    steps:
+      - step_id: "4.1"
+        name: "编写集成测试"
+        description: "编写端到端的集成测试"
+        files:
+          - path: "test/integration/task_list_filtering_integration_test.dart"
+            action: "create"
+            test_scenarios:
+              - "测试基础模式只显示叶任务"
+              - "测试编辑模式只显示叶任务"
+              - "测试展开编辑功能"
+              - "测试索引查询性能"
+        validation:
+          - "确认所有场景通过"
+          - "确认性能达标"
+      
+      - step_id: "4.2"
+        name: "运行所有测试"
+        description: "运行完整的测试套件"
+        command: "flutter test"
+        validation:
+          - "确认所有测试通过"
+          - "确认测试覆盖率>90%"
+      
+      - step_id: "4.3"
+        name: "性能测试"
+        description: "验证查询性能提升"
+        test_cases:
+          - name: "测试status索引性能"
+            expected: "查询时间<10ms"
+          - name: "测试dueAt索引性能"
+            expected: "查询时间<10ms"
+          - name: "测试parentId索引性能"
+            expected: "查询时间<10ms"
+          - name: "测试完整查询性能"
+            expected: "总查询时间<30ms"
+        validation:
+          - "确认所有性能指标达标"
+          - "确认索引优化生效"
+      
+      - step_id: "4.4"
+        name: "手动测试"
+        description: "进行手动功能测试"
+        test_scenarios:
+          - "创建父任务和子任务，验证只显示叶任务"
+          - "测试不同日期的子任务场景"
+          - "测试展开编辑功能"
+          - "测试基础模式和编辑模式切换"
+        validation:
+          - "确认功能正常"
+          - "确认没有bug"
+          - "确认用户体验良好"
+      
+      - step_id: "4.5"
+        name: "最终静态分析"
+        description: "确保代码质量"
+        command: "flutter analyze"
+        validation:
+          - "确认没有错误"
+          - "确认没有警告"
+          - "确认符合所有lint规则"
+
+  phase_5:
+    name: "文档更新"
+    order: 5
+    status: "pending"
+    estimated_duration: "30分钟"
+    
+    steps:
+      - step_id: "5.1"
+        name: "更新task_repository.yaml"
+        description: "更新TaskRepository架构文档"
+        files:
+          - path: "documents/architecture/repositories/task_repository.yaml"
+            action: "modify"
+            updates:
+              - "添加_filterLeafTasks方法文档"
+              - "更新_fetchSection方法说明"
+              - "添加叶任务过滤业务规则"
+              - "更新索引说明"
+        validation:
+          - "确认文档与代码一致"
+          - "确认描述清晰"
+      
+      - step_id: "5.2"
+        name: "更新task_list_page.yaml"
+        description: "更新TaskListPage架构文档"
+        files:
+          - path: "documents/architecture/pages/task_list_page.yaml"
+            action: "create_or_update"
+            updates:
+              - "添加展开编辑功能文档"
+              - "添加状态管理说明"
+              - "添加组件说明"
+        validation:
+          - "确认文档完整"
+          - "确认与代码一致"
+      
+      - step_id: "5.3"
+        name: "更新task_entity.yaml"
+        description: "更新TaskEntity模型文档"
+        files:
+          - path: "documents/architecture/models/task_entity.yaml"
+            action: "create_or_update"
+            updates:
+              - "添加索引说明"
+              - "更新字段文档"
+        validation:
+          - "确认索引文档正确"
+          - "确认与实际索引一致"
+
+completion_criteria:
+  functional:
+    - "任务列表只显示叶任务"
+    - "基础模式和编辑模式都正确过滤"
+    - "展开编辑功能正常工作"
+    - "所有索引正确添加"
+  
+  performance:
+    - "查询性能<30ms"
+    - "索引查询生效"
+    - "内存使用合理"
+  
+  quality:
+    - "所有测试通过"
+    - "测试覆盖率>90%"
+    - "静态分析无错误"
+    - "代码符合lint规则"
+  
+  documentation:
+    - "架构文档已更新"
+    - "API文档已更新"
+    - "文档与代码一致"
+
+rollback_plan:
+  - step: "如果索引导致问题，移除@Index注解并重新生成代码"
+  - step: "如果叶任务过滤有bug，回滚_fetchSection修改"
+  - step: "如果UI功能有问题，回滚UI相关修改"
+  - step: "运行flutter test确保回滚后测试通过"
+
+notes:
+  - "索引优化必须先完成，再进行过滤逻辑修改"
+  - "叶任务过滤不限制子任务条件，这是避免bug的关键"
+  - "展开编辑功能参考inbox页面实现"
+  - "每个阶段完成后运行测试验证"
+  - "保持代码整洁，及时提交"

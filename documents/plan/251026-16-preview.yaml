@@ -1,0 +1,351 @@
+meta:
+  name: "任务列表叶任务过滤优化"
+  version: "1.0"
+  created_date: "251026"
+  last_updated: "251026"
+  author: "AI Assistant"
+  status: "preview"
+
+overview:
+  title: "任务列表叶任务过滤优化"
+  description: >
+    修复任务列表页面，确保只显示叶任务（没有子任务的任务），
+    符合产品需求规范，提升用户体验和任务管理效率。
+  
+  problem_statement: >
+    当前任务列表显示所有任务，包括有子任务的父任务，不符合产品需求。
+    产品需求明确规定应该只显示：
+    1. 叶子任务（NOT has_children）
+    2. 不显示任何父任务，无论其子任务状态如何
+    
+  business_impact: >
+    - 提升任务列表的清晰度和可用性
+    - 符合产品设计规范
+    - 减少用户混淆，专注于可执行的任务
+    - 提高任务管理效率
+
+requirements:
+  functional:
+    - name: "叶任务过滤"
+      description: "只显示没有子任务的任务"
+      priority: "high"
+      acceptance_criteria:
+        - 任务列表不显示任何有子任务的父任务
+        - 只显示可以直接执行的叶任务
+        - 保持现有的任务排序和分组逻辑
+    
+    - name: "模式兼容性"
+      description: "确保基础模式和编辑模式都正确过滤"
+      priority: "high"
+      acceptance_criteria:
+        - 基础模式：只显示叶任务
+        - 编辑模式：同样只显示叶任务
+        - 保持现有的拖拽排序功能
+    
+    - name: "任务展开编辑功能"
+      description: "仿照inbox页面，支持点击任务展开进行编辑"
+      priority: "high"
+      acceptance_criteria:
+        - 点击任务可以展开显示编辑界面
+        - 展开后可以编辑任务标题、标签、截止日期等
+        - 支持内联编辑（直接编辑标题）
+        - 展开状态有明确的视觉反馈
+        - 支持收起展开的任务
+    
+    - name: "性能优化"
+      description: "确保过滤逻辑不影响性能"
+      priority: "medium"
+      acceptance_criteria:
+        - 过滤逻辑在数据库层面执行，避免内存过滤
+        - 保持现有的流式更新机制
+        - 不影响任务加载速度
+    
+    - name: "数据库索引优化"
+      description: "为关键字段添加索引，提升查询性能"
+      priority: "high"
+      acceptance_criteria:
+        - 为TaskEntity.status字段添加@Index注解
+        - 为TaskEntity.dueAt字段添加@Index注解
+        - 为TaskEntity.parentId字段添加@Index注解
+        - 重新生成Isar数据库代码
+        - 验证索引查询性能提升
+        - 确保现有查询功能正常工作
+
+  non_functional:
+    - name: "数据一致性"
+      description: "确保过滤逻辑与产品需求完全一致"
+      priority: "high"
+    
+    - name: "向后兼容"
+      description: "不影响现有功能和用户体验"
+      priority: "high"
+    
+    - name: "测试覆盖"
+      description: "添加完整的单元测试和集成测试"
+      priority: "medium"
+
+technical_approach:
+  data_layer:
+    - name: "TaskRepository修改"
+      description: "在_fetchSection方法中添加叶任务过滤逻辑"
+      implementation:
+        - 添加子任务存在性检查
+        - 添加子任务完成状态检查
+        - 优化数据库查询性能
+        - 保持现有的排序和分组逻辑
+    
+    - name: "数据库查询优化"
+      description: "使用高效的数据库查询实现过滤"
+      implementation:
+        - 使用LEFT JOIN检查子任务存在性
+        - 使用聚合查询检查子任务完成状态
+        - 避免N+1查询问题
+    
+    - name: "数据库索引优化"
+      description: "为关键字段添加索引，提升查询性能"
+      implementation:
+        - 在TaskEntity.status字段添加@Index注解
+        - 在TaskEntity.dueAt字段添加@Index注解
+        - 在TaskEntity.parentId字段添加@Index注解
+        - 运行flutter packages pub run build_runner build重新生成代码
+        - 验证索引查询方法的生成
+        - 测试查询性能提升效果
+        - 优化查询顺序以充分利用索引
+    
+  business_logic:
+    - name: "叶任务判断逻辑"
+      description: "实现准确的叶任务识别"
+      implementation:
+        - 检查任务是否有任何子任务
+        - 只返回没有子任务的任务
+        - 处理边界情况和异常数据
+
+  ui_layer:
+    - name: "任务展开编辑界面"
+      description: "仿照inbox页面实现任务展开编辑功能"
+      implementation:
+        - 修改_TaskLeafTile支持点击展开
+        - 添加展开状态管理（类似inbox的_expandedTaskIdProvider）
+        - 实现展开后的编辑界面组件
+        - 支持内联标题编辑
+        - 添加标签编辑、截止日期设置等功能
+        - 实现收起展开的交互逻辑
+    
+    - name: "视觉反馈优化"
+      description: "为展开状态提供清晰的视觉反馈"
+      implementation:
+        - 展开时显示编辑界面
+        - 收起时显示简洁的任务信息
+        - 添加展开/收起的动画效果
+        - 保持与inbox页面一致的设计风格
+
+implementation_phases:
+  phase_1:
+    name: "数据层过滤实现"
+    duration: "2-3小时"
+    tasks:
+      - 修改TaskRepository._fetchSection方法
+      - 添加叶任务过滤逻辑
+      - 优化数据库查询性能
+      - 为TaskEntity.status字段添加@Index注解
+      - 为TaskEntity.dueAt字段添加@Index注解
+      - 为TaskEntity.parentId字段添加@Index注解
+      - 重新生成Isar数据库代码
+    
+  phase_2:
+    name: "UI层展开编辑功能"
+    duration: "3-4小时"
+    tasks:
+      - 添加任务展开状态管理
+      - 实现任务展开编辑界面
+      - 支持内联标题编辑
+      - 添加标签和截止日期编辑
+      - 实现收起展开交互
+      - 添加视觉反馈和动画
+    
+  phase_3:
+    name: "测试和验证"
+    duration: "1-2小时"
+    tasks:
+      - 编写单元测试
+      - 编写集成测试
+      - 验证过滤逻辑正确性
+      - 测试展开编辑功能
+      - 性能测试
+    
+  phase_4:
+    name: "文档更新"
+    duration: "0.5小时"
+    tasks:
+      - 更新架构文档
+      - 更新API文档
+      - 更新测试文档
+
+testing_strategy:
+  unit_tests:
+    - name: "叶任务过滤测试"
+      description: "测试_fetchSection方法的过滤逻辑"
+      test_cases:
+        - 只返回没有子任务的任务
+        - 不返回任何有子任务的父任务
+        - 处理边界情况（空列表、异常数据）
+        - 验证过滤逻辑的准确性
+    
+    - name: "数据库索引测试"
+      description: "测试关键字段索引功能"
+      test_cases:
+        - 验证status字段@Index注解正确添加
+        - 验证dueAt字段@Index注解正确添加
+        - 验证parentId字段@Index注解正确添加
+        - 验证生成的查询方法使用索引
+        - 测试索引查询性能提升
+        - 测试查询顺序优化效果
+        - 确保现有查询功能不受影响
+    
+  integration_tests:
+    - name: "端到端过滤测试"
+      description: "测试完整的任务列表过滤流程"
+      test_cases:
+        - 基础模式下的任务列表显示
+        - 编辑模式下的任务列表显示
+        - 不同分区的任务过滤
+        - 任务状态变更后的过滤更新
+    
+    - name: "任务展开编辑测试"
+      description: "测试任务展开编辑功能"
+      test_cases:
+        - 点击任务可以展开编辑界面
+        - 展开后可以编辑任务标题
+        - 展开后可以编辑标签和截止日期
+        - 支持收起展开的任务
+        - 编辑后数据正确保存
+        - 展开状态在页面刷新后保持
+    
+  performance_tests:
+    - name: "查询性能测试"
+      description: "测试过滤逻辑的性能影响"
+      test_cases:
+        - 大量任务情况下的查询性能
+        - 复杂任务层次结构的查询性能
+        - 内存使用情况
+
+risk_assessment:
+  technical_risks:
+    - name: "查询性能下降"
+      probability: "medium"
+      impact: "medium"
+      mitigation: "优化数据库查询，使用索引，避免N+1问题"
+    
+    - name: "过滤逻辑复杂"
+      probability: "low"
+      impact: "medium"
+      mitigation: "分步骤实现，充分测试，保持代码简洁"
+    
+    - name: "数据一致性问题"
+      probability: "low"
+      impact: "high"
+      mitigation: "充分测试，使用事务，添加数据验证"
+  
+  business_risks:
+    - name: "用户体验变化"
+      probability: "low"
+      impact: "low"
+      mitigation: "符合产品需求，提升用户体验"
+    
+    - name: "现有功能受影响"
+      probability: "low"
+      impact: "medium"
+      mitigation: "充分测试，保持向后兼容"
+
+success_criteria:
+  functional:
+    - 任务列表只显示叶任务
+    - 基础模式和编辑模式都正确过滤
+    - 支持点击任务展开编辑功能
+    - 关键字段索引优化完成（status、dueAt、parentId）
+    - 保持现有的所有功能（排序、拖拽、编辑等）
+    - 过滤逻辑与产品需求完全一致
+  
+  performance:
+    - 查询性能显著提升（多字段索引优化）
+    - 内存使用不显著增加
+    - 流式更新机制正常工作
+    - 数据库查询响应时间<30ms
+    - 索引查询顺序优化生效
+  
+  quality:
+    - 单元测试覆盖率>90%
+    - 集成测试通过率100%
+    - 代码审查通过
+    - 静态分析无问题
+
+deliverables:
+  code_changes:
+    - "lib/data/repositories/task_repository.dart - 修改_fetchSection方法"
+    - "lib/data/isar/task_entity.dart - 添加status、dueAt、parentId字段@Index注解"
+    - "lib/data/isar/task_entity.g.dart - 重新生成的索引代码"
+    - "test/data/repositories/task_repository_test.dart - 添加过滤测试"
+    - "test/integration/task_list_filtering_test.dart - 添加集成测试"
+  
+  documentation:
+    - "documents/architecture/repositories/task_repository.yaml - 更新架构文档"
+    - "documents/plan/251026-16-step.yaml - 详细实施步骤"
+  
+  testing:
+    - "单元测试用例"
+    - "集成测试用例"
+    - "性能测试报告"
+
+timeline:
+  total_duration: "8-10小时"
+  start_date: "251026"
+  end_date: "251026"
+  
+  milestones:
+    - name: "数据层实现完成"
+      date: "251026"
+      deliverable: "TaskRepository过滤逻辑实现"
+    
+    - name: "UI层展开编辑完成"
+      date: "251026"
+      deliverable: "任务展开编辑功能实现"
+    
+    - name: "测试完成"
+      date: "251026"
+      deliverable: "所有测试通过"
+    
+    - name: "文档更新完成"
+      date: "251026"
+      deliverable: "架构文档更新"
+
+dependencies:
+  internal:
+    - "TaskRepository现有实现"
+    - "Task模型和TaskSection枚举"
+    - "Isar数据库查询能力"
+    - "Inbox页面的展开编辑实现"
+    - "现有的标签和日期选择组件"
+  
+  external:
+    - "Flutter测试框架"
+    - "Isar数据库性能"
+
+assumptions:
+  - "现有的任务层次结构数据是完整的"
+  - "子任务状态数据是准确的"
+  - "数据库查询性能可以满足需求"
+  - "产品需求规范是最终版本"
+
+constraints:
+  - "不能破坏现有的任务管理功能"
+  - "必须保持向后兼容性"
+  - "性能不能显著下降"
+  - "代码必须通过静态分析"
+
+  notes:
+  - "这是一个重要的产品需求修复，需要仔细实现和测试"
+  - "过滤逻辑应该尽可能在数据库层面实现，避免内存过滤"
+  - "只显示叶任务，不显示任何父任务，简化任务列表"
+  - "仿照inbox页面实现展开编辑功能，保持用户体验一致性"
+  - "为关键字段（status、dueAt、parentId）添加索引是重要的性能优化，应该优先实施"
+  - "建议分阶段实施，先实现基本过滤和索引优化，再添加展开编辑功能"

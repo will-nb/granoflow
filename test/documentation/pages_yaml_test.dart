@@ -398,7 +398,7 @@ class PagesYAMLTest {
     
     // 验证页面状态
     final state = yamlToList(inboxPageYaml['page_state']);
-    expect(state.length, equals(4), reason: 'InboxPage should have 4 states');
+    expect(state.length, equals(5), reason: 'InboxPage should have 5 states');
     
     final inputControllerState = state.firstWhere((s) => s['name'] == '_inputController');
     expect(inputControllerState['type'], equals('TextEditingController'));
@@ -418,7 +418,7 @@ class PagesYAMLTest {
     
     // 验证页面事件
     final events = yamlToList(inboxPageYaml['page_events']);
-    expect(events.length, equals(2), reason: 'InboxPage should have 2 events');
+    expect(events.length, equals(6), reason: 'InboxPage should have 6 events');
     
     final onTaskSubmitEvent = events.firstWhere((e) => e['name'] == 'onTaskSubmit');
     expect(onTaskSubmitEvent['description'], equals('任务提交事件'));

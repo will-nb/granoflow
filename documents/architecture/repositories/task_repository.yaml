@@ -264,6 +264,20 @@ implementation_details:
       description: "构建任务树"
       visibility: "private"
       
+    - name: "_filterLeafTasks"
+      return_type: "Future<List<TaskEntity>>"
+      parameters:
+        - name: "tasks"
+          type: "List<TaskEntity>"
+          required: true
+      description: "过滤叶任务（只保留没有子任务的任务）。查询所有父任务ID（不限制子任务条件），利用parentId索引提升性能"
+      visibility: "private"
+      notes:
+        - "使用parentIdIsNotNull()和distinctByParentId()查询所有父任务ID"
+        - "不限制子任务的任何条件（status、dueAt等），避免跨section子任务导致的bug"
+        - "利用parentId索引优化查询性能"
+        - "返回的任务列表中不包含任何父任务"
+      
     - name: "_toDomain"
       return_type: "Task"
       parameters:
@@ -428,6 +442,14 @@ business_rules:
   - name: "task_status_transition"
     description: "任务状态转换规则"
     implementation: "状态转换的业务逻辑验证"
+  - name: "leaf_task_filtering"
+    description: "叶任务过滤规则"
+    implementation: "任务列表只显示叶任务（没有子任务的任务）。通过查询所有父任务ID进行过滤，不限制子任务条件避免bug"
+    notes:
+      - "查询所有有子任务的父任务ID（parentIdIsNotNull + distinctByParentId）"
+      - "不对子任务施加任何过滤条件（status、dueAt等）"
+      - "利用parentId索引优化查询性能"
+      - "确保跨section的子任务也能正确识别父任务"
     
 error_handling:
   - exception: "IsarException"
@@ -445,7 +467,19 @@ error_handling:
     
 performance_considerations:
   - operation: "watchSection"
-    optimization: "使用索引优化查询"
+    optimization: "使用status和dueAt索引优化查询，叶任务过滤使用parentId索引"
+    notes:
+      - "status索引：快速筛选任务状态"
+      - "dueAt索引：快速筛选截止日期范围"
+      - "parentId索引：快速识别父任务进行叶任务过滤"
+      - "预期查询性能提升70-80%"
+  - operation: "_filterLeafTasks"
+    optimization: "利用parentId索引进行叶任务过滤"
+    notes:
+      - "使用parentIdIsNotNull()查询利用索引"
+      - "distinctByParentId()减少重复父任务ID"
+      - "Set数据结构优化contains()查询"
+      - "预期叶任务过滤性能<10ms"
     description: "分区查询性能优化"
   - operation: "watchTaskTree"
     optimization: "递归查询优化"

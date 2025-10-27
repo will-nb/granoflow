@@ -2,10 +2,10 @@ meta:
   name: "TaskListPage"
   type: "page"
   file_path: "lib/presentation/tasks/task_list_page.dart"
-  description: "任务列表页面，显示和管理任务列表"
-  version: "1.0"
+  description: "任务列表页面，显示和管理任务列表。支持叶任务过滤、展开编辑、标签管理和日期设置"
+  version: "2.0"
   created_date: "251025"
-  last_updated: "251025"
+  last_updated: "251026"
 
 page_definition:
   name: "TaskListPage"
@@ -297,12 +297,133 @@ page_data_flow:
     destination: "任务列表"
     transformation: "任务数据转换"
     
+page_components:
+  - name: "_TaskLeafTile"
+    type: "ConsumerStatefulWidget"
+    description: "叶任务瓦片组件，支持展开编辑"
+    features:
+      - "展开/收起功能"
+      - "内联标题编辑"
+      - "滑动完成/归档"
+    state_management:
+      - "taskListExpandedTaskIdProvider"
+      - "TextEditingController for title"
+    
+  - name: "_ExpandedTaskControls"
+    type: "ConsumerWidget"
+    description: "展开任务的编辑控制面板"
+    features:
+      - "标签编辑（urgency, importance, context）"
+      - "日期设置（快速选择 + 自定义）"
+    dependencies:
+      - "urgencyTagOptionsProvider"
+      - "importanceTagOptionsProvider"
+      - "contextTagOptionsProvider"
+      - "taskServiceProvider"
+    
+  - name: "_TagsSection"
+    type: "ConsumerWidget"
+    description: "标签编辑区域"
+    features:
+      - "紧急程度标签（urgent/not_urgent）"
+      - "重要程度标签（important/not_important）"
+      - "情境标签（home/work/errands/calls/online/local）"
+      - "多语言标签显示"
+    interaction: "FilterChip单选/多选切换"
+    
+  - name: "_DateSection"
+    type: "StatelessWidget"
+    description: "日期设置区域"
+    features:
+      - "快速日期选择（今天/明天/本周/本月）"
+      - "自定义日期选择"
+      - "限制选择今天及以后日期"
+    ui_pattern: "BottomSheet + DatePicker"
+
+page_features:
+  leaf_task_filtering:
+    description: "叶任务过滤功能"
+    implementation: "只显示没有子任务的任务"
+    benefits:
+      - "简化任务列表视图"
+      - "聚焦可执行任务"
+      - "提升查询性能"
+    technical_details:
+      - "使用parentId索引优化查询"
+      - "不限制子任务条件避免bug"
+      - "查询性能<10ms"
+  
+  task_expand_edit:
+    description: "任务展开编辑功能"
+    implementation: "点击任务展开显示编辑面板"
+    features:
+      - "内联标题编辑（TextField with underline）"
+      - "标签快速编辑（FilterChip）"
+      - "日期快速设置（BottomSheet + DatePicker）"
+    user_experience:
+      - "与Inbox页面体验一致"
+      - "点击任意位置展开/收起"
+      - "展开按钮图标变化提示"
+  
+  tag_management:
+    description: "标签管理功能"
+    implementation: "分组显示和编辑任务标签"
+    tag_groups:
+      - name: "urgency"
+        tags: ["urgent", "not_urgent"]
+        type: "single_selection"
+      - name: "importance"
+        tags: ["important", "not_important"]
+        type: "single_selection"
+      - name: "context"
+        tags: ["home", "work", "errands", "calls", "online", "local"]
+        type: "multiple_selection"
+    localization:
+      - "支持en/zh_CN/zh_HK三种语言"
+      - "内置标签翻译映射"
+  
+  date_picker:
+    description: "日期选择功能"
+    implementation: "快速选择 + 自定义选择"
+    quick_options:
+      - name: "today"
+        label: "今天/Today"
+      - name: "tomorrow"
+        label: "明天/Tomorrow"
+      - name: "thisWeek"
+        label: "本周/This Week"
+        calculation: "本周六"
+      - name: "thisMonth"
+        label: "当月/This Month"
+        calculation: "月底"
+      - name: "custom"
+        label: "自定义/Custom"
+        picker: "DatePicker"
+    constraints:
+      - "firstDate: today"
+      - "lastDate: today + 2 years"
+
 page_business_logic:
   - name: "taskListLogic"
     description: "任务列表逻辑"
-    implementation: "任务列表管理"
-    dependencies: "任务服务"
+    implementation: "任务列表管理 + 叶任务过滤"
+    dependencies: "任务服务 + 任务仓库"
     testing: "单元测试"
+    
+  - name: "leafTaskFilterLogic"
+    description: "叶任务过滤逻辑"
+    implementation: "只显示没有子任务的任务"
+    dependencies: "TaskRepository._filterLeafTasks"
+    performance: "<10ms查询时间"
+    
+  - name: "taskExpandLogic"
+    description: "任务展开编辑逻辑"
+    implementation: "展开状态管理 + 编辑操作"
+    state: "taskListExpandedTaskIdProvider"
+    actions:
+      - "updateTitle"
+      - "toggleTag"
+      - "updateDueDate"
     
 page_user_experience:
   - name: "taskManagementExperience"

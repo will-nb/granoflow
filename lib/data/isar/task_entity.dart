@@ -15,8 +15,10 @@ class TaskEntity {
   late String title;
 
   @enumerated
+  @Index()
   late TaskStatus status;
 
+  @Index()
   DateTime? dueAt;
 
   DateTime? startedAt;
@@ -27,6 +29,7 @@ class TaskEntity {
 
   late DateTime updatedAt;
 
+  @Index()
   int? parentId;
 
   double sortIndex = 0;

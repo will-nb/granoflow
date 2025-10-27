@@ -388,7 +388,11 @@ class IsarTaskRepository implements TaskRepository {
     }
 
     final results = await builder.sortBySortIndex().findAll();
-    return results.map(_toDomain).toList(growable: false);
+    
+    // 过滤叶任务（只显示没有子任务的任务）
+    final leafTasks = await _filterLeafTasks(results);
+    
+    return leafTasks.map(_toDomain).toList(growable: false);
   }
 
   Future<TaskTreeNode> _buildTree(int rootTaskId) async {
@@ -405,6 +409,22 @@ class IsarTaskRepository implements TaskRepository {
       children.map((child) => _buildTree(child.id)),
     );
     return TaskTreeNode(task: _toDomain(entity), children: nodes);
+  }
+
+  Future<List<TaskEntity>> _filterLeafTasks(List<TaskEntity> tasks) async {
+    if (tasks.isEmpty) return tasks;
+    
+    // 查询所有父任务ID（不限制子任务的任何条件，避免bug）
+    // 利用parentId索引提升性能
+    final parentIds = await _isar.taskEntitys
+        .filter()
+        .parentIdIsNotNull()
+        .distinctByParentId()
+        .findAll()
+        .then((entities) => entities.map((e) => e.parentId!).toSet());
+    
+    // 过滤出叶任务（没有子任务的任务）
+    return tasks.where((task) => !parentIds.contains(task.id)).toList();
   }
 
   Stream<T> _watchQuery<T>(Future<T> Function() fetcher) {

@@ -1,0 +1,246 @@
+meta:
+  name: "TaskEntity"
+  type: "entity"
+  file_path: "lib/data/isar/task_entity.dart"
+  description: "Isar数据库任务实体，负责任务数据的持久化"
+  version: "2.0"
+  created_date: "251026"
+  last_updated: "251026"
+
+entity_definition:
+  collection_name: "TaskEntity"
+  storage_backend: "isar"
+  layer: "data_persistence"
+  
+fields:
+  - name: "id"
+    type: "Id"
+    nullable: false
+    description: "Isar自增主键"
+    default: "Isar.autoIncrement"
+    indexed: true
+    notes:
+      - "自动生成的唯一标识"
+      - "用于数据库内部关联"
+      
+  - name: "taskId"
+    type: "String"
+    nullable: false
+    description: "业务任务ID，格式：YYYYMMDD-XXXX"
+    indexed: false
+    notes:
+      - "用于业务逻辑和用户显示"
+      - "格式：8位日期+4位自增数字"
+      - "每日从0001开始自增"
+      
+  - name: "title"
+    type: "String"
+    nullable: false
+    description: "任务标题"
+    indexed: false
+    
+  - name: "status"
+    type: "TaskStatus"
+    nullable: false
+    description: "任务状态枚举"
+    indexed: true
+    notes:
+      - "使用@enumerated注解序列化"
+      - "添加@Index()注解优化查询性能"
+      - "用于任务分区过滤（inbox、pending、doing等）"
+    enum_values:
+      - "inbox"
+      - "pending"
+      - "doing"
+      - "completedActive"
+      - "archived"
+      - "trashed"
+      - "pseudoDeleted"
+      
+  - name: "dueAt"
+    type: "DateTime?"
+    nullable: true
+    description: "任务截止日期"
+    indexed: true
+    notes:
+      - "添加@Index()注解优化日期范围查询"
+      - "用于任务分区过滤（today、tomorrow、thisWeek等）"
+      - "nullable，允许任务没有截止日期"
+      
+  - name: "startedAt"
+    type: "DateTime?"
+    nullable: true
+    description: "任务开始时间"
+    indexed: false
+    
+  - name: "endedAt"
+    type: "DateTime?"
+    nullable: true
+    description: "任务完成时间"
+    indexed: false
+    
+  - name: "createdAt"
+    type: "DateTime"
+    nullable: false
+    description: "任务创建时间"
+    indexed: false
+    
+  - name: "updatedAt"
+    type: "DateTime"
+    nullable: false
+    description: "任务最后更新时间"
+    indexed: false
+    
+  - name: "parentId"
+    type: "int?"
+    nullable: true
+    description: "父任务ID（引用id字段）"
+    indexed: true
+    notes:
+      - "添加@Index()注解优化父子关系查询"
+      - "用于叶任务过滤（识别有子任务的父任务）"
+      - "用于任务树结构构建"
+      - "nullable，根任务的parentId为null"
+      
+  - name: "sortIndex"
+    type: "double"
+    nullable: false
+    description: "任务排序索引"
+    default: "0"
+    indexed: false
+    notes:
+      - "用于自定义排序"
+      - "支持拖拽重排序"
+      
+  - name: "tags"
+    type: "List<String>"
+    nullable: false
+    description: "任务标签列表"
+    default: "[]"
+    indexed: false
+    notes:
+      - "存储标签slug"
+      - "支持多标签"
+
+indexes:
+  - name: "status"
+    fields: ["status"]
+    unique: false
+    description: "状态索引，用于快速筛选不同状态的任务"
+    usage:
+      - "任务分区查询（inbox、pending、doing等）"
+      - "叶任务过滤前的初步筛选"
+    performance: "预期提升status过滤性能70-80%"
+    
+  - name: "dueAt"
+    fields: ["dueAt"]
+    unique: false
+    description: "截止日期索引，用于快速筛选日期范围"
+    usage:
+      - "日期分区查询（today、tomorrow、thisWeek等）"
+      - "逾期任务查询"
+    performance: "预期提升日期过滤性能70-80%"
+    
+  - name: "parentId"
+    fields: ["parentId"]
+    unique: false
+    description: "父任务ID索引，用于快速查询父子关系"
+    usage:
+      - "叶任务过滤（查询所有父任务ID）"
+      - "任务树结构构建"
+      - "查找某任务的所有子任务"
+    performance: "预期叶任务过滤性能<10ms"
+    notes:
+      - "通过parentIdIsNotNull()快速查询所有父任务"
+      - "使用distinctByParentId()去重父任务ID"
+
+business_rules:
+  - name: "task_id_format"
+    description: "任务ID格式规范"
+    implementation: "YYYYMMDD-XXXX，8位日期+连字符+4位自增数字"
+    
+  - name: "task_hierarchy"
+    description: "任务层次结构"
+    implementation: "通过parentId字段建立父子关系，支持多级嵌套"
+    
+  - name: "task_status_lifecycle"
+    description: "任务状态生命周期"
+    implementation: "inbox -> pending/doing -> completedActive -> archived/trashed"
+    
+  - name: "leaf_task_identification"
+    description: "叶任务识别规则"
+    implementation: "没有子任务的任务（其id不在任何任务的parentId中）"
+    notes:
+      - "通过parentId索引快速识别"
+      - "不限制子任务的任何属性（status、dueAt等）"
+
+performance_considerations:
+  - operation: "status过滤"
+    optimization: "使用status索引"
+    performance: "预期提升70-80%"
+    
+  - operation: "日期范围查询"
+    optimization: "使用dueAt索引"
+    performance: "预期提升70-80%"
+    
+  - operation: "叶任务过滤"
+    optimization: "使用parentId索引"
+    performance: "预期<10ms"
+    notes:
+      - "查询所有父任务ID使用索引"
+      - "Set数据结构优化contains查询"
+      
+  - operation: "任务树构建"
+    optimization: "使用parentId索引递归查询"
+    performance: "O(n)复杂度，n为子任务数量"
+
+migration_notes:
+  - version: "2.0"
+    date: "251026"
+    changes:
+      - "添加status字段@Index()注解"
+      - "添加dueAt字段@Index()注解"
+      - "添加parentId字段@Index()注解"
+    impact: "需要重新生成Isar代码，数据库schema版本升级"
+    rollback: "移除@Index()注解并重新生成代码"
+
+testing_strategy:
+  unit_tests:
+    - name: "test_task_entity_serialization"
+      description: "测试TaskEntity序列化和反序列化"
+      
+    - name: "test_task_entity_indexes"
+      description: "测试索引是否正确生成"
+      assertions:
+        - "status索引存在"
+        - "dueAt索引存在"
+        - "parentId索引存在"
+        
+    - name: "test_task_id_format"
+      description: "测试taskId格式符合规范"
+      
+  integration_tests:
+    - name: "test_leaf_task_query_performance"
+      description: "测试叶任务查询性能"
+      expected_performance: "<10ms for 1000 tasks"
+      
+    - name: "test_section_query_performance"
+      description: "测试分区查询性能"
+      expected_performance: "<30ms with all indexes"
+
+related_files:
+  - path: "lib/data/repositories/task_repository.dart"
+    relationship: "使用TaskEntity进行持久化操作"
+    
+  - path: "lib/data/models/task.dart"
+    relationship: "TaskEntity的领域模型表示"
+    
+  - path: "documents/architecture/repositories/task_repository.yaml"
+    relationship: "TaskRepository的架构文档"
+
+notes:
+  - "所有索引在版本2.0中新增，显著提升查询性能"
+  - "叶任务过滤依赖parentId索引实现，确保性能最优"
+  - "索引维护成本较低，写入性能影响<5%"
+  - "建议在生产环境监控查询性能，确保索引生效"
+

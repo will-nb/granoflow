@@ -220,6 +220,9 @@ final taskTreeProvider = StreamProvider.family<TaskTreeNode, int>((
 });
 
 final expandedRootTaskIdProvider = StateProvider<int?>((ref) => null);
+
+/// Provider for managing expanded task ID in task list page
+final taskListExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 final inboxExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 
 class TaskEditActionsNotifier extends AsyncNotifier<void> {

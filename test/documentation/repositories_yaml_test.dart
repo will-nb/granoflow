@@ -105,7 +105,7 @@ class RepositoriesYAMLTest {
     // 验证导入
     final imports = yamlToList(taskRepositoryYaml['imports']);
     expect(imports, contains('dart:async'));
-    expect(imports, contains('dart:math'));
+    expect(imports, contains('package:flutter/foundation.dart'));
     expect(imports, contains('package:isar/isar.dart'));
     
     // 验证职责
@@ -132,8 +132,10 @@ class RepositoriesYAMLTest {
     
     // 验证业务规则
     final businessRules = yamlToList(taskRepositoryYaml['business_rules']);
-    expect(businessRules.length, equals(3), reason: 'TaskRepository should have 3 business rules');
+    expect(businessRules.length, equals(5), reason: 'TaskRepository should have 5 business rules');
     expect(businessRules.any((rule) => rule['name'] == 'task_id_generation'), isTrue);
+    expect(businessRules.any((rule) => rule['name'] == 'task_id_parsing'), isTrue);
+    expect(businessRules.any((rule) => rule['name'] == 'leaf_task_filtering'), isTrue);
     expect(businessRules.any((rule) => rule['name'] == 'task_hierarchy'), isTrue);
     expect(businessRules.any((rule) => rule['name'] == 'task_status_transition'), isTrue);
     

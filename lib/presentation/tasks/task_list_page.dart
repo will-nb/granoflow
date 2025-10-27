@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/services/task_service.dart';
 import '../../core/theme/app_color_tokens.dart';
 import '../../data/models/task.dart';
 import '../widgets/page_app_bar.dart';
@@ -594,7 +596,7 @@ class _TaskChildrenEditorState extends ConsumerState<_TaskChildrenEditor> {
   }
 }
 
-class _TaskLeafTile extends ConsumerWidget {
+class _TaskLeafTile extends ConsumerStatefulWidget {
   const _TaskLeafTile({required this.task, required this.depth, required this.onTap});
 
   final Task task;
@@ -602,14 +604,72 @@ class _TaskLeafTile extends ConsumerWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final indentation = depth * 16.0;
+  ConsumerState<_TaskLeafTile> createState() => _TaskLeafTileState();
+}
+
+class _TaskLeafTileState extends ConsumerState<_TaskLeafTile> {
+  late TextEditingController _titleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.task.title);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _updateTaskTitle(BuildContext context, String newTitle) async {
+    if (newTitle.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Task title cannot be empty')),
+      );
+      _titleController.text = widget.task.title;
+      return;
+    }
+
+    if (newTitle.trim() == widget.task.title) {
+      return;
+    }
+
+    try {
+      final taskService = ref.read(taskServiceProvider);
+      await taskService.updateDetails(
+        taskId: widget.task.id,
+        payload: TaskUpdate(title: newTitle.trim()),
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Task updated successfully')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update task: $error')),
+        );
+        _titleController.text = widget.task.title;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expandedId = ref.watch(taskListExpandedTaskIdProvider);
+    final isExpanded = expandedId == widget.task.id;
+    final indentation = widget.depth * 16.0;
     final tokens = context.colorTokens;
     final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: EdgeInsets.only(left: indentation),
       child: Dismissible(
-        key: ValueKey('leaf-${task.id}'),
+        key: ValueKey('leaf-${widget.task.id}'),
         background: Container(
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -624,24 +684,399 @@ class _TaskLeafTile extends ConsumerWidget {
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {
-            await _completeTask(context, ref, task.id);
+            await _completeTask(context, ref, widget.task.id);
             return true;
           }
-          await _archiveTask(context, ref, task.id);
+          await _archiveTask(context, ref, widget.task.id);
           return true;
         },
-        child: ListTile(
-          title: Text(task.title),
-          subtitle: Text('ID: ${task.taskId}'),
-          trailing: IconButton(
-            icon: const Icon(Icons.play_circle_outline),
-            tooltip: l10n.actionStartTimer,
-            onPressed: onTap,
-          ),
-          onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ListTile(
+              title: isExpanded
+                  ? TextField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        border: UnderlineInputBorder(
+                          borderSide: BorderSide(color: colorScheme.primary),
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: colorScheme.primary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      onSubmitted: (value) => _updateTaskTitle(context, value),
+                    )
+                  : Text(widget.task.title),
+              subtitle: Text('ID: ${widget.task.taskId}'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.play_circle_outline),
+                    tooltip: l10n.actionStartTimer,
+                    onPressed: widget.onTap,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                    ),
+                    onPressed: () {
+                      ref.read(taskListExpandedTaskIdProvider.notifier).state =
+                          isExpanded ? null : widget.task.id;
+                    },
+                  ),
+                ],
+              ),
+              onTap: () {
+                ref.read(taskListExpandedTaskIdProvider.notifier).state =
+                    isExpanded ? null : widget.task.id;
+              },
+            ),
+            if (isExpanded) _ExpandedTaskControls(task: widget.task),
+          ],
         ),
       ),
     );
+  }
+}
+
+class _ExpandedTaskControls extends ConsumerWidget {
+  const _ExpandedTaskControls({required this.task});
+
+  final Task task;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final taskService = ref.read(taskServiceProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Divider(),
+          const SizedBox(height: 8),
+          // 标签编辑
+          _TagsSection(task: task, taskService: taskService),
+          const SizedBox(height: 16),
+          // 日期设置
+          _DateSection(task: task, taskService: taskService, colorScheme: colorScheme),
+        ],
+      ),
+    );
+  }
+}
+
+class _TagsSection extends ConsumerWidget {
+  const _TagsSection({required this.task, required this.taskService});
+
+  final Task task;
+  final TaskService taskService;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
+    final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
+    final contextTagsAsync = ref.watch(contextTagOptionsProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 紧急程度标签
+        urgencyTagsAsync.when(
+          data: (urgencyTags) => Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: urgencyTags.map((tag) {
+              final isSelected = task.tags.contains(tag.slug);
+              return FilterChip(
+                label: Text(_getTagLabel(context, tag.slug)),
+                selected: isSelected,
+                onSelected: (selected) async {
+                  await _toggleTag(context, ref, tag.slug, selected);
+                },
+              );
+            }).toList(),
+          ),
+          loading: () => const CircularProgressIndicator(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 8),
+        // 重要程度标签
+        importanceTagsAsync.when(
+          data: (importanceTags) => Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: importanceTags.map((tag) {
+              final isSelected = task.tags.contains(tag.slug);
+              return FilterChip(
+                label: Text(_getTagLabel(context, tag.slug)),
+                selected: isSelected,
+                onSelected: (selected) async {
+                  await _toggleTag(context, ref, tag.slug, selected);
+                },
+              );
+            }).toList(),
+          ),
+          loading: () => const CircularProgressIndicator(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 8),
+        // 情境标签
+        contextTagsAsync.when(
+          data: (contextTags) => Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: contextTags.map((tag) {
+              final isSelected = task.tags.contains(tag.slug);
+              return FilterChip(
+                label: Text(_getTagLabel(context, tag.slug)),
+                selected: isSelected,
+                onSelected: (selected) async {
+                  await _toggleTag(context, ref, tag.slug, selected);
+                },
+              );
+            }).toList(),
+          ),
+          loading: () => const CircularProgressIndicator(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  String _getTagLabel(BuildContext context, String slug) {
+    final l10n = AppLocalizations.of(context);
+    try {
+      return l10n.localeName == 'en'
+          ? _getEnglishTagLabel(slug)
+          : l10n.localeName == 'zh_CN'
+              ? _getSimplifiedChineseTagLabel(slug)
+              : _getTraditionalChineseTagLabel(slug);
+    } catch (_) {
+      return slug;
+    }
+  }
+
+  String _getEnglishTagLabel(String slug) {
+    const labels = {
+      'urgent': 'Urgent',
+      'not_urgent': 'Not Urgent',
+      'important': 'Important',
+      'not_important': 'Not Important',
+      'home': 'Home',
+      'work': 'Work',
+      'errands': 'Errands',
+      'calls': 'Calls',
+      'online': 'Online',
+      'local': 'Local',
+    };
+    return labels[slug] ?? slug;
+  }
+
+  String _getSimplifiedChineseTagLabel(String slug) {
+    const labels = {
+      'urgent': '紧急',
+      'not_urgent': '不紧急',
+      'important': '重要',
+      'not_important': '不重要',
+      'home': '家',
+      'work': '工作',
+      'errands': '差事',
+      'calls': '电话',
+      'online': '在线',
+      'local': '本地',
+    };
+    return labels[slug] ?? slug;
+  }
+
+  String _getTraditionalChineseTagLabel(String slug) {
+    const labels = {
+      'urgent': '緊急',
+      'not_urgent': '不緊急',
+      'important': '重要',
+      'not_important': '不重要',
+      'home': '家',
+      'work': '工作',
+      'errands': '差事',
+      'calls': '電話',
+      'online': '在線',
+      'local': '本地',
+    };
+    return labels[slug] ?? slug;
+  }
+
+  Future<void> _toggleTag(
+    BuildContext context,
+    WidgetRef ref,
+    String tagSlug,
+    bool selected,
+  ) async {
+    final taskService = ref.read(taskServiceProvider);
+    final currentTags = Set<String>.from(task.tags);
+
+    if (selected) {
+      currentTags.add(tagSlug);
+    } else {
+      currentTags.remove(tagSlug);
+    }
+
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(tags: currentTags.toList()),
+      );
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update tags: $error')),
+        );
+      }
+    }
+  }
+}
+
+class _DateSection extends StatelessWidget {
+  const _DateSection({
+    required this.task,
+    required this.taskService,
+    required this.colorScheme,
+  });
+
+  final Task task;
+  final TaskService taskService;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
+    return OutlinedButton.icon(
+      onPressed: () => _selectDate(context),
+      icon: const Icon(Icons.calendar_today),
+      label: Text(
+        task.dueAt == null
+            ? l10n.inboxPlanButtonLabel
+            : DateFormat.yMMMd().add_jm().format(task.dueAt!),
+      ),
+      style: OutlinedButton.styleFrom(
+        alignment: Alignment.centerLeft,
+      ),
+    );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // 显示快速选择对话框
+    final quickSelection = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => ListView(
+        shrinkWrap: true,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.today),
+            title: Text(l10n.datePickerToday),
+            onTap: () => Navigator.pop(context, 'today'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: Text(l10n.datePickerTomorrow),
+            onTap: () => Navigator.pop(context, 'tomorrow'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_view_week),
+            title: Text(l10n.datePickerThisWeek),
+            onTap: () => Navigator.pop(context, 'thisWeek'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_month),
+            title: Text(l10n.datePickerThisMonth),
+            onTap: () => Navigator.pop(context, 'thisMonth'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.event),
+            title: Text(l10n.datePickerCustom),
+            onTap: () => Navigator.pop(context, 'custom'),
+          ),
+        ],
+      ),
+    );
+
+    if (quickSelection == null || !context.mounted) return;
+
+    DateTime? selectedDate;
+
+    switch (quickSelection) {
+      case 'today':
+        selectedDate = today;
+        break;
+      case 'tomorrow':
+        selectedDate = today.add(const Duration(days: 1));
+        break;
+      case 'thisWeek':
+        selectedDate = _getThisWeekSaturday(today);
+        break;
+      case 'thisMonth':
+        selectedDate = _getEndOfMonth(today);
+        break;
+      case 'custom':
+        selectedDate = await showDatePicker(
+          context: context,
+          initialDate: task.dueAt ?? today,
+          firstDate: today,
+          lastDate: today.add(const Duration(days: 365 * 2)),
+        );
+        break;
+    }
+
+    if (selectedDate != null && context.mounted) {
+      await _updateDueDate(context, selectedDate);
+    }
+  }
+
+  DateTime _getThisWeekSaturday(DateTime today) {
+    final daysUntilSaturday = (DateTime.saturday - today.weekday + 7) % 7;
+    return today.add(Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday));
+  }
+
+  DateTime _getEndOfMonth(DateTime today) {
+    final nextMonth = DateTime(today.year, today.month + 1, 1);
+    return nextMonth.subtract(const Duration(days: 1));
+  }
+
+  Future<void> _updateDueDate(BuildContext context, DateTime dueDate) async {
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(dueAt: dueDate),
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Due date updated successfully')),
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update due date: $error')),
+        );
+      }
+    }
   }
 }
 
