@@ -1,333 +1,208 @@
 meta:
-  name: "SeedImportService"
-  type: "service"
-  file_path: "lib/core/services/seed_import_service.dart"
-  description: "种子数据导入服务，管理应用初始数据的导入和更新"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: SeedImportService
+  type: service
+  file_path: lib/core/services/seed_import_service.dart
+  description: Service 描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 service_definition:
-  name: "SeedImportService"
-  layer: "business_logic"
-  pattern: "service"
-  singleton: false
-  
+  name: ServiceName
+  layer: business_logic
+  pattern: service|orchestrator|facade
+  singleton: true|false
+enums:
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 constructor:
   parameters:
-    - name: "seedRepository"
-      type: "SeedRepository"
-      required: true
-      description: "种子数据仓库"
-    - name: "tagRepository"
-      type: "TagRepository"
-      required: true
-      description: "标签数据访问层"
-    - name: "taskRepository"
-      type: "TaskRepository"
-      required: true
-      description: "任务数据访问层"
-    - name: "templateRepository"
-      type: "TaskTemplateRepository"
-      required: true
-      description: "任务模板数据访问层"
-    - name: "metricOrchestrator"
-      type: "MetricOrchestrator"
-      required: true
-      description: "指标协调器"
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 构造函数参数描述
   dependencies:
-    - name: "SeedRepository"
-      type: "data/repositories/seed_repository.dart"
-      description: "种子数据仓库依赖"
-    - name: "TagRepository"
-      type: "data/repositories/tag_repository.dart"
-      description: "标签数据访问层依赖"
-    - name: "TaskRepository"
-      type: "data/repositories/task_repository.dart"
-      description: "任务数据访问层依赖"
-    - name: "TaskTemplateRepository"
-      type: "data/repositories/task_template_repository.dart"
-      description: "任务模板数据访问层依赖"
-    - name: "MetricOrchestrator"
-      type: "core/services/metric_orchestrator.dart"
-      description: "指标协调器依赖"
-      
+  - name: 依赖名
+    type: 依赖类型
+    description: 依赖描述
 public_methods:
-  - name: "importIfNeeded"
-    return_type: "Future<void>"
-    parameters:
-      - name: "localeCode"
-        type: "String"
-        required: true
-    description: "根据需要导入种子数据"
-    visibility: "public"
-    async: true
-    
-  - name: "loadSeedPayload"
-    return_type: "Future<SeedPayload>"
-    parameters:
-      - name: "localeCode"
-        type: "String"
-        required: true
-    description: "加载种子数据载荷"
-    visibility: "public"
-    async: true
-    
-  - name: "checkImportStatus"
-    return_type: "Future<bool>"
-    parameters:
-      - name: "version"
-        type: "String"
-        required: true
-    description: "检查导入状态"
-    visibility: "public"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 公共方法描述
+  visibility: public
+  async: true|false
 private_methods:
-  - name: "_applyTags"
-    return_type: "Future<void>"
-    parameters:
-      - name: "tags"
-        type: "List<SeedTag>"
-        required: true
-    description: "应用标签数据"
-    visibility: "private"
-    async: true
-    
-  - name: "_applyTasks"
-    return_type: "Future<Map<String, int>>"
-    parameters:
-      - name: "tasks"
-        type: "List<SeedTask>"
-        required: true
-    description: "应用任务数据"
-    visibility: "private"
-    async: true
-    
-  - name: "_applyInboxItems"
-    return_type: "Future<void>"
-    parameters:
-      - name: "inboxItems"
-        type: "List<SeedInboxItem>"
-        required: true
-      - name: "slugToId"
-        type: "Map<String, int>"
-        required: true
-    description: "应用收集箱数据"
-    visibility: "private"
-    async: true
-    
-  - name: "_applyTemplates"
-    return_type: "Future<void>"
-    parameters:
-      - name: "templates"
-        type: "List<SeedTemplate>"
-        required: true
-      - name: "slugToId"
-        type: "Map<String, int>"
-        required: true
-    description: "应用模板数据"
-    visibility: "private"
-    async: true
-    
-  - name: "_validateSeedData"
-    return_type: "void"
-    parameters:
-      - name: "payload"
-        type: "SeedPayload"
-        required: true
-    description: "验证种子数据"
-    visibility: "private"
-    async: false
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  description: 私有方法描述
+  visibility: private
+  async: true|false
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 fields:
-  - name: "_seedRepository"
-    type: "SeedRepository"
-    final: true
-    description: "种子数据仓库"
-  - name: "_tags"
-    type: "TagRepository"
-    final: true
-    description: "标签数据访问层"
-  - name: "_tasks"
-    type: "TaskRepository"
-    final: true
-    description: "任务数据访问层"
-  - name: "_templates"
-    type: "TaskTemplateRepository"
-    final: true
-    description: "任务模板数据访问层"
-  - name: "_metricOrchestrator"
-    type: "MetricOrchestrator"
-    final: true
-    description: "指标协调器"
-    
+- name: 字段名
+  type: 字段类型
+  final: true|false
+  description: 字段描述
 imports:
-  - "../../data/models/task.dart"
-  - "../../data/models/task_template.dart"
-  - "../../data/models/tag.dart"
-  - "../../data/repositories/seed_repository.dart"
-  - "../../data/repositories/tag_repository.dart"
-  - "../../data/repositories/task_repository.dart"
-  - "../../data/repositories/task_template_repository.dart"
-  - "metric_orchestrator.dart"
-  
+- package:flutter/material.dart
+- dart:async
+- 其他实际导入的包
 dependencies:
-  - name: "SeedRepository"
-    type: "data/repositories/seed_repository.dart"
-    description: "种子数据仓库依赖"
-  - name: "TagRepository"
-    type: "data/repositories/tag_repository.dart"
-    description: "标签数据访问层依赖"
-  - name: "TaskRepository"
-    type: "data/repositories/task_repository.dart"
-    description: "任务数据访问层依赖"
-  - name: "TaskTemplateRepository"
-    type: "data/repositories/task_template_repository.dart"
-    description: "任务模板数据访问层依赖"
-  - name: "MetricOrchestrator"
-    type: "core/services/metric_orchestrator.dart"
-    description: "指标协调器依赖"
-  - name: "SeedPayload"
-    type: "data/repositories/seed_repository.dart"
-    description: "种子数据载荷依赖"
-    
+- name: Repository
+  type: data/repositories/xxx_repository.dart
+  description: 数据访问层依赖
+- name: Model
+  type: data/models/xxx.dart
+  description: 领域模型依赖
+- name: OtherService
+  type: core/services/xxx_service.dart
+  description: 其他服务依赖
 responsibilities:
-  - "种子数据导入管理"
-  - "种子数据验证"
-  - "种子数据转换"
-  - "种子数据协调"
-  - "导入状态管理"
-  - "指标更新协调"
-  
+- 业务逻辑处理
+- 数据协调
+- 业务规则执行
+- 事务管理
+- 错误处理
+- 业务验证
 business_operations:
   create:
-    - name: "importIfNeeded"
-      description: "根据需要导入种子数据"
-      parameters: ["String"]
-      
+  - name: createXxx
+    description: 创建业务对象
+    parameters: []
   read:
-    - name: "loadSeedPayload"
-      description: "加载种子数据载荷"
-      parameters: ["String"]
-    - name: "checkImportStatus"
-      description: "检查导入状态"
-      parameters: ["String"]
-    
+  - name: getXxx
+    description: 获取业务对象
+    parameters: []
+  - name: listXxx
+    description: 列出业务对象
+    parameters: []
+  - name: searchXxx
+    description: 搜索业务对象
+    parameters: []
+  update:
+  - name: updateXxx
+    description: 更新业务对象
+    parameters: []
+  - name: moveXxx
+    description: 移动业务对象
+    parameters: []
+  - name: reorderXxx
+    description: 重新排序业务对象
+    parameters: []
+  delete:
+  - name: deleteXxx
+    description: 删除业务对象
+    parameters: []
+  - name: archiveXxx
+    description: 归档业务对象
+    parameters: []
+stream_operations:
+- name: watchXxx
+  description: 监听业务对象变化
+  return_type: Stream<T>
 business_rules:
-  - name: "seed_import_lifecycle"
-    description: "种子数据导入生命周期规则"
-    implementation: "管理种子数据导入的完整生命周期"
-    validation: "验证种子数据导入的合法性"
-  - name: "seed_data_validation"
-    description: "种子数据验证规则"
-    implementation: "验证种子数据的完整性和有效性"
-    validation: "检查种子数据的格式和内容"
-  - name: "import_version_control"
-    description: "导入版本控制规则"
-    implementation: "防止重复导入相同版本"
-    validation: "验证导入版本的唯一性"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+  validation: 验证逻辑
 error_handling:
-  - exception: "ImportException"
-    description: "导入异常"
-    handling: "记录日志并重新抛出"
-    recovery: "重试机制"
-  - exception: "ValidationException"
-    description: "验证异常"
-    handling: "验证种子数据并抛出描述性错误"
-    recovery: "提供数据修正建议"
-  - exception: "RepositoryException"
-    description: "数据访问异常"
-    handling: "记录日志并重新抛出"
-    recovery: "重试机制"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
 validation_rules:
-  - field: "localeCode"
-    rule: "not_empty"
-    description: "语言代码不能为空"
-    message: "语言代码不能为空"
-  - field: "version"
-    rule: "not_empty"
-    description: "版本号不能为空"
-    message: "版本号不能为空"
-  - field: "payload"
-    rule: "not_null"
-    description: "种子数据载荷不能为空"
-    message: "种子数据载荷不能为空"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
 performance_considerations:
-  - operation: "importIfNeeded"
-    optimization: "批量导入"
-    description: "种子数据导入性能优化"
-    caching: "导入状态缓存"
-  - operation: "loadSeedPayload"
-    optimization: "资源加载优化"
-    description: "种子数据载荷加载性能优化"
-    caching: "载荷数据缓存"
-  - operation: "checkImportStatus"
-    optimization: "状态查询优化"
-    description: "导入状态检查性能优化"
-    caching: "状态信息缓存"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
 transaction_management:
-  - operation: "importIfNeeded"
-    scope: "种子数据导入事务"
-    rollback: "导入回滚"
-    isolation: "read_committed"
-  - operation: "loadSeedPayload"
-    scope: "载荷加载事务"
-    rollback: "加载回滚"
-    isolation: "read_committed"
-    
+- operation: 操作名
+  scope: 事务范围
+  rollback: 回滚策略
+  isolation: 隔离级别
 testing_strategy:
   unit_tests:
-    - name: "test_import_if_needed"
-      description: "测试根据需要导入种子数据功能"
-    - name: "test_load_seed_payload"
-      description: "测试加载种子数据载荷功能"
-    - name: "test_check_import_status"
-      description: "测试检查导入状态功能"
-    - name: "test_apply_tags"
-      description: "测试应用标签数据功能"
-    - name: "test_apply_tasks"
-      description: "测试应用任务数据功能"
-    - name: "test_apply_inbox_items"
-      description: "测试应用收集箱数据功能"
-    - name: "test_apply_templates"
-      description: "测试应用模板数据功能"
-    - name: "test_validate_seed_data"
-      description: "测试验证种子数据功能"
-    - name: "test_business_rules"
-      description: "测试业务规则"
-    - name: "test_error_handling"
-      description: "测试错误处理"
-    - name: "test_validation"
-      description: "测试验证逻辑"
-      
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_get_xxx
+    description: 测试获取功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_business_rules
+    description: 测试业务规则
+  - name: test_error_handling
+    description: 测试错误处理
+  - name: test_validation
+    description: 测试验证逻辑
   integration_tests:
-    - name: "test_service_integration"
-      description: "测试服务集成"
-    - name: "test_repository_coordination"
-      description: "测试仓库协调"
-    - name: "test_transaction_management"
-      description: "测试事务管理"
-    - name: "test_seed_import_flow"
-      description: "测试种子数据导入流程"
-      
+  - name: test_service_integration
+    description: 测试服务集成
+  - name: test_repository_coordination
+    description: 测试仓库协调
+  - name: test_transaction_management
+    description: 测试事务管理
   mock_strategy:
-    - name: "MockSeedImportService"
-      description: "Mock 实现用于测试"
-    - name: "FakeSeedImportService"
-      description: "Fake 实现用于测试"
-      
+  - name: MockXxxService
+    description: Mock 实现用于测试
+  - name: FakeXxxService
+    description: Fake 实现用于测试
 lifecycle_management:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["依赖注入", "配置加载", "状态初始化"]
-  - phase: "operation"
-    description: "运行阶段"
-    operations: ["种子数据导入管理", "数据验证", "数据转换", "指标更新协调"]
-  - phase: "cleanup"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置", "连接关闭"]
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 依赖注入
+  - 配置加载
+  - 状态初始化
+- phase: operation
+  description: 运行阶段
+  operations:
+  - 业务处理
+  - 数据协调
+  - 状态管理
+- phase: cleanup
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 连接关闭
+source_of_truth: lib/core/services/seed_import_service.dart
+called_by: []
+calls:
+- lib/data/models/task.dart
+- lib/data/models/task_template.dart
+- lib/data/repositories/seed_repository.dart
+- lib/data/repositories/tag_repository.dart
+- lib/data/repositories/task_repository.dart
+- lib/data/repositories/task_template_repository.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

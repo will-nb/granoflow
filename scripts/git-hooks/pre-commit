@@ -1,0 +1,27 @@
+#!/bin/sh
+# pre-commit: 精准校验本次变更的 architecture YAML 与基本质量门禁
+set -e
+
+# 收集变更文件（staged）
+CHANGED=$(git diff --cached --name-only)
+
+# 1) Dart 格式/分析（仅受影响目录）
+if echo "$CHANGED" | grep -E '^lib/|^test/|^integration_test/' >/dev/null 2>&1; then
+  echo "[pre-commit] Running dart format (changed only) ..."
+  echo "$CHANGED" | grep -E '\.dart$' | xargs -r dart format --line-length 100 >/dev/null
+  git add -A
+
+  echo "[pre-commit] Running flutter analyze ..."
+  flutter analyze
+fi
+
+# 2) 架构文档 Linter（精准到变更）
+ARCH_CHANGED=$(echo "$CHANGED" | grep -E '^documents/architecture/.*\.ya?ml$' || true)
+if [ -n "$ARCH_CHANGED" ]; then
+  echo "[pre-commit] Lint architecture docs (precise) ..."
+  python3 scripts/architecture_linter.py --files $ARCH_CHANGED
+fi
+
+exit 0
+
+

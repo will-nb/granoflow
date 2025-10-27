@@ -6,6 +6,8 @@ meta:
   version: "1.0"
   created_date: "YYMMDD"
   last_updated: "YYMMDD"
+  schema_version: 1
+  last_synced_sha: ""
 
 service_definition:
   name: "ServiceName"
@@ -200,3 +202,12 @@ lifecycle_management:
   - phase: "cleanup"
     description: "清理阶段"
     operations: ["资源释放", "状态重置", "连接关闭"]
+
+source_of_truth: "lib/core/services/xxx.dart"
+called_by: []
+calls: []
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ""

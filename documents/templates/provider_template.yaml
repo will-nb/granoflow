@@ -6,6 +6,8 @@ meta:
   version: "1.0"
   created_date: "YYMMDD"
   last_updated: "YYMMDD"
+  schema_version: 1
+  last_synced_sha: ""
 
 provider_definition:
   name: "ProviderName"
@@ -13,6 +15,10 @@ provider_definition:
   pattern: "provider|state_provider|stream_provider|future_provider"
   scope: "global|local|family"
   auto_dispose: true|false
+  notifier_type: "StateNotifier|ChangeNotifier|None"
+  state_type: "StateClass|primitive"
+  exposed_api:
+    - "methodName(args): returnType"
   
 provider_types:
   - name: "Provider"
@@ -212,6 +218,15 @@ provider_families:
         description: "参数描述"
     usage: "使用场景"
     benefits: "优势"
+
+source_of_truth: "lib/core/providers/xxx.dart"
+called_by: []
+calls: []
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ""
     
 provider_scopes:
   - name: "global"

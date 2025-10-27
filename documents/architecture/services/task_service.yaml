@@ -1,409 +1,206 @@
 meta:
-  name: "TaskService"
-  type: "service"
-  file_path: "lib/core/services/task_service.dart"
-  description: "任务业务逻辑服务，负责任务的核心业务操作和协调"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: TaskService
+  type: service
+  file_path: lib/core/services/task_service.dart
+  description: Service 描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 service_definition:
-  name: "TaskService"
-  layer: "business_logic"
-  pattern: "service"
-  singleton: false
-  
+  name: ServiceName
+  layer: business_logic
+  pattern: service|orchestrator|facade
+  singleton: true|false
+enums:
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 constructor:
   parameters:
-    - name: "taskRepository"
-      type: "TaskRepository"
-      required: true
-      description: "任务数据访问层"
-    - name: "tagRepository"
-      type: "TagRepository"
-      required: true
-      description: "标签数据访问层"
-    - name: "metricOrchestrator"
-      type: "MetricOrchestrator"
-      required: true
-      description: "指标协调器"
-    - name: "clock"
-      type: "DateTime Function()?"
-      required: false
-      description: "时间函数，用于测试"
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 构造函数参数描述
   dependencies:
-    - name: "TaskRepository"
-      type: "data/repositories/task_repository.dart"
-      description: "任务数据访问层依赖"
-    - name: "TagRepository"
-      type: "data/repositories/tag_repository.dart"
-      description: "标签数据访问层依赖"
-    - name: "MetricOrchestrator"
-      type: "core/services/metric_orchestrator.dart"
-      description: "指标协调器依赖"
-      
+  - name: 依赖名
+    type: 依赖类型
+    description: 依赖描述
 public_methods:
-  - name: "captureInboxTask"
-    return_type: "Future<Task>"
-    parameters:
-      - name: "title"
-        type: "String"
-        required: true
-      - name: "tags"
-        type: "List<String>"
-        required: false
-        default: "const <String>[]"
-    description: "捕获收集箱任务"
-    visibility: "public"
-    async: true
-    
-  - name: "planTask"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "dueDateLocal"
-        type: "DateTime"
-        required: true
-      - name: "section"
-        type: "TaskSection"
-        required: true
-    description: "规划任务"
-    visibility: "public"
-    async: true
-    
-  - name: "startTask"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-    description: "开始任务"
-    visibility: "public"
-    async: true
-    
-  - name: "completeTask"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-    description: "完成任务"
-    visibility: "public"
-    async: true
-    
-  - name: "archiveTask"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-    description: "归档任务"
-    visibility: "public"
-    async: true
-    
-  - name: "softDeleteTask"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-    description: "软删除任务"
-    visibility: "public"
-    async: true
-    
-  - name: "reactivateTask"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-    description: "重新激活任务"
-    visibility: "public"
-    async: true
-    
-  - name: "updateTaskTitle"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "title"
-        type: "String"
-        required: true
-    description: "更新任务标题"
-    visibility: "public"
-    async: true
-    
-  - name: "updateTaskTags"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "tags"
-        type: "List<String>"
-        required: true
-    description: "更新任务标签"
-    visibility: "public"
-    async: true
-    
-  - name: "updateTaskDueDate"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "dueDateLocal"
-        type: "DateTime"
-        required: true
-    description: "更新任务截止日期"
-    visibility: "public"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 公共方法描述
+  visibility: public
+  async: true|false
 private_methods:
-  - name: "_normalizeDueDate"
-    return_type: "DateTime"
-    parameters:
-      - name: "dueDateLocal"
-        type: "DateTime"
-        required: true
-    description: "标准化截止日期"
-    visibility: "private"
-    async: false
-    
-  - name: "_validateTaskOperation"
-    return_type: "void"
-    parameters:
-      - name: "task"
-        type: "Task"
-        required: true
-      - name: "operation"
-        type: "String"
-        required: true
-    description: "验证任务操作"
-    visibility: "private"
-    async: false
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  description: 私有方法描述
+  visibility: private
+  async: true|false
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 fields:
-  - name: "_tasks"
-    type: "TaskRepository"
-    final: true
-    description: "任务数据访问层"
-  - name: "_tags"
-    type: "TagRepository"
-    final: true
-    description: "标签数据访问层"
-  - name: "_metricOrchestrator"
-    type: "MetricOrchestrator"
-    final: true
-    description: "指标协调器"
-  - name: "_clock"
-    type: "DateTime Function()"
-    final: true
-    description: "时间函数"
-    
+- name: 字段名
+  type: 字段类型
+  final: true|false
+  description: 字段描述
 imports:
-  - "../../data/models/task.dart"
-  - "../../data/models/tag.dart"
-  - "../../data/repositories/task_repository.dart"
-  - "../../data/repositories/tag_repository.dart"
-  - "metric_orchestrator.dart"
-  
+- package:flutter/material.dart
+- dart:async
+- 其他实际导入的包
 dependencies:
-  - name: "TaskRepository"
-    type: "data/repositories/task_repository.dart"
-    description: "任务数据访问层依赖"
-  - name: "TagRepository"
-    type: "data/repositories/tag_repository.dart"
-    description: "标签数据访问层依赖"
-  - name: "MetricOrchestrator"
-    type: "core/services/metric_orchestrator.dart"
-    description: "指标协调器依赖"
-  - name: "Task"
-    type: "data/models/task.dart"
-    description: "任务领域模型依赖"
-  - name: "Tag"
-    type: "data/models/tag.dart"
-    description: "标签领域模型依赖"
-    
+- name: Repository
+  type: data/repositories/xxx_repository.dart
+  description: 数据访问层依赖
+- name: Model
+  type: data/models/xxx.dart
+  description: 领域模型依赖
+- name: OtherService
+  type: core/services/xxx_service.dart
+  description: 其他服务依赖
 responsibilities:
-  - "任务业务逻辑处理"
-  - "任务状态管理"
-  - "任务数据协调"
-  - "业务规则执行"
-  - "任务验证"
-  - "指标更新协调"
-  
+- 业务逻辑处理
+- 数据协调
+- 业务规则执行
+- 事务管理
+- 错误处理
+- 业务验证
 business_operations:
   create:
-    - name: "captureInboxTask"
-      description: "捕获收集箱任务"
-      parameters: ["String", "List<String>"]
-      
+  - name: createXxx
+    description: 创建业务对象
+    parameters: []
   read:
-    - name: "getTask"
-      description: "获取任务"
-      parameters: ["int"]
-    - name: "listTasks"
-      description: "列出任务"
-      parameters: []
-    - name: "searchTasks"
-      description: "搜索任务"
-      parameters: ["String"]
-      
+  - name: getXxx
+    description: 获取业务对象
+    parameters: []
+  - name: listXxx
+    description: 列出业务对象
+    parameters: []
+  - name: searchXxx
+    description: 搜索业务对象
+    parameters: []
   update:
-    - name: "planTask"
-      description: "规划任务"
-      parameters: ["int", "DateTime", "TaskSection"]
-    - name: "startTask"
-      description: "开始任务"
-      parameters: ["int"]
-    - name: "completeTask"
-      description: "完成任务"
-      parameters: ["int"]
-    - name: "updateTaskTitle"
-      description: "更新任务标题"
-      parameters: ["int", "String"]
-    - name: "updateTaskTags"
-      description: "更新任务标签"
-      parameters: ["int", "List<String>"]
-    - name: "updateTaskDueDate"
-      description: "更新任务截止日期"
-      parameters: ["int", "DateTime"]
-      
+  - name: updateXxx
+    description: 更新业务对象
+    parameters: []
+  - name: moveXxx
+    description: 移动业务对象
+    parameters: []
+  - name: reorderXxx
+    description: 重新排序业务对象
+    parameters: []
   delete:
-    - name: "archiveTask"
-      description: "归档任务"
-      parameters: ["int"]
-    - name: "softDeleteTask"
-      description: "软删除任务"
-      parameters: ["int"]
-    
+  - name: deleteXxx
+    description: 删除业务对象
+    parameters: []
+  - name: archiveXxx
+    description: 归档业务对象
+    parameters: []
 stream_operations:
-  - name: "watchTasks"
-    description: "监听任务变化"
-    return_type: "Stream<List<Task>>"
-    
+- name: watchXxx
+  description: 监听业务对象变化
+  return_type: Stream<T>
 business_rules:
-  - name: "task_status_transition"
-    description: "任务状态转换规则"
-    implementation: "验证状态转换的合法性"
-    validation: "检查当前状态是否允许转换到目标状态"
-  - name: "task_editing_permissions"
-    description: "任务编辑权限规则"
-    implementation: "检查任务是否可编辑"
-    validation: "验证任务状态和锁定状态"
-  - name: "task_due_date_validation"
-    description: "任务截止日期验证规则"
-    implementation: "验证截止日期的合理性"
-    validation: "检查日期格式和范围"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+  validation: 验证逻辑
 error_handling:
-  - exception: "StateError"
-    description: "状态错误"
-    handling: "验证任务状态并抛出描述性错误"
-    recovery: "提供状态修正建议"
-  - exception: "ArgumentError"
-    description: "参数错误"
-    handling: "验证参数并抛出描述性错误"
-    recovery: "提供参数修正建议"
-  - exception: "RepositoryException"
-    description: "数据访问异常"
-    handling: "记录日志并重新抛出"
-    recovery: "重试机制"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
 validation_rules:
-  - field: "title"
-    rule: "not_empty"
-    description: "任务标题不能为空"
-    message: "任务标题不能为空"
-  - field: "taskId"
-    rule: "positive"
-    description: "任务 ID 必须为正数"
-    message: "任务 ID 必须为正数"
-  - field: "dueDate"
-    rule: "future_date"
-    description: "截止日期必须是未来日期"
-    message: "截止日期必须是未来日期"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
 performance_considerations:
-  - operation: "captureInboxTask"
-    optimization: "批量操作"
-    description: "收集箱任务捕获性能优化"
-    caching: "任务列表缓存"
-  - operation: "planTask"
-    optimization: "索引查询"
-    description: "任务规划性能优化"
-    caching: "任务状态缓存"
-  - operation: "updateTaskTags"
-    optimization: "增量更新"
-    description: "任务标签更新性能优化"
-    caching: "标签映射缓存"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
 transaction_management:
-  - operation: "completeTask"
-    scope: "任务完成事务"
-    rollback: "状态回滚"
-    isolation: "read_committed"
-  - operation: "archiveTask"
-    scope: "任务归档事务"
-    rollback: "状态回滚"
-    isolation: "read_committed"
-    
+- operation: 操作名
+  scope: 事务范围
+  rollback: 回滚策略
+  isolation: 隔离级别
 testing_strategy:
   unit_tests:
-    - name: "test_capture_inbox_task"
-      description: "测试捕获收集箱任务功能"
-    - name: "test_plan_task"
-      description: "测试规划任务功能"
-    - name: "test_start_task"
-      description: "测试开始任务功能"
-    - name: "test_complete_task"
-      description: "测试完成任务功能"
-    - name: "test_archive_task"
-      description: "测试归档任务功能"
-    - name: "test_soft_delete_task"
-      description: "测试软删除任务功能"
-    - name: "test_reactivate_task"
-      description: "测试重新激活任务功能"
-    - name: "test_update_task_title"
-      description: "测试更新任务标题功能"
-    - name: "test_update_task_tags"
-      description: "测试更新任务标签功能"
-    - name: "test_update_task_due_date"
-      description: "测试更新任务截止日期功能"
-    - name: "test_business_rules"
-      description: "测试业务规则"
-    - name: "test_error_handling"
-      description: "测试错误处理"
-    - name: "test_validation"
-      description: "测试验证逻辑"
-      
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_get_xxx
+    description: 测试获取功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_business_rules
+    description: 测试业务规则
+  - name: test_error_handling
+    description: 测试错误处理
+  - name: test_validation
+    description: 测试验证逻辑
   integration_tests:
-    - name: "test_service_integration"
-      description: "测试服务集成"
-    - name: "test_repository_coordination"
-      description: "测试仓库协调"
-    - name: "test_transaction_management"
-      description: "测试事务管理"
-    - name: "test_metric_orchestrator_coordination"
-      description: "测试指标协调器协调"
-      
+  - name: test_service_integration
+    description: 测试服务集成
+  - name: test_repository_coordination
+    description: 测试仓库协调
+  - name: test_transaction_management
+    description: 测试事务管理
   mock_strategy:
-    - name: "MockTaskService"
-      description: "Mock 实现用于测试"
-    - name: "FakeTaskService"
-      description: "Fake 实现用于测试"
-      
+  - name: MockXxxService
+    description: Mock 实现用于测试
+  - name: FakeXxxService
+    description: Fake 实现用于测试
 lifecycle_management:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["依赖注入", "配置加载", "状态初始化"]
-  - phase: "operation"
-    description: "运行阶段"
-    operations: ["业务处理", "数据协调", "状态管理", "指标更新"]
-  - phase: "cleanup"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置", "连接关闭"]
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 依赖注入
+  - 配置加载
+  - 状态初始化
+- phase: operation
+  description: 运行阶段
+  operations:
+  - 业务处理
+  - 数据协调
+  - 状态管理
+- phase: cleanup
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 连接关闭
+source_of_truth: lib/core/services/task_service.dart
+called_by: []
+calls:
+- lib/data/models/task.dart
+- lib/data/models/tag.dart
+- lib/data/repositories/task_repository.dart
+- lib/data/repositories/tag_repository.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

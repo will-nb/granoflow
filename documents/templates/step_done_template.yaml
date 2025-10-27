@@ -236,12 +236,9 @@ verification:
   test_execution:
     description: "测试执行验证"
     steps:
-      - step: "运行单元测试"
-        command: "flutter test test/unit/"
-        expectation: "所有单元测试通过"
-      - step: "运行组件测试"
-        command: "flutter test test/widget/"
-        expectation: "所有组件测试通过"
+      - step: "运行单元与组件测试"
+        command: "flutter test"
+        expectation: "所有单元与组件测试通过"
       - step: "运行集成测试"
         command: "flutter test integration_test/"
         expectation: "所有集成测试通过"
@@ -331,7 +328,7 @@ retry_mechanism:
 error_logging:
   description: "错误日志记录机制"
   max_retries: 5
-  log_directory: "documents/plane-logs"
+    log_directory: "documents/plan-logs"
   log_filename_format: "step_done_error_YYYYMMDD_HHMMSS.json"
   log_format: "json"
   

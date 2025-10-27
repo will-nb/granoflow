@@ -13,6 +13,16 @@ cd "$ROOT_DIR"
 
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+# 检查是否有 --help 或 -h 参数
+has_help() {
+  for arg in "$@"; do
+    if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 run_with_timeout() {
   local seconds="$1"; shift
   if has_cmd timeout; then
@@ -175,41 +185,289 @@ generate_icons_all() {
   fi
 }
 
-show_help() {
+show_main_help() {
   cat << EOF
 GranoFlow 项目管理脚本
 
-用法: $(basename "$0") <命令>
+用法: $(basename "$0") <命令> [选项]
 
 项目管理命令：
-  clean           清理项目并重建（清空数据库 + flutter clean + 删除构建文件夹 + gen-l10n + pub get + analyze）
+  clean           清理项目并重建
   build:aab       构建 Android App Bundle (AAB) 文件
 
 图标生成命令：
-  icons:generate       生成所有平台的应用图标（macOS、iOS、Android）
+  icons:generate       生成所有平台的应用图标
 
-其他命令：
-  help            显示此帮助信息
+文档生成命令：
+  yaml:create        基于模板创建单个 architecture YAML 文档
+  yaml:create:all    批量重新生成所有六大核心类型的 YAML 文档
 
-说明：
-  - clean 命令会执行完整的项目清理和重建流程，包括：
-    * 清空 Isar 数据库（下次启动时重新导入种子数据）
-    * 清理 Flutter 构建缓存
-    * 重新生成本地化文件和获取依赖
-    * 执行代码分析
-  - build:aab 命令会构建 Android App Bundle 文件
-  - icons:generate 命令会生成所有平台的应用图标，使用 Ocean Breeze 主题色背景
-  - 只删除构建相关文件夹，保留平台配置文件
+使用 '$(basename "$0") <命令> --help' 查看具体命令的详细用法
 EOF
 }
 
-cmd=${1:-help}
-case "$cmd" in
-  clean) clean_project ;;
-  build:aab) build_aab ;;
-  icons:generate) generate_icons_all ;;
-  help|--help|-h) show_help ;;
-  *) echo -e "${RED}未知命令: $cmd${NC}"; echo; show_help; exit 1 ;;
-esac
+# 显示 yaml 子命令帮助
+show_yaml_help() {
+  cat << 'YAML_HELP'
+Usage: scripts/anz yaml:create --file FILEPATH --type TYPE [--from DART_FILE]
 
-exit 0
+Description:
+  基于 Dart 文件分析或模板创建 architecture YAML 文档；自动提取类信息、依赖、i18n 键和设计令牌。
+
+Arguments:
+  --file FILEPATH     目标 YAML 文件路径（相对于项目根目录）
+  --type TYPE         文档类型：widget|page|model|provider|repository|service
+  --from DART_FILE    [可选] 源 Dart 文件路径，用于自动提取信息
+
+Examples:
+  # 从 Dart 文件自动生成 YAML（推荐）
+  scripts/anz yaml:create --file documents/architecture/widgets/modern_tag.yaml --type widget --from lib/presentation/widgets/modern_tag.dart
+  
+  # 仅从模板创建空 YAML（需手动填充）
+  scripts/anz yaml:create --file documents/architecture/widgets/new_widget.yaml --type widget
+
+Note:
+  - 使用 --from 参数可自动分析 Dart 文件并填充 YAML 字段
+  - 创建后会自动运行 Linter 校验，如有问题需修正后再提交
+YAML_HELP
+}
+
+# 显示 yaml:create:all 帮助
+show_yaml_create_all_help() {
+  cat << 'YAML_ALL_HELP'
+Usage: scripts/anz yaml:create:all [--dry-run] [--no-backup]
+
+Description:
+  批量重新生成所有六大核心类型的 architecture YAML 文档。
+  
+  会清空并重新生成以下目录：
+  - documents/architecture/models/
+  - documents/architecture/pages/
+  - documents/architecture/widgets/
+  - documents/architecture/providers/
+  - documents/architecture/repositories/
+  - documents/architecture/services/
+
+Options:
+  --dry-run          模拟运行，不实际修改文件
+  --no-backup        不创建备份（谨慎使用）
+
+Examples:
+  # 完整重新生成所有文档（推荐，会自动备份）
+  scripts/anz yaml:create:all
+  
+  # 模拟运行，查看会生成哪些文件
+  scripts/anz yaml:create:all --dry-run
+  
+  # 不创建备份（谨慎使用）
+  scripts/anz yaml:create:all --no-backup
+
+Safety:
+  - 默认会将 documents/architecture 重命名为 documents/architecture-yymmdd-hhmmss
+  - 然后重新创建 documents/architecture 目录并生成所有 YAML
+  - routers.yaml 会被自动保留并恢复（作为路由地图的特殊情况）
+  - 建议先运行 --dry-run 查看影响范围
+  - 运行后会自动执行 architecture_linter.py 校验
+  - 推荐在干净的 git 工作树中执行
+
+Note:
+  此命令设计为经常执行，确保 YAML 文档与代码保持同步。
+  仅为六大核心类型生成文档（不包括 Constants/Config/Theme/Enums 等）。
+  routers.yaml 作为全局路由地图会被保留。
+YAML_ALL_HELP
+}
+
+# 主逻辑
+main() {
+  # 如果没有参数，显示主帮助
+  if [[ $# -eq 0 ]]; then
+    show_main_help
+    exit 0
+  fi
+
+  # 如果第一个参数是 --help 或 -h，显示主帮助
+  if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    show_main_help
+    exit 0
+  fi
+
+  # 处理子命令
+  case "$1" in
+    clean) 
+      if has_help "$@"; then
+        echo "clean 命令：清理项目并重建（清空数据库 + flutter clean + 删除构建文件夹 + gen-l10n + pub get + analyze）"
+        exit 0
+      fi
+      clean_project ;;
+      
+    build:aab) 
+      if has_help "$@"; then
+        echo "build:aab 命令：构建 Android App Bundle (AAB) 文件"
+        exit 0
+      fi
+      build_aab ;;
+      
+    icons:generate) 
+      if has_help "$@"; then
+        echo "icons:generate 命令：生成所有平台的应用图标（macOS、iOS、Android）"
+        exit 0
+      fi
+      generate_icons_all ;;
+      
+    yaml:create:all)
+      # 直接处理 yaml:create:all 格式
+      shift
+      if has_help "$@"; then
+        show_yaml_create_all_help
+        exit 0
+      fi
+      # 调用 Python 脚本（复用 yaml_generator.py 的逻辑）
+      if ! has_cmd python3; then
+        echo -e "${RED}需要 Python 3 环境${NC}"
+        exit 1
+      fi
+      echo -e "${BLUE}批量生成 Architecture YAML 文档...${NC}"
+      python3 "$ROOT_DIR/scripts/yaml_create_all.py" "$@"
+      ;;
+      
+    yaml:create)
+      # 直接处理 yaml:create 格式
+      shift
+      if has_help "$@"; then
+        show_yaml_help
+        exit 0
+      fi
+      # 解析参数
+      FILE=""; TYPE=""; FROM=""
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --file) FILE="$2"; shift 2;;
+          --type) TYPE="$2"; shift 2;;
+          --from) FROM="$2"; shift 2;;
+          *) echo -e "${RED}未知参数: $1${NC}"; echo "使用 --help 查看用法"; exit 1;;
+        esac
+      done
+      if [[ -z "$FILE" || -z "$TYPE" ]]; then
+        echo -e "${RED}--file 与 --type 必填${NC}"; echo "使用 --help 查看用法"; exit 1
+      fi
+      
+      # 如果提供了 --from 参数，使用 yaml_generator.py 生成
+      if [[ -n "$FROM" ]]; then
+        if [[ ! -f "$FROM" ]]; then
+          echo -e "${RED}源 Dart 文件不存在: $FROM${NC}"; exit 1
+        fi
+        if ! has_cmd python3; then
+          echo -e "${RED}需要 Python 3 环境${NC}"; exit 1
+        fi
+        echo -e "${BLUE}分析 Dart 文件: $FROM${NC}"
+        mkdir -p "$(dirname "$FILE")"
+        python3 "$ROOT_DIR/scripts/yaml_generator.py" "$FROM" "$FILE" "$TYPE"
+      else
+        # 否则使用模板复制
+        case "$TYPE" in
+          widget) TEMPLATE="$ROOT_DIR/documents/templates/widget_template.yaml";;
+          page) TEMPLATE="$ROOT_DIR/documents/templates/page_template.yaml";;
+          model) TEMPLATE="$ROOT_DIR/documents/templates/model_template.yaml";;
+          provider) TEMPLATE="$ROOT_DIR/documents/templates/provider_template.yaml";;
+          repository) TEMPLATE="$ROOT_DIR/documents/templates/repository_template.yaml";;
+          service) TEMPLATE="$ROOT_DIR/documents/templates/service_template.yaml";;
+          *) echo -e "${RED}未知 type: $TYPE${NC}"; exit 1;;
+        esac
+        if [[ ! -f "$TEMPLATE" ]]; then
+          echo -e "${RED}模板不存在: $TEMPLATE${NC}"; exit 1
+        fi
+        mkdir -p "$(dirname "$FILE")"
+        cp "$TEMPLATE" "$FILE"
+        echo -e "${GREEN}[anz] Created from template: $FILE${NC}"
+      fi
+      
+      # 运行批量补齐和 Linter
+      if has_cmd python3; then
+        python3 "$ROOT_DIR/scripts/architecture_bulk_update.py" >/dev/null || true
+        python3 "$ROOT_DIR/scripts/architecture_linter.py" --files "$FILE" || { echo -e "${YELLOW}[anz] Linter 警告：请修正上述问题后再提交${NC}"; exit 1; }
+      fi
+      ;;
+      
+    yaml)
+      if has_help "$@" || [[ $# -eq 1 ]]; then
+        show_yaml_help
+        exit 0
+      fi
+      # 处理 yaml:create 子命令
+      shift
+      case "$1" in
+        create)
+          shift
+          # 检查 --help 参数
+          if [[ "${1:-}" == "--help" ]]; then
+            show_yaml_help
+            exit 0
+          fi
+          # 解析参数
+          FILE=""; TYPE=""; FROM=""
+          while [[ $# -gt 0 ]]; do
+            case "$1" in
+              --file) FILE="$2"; shift 2;;
+              --type) TYPE="$2"; shift 2;;
+              --from) FROM="$2"; shift 2;;
+              *) echo -e "${RED}未知参数: $1${NC}"; echo "使用 --help 查看用法"; exit 1;;
+            esac
+          done
+          if [[ -z "$FILE" || -z "$TYPE" ]]; then
+            echo -e "${RED}--file 与 --type 必填${NC}"; echo "使用 --help 查看用法"; exit 1
+          fi
+          
+          # 如果提供了 --from 参数，使用 yaml_generator.py 生成
+          if [[ -n "$FROM" ]]; then
+            if [[ ! -f "$FROM" ]]; then
+              echo -e "${RED}源 Dart 文件不存在: $FROM${NC}"; exit 1
+            fi
+            if ! has_cmd python3; then
+              echo -e "${RED}需要 Python 3 环境${NC}"; exit 1
+            fi
+            echo -e "${BLUE}分析 Dart 文件: $FROM${NC}"
+            mkdir -p "$(dirname "$FILE")"
+            python3 "$ROOT_DIR/scripts/yaml_generator.py" "$FROM" "$FILE" "$TYPE"
+          else
+            # 否则使用模板复制
+            case "$TYPE" in
+              widget) TEMPLATE="$ROOT_DIR/documents/templates/widget_template.yaml";;
+              page) TEMPLATE="$ROOT_DIR/documents/templates/page_template.yaml";;
+              model) TEMPLATE="$ROOT_DIR/documents/templates/model_template.yaml";;
+              provider) TEMPLATE="$ROOT_DIR/documents/templates/provider_template.yaml";;
+              repository) TEMPLATE="$ROOT_DIR/documents/templates/repository_template.yaml";;
+              service) TEMPLATE="$ROOT_DIR/documents/templates/service_template.yaml";;
+              *) echo -e "${RED}未知 type: $TYPE${NC}"; exit 1;;
+            esac
+            if [[ ! -f "$TEMPLATE" ]]; then
+              echo -e "${RED}模板不存在: $TEMPLATE${NC}"; exit 1
+            fi
+            mkdir -p "$(dirname "$FILE")"
+            cp "$TEMPLATE" "$FILE"
+            echo -e "${GREEN}[anz] Created from template: $FILE${NC}"
+          fi
+          
+          # 运行批量补齐和 Linter
+          if has_cmd python3; then
+            python3 "$ROOT_DIR/scripts/architecture_bulk_update.py" >/dev/null || true
+            python3 "$ROOT_DIR/scripts/architecture_linter.py" --files "$FILE" || { echo -e "${YELLOW}[anz] Linter 警告：请修正上述问题后再提交${NC}"; exit 1; }
+          fi
+          ;;
+        *)
+          echo "未知的 yaml 子命令: $1"
+          show_yaml_help
+          exit 1
+          ;;
+      esac
+      ;;
+      
+    *)
+      echo "未知命令: $1"
+      show_main_help
+      exit 1
+      ;;
+  esac
+}
+
+# 调用主函数
+main "$@"

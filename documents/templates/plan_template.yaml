@@ -117,75 +117,106 @@ implementation_plan:
     - file: "lib/core/providers/app_providers.dart"
       reason: "应用状态提供者"
 
-# 4. 执行状态跟踪
+# 4. 执行状态跟踪（统一版）
 execution_tracking:
+  description: "类似todolist的执行状态跟踪机制"
   overall_status: "pending"  # pending|in_progress|completed|failed|skipped
-  current_phase: "yaml_updates"  # yaml_updates|testing|implementation|validation
+  current_phase: "yaml_updates"  # yaml_updates|testing|implementation|validation|pre_commit
   completed_phases: []
   failed_phases: []
   skipped_phases: []
-  
   phases:
     - name: "yaml_updates"
-      description: "更新实现规范YAML文件"
-      status: "pending"  # pending|in_progress|completed|failed|skipped
+      description: "实现规范YAML更新阶段"
+      status: "pending"
       tasks:
-        - task: "更新widgets规范文件"
+        - task: "更新widgets YAML文件"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
-        - task: "更新pages规范文件"
+        - task: "更新pages YAML文件"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
-    
+        - task: "更新架构索引文件"
+          status: "pending"
+          retry_count: 0
+          max_retries: 3
+          failure_reasons: []
     - name: "testing"
-      description: "创建/修改测试用例"
+      description: "测试用例创建/修改阶段"
       status: "pending"
       tasks:
-        - task: "修改现有测试用例"
+        - task: "创建/修改单元测试"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
-        - task: "创建新测试用例"
+        - task: "创建/修改组件测试"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
-        - task: "创建配置验证测试"
+        - task: "创建/修改集成测试"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
-    
     - name: "implementation"
-      description: "实现代码"
+      description: "代码实现阶段"
       status: "pending"
       tasks:
-        - task: "创建新文件"
+        - task: "实现新组件"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
-        - task: "修改现有文件"
+        - task: "修改现有组件"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
-    
+        - task: "更新页面逻辑"
+          status: "pending"
+          retry_count: 0
+          max_retries: 3
+          failure_reasons: []
     - name: "validation"
-      description: "验证实现"
+      description: "验证阶段"
       status: "pending"
       tasks:
-        - task: "运行测试验证"
+        - task: "运行所有测试"
+          status: "pending"
+          retry_count: 0
+          max_retries: 3
+          failure_reasons: []
+        - task: "检查测试覆盖率"
           status: "pending"
           retry_count: 0
           max_retries: 3
           failure_reasons: []
         - task: "验证配置一致性"
+          status: "pending"
+          retry_count: 0
+          max_retries: 3
+          failure_reasons: []
+    - name: "pre_commit"
+      description: "pre-commit检查阶段"
+      status: "pending"
+      tasks:
+        - task: "运行pre-commit检查"
+          status: "pending"
+          retry_count: 0
+          max_retries: 3
+          failure_reasons: []
+        - task: "处理pre-commit错误"
+          status: "pending"
+          retry_count: 0
+          max_retries: 3
+          failure_reasons: []
+        - task: "记录pre-commit结果"
           status: "pending"
           retry_count: 0
           max_retries: 3

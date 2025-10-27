@@ -7,6 +7,7 @@ Step-Done 执行器
 import os
 import sys
 import json
+import yaml
 import subprocess
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -25,10 +26,10 @@ class StepDoneExecutor:
             os.makedirs(self.log_directory)
     
     def load_step_done_config(self) -> Dict[str, Any]:
-        """加载step-done配置文件"""
+        """加载step-done配置文件（YAML）"""
         try:
             with open(self.step_done_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                return yaml.safe_load(f) or {}
         except Exception as e:
             print(f"❌ 加载step-done配置文件失败: {e}")
             return {}
@@ -117,11 +118,14 @@ class StepDoneExecutor:
             command = step.get('command', '')
             if command:
                 try:
-                    result = subprocess.run(command.split(), capture_output=True, text=True, check=True)
+                    result = subprocess.run(command.split(), capture_output=True, text=True, check=True, timeout=300)
                     print(f"    ✅ 成功: {command}")
                 except subprocess.CalledProcessError as e:
                     print(f"    ❌ 失败: {command}")
                     print(f"    错误: {e.stderr}")
+                    return False
+                except subprocess.TimeoutExpired:
+                    print(f"    ⏳ 超时: {command}")
                     return False
         
         # 运行覆盖率检查
@@ -132,31 +136,57 @@ class StepDoneExecutor:
             command = step.get('command', '')
             if command:
                 try:
-                    result = subprocess.run(command.split(), capture_output=True, text=True, check=True)
+                    result = subprocess.run(command.split(), capture_output=True, text=True, check=True, timeout=300)
                     print(f"    ✅ 成功: {command}")
                 except subprocess.CalledProcessError as e:
                     print(f"    ❌ 失败: {command}")
                     print(f"    错误: {e.stderr}")
                     return False
+                except subprocess.TimeoutExpired:
+                    print(f"    ⏳ 超时: {command}")
+                    return False
         
         print("✅ 验证完成")
         return True
     
-    def handle_git_commit(self) -> bool:
-        """处理git提交"""
-        print("📤 开始处理git提交...")
-        
-        success = self.git_handler.handle_commit_with_retry()
-        
-        if success:
-            print("✅ Git提交成功")
-        else:
-            print("❌ Git提交失败")
-            print("错误日志摘要:")
-            log_summary = self.git_handler.logger.get_log_summary()
-            print(json.dumps(log_summary, indent=2, ensure_ascii=False))
-        
-        return success
+    def handle_git_commit(self, config: Dict[str, Any]) -> bool:
+        """仅运行pre-commit并输出建议的提交命令（不自动提交）"""
+        print("📤 开始运行pre-commit检查（不自动提交）...")
+        try:
+            result = subprocess.run(
+                ['pre-commit', 'run', '--all-files'],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=600,
+            )
+            print("✅ pre-commit检查通过")
+        except subprocess.CalledProcessError as e:
+            print("❌ pre-commit检查未通过")
+            print(e.stdout)
+            print(e.stderr)
+            return False
+        except subprocess.TimeoutExpired:
+            print("⏳ pre-commit检查超时")
+            return False
+
+        iteration = (
+            (config.get('meta') or {}).get('iteration')
+            or 'YYMMDD-N'
+        )
+        suggested_message_title = f"chore(step-done): 补充YAML与测试 ({iteration})"
+        suggested_message_body = (
+            "说明: 按 step-done 文档补充/更新规范YAML与对应测试, 通过 pre-commit。\n"
+            "注意: 按需在提交体中附加本次涉及的文档与测试清单。"
+        )
+
+        print("🔎 建议的提交命令（请手动执行）:")
+        print("""
+git add -A
+git commit -m "{title}" -m "{body}"
+""".format(title=suggested_message_title, body=suggested_message_body))
+
+        return True
     
     def execute(self) -> bool:
         """执行完整的step-done流程"""
@@ -185,8 +215,8 @@ class StepDoneExecutor:
             print("❌ 验证失败")
             return False
         
-        # 处理git提交
-        if not self.handle_git_commit():
+        # 处理git提交（仅运行pre-commit并输出建议的提交命令）
+        if not self.handle_git_commit(config):
             print("❌ Git提交失败")
             return False
         

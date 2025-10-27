@@ -126,7 +126,7 @@ class PlanExecutor:
         # 运行测试
         print("  🧪 运行所有测试...")
         try:
-            result = subprocess.run(['flutter', 'test'], capture_output=True, text=True, check=True)
+            result = subprocess.run(['flutter', 'test'], capture_output=True, text=True, check=True, timeout=600)
             print("    ✅ 所有测试通过")
         except subprocess.CalledProcessError as e:
             print(f"    ❌ 测试失败: {e.stderr}")
@@ -144,7 +144,7 @@ class PlanExecutor:
         # 运行分析
         print("  🔍 运行代码分析...")
         try:
-            result = subprocess.run(['flutter', 'analyze'], capture_output=True, text=True, check=True)
+            result = subprocess.run(['flutter', 'analyze'], capture_output=True, text=True, check=True, timeout=600)
             print("    ✅ 代码分析通过")
         except subprocess.CalledProcessError as e:
             print(f"    ❌ 代码分析失败: {e.stderr}")
@@ -171,7 +171,8 @@ class PlanExecutor:
                 ['pre-commit', 'run', '--all-files'],
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
+                timeout=600
             )
             print("✅ pre-commit检查通过")
             
@@ -211,7 +212,8 @@ class PlanExecutor:
                     ['pre-commit', 'run', '--all-files', '--hook-stage', 'manual'],
                     capture_output=True,
                     text=True,
-                    check=True
+                    check=True,
+                    timeout=600
                 )
                 print("✅ pre-commit问题修复成功")
                 

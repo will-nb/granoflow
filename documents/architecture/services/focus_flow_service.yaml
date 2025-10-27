@@ -1,373 +1,206 @@
 meta:
-  name: "FocusFlowService"
-  type: "service"
-  file_path: "lib/core/services/focus_flow_service.dart"
-  description: "专注流程服务，管理专注会话的完整生命周期"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: FocusFlowService
+  type: service
+  file_path: lib/core/services/focus_flow_service.dart
+  description: Service 描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 service_definition:
-  name: "FocusFlowService"
-  layer: "business_logic"
-  pattern: "service"
-  singleton: false
-  
+  name: ServiceName
+  layer: business_logic
+  pattern: service|orchestrator|facade
+  singleton: true|false
 enums:
-  - name: "FocusOutcome"
-    values: ["complete", "completeWithoutTimer", "addSubtask", "logMultiple", "markWasted"]
-    description: "专注结果枚举"
-    
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 constructor:
   parameters:
-    - name: "focusRepository"
-      type: "FocusSessionRepository"
-      required: true
-      description: "专注会话数据访问层"
-    - name: "taskRepository"
-      type: "TaskRepository"
-      required: true
-      description: "任务数据访问层"
-    - name: "taskService"
-      type: "TaskService"
-      required: true
-      description: "任务业务逻辑服务"
-    - name: "metricOrchestrator"
-      type: "MetricOrchestrator"
-      required: true
-      description: "指标协调器"
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 构造函数参数描述
   dependencies:
-    - name: "FocusSessionRepository"
-      type: "data/repositories/focus_session_repository.dart"
-      description: "专注会话数据访问层依赖"
-    - name: "TaskRepository"
-      type: "data/repositories/task_repository.dart"
-      description: "任务数据访问层依赖"
-    - name: "TaskService"
-      type: "core/services/task_service.dart"
-      description: "任务业务逻辑服务依赖"
-    - name: "MetricOrchestrator"
-      type: "core/services/metric_orchestrator.dart"
-      description: "指标协调器依赖"
-      
+  - name: 依赖名
+    type: 依赖类型
+    description: 依赖描述
 public_methods:
-  - name: "startFocus"
-    return_type: "Future<FocusSession>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "estimateMinutes"
-        type: "int?"
-        required: false
-      - name: "alarmEnabled"
-        type: "bool"
-        required: false
-        default: "false"
-    description: "开始专注"
-    visibility: "public"
-    async: true
-    
-  - name: "pauseFocus"
-    return_type: "Future<void>"
-    parameters:
-      - name: "sessionId"
-        type: "int"
-        required: true
-    description: "暂停专注"
-    visibility: "public"
-    async: true
-    
-  - name: "endFocus"
-    return_type: "Future<void>"
-    parameters:
-      - name: "sessionId"
-        type: "int"
-        required: true
-      - name: "outcome"
-        type: "FocusOutcome"
-        required: true
-      - name: "reflectionNote"
-        type: "String?"
-        required: false
-    description: "结束专注"
-    visibility: "public"
-    async: true
-    
-  - name: "getActiveSession"
-    return_type: "Future<FocusSession?>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-    description: "获取活跃会话"
-    visibility: "public"
-    async: true
-    
-  - name: "getSessionHistory"
-    return_type: "Future<List<FocusSession>>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "limit"
-        type: "int"
-        required: false
-        default: "10"
-    description: "获取会话历史"
-    visibility: "public"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 公共方法描述
+  visibility: public
+  async: true|false
 private_methods:
-  - name: "_handleFocusComplete"
-    return_type: "Future<void>"
-    parameters:
-      - name: "sessionId"
-        type: "int"
-        required: true
-      - name: "reflectionNote"
-        type: "String?"
-        required: false
-    description: "处理专注完成"
-    visibility: "private"
-    async: true
-    
-  - name: "_handleAddSubtask"
-    return_type: "Future<void>"
-    parameters:
-      - name: "sessionId"
-        type: "int"
-        required: true
-      - name: "subtaskTitle"
-        type: "String"
-        required: true
-    description: "处理添加子任务"
-    visibility: "private"
-    async: true
-    
-  - name: "_handleLogMultiple"
-    return_type: "Future<void>"
-    parameters:
-      - name: "sessionId"
-        type: "int"
-        required: true
-      - name: "taskIds"
-        type: "List<int>"
-        required: true
-    description: "处理记录多个任务"
-    visibility: "private"
-    async: true
-    
-  - name: "_handleMarkWasted"
-    return_type: "Future<void>"
-    parameters:
-      - name: "sessionId"
-        type: "int"
-        required: true
-      - name: "reflectionNote"
-        type: "String?"
-        required: false
-    description: "处理标记为浪费"
-    visibility: "private"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  description: 私有方法描述
+  visibility: private
+  async: true|false
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 fields:
-  - name: "_focusRepository"
-    type: "FocusSessionRepository"
-    final: true
-    description: "专注会话数据访问层"
-  - name: "_taskRepository"
-    type: "TaskRepository"
-    final: true
-    description: "任务数据访问层"
-  - name: "_taskService"
-    type: "TaskService"
-    final: true
-    description: "任务业务逻辑服务"
-  - name: "_metricOrchestrator"
-    type: "MetricOrchestrator"
-    final: true
-    description: "指标协调器"
-    
+- name: 字段名
+  type: 字段类型
+  final: true|false
+  description: 字段描述
 imports:
-  - "../../data/models/focus_session.dart"
-  - "../../data/models/task.dart"
-  - "../../data/repositories/focus_session_repository.dart"
-  - "../../data/repositories/task_repository.dart"
-  - "metric_orchestrator.dart"
-  - "task_service.dart"
-  
+- package:flutter/material.dart
+- dart:async
+- 其他实际导入的包
 dependencies:
-  - name: "FocusSessionRepository"
-    type: "data/repositories/focus_session_repository.dart"
-    description: "专注会话数据访问层依赖"
-  - name: "TaskRepository"
-    type: "data/repositories/task_repository.dart"
-    description: "任务数据访问层依赖"
-  - name: "TaskService"
-    type: "core/services/task_service.dart"
-    description: "任务业务逻辑服务依赖"
-  - name: "MetricOrchestrator"
-    type: "core/services/metric_orchestrator.dart"
-    description: "指标协调器依赖"
-  - name: "FocusSession"
-    type: "data/models/focus_session.dart"
-    description: "专注会话领域模型依赖"
-  - name: "Task"
-    type: "data/models/task.dart"
-    description: "任务领域模型依赖"
-    
+- name: Repository
+  type: data/repositories/xxx_repository.dart
+  description: 数据访问层依赖
+- name: Model
+  type: data/models/xxx.dart
+  description: 领域模型依赖
+- name: OtherService
+  type: core/services/xxx_service.dart
+  description: 其他服务依赖
 responsibilities:
-  - "专注会话业务逻辑处理"
-  - "专注流程管理"
-  - "专注结果处理"
-  - "专注时间统计"
-  - "专注状态协调"
-  - "专注验证"
-  
+- 业务逻辑处理
+- 数据协调
+- 业务规则执行
+- 事务管理
+- 错误处理
+- 业务验证
 business_operations:
   create:
-    - name: "startFocus"
-      description: "开始专注"
-      parameters: ["int", "int?", "bool"]
-      
+  - name: createXxx
+    description: 创建业务对象
+    parameters: []
   read:
-    - name: "getActiveSession"
-      description: "获取活跃会话"
-      parameters: ["int"]
-    - name: "getSessionHistory"
-      description: "获取会话历史"
-      parameters: ["int", "int"]
-      
+  - name: getXxx
+    description: 获取业务对象
+    parameters: []
+  - name: listXxx
+    description: 列出业务对象
+    parameters: []
+  - name: searchXxx
+    description: 搜索业务对象
+    parameters: []
   update:
-    - name: "pauseFocus"
-      description: "暂停专注"
-      parameters: ["int"]
-    - name: "endFocus"
-      description: "结束专注"
-      parameters: ["int", "FocusOutcome", "String?"]
-    
+  - name: updateXxx
+    description: 更新业务对象
+    parameters: []
+  - name: moveXxx
+    description: 移动业务对象
+    parameters: []
+  - name: reorderXxx
+    description: 重新排序业务对象
+    parameters: []
+  delete:
+  - name: deleteXxx
+    description: 删除业务对象
+    parameters: []
+  - name: archiveXxx
+    description: 归档业务对象
+    parameters: []
 stream_operations:
-  - name: "watchActiveSession"
-    description: "监听活跃会话"
-    return_type: "Stream<FocusSession?>"
-    
+- name: watchXxx
+  description: 监听业务对象变化
+  return_type: Stream<T>
 business_rules:
-  - name: "focus_session_lifecycle"
-    description: "专注会话生命周期规则"
-    implementation: "管理专注会话的完整生命周期"
-    validation: "验证会话状态转换的合法性"
-  - name: "focus_outcome_handling"
-    description: "专注结果处理规则"
-    implementation: "根据专注结果执行相应操作"
-    validation: "验证专注结果的合理性"
-  - name: "focus_time_tracking"
-    description: "专注时间跟踪规则"
-    implementation: "准确记录和统计专注时间"
-    validation: "验证专注时间的准确性"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+  validation: 验证逻辑
 error_handling:
-  - exception: "StateError"
-    description: "状态错误"
-    handling: "验证专注状态并抛出描述性错误"
-    recovery: "提供状态修正建议"
-  - exception: "ArgumentError"
-    description: "参数错误"
-    handling: "验证参数并抛出描述性错误"
-    recovery: "提供参数修正建议"
-  - exception: "RepositoryException"
-    description: "数据访问异常"
-    handling: "记录日志并重新抛出"
-    recovery: "重试机制"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
 validation_rules:
-  - field: "taskId"
-    rule: "positive"
-    description: "任务 ID 必须为正数"
-    message: "任务 ID 必须为正数"
-  - field: "estimateMinutes"
-    rule: "positive"
-    description: "预估分钟数必须为正数"
-    message: "预估分钟数必须为正数"
-  - field: "sessionId"
-    rule: "positive"
-    description: "会话 ID 必须为正数"
-    message: "会话 ID 必须为正数"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
 performance_considerations:
-  - operation: "startFocus"
-    optimization: "会话创建优化"
-    description: "专注开始性能优化"
-    caching: "活跃会话缓存"
-  - operation: "endFocus"
-    optimization: "会话结束优化"
-    description: "专注结束性能优化"
-    caching: "会话历史缓存"
-  - operation: "getSessionHistory"
-    optimization: "历史查询优化"
-    description: "会话历史查询性能优化"
-    caching: "会话历史缓存"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
 transaction_management:
-  - operation: "endFocus"
-    scope: "专注结束事务"
-    rollback: "状态回滚"
-    isolation: "read_committed"
-  - operation: "startFocus"
-    scope: "专注开始事务"
-    rollback: "会话创建回滚"
-    isolation: "read_committed"
-    
+- operation: 操作名
+  scope: 事务范围
+  rollback: 回滚策略
+  isolation: 隔离级别
 testing_strategy:
   unit_tests:
-    - name: "test_start_focus"
-      description: "测试开始专注功能"
-    - name: "test_pause_focus"
-      description: "测试暂停专注功能"
-    - name: "test_end_focus"
-      description: "测试结束专注功能"
-    - name: "test_get_active_session"
-      description: "测试获取活跃会话功能"
-    - name: "test_get_session_history"
-      description: "测试获取会话历史功能"
-    - name: "test_handle_focus_complete"
-      description: "测试处理专注完成功能"
-    - name: "test_handle_add_subtask"
-      description: "测试处理添加子任务功能"
-    - name: "test_handle_log_multiple"
-      description: "测试处理记录多个任务功能"
-    - name: "test_handle_mark_wasted"
-      description: "测试处理标记为浪费功能"
-    - name: "test_business_rules"
-      description: "测试业务规则"
-    - name: "test_error_handling"
-      description: "测试错误处理"
-    - name: "test_validation"
-      description: "测试验证逻辑"
-      
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_get_xxx
+    description: 测试获取功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_business_rules
+    description: 测试业务规则
+  - name: test_error_handling
+    description: 测试错误处理
+  - name: test_validation
+    description: 测试验证逻辑
   integration_tests:
-    - name: "test_service_integration"
-      description: "测试服务集成"
-    - name: "test_repository_coordination"
-      description: "测试仓库协调"
-    - name: "test_transaction_management"
-      description: "测试事务管理"
-    - name: "test_focus_flow_complete"
-      description: "测试专注流程完整性"
-      
+  - name: test_service_integration
+    description: 测试服务集成
+  - name: test_repository_coordination
+    description: 测试仓库协调
+  - name: test_transaction_management
+    description: 测试事务管理
   mock_strategy:
-    - name: "MockFocusFlowService"
-      description: "Mock 实现用于测试"
-    - name: "FakeFocusFlowService"
-      description: "Fake 实现用于测试"
-      
+  - name: MockXxxService
+    description: Mock 实现用于测试
+  - name: FakeXxxService
+    description: Fake 实现用于测试
 lifecycle_management:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["依赖注入", "配置加载", "状态初始化"]
-  - phase: "operation"
-    description: "运行阶段"
-    operations: ["专注流程管理", "会话状态协调", "结果处理", "指标更新"]
-  - phase: "cleanup"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置", "连接关闭"]
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 依赖注入
+  - 配置加载
+  - 状态初始化
+- phase: operation
+  description: 运行阶段
+  operations:
+  - 业务处理
+  - 数据协调
+  - 状态管理
+- phase: cleanup
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 连接关闭
+source_of_truth: lib/core/services/focus_flow_service.dart
+called_by: []
+calls:
+- lib/data/models/focus_session.dart
+- lib/data/models/task.dart
+- lib/data/repositories/focus_session_repository.dart
+- lib/data/repositories/task_repository.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

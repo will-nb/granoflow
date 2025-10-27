@@ -1,244 +1,204 @@
 meta:
-  name: "PreferenceService"
-  type: "service"
-  file_path: "lib/core/services/preference_service.dart"
-  description: "用户偏好设置服务，管理用户的应用设置"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: PreferenceService
+  type: service
+  file_path: lib/core/services/preference_service.dart
+  description: Service 描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 service_definition:
-  name: "PreferenceService"
-  layer: "business_logic"
-  pattern: "service"
-  singleton: false
-  
+  name: ServiceName
+  layer: business_logic
+  pattern: service|orchestrator|facade
+  singleton: true|false
+enums:
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 constructor:
   parameters:
-    - name: "repository"
-      type: "PreferenceRepository"
-      required: true
-      description: "偏好设置数据访问层"
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 构造函数参数描述
   dependencies:
-    - name: "PreferenceRepository"
-      type: "data/repositories/preference_repository.dart"
-      description: "偏好设置数据访问层依赖"
-      
+  - name: 依赖名
+    type: 依赖类型
+    description: 依赖描述
 public_methods:
-  - name: "watch"
-    return_type: "Stream<Preference>"
-    parameters: []
-    description: "监听用户偏好设置"
-    visibility: "public"
-    async: false
-    
-  - name: "update"
-    return_type: "Future<void>"
-    parameters:
-      - name: "update"
-        type: "PreferenceUpdate"
-        required: true
-    description: "更新用户偏好设置"
-    visibility: "public"
-    async: true
-    
-  - name: "updateLocale"
-    return_type: "Future<void>"
-    parameters:
-      - name: "localeCode"
-        type: "String"
-        required: true
-    description: "更新语言设置"
-    visibility: "public"
-    async: true
-    
-  - name: "updateTheme"
-    return_type: "Future<void>"
-    parameters:
-      - name: "mode"
-        type: "ThemeMode"
-        required: true
-    description: "更新主题设置"
-    visibility: "public"
-    async: true
-    
-  - name: "updateFontScale"
-    return_type: "Future<void>"
-    parameters:
-      - name: "scale"
-        type: "double"
-        required: true
-    description: "更新字体缩放设置"
-    visibility: "public"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 公共方法描述
+  visibility: public
+  async: true|false
+private_methods:
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  description: 私有方法描述
+  visibility: private
+  async: true|false
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 fields:
-  - name: "_repository"
-    type: "PreferenceRepository"
-    final: true
-    description: "偏好设置数据访问层"
-    
+- name: 字段名
+  type: 字段类型
+  final: true|false
+  description: 字段描述
 imports:
-  - "package:flutter/material.dart"
-  - "../../data/models/preference.dart"
-  - "../../data/repositories/preference_repository.dart"
-  
+- package:flutter/material.dart
+- dart:async
+- 其他实际导入的包
 dependencies:
-  - name: "PreferenceRepository"
-    type: "data/repositories/preference_repository.dart"
-    description: "偏好设置数据访问层依赖"
-  - name: "Preference"
-    type: "data/models/preference.dart"
-    description: "偏好设置领域模型依赖"
-  - name: "ThemeMode"
-    type: "package:flutter/material.dart"
-    description: "主题模式依赖"
-    
+- name: Repository
+  type: data/repositories/xxx_repository.dart
+  description: 数据访问层依赖
+- name: Model
+  type: data/models/xxx.dart
+  description: 领域模型依赖
+- name: OtherService
+  type: core/services/xxx_service.dart
+  description: 其他服务依赖
 responsibilities:
-  - "用户偏好设置管理"
-  - "设置数据协调"
-  - "设置验证"
-  - "设置更新处理"
-  - "设置监听"
-  
+- 业务逻辑处理
+- 数据协调
+- 业务规则执行
+- 事务管理
+- 错误处理
+- 业务验证
 business_operations:
   create:
-    - name: "ensureDefaultPreferences"
-      description: "确保默认偏好设置"
-      parameters: []
-      
+  - name: createXxx
+    description: 创建业务对象
+    parameters: []
   read:
-    - name: "watch"
-      description: "监听用户偏好设置"
-      parameters: []
-      
+  - name: getXxx
+    description: 获取业务对象
+    parameters: []
+  - name: listXxx
+    description: 列出业务对象
+    parameters: []
+  - name: searchXxx
+    description: 搜索业务对象
+    parameters: []
   update:
-    - name: "update"
-      description: "更新用户偏好设置"
-      parameters: ["PreferenceUpdate"]
-    - name: "updateLocale"
-      description: "更新语言设置"
-      parameters: ["String"]
-    - name: "updateTheme"
-      description: "更新主题设置"
-      parameters: ["ThemeMode"]
-    - name: "updateFontScale"
-      description: "更新字体缩放设置"
-      parameters: ["double"]
-    
+  - name: updateXxx
+    description: 更新业务对象
+    parameters: []
+  - name: moveXxx
+    description: 移动业务对象
+    parameters: []
+  - name: reorderXxx
+    description: 重新排序业务对象
+    parameters: []
+  delete:
+  - name: deleteXxx
+    description: 删除业务对象
+    parameters: []
+  - name: archiveXxx
+    description: 归档业务对象
+    parameters: []
 stream_operations:
-  - name: "watch"
-    description: "监听用户偏好设置"
-    return_type: "Stream<Preference>"
-    
+- name: watchXxx
+  description: 监听业务对象变化
+  return_type: Stream<T>
 business_rules:
-  - name: "preference_validation"
-    description: "偏好设置验证规则"
-    implementation: "验证偏好设置的有效性"
-    validation: "检查设置值的合理性"
-  - name: "preference_defaults"
-    description: "偏好设置默认值规则"
-    implementation: "提供合理的默认设置"
-    validation: "确保默认设置的完整性"
-  - name: "preference_persistence"
-    description: "偏好设置持久化规则"
-    implementation: "确保设置的正确保存"
-    validation: "验证设置保存的完整性"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+  validation: 验证逻辑
 error_handling:
-  - exception: "ValidationException"
-    description: "验证异常"
-    handling: "验证设置值并抛出描述性错误"
-    recovery: "提供设置修正建议"
-  - exception: "RepositoryException"
-    description: "数据访问异常"
-    handling: "记录日志并重新抛出"
-    recovery: "重试机制"
-  - exception: "ArgumentError"
-    description: "参数错误"
-    handling: "验证参数并抛出描述性错误"
-    recovery: "提供参数修正建议"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
 validation_rules:
-  - field: "localeCode"
-    rule: "not_empty"
-    description: "语言代码不能为空"
-    message: "语言代码不能为空"
-  - field: "fontScale"
-    rule: "positive"
-    description: "字体缩放比例必须为正数"
-    message: "字体缩放比例必须为正数"
-  - field: "themeMode"
-    rule: "valid_enum"
-    description: "主题模式必须有效"
-    message: "主题模式必须有效"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
 performance_considerations:
-  - operation: "update"
-    optimization: "增量更新"
-    description: "偏好设置更新性能优化"
-    caching: "设置缓存策略"
-  - operation: "watch"
-    optimization: "流式更新"
-    description: "偏好设置监听性能优化"
-    caching: "设置快照缓存"
-  - operation: "updateLocale"
-    optimization: "本地化优化"
-    description: "语言设置更新性能优化"
-    caching: "语言资源缓存"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
 transaction_management:
-  - operation: "update"
-    scope: "偏好设置更新事务"
-    rollback: "设置回滚"
-    isolation: "read_committed"
-  - operation: "updateLocale"
-    scope: "语言设置更新事务"
-    rollback: "设置回滚"
-    isolation: "read_committed"
-    
+- operation: 操作名
+  scope: 事务范围
+  rollback: 回滚策略
+  isolation: 隔离级别
 testing_strategy:
   unit_tests:
-    - name: "test_watch"
-      description: "测试监听用户偏好设置功能"
-    - name: "test_update"
-      description: "测试更新用户偏好设置功能"
-    - name: "test_update_locale"
-      description: "测试更新语言设置功能"
-    - name: "test_update_theme"
-      description: "测试更新主题设置功能"
-    - name: "test_update_font_scale"
-      description: "测试更新字体缩放设置功能"
-    - name: "test_business_rules"
-      description: "测试业务规则"
-    - name: "test_error_handling"
-      description: "测试错误处理"
-    - name: "test_validation"
-      description: "测试验证逻辑"
-      
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_get_xxx
+    description: 测试获取功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_business_rules
+    description: 测试业务规则
+  - name: test_error_handling
+    description: 测试错误处理
+  - name: test_validation
+    description: 测试验证逻辑
   integration_tests:
-    - name: "test_service_integration"
-      description: "测试服务集成"
-    - name: "test_repository_coordination"
-      description: "测试仓库协调"
-    - name: "test_transaction_management"
-      description: "测试事务管理"
-    - name: "test_preference_persistence"
-      description: "测试偏好设置持久化"
-      
+  - name: test_service_integration
+    description: 测试服务集成
+  - name: test_repository_coordination
+    description: 测试仓库协调
+  - name: test_transaction_management
+    description: 测试事务管理
   mock_strategy:
-    - name: "MockPreferenceService"
-      description: "Mock 实现用于测试"
-    - name: "FakePreferenceService"
-      description: "Fake 实现用于测试"
-      
+  - name: MockXxxService
+    description: Mock 实现用于测试
+  - name: FakeXxxService
+    description: Fake 实现用于测试
 lifecycle_management:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["依赖注入", "配置加载", "状态初始化"]
-  - phase: "operation"
-    description: "运行阶段"
-    operations: ["偏好设置管理", "设置验证", "设置更新", "设置监听"]
-  - phase: "cleanup"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置", "连接关闭"]
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 依赖注入
+  - 配置加载
+  - 状态初始化
+- phase: operation
+  description: 运行阶段
+  operations:
+  - 业务处理
+  - 数据协调
+  - 状态管理
+- phase: cleanup
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 连接关闭
+source_of_truth: lib/core/services/preference_service.dart
+called_by: []
+calls:
+- lib/data/models/preference.dart
+- lib/data/repositories/preference_repository.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

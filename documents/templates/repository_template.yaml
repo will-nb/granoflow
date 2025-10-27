@@ -6,6 +6,8 @@ meta:
   version: "1.0"
   created_date: "YYMMDD"
   last_updated: "YYMMDD"
+  schema_version: 1
+  last_synced_sha: ""
 
 repository_definition:
   abstract_class: "抽象类名"
@@ -161,3 +163,12 @@ testing_strategy:
   mock_strategy:
     - name: "MockXxxRepository"
       description: "Mock 实现用于测试"
+
+source_of_truth: "lib/data/repositories/xxx.dart"
+called_by: []
+calls: []
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ""

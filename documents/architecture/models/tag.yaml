@@ -1,142 +1,102 @@
 meta:
-  name: "Tag Model"
-  type: "model"
-  file_path: "lib/data/models/tag.dart"
-  description: "标签模型，用于任务分类和过滤"
-  version: "1.1"
-  created_date: "251025"
-  last_updated: "251026"
-
+  name: Tag
+  type: model
+  file_path: lib/data/models/tag.dart
+  description: 模型描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 model_definition:
-  name: "Tag"
-  storage: "isar_collection"
+  name: 类名
+  storage: isar_collection|memory|other
   immutable: true
-  annotation: "@immutable"
-  
+  annotation: '@immutable'
 enums:
-  - name: "TagKind"
-    values: ["context", "priority", "special"]
-    description: "标签类型枚举"
-    
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 fields:
-  - name: "id"
-    type: "int"
-    required: true
-    nullable: false
-    final: true
-    description: "Isar 数据库主键"
-    
-  - name: "slug"
-    type: "String"
-    required: true
-    nullable: false
-    final: true
-    description: "标签标识符"
-    
-  - name: "kind"
-    type: "TagKind"
-    required: true
-    nullable: false
-    final: true
-    description: "标签类型"
-    
-  - name: "localizedLabels"
-    type: "Map<String, String>"
-    required: true
-    nullable: false
-    final: true
-    description: "本地化标签映射"
-    
+- name: 字段名
+  type: 类型
+  required: true|false
+  nullable: true|false
+  default: 默认值
+  final: true|false
+  description: 字段描述
 constructors:
-  - type: "const"
-    name: "Tag"
-    parameters:
-      - name: "id"
-        type: "int"
-        required: true
-      - name: "slug"
-        type: "String"
-        required: true
-      - name: "kind"
-        type: "TagKind"
-        required: true
-      - name: "localizedLabels"
-        type: "Map<String, String>"
-        required: true
-    description: "主构造函数"
-    
+- type: const|factory
+  name: 构造函数名
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 构造函数描述
 methods:
-  - name: "labelForLocale"
-    return_type: "String"
-    parameters:
-      - name: "localeCode"
-        type: "String"
-        required: true
-    visibility: "public"
-    description: "根据语言代码获取标签文本"
-    implementation: "按优先级返回本地化标签：完整语言代码 -> 语言代码 -> 英语 -> slug"
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  visibility: public|private
+  description: 方法描述
+  implementation: 方法实现描述
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 imports:
-  - "package:flutter/foundation.dart"
-  
+- package:flutter/foundation.dart
+- package:collection/collection.dart
+- package:flutter/material.dart
+- 其他实际导入的包
 dependencies:
-  - "TagKind"
-  
+- 依赖的模型类
+- 依赖的枚举类型
 relationships:
-  - name: "TagData"
-    type: "UI Model"
-    description: "UI 展示用的标签数据模型"
-    relationship: "one_to_one"
-    file_path: "lib/presentation/widgets/tag_data.dart"
-    note: "TagData 通过 TagData.fromTag() 方法从 Tag 创建"
-  
+- type: one_to_many|many_to_one|many_to_many
+  target: 目标模型
+  field: 关联字段
+  description: 关系描述
 validation_rules:
-  - field: "slug"
-    rule: "not_empty"
-    description: "标签标识符不能为空"
-  - field: "localizedLabels"
-    rule: "not_empty"
-    description: "本地化标签不能为空"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
 business_rules:
-  - name: "locale_fallback"
-    description: "标签文本回退机制"
-    implementation: "完整语言代码 -> 语言代码 -> 英语 -> slug"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
 storage_config:
   indexes:
-    - field: "slug"
-    - field: "kind"
+  - field: 字段名
+  - composite:
+      fields:
+      - 字段1
+      - 字段2
   constraints:
-    - field: "slug"
-      constraint: "unique"
-
-# UI 集成说明
-ui_integration:
-  description: "Tag 模型与 UI 组件的集成"
-  tag_data_conversion:
-    method: "TagData.fromTag(tag, locale)"
-    description: "将 Tag 模型转换为 TagData 用于 UI 展示"
-    parameters:
-      - name: "tag"
-        type: "Tag"
-        description: "源标签模型"
-      - name: "locale"
-        type: "String"
-        description: "目标语言环境"
-    returns: "TagData"
-    note: "TagData 包含颜色、图标等 UI 特定属性"
-  
-  modern_tag_usage:
-    component: "ModernTag"
-    description: "使用 ModernTag 组件展示标签"
-    data_source: "TagData"
-    variants: ["pill", "dot", "minimal"]
-    sizes: ["small", "medium", "large"]
-  
-  modern_tag_group_usage:
-    component: "ModernTagGroup"
-    description: "使用 ModernTagGroup 组件管理多个标签"
-    data_source: "List<TagData>"
-    selection: "支持单选和多选"
-    layout: "Wrap 布局，自动换行"
+  - field: 字段名
+    constraint: 约束类型
+  collection_version: 1
+  migration_plan:
+  - from: 1
+    to: 2
+    steps:
+    - 新增字段 xxx，默认值 yyy
+    - 重建索引 zzz
+source_of_truth: lib/data/models/tag.dart
+called_by: []
+calls: []
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

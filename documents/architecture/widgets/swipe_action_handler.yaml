@@ -1,417 +1,312 @@
 meta:
-  name: "SwipeActionHandler"
-  type: "widget"
-  file_path: "lib/presentation/widgets/swipe_action_handler.dart"
-  description: "滑动操作处理器，集中管理各种滑动动作的逻辑和用户反馈"
-  version: "1.0"
-  created_date: "251026"
-  last_updated: "251026"
-
+  name: SwipeActionHandler
+  type: widget
+  file_path: lib/presentation/widgets/swipe_action_handler.dart
+  description: SwipeActionHandler 组件
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 widget_definition:
-  name: "SwipeActionHandler"
-  layer: "presentation"
-  pattern: "static"
-  category: "service"
+  name: SwipeActionHandler
+  layer: presentation
+  pattern: unknown
+  category: ui_component
   reusable: true
-  
 widget_types:
-  - name: "Static Class"
-    description: "静态类，用于集中管理滑动操作逻辑"
-    usage: "滑动操作处理、用户反馈"
-    
+- name: StatelessWidget
+  description: 无状态 Widget，用于静态 UI 组件
+  usage: 静态展示、简单交互
+- name: StatefulWidget
+  description: 有状态 Widget，用于动态 UI 组件
+  usage: 状态管理、复杂交互
+- name: ConsumerWidget
+  description: 消费者 Widget，用于 Riverpod 状态管理
+  usage: 状态监听、数据绑定
+- name: ConsumerStatefulWidget
+  description: 有状态消费者 Widget，用于 Riverpod 状态管理
+  usage: 状态管理、数据绑定、复杂交互
 widget_properties:
-  - name: "handleAction"
-    type: "static method"
-    required: true
-    description: "处理滑动动作的静态方法"
-    parameters: "BuildContext context, WidgetRef ref, SwipeActionType actionType, Task task"
-    return_type: "void"
-    
-enums:
-  - name: "SwipeActionType"
-    values: ["quickPlan", "postpone", "archive", "delete"]
-    description: "滑动动作类型枚举"
-    
+- name: propertyName
+  type: 属性类型
+  required: true|false
+  default_value: 默认值
+  description: 属性描述
+  validation: 验证规则
+- name: callbackName
+  type: 回调类型
+  required: true|false
+  description: 回调描述
+  parameters: 参数列表
 widget_methods:
-  - name: "handleAction"
-    return_type: "void"
-    parameters:
-      - name: "context"
-        type: "BuildContext"
-        required: true
-        description: "构建上下文"
-      - name: "ref"
-        type: "WidgetRef"
-        required: true
-        description: "Riverpod 引用"
-      - name: "actionType"
-        type: "SwipeActionType"
-        required: true
-        description: "滑动动作类型"
-      - name: "task"
-        type: "Task"
-        required: true
-        description: "任务对象"
-    description: "处理滑动动作的主方法"
-    visibility: "public"
-    async: false
-    static: true
-    
-  - name: "_handleQuickPlan"
-    return_type: "void"
-    parameters:
-      - name: "context"
-        type: "BuildContext"
-        required: true
-      - name: "ref"
-        type: "WidgetRef"
-        required: true
-      - name: "task"
-        type: "Task"
-        required: true
-    description: "处理快速规划动作"
-    visibility: "private"
-    async: false
-    static: true
-    
-  - name: "_handlePostpone"
-    return_type: "void"
-    parameters:
-      - name: "context"
-        type: "BuildContext"
-        required: true
-      - name: "ref"
-        type: "WidgetRef"
-        required: true
-      - name: "task"
-        type: "Task"
-        required: true
-    description: "处理延迟动作"
-    visibility: "private"
-    async: false
-    static: true
-    
-  - name: "_handleArchive"
-    return_type: "void"
-    parameters:
-      - name: "context"
-        type: "BuildContext"
-        required: true
-      - name: "ref"
-        type: "WidgetRef"
-        required: true
-      - name: "task"
-        type: "Task"
-        required: true
-    description: "处理归档动作"
-    visibility: "private"
-    async: false
-    static: true
-    
-  - name: "_handleDelete"
-    return_type: "void"
-    parameters:
-      - name: "context"
-        type: "BuildContext"
-        required: true
-      - name: "ref"
-        type: "WidgetRef"
-        required: true
-      - name: "task"
-        type: "Task"
-        required: true
-    description: "处理删除动作"
-    visibility: "private"
-    async: false
-    static: true
-    
-  - name: "_formatDateForDisplay"
-    return_type: "String"
-    parameters:
-      - name: "date"
-        type: "DateTime"
-        required: true
-    description: "格式化日期用于显示"
-    visibility: "private"
-    async: false
-    static: true
-    
+- name: methodName
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 参数描述
+  description: 方法描述
+  visibility: public|private|protected
+  async: true|false
+widget_state:
+- name: stateName
+  type: 状态类型
+  description: 状态描述
+  initial_value: 初始值
+  validation: 验证规则
 widget_lifecycle:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["静态方法注册", "依赖注入"]
-  - phase: "execution"
-    description: "执行阶段"
-    operations: ["动作处理", "状态更新", "用户反馈"]
-  - phase: "cleanup"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置"]
-    
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 状态初始化
+  - 依赖注入
+  - 配置加载
+- phase: build
+  description: 构建阶段
+  operations:
+  - UI 构建
+  - 状态渲染
+  - 事件绑定
+- phase: disposal
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 监听器清理
 widget_events:
-  - name: "quickPlanAction"
-    description: "快速规划动作事件"
-    trigger: "用户执行快速规划滑动"
-    handler: "_handleQuickPlan"
-    parameters: "Task task"
-    
-  - name: "postponeAction"
-    description: "延迟动作事件"
-    trigger: "用户执行延迟滑动"
-    handler: "_handlePostpone"
-    parameters: "Task task"
-    
-  - name: "archiveAction"
-    description: "归档动作事件"
-    trigger: "用户执行归档滑动"
-    handler: "_handleArchive"
-    parameters: "Task task"
-    
-  - name: "deleteAction"
-    description: "删除动作事件"
-    trigger: "用户执行删除滑动"
-    handler: "_handleDelete"
-    parameters: "Task task"
-    
+- name: eventName
+  description: 事件描述
+  trigger: 触发条件
+  handler: 处理函数
+  parameters: 参数列表
 widget_styling:
-  - name: "snackBarStyle"
-    description: "SnackBar 样式"
-    properties:
-      - name: "backgroundColor"
-        type: "Color"
-        value: "Theme.of(context).colorScheme.surface"
-        description: "背景颜色"
-      - name: "duration"
-        type: "Duration"
-        value: "Duration(seconds: 4)"
-        description: "显示持续时间"
-      - name: "action"
-        type: "SnackBarAction"
-        value: "SnackBarAction"
-        description: "操作按钮"
-    responsive: true
-    theme_aware: true
-    
+- name: styleName
+  description: 样式描述
+  properties:
+  - name: propertyName
+    type: 样式属性类型
+    value: 样式值
+    description: 样式属性描述
+  responsive: true|false
+  theme_aware: true|false
 widget_responsive:
-  - breakpoint: "mobile"
-    description: "移动端响应式"
-    properties:
-      - name: "snackBarDuration"
-        value: "Duration(seconds: 3)"
-        description: "SnackBar 持续时间"
-      - name: "actionButtonText"
-        value: "查看"
-        description: "操作按钮文本"
-    layout: "全屏 SnackBar"
-    behavior: "触摸友好"
-    
-  - breakpoint: "tablet"
-    description: "平板端响应式"
-    properties:
-      - name: "snackBarDuration"
-        value: "Duration(seconds: 4)"
-        description: "SnackBar 持续时间"
-      - name: "actionButtonText"
-        value: "查看"
-        description: "操作按钮文本"
-    layout: "居中 SnackBar"
-    behavior: "触摸友好"
-    
-  - breakpoint: "desktop"
-    description: "桌面端响应式"
-    properties:
-      - name: "snackBarDuration"
-        value: "Duration(seconds: 5)"
-        description: "SnackBar 持续时间"
-      - name: "actionButtonText"
-        value: "查看"
-        description: "操作按钮文本"
-    layout: "居中 SnackBar"
-    behavior: "鼠标悬停"
-    
+- breakpoint: mobile|tablet|desktop
+  description: 响应式描述
+  properties:
+  - name: propertyName
+    value: 响应式值
+    description: 响应式属性描述
+  layout: 布局描述
+  behavior: 行为描述
 widget_accessibility:
-  - name: "semanticLabel"
-    description: "语义标签"
-    implementation: "为滑动操作提供语义标签"
-    testing: "无障碍测试"
-    compliance: "WCAG 2.1"
-    
-  - name: "keyboardNavigation"
-    description: "键盘导航"
-    implementation: "支持键盘导航"
-    testing: "键盘测试"
-    compliance: "WCAG 2.1"
-    
+- name: accessibilityFeature
+  description: 无障碍功能描述
+  implementation: 实现方式
+  testing: 测试方法
+  compliance: 合规标准
 widget_performance:
-  - operation: "action_handling"
-    optimization: "动作处理优化"
-    description: "动作处理性能优化"
-    caching: "状态缓存"
-    rendering: "渲染优化"
-    
-  - operation: "feedback"
-    optimization: "反馈优化"
-    description: "用户反馈性能优化"
-    caching: "反馈状态缓存"
-    rendering: "反馈渲染优化"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
+  rendering: 渲染优化
 widget_testing:
-  - name: "testSwipeActionHandler"
-    description: "测试滑动操作处理器"
-    type: "unit"
-    coverage: "100%"
-    scenarios: "不同动作类型、错误处理、用户反馈"
-    
+- name: testName
+  description: 测试描述
+  type: unit|widget|integration
+  coverage: 测试覆盖
+  scenarios: 测试场景
 widget_dependencies:
-  - name: "Task"
-    type: "数据模型"
-    description: "任务数据模型"
-    required: true
-    version: "1.0"
-    
-  - name: "TaskService"
-    type: "服务"
-    description: "任务服务"
-    required: true
-    version: "1.0"
-    
-  - name: "AppLocalizations"
-    type: "本地化"
-    description: "应用本地化"
-    required: true
-    version: "1.0"
-    
+- name: dependencyName
+  type: 依赖类型
+  description: 依赖描述
+  required: true|false
+  version: 版本要求
 widget_imports:
-  - "package:flutter/material.dart"
-  - "package:flutter_riverpod/flutter_riverpod.dart"
-  - "package:intl/intl.dart"
-  - "package:flutter_gen/gen_l10n/app_localizations.dart"
-  - "../../data/models/task.dart"
-  - "../../core/services/task_service.dart"
-  - "swipe_configs.dart"
-  
+- package:flutter/material.dart
+- package:flutter_riverpod/flutter_riverpod.dart
+- ../../data/models/task.dart
+- ../../core/providers/service_providers.dart
+- ../../generated/l10n/app_localizations.dart
+- swipe_action_type.dart
 widget_categories:
-  services:
-    - name: "SwipeActionHandler"
-      description: "滑动操作处理器"
-      type: "Static Class"
-      category: "service"
-      
+  ui_components:
+  - name: componentName
+    description: 组件描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: ui_component
+  dialogs:
+  - name: dialogName
+    description: 对话框描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: dialog
+  navigation:
+  - name: navigationName
+    description: 导航描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: navigation
+  layouts:
+  - name: layoutName
+    description: 布局描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: layout
+  forms:
+  - name: formName
+    description: 表单描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: form
+  lists:
+  - name: listName
+    description: 列表描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: list
+  cards:
+  - name: cardName
+    description: 卡片描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: card
+  buttons:
+  - name: buttonName
+    description: 按钮描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: button
+  inputs:
+  - name: inputName
+    description: 输入描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: input
 widget_interactions:
-  - name: "actionExecution"
-    description: "动作执行交互"
-    type: "programmatic"
-    handler: "handleAction"
-    feedback: "SnackBar 反馈"
-    accessibility: "支持无障碍"
-    
+- name: interactionName
+  description: 交互描述
+  type: tap|swipe|drag|pinch|long_press|double_tap
+  handler: 处理函数
+  feedback: 反馈描述
+  accessibility: 无障碍支持
 widget_animations:
-  - name: "snackBarAnimation"
-    description: "SnackBar 动画"
-    type: "slide"
-    duration: "300ms"
-    curve: "easeInOut"
-    trigger: "动作执行完成"
-    
+- name: animationName
+  description: 动画描述
+  type: fade|slide|scale|rotate|custom
+  duration: 动画时长
+  curve: 动画曲线
+  trigger: 触发条件
 widget_validation:
-  - field: "context"
-    rule: "not_null"
-    description: "构建上下文不能为 null"
-    message: "构建上下文不能为 null"
-    required: true
-    
-  - field: "ref"
-    rule: "not_null"
-    description: "Riverpod 引用不能为 null"
-    message: "Riverpod 引用不能为 null"
-    required: true
-    
-  - field: "actionType"
-    rule: "enum_value"
-    description: "动作类型必须是有效枚举值"
-    message: "动作类型必须是有效枚举值"
-    required: true
-    
-  - field: "task"
-    rule: "not_null"
-    description: "任务对象不能为 null"
-    message: "任务对象不能为 null"
-    required: true
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
+  required: true|false
 widget_error_handling:
-  - exception: "ArgumentError"
-    description: "参数错误"
-    handling: "验证参数并抛出描述性错误"
-    recovery: "提供参数修正建议"
-    user_feedback: "显示错误消息"
-    
-  - exception: "ServiceException"
-    description: "服务异常"
-    handling: "捕获服务异常并显示用户友好消息"
-    recovery: "重试操作或回滚状态"
-    user_feedback: "显示错误 SnackBar"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
+  user_feedback: 用户反馈
 widget_internationalization:
-  - name: "swipeActionHandler"
-    description: "滑动操作处理器国际化"
-    languages: "zh_CN, en_US"
-    fallback: "en_US"
-    context: "UI 组件"
-    
+- name: i18nKey
+  description: 国际化键
+  languages: 支持语言
+  fallback: 回退语言
+  context: 上下文信息
 widget_theme_integration:
-  - name: "actionTheme"
-    description: "动作主题"
-    type: "color"
-    default_value: "主题色"
-    theme_aware: true
-    
-  - name: "feedbackTheme"
-    description: "反馈主题"
-    type: "color"
-    default_value: "主题色"
-    theme_aware: true
-    
+- name: themeProperty
+  description: 主题属性描述
+  type: color|text_style|elevation|border_radius
+  default_value: 默认值
+  theme_aware: true|false
 widget_state_management:
-  - pattern: "外部状态管理"
-    description: "通过 Riverpod 管理状态"
-    implementation: "使用 WidgetRef 访问服务"
-    benefits: "解耦、可测试"
-    considerations: "需要 Riverpod 环境"
-    
+- pattern: 状态管理模式
+  description: 状态管理描述
+  implementation: 实现方式
+  benefits: 优势
+  considerations: 注意事项
+source_of_truth: lib/presentation/widgets/swipe_action_handler.dart
+called_by: []
+calls:
+- lib/data/models/task.dart
+- lib/core/providers/service_providers.dart
+- lib/generated/l10n/app_localizations.dart
+i18n_keys:
+- taskPostponeSuccessDetailed
+design_tokens: []
+test_mapping:
+  unit:
+  - test/presentation/widgets/xxx_unit_test.dart::should_do_x
+  widget:
+  - test/presentation/widgets/xxx_widget_test.dart::renders_correctly
+  integration:
+  - integration_test/xxx_flow_test.dart::end_to_end
+supersedes: []
+deprecated_since: ''
 widget_testing_strategy:
   unit_tests:
-    - name: "test_action_handling"
-      description: "测试动作处理"
-    - name: "test_quick_plan"
-      description: "测试快速规划"
-    - name: "test_postpone"
-      description: "测试延迟"
-    - name: "test_archive"
-      description: "测试归档"
-    - name: "test_delete"
-      description: "测试删除"
-    - name: "test_error_handling"
-      description: "测试错误处理"
-    - name: "test_user_feedback"
-      description: "测试用户反馈"
-    - name: "test_date_formatting"
-      description: "测试日期格式化"
-      
+  - name: test_widget_creation
+    description: 测试 Widget 创建
+  - name: test_widget_properties
+    description: 测试 Widget 属性
+  - name: test_widget_state
+    description: 测试 Widget 状态
+  - name: test_widget_lifecycle
+    description: 测试 Widget 生命周期
+  - name: test_widget_interactions
+    description: 测试 Widget 交互
+  - name: test_widget_events
+    description: 测试 Widget 事件
+  - name: test_widget_styling
+    description: 测试 Widget 样式
+  - name: test_widget_responsive
+    description: 测试 Widget 响应式
+  - name: test_widget_accessibility
+    description: 测试 Widget 无障碍
+  - name: test_widget_performance
+    description: 测试 Widget 性能
+  widget_tests:
+  - name: test_widget_rendering
+    description: 测试 Widget 渲染
+  - name: test_widget_interactions
+    description: 测试 Widget 交互
+  - name: test_widget_state_changes
+    description: 测试 Widget 状态变化
+  - name: test_widget_animations
+    description: 测试 Widget 动画
+  - name: test_widget_responsive_behavior
+    description: 测试 Widget 响应式行为
+  - name: test_widget_accessibility
+    description: 测试 Widget 无障碍
+  - name: test_widget_theme_integration
+    description: 测试 Widget 主题集成
+  - name: test_widget_error_handling
+    description: 测试 Widget 错误处理
+  - name: test_widget_validation
+    description: 测试 Widget 验证
+  - name: test_widget_internationalization
+    description: 测试 Widget 国际化
   integration_tests:
-    - name: "test_service_integration"
-      description: "测试服务集成"
-    - name: "test_state_management"
-      description: "测试状态管理"
-    - name: "test_user_feedback_flow"
-      description: "测试用户反馈流程"
-    - name: "test_error_recovery"
-      description: "测试错误恢复"
-    - name: "test_performance"
-      description: "测试性能"
-      
+  - name: test_widget_integration
+    description: 测试 Widget 集成
+  - name: test_widget_coordination
+    description: 测试 Widget 协调
+  - name: test_widget_data_flow
+    description: 测试 Widget 数据流
+  - name: test_widget_navigation
+    description: 测试 Widget 导航
+  - name: test_widget_state_management
+    description: 测试 Widget 状态管理
+  - name: test_widget_performance
+    description: 测试 Widget 性能
+  - name: test_widget_accessibility
+    description: 测试 Widget 无障碍
+  - name: test_widget_responsive
+    description: 测试 Widget 响应式
+  - name: test_widget_theme
+    description: 测试 Widget 主题
+  - name: test_widget_internationalization
+    description: 测试 Widget 国际化
   mock_strategy:
-    - name: "MockTaskService"
-      description: "Mock 任务服务用于测试"
-    - name: "FakeTaskService"
-      description: "Fake 任务服务用于测试"
-    - name: "TestSwipeActionHandler"
-      description: "测试专用处理器"
+  - name: MockWidget
+    description: Mock 实现用于测试
+  - name: FakeWidget
+    description: Fake 实现用于测试
+  - name: TestWidget
+    description: 测试专用 Widget

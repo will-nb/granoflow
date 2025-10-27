@@ -1,314 +1,102 @@
 meta:
-  name: "Task Model"
-  type: "model"
-  file_path: "lib/data/models/task.dart"
-  description: "任务模型 - GranoFlow 的核心领域模型，代表用户的任务或想法，无论其生命周期阶段如何"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: TaskUpdate
+  type: model
+  file_path: lib/data/models/task.dart
+  description: 模型描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 model_definition:
-  name: "Task"
-  storage: "isar_collection"
+  name: 类名
+  storage: isar_collection|memory|other
   immutable: true
-  annotation: "@immutable"
-  
+  annotation: '@immutable'
 enums:
-  - name: "TaskStatus"
-    values: ["inbox", "pending", "doing", "completedActive", "archived", "trashed", "pseudoDeleted"]
-    description: "任务状态枚举"
-    
-  - name: "TaskSection"
-    values: ["today", "tomorrow", "later", "completed", "archived", "trash"]
-    description: "任务分区枚举"
-    
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 fields:
-  - name: "id"
-    type: "int"
-    required: true
-    nullable: false
-    final: true
-    description: "Isar 数据库主键，用户不可见"
-    
-  - name: "taskId"
-    type: "String"
-    required: true
-    nullable: false
-    final: true
-    description: "用户可见的标识符（不可变），在 UI 中显示以保持与笔记和外部工具的可追溯性"
-    
-  - name: "title"
-    type: "String"
-    required: true
-    nullable: false
-    final: true
-    description: "任务标题，必需字段，最大 120 字符"
-    
-  - name: "status"
-    type: "TaskStatus"
-    required: true
-    nullable: false
-    final: true
-    description: "任务状态，枚举类型，驱动页面可见性"
-    
-  - name: "dueAt"
-    type: "DateTime?"
-    required: false
-    nullable: true
-    final: true
-    description: "截止时间，以 UTC 存储；收集箱任务在安排前为 null"
-    
-  - name: "startedAt"
-    type: "DateTime?"
-    required: false
-    nullable: true
-    final: true
-    description: "任务进入 doing 状态时的时间戳"
-    
-  - name: "endedAt"
-    type: "DateTime?"
-    required: false
-    nullable: true
-    final: true
-    description: "任务完成时的时间戳"
-    
-  - name: "createdAt"
-    type: "DateTime"
-    required: true
-    nullable: false
-    final: true
-    description: "任务创建时间"
-    
-  - name: "updatedAt"
-    type: "DateTime"
-    required: true
-    nullable: false
-    final: true
-    description: "任务最后更新时间"
-    
-  - name: "parentId"
-    type: "int?"
-    required: false
-    nullable: true
-    final: true
-    description: "父任务 ID，用于构建任务树结构"
-    
-  - name: "sortIndex"
-    type: "double"
-    required: false
-    nullable: false
-    default: "0"
-    final: true
-    description: "排序索引，用于任务排序"
-    
-  - name: "tags"
-    type: "List<String>"
-    required: false
-    nullable: false
-    default: "const <String>[]"
-    final: true
-    description: "任务标签列表"
-    
-  - name: "templateLockCount"
-    type: "int"
-    required: false
-    nullable: false
-    default: "0"
-    final: true
-    description: "模板锁定计数，防止编辑已锁定的任务"
-    
-  - name: "seedSlug"
-    type: "String?"
-    required: false
-    nullable: true
-    final: true
-    description: "种子数据标识符"
-    
-  - name: "allowInstantComplete"
-    type: "bool"
-    required: false
-    nullable: false
-    default: "false"
-    final: true
-    description: "是否允许即时完成"
-    
+- name: 字段名
+  type: 类型
+  required: true|false
+  nullable: true|false
+  default: 默认值
+  final: true|false
+  description: 字段描述
 constructors:
-  - type: "const"
-    name: "Task"
-    parameters:
-      - name: "id"
-        type: "int"
-        required: true
-      - name: "taskId"
-        type: "String"
-        required: true
-      - name: "title"
-        type: "String"
-        required: true
-      - name: "status"
-        type: "TaskStatus"
-        required: true
-      - name: "createdAt"
-        type: "DateTime"
-        required: true
-      - name: "updatedAt"
-        type: "DateTime"
-        required: true
-      - name: "dueAt"
-        type: "DateTime?"
-        required: false
-      - name: "startedAt"
-        type: "DateTime?"
-        required: false
-      - name: "endedAt"
-        type: "DateTime?"
-        required: false
-      - name: "parentId"
-        type: "int?"
-        required: false
-      - name: "sortIndex"
-        type: "double"
-        required: false
-        default: "0"
-      - name: "tags"
-        type: "List<String>"
-        required: false
-        default: "const <String>[]"
-      - name: "templateLockCount"
-        type: "int"
-        required: false
-        default: "0"
-      - name: "seedSlug"
-        type: "String?"
-        required: false
-      - name: "allowInstantComplete"
-        type: "bool"
-        required: false
-        default: "false"
-    description: "主构造函数"
-    
+- type: const|factory
+  name: 构造函数名
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 构造函数描述
 methods:
-  - name: "copyWith"
-    return_type: "Task"
-    parameters:
-      - name: "id"
-        type: "int?"
-        required: false
-      - name: "taskId"
-        type: "String?"
-        required: false
-      - name: "title"
-        type: "String?"
-        required: false
-      - name: "status"
-        type: "TaskStatus?"
-        required: false
-      - name: "dueAt"
-        type: "DateTime?"
-        required: false
-      - name: "startedAt"
-        type: "DateTime?"
-        required: false
-      - name: "endedAt"
-        type: "DateTime?"
-        required: false
-      - name: "createdAt"
-        type: "DateTime?"
-        required: false
-      - name: "updatedAt"
-        type: "DateTime?"
-        required: false
-      - name: "parentId"
-        type: "int?"
-        required: false
-      - name: "sortIndex"
-        type: "double?"
-        required: false
-      - name: "tags"
-        type: "List<String>?"
-        required: false
-      - name: "templateLockCount"
-        type: "int?"
-        required: false
-      - name: "seedSlug"
-        type: "String?"
-        required: false
-      - name: "allowInstantComplete"
-        type: "bool?"
-        required: false
-    visibility: "public"
-    description: "创建任务副本，允许部分字段更新"
-    
-  - name: "operator =="
-    return_type: "bool"
-    parameters:
-      - name: "other"
-        type: "Object"
-        required: true
-    visibility: "public"
-    description: "相等性比较"
-    
-  - name: "hashCode"
-    return_type: "int"
-    parameters: []
-    visibility: "public"
-    description: "哈希码计算"
-    
-  - name: "toString"
-    return_type: "String"
-    parameters: []
-    visibility: "public"
-    description: "字符串表示"
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  visibility: public|private
+  description: 方法描述
+  implementation: 方法实现描述
 getters:
-  - name: "canEditStructure"
-    return_type: "bool"
-    description: "是否可以编辑结构"
-    implementation: "检查状态和模板锁定"
-    
-  - name: "isLeaf"
-    return_type: "bool"
-    description: "是否为叶子节点"
-    implementation: "检查 parentId 是否为 null"
-    
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 imports:
-  - "package:collection/collection.dart"
-  - "package:flutter/foundation.dart"
-  
+- package:flutter/foundation.dart
+- package:collection/collection.dart
+- package:flutter/material.dart
+- 其他实际导入的包
 dependencies:
-  - "TaskStatus"
-  - "TaskSection"
-  
+- 依赖的模型类
+- 依赖的枚举类型
 relationships:
-  - type: "many_to_one"
-    target: "Task"
-    field: "parentId"
-    description: "父子任务关系"
-    
+- type: one_to_many|many_to_one|many_to_many
+  target: 目标模型
+  field: 关联字段
+  description: 关系描述
 validation_rules:
-  - field: "title"
-    rule: "not_empty"
-    description: "标题不能为空"
-  - field: "taskId"
-    rule: "unique"
-    description: "taskId 必须唯一"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
 business_rules:
-  - name: "can_edit_structure"
-    description: "只有非完成、非归档且未锁定的任务可以编辑结构"
-    implementation: "status != completedActive && status != archived && templateLockCount == 0"
-  - name: "leaf_task_only"
-    description: "只有叶子任务可以运行专注会话"
-    implementation: "parentId == null"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
 storage_config:
   indexes:
-    - field: "status"
-    - field: "dueAt"
-    - field: "parentId"
-    - field: "updatedAt"
-    - composite:
-        fields: ["status", "dueAt"]
+  - field: 字段名
+  - composite:
+      fields:
+      - 字段1
+      - 字段2
   constraints:
-    - field: "taskId"
-      constraint: "unique"
+  - field: 字段名
+    constraint: 约束类型
+  collection_version: 1
+  migration_plan:
+  - from: 1
+    to: 2
+    steps:
+    - 新增字段 xxx，默认值 yyy
+    - 重建索引 zzz
+source_of_truth: lib/data/models/task.dart
+called_by: []
+calls: []
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

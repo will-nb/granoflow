@@ -6,6 +6,8 @@ meta:
   version: "1.0"
   created_date: "YYMMDD"
   last_updated: "YYMMDD"
+  schema_version: 1
+  last_synced_sha: ""
 
 widget_definition:
   name: "WidgetName"
@@ -241,6 +243,33 @@ widget_state_management:
     implementation: "实现方式"
     benefits: "优势"
     considerations: "注意事项"
+
+# 单一事实来源与依赖图（可选）
+source_of_truth: "lib/presentation/widgets/xxx.dart"
+called_by:
+  - "lib/presentation/pages/xxx_page.dart"
+calls:
+  - "lib/presentation/widgets/other_widget.dart"
+
+# 国际化键与设计令牌（可选）
+i18n_keys:
+  - "someLocalizationKey"
+design_tokens:
+  - "OceanBreezeColorSchemes.seaSaltBlue"
+  - "OceanBreezeColorSchemes.softPink"
+
+# 测试映射（可选）
+test_mapping:
+  unit:
+    - "test/presentation/widgets/xxx_unit_test.dart::should_do_x"
+  widget:
+    - "test/presentation/widgets/xxx_widget_test.dart::renders_correctly"
+  integration:
+    - "integration_test/xxx_flow_test.dart::end_to_end"
+
+# 变更谱系（可选）
+supersedes: []
+deprecated_since: ""
     
 widget_testing_strategy:
   unit_tests:

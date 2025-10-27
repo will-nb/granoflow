@@ -6,6 +6,8 @@ meta:
   version: "1.0"
   created_date: "YYMMDD"
   last_updated: "YYMMDD"
+  schema_version: 1
+  last_synced_sha: ""
 
 page_definition:
   name: "PageName"
@@ -205,6 +207,18 @@ page_state_management:
     implementation: "实现方式"
     benefits: "优势"
     considerations: "注意事项"
+
+source_of_truth: "lib/presentation/xxx/xxx_page.dart"
+called_by: []
+calls: []
+i18n_keys: []
+design_tokens: []
+test_mapping:
+  unit: []
+  widget: []
+  integration: []
+supersedes: []
+deprecated_since: ""
     
 page_navigation:
   - name: "navigationName"

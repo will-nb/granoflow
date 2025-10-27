@@ -1,382 +1,206 @@
 meta:
-  name: "TaskTemplateService"
-  type: "service"
-  file_path: "lib/core/services/task_template_service.dart"
-  description: "任务模板服务，管理任务模板的创建、更新和使用"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: TaskTemplateService
+  type: service
+  file_path: lib/core/services/task_template_service.dart
+  description: Service 描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 service_definition:
-  name: "TaskTemplateService"
-  layer: "business_logic"
-  pattern: "service"
-  singleton: false
-  
+  name: ServiceName
+  layer: business_logic
+  pattern: service|orchestrator|facade
+  singleton: true|false
+enums:
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 constructor:
   parameters:
-    - name: "templateRepository"
-      type: "TaskTemplateRepository"
-      required: true
-      description: "任务模板数据访问层"
-    - name: "taskRepository"
-      type: "TaskRepository"
-      required: true
-      description: "任务数据访问层"
-    - name: "taskService"
-      type: "TaskService"
-      required: true
-      description: "任务业务逻辑服务"
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 构造函数参数描述
   dependencies:
-    - name: "TaskTemplateRepository"
-      type: "data/repositories/task_template_repository.dart"
-      description: "任务模板数据访问层依赖"
-    - name: "TaskRepository"
-      type: "data/repositories/task_repository.dart"
-      description: "任务数据访问层依赖"
-    - name: "TaskService"
-      type: "core/services/task_service.dart"
-      description: "任务业务逻辑服务依赖"
-      
+  - name: 依赖名
+    type: 依赖类型
+    description: 依赖描述
 public_methods:
-  - name: "createTemplate"
-    return_type: "Future<TaskTemplate>"
-    parameters:
-      - name: "draft"
-        type: "TaskTemplateDraft"
-        required: true
-    description: "创建任务模板"
-    visibility: "public"
-    async: true
-    
-  - name: "updateTemplate"
-    return_type: "Future<void>"
-    parameters:
-      - name: "templateId"
-        type: "int"
-        required: true
-      - name: "payload"
-        type: "TaskTemplateUpdate"
-        required: true
-    description: "更新任务模板"
-    visibility: "public"
-    async: true
-    
-  - name: "deleteTemplate"
-    return_type: "Future<void>"
-    parameters:
-      - name: "templateId"
-        type: "int"
-        required: true
-    description: "删除任务模板"
-    visibility: "public"
-    async: true
-    
-  - name: "listRecent"
-    return_type: "Future<List<TaskTemplate>>"
-    parameters:
-      - name: "limit"
-        type: "int"
-        required: true
-    description: "列出最近使用的模板"
-    visibility: "public"
-    async: true
-    
-  - name: "search"
-    return_type: "Future<List<TaskTemplate>>"
-    parameters:
-      - name: "query"
-        type: "String"
-        required: true
-      - name: "limit"
-        type: "int"
-        required: false
-        default: "10"
-    description: "搜索任务模板"
-    visibility: "public"
-    async: true
-    
-  - name: "useTemplate"
-    return_type: "Future<Task>"
-    parameters:
-      - name: "templateId"
-        type: "int"
-        required: true
-      - name: "overrides"
-        type: "TaskTemplateOverrides?"
-        required: false
-    description: "使用任务模板"
-    visibility: "public"
-    async: true
-    
-  - name: "findById"
-    return_type: "Future<TaskTemplate?>"
-    parameters:
-      - name: "id"
-        type: "int"
-        required: true
-    description: "根据 ID 查找模板"
-    visibility: "public"
-    async: true
-    
-  - name: "findBySlug"
-    return_type: "Future<TaskTemplate?>"
-    parameters:
-      - name: "slug"
-        type: "String"
-        required: true
-    description: "根据 slug 查找模板"
-    visibility: "public"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 公共方法描述
+  visibility: public
+  async: true|false
 private_methods:
-  - name: "_updateTemplateInternal"
-    return_type: "Future<void>"
-    parameters:
-      - name: "templateId"
-        type: "int"
-        required: true
-      - name: "payload"
-        type: "TaskTemplateUpdate"
-        required: true
-    description: "内部更新模板"
-    visibility: "private"
-    async: true
-    
-  - name: "_adjustTemplateLock"
-    return_type: "Future<void>"
-    parameters:
-      - name: "templateId"
-        type: "int"
-        required: true
-      - name: "delta"
-        type: "int"
-        required: true
-    description: "调整模板锁定"
-    visibility: "private"
-    async: true
-    
-  - name: "_createTaskFromTemplate"
-    return_type: "Future<Task>"
-    parameters:
-      - name: "template"
-        type: "TaskTemplate"
-        required: true
-      - name: "overrides"
-        type: "TaskTemplateOverrides?"
-        required: false
-    description: "从模板创建任务"
-    visibility: "private"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  description: 私有方法描述
+  visibility: private
+  async: true|false
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 fields:
-  - name: "_templates"
-    type: "TaskTemplateRepository"
-    final: true
-    description: "任务模板数据访问层"
-  - name: "_tasks"
-    type: "TaskRepository"
-    final: true
-    description: "任务数据访问层"
-  - name: "_taskService"
-    type: "TaskService"
-    final: true
-    description: "任务业务逻辑服务"
-    
+- name: 字段名
+  type: 字段类型
+  final: true|false
+  description: 字段描述
 imports:
-  - "../../data/models/task.dart"
-  - "../../data/models/task_template.dart"
-  - "../../data/repositories/task_repository.dart"
-  - "../../data/repositories/task_template_repository.dart"
-  - "task_service.dart"
-  
+- package:flutter/material.dart
+- dart:async
+- 其他实际导入的包
 dependencies:
-  - name: "TaskTemplateRepository"
-    type: "data/repositories/task_template_repository.dart"
-    description: "任务模板数据访问层依赖"
-  - name: "TaskRepository"
-    type: "data/repositories/task_repository.dart"
-    description: "任务数据访问层依赖"
-  - name: "TaskService"
-    type: "core/services/task_service.dart"
-    description: "任务业务逻辑服务依赖"
-  - name: "TaskTemplate"
-    type: "data/models/task_template.dart"
-    description: "任务模板领域模型依赖"
-  - name: "Task"
-    type: "data/models/task.dart"
-    description: "任务领域模型依赖"
-    
+- name: Repository
+  type: data/repositories/xxx_repository.dart
+  description: 数据访问层依赖
+- name: Model
+  type: data/models/xxx.dart
+  description: 领域模型依赖
+- name: OtherService
+  type: core/services/xxx_service.dart
+  description: 其他服务依赖
 responsibilities:
-  - "任务模板业务逻辑处理"
-  - "任务模板管理"
-  - "任务模板使用"
-  - "任务模板锁定管理"
-  - "任务模板验证"
-  - "任务创建协调"
-  
+- 业务逻辑处理
+- 数据协调
+- 业务规则执行
+- 事务管理
+- 错误处理
+- 业务验证
 business_operations:
   create:
-    - name: "createTemplate"
-      description: "创建任务模板"
-      parameters: ["TaskTemplateDraft"]
-    - name: "useTemplate"
-      description: "使用任务模板"
-      parameters: ["int", "TaskTemplateOverrides?"]
-      
+  - name: createXxx
+    description: 创建业务对象
+    parameters: []
   read:
-    - name: "listRecent"
-      description: "列出最近使用的模板"
-      parameters: ["int"]
-    - name: "search"
-      description: "搜索任务模板"
-      parameters: ["String", "int"]
-    - name: "findById"
-      description: "根据 ID 查找模板"
-      parameters: ["int"]
-    - name: "findBySlug"
-      description: "根据 slug 查找模板"
-      parameters: ["String"]
-      
+  - name: getXxx
+    description: 获取业务对象
+    parameters: []
+  - name: listXxx
+    description: 列出业务对象
+    parameters: []
+  - name: searchXxx
+    description: 搜索业务对象
+    parameters: []
   update:
-    - name: "updateTemplate"
-      description: "更新任务模板"
-      parameters: ["int", "TaskTemplateUpdate"]
-      
+  - name: updateXxx
+    description: 更新业务对象
+    parameters: []
+  - name: moveXxx
+    description: 移动业务对象
+    parameters: []
+  - name: reorderXxx
+    description: 重新排序业务对象
+    parameters: []
   delete:
-    - name: "deleteTemplate"
-      description: "删除任务模板"
-      parameters: ["int"]
-    
+  - name: deleteXxx
+    description: 删除业务对象
+    parameters: []
+  - name: archiveXxx
+    description: 归档业务对象
+    parameters: []
 stream_operations:
-  - name: "watchTemplates"
-    description: "监听任务模板变化"
-    return_type: "Stream<List<TaskTemplate>>"
-    
+- name: watchXxx
+  description: 监听业务对象变化
+  return_type: Stream<T>
 business_rules:
-  - name: "template_usage_tracking"
-    description: "模板使用跟踪规则"
-    implementation: "跟踪任务模板的使用情况"
-    validation: "验证模板使用的合理性"
-  - name: "template_lock_management"
-    description: "模板锁定管理规则"
-    implementation: "管理任务模板的锁定状态"
-    validation: "验证模板锁定的合法性"
-  - name: "template_creation_validation"
-    description: "模板创建验证规则"
-    implementation: "验证任务模板的创建"
-    validation: "检查模板数据的完整性"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+  validation: 验证逻辑
 error_handling:
-  - exception: "StateError"
-    description: "状态错误"
-    handling: "验证模板状态并抛出描述性错误"
-    recovery: "提供状态修正建议"
-  - exception: "TemplateException"
-    description: "模板异常"
-    handling: "验证模板操作并抛出描述性错误"
-    recovery: "提供模板修正建议"
-  - exception: "ArgumentError"
-    description: "参数错误"
-    handling: "验证参数并抛出描述性错误"
-    recovery: "提供参数修正建议"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
 validation_rules:
-  - field: "templateId"
-    rule: "positive"
-    description: "模板 ID 必须为正数"
-    message: "模板 ID 必须为正数"
-  - field: "title"
-    rule: "not_empty"
-    description: "模板标题不能为空"
-    message: "模板标题不能为空"
-  - field: "suggestedEstimateMinutes"
-    rule: "positive"
-    description: "建议预估分钟数必须为正数"
-    message: "建议预估分钟数必须为正数"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
 performance_considerations:
-  - operation: "search"
-    optimization: "全文搜索索引"
-    description: "模板搜索性能优化"
-    caching: "搜索结果缓存"
-  - operation: "listRecent"
-    optimization: "使用索引优化查询"
-    description: "最近模板查询性能优化"
-    caching: "最近模板缓存"
-  - operation: "useTemplate"
-    optimization: "模板使用优化"
-    description: "模板使用性能优化"
-    caching: "模板数据缓存"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
 transaction_management:
-  - operation: "createTemplate"
-    scope: "模板创建事务"
-    rollback: "创建回滚"
-    isolation: "read_committed"
-  - operation: "deleteTemplate"
-    scope: "模板删除事务"
-    rollback: "删除回滚"
-    isolation: "read_committed"
-  - operation: "useTemplate"
-    scope: "模板使用事务"
-    rollback: "使用回滚"
-    isolation: "read_committed"
-    
+- operation: 操作名
+  scope: 事务范围
+  rollback: 回滚策略
+  isolation: 隔离级别
 testing_strategy:
   unit_tests:
-    - name: "test_create_template"
-      description: "测试创建任务模板功能"
-    - name: "test_update_template"
-      description: "测试更新任务模板功能"
-    - name: "test_delete_template"
-      description: "测试删除任务模板功能"
-    - name: "test_list_recent"
-      description: "测试列出最近使用的模板功能"
-    - name: "test_search"
-      description: "测试搜索任务模板功能"
-    - name: "test_use_template"
-      description: "测试使用任务模板功能"
-    - name: "test_find_by_id"
-      description: "测试根据 ID 查找模板功能"
-    - name: "test_find_by_slug"
-      description: "测试根据 slug 查找模板功能"
-    - name: "test_update_template_internal"
-      description: "测试内部更新模板功能"
-    - name: "test_adjust_template_lock"
-      description: "测试调整模板锁定功能"
-    - name: "test_create_task_from_template"
-      description: "测试从模板创建任务功能"
-    - name: "test_business_rules"
-      description: "测试业务规则"
-    - name: "test_error_handling"
-      description: "测试错误处理"
-    - name: "test_validation"
-      description: "测试验证逻辑"
-      
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_get_xxx
+    description: 测试获取功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_business_rules
+    description: 测试业务规则
+  - name: test_error_handling
+    description: 测试错误处理
+  - name: test_validation
+    description: 测试验证逻辑
   integration_tests:
-    - name: "test_service_integration"
-      description: "测试服务集成"
-    - name: "test_repository_coordination"
-      description: "测试仓库协调"
-    - name: "test_transaction_management"
-      description: "测试事务管理"
-    - name: "test_template_usage_flow"
-      description: "测试模板使用流程"
-      
+  - name: test_service_integration
+    description: 测试服务集成
+  - name: test_repository_coordination
+    description: 测试仓库协调
+  - name: test_transaction_management
+    description: 测试事务管理
   mock_strategy:
-    - name: "MockTaskTemplateService"
-      description: "Mock 实现用于测试"
-    - name: "FakeTaskTemplateService"
-      description: "Fake 实现用于测试"
-      
+  - name: MockXxxService
+    description: Mock 实现用于测试
+  - name: FakeXxxService
+    description: Fake 实现用于测试
 lifecycle_management:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["依赖注入", "配置加载", "状态初始化"]
-  - phase: "operation"
-    description: "运行阶段"
-    operations: ["任务模板管理", "模板使用处理", "模板锁定管理", "任务创建协调"]
-  - phase: "cleanup"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置", "连接关闭"]
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 依赖注入
+  - 配置加载
+  - 状态初始化
+- phase: operation
+  description: 运行阶段
+  operations:
+  - 业务处理
+  - 数据协调
+  - 状态管理
+- phase: cleanup
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 连接关闭
+source_of_truth: lib/core/services/task_template_service.dart
+called_by: []
+calls:
+- lib/data/models/task.dart
+- lib/data/models/task_template.dart
+- lib/data/repositories/task_repository.dart
+- lib/data/repositories/task_template_repository.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

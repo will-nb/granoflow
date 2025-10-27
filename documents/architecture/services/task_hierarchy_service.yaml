@@ -1,327 +1,204 @@
 meta:
-  name: "TaskHierarchyService"
-  type: "service"
-  file_path: "lib/core/services/task_hierarchy_service.dart"
-  description: "任务层次结构服务，管理任务的组织结构和移动操作"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: TaskHierarchyService
+  type: service
+  file_path: lib/core/services/task_hierarchy_service.dart
+  description: Service 描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 service_definition:
-  name: "TaskHierarchyService"
-  layer: "business_logic"
-  pattern: "service"
-  singleton: false
-  
+  name: ServiceName
+  layer: business_logic
+  pattern: service|orchestrator|facade
+  singleton: true|false
+enums:
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
 constructor:
   parameters:
-    - name: "taskRepository"
-      type: "TaskRepository"
-      required: true
-      description: "任务数据访问层"
-    - name: "metricOrchestrator"
-      type: "MetricOrchestrator"
-      required: true
-      description: "指标协调器"
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 构造函数参数描述
   dependencies:
-    - name: "TaskRepository"
-      type: "data/repositories/task_repository.dart"
-      description: "任务数据访问层依赖"
-    - name: "MetricOrchestrator"
-      type: "core/services/metric_orchestrator.dart"
-      description: "指标协调器依赖"
-      
+  - name: 依赖名
+    type: 依赖类型
+    description: 依赖描述
 public_methods:
-  - name: "reorderWithinSection"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "targetIndex"
-        type: "double"
-        required: true
-      - name: "section"
-        type: "TaskSection"
-        required: true
-    description: "在分区内重新排序任务"
-    visibility: "public"
-    async: true
-    
-  - name: "moveToParent"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "parentId"
-        type: "int?"
-        required: true
-      - name: "sortIndex"
-        type: "double"
-        required: true
-    description: "移动任务到父任务"
-    visibility: "public"
-    async: true
-    
-  - name: "moveToSection"
-    return_type: "Future<void>"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "targetSection"
-        type: "TaskSection"
-        required: true
-      - name: "sortIndex"
-        type: "double"
-        required: true
-    description: "移动任务到分区"
-    visibility: "public"
-    async: true
-    
-  - name: "createSubtask"
-    return_type: "Future<Task>"
-    parameters:
-      - name: "parentId"
-        type: "int"
-        required: true
-      - name: "title"
-        type: "String"
-        required: true
-      - name: "tags"
-        type: "List<String>"
-        required: false
-        default: "const <String>[]"
-    description: "创建子任务"
-    visibility: "public"
-    async: true
-    
-  - name: "getTaskHierarchy"
-    return_type: "Future<TaskTreeNode>"
-    parameters:
-      - name: "rootTaskId"
-        type: "int"
-        required: true
-    description: "获取任务层次结构"
-    visibility: "public"
-    async: true
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 公共方法描述
+  visibility: public
+  async: true|false
 private_methods:
-  - name: "_validateTaskMove"
-    return_type: "void"
-    parameters:
-      - name: "task"
-        type: "Task"
-        required: true
-      - name: "parentId"
-        type: "int?"
-        required: true
-    description: "验证任务移动"
-    visibility: "private"
-    async: false
-    
-  - name: "_validateParentTask"
-    return_type: "void"
-    parameters:
-      - name: "parent"
-        type: "Task"
-        required: true
-    description: "验证父任务"
-    visibility: "private"
-    async: false
-    
-  - name: "_checkCircularDependency"
-    return_type: "bool"
-    parameters:
-      - name: "taskId"
-        type: "int"
-        required: true
-      - name: "parentId"
-        type: "int"
-        required: true
-    description: "检查循环依赖"
-    visibility: "private"
-    async: false
-    
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  description: 私有方法描述
+  visibility: private
+  async: true|false
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
 fields:
-  - name: "_tasks"
-    type: "TaskRepository"
-    final: true
-    description: "任务数据访问层"
-  - name: "_metricOrchestrator"
-    type: "MetricOrchestrator"
-    final: true
-    description: "指标协调器"
-    
+- name: 字段名
+  type: 字段类型
+  final: true|false
+  description: 字段描述
 imports:
-  - "../../data/models/task.dart"
-  - "../../data/repositories/task_repository.dart"
-  - "metric_orchestrator.dart"
-  
+- package:flutter/material.dart
+- dart:async
+- 其他实际导入的包
 dependencies:
-  - name: "TaskRepository"
-    type: "data/repositories/task_repository.dart"
-    description: "任务数据访问层依赖"
-  - name: "MetricOrchestrator"
-    type: "core/services/metric_orchestrator.dart"
-    description: "指标协调器依赖"
-  - name: "Task"
-    type: "data/models/task.dart"
-    description: "任务领域模型依赖"
-  - name: "TaskTreeNode"
-    type: "data/models/task.dart"
-    description: "任务树节点领域模型依赖"
-    
+- name: Repository
+  type: data/repositories/xxx_repository.dart
+  description: 数据访问层依赖
+- name: Model
+  type: data/models/xxx.dart
+  description: 领域模型依赖
+- name: OtherService
+  type: core/services/xxx_service.dart
+  description: 其他服务依赖
 responsibilities:
-  - "任务层次结构管理"
-  - "任务移动操作"
-  - "任务排序操作"
-  - "任务层次验证"
-  - "任务依赖检查"
-  - "指标更新协调"
-  
+- 业务逻辑处理
+- 数据协调
+- 业务规则执行
+- 事务管理
+- 错误处理
+- 业务验证
 business_operations:
   create:
-    - name: "createSubtask"
-      description: "创建子任务"
-      parameters: ["int", "String", "List<String>"]
-      
+  - name: createXxx
+    description: 创建业务对象
+    parameters: []
   read:
-    - name: "getTaskHierarchy"
-      description: "获取任务层次结构"
-      parameters: ["int"]
-      
+  - name: getXxx
+    description: 获取业务对象
+    parameters: []
+  - name: listXxx
+    description: 列出业务对象
+    parameters: []
+  - name: searchXxx
+    description: 搜索业务对象
+    parameters: []
   update:
-    - name: "reorderWithinSection"
-      description: "在分区内重新排序任务"
-      parameters: ["int", "double", "TaskSection"]
-    - name: "moveToParent"
-      description: "移动任务到父任务"
-      parameters: ["int", "int?", "double"]
-    - name: "moveToSection"
-      description: "移动任务到分区"
-      parameters: ["int", "TaskSection", "double"]
-    
+  - name: updateXxx
+    description: 更新业务对象
+    parameters: []
+  - name: moveXxx
+    description: 移动业务对象
+    parameters: []
+  - name: reorderXxx
+    description: 重新排序业务对象
+    parameters: []
+  delete:
+  - name: deleteXxx
+    description: 删除业务对象
+    parameters: []
+  - name: archiveXxx
+    description: 归档业务对象
+    parameters: []
 stream_operations:
-  - name: "watchTaskHierarchy"
-    description: "监听任务层次结构变化"
-    return_type: "Stream<TaskTreeNode>"
-    
+- name: watchXxx
+  description: 监听业务对象变化
+  return_type: Stream<T>
 business_rules:
-  - name: "task_hierarchy_validation"
-    description: "任务层次结构验证规则"
-    implementation: "验证任务层次结构的合法性"
-    validation: "检查任务层次结构的完整性"
-  - name: "task_move_permissions"
-    description: "任务移动权限规则"
-    implementation: "检查任务移动的权限"
-    validation: "验证任务移动的合法性"
-  - name: "circular_dependency_prevention"
-    description: "循环依赖预防规则"
-    implementation: "防止任务层次结构中的循环依赖"
-    validation: "检查任务依赖的合理性"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+  validation: 验证逻辑
 error_handling:
-  - exception: "StateError"
-    description: "状态错误"
-    handling: "验证任务状态并抛出描述性错误"
-    recovery: "提供状态修正建议"
-  - exception: "HierarchyException"
-    description: "层次结构异常"
-    handling: "验证层次结构并抛出描述性错误"
-    recovery: "提供层次结构修正建议"
-  - exception: "ArgumentError"
-    description: "参数错误"
-    handling: "验证参数并抛出描述性错误"
-    recovery: "提供参数修正建议"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
 validation_rules:
-  - field: "taskId"
-    rule: "positive"
-    description: "任务 ID 必须为正数"
-    message: "任务 ID 必须为正数"
-  - field: "parentId"
-    rule: "positive_or_null"
-    description: "父任务 ID 必须为正数或 null"
-    message: "父任务 ID 必须为正数或 null"
-  - field: "sortIndex"
-    rule: "valid_double"
-    description: "排序索引必须为有效浮点数"
-    message: "排序索引必须为有效浮点数"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
 performance_considerations:
-  - operation: "moveToParent"
-    optimization: "层次结构优化"
-    description: "任务移动性能优化"
-    caching: "任务层次结构缓存"
-  - operation: "getTaskHierarchy"
-    optimization: "树结构优化"
-    description: "任务层次结构查询性能优化"
-    caching: "任务树缓存"
-  - operation: "reorderWithinSection"
-    optimization: "排序优化"
-    description: "任务排序性能优化"
-    caching: "排序索引缓存"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
 transaction_management:
-  - operation: "moveToParent"
-    scope: "任务移动事务"
-    rollback: "状态回滚"
-    isolation: "read_committed"
-  - operation: "createSubtask"
-    scope: "子任务创建事务"
-    rollback: "创建回滚"
-    isolation: "read_committed"
-    
+- operation: 操作名
+  scope: 事务范围
+  rollback: 回滚策略
+  isolation: 隔离级别
 testing_strategy:
   unit_tests:
-    - name: "test_reorder_within_section"
-      description: "测试在分区内重新排序任务功能"
-    - name: "test_move_to_parent"
-      description: "测试移动任务到父任务功能"
-    - name: "test_move_to_section"
-      description: "测试移动任务到分区功能"
-    - name: "test_create_subtask"
-      description: "测试创建子任务功能"
-    - name: "test_get_task_hierarchy"
-      description: "测试获取任务层次结构功能"
-    - name: "test_validate_task_move"
-      description: "测试验证任务移动功能"
-    - name: "test_validate_parent_task"
-      description: "测试验证父任务功能"
-    - name: "test_check_circular_dependency"
-      description: "测试检查循环依赖功能"
-    - name: "test_business_rules"
-      description: "测试业务规则"
-    - name: "test_error_handling"
-      description: "测试错误处理"
-    - name: "test_validation"
-      description: "测试验证逻辑"
-      
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_get_xxx
+    description: 测试获取功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_business_rules
+    description: 测试业务规则
+  - name: test_error_handling
+    description: 测试错误处理
+  - name: test_validation
+    description: 测试验证逻辑
   integration_tests:
-    - name: "test_service_integration"
-      description: "测试服务集成"
-    - name: "test_repository_coordination"
-      description: "测试仓库协调"
-    - name: "test_transaction_management"
-      description: "测试事务管理"
-    - name: "test_task_hierarchy_operations"
-      description: "测试任务层次结构操作"
-      
+  - name: test_service_integration
+    description: 测试服务集成
+  - name: test_repository_coordination
+    description: 测试仓库协调
+  - name: test_transaction_management
+    description: 测试事务管理
   mock_strategy:
-    - name: "MockTaskHierarchyService"
-      description: "Mock 实现用于测试"
-    - name: "FakeTaskHierarchyService"
-      description: "Fake 实现用于测试"
-      
+  - name: MockXxxService
+    description: Mock 实现用于测试
+  - name: FakeXxxService
+    description: Fake 实现用于测试
 lifecycle_management:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["依赖注入", "配置加载", "状态初始化"]
-  - phase: "operation"
-    description: "运行阶段"
-    operations: ["任务层次结构管理", "任务移动操作", "任务排序操作", "指标更新协调"]
-  - phase: "cleanup"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置", "连接关闭"]
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 依赖注入
+  - 配置加载
+  - 状态初始化
+- phase: operation
+  description: 运行阶段
+  operations:
+  - 业务处理
+  - 数据协调
+  - 状态管理
+- phase: cleanup
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 连接关闭
+source_of_truth: lib/core/services/task_hierarchy_service.dart
+called_by: []
+calls:
+- lib/data/models/task.dart
+- lib/data/repositories/task_repository.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

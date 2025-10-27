@@ -6,6 +6,8 @@ meta:
   version: "1.0"
   created_date: "YYMMDD"
   last_updated: "YYMMDD"
+  schema_version: 1
+  last_synced_sha: ""
 
 model_definition:
   name: "类名"
@@ -88,3 +90,19 @@ storage_config:
   constraints:
     - field: "字段名"
       constraint: "约束类型"
+  collection_version: 1
+  migration_plan:
+    - from: 1
+      to: 2
+      steps:
+        - "新增字段 xxx，默认值 yyy"
+        - "重建索引 zzz"
+
+source_of_truth: "lib/data/models/xxx.dart"
+called_by: []
+calls: []
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ""

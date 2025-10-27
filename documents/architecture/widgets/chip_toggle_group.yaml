@@ -1,370 +1,337 @@
 meta:
-  name: "ChipToggleGroup"
-  type: "widget"
-  file_path: "lib/presentation/widgets/chip_toggle_group.dart"
-  description: "芯片切换组组件，提供多选或单选的功能"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251026"
-  status: "deprecated"
-  deprecation_date: "251026"
-  replacement: "ModernTagGroup"
-  deprecation_reason: "已被 ModernTagGroup 替代，提供更现代的 UI 设计和更好的用户体验"
-
+  name: ChipToggleGroup
+  type: widget
+  file_path: lib/presentation/widgets/chip_toggle_group.dart
+  description: ChipToggleGroup 组件
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 widget_definition:
-  name: "ChipToggleGroup"
-  layer: "presentation"
-  pattern: "stateless"
-  category: "ui_component"
+  name: ChipToggleGroup
+  layer: presentation
+  pattern: stateless
+  category: ui_component
   reusable: true
-  deprecated: true
-  migration_guide: "请使用 ModernTagGroup 替代，它提供更现代的 UI 设计和更好的用户体验"
-  
 widget_types:
-  - name: "StatelessWidget"
-    description: "无状态 Widget，用于静态 UI 组件"
-    usage: "静态展示、简单交互"
-    
+- name: StatelessWidget
+  description: 无状态 Widget，用于静态 UI 组件
+  usage: 静态展示、简单交互
+- name: StatefulWidget
+  description: 有状态 Widget，用于动态 UI 组件
+  usage: 状态管理、复杂交互
+- name: ConsumerWidget
+  description: 消费者 Widget，用于 Riverpod 状态管理
+  usage: 状态监听、数据绑定
+- name: ConsumerStatefulWidget
+  description: 有状态消费者 Widget，用于 Riverpod 状态管理
+  usage: 状态管理、数据绑定、复杂交互
 widget_properties:
-  - name: "options"
-    type: "List<ChipToggleOption>"
-    required: true
-    description: "可选项列表"
-    validation: "不能为空"
-    
-  - name: "selectedValues"
-    type: "Set<String>"
-    required: true
-    description: "已选中的值集合"
-    validation: "不能为 null"
-    
-  - name: "onSelectionChanged"
-    type: "ValueChanged<Set<String>>"
-    required: true
-    description: "选择变化回调"
-    parameters: "Set<String> 新的选中值"
-    
-  - name: "multiSelect"
-    type: "bool"
-    required: false
-    default_value: "false"
-    description: "是否支持多选"
-    validation: "布尔值"
-    
-  - name: "spacing"
-    type: "double"
-    required: false
-    default_value: "8"
-    description: "水平间距"
-    validation: "非负数"
-    
-  - name: "runSpacing"
-    type: "double"
-    required: false
-    default_value: "8"
-    description: "垂直间距"
-    validation: "非负数"
-    
+- name: value
+  type: String
+  required: true
+  default_value: null
+  description: ''
+- name: label
+  type: String
+  required: true
+  default_value: null
+  description: ''
+- name: icon
+  type: IconData
+  required: false
+  default_value: null
+  description: ''
+- name: options
+  type: List<ChipToggleOption>
+  required: true
+  default_value: null
+  description: ''
+- name: selectedValues
+  type: Set<String>
+  required: true
+  default_value: null
+  description: ''
+- name: onSelectionChanged
+  type: ValueChanged<Set<String>>
+  required: true
+  default_value: null
+  description: ''
+- name: multiSelect
+  type: bool
+  required: true
+  default_value: null
+  description: ''
+- name: spacing
+  type: double
+  required: true
+  default_value: null
+  description: ''
+- name: runSpacing
+  type: double
+  required: true
+  default_value: null
+  description: ''
 widget_methods:
-  - name: "build"
-    return_type: "Widget"
-    parameters:
-      - name: "context"
-        type: "BuildContext"
-        required: true
-        description: "构建上下文"
-    description: "构建 Widget"
-    visibility: "public"
-    async: false
-    
-  - name: "_handleTap"
-    return_type: "void"
-    parameters:
-      - name: "value"
-        type: "String"
-        required: true
-        description: "选项值"
-      - name: "selected"
-        type: "bool"
-        required: true
-        description: "是否已选中"
-    description: "处理点击事件"
-    visibility: "private"
-    async: false
-    
+- name: methodName
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 参数描述
+  description: 方法描述
+  visibility: public|private|protected
+  async: true|false
 widget_state:
-  - name: "selectedValues"
-    type: "Set<String>"
-    description: "当前选中的值集合"
-    initial_value: "空集合"
-    validation: "不能为 null"
-    
+- name: stateName
+  type: 状态类型
+  description: 状态描述
+  initial_value: 初始值
+  validation: 验证规则
 widget_lifecycle:
-  - phase: "initialization"
-    description: "初始化阶段"
-    operations: ["属性验证", "状态初始化"]
-  - phase: "build"
-    description: "构建阶段"
-    operations: ["UI 构建", "状态渲染", "事件绑定"]
-  - phase: "disposal"
-    description: "清理阶段"
-    operations: ["资源释放", "状态重置"]
-    
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 状态初始化
+  - 依赖注入
+  - 配置加载
+- phase: build
+  description: 构建阶段
+  operations:
+  - UI 构建
+  - 状态渲染
+  - 事件绑定
+- phase: disposal
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 监听器清理
 widget_events:
-  - name: "onSelectionChanged"
-    description: "选择变化事件"
-    trigger: "用户点击芯片"
-    handler: "_handleTap"
-    parameters: "String value, bool selected"
-    
+- name: eventName
+  description: 事件描述
+  trigger: 触发条件
+  handler: 处理函数
+  parameters: 参数列表
 widget_styling:
-  - name: "chipStyle"
-    description: "芯片样式"
-    properties:
-      - name: "spacing"
-        type: "double"
-        value: "8"
-        description: "水平间距"
-      - name: "runSpacing"
-        type: "double"
-        value: "8"
-        description: "垂直间距"
-    responsive: false
-    theme_aware: true
-    
+- name: styleName
+  description: 样式描述
+  properties:
+  - name: propertyName
+    type: 样式属性类型
+    value: 样式值
+    description: 样式属性描述
+  responsive: true|false
+  theme_aware: true|false
 widget_responsive:
-  - breakpoint: "mobile"
-    description: "移动端响应式"
-    properties:
-      - name: "spacing"
-        value: "8"
-        description: "移动端间距"
-      - name: "runSpacing"
-        value: "8"
-        description: "移动端行间距"
-    layout: "Wrap 布局"
-    behavior: "自动换行"
-    
-  - breakpoint: "tablet"
-    description: "平板端响应式"
-    properties:
-      - name: "spacing"
-        value: "12"
-        description: "平板端间距"
-      - name: "runSpacing"
-        value: "12"
-        description: "平板端行间距"
-    layout: "Wrap 布局"
-    behavior: "自动换行"
-    
-  - breakpoint: "desktop"
-    description: "桌面端响应式"
-    properties:
-      - name: "spacing"
-        value: "16"
-        description: "桌面端间距"
-      - name: "runSpacing"
-        value: "16"
-        description: "桌面端行间距"
-    layout: "Wrap 布局"
-    behavior: "自动换行"
-    
+- breakpoint: mobile|tablet|desktop
+  description: 响应式描述
+  properties:
+  - name: propertyName
+    value: 响应式值
+    description: 响应式属性描述
+  layout: 布局描述
+  behavior: 行为描述
 widget_accessibility:
-  - name: "semanticLabel"
-    description: "语义标签"
-    implementation: "为每个芯片提供语义标签"
-    testing: "无障碍测试"
-    compliance: "WCAG 2.1"
-    
-  - name: "keyboardNavigation"
-    description: "键盘导航"
-    implementation: "支持键盘导航"
-    testing: "键盘测试"
-    compliance: "WCAG 2.1"
-    
+- name: accessibilityFeature
+  description: 无障碍功能描述
+  implementation: 实现方式
+  testing: 测试方法
+  compliance: 合规标准
 widget_performance:
-  - operation: "build"
-    optimization: "构建优化"
-    description: "构建性能优化"
-    caching: "状态缓存"
-    rendering: "渲染优化"
-    
-  - operation: "selection"
-    optimization: "选择优化"
-    description: "选择性能优化"
-    caching: "选择状态缓存"
-    rendering: "选择渲染优化"
-    
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
+  rendering: 渲染优化
 widget_testing:
-  - name: "testChipToggleGroup"
-    description: "测试芯片切换组"
-    type: "widget"
-    coverage: "100%"
-    scenarios: "单选、多选、间距、响应式"
-    
+- name: testName
+  description: 测试描述
+  type: unit|widget|integration
+  coverage: 测试覆盖
+  scenarios: 测试场景
 widget_dependencies:
-  - name: "ChipToggleOption"
-    type: "数据模型"
-    description: "芯片选项数据模型"
-    required: true
-    version: "1.0"
-    
+- name: dependencyName
+  type: 依赖类型
+  description: 依赖描述
+  required: true|false
+  version: 版本要求
 widget_imports:
-  - "package:flutter/material.dart"
-  
+- package:flutter/material.dart
 widget_categories:
   ui_components:
-    - name: "ChipToggleGroup"
-      description: "芯片切换组组件"
-      type: "StatelessWidget"
-      category: "ui_component"
-      
+  - name: componentName
+    description: 组件描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: ui_component
+  dialogs:
+  - name: dialogName
+    description: 对话框描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: dialog
+  navigation:
+  - name: navigationName
+    description: 导航描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: navigation
+  layouts:
+  - name: layoutName
+    description: 布局描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: layout
+  forms:
+  - name: formName
+    description: 表单描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: form
+  lists:
+  - name: listName
+    description: 列表描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: list
+  cards:
+  - name: cardName
+    description: 卡片描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: card
+  buttons:
+  - name: buttonName
+    description: 按钮描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: button
+  inputs:
+  - name: inputName
+    description: 输入描述
+    type: StatelessWidget|StatefulWidget|ConsumerWidget|ConsumerStatefulWidget
+    category: input
 widget_interactions:
-  - name: "chipTap"
-    description: "芯片点击交互"
-    type: "tap"
-    handler: "_handleTap"
-    feedback: "视觉反馈"
-    accessibility: "支持无障碍"
-    
+- name: interactionName
+  description: 交互描述
+  type: tap|swipe|drag|pinch|long_press|double_tap
+  handler: 处理函数
+  feedback: 反馈描述
+  accessibility: 无障碍支持
 widget_animations:
-  - name: "selectionAnimation"
-    description: "选择动画"
-    type: "scale"
-    duration: "200ms"
-    curve: "easeInOut"
-    trigger: "选择变化"
-    
+- name: animationName
+  description: 动画描述
+  type: fade|slide|scale|rotate|custom
+  duration: 动画时长
+  curve: 动画曲线
+  trigger: 触发条件
 widget_validation:
-  - field: "options"
-    rule: "not_empty"
-    description: "选项列表不能为空"
-    message: "选项列表不能为空"
-    required: true
-    
-  - field: "selectedValues"
-    rule: "not_null"
-    description: "选中值不能为 null"
-    message: "选中值不能为 null"
-    required: true
-    
-  - field: "spacing"
-    rule: "non_negative"
-    description: "间距不能为负数"
-    message: "间距不能为负数"
-    required: false
-    
-  - field: "runSpacing"
-    rule: "non_negative"
-    description: "行间距不能为负数"
-    message: "行间距不能为负数"
-    required: false
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
+  required: true|false
 widget_error_handling:
-  - exception: "ArgumentError"
-    description: "参数错误"
-    handling: "验证参数并抛出描述性错误"
-    recovery: "提供参数修正建议"
-    user_feedback: "显示错误消息"
-    
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
+  user_feedback: 用户反馈
 widget_internationalization:
-  - name: "chipToggleGroup"
-    description: "芯片切换组国际化"
-    languages: "zh_CN, en_US"
-    fallback: "en_US"
-    context: "UI 组件"
-    
+- name: i18nKey
+  description: 国际化键
+  languages: 支持语言
+  fallback: 回退语言
+  context: 上下文信息
 widget_theme_integration:
-  - name: "chipTheme"
-    description: "芯片主题"
-    type: "color"
-    default_value: "主题色"
-    theme_aware: true
-    
-  - name: "spacingTheme"
-    description: "间距主题"
-    type: "double"
-    default_value: "8"
-    theme_aware: false
-    
+- name: themeProperty
+  description: 主题属性描述
+  type: color|text_style|elevation|border_radius
+  default_value: 默认值
+  theme_aware: true|false
 widget_state_management:
-  - pattern: "外部状态管理"
-    description: "通过回调管理状态"
-    implementation: "使用 ValueChanged 回调"
-    benefits: "解耦、可复用"
-    considerations: "需要外部状态管理"
-    
+- pattern: 状态管理模式
+  description: 状态管理描述
+  implementation: 实现方式
+  benefits: 优势
+  considerations: 注意事项
+source_of_truth: lib/presentation/widgets/chip_toggle_group.dart
+called_by: []
+calls: []
+i18n_keys: []
+design_tokens: []
+test_mapping:
+  unit:
+  - test/presentation/widgets/xxx_unit_test.dart::should_do_x
+  widget:
+  - test/presentation/widgets/xxx_widget_test.dart::renders_correctly
+  integration:
+  - integration_test/xxx_flow_test.dart::end_to_end
+supersedes: []
+deprecated_since: ''
 widget_testing_strategy:
   unit_tests:
-    - name: "test_widget_creation"
-      description: "测试 Widget 创建"
-    - name: "test_widget_properties"
-      description: "测试 Widget 属性"
-    - name: "test_widget_state"
-      description: "测试 Widget 状态"
-    - name: "test_widget_lifecycle"
-      description: "测试 Widget 生命周期"
-    - name: "test_widget_interactions"
-      description: "测试 Widget 交互"
-    - name: "test_widget_events"
-      description: "测试 Widget 事件"
-    - name: "test_widget_styling"
-      description: "测试 Widget 样式"
-    - name: "test_widget_responsive"
-      description: "测试 Widget 响应式"
-    - name: "test_widget_accessibility"
-      description: "测试 Widget 无障碍"
-    - name: "test_widget_performance"
-      description: "测试 Widget 性能"
-      
+  - name: test_widget_creation
+    description: 测试 Widget 创建
+  - name: test_widget_properties
+    description: 测试 Widget 属性
+  - name: test_widget_state
+    description: 测试 Widget 状态
+  - name: test_widget_lifecycle
+    description: 测试 Widget 生命周期
+  - name: test_widget_interactions
+    description: 测试 Widget 交互
+  - name: test_widget_events
+    description: 测试 Widget 事件
+  - name: test_widget_styling
+    description: 测试 Widget 样式
+  - name: test_widget_responsive
+    description: 测试 Widget 响应式
+  - name: test_widget_accessibility
+    description: 测试 Widget 无障碍
+  - name: test_widget_performance
+    description: 测试 Widget 性能
   widget_tests:
-    - name: "test_widget_rendering"
-      description: "测试 Widget 渲染"
-    - name: "test_widget_interactions"
-      description: "测试 Widget 交互"
-    - name: "test_widget_state_changes"
-      description: "测试 Widget 状态变化"
-    - name: "test_widget_animations"
-      description: "测试 Widget 动画"
-    - name: "test_widget_responsive_behavior"
-      description: "测试 Widget 响应式行为"
-    - name: "test_widget_accessibility"
-      description: "测试 Widget 无障碍"
-    - name: "test_widget_theme_integration"
-      description: "测试 Widget 主题集成"
-    - name: "test_widget_error_handling"
-      description: "测试 Widget 错误处理"
-    - name: "test_widget_validation"
-      description: "测试 Widget 验证"
-    - name: "test_widget_internationalization"
-      description: "测试 Widget 国际化"
-      
+  - name: test_widget_rendering
+    description: 测试 Widget 渲染
+  - name: test_widget_interactions
+    description: 测试 Widget 交互
+  - name: test_widget_state_changes
+    description: 测试 Widget 状态变化
+  - name: test_widget_animations
+    description: 测试 Widget 动画
+  - name: test_widget_responsive_behavior
+    description: 测试 Widget 响应式行为
+  - name: test_widget_accessibility
+    description: 测试 Widget 无障碍
+  - name: test_widget_theme_integration
+    description: 测试 Widget 主题集成
+  - name: test_widget_error_handling
+    description: 测试 Widget 错误处理
+  - name: test_widget_validation
+    description: 测试 Widget 验证
+  - name: test_widget_internationalization
+    description: 测试 Widget 国际化
   integration_tests:
-    - name: "test_widget_integration"
-      description: "测试 Widget 集成"
-    - name: "test_widget_coordination"
-      description: "测试 Widget 协调"
-    - name: "test_widget_data_flow"
-      description: "测试 Widget 数据流"
-    - name: "test_widget_navigation"
-      description: "测试 Widget 导航"
-    - name: "test_widget_state_management"
-      description: "测试 Widget 状态管理"
-    - name: "test_widget_performance"
-      description: "测试 Widget 性能"
-    - name: "test_widget_accessibility"
-      description: "测试 Widget 无障碍"
-    - name: "test_widget_responsive"
-      description: "测试 Widget 响应式"
-    - name: "test_widget_theme"
-      description: "测试 Widget 主题"
-    - name: "test_widget_internationalization"
-      description: "测试 Widget 国际化"
-      
+  - name: test_widget_integration
+    description: 测试 Widget 集成
+  - name: test_widget_coordination
+    description: 测试 Widget 协调
+  - name: test_widget_data_flow
+    description: 测试 Widget 数据流
+  - name: test_widget_navigation
+    description: 测试 Widget 导航
+  - name: test_widget_state_management
+    description: 测试 Widget 状态管理
+  - name: test_widget_performance
+    description: 测试 Widget 性能
+  - name: test_widget_accessibility
+    description: 测试 Widget 无障碍
+  - name: test_widget_responsive
+    description: 测试 Widget 响应式
+  - name: test_widget_theme
+    description: 测试 Widget 主题
+  - name: test_widget_internationalization
+    description: 测试 Widget 国际化
   mock_strategy:
-    - name: "MockChipToggleGroup"
-      description: "Mock 实现用于测试"
-    - name: "FakeChipToggleGroup"
-      description: "Fake 实现用于测试"
-    - name: "TestChipToggleGroup"
-      description: "测试专用 Widget"
+  - name: MockWidget
+    description: Mock 实现用于测试
+  - name: FakeWidget
+    description: Fake 实现用于测试
+  - name: TestWidget
+    description: 测试专用 Widget

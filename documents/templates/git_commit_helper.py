@@ -72,21 +72,20 @@ class StepDoneGitHandler:
         except subprocess.CalledProcessError as e:
             return False, e.stderr
     
-    def git_commit(self, message: str = "feat: 基于step-done的YAML和测试补充") -> Tuple[bool, str]:
-        """执行git提交"""
-        try:
-            result = subprocess.run(
-                ['git', 'commit', '-m', message],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            return True, result.stdout
-        except subprocess.CalledProcessError as e:
-            return False, e.stderr
+    def build_suggested_commit(self, iteration: Optional[str] = None) -> str:
+        """生成建议的git提交命令（仅供手动执行）"""
+        title = f"chore(step-done): 补充YAML与测试 ({iteration or 'YYMMDD-N'})"
+        body = (
+            "说明: 按 step-done 文档补充/更新规范YAML与对应测试, 已通过 pre-commit。\n"
+            "注意: 如涉及文档/脚手架调整，请在提交体中列出清单。"
+        )
+        return (
+            "git add -A\n"
+            f"git commit -m \"{title}\" -m \"{body}\"\n"
+        )
     
     def handle_commit_with_retry(self) -> bool:
-        """处理提交，包含重试机制"""
+        """仅处理pre-commit检查；不执行自动提交"""
         retry_count = 0
         
         while retry_count < self.max_retries:
@@ -118,33 +117,16 @@ class StepDoneGitHandler:
                     
                     print("pre-commit检查通过")
                 else:
-                    print("距离上次提交超过30分钟，直接提交...")
-                
-                # 执行git提交
-                success, output = self.git_commit()
-                
-                if success:
-                    print("Git提交成功")
-                    return True
-                else:
-                    retry_count += 1
-                    self.logger.log_error(
-                        step_name="git_commit",
-                        error_content=output,
-                        estimated_cause="git提交失败",
-                        solution_attempted="检查git状态后重试",
-                        failure_manifestation="git commit命令执行失败",
-                        excluded_possibilities="排除了权限问题",
-                        retry_count=retry_count,
-                        max_retries=self.max_retries
-                    )
-                    
-                    if retry_count >= self.max_retries:
-                        print(f"Git提交失败，已达到最大重试次数({self.max_retries})")
+                    print("距离上次提交超过30分钟，仍执行pre-commit检查...")
+                    success, output = self.run_precommit()
+                    if not success:
+                        print(output)
                         return False
-                    
-                    print(f"Git提交失败，第{retry_count}次重试...")
-                    continue
+
+                # 仅输出建议提交命令
+                print("建议提交命令（请手动执行）：")
+                print(self.build_suggested_commit())
+                return True
                     
             except Exception as e:
                 retry_count += 1

@@ -1,154 +1,155 @@
 meta:
-  name: "PreferenceRepository"
-  type: "repository"
-  file_path: "lib/data/repositories/preference_repository.dart"
-  description: "用户偏好设置数据访问层，负责用户设置的持久化和查询"
-  version: "1.0"
-  created_date: "251025"
-  last_updated: "251025"
-
+  name: IsarPreferenceRepository
+  type: repository
+  file_path: lib/data/repositories/preference_repository.dart
+  description: Repository 描述
+  version: '1.0'
+  created_date: '251027'
+  last_updated: '251027'
+  schema_version: 1
+  last_synced_sha: ''
 repository_definition:
-  abstract_class: "PreferenceRepository"
-  implementation_class: "IsarPreferenceRepository"
-  storage_backend: "isar"
-  layer: "data_access"
-  
+  abstract_class: 抽象类名
+  implementation_class: 实现类名
+  storage_backend: isar|memory|other
+  layer: data_access
 abstract_methods:
-  - name: "watch"
-    return_type: "Stream<Preference>"
-    parameters: []
-    description: "监听用户偏好设置"
-    visibility: "public"
-    
-  - name: "load"
-    return_type: "Future<Preference>"
-    parameters: []
-    description: "加载用户偏好设置"
-    visibility: "public"
-    
-  - name: "update"
-    return_type: "Future<void>"
-    parameters:
-      - name: "payload"
-        type: "PreferenceUpdate"
-        required: true
-    description: "更新用户偏好设置"
-    visibility: "public"
-    
+- name: 方法名
+  return_type: Stream<T>|Future<T>|Future<void>
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 抽象方法描述
+  visibility: public
 implementation_details:
   constructor:
     parameters:
-      - name: "_isar"
-        type: "Isar"
-        required: true
-        description: "Isar 数据库实例"
+    - name: 参数名
+      type: 参数类型
+      required: true|false
+      description: 构造函数参数描述
     dependencies:
-      - name: "Isar"
-        type: "package:isar/isar.dart"
-        description: "Isar 数据库依赖"
-        
+    - name: 依赖名
+      type: 依赖类型
+      description: 依赖描述
   private_fields:
-    - name: "_isar"
-      type: "Isar"
-      description: "Isar 数据库实例"
-    - name: "_singletonId"
-      type: "int"
-      description: "单例 ID，值为 1"
-      
+  - name: 字段名
+    type: 字段类型
+    description: 私有字段描述
   private_methods:
-    - name: "_toDomain"
-      return_type: "Preference"
-      parameters:
-        - name: "entity"
-          type: "PreferenceEntity"
-          required: true
-      description: "实体转领域模型"
-      visibility: "private"
-      
-    - name: "_toEntity"
-      return_type: "PreferenceEntity"
-      parameters:
-        - name: "preference"
-          type: "Preference"
-          required: true
-      description: "领域模型转实体"
-      visibility: "private"
-      
-    - name: "_ensureEntity"
-      return_type: "Future<PreferenceEntity>"
-      parameters:
-        - name: "entity"
-          type: "PreferenceEntity?"
-          required: true
-      description: "确保实体存在"
-      visibility: "private"
-      
+  - name: 方法名
+    return_type: 返回类型
+    parameters: []
+    description: 私有方法描述
+    visibility: private
+  helper_methods:
+  - name: 方法名
+    return_type: 返回类型
+    parameters: []
+    description: 辅助方法描述
+    visibility: private
 dependencies:
-  - name: "Isar"
-    type: "package:isar/isar.dart"
-    description: "Isar 数据库依赖"
-  - name: "PreferenceEntity"
-    type: "../isar/preference_entity.dart"
-    description: "偏好设置实体类依赖"
-  - name: "Preference"
-    type: "../models/preference.dart"
-    description: "偏好设置领域模型依赖"
-    
+- name: Isar
+  type: package:isar/isar.dart
+  description: Isar 数据库依赖
+- name: Entity
+  type: ../isar/xxx_entity.dart
+  description: 实体类依赖
+- name: Model
+  type: ../models/xxx.dart
+  description: 领域模型依赖
 imports:
-  - "dart:async"
-  - "package:flutter/material.dart"
-  - "package:isar/isar.dart"
-  - "../isar/preference_entity.dart"
-  - "../models/preference.dart"
-  
+- dart:async
+- package:isar/isar.dart
+- package:collection/collection.dart
+- package:flutter/material.dart
+- package:flutter/services.dart
+- 其他实际导入的包
 responsibilities:
-  - "用户偏好设置数据持久化"
-  - "用户偏好设置监听"
-  - "用户偏好设置更新"
-  - "默认设置管理"
-  
+- 数据持久化
+- 数据查询
+- 数据更新
+- 数据删除
+- 数据验证
+- 事务管理
 data_operations:
   create:
-    - name: "ensureEntity"
-      description: "确保偏好设置实体存在"
-      parameters: []
-      
+  - name: createXxx
+    description: 创建新记录
+    parameters: []
   read:
-    - name: "load"
-      description: "加载用户偏好设置"
-      parameters: []
-      
+  - name: findById
+    description: 根据 ID 查找
+    parameters: []
+  - name: listAll
+    description: 列出所有记录
+    parameters: []
+  - name: searchByXxx
+    description: 根据条件搜索
+    parameters: []
   update:
-    - name: "update"
-      description: "更新用户偏好设置"
-      parameters: ["PreferenceUpdate"]
-      
+  - name: updateXxx
+    description: 更新记录
+    parameters: []
+  delete:
+  - name: deleteXxx
+    description: 删除记录
+    parameters: []
+  - name: softDeleteXxx
+    description: 软删除记录
+    parameters: []
 stream_operations:
-  - name: "watch"
-    description: "监听用户偏好设置"
-    return_type: "Stream<Preference>"
-    
+- name: watchXxx
+  description: 监听数据变化
+  return_type: Stream<T>
+- name: watchXxxFiltered
+  description: 监听过滤后的数据变化
+  return_type: Stream<List<T>>
 validation_rules:
-  - field: "localeCode"
-    rule: "not_empty"
-    description: "语言代码不能为空"
-  - field: "fontScale"
-    rule: "positive"
-    description: "字体缩放比例必须为正数"
-    
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
 business_rules:
-  - name: "singleton_preference"
-    description: "单例偏好设置规则"
-    implementation: "每个用户只能有一个偏好设置"
-  - name: "default_preference"
-    description: "默认偏好设置规则"
-    implementation: "提供合理的默认设置"
-    
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+error_handling:
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+performance_considerations:
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
 testing_strategy:
   unit_tests:
-    - name: "test_watch_preference"
-      description: "测试监听偏好设置功能"
-    - name: "test_load_preference"
-      description: "测试加载偏好设置功能"
-    - name: "test_update_preference"
-      description: "测试更新偏好设置功能"
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_find_xxx
+    description: 测试查找功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_watch_xxx
+    description: 测试监听功能
+  integration_tests:
+  - name: test_repository_integration
+    description: 测试 Repository 集成
+  mock_strategy:
+  - name: MockXxxRepository
+    description: Mock 实现用于测试
+source_of_truth: lib/data/repositories/preference_repository.dart
+called_by: []
+calls:
+- lib/data/isar/preference_entity.dart
+- lib/data/models/preference.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

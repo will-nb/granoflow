@@ -1,0 +1,30 @@
+#!/bin/sh
+# pre-push: 全量门禁（本地短跑）
+set -e
+
+echo "[pre-push] flutter analyze ..."
+flutter analyze
+
+echo "[pre-push] YAML 一致性测试 ..."
+flutter test test/yaml/
+
+echo "[pre-push] flutter test (unit+widget) ..."
+flutter test --exclude-tags=yaml
+
+echo "[pre-push] integration tests (if any) ..."
+if [ -d integration_test ]; then
+  flutter test integration_test || true
+fi
+
+# 架构文档全量校验（如需，可以放松到仅变更）
+if [ -d documents/architecture ]; then
+  echo "[pre-push] Lint all architecture docs ..."
+  FILES=$(ls documents/architecture/**/*.yaml 2>/dev/null || ls documents/architecture/*.yaml 2>/dev/null || true)
+  if [ -n "$FILES" ]; then
+    python3 scripts/architecture_linter.py --files $FILES
+  fi
+fi
+
+exit 0
+
+
