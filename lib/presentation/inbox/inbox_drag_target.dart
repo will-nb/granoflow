@@ -1,43 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/task.dart';
-import '../../core/providers/tasks_drag_provider.dart';
+import '../../core/providers/inbox_drag_provider.dart';
 import '../../core/providers/service_providers.dart';
-import '../../data/models/task.dart' as models;
 import '../common/drag/standard_drag_target.dart';
-import 'tasks_drag_target_type.dart';
 
-/// Tasks页面拖拽目标组件
+/// Inbox页面拖拽目标组件
 /// 
 /// 支持3种拖拽目标类型，提供视觉反馈和拖拽处理
-class TasksPageDragTarget extends ConsumerWidget {
-  const TasksPageDragTarget({
+class InboxDragTarget extends ConsumerWidget {
+  const InboxDragTarget({
     super.key,
     required this.targetType,
     this.beforeTask,
     this.afterTask,
-    this.section,
-    this.child,
   });
 
-  final TasksDragTargetType targetType;
+  final InboxDragTargetType targetType;
   final Task? beforeTask;
   final Task? afterTask;
-  final models.TaskSection? section;
-  final Widget? child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dragNotifier = ref.read(tasksDragProvider.notifier);
+    final dragNotifier = ref.read(inboxDragProvider.notifier);
 
     // 根据不同类型计算唯一ID
     int? getTargetId() {
       switch (targetType) {
-        case TasksDragTargetType.between:
+        case InboxDragTargetType.between:
           return beforeTask?.id;
-        case TasksDragTargetType.sectionFirst:
-        case TasksDragTargetType.sectionLast:
-          return section?.index;
+        case InboxDragTargetType.first:
+          return 0; // 列表开头固定ID
+        case InboxDragTargetType.last:
+          return -1; // 列表结尾固定ID
       }
     }
 
@@ -47,7 +42,7 @@ class TasksPageDragTarget extends ConsumerWidget {
       type: _mapToInsertionType(targetType),
       canAccept: (dragged) => _canAcceptDrop(dragged),
       onAccept: (dragged) async {
-        debugPrint('接受拖拽: type=$targetType, task=${dragged.id}');
+        debugPrint('Inbox拖拽: type=$targetType, task=${dragged.id}');
         try {
           final taskService = ref.read(taskServiceProvider);
           await _handleDrop(dragged, taskService);
@@ -64,53 +59,50 @@ class TasksPageDragTarget extends ConsumerWidget {
           dragNotifier.updateHoverTarget(null);
         }
       },
-      child: child,
+      // Inbox 列表开头/结尾在空闲时不显示插入线，避免常驻横线
+      showWhenIdle: targetType == InboxDragTargetType.between,
     );
   }
 
-  InsertionType _mapToInsertionType(TasksDragTargetType type) {
+  InsertionType _mapToInsertionType(InboxDragTargetType type) {
     switch (type) {
-      case TasksDragTargetType.between:
+      case InboxDragTargetType.between:
         return InsertionType.between;
-      case TasksDragTargetType.sectionFirst:
+      case InboxDragTargetType.first:
         return InsertionType.first;
-      case TasksDragTargetType.sectionLast:
+      case InboxDragTargetType.last:
         return InsertionType.last;
     }
   }
 
   bool _canAcceptDrop(Task draggedTask) {
     switch (targetType) {
-      case TasksDragTargetType.between:
-        // 不能拖拽到自己上方或下方
-        if (beforeTask?.id == draggedTask.id || afterTask?.id == draggedTask.id) {
-          return false;
-        }
-        return beforeTask != null && 
-               afterTask != null &&
-               beforeTask!.dueAt != null &&
-               afterTask!.dueAt != null;
-      case TasksDragTargetType.sectionFirst:
-      case TasksDragTargetType.sectionLast:
-        return section != null;
+      case InboxDragTargetType.between:
+        return beforeTask?.id != draggedTask.id && 
+               afterTask?.id != draggedTask.id &&
+               beforeTask != null && 
+               afterTask != null;
+      case InboxDragTargetType.first:
+      case InboxDragTargetType.last:
+        return true;
     }
   }
 
   Future<void> _handleDrop(Task draggedTask, dynamic taskService) async {
     try {
       switch (targetType) {
-        case TasksDragTargetType.between:
-          await taskService.handleDragBetweenTasks(
+        case InboxDragTargetType.between:
+          await taskService.handleInboxDragBetween(
             draggedTask.id, 
             beforeTask!.id, 
             afterTask!.id,
           );
           break;
-        case TasksDragTargetType.sectionFirst:
-          await taskService.handleDragToSectionFirst(draggedTask.id, section!);
+        case InboxDragTargetType.first:
+          await taskService.handleInboxDragToFirst(draggedTask.id);
           break;
-        case TasksDragTargetType.sectionLast:
-          await taskService.handleDragToSectionLast(draggedTask.id, section!);
+        case InboxDragTargetType.last:
+          await taskService.handleInboxDragToLast(draggedTask.id);
           break;
       }
     } catch (e) {

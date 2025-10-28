@@ -296,6 +296,100 @@ class TaskService {
     final daysFromMonday = (now.weekday - DateTime.monday) % 7;
     return DateTime(now.year, now.month, now.day - daysFromMonday);
   }
+
+  // ===== Inbox 拖拽方法 =====
+
+  /// 处理 Inbox 任务在两个任务之间拖拽
+  Future<void> handleInboxDragBetween(int draggedId, int beforeId, int afterId) async {
+    if (_sortIndex == null) return;
+
+    // 邻居间隙过小则先对 Inbox 域做一次等差稀疏化
+    final before = await _tasks.findById(beforeId);
+    final after = await _tasks.findById(afterId);
+    if (before != null && after != null) {
+      if ((after.sortIndex - before.sortIndex).abs() < 2) {
+        final inboxOrdered = await _tasks.watchInbox().first;
+        await _sortIndex!.reorderIds(
+          orderedIds: inboxOrdered.map((t) => t.id).toList(),
+        );
+      }
+    }
+
+    await _sortIndex!.insertBetween(
+      draggedId: draggedId,
+      beforeId: beforeId,
+      afterId: afterId,
+    );
+    debugPrint('InboxDnD between: $draggedId -> ($beforeId, $afterId)');
+  }
+
+  /// 处理 Inbox 任务拖拽到列表开头
+  Future<void> handleInboxDragToFirst(int draggedId) async {
+    if (_sortIndex == null) return;
+    
+    // 获取当前排序后的第一个 inbox 任务(排除自身)
+    final inboxTasks = await _tasks.watchInbox().first;
+    final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList()
+      ..sort((a, b) {
+        final cmp = a.sortIndex.compareTo(b.sortIndex);
+        if (cmp != 0) return cmp;
+        return b.createdAt.compareTo(a.createdAt);
+      });
+
+    if (sortedTasks.isEmpty) {
+      await _tasks.updateTask(draggedId, const TaskUpdate(sortIndex: 1024));
+      return;
+    }
+
+    // 如首元素与被拖拽元素间距过小，先稀疏化
+    final dragged = await _tasks.findById(draggedId);
+    if (dragged != null && (sortedTasks.first.sortIndex - dragged.sortIndex).abs() < 2) {
+      await _sortIndex!.reorderIds(
+        orderedIds: inboxTasks.map((t) => t.id).toList(),
+      );
+    }
+
+    await _sortIndex!.moveToHead(
+      draggedId: draggedId,
+      section: TaskSection.later, // Inbox 使用 later 区域
+      firstId: sortedTasks.first.id,
+    );
+    debugPrint('InboxDnD first: $draggedId -> head');
+  }
+
+  /// 处理 Inbox 任务拖拽到列表结尾
+  Future<void> handleInboxDragToLast(int draggedId) async {
+    if (_sortIndex == null) return;
+    
+    // 获取当前排序后的最后一个 inbox 任务(排除自身)
+    final inboxTasks = await _tasks.watchInbox().first;
+    final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList()
+      ..sort((a, b) {
+        final cmp = a.sortIndex.compareTo(b.sortIndex);
+        if (cmp != 0) return cmp;
+        return b.createdAt.compareTo(a.createdAt);
+      });
+
+    if (sortedTasks.isEmpty) {
+      await _tasks.updateTask(draggedId, const TaskUpdate(sortIndex: 1024));
+      return;
+    }
+
+    // 如尾元素与被拖拽元素间距过小，先稀疏化
+    final dragged = await _tasks.findById(draggedId);
+    if (dragged != null && (sortedTasks.last.sortIndex - dragged.sortIndex).abs() < 2) {
+      await _sortIndex!.reorderIds(
+        orderedIds: inboxTasks.map((t) => t.id).toList(),
+      );
+    }
+
+    await _sortIndex!.moveToTail(
+      draggedId: draggedId,
+      section: TaskSection.later, // Inbox 使用 later 区域
+      lastId: sortedTasks.last.id,
+    );
+    debugPrint('InboxDnD last: $draggedId -> tail');
+  }
 }
 
 

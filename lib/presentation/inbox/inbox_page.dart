@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/providers/inbox_drag_provider.dart';
 import '../../core/theme/app_color_tokens.dart';
 import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
@@ -19,6 +20,8 @@ import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/tag_data.dart';
 import '../widgets/tag_panel.dart';
 import '../widgets/task_expanded_panel.dart';
+import 'inbox_draggable.dart';
+import 'inbox_drag_target.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
   const InboxPage({super.key});
@@ -242,7 +245,20 @@ class _InboxPageState extends ConsumerState<InboxPage> {
               return SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final task = tasks[index];
-                  return InboxTaskTile(task: task, localeName: l10n.localeName);
+                  return Column(
+                    children: [
+                      if (index == 0)
+                        InboxDragTarget(targetType: InboxDragTargetType.first),
+                      InboxDragTarget(
+                        targetType: InboxDragTargetType.between,
+                        beforeTask: index > 0 ? tasks[index - 1] : null,
+                        afterTask: task,
+                      ),
+                      InboxTaskTile(task: task, localeName: l10n.localeName),
+                      if (index == tasks.length - 1)
+                        InboxDragTarget(targetType: InboxDragTargetType.last),
+                    ],
+                  );
                 }, childCount: tasks.length),
               );
             },
@@ -483,6 +499,7 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
   Widget build(BuildContext context) {
     final expandedId = ref.watch(inboxExpandedTaskIdProvider);
     final isExpanded = expandedId == widget.task.id;
+    final isDragging = ref.watch(inboxDragProvider.select((s) => s.isDragging));
     final l10n = AppLocalizations.of(context);
 
     final messenger = ScaffoldMessenger.of(context);
@@ -490,131 +507,119 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
     final colorScheme = Theme.of(context).colorScheme;
     final tokens = context.colorTokens;
 
-    return Dismissible(
-      key: ValueKey('inbox-${widget.task.id}-${widget.task.updatedAt.millisecondsSinceEpoch}'),
-      background: _DismissBackground(
-        alignment: Alignment.centerLeft,
-        icon: Icons.calendar_today,
-        label: l10n.inboxQuickPlanAction,
-        backgroundColor: tokens.success,
-        foregroundColor: tokens.onSuccess,
-      ),
-      secondaryBackground: _DismissBackground(
-        alignment: Alignment.centerRight,
-        icon: Icons.delete_outline,
-        label: l10n.inboxDeleteAction,
-        backgroundColor: colorScheme.error,
-        foregroundColor: colorScheme.onError,
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          await _quickPlan(context, ref, widget.task);
-          return false;
-        }
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.inboxDeleteConfirmTitle),
-            content: Text(l10n.inboxDeleteConfirmMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.commonCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.commonDelete),
-              ),
-            ],
-          ),
-        );
-        if (confirmed == true) {
-          await taskService.softDelete(widget.task.id);
-          if (!context.mounted) {
+    return InboxDraggable(
+      task: widget.task,
+      enabled: !isExpanded, // 展开时禁用拖拽
+      child: Dismissible(
+        key: ValueKey('inbox-${widget.task.id}-${widget.task.updatedAt.millisecondsSinceEpoch}'),
+        background: _DismissBackground(
+          alignment: Alignment.centerLeft,
+          icon: Icons.calendar_today,
+          label: l10n.inboxQuickPlanAction,
+          backgroundColor: tokens.success,
+          foregroundColor: tokens.onSuccess,
+        ),
+        secondaryBackground: _DismissBackground(
+          alignment: Alignment.centerRight,
+          icon: Icons.delete_outline,
+          label: l10n.inboxDeleteAction,
+          backgroundColor: colorScheme.error,
+          foregroundColor: colorScheme.onError,
+        ),
+        confirmDismiss: isDragging ? (_) async => false : (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            await _quickPlan(context, ref, widget.task);
             return false;
           }
-          messenger.showSnackBar(SnackBar(content: Text(l10n.inboxDeletedToast)));
-        }
-        return false;
-      },
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: InkWell(
-          onTap: () {
-            // 只有在点击非TextField区域时才展开/收起
-            ref.read(inboxExpandedTaskIdProvider.notifier).state = isExpanded ? null : widget.task.id;
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (!isExpanded)
-                            Text(
-                              widget.task.title,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            )
-                          else
-                            TextField(
-                              controller: _titleController,
-                              style: Theme.of(context).textTheme.titleMedium,
-                              decoration: InputDecoration(
-                                border: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: colorScheme.primary,
-                                    width: 1,
-                                  ),
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: colorScheme.primary.withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                hintText: 'Enter task title...',
-                              ),
-                              onSubmitted: (value) => _updateTaskTitle(context, value),
-                              onChanged: (value) => setState(() {}),
-                            ),
-                          const SizedBox(height: 4),
-                          Text('ID: ${widget.task.taskId}', style: Theme.of(context).textTheme.bodySmall),
-                        ],
-                      ),
-                    ),
-                    Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
-                  ],
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(l10n.inboxDeleteConfirmTitle),
+              content: Text(l10n.inboxDeleteConfirmMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(l10n.commonCancel),
                 ),
-                if (isExpanded) ...[
-                  const SizedBox(height: 12),
-                  TaskExpandedPanel(
-                    task: widget.task,
-                    localeName: widget.localeName,
-                    showQuickPlan: true,
-                    showDateSection: false,
-                    showSwipeHint: true,
-                    leftActionKey: 'inboxDeleteAction',
-                    rightActionKey: 'inboxQuickPlanAction',
-                    onQuickPlan: () => _quickPlan(context, ref, widget.task),
-                  ),
-                ],
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(l10n.commonDelete),
+                ),
               ],
             ),
-          ),
+          );
+          if (confirmed == true) {
+            await taskService.softDelete(widget.task.id);
+            if (!context.mounted) {
+              return false;
+            }
+            messenger.showSnackBar(SnackBar(content: Text(l10n.inboxDeletedToast)));
+          }
+          return false;
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ListTile(
+              leading: Icon(
+                Icons.drag_indicator,
+                color: Colors.grey[400],
+                size: 20,
+              ),
+              title: isExpanded
+                  ? TextField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        border: UnderlineInputBorder(
+                          borderSide: BorderSide(color: colorScheme.primary),
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: colorScheme.primary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      onSubmitted: (value) => _updateTaskTitle(context, value),
+                    )
+                  : Text(widget.task.title),
+              subtitle: Text('ID: ${widget.task.taskId}'),
+              trailing: Icon(
+                isExpanded ? Icons.expand_less : Icons.expand_more,
+              ),
+              onTap: () {
+                ref.read(inboxExpandedTaskIdProvider.notifier).state = 
+                    isExpanded ? null : widget.task.id;
+              },
+            ),
+            if (isExpanded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    TaskExpandedPanel(
+                      task: widget.task,
+                      localeName: widget.localeName,
+                      showQuickPlan: true,
+                      showDateSection: false,
+                      showSwipeHint: true,
+                      leftActionKey: 'inboxDeleteAction',
+                      rightActionKey: 'inboxQuickPlanAction',
+                      onQuickPlan: () => _quickPlan(context, ref, widget.task),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );

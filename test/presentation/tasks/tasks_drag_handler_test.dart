@@ -93,9 +93,9 @@ void main() {
       await tester.startGesture(tester.getCenter(find.text('Test Child')));
       await tester.pump(const Duration(milliseconds: 800));
       
-      // 应该显示拖拽反馈
-      expect(find.text('Test Task'), findsOneWidget);
-      // 由于时区问题，可能显示的时间格式不同，所以只检查任务标题
+      // 应该显示拖拽反馈（现在只显示 child 内容）
+      // 由于拖拽时原位置和反馈都显示相同内容，我们检查是否有拖拽反馈
+      expect(find.text('Test Child'), findsNWidgets(2)); // 原位置 + 反馈
     });
   });
 }

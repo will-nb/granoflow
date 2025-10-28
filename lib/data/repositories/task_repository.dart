@@ -90,7 +90,8 @@ class IsarTaskRepository implements TaskRepository {
       final results = await _isar.taskEntitys
           .filter()
           .statusEqualTo(TaskStatus.inbox)
-          .sortByCreatedAtDesc()
+          .sortBySortIndex()
+          .thenByCreatedAtDesc()
           .findAll();
       return results.map(_toDomain).toList(growable: false);
     });
@@ -107,7 +108,8 @@ class IsarTaskRepository implements TaskRepository {
       final entities = await _isar.taskEntitys
           .filter()
           .statusEqualTo(TaskStatus.inbox)
-          .sortByCreatedAtDesc()
+          .sortBySortIndex()
+          .thenByCreatedAtDesc()
           .findAll();
       final filtered = entities.where((entity) {
         final tags = entity.tags;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_color_schemes.dart';
 import 'app_color_tokens.dart';
 import 'app_gradients.dart';
+import 'drag_theme.dart';
 import 'ocean_breeze_color_schemes.dart';
 
 class AppTheme {
@@ -136,6 +137,7 @@ class AppTheme {
       extensions: const <ThemeExtension<dynamic>>[
         AppColorTokens.light,
         AppGradientsExtension.light,
+        DragTheme.light,
       ],
     );
   }
@@ -268,6 +270,7 @@ class AppTheme {
       extensions: const <ThemeExtension<dynamic>>[
         AppColorTokens.dark,
         AppGradientsExtension.dark,
+        DragTheme.dark,
       ],
     );
   }
