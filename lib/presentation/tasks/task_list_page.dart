@@ -739,6 +739,10 @@ class _TaskLeafTileState extends ConsumerState<_TaskLeafTile> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ListTile(
+              // 禁用拖拽时的 hover 效果，因为不支持嵌套子项目
+              hoverColor: Colors.transparent,
+              splashColor: Colors.transparent,
+              enableFeedback: false,
               leading: Icon(
                 Icons.drag_indicator,
                 color: Colors.grey[400],
