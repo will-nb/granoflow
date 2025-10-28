@@ -312,14 +312,13 @@ class _TaskSectionEditorState extends ConsumerState<_TaskSectionEditor> {
       buildDefaultDragHandles: false,
       itemBuilder: (context, index) {
         final task = _roots[index];
-        return Padding(
+        return Card(
           key: ValueKey('${task.id}-${task.sortIndex}'),
-          padding: const EdgeInsets.only(bottom: 12),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-            ),
+          margin: const EdgeInsets.only(bottom: 12),
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               children: [
                 Row(

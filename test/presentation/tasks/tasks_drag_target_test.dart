@@ -6,7 +6,7 @@ import 'package:granoflow/presentation/tasks/tasks_drag_target_type.dart';
 
 void main() {
   group('TasksPageDragTarget Tests', () {
-    testWidgets('should show default child for between target', (tester) async {
+    testWidgets('idle should not show custom child for between target', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -20,10 +20,11 @@ void main() {
         ),
       );
 
-      expect(find.text('Custom Child'), findsOneWidget);
+      // 空闲状态下不显示插入占位/自定义内容
+      expect(find.text('Custom Child'), findsNothing);
     });
 
-    testWidgets('should show default indicator for between target', (tester) async {
+    testWidgets('idle should not show indicator for between target', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -36,15 +37,15 @@ void main() {
         ),
       );
 
-      // 应该显示默认的指示线 - 查找有特定高度和margin的Container
+      // 空闲状态下不应渲染默认指示线
       expect(find.byWidgetPredicate((widget) => 
         widget is Container && 
-        widget.constraints?.maxHeight == 3.0 &&
+        widget.constraints?.maxHeight == 2.0 &&
         widget.margin == const EdgeInsets.symmetric(vertical: 12)
-      ), findsOneWidget);
+      ), findsNothing);
     });
 
-    testWidgets('should show default indicator for section first target', (tester) async {
+    testWidgets('idle should not show indicator for section first target', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -57,15 +58,15 @@ void main() {
         ),
       );
 
-      // 应该显示默认的指示线 - 查找有特定高度和margin的Container
+      // 空闲状态下不应渲染默认指示线
       expect(find.byWidgetPredicate((widget) => 
         widget is Container && 
-        widget.constraints?.maxHeight == 3.0 &&
+        widget.constraints?.maxHeight == 2.0 &&
         widget.margin == const EdgeInsets.only(bottom: 12)
-      ), findsOneWidget);
+      ), findsNothing);
     });
 
-    testWidgets('should show default indicator for section last target', (tester) async {
+    testWidgets('idle should not show indicator for section last target', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -78,12 +79,12 @@ void main() {
         ),
       );
 
-      // 应该显示默认的指示线 - 查找有特定高度和margin的Container
+      // 空闲状态下不应渲染默认指示线
       expect(find.byWidgetPredicate((widget) => 
         widget is Container && 
-        widget.constraints?.maxHeight == 3.0 &&
+        widget.constraints?.maxHeight == 2.0 &&
         widget.margin == const EdgeInsets.only(top: 12)
-      ), findsOneWidget);
+      ), findsNothing);
     });
   });
 }

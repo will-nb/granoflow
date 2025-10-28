@@ -64,6 +64,8 @@ class TasksPageDragTarget extends ConsumerWidget {
           dragNotifier.updateHoverTarget(null);
         }
       },
+      // 与 Inbox 一致：仅悬停显示插入线
+      showWhenIdle: false,
       child: child,
     );
   }

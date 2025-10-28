@@ -59,8 +59,8 @@ class InboxDragTarget extends ConsumerWidget {
           dragNotifier.updateHoverTarget(null);
         }
       },
-      // Inbox 列表开头/结尾在空闲时不显示插入线，避免常驻横线
-      showWhenIdle: targetType == InboxDragTargetType.between,
+      // Inbox 统一仅悬停显示插入线
+      showWhenIdle: false,
     );
   }
 

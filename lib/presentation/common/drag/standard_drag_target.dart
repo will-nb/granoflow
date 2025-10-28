@@ -17,7 +17,7 @@ class StandardDragTarget<T extends Object> extends StatefulWidget {
     this.targetId,
     this.child,
     this.onHoverChanged,
-    this.showWhenIdle = true,
+    this.showWhenIdle = false,
     super.key,
   });
 
@@ -48,16 +48,16 @@ class _StandardDragTargetState<T extends Object> extends State<StandardDragTarge
       onLeave: (_) => _handleHover(false),
       builder: (_, candidate, __) {
         final isHovering = candidate.isNotEmpty;
-        final showInsertion = isHovering || widget.showWhenIdle;
         return AnimatedContainer(
           duration: DragConstants.hoverAnimationDuration,
-          decoration: BoxDecoration(
-            color: showInsertion ? _getHoverColor(dragTheme) : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
+          decoration: const BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.all(Radius.circular(4)),
           ),
-          child: showInsertion
-              ? (widget.child ?? _buildDefaultInsertionLine(context, dragTheme, isHovering))
-              : const SizedBox.shrink(),
+          // 非悬停：渲染 1px 透明命中区；悬停：渲染自定义/默认插入线
+          child: isHovering
+              ? (widget.child ?? _buildDefaultInsertionLine(context, dragTheme, true))
+              : _buildDefaultInsertionLine(context, dragTheme, false),
         );
       },
     );
@@ -72,34 +72,21 @@ class _StandardDragTargetState<T extends Object> extends State<StandardDragTarge
     }
   }
 
-  Color _getHoverColor(DragTheme theme) {
-    switch (widget.type) {
-      case InsertionType.between:
-        return theme.hoverBackgroundBetween;
-      case InsertionType.first:
-      case InsertionType.last:
-        return theme.hoverBackgroundSection;
-    }
-  }
+  // 背景高亮已移除，仅保留插入线，因此不再需要计算hover背景色
 
   Widget _buildDefaultInsertionLine(BuildContext context, DragTheme theme, bool isHovering) {
-    final color = widget.type == InsertionType.between
+    final baseColor = widget.type == InsertionType.between
         ? theme.insertionLineBetweenColor
         : theme.insertionLineSectionColor;
 
     return Container(
-      height: DragConstants.insertionLineHeight,
+      height: isHovering
+          ? DragConstants.insertionLineHeight
+          : DragConstants.insertionHitHeight,
       margin: _getMargin(widget.type),
       decoration: BoxDecoration(
-        color: isHovering ? color : color.withValues(alpha: 0.3),
+        color: isHovering ? baseColor : Colors.transparent,
         borderRadius: BorderRadius.circular(1),
-        boxShadow: isHovering ? [
-          BoxShadow(
-            color: color.withValues(alpha: 0.3),
-            blurRadius: DragConstants.insertionLineBlurRadius,
-            spreadRadius: DragConstants.insertionLineSpreadRadius,
-          ),
-        ] : null,
       ),
     );
   }

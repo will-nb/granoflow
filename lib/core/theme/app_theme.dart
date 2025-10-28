@@ -134,10 +134,10 @@ class AppTheme {
         ),
       ),
 
-      extensions: const <ThemeExtension<dynamic>>[
+      extensions: <ThemeExtension<dynamic>>[
         AppColorTokens.light,
         AppGradientsExtension.light,
-        DragTheme.light,
+        DragTheme.fromScheme(colorScheme, Brightness.light),
       ],
     );
   }
@@ -267,10 +267,10 @@ class AppTheme {
         ),
       ),
 
-      extensions: const <ThemeExtension<dynamic>>[
+      extensions: <ThemeExtension<dynamic>>[
         AppColorTokens.dark,
         AppGradientsExtension.dark,
-        DragTheme.dark,
+        DragTheme.fromScheme(colorScheme, Brightness.dark),
       ],
     );
   }

@@ -242,24 +242,30 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                   ),
                 );
               }
-              return SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final task = tasks[index];
-                  return Column(
-                    children: [
-                      if (index == 0)
+              return SliverToBoxAdapter(
+                child: Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      children: [
                         InboxDragTarget(targetType: InboxDragTargetType.first),
-                      InboxDragTarget(
-                        targetType: InboxDragTargetType.between,
-                        beforeTask: index > 0 ? tasks[index - 1] : null,
-                        afterTask: task,
-                      ),
-                      InboxTaskTile(task: task, localeName: l10n.localeName),
-                      if (index == tasks.length - 1)
+                        for (int i = 0; i < tasks.length; i++) ...[
+                          if (i > 0)
+                            InboxDragTarget(
+                              targetType: InboxDragTargetType.between,
+                              beforeTask: tasks[i - 1],
+                              afterTask: tasks[i],
+                            ),
+                          InboxTaskTile(task: tasks[i], localeName: l10n.localeName),
+                        ],
                         InboxDragTarget(targetType: InboxDragTargetType.last),
-                    ],
-                  );
-                }, childCount: tasks.length),
+                      ],
+                    ),
+                  ),
+                ),
               );
             },
             loading: () => const SliverToBoxAdapter(
@@ -569,6 +575,10 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
               title: isExpanded
                   ? TextField(
                       controller: _titleController,
+                      enabled: true,
+                      readOnly: false,
+                      autofocus: false,
+                      canRequestFocus: true,
                       decoration: InputDecoration(
                         border: UnderlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
@@ -588,7 +598,10 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
                       style: Theme.of(context).textTheme.bodyLarge,
                       onSubmitted: (value) => _updateTaskTitle(context, value),
                     )
-                  : Text(widget.task.title),
+                  : IgnorePointer(
+                      ignoring: true,
+                      child: Text(widget.task.title),
+                    ),
               subtitle: Text('ID: ${widget.task.taskId}'),
               trailing: Icon(
                 isExpanded ? Icons.expand_less : Icons.expand_more,
