@@ -7,6 +7,8 @@ import '../../data/repositories/tag_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/task_template_repository.dart';
 import 'metric_orchestrator.dart';
+import 'sort_index_reset_service.dart';
+import '../constants/task_constants.dart';
 
 class SeedImportService {
   SeedImportService({
@@ -19,13 +21,15 @@ class SeedImportService {
        _tags = tagRepository,
        _tasks = taskRepository,
        _templates = templateRepository,
-       _metricOrchestrator = metricOrchestrator;
+       _metricOrchestrator = metricOrchestrator,
+       _sortIndexResetService = SortIndexResetService(taskRepository: taskRepository);
 
   final SeedRepository _seedRepository;
   final TagRepository _tags;
   final TaskRepository _tasks;
   final TaskTemplateRepository _templates;
   final MetricOrchestrator _metricOrchestrator;
+  final SortIndexResetService _sortIndexResetService;
   
   // 防止重复导入的标志
   bool _isImporting = false;
@@ -80,6 +84,10 @@ class SeedImportService {
       await _applyTemplates(payload.templates, slugToId);
       debugPrint('SeedImportService: Templates applied');
       
+      // 重置所有任务的 sortIndex 为默认值
+      await _sortIndexResetService.resetAllSortIndexes();
+      debugPrint('SeedImportService: SortIndex reset complete');
+      
       await _seedRepository.importSeeds(payload);
       await _seedRepository.recordVersion(payload.version);
       debugPrint('SeedImportService: Version recorded, import complete!');
@@ -102,7 +110,6 @@ class SeedImportService {
 
   Future<Map<String, int>> _applyTasks(List<SeedTask> tasks) async {
     final Map<String, int> slugToId = <String, int>{};
-    var order = 0;
     for (final seed in tasks) {
       // 避免重复：如果同 slug 已存在则跳过
       final existing = await _tasks.findBySlug(seed.slug);
@@ -120,11 +127,10 @@ class SeedImportService {
         tags: seed.tags,
         allowInstantComplete: seed.allowInstantComplete,
         seedSlug: seed.slug,
-        sortIndex: seed.sortIndex == 0 ? order.toDouble() : seed.sortIndex,
+        sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
       );
       final task = await _tasks.createTask(draft);
       slugToId[seed.slug] = task.id;
-      order++;
     }
 
     for (final seed in tasks.where((task) => task.parentSlug != null)) {

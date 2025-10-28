@@ -227,6 +227,18 @@ class StubTaskRepository implements TaskRepository {
     return results;
   }
 
+  @override
+  Future<void> batchUpdate(Map<int, TaskUpdate> updates) async {
+    for (final entry in updates.entries) {
+      await updateTask(entry.key, entry.value);
+    }
+  }
+
+  @override
+  Future<List<Task>> listSectionTasks(TaskSection section) async {
+    return _filterSection(section);
+  }
+
   List<Task> _filterSection(TaskSection section) {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);

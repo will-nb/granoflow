@@ -11,6 +11,7 @@ import '../services/preference_service.dart';
 import '../services/task_hierarchy_service.dart';
 import '../services/task_service.dart';
 import '../services/task_template_service.dart';
+import '../constants/task_constants.dart';
 import '../monetization/monetization_service.dart';
 import '../monetization/monetization_state.dart';
 import 'repository_providers.dart';
@@ -243,7 +244,7 @@ class TaskEditActionsNotifier extends AsyncNotifier<void> {
       await _hierarchyService.moveToParent(
         taskId: subtask.id,
         parentId: parentId,
-        sortIndex: DateTime.now().millisecondsSinceEpoch.toDouble(),
+        sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
       );
       await _taskService.updateDetails(
         taskId: subtask.id,

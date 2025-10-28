@@ -61,7 +61,7 @@ class YamlTestUtils {
             '   👉 请人工检查 YAML 文件格式');
       }
       
-      return yaml as YamlMap;
+      return yaml; // 已经是 YamlMap，移除不必要的类型转换
     } catch (e) {
       fail('❌ YAML 文件解析失败: $relativePath\n'
           '   错误: $e\n'

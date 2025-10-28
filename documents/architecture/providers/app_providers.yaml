@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/providers/app_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251027'
-  last_updated: '251027'
+  created_date: '251028'
+  last_updated: '251028'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -212,6 +212,7 @@ calls:
 - lib/core/services/task_hierarchy_service.dart
 - lib/core/services/task_service.dart
 - lib/core/services/task_template_service.dart
+- lib/core/constants/task_constants.dart
 - lib/core/monetization/monetization_service.dart
 - lib/core/monetization/monetization_state.dart
 test_mapping:

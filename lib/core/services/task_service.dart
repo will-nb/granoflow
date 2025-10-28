@@ -1,23 +1,29 @@
+import 'package:flutter/foundation.dart';
 import '../../data/models/task.dart';
 import '../../data/models/tag.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import 'metric_orchestrator.dart';
+import '../constants/task_constants.dart';
+import 'sort_index_service.dart';
 
 class TaskService {
   TaskService({
     required TaskRepository taskRepository,
     required TagRepository tagRepository,
     required MetricOrchestrator metricOrchestrator,
+    SortIndexService? sortIndexService,
     DateTime Function()? clock,
   }) : _tasks = taskRepository,
        _tags = tagRepository,
        _metricOrchestrator = metricOrchestrator,
+       _sortIndex = sortIndexService,
        _clock = clock ?? DateTime.now;
 
   final TaskRepository _tasks;
   final TagRepository _tags;
   final MetricOrchestrator _metricOrchestrator;
+  final SortIndexService? _sortIndex;
   final DateTime Function() _clock;
 
   Future<Task> captureInboxTask({
@@ -29,7 +35,7 @@ class TaskService {
       status: TaskStatus.inbox,
       tags: tags,
       allowInstantComplete: false,
-      sortIndex: _clock().millisecondsSinceEpoch.toDouble(),
+      sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
     );
     final task = await _tasks.createTask(draft);
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
@@ -46,9 +52,44 @@ class TaskService {
       taskId: taskId,
       targetParentId: null,
       targetSection: section,
-      sortIndex: _clock().millisecondsSinceEpoch.toDouble(),
+      sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
       dueAt: normalizedDue,
     );
+    // 规则：新任务插入到本区域最前
+    try {
+      final tasksInSection = await _tasks.listSectionTasks(section);
+      // 找到当前首个“其它任务”（排除自己）
+      final firstOther = tasksInSection.firstWhere(
+        (t) => t.id != taskId,
+        orElse: () => Task(
+          id: -1,
+          taskId: '',
+          title: '',
+          status: TaskStatus.pending,
+          createdAt: DateTime(1970, 1, 1),
+          updatedAt: DateTime(1970, 1, 1),
+          sortIndex: 0,
+        ),
+      );
+      if (firstOther.id == -1) {
+        // 区域为空或只有自己 → 赋默认HEAD
+        await _tasks.updateTask(taskId, const TaskUpdate(sortIndex: 1024));
+      } else {
+        if (_sortIndex != null) {
+          await _sortIndex.moveToHead(
+            draggedId: taskId,
+            section: section,
+            firstId: firstOther.id,
+          );
+        } else {
+          // 退化实现：直接写 head = first.sortIndex - STEP
+          final newIndex = (firstOther.sortIndex - 1024).toDouble();
+          await _tasks.updateTask(taskId, TaskUpdate(sortIndex: newIndex));
+        }
+      }
+    } catch (_) {
+      // 忽略排序错误，保证主流程
+    }
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
@@ -162,4 +203,99 @@ class TaskService {
 
   bool _isContextTag(String tag) => tag.startsWith('@');
   bool _isPriorityTag(String tag) => tag.startsWith('#');
+
+  /// 处理拖拽到任务间（调整sortIndex）
+  Future<void> handleDragBetweenTasks(int draggedTaskId, int beforeTaskId, int afterTaskId) async {
+    debugPrint('拖拽排序Between: task=$draggedTaskId between $beforeTaskId/$afterTaskId');
+    if (_sortIndex == null) return;
+    await _sortIndex.insertBetween(
+      draggedId: draggedTaskId,
+      beforeId: beforeTaskId,
+      afterId: afterTaskId,
+    );
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  /// 处理拖拽到区域首位
+  Future<void> handleDragToSectionFirst(int draggedTaskId, TaskSection section) async {
+    final sectionMidTime = _getSectionMidTime(section);
+    debugPrint('拖拽到区域首位: task=$draggedTaskId, section=$section');
+    await _tasks.updateTask(
+      draggedTaskId,
+      TaskUpdate(dueAt: sectionMidTime),
+    );
+    // 找到区域首元素（排除自身），调用 moveToHead
+    final tasks = await _tasks.listSectionTasks(section);
+    final others = tasks.where((t) => t.id != draggedTaskId).toList(growable: false);
+    if (others.isEmpty) {
+      if (_sortIndex != null) {
+        await _tasks.updateTask(draggedTaskId, const TaskUpdate(sortIndex: 1024));
+      }
+    } else {
+      final first = others.first;
+      if (_sortIndex != null) {
+        await _sortIndex.moveToHead(
+          draggedId: draggedTaskId,
+          section: section,
+          firstId: first.id,
+        );
+      }
+    }
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  /// 处理拖拽到区域末位
+  Future<void> handleDragToSectionLast(int draggedTaskId, TaskSection section) async {
+    final sectionMidTime = _getSectionMidTime(section);
+    debugPrint('拖拽到区域末位: task=$draggedTaskId, section=$section');
+    await _tasks.updateTask(
+      draggedTaskId,
+      TaskUpdate(dueAt: sectionMidTime),
+    );
+    final tasks = await _tasks.listSectionTasks(section);
+    if (_sortIndex != null) {
+      final others = tasks.where((t) => t.id != draggedTaskId).toList(growable: false);
+      if (others.isEmpty) {
+        await _tasks.updateTask(draggedTaskId, const TaskUpdate(sortIndex: 1024));
+      } else {
+        final lastOther = others.last;
+        await _sortIndex.moveToTail(
+          draggedId: draggedTaskId,
+          section: section,
+          lastId: lastOther.id,
+        );
+      }
+    }
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  /// 获取区域中间时间点（12:00:00）
+  DateTime _getSectionMidTime(TaskSection section) {
+    final now = _clock();
+    switch (section) {
+      case TaskSection.overdue:
+        return DateTime(now.year, now.month, now.day - 1, 12, 0, 0);
+      case TaskSection.today:
+        return DateTime(now.year, now.month, now.day, 12, 0, 0);
+      case TaskSection.tomorrow:
+        return DateTime(now.year, now.month, now.day + 1, 12, 0, 0);
+      case TaskSection.thisWeek:
+        final weekStart = _getThisWeekStart(now);
+        return DateTime(weekStart.year, weekStart.month, weekStart.day + 3, 12, 0, 0);
+      case TaskSection.thisMonth:
+        return DateTime(now.year, now.month, 15, 12, 0, 0);
+      case TaskSection.later:
+        return DateTime(now.year + 1, 1, 1, 12, 0, 0);
+      default:
+        return now;
+    }
+  }
+
+  /// 获取本周开始时间
+  DateTime _getThisWeekStart(DateTime now) {
+    final daysFromMonday = (now.weekday - DateTime.monday) % 7;
+    return DateTime(now.year, now.month, now.day - daysFromMonday);
+  }
 }
+
+

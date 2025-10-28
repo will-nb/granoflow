@@ -3,6 +3,7 @@ import '../../data/models/task_template.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/task_template_repository.dart';
 import 'task_service.dart';
+import '../constants/task_constants.dart';
 
 class TaskTemplateService {
   TaskTemplateService({
@@ -70,7 +71,7 @@ class TaskTemplateService {
     if (parentId != null) {
       await _tasks.updateTask(
         task.id,
-        TaskUpdate(parentId: parentId, sortIndex: template.id.toDouble()),
+        TaskUpdate(parentId: parentId, sortIndex: TaskConstants.DEFAULT_SORT_INDEX),
       );
     }
     await _taskService.updateDetails(

@@ -138,7 +138,8 @@ void main() {
             final yaml =
                 YamlTestUtils.loadYamlFile('documents/architecture/$category/$fileName');
             final meta = YamlTestUtils.getMap(yaml, 'meta');
-            final yamlType = meta['type']?.toString()?.toLowerCase();
+            final yamlTypeValue = meta['type'];
+            final yamlType = yamlTypeValue == null ? null : yamlTypeValue.toString().toLowerCase();
 
             // 从文件所在目录推断期望的类型
             String expectedType;

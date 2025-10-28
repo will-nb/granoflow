@@ -4,8 +4,8 @@ meta:
   file_path: lib/data/repositories/focus_session_repository.dart
   description: Repository 描述
   version: '1.0'
-  created_date: '251027'
-  last_updated: '251027'
+  created_date: '251028'
+  last_updated: '251028'
   schema_version: 1
   last_synced_sha: ''
 repository_definition:

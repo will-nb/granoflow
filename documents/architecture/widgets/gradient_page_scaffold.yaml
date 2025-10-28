@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/gradient_page_scaffold.dart
   description: GradientPageScaffold 组件
   version: '1.0'
-  created_date: '251027'
-  last_updated: '251027'
+  created_date: '251028'
+  last_updated: '251028'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:

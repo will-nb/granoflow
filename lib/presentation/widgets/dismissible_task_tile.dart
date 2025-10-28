@@ -21,6 +21,9 @@ class DismissibleTaskTile extends StatelessWidget {
   
   /// 子组件（任务内容）
   final Widget child;
+  
+  /// 滑动方向，默认为水平滑动
+  final DismissDirection direction;
 
   const DismissibleTaskTile({
     super.key,
@@ -29,6 +32,7 @@ class DismissibleTaskTile extends StatelessWidget {
     required this.onLeftAction,
     required this.onRightAction,
     required this.child,
+    this.direction = DismissDirection.horizontal,
   });
 
   @override
@@ -37,7 +41,7 @@ class DismissibleTaskTile extends StatelessWidget {
     
     return Dismissible(
       key: Key('dismissible_${task.id}'),
-      direction: DismissDirection.horizontal,
+      direction: direction,
       background: _buildLeftBackground(
         context, 
         config.leftIcon, 

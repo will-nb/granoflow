@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/services/preference_service.dart
   description: Service 描述
   version: '1.0'
-  created_date: '251027'
-  last_updated: '251027'
+  created_date: '251028'
+  last_updated: '251028'
   schema_version: 1
   last_synced_sha: ''
 service_definition:

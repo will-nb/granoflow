@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/constants/task_constants.dart';
 import '../../data/models/task.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
@@ -13,6 +14,10 @@ import '../widgets/dismissible_task_tile.dart';
 import '../widgets/swipe_configs.dart';
 import '../widgets/swipe_action_handler.dart';
 import '../widgets/swipe_action_type.dart';
+import 'tasks_drag_handler.dart';
+import 'tasks_drag_target.dart';
+import 'tasks_drag_target_type.dart';
+import '../../core/providers/tasks_drag_provider.dart';
 
 class TaskListPage extends ConsumerStatefulWidget {
   const TaskListPage({super.key});
@@ -66,11 +71,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(l10n.taskListModeBasic),
+                    child: Text(l10n.taskListModeTask),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(l10n.taskListModeEdit),
+                    child: Text(l10n.taskListModeProject),
                   ),
                 ],
               ),
@@ -220,17 +225,52 @@ class _TaskSectionBaseList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final widgets = <Widget>[];
+    
+    // 添加区域首位拖拽目标
+    widgets.add(
+      TasksPageDragTarget(
+        targetType: TasksDragTargetType.sectionFirst,
+        section: section,
+      ),
+    );
+    
+    // 添加任务和任务间的拖拽目标
+    for (int i = 0; i < roots.length; i++) {
+      final task = roots[i];
+      
+      // 添加任务
+      widgets.add(
+        _TaskTreeTile(
+          key: ValueKey('tree-${task.id}'),
+          section: section,
+          rootTask: task,
+          editMode: false,
+        ),
+      );
+      
+      // 如果不是最后一个任务，添加任务间拖拽目标
+      if (i < roots.length - 1) {
+        widgets.add(
+          TasksPageDragTarget(
+            targetType: TasksDragTargetType.between,
+            beforeTask: task,
+            afterTask: roots[i + 1],
+          ),
+        );
+      }
+    }
+    
+    // 添加区域末位拖拽目标
+    widgets.add(
+      TasksPageDragTarget(
+        targetType: TasksDragTargetType.sectionLast,
+        section: section,
+      ),
+    );
+    
     return Column(
-      children: roots
-          .map(
-            (task) => _TaskTreeTile(
-              key: ValueKey('tree-${task.id}'),
-              section: section,
-              rootTask: task,
-              editMode: false,
-            ),
-          )
-          .toList(growable: false),
+      children: widgets,
     );
   }
 }
@@ -680,21 +720,31 @@ class _TaskLeafTileState extends ConsumerState<_TaskLeafTile> {
   Widget build(BuildContext context) {
     final expandedId = ref.watch(taskListExpandedTaskIdProvider);
     final isExpanded = expandedId == widget.task.id;
+    final isDragging = ref.watch(tasksDragProvider.select((s) => s.isDragging));
     final indentation = widget.depth * 16.0;
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: EdgeInsets.only(left: indentation),
-      child: DismissibleTaskTile(
-        task: widget.task,
-        config: SwipeConfigs.tasksConfig,
-        onLeftAction: (task) => SwipeActionHandler.handleAction(context, ref, SwipeActionType.postpone, task),
-        onRightAction: (task) => SwipeActionHandler.handleAction(context, ref, SwipeActionType.archive, task),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return TasksPageDragHandler(
+      task: widget.task,
+      enabled: !isExpanded, // 只在闭合时可拖拽
+      child: Padding(
+        padding: EdgeInsets.only(left: indentation),
+        child: DismissibleTaskTile(
+          task: widget.task,
+          config: SwipeConfigs.tasksConfig,
+          direction: isDragging ? DismissDirection.none : DismissDirection.horizontal,
+          onLeftAction: (task) => SwipeActionHandler.handleAction(context, ref, SwipeActionType.postpone, task),
+          onRightAction: (task) => SwipeActionHandler.handleAction(context, ref, SwipeActionType.archive, task),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ListTile(
+              leading: Icon(
+                Icons.drag_indicator,
+                color: Colors.grey[400],
+                size: 20,
+              ),
               title: isExpanded
                   ? TextField(
                       controller: _titleController,
@@ -771,6 +821,7 @@ class _TaskLeafTileState extends ConsumerState<_TaskLeafTile> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -1060,7 +1111,7 @@ double _calculateSortIndex(double? before, double? after) {
   if (after == null && before != null) {
     return before + 1000;
   }
-  return DateTime.now().millisecondsSinceEpoch.toDouble();
+  return TaskConstants.DEFAULT_SORT_INDEX;
 }
 
 Future<void> _startFocus(BuildContext context, WidgetRef ref, int taskId) async {

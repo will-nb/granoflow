@@ -7,6 +7,7 @@ import '../services/preference_service.dart';
 import '../services/seed_import_service.dart';
 import '../services/task_hierarchy_service.dart';
 import '../services/task_service.dart';
+import '../services/sort_index_service.dart';
 import '../services/task_template_service.dart';
 import '../monetization/monetization_service.dart';
 import 'repository_providers.dart';
@@ -30,10 +31,14 @@ final appConfigProvider = Provider<AppConfig>((ref) {
 });
 
 final taskServiceProvider = Provider<TaskService>((ref) {
+  final sortIndexService = SortIndexService(
+    taskRepository: ref.watch(taskRepositoryProvider),
+  );
   return TaskService(
     taskRepository: ref.watch(taskRepositoryProvider),
     tagRepository: ref.watch(tagRepositoryProvider),
     metricOrchestrator: ref.watch(metricOrchestratorProvider),
+    sortIndexService: sortIndexService,
   );
 });
 

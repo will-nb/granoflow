@@ -59,6 +59,12 @@ abstract class TaskRepository {
     TaskStatus? status,
     int limit,
   });
+
+  /// 批量更新：按 id -> TaskUpdate 的映射执行更新
+  Future<void> batchUpdate(Map<int, TaskUpdate> updates);
+
+  /// 列出某个区域内用于排序的任务（与 UI 一致，已排序的叶任务）
+  Future<List<Task>> listSectionTasks(TaskSection section);
 }
 
 class IsarTaskRepository implements TaskRepository {
@@ -162,6 +168,7 @@ class IsarTaskRepository implements TaskRepository {
       if (entity == null) {
         return;
       }
+      
       entity
         ..title = payload.title ?? entity.title
         ..status = payload.status ?? entity.status
@@ -179,6 +186,7 @@ class IsarTaskRepository implements TaskRepository {
         ..allowInstantComplete =
             payload.allowInstantComplete ?? entity.allowInstantComplete
         ..updatedAt = _clock();
+      
       await _isar.taskEntitys.put(entity);
     });
   }
@@ -296,6 +304,7 @@ class IsarTaskRepository implements TaskRepository {
         .filter()
         .parentIdIsNull()
         .sortBySortIndex()
+        .thenByCreatedAt()
         .findAll();
     return roots.map(_toDomain).toList(growable: false);
   }
@@ -306,6 +315,7 @@ class IsarTaskRepository implements TaskRepository {
         .filter()
         .parentIdEqualTo(parentId)
         .sortBySortIndex()
+        .thenByCreatedAt()
         .findAll();
     return children.map(_toDomain).toList(growable: false);
   }
@@ -347,13 +357,48 @@ class IsarTaskRepository implements TaskRepository {
     return results.take(limit).map(_toDomain).toList(growable: false);
   }
 
+  @override
+  Future<void> batchUpdate(Map<int, TaskUpdate> updates) async {
+    if (updates.isEmpty) return;
+    await _isar.writeTxn(() async {
+      for (final entry in updates.entries) {
+        final entity = await _isar.taskEntitys.get(entry.key);
+        if (entity == null) continue;
+        final payload = entry.value;
+        entity
+          ..title = payload.title ?? entity.title
+          ..status = payload.status ?? entity.status
+          ..dueAt = payload.dueAt ?? entity.dueAt
+          ..startedAt = payload.startedAt ?? entity.startedAt
+          ..endedAt = payload.endedAt ?? entity.endedAt
+          ..parentId = payload.parentId ?? entity.parentId
+          ..sortIndex = payload.sortIndex ?? entity.sortIndex
+          ..tags = payload.tags ?? entity.tags
+          ..templateLockCount =
+              (entity.templateLockCount + payload.templateLockDelta).clamp(0, 1 << 31)
+          ..allowInstantComplete = payload.allowInstantComplete ?? entity.allowInstantComplete
+          ..updatedAt = _clock();
+        await _isar.taskEntitys.put(entity);
+      }
+    });
+  }
+
+  @override
+  Future<List<Task>> listSectionTasks(TaskSection section) async {
+    // 复用 _fetchSection（已是叶任务，并按 sortIndex 排序）
+    return _fetchSection(section);
+  }
+
   Future<List<Task>> _fetchSection(TaskSection section) async {
     final now = _clock();
     final todayStart = DateTime(now.year, now.month, now.day);
     final tomorrowStart = todayStart.add(const Duration(days: 1));
     final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
-    final nextMondayStart = _getNextMonday(todayStart);
     final nextMonthStart = DateTime(now.year, now.month + 1, 1);
+    // 以周日 00:00 作为“本周”的上界、“当月”的下界
+    final sundayStart = _getThisSundayStart(todayStart);
+    // “以后”下界为周日与下月1日的最大者
+    final laterStart = nextMonthStart.isAfter(sundayStart) ? nextMonthStart : sundayStart;
 
     QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder;
     switch (section) {
@@ -379,25 +424,25 @@ class IsarTaskRepository implements TaskRepository {
             .dueAtBetween(tomorrowStart, dayAfterTomorrowStart, includeUpper: false);
         break;
       case TaskSection.thisWeek:
-        // 本周：[>=后天00:00:00, <下周一00:00:00)
+        // 本周：[>=后天00:00:00, <周日00:00:00)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(dayAfterTomorrowStart, nextMondayStart, includeUpper: false);
+            .dueAtBetween(dayAfterTomorrowStart, sundayStart, includeUpper: false);
         break;
       case TaskSection.thisMonth:
-        // 当月：[>=下周一00:00:00, <下月1日00:00:00)
+        // 当月：[>=周日00:00:00, <下月1日00:00:00)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(nextMondayStart, nextMonthStart, includeUpper: false);
+            .dueAtBetween(sundayStart, nextMonthStart, includeUpper: false);
         break;
       case TaskSection.later:
-        // 以后：[>=下月1日00:00:00, ~)
+        // 以后：[>=max(周日00:00:00, 下月1日00:00:00), ~)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtGreaterThan(nextMonthStart, include: false);
+            .dueAtGreaterThan(laterStart, include: true);
         break;
       case TaskSection.completed:
         builder = _isar.taskEntitys.filter().statusEqualTo(
@@ -412,7 +457,7 @@ class IsarTaskRepository implements TaskRepository {
         break;
     }
 
-    final results = await builder.sortBySortIndex().findAll();
+    final results = await builder.sortBySortIndex().thenByCreatedAt().findAll();
     
     // 过滤叶任务（只显示没有子任务的任务）
     final leafTasks = await _filterLeafTasks(results);
@@ -619,5 +664,13 @@ class IsarTaskRepository implements TaskRepository {
   DateTime _getNextMonday(DateTime today) {
     final daysUntilNextMonday = (DateTime.monday - today.weekday + 7) % 7;
     return today.add(Duration(days: daysUntilNextMonday == 0 ? 7 : daysUntilNextMonday));
+  }
+
+  // 辅助方法：获取本周周日 00:00（基于给定日期所在周）
+  DateTime _getThisSundayStart(DateTime todayStart) {
+    // DateTime.weekday: Monday=1 ... Sunday=7
+    final daysUntilSunday = (DateTime.sunday - todayStart.weekday + 7) % 7;
+    final sunday = todayStart.add(Duration(days: daysUntilSunday));
+    return DateTime(sunday.year, sunday.month, sunday.day);
   }
 }
