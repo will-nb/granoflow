@@ -7,7 +7,11 @@ import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/services/task_service.dart';
 import '../../core/constants/task_constants.dart';
+import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
+import '../widgets/modern_tag.dart';
+import '../widgets/modern_tag_group.dart';
+import '../widgets/tag_data.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
@@ -1559,6 +1563,12 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
   String? _deadlineError;
   bool _suppressProjectShortcut = false;
 
+  /// 将Tag列表转换为TagData列表
+  List<TagData> _tagsToTagData(List<Tag> tags) {
+    return tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList();
+  }
+
+
   @override
   void initState() {
     super.initState();
@@ -1681,16 +1691,20 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
               ),
             ),
             ...options.map(
-              (slug) => ListTile(
-                leading: _tagIcon(slug) != null
-                    ? Icon(
-                        _tagIcon(slug),
-                        color: theme.colorScheme.primary,
-                      )
-                    : null,
-                title: Text(_tagLabel(l10n, slug)),
-                onTap: () => Navigator.of(sheetContext).pop(slug),
-              ),
+              (slug) {
+                final kind = _getTagKindFromSlug(slug);
+                final (_, icon, __) = _getTagStyle(slug, kind);
+                return ListTile(
+                  leading: icon != null
+                      ? Icon(
+                          icon,
+                          color: theme.colorScheme.primary,
+                        )
+                      : null,
+                  title: Text(_tagLabel(l10n, slug)),
+                  onTap: () => Navigator.of(sheetContext).pop(slug),
+                );
+              },
             ),
           ],
         ),
@@ -1945,28 +1959,53 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
                 style: theme.textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _quadrantOptionSlugs
-                    .map(
-                      (slug) => ChoiceChip(
-                        label: Text(_tagLabel(l10n, slug)),
-                        selected: _urgencyTags.contains(slug)
-                            ? _selectedUrgencyTag == slug
-                            : _selectedImportanceTag == slug,
-                        onSelected: (selected) {
-                          setState(() {
-                            if (_urgencyTags.contains(slug)) {
-                              _selectedUrgencyTag = selected ? slug : null;
-                            } else {
-                              _selectedImportanceTag = selected ? slug : null;
-                            }
-                          });
-                        },
-                      ),
-                    )
-                    .toList(growable: false),
+              Consumer(
+                builder: (context, ref, child) {
+                  final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
+                  final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
+                  
+                  return urgencyTagsAsync.when(
+                    data: (urgencyTags) => importanceTagsAsync.when(
+                      data: (importanceTags) {
+                        final allQuadrantTags = [...urgencyTags, ...importanceTags];
+                        final tagData = _tagsToTagData(allQuadrantTags);
+                        final selectedTags = <String>{
+                          if (_selectedUrgencyTag != null) _selectedUrgencyTag!,
+                          if (_selectedImportanceTag != null) _selectedImportanceTag!,
+                        };
+                        
+                        return ModernTagGroup(
+                          tags: tagData,
+                          selectedTags: selectedTags,
+                          multiSelect: false,
+                          variant: TagVariant.pill,
+                          size: TagSize.medium,
+                          onSelectionChanged: (selected) {
+                            setState(() {
+                              if (selected.isEmpty) {
+                                _selectedUrgencyTag = null;
+                                _selectedImportanceTag = null;
+                              } else {
+                                final selectedSlug = selected.first;
+                                if (_urgencyTags.contains(selectedSlug)) {
+                                  _selectedUrgencyTag = selectedSlug;
+                                  _selectedImportanceTag = null;
+                                } else if (_importanceTags.contains(selectedSlug)) {
+                                  _selectedImportanceTag = selectedSlug;
+                                  _selectedUrgencyTag = null;
+                                }
+                              }
+                            });
+                          },
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (_, __) => Text('加载标签失败'),
+                    ),
+                    loading: () => const CircularProgressIndicator(),
+                    error: (_, __) => Text('加载标签失败'),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               Text(
@@ -1974,21 +2013,34 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
                 style: theme.textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _executionOptionSlugs
-                    .map(
-                      (slug) => ChoiceChip(
-                        label: Text(_tagLabel(l10n, slug)),
-                        selected: _executionTag == slug,
-                        onSelected: (selected) {
+              Consumer(
+                builder: (context, ref, child) {
+                  final executionTagsAsync = ref.watch(executionTagOptionsProvider);
+                  
+                  return executionTagsAsync.when(
+                    data: (executionTags) {
+                      final tagData = _tagsToTagData(executionTags);
+                      final selectedTags = <String>{
+                        if (_executionTag != null) _executionTag!,
+                      };
+                      
+                      return ModernTagGroup(
+                        tags: tagData,
+                        selectedTags: selectedTags,
+                        multiSelect: false,
+                        variant: TagVariant.pill,
+                        size: TagSize.medium,
+                        onSelectionChanged: (selected) {
                           setState(() {
-                            _executionTag = selected ? slug : null;
+                            _executionTag = selected.isEmpty ? null : selected.first;
                           });
                         },
-                      ),
-                    )
-                    .toList(growable: false),
+                      );
+                    },
+                    loading: () => const CircularProgressIndicator(),
+                    error: (_, __) => const Text('加载标签失败'),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               Text(
@@ -2791,12 +2843,11 @@ Widget? _buildExecutionLeading(BuildContext context, Task task) {
   if (slug.isEmpty) {
     return null;
   }
-  final theme = Theme.of(context);
-  final icon = _tagIcon(slug);
+  final kind = _getTagKindFromSlug(slug);
+  final (color, icon, _) = _getTagStyle(slug, kind);
   if (icon == null) {
     return null;
   }
-  final color = _tagColor(theme, slug);
   return Container(
     decoration: BoxDecoration(
       shape: BoxShape.circle,
@@ -3293,38 +3344,51 @@ List<Widget> _buildTagChips(BuildContext context, Task task) {
     return const [];
   }
   return task.tags
-      .map((slug) => _buildTagChip(context, slug))
+      .map((slug) => _buildModernTag(context, slug))
       .whereType<Widget>()
       .toList(growable: false);
 }
 
-Widget? _buildTagChip(BuildContext context, String slug) {
-  final l10n = AppLocalizations.of(context);
-  final theme = Theme.of(context);
-  final label = _tagLabel(l10n, slug);
-  final color = _tagColor(theme, slug);
-  final icon = _tagIcon(slug);
+Widget? _buildModernTag(BuildContext context, String slug) {
+  final tagData = _slugToTagData(context, slug);
+  if (tagData == null) return null;
 
-  return Chip(
-    label: Text(label),
-    avatar: icon != null ? Icon(icon, size: 16, color: color) : null,
-    backgroundColor: color.withValues(alpha: 0.12),
-    labelStyle: theme.textTheme.bodySmall?.copyWith(color: color),
-    side: BorderSide(color: color.withValues(alpha: 0.4)),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  return ModernTag(
+    label: tagData.label,
+    color: tagData.color,
+    icon: tagData.icon,
+    prefix: tagData.prefix,
+    selected: false,
+    variant: TagVariant.pill,
+    size: TagSize.small,
   );
 }
 
+
 String _tagLabel(AppLocalizations l10n, String slug) {
   switch (slug) {
+    // 上下文标签
+    case '@anywhere':
+      return l10n.tag_anywhere;
+    case '@home':
+      return l10n.tag_home;
+    case '@workplace':
+      return l10n.tag_workplace;
+    case '@local':
+      return l10n.tag_local;
+    case '@travel':
+      return l10n.tag_travel;
+    // 紧急程度标签
     case '#urgent':
       return l10n.tag_urgent;
     case '#not_urgent':
       return l10n.tag_not_urgent;
+    // 重要程度标签
     case '#important':
       return l10n.tag_important;
     case '#not_important':
       return l10n.tag_not_important;
+    // 执行方式标签
     case '#timed':
       return l10n.tag_timed;
     case '#fragmented':
@@ -3336,42 +3400,7 @@ String _tagLabel(AppLocalizations l10n, String slug) {
   }
 }
 
-Color _tagColor(ThemeData theme, String slug) {
-  if (_executionTags.contains(slug)) {
-    return theme.colorScheme.primary;
-  }
-  if (_urgencyTags.contains(slug)) {
-    return theme.colorScheme.tertiary;
-  }
-  if (_importanceTags.contains(slug)) {
-    return theme.colorScheme.secondary;
-  }
-  if (slug.startsWith('@')) {
-    return theme.colorScheme.onSurfaceVariant;
-  }
-  return theme.colorScheme.outline;
-}
 
-IconData? _tagIcon(String slug) {
-  switch (slug) {
-    case '#timed':
-      return Icons.timelapse;
-    case '#fragmented':
-      return Icons.flash_on_outlined;
-    case '#waiting':
-      return Icons.handshake_outlined;
-    case '#urgent':
-      return Icons.priority_high;
-    case '#important':
-      return Icons.star_outline;
-    case '#not_important':
-      return Icons.star_border;
-    case '#not_urgent':
-      return Icons.schedule;
-    default:
-      return null;
-  }
-}
 
 const List<String> _quadrantOptionSlugs = <String>[
   '#urgent',
@@ -3396,6 +3425,130 @@ const _depthBarColors = <Color>[
 const _executionTags = <String>{'#timed', '#fragmented', '#waiting'};
 const _urgencyTags = <String>{'#urgent', '#not_urgent'};
 const _importanceTags = <String>{'#important', '#not_important'};
+
+// 标签名称（不带前缀）
+const _contextTagNames = <String>{'anywhere', 'home', 'workplace', 'local', 'travel'};
+const _urgencyTagNames = <String>{'urgent', 'not_urgent'};
+const _importanceTagNames = <String>{'important', 'not_important'};
+const _executionTagNames = <String>{'timed', 'fragmented', 'waiting'};
+
+/// 从slug创建TagData（用于显示已选择的标签）
+TagData? _slugToTagData(BuildContext context, String slug) {
+  final l10n = AppLocalizations.of(context);
+  
+  // 如果slug没有前缀，根据内容添加适当的前缀
+  String normalizedSlug = slug;
+  if (!slug.startsWith('@') && !slug.startsWith('#')) {
+    // 根据标签内容判断类型并添加前缀
+    if (_contextTagNames.contains(slug)) {
+      normalizedSlug = '@$slug';
+    } else if (_urgencyTagNames.contains(slug)) {
+      normalizedSlug = '#$slug';
+    } else if (_importanceTagNames.contains(slug)) {
+      normalizedSlug = '#$slug';
+    } else if (_executionTagNames.contains(slug)) {
+      normalizedSlug = '#$slug';
+    }
+  }
+  
+  final kind = _getTagKindFromSlug(normalizedSlug);
+  final label = _tagLabel(l10n, normalizedSlug);
+  final (color, icon, prefix) = _getTagStyle(normalizedSlug, kind);
+  
+  return TagData(
+    slug: normalizedSlug,
+    label: label,
+    color: color,
+    icon: icon,
+    prefix: prefix,
+    kind: kind,
+  );
+}
+
+/// 根据slug确定TagKind
+TagKind _getTagKindFromSlug(String slug) {
+  if (slug.startsWith('@')) return TagKind.context;
+  if (_urgencyTags.contains(slug)) return TagKind.urgency;
+  if (_importanceTags.contains(slug)) return TagKind.importance;
+  if (_executionTags.contains(slug)) return TagKind.execution;
+  return TagKind.special;
+}
+
+/// 获取标签样式（颜色、图标、前缀）
+(Color, IconData?, String?) _getTagStyle(String slug, TagKind kind) {
+  // 直接复制TagData._getTagStyle的逻辑
+  // Context tags - 上下文标签（场景）
+  if (slug.startsWith('@')) {
+    return (
+      const Color(0xFF5AC9B0), // OceanBreezeColorSchemes.lakeCyan
+      Icons.place_outlined,
+      null,
+    );
+  }
+
+  // Priority tags - 优先级标签
+  if (slug.startsWith('#')) {
+    switch (slug) {
+      case '#urgent':
+        return (
+          const Color(0xFFFF6B9D), // OceanBreezeColorSchemes.softPink
+          Icons.priority_high,
+          null,
+        );
+      case '#not_urgent':
+        return (
+          const Color(0xFF9E9E9E), // OceanBreezeColorSchemes.lightBlueGray
+          Icons.event_available,
+          null,
+        );
+      case '#important':
+        return (
+          const Color(0xFFFFB74D), // OceanBreezeColorSchemes.warmYellow
+          Icons.star,
+          null,
+        );
+      case '#not_important':
+        return (
+          const Color(0xFFBDBDBD), // OceanBreezeColorSchemes.silverGray
+          Icons.star_outline,
+          null,
+        );
+      case '#waiting':
+        return (
+          const Color(0xFF9E9E9E), // OceanBreezeColorSchemes.disabledGray
+          Icons.hourglass_empty,
+          null,
+        );
+      case '#timed':
+        return (const Color(0xFFFF6B9D), Icons.schedule, null); // OceanBreezeColorSchemes.softPink
+      case '#fragmented':
+        return (
+          const Color(0xFF5AC9B0), // OceanBreezeColorSchemes.lakeCyan
+          Icons.flash_on_outlined,
+          null,
+        );
+      default:
+        // 未知的优先级标签，使用默认样式
+        return (
+          const Color(0xFF64B5F6), // OceanBreezeColorSchemes.seaSaltBlue
+          Icons.tag,
+          null,
+        );
+    }
+  }
+
+  // Special tags - 特殊标签
+  if (slug == 'wasted') {
+    return (
+      const Color(0xFF757575), // OceanBreezeColorSchemes.secondaryText
+      Icons.delete_outline,
+      null,
+    );
+  }
+
+  // Default - 默认样式
+  return (const Color(0xFF64B5F6), Icons.tag, null); // OceanBreezeColorSchemes.seaSaltBlue
+}
 
 bool _listEquals(List<Task> a, List<Task> b) {
   if (identical(a, b)) {

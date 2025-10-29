@@ -97,8 +97,7 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                   // 上下文标签组 - 保持水平滚动
                   contextTagsAsync.when(
                     data: (tags) {
-                      final locale = Localizations.localeOf(context).toString();
-                      final tagDataList = tags.map((tag) => TagData.fromTag(tag, locale)).toList();
+                      final tagDataList = tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList();
                       
                       return SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -137,9 +136,8 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                     data: (urgencyTags) {
                       return importanceTagsAsync.when(
                         data: (importanceTags) {
-                        final locale = Localizations.localeOf(context).toString();
-                        final urgencyTagData = urgencyTags.map((tag) => TagData.fromTag(tag, locale)).toList();
-                        final importanceTagData = importanceTags.map((tag) => TagData.fromTag(tag, locale)).toList();
+                        final urgencyTagData = urgencyTags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList();
+                        final importanceTagData = importanceTags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList();
                         
                         return SingleChildScrollView(
                           scrollDirection: Axis.horizontal,

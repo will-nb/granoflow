@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/ocean_breeze_color_schemes.dart';
 import '../../data/models/tag.dart';
+import 'package:granoflow/generated/l10n/app_localizations.dart';
 
 /// 标签的UI数据模型
 ///
@@ -39,6 +40,8 @@ class TagData {
   ///
   /// 自动根据 slug 和 kind 分配合适的颜色和图标
   factory TagData.fromTag(Tag tag, String locale) {
+    // 由于 Tag.localizedLabels 为空，我们需要使用 slug 作为回退
+    // 实际的本地化会在 UI 层通过 AppLocalizations 处理
     final label = tag.labelForLocale(locale);
     final (color, icon, prefix) = _getTagStyle(tag.slug, tag.kind);
 
@@ -50,6 +53,56 @@ class TagData {
       prefix: prefix,
       kind: tag.kind,
     );
+  }
+
+  /// 从 Tag 模型转换为 TagData（使用 AppLocalizations 进行本地化）
+  ///
+  /// 这是推荐的方法，用于在 UI 层获取正确的本地化标签
+  factory TagData.fromTagWithLocalization(Tag tag, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final label = _getLocalizedLabel(l10n, tag.slug);
+    final (color, icon, prefix) = _getTagStyle(tag.slug, tag.kind);
+
+    return TagData(
+      slug: tag.slug,
+      label: label,
+      color: color,
+      icon: icon,
+      prefix: prefix,
+      kind: tag.kind,
+    );
+  }
+
+  /// 获取本地化标签文本
+  static String _getLocalizedLabel(AppLocalizations l10n, String slug) {
+    switch (slug) {
+      case '#urgent':
+        return l10n.tag_urgent;
+      case '#not_urgent':
+        return l10n.tag_not_urgent;
+      case '#important':
+        return l10n.tag_important;
+      case '#not_important':
+        return l10n.tag_not_important;
+      case '#timed':
+        return l10n.tag_timed;
+      case '#fragmented':
+        return l10n.tag_fragmented;
+      case '#waiting':
+        return l10n.tag_waiting;
+      case '@anywhere':
+        return l10n.tag_anywhere;
+      case '@home':
+        return l10n.tag_home;
+      case '@workplace':
+        return l10n.tag_workplace;
+      case '@local':
+        return l10n.tag_local;
+      case '@travel':
+        return l10n.tag_travel;
+      default:
+        return slug;
+    }
   }
 
   /// 根据 slug 和 kind 获取标签样式
@@ -79,19 +132,19 @@ class TagData {
         case '#not_urgent':
           return (
             OceanBreezeColorSchemes.lightBlueGray,
-            Icons.schedule,
+            Icons.event_available,
             null, // ARB 文件中已包含 # 前缀
           );
         case '#important':
           return (
             OceanBreezeColorSchemes.warmYellow,
-            Icons.star_outline,
+            Icons.star,
             null, // ARB 文件中已包含 # 前缀
           );
         case '#not_important':
           return (
             OceanBreezeColorSchemes.silverGray,
-            Icons.star_border,
+            Icons.star_outline,
             null, // ARB 文件中已包含 # 前缀
           );
         case '#waiting':
@@ -101,7 +154,7 @@ class TagData {
             null, // ARB 文件中已包含 # 前缀
           );
         case '#timed':
-          return (OceanBreezeColorSchemes.softPink, Icons.timelapse, null);
+          return (OceanBreezeColorSchemes.softPink, Icons.schedule, null);
         case '#fragmented':
           return (
             OceanBreezeColorSchemes.lakeCyan,

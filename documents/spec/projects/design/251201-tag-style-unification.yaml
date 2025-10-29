@@ -1,0 +1,69 @@
+meta:
+  id: "251201-tasks-tag-style-unification"
+  title: "标签样式统一化设计"
+  status: draft
+  owner: "AI Assistant"
+
+background:
+  problem: "项目页面和收件箱/任务页面的标签显示风格不一致，项目创建表单使用ChoiceChip看起来像按钮，项目和任务的标签显示使用自定义Chip组件，与inbox/tasks使用的ModernTag组件风格不统一，影响整体UI一致性"
+  goal: "统一所有页面的标签显示风格，使用ModernTag组件替代ChoiceChip和自定义Chip，提升整体UI一致性和美观度"
+
+user_flows:
+  - name: "项目创建流程"
+    steps:
+      - "用户点击创建项目按钮"
+      - "在表单中选择四象限标签（紧急/不紧急，重要/不重要）"
+      - "选择执行方式标签（计时/碎片/等待）"
+      - "填写其他项目信息并提交"
+  
+  - name: "查看项目/任务标签"
+    steps:
+      - "用户在任务页面查看项目卡片"
+      - "查看项目头部的标签显示"
+      - "查看任务卡片中的标签显示"
+
+ui_behavior:
+  layout: "保持现有布局结构，仅替换标签组件"
+  components:
+    - name: "标签选择器"
+      purpose: "在项目创建表单中提供四象限和执行方式标签选择"
+      interactions: ["点击选择", "单选模式"]
+      current: "ChoiceChip组件"
+      target: "ModernTag组件"
+    
+    - name: "标签显示器"
+      purpose: "在项目卡片和任务卡片中显示已选择的标签"
+      interactions: ["纯展示", "无交互"]
+      current: "自定义Chip组件"
+      target: "ModernTag组件"
+  
+  states:
+    - condition: "标签未选中状态"
+      appearance: "ModernTag的未选中样式，保持与inbox/tasks一致"
+    - condition: "标签选中状态"
+      appearance: "ModernTag的选中样式，保持与inbox/tasks一致"
+    - condition: "标签显示状态"
+      appearance: "ModernTag的展示样式，保持与inbox/tasks一致"
+
+design_principles:
+  - "保持功能不变：项目和里程碑仍然只显示四象限和执行方式标签，不添加情境标签"
+  - "统一视觉风格：所有标签使用ModernTag组件，保持颜色、图标、尺寸一致"
+  - "保持布局结构：继续使用Wrap布局，仅替换组件实现"
+  - "遵循现有规范：使用TagData中已定义的样式配置"
+
+technical_scope:
+  files_to_modify:
+    - "lib/presentation/tasks/task_list_page.dart"
+      changes: ["替换ChoiceChip为ModernTag", "替换_buildTagChip为ModernTag", "更新标签选择逻辑"]
+    - "lib/presentation/widgets/tag_data.dart"
+      changes: ["确保执行方式标签样式已正确定义"]
+  
+  components_to_reuse:
+    - "ModernTag组件"
+    - "TagData样式配置"
+    - "现有标签Provider"
+
+open_issues:
+  - "需要确认是否保持现有的单选逻辑（四象限标签中紧急和重要各选一个，执行方式标签三选一）"
+  - "需要确认标签颜色方案是否与inbox/tasks完全一致"
+  - "需要确认是否需要添加标签点击交互（如点击标签进行筛选）"

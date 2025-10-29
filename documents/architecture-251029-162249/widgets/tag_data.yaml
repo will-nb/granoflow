@@ -147,7 +147,6 @@ widget_imports:
 - package:flutter/material.dart
 - ../../core/theme/ocean_breeze_color_schemes.dart
 - ../../data/models/tag.dart
-- package:granoflow/generated/l10n/app_localizations.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -243,7 +242,6 @@ called_by: []
 calls:
 - lib/core/theme/ocean_breeze_color_schemes.dart
 - lib/data/models/tag.dart
-- lib/generated/l10n/app_localizations.dart
 i18n_keys: []
 design_tokens:
 - OceanBreezeColorSchemes.lakeCyan

@@ -1,8 +1,8 @@
 meta:
-  name: _FlattenedTaskNode
+  name: _ErrorState
   type: page
-  file_path: lib/presentation/tasks/task_list_page.dart
-  description: _FlattenedTaskNode 页面
+  file_path: lib/presentation/completion_management/archived_page.dart
+  description: _ErrorState 页面
   version: '1.0'
   created_date: '251029'
   last_updated: '251029'
@@ -189,31 +189,18 @@ page_state_management:
   implementation: 实现方式
   benefits: 优势
   considerations: 注意事项
-source_of_truth: lib/presentation/tasks/task_list_page.dart
+source_of_truth: lib/presentation/completion_management/archived_page.dart
 called_by: []
 calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
 - lib/core/services/task_service.dart
-- lib/core/constants/task_constants.dart
-- lib/data/models/tag.dart
 - lib/data/models/task.dart
-- lib/presentation/widgets/modern_tag.dart
-- lib/presentation/widgets/modern_tag_group.dart
-- lib/presentation/widgets/tag_data.dart
 - lib/presentation/widgets/page_app_bar.dart
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/gradient_page_scaffold.dart
-- lib/presentation/widgets/task_expanded_panel.dart
-- lib/presentation/widgets/dismissible_task_tile.dart
-- lib/presentation/widgets/swipe_configs.dart
-- lib/presentation/widgets/swipe_action_handler.dart
-- lib/presentation/widgets/swipe_action_type.dart
-- lib/core/providers/tasks_drag_provider.dart
-i18n_keys:
-- taskListQuickAddTitle
-- projectProgressLabel
+i18n_keys: []
 design_tokens: []
 test_mapping:
   unit: []

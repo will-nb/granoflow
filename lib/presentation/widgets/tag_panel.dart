@@ -45,10 +45,10 @@ class TagPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     // 转换为 TagData
     final contextTagData = contextTags
-        .map((tag) => TagData.fromTag(tag, localeName))
+        .map((tag) => TagData.fromTagWithLocalization(tag, context))
         .toList();
     final priorityTagData = priorityTags
-        .map((tag) => TagData.fromTag(tag, localeName))
+        .map((tag) => TagData.fromTagWithLocalization(tag, context))
         .toList();
     
     return Column(

@@ -1,15 +1,15 @@
 meta:
-  name: TagData
+  name: SwipeConfigs
   type: widget
-  file_path: lib/presentation/widgets/tag_data.dart
-  description: TagData 组件
+  file_path: lib/presentation/widgets/swipe_configs.dart
+  description: SwipeConfigs 组件
   version: '1.0'
   created_date: '251029'
   last_updated: '251029'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
-  name: TagData
+  name: SwipeConfigs
   layer: presentation
   pattern: unknown
   category: ui_component
@@ -28,36 +28,22 @@ widget_types:
   description: 有状态消费者 Widget，用于 Riverpod 状态管理
   usage: 状态管理、数据绑定、复杂交互
 widget_properties:
-- name: slug
-  type: String
-  required: true
-  default_value: null
-  description: '标签唯一标识（如 @home, #urgent）'
-- name: label
-  type: String
-  required: true
-  default_value: null
-  description: 标签显示文本（已本地化）
-- name: color
-  type: Color
-  required: true
-  default_value: null
-  description: 标签主题色
-- name: icon
-  type: IconData
+- name: inboxConfig
+  type: SwipeActionConfig
   required: false
-  default_value: null
-  description: 标签图标（可选）
-- name: prefix
-  type: String
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.delete, rightAction:
+    SwipeActionType.quickPlan, leftHintKey: ''inboxDeleteAction'', rightHintKey: ''inboxQuickPlanAction'',
+    leftIcon: Icons.delete, rightIcon: Icons.today, leftColor: OceanBreezeColorSchemes.errorDark,
+    rightColor: OceanBreezeColorSchemes.softGreen)'
+  description: Inbox页面的滑动配置 左滑：删除到回收站（危险操作），右滑：快速规划到今日（推荐操作）
+- name: tasksConfig
+  type: SwipeActionConfig
   required: false
-  default_value: null
-  description: 标签前缀（如 @、#）
-- name: kind
-  type: TagKind
-  required: true
-  default_value: null
-  description: 标签类型
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.postpone, rightAction:
+    SwipeActionType.archive, leftHintKey: ''taskPostponeAction'', rightHintKey: ''taskArchiveAction'',
+    leftIcon: Icons.schedule, rightIcon: Icons.archive, leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.softPink)'
+  description: Tasks页面的滑动配置 左滑：智能推迟（安全操作），右滑：归档任务（警告操作）
 widget_methods:
 - name: methodName
   return_type: 返回类型
@@ -146,8 +132,8 @@ widget_dependencies:
 widget_imports:
 - package:flutter/material.dart
 - ../../core/theme/ocean_breeze_color_schemes.dart
-- ../../data/models/tag.dart
-- package:granoflow/generated/l10n/app_localizations.dart
+- swipe_action_config.dart
+- swipe_action_type.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -238,22 +224,15 @@ widget_state_management:
   implementation: 实现方式
   benefits: 优势
   considerations: 注意事项
-source_of_truth: lib/presentation/widgets/tag_data.dart
+source_of_truth: lib/presentation/widgets/swipe_configs.dart
 called_by: []
 calls:
 - lib/core/theme/ocean_breeze_color_schemes.dart
-- lib/data/models/tag.dart
-- lib/generated/l10n/app_localizations.dart
 i18n_keys: []
 design_tokens:
-- OceanBreezeColorSchemes.lakeCyan
+- OceanBreezeColorSchemes.errorDark
+- OceanBreezeColorSchemes.softGreen
 - OceanBreezeColorSchemes.softPink
-- OceanBreezeColorSchemes.lightBlueGray
-- OceanBreezeColorSchemes.warmYellow
-- OceanBreezeColorSchemes.silverGray
-- OceanBreezeColorSchemes.disabledGray
-- OceanBreezeColorSchemes.seaSaltBlue
-- OceanBreezeColorSchemes.secondaryText
 test_mapping:
   unit:
   - test/presentation/widgets/xxx_unit_test.dart::should_do_x

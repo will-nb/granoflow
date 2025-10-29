@@ -1,17 +1,17 @@
 meta:
-  name: TagData
+  name: TagPanel
   type: widget
-  file_path: lib/presentation/widgets/tag_data.dart
-  description: TagData 组件
+  file_path: lib/presentation/widgets/tag_panel.dart
+  description: TagPanel 组件
   version: '1.0'
   created_date: '251029'
   last_updated: '251029'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
-  name: TagData
+  name: TagPanel
   layer: presentation
-  pattern: unknown
+  pattern: stateless
   category: ui_component
   reusable: true
 widget_types:
@@ -28,36 +28,41 @@ widget_types:
   description: 有状态消费者 Widget，用于 Riverpod 状态管理
   usage: 状态管理、数据绑定、复杂交互
 widget_properties:
-- name: slug
+- name: contextTags
+  type: List<Tag>
+  required: true
+  default_value: null
+  description: 上下文标签列表
+- name: priorityTags
+  type: List<Tag>
+  required: true
+  default_value: null
+  description: 优先级标签列表
+- name: localeName
   type: String
   required: true
   default_value: null
-  description: '标签唯一标识（如 @home, #urgent）'
-- name: label
-  type: String
-  required: true
-  default_value: null
-  description: 标签显示文本（已本地化）
-- name: color
-  type: Color
-  required: true
-  default_value: null
-  description: 标签主题色
-- name: icon
-  type: IconData
-  required: false
-  default_value: null
-  description: 标签图标（可选）
-- name: prefix
+  description: 当前语言环境（用于标签本地化）
+- name: selectedContext
   type: String
   required: false
   default_value: null
-  description: 标签前缀（如 @、#）
-- name: kind
-  type: TagKind
-  required: true
+  description: 已选中的上下文标签
+- name: selectedPriority
+  type: String
+  required: false
   default_value: null
-  description: 标签类型
+  description: 已选中的优先级标签
+- name: onContextChanged
+  type: ValueChanged<String>
+  required: false
+  default_value: null
+  description: 上下文标签变化回调
+- name: onPriorityChanged
+  type: ValueChanged<String>
+  required: false
+  default_value: null
+  description: 优先级标签变化回调
 widget_methods:
 - name: methodName
   return_type: 返回类型
@@ -145,9 +150,10 @@ widget_dependencies:
   version: 版本要求
 widget_imports:
 - package:flutter/material.dart
-- ../../core/theme/ocean_breeze_color_schemes.dart
 - ../../data/models/tag.dart
-- package:granoflow/generated/l10n/app_localizations.dart
+- modern_tag.dart
+- modern_tag_group.dart
+- tag_data.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -238,22 +244,12 @@ widget_state_management:
   implementation: 实现方式
   benefits: 优势
   considerations: 注意事项
-source_of_truth: lib/presentation/widgets/tag_data.dart
+source_of_truth: lib/presentation/widgets/tag_panel.dart
 called_by: []
 calls:
-- lib/core/theme/ocean_breeze_color_schemes.dart
 - lib/data/models/tag.dart
-- lib/generated/l10n/app_localizations.dart
 i18n_keys: []
-design_tokens:
-- OceanBreezeColorSchemes.lakeCyan
-- OceanBreezeColorSchemes.softPink
-- OceanBreezeColorSchemes.lightBlueGray
-- OceanBreezeColorSchemes.warmYellow
-- OceanBreezeColorSchemes.silverGray
-- OceanBreezeColorSchemes.disabledGray
-- OceanBreezeColorSchemes.seaSaltBlue
-- OceanBreezeColorSchemes.secondaryText
+design_tokens: []
 test_mapping:
   unit:
   - test/presentation/widgets/xxx_unit_test.dart::should_do_x
