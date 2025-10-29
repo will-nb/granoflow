@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
-import '../../core/providers/inbox_drag_provider.dart';
 import '../../core/theme/app_color_tokens.dart';
 import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
@@ -19,9 +18,8 @@ import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/tag_data.dart';
 import '../widgets/tag_panel.dart';
-import '../widgets/task_row_content.dart';
-import 'inbox_draggable.dart';
-import 'inbox_drag_target.dart';
+import '../widgets/reorderable_proxy_decorator.dart';
+import '../widgets/task_tile_content.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
   const InboxPage({super.key});
@@ -62,7 +60,13 @@ class _InboxPageState extends ConsumerState<InboxPage> {
         title: 'Inbox',
       ),
       drawer: const MainDrawer(),
-      body: CustomScrollView(
+      body: GestureDetector(
+        onTap: () {
+          // 点击空白区域时移除焦点
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        behavior: HitTestBehavior.translucent,
+        child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -247,20 +251,9 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Column(
-                      children: [
-                        InboxDragTarget(targetType: InboxDragTargetType.first),
-                        for (int i = 0; i < tasks.length; i++) ...[
-                          if (i > 0)
-                            InboxDragTarget(
-                              targetType: InboxDragTargetType.between,
-                              beforeTask: tasks[i - 1],
-                              afterTask: tasks[i],
-                            ),
-                          InboxTaskTile(task: tasks[i], localeName: l10n.localeName),
-                        ],
-                        InboxDragTarget(targetType: InboxDragTargetType.last),
-                      ],
+                    child: InboxTaskList(
+                      tasks: tasks,
+                      localeName: l10n.localeName,
                     ),
                   ),
                 ),
@@ -289,6 +282,7 @@ class _InboxPageState extends ConsumerState<InboxPage> {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 48)),
         ],
+        ),
       ),
     );
   }
@@ -450,7 +444,6 @@ class InboxTaskTile extends ConsumerStatefulWidget {
 class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
   @override
   Widget build(BuildContext context) {
-    final isDragging = ref.watch(inboxDragProvider.select((s) => s.isDragging));
     final l10n = AppLocalizations.of(context);
 
     final messenger = ScaffoldMessenger.of(context);
@@ -458,10 +451,7 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
     final colorScheme = Theme.of(context).colorScheme;
     final tokens = context.colorTokens;
 
-    return InboxDraggable(
-      task: widget.task,
-      enabled: true, // 始终可拖拽
-      child: Dismissible(
+    return Dismissible(
         key: ValueKey('inbox-${widget.task.id}-${widget.task.updatedAt.millisecondsSinceEpoch}'),
         background: _DismissBackground(
           alignment: Alignment.centerLeft,
@@ -477,7 +467,7 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
           backgroundColor: colorScheme.error,
           foregroundColor: colorScheme.onError,
         ),
-        confirmDismiss: isDragging ? (_) async => false : (direction) async {
+        confirmDismiss: (direction) async {
           if (direction == DismissDirection.startToEnd) {
             await _quickPlan(context, ref, widget.task);
             return false;
@@ -508,31 +498,7 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
           }
           return false;
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 拖拽指示器
-              Padding(
-                padding: const EdgeInsets.only(right: 12, top: 4),
-                child: Icon(
-                  Icons.drag_indicator,
-                  color: Colors.grey[400],
-                  size: 20,
-                ),
-              ),
-              // 任务内容（使用TaskRowContent）
-              Expanded(
-                child: TaskRowContent(
-                  task: widget.task,
-                  compact: false,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: TaskTileContent(task: widget.task),
     );
   }
 
@@ -921,5 +887,113 @@ class _QuickDatePicker extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Inbox 任务列表组件（使用 ReorderableListView + 倾斜角度效果）
+class InboxTaskList extends ConsumerStatefulWidget {
+  const InboxTaskList({
+    super.key,
+    required this.tasks,
+    required this.localeName,
+  });
+
+  final List<Task> tasks;
+  final String localeName;
+
+  @override
+  ConsumerState<InboxTaskList> createState() => _InboxTaskListState();
+}
+
+class _InboxTaskListState extends ConsumerState<InboxTaskList> {
+  late List<Task> _tasks;
+
+  @override
+  void initState() {
+    super.initState();
+    _tasks = List<Task>.from(widget.tasks);
+  }
+
+  @override
+  void didUpdateWidget(InboxTaskList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.tasks != oldWidget.tasks) {
+      _tasks = List<Task>.from(widget.tasks);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_tasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _tasks.length,
+      onReorder: (oldIndex, newIndex) => _handleReorder(oldIndex, newIndex),
+      buildDefaultDragHandles: false,
+      proxyDecorator: ReorderableProxyDecorator.build,
+      itemBuilder: (context, index) {
+        final task = _tasks[index];
+        return ReorderableDragStartListener(
+          key: ValueKey('inbox-${task.id}'),
+          index: index,
+          child: InboxTaskTile(
+            task: task,
+            localeName: widget.localeName,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) {
+      return;
+    }
+    setState(() {
+      final task = _tasks.removeAt(oldIndex);
+      final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+      _tasks.insert(targetIndex, task);
+    });
+
+    final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    final before = targetIndex > 0 ? _tasks[targetIndex - 1].sortIndex : null;
+    final after = targetIndex < _tasks.length - 1
+        ? _tasks[targetIndex + 1].sortIndex
+        : null;
+    final newSortIndex = _calculateSortIndex(before, after);
+    final task = _tasks[targetIndex];
+    final taskService = ref.read(taskServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(sortIndex: newSortIndex),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to update inbox sort order: $error\n$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.taskListSortError)),
+      );
+    }
+  }
+
+  double _calculateSortIndex(double? before, double? after) {
+    if (before == null && after == null) {
+      return 1000.0;
+    } else if (before == null) {
+      return after! - 1000.0;
+    } else if (after == null) {
+      return before + 1000.0;
+    } else {
+      return (before + after) / 2.0;
+    }
   }
 }

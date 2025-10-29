@@ -15,7 +15,6 @@ import '../widgets/tag_data.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
-import '../widgets/task_expanded_panel.dart';
 import '../widgets/dismissible_task_tile.dart';
 import '../widgets/swipe_configs.dart';
 import '../widgets/swipe_action_handler.dart';
@@ -23,10 +22,8 @@ import '../widgets/swipe_action_type.dart';
 import '../widgets/flexible_text_input.dart';
 import '../widgets/flexible_description_input.dart';
 import '../widgets/task_row_content.dart';
-import 'tasks_drag_handler.dart';
-import 'tasks_drag_target.dart';
-import 'tasks_drag_target_type.dart';
-import '../../core/providers/tasks_drag_provider.dart';
+import '../widgets/reorderable_proxy_decorator.dart';
+import '../widgets/task_tile_content.dart';
 
 class TaskListPage extends ConsumerStatefulWidget {
   const TaskListPage({super.key});
@@ -75,7 +72,13 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     return GradientPageScaffold(
       appBar: const PageAppBar(title: 'Tasks'),
       drawer: const MainDrawer(),
-      body: Column(
+      body: GestureDetector(
+        onTap: () {
+          // 点击空白区域时移除焦点
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        behavior: HitTestBehavior.translucent,
+        child: Column(
         children: [
           // 模式切换控件
           if (showLinearProgress) const LinearProgressIndicator(),
@@ -149,6 +152,7 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                   ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -268,59 +272,108 @@ class TaskSectionPanel extends ConsumerWidget {
   }
 }
 
-class _TaskSectionTaskModeList extends ConsumerWidget {
+class _TaskSectionTaskModeList extends ConsumerStatefulWidget {
   const _TaskSectionTaskModeList({required this.section, required this.roots});
 
   final TaskSection section;
   final List<Task> roots;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final widgets = <Widget>[];
+  ConsumerState<_TaskSectionTaskModeList> createState() =>
+      _TaskSectionTaskModeListState();
+}
 
-    // 添加区域首位拖拽目标
-    widgets.add(
-      TasksPageDragTarget(
-        targetType: TasksDragTargetType.sectionFirst,
-        section: section,
-      ),
-    );
+class _TaskSectionTaskModeListState
+    extends ConsumerState<_TaskSectionTaskModeList> {
+  late List<Task> _roots;
 
-    // 添加任务和任务间的拖拽目标
-    for (int i = 0; i < roots.length; i++) {
-      final task = roots[i];
+  @override
+  void initState() {
+    super.initState();
+    _roots = List<Task>.from(widget.roots);
+  }
 
-      // 添加任务
-      widgets.add(
-        _TaskTreeTile(
-          key: ValueKey('tree-${task.id}'),
-          section: section,
-          rootTask: task,
-          editMode: false,
-        ),
-      );
+  @override
+  void didUpdateWidget(_TaskSectionTaskModeList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.roots != oldWidget.roots) {
+      _roots = List<Task>.from(widget.roots);
+    }
+  }
 
-      // 如果不是最后一个任务，添加任务间拖拽目标
-      if (i < roots.length - 1) {
-        widgets.add(
-          TasksPageDragTarget(
-            targetType: TasksDragTargetType.between,
-            beforeTask: task,
-            afterTask: roots[i + 1],
-          ),
-        );
-      }
+  @override
+  Widget build(BuildContext context) {
+    if (_roots.isEmpty) {
+      return const SizedBox.shrink();
     }
 
-    // 添加区域末位拖拽目标
-    widgets.add(
-      TasksPageDragTarget(
-        targetType: TasksDragTargetType.sectionLast,
-        section: section,
-      ),
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _roots.length,
+      onReorder: (oldIndex, newIndex) => _handleReorder(oldIndex, newIndex),
+      buildDefaultDragHandles: false,
+      proxyDecorator: ReorderableProxyDecorator.build,
+      itemBuilder: (context, index) {
+        final task = _roots[index];
+        return ReorderableDragStartListener(
+          key: ValueKey('task-${task.id}'),
+          index: index,
+          child: _TaskTreeTile(
+            section: widget.section,
+            rootTask: task,
+            editMode: false,
+          ),
+        );
+      },
     );
+  }
 
-    return Column(children: widgets);
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) {
+      return;
+    }
+    setState(() {
+      final task = _roots.removeAt(oldIndex);
+      final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+      _roots.insert(targetIndex, task);
+    });
+
+    final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    final before =
+        targetIndex > 0 ? _roots[targetIndex - 1].sortIndex : null;
+    final after = targetIndex < _roots.length - 1
+        ? _roots[targetIndex + 1].sortIndex
+        : null;
+    final newSortIndex = _calculateSortIndex(before, after);
+    final task = _roots[targetIndex];
+    final taskService = ref.read(taskServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(sortIndex: newSortIndex),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to update sort order: $error\n$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      messenger.showSnackBar(SnackBar(content: Text(l10n.taskListSortError)));
+    }
+  }
+
+  double _calculateSortIndex(double? before, double? after) {
+    if (before == null && after == null) {
+      return 1000.0;
+    } else if (before == null) {
+      return after! - 1000.0;
+    } else if (after == null) {
+      return before + 1000.0;
+    } else {
+      return (before + after) / 2.0;
+    }
   }
 }
 
@@ -449,7 +502,6 @@ class _TaskSectionProjectModePanelState
 
 class _TaskTreeTile extends ConsumerWidget {
   const _TaskTreeTile({
-    super.key,
     required this.section,
     required this.rootTask,
     required this.editMode,
@@ -497,7 +549,6 @@ class _TaskTreeView extends ConsumerWidget {
       return _TaskLeafTile(
         task: tree.task,
         depth: 0,
-        onTap: () => _startFocus(context, ref, tree.task.id),
       );
     }
     return ExpansionTile(
@@ -524,7 +575,6 @@ class _TaskTreeBranch extends ConsumerWidget {
       return _TaskLeafTile(
         task: node.task,
         depth: depth,
-        onTap: () => _startFocus(context, ref, node.task.id),
       );
     }
     return ExpansionTile(
@@ -746,231 +796,42 @@ class _ProjectChildrenEditorState
   }
 }
 
-class _TaskLeafTile extends ConsumerStatefulWidget {
+/// Tasks 页面的叶子节点任务显示组件
+/// 使用 TaskRowContent 实现 inline 编辑，与 Inbox 风格统一
+class _TaskLeafTile extends ConsumerWidget {
   const _TaskLeafTile({
     required this.task,
     required this.depth,
-    required this.onTap,
   });
 
   final Task task;
   final int depth;
-  final VoidCallback onTap;
 
   @override
-  ConsumerState<_TaskLeafTile> createState() => _TaskLeafTileState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final indentation = depth * 16.0;
 
-class _TaskLeafTileState extends ConsumerState<_TaskLeafTile> {
-  late TextEditingController _titleController;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.task.title);
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _updateTaskTitle(BuildContext context, String newTitle) async {
-    if (newTitle.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task title cannot be empty')),
-      );
-      _titleController.text = widget.task.title;
-      return;
-    }
-
-    if (newTitle.trim() == widget.task.title) {
-      return;
-    }
-
-    try {
-      final taskService = ref.read(taskServiceProvider);
-      await taskService.updateDetails(
-        taskId: widget.task.id,
-        payload: TaskUpdate(title: newTitle.trim()),
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Task updated successfully')),
-        );
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update task: $error')),
-        );
-        _titleController.text = widget.task.title;
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final expandedId = ref.watch(taskListExpandedTaskIdProvider);
-    final isExpanded = expandedId == widget.task.id;
-    final isDragging = ref.watch(tasksDragProvider.select((s) => s.isDragging));
-    final indentation = widget.depth * 16.0;
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return TasksPageDragHandler(
-      task: widget.task,
-      enabled: !isExpanded, // 只在闭合时可拖拽
-      child: Padding(
-        padding: EdgeInsets.only(left: indentation),
-        child: DismissibleTaskTile(
-          task: widget.task,
-          config: SwipeConfigs.tasksConfig,
-          direction: isDragging
-              ? DismissDirection.none
-              : DismissDirection.horizontal,
-          onLeftAction: (task) => SwipeActionHandler.handleAction(
-            context,
-            ref,
-            SwipeActionType.postpone,
-            task,
-          ),
-          onRightAction: (task) => SwipeActionHandler.handleAction(
-            context,
-            ref,
-            SwipeActionType.archive,
-            task,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ListTile(
-                // 禁用拖拽时的 hover 效果，因为不支持嵌套子项目
-                hoverColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                enableFeedback: false,
-                leading: Icon(
-                  Icons.drag_indicator,
-                  color: Colors.grey[400],
-                  size: 20,
-                ),
-                title: isExpanded
-                    ? TextField(
-                        controller: _titleController,
-                        decoration: InputDecoration(
-                          border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: colorScheme.primary),
-                          ),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: colorScheme.primary.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: colorScheme.primary,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        style: Theme.of(context).textTheme.bodyLarge,
-                        onSubmitted: (value) =>
-                            _updateTaskTitle(context, value),
-                      )
-                    : Text(widget.task.title),
-                subtitle: Text('ID: ${widget.task.taskId}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.play_circle_outline),
-                      tooltip: l10n.actionStartTimer,
-                      onPressed: widget.onTap,
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        isExpanded ? Icons.expand_less : Icons.expand_more,
-                      ),
-                      onPressed: () {
-                        ref
-                            .read(taskListExpandedTaskIdProvider.notifier)
-                            .state = isExpanded
-                            ? null
-                            : widget.task.id;
-                      },
-                    ),
-                  ],
-                ),
-                onTap: () {
-                  ref.read(taskListExpandedTaskIdProvider.notifier).state =
-                      isExpanded ? null : widget.task.id;
-                },
-              ),
-              if (isExpanded)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Divider(),
-                      const SizedBox(height: 8),
-                      TaskExpandedPanel(
-                        task: widget.task,
-                        localeName: 'en', // TODO: 获取正确的locale
-                        showQuickPlan: false,
-                        showDateSection: true,
-                        showSwipeHint: true,
-                        leftActionKey: 'taskArchiveAction',
-                        rightActionKey: 'taskPostponeAction',
-                        onDateChanged: (date) {
-                          if (date != null) {
-                            _updateDueDateForTask(
-                              context,
-                              ref,
-                              widget.task.id,
-                              date,
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+    return Padding(
+      padding: EdgeInsets.only(left: indentation),
+      child: DismissibleTaskTile(
+        task: task,
+        config: SwipeConfigs.tasksConfig,
+        direction: DismissDirection.horizontal,
+        onLeftAction: (task) => SwipeActionHandler.handleAction(
+          context,
+          ref,
+          SwipeActionType.postpone,
+          task,
         ),
+        onRightAction: (task) => SwipeActionHandler.handleAction(
+          context,
+          ref,
+          SwipeActionType.archive,
+          task,
+        ),
+        child: TaskTileContent(task: task),
       ),
     );
-  }
-
-  Future<void> _updateDueDateForTask(
-    BuildContext context,
-    WidgetRef ref,
-    int taskId,
-    DateTime dueDate,
-  ) async {
-    try {
-      await ref
-          .read(taskServiceProvider)
-          .updateDetails(
-            taskId: taskId,
-            payload: TaskUpdate(dueAt: dueDate),
-          );
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Due date updated successfully')),
-        );
-      }
-    } catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update due date: $error')),
-        );
-      }
-    }
   }
 }
 
@@ -1255,31 +1116,6 @@ double _calculateSortIndex(double? before, double? after) {
     return before + 1000;
   }
   return TaskConstants.DEFAULT_SORT_INDEX;
-}
-
-Future<void> _startFocus(
-  BuildContext context,
-  WidgetRef ref,
-  int taskId,
-) async {
-  final notifier = ref.read(focusActionsNotifierProvider.notifier);
-  final messenger = ScaffoldMessenger.of(context);
-  final l10n = AppLocalizations.of(context);
-  try {
-    await notifier.start(taskId);
-    if (!context.mounted) {
-      return;
-    }
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.taskListFocusStartedToast)),
-    );
-  } catch (error, stackTrace) {
-    debugPrint('Failed to start focus session: $error\n$stackTrace');
-    if (!context.mounted) {
-      return;
-    }
-    messenger.showSnackBar(SnackBar(content: Text(l10n.taskListFocusError)));
-  }
 }
 
 Future<void> _archiveTask(

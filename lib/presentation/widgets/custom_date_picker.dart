@@ -155,23 +155,31 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context);
+    final screenHeight = MediaQuery.of(context).size.height;
 
     // 使用用户区域格式显示日期
     final selectedDateFormat = DateFormat.yMMMd(locale.toString());
     final monthYearFormat = DateFormat.yMMMM(locale.toString());
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 420,
+            maxHeight: screenHeight * 0.85,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
             // 顶部拖拽指示器
             Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              margin: const EdgeInsets.only(top: 8, bottom: 4),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
@@ -179,9 +187,15 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            // 标题栏
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            // 内容区域（可滚动）
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+              // 标题栏
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -206,7 +220,7 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
 
             // 月份导航
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -238,7 +252,7 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
 
             // 快捷选项按钮
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: _QuickDateOptions(
                 onDateSelected: (date) {
                   Navigator.pop(context, date);
@@ -248,26 +262,23 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
 
             const Divider(height: 1),
 
-            // 日历网格（固定高度，不使用 Expanded）
-            SizedBox(
-              height: 320,
-              child: _CalendarGrid(
-                displayedMonth: _displayedMonth,
-                selectedDate: _selectedDate,
-                firstDate: widget.firstDate,
-                lastDate: widget.lastDate,
-                onDateSelected: (date) {
-                  setState(() {
-                    _selectedDate = date;
-                  });
-                },
-                getSpecialLabel: _getSpecialLabel,
-              ),
+            // 日历网格（根据内容自适应高度）
+            _CalendarGrid(
+              displayedMonth: _displayedMonth,
+              selectedDate: _selectedDate,
+              firstDate: widget.firstDate,
+              lastDate: widget.lastDate,
+              onDateSelected: (date) {
+                setState(() {
+                  _selectedDate = date;
+                });
+              },
+              getSpecialLabel: _getSpecialLabel,
             ),
 
             // 操作按钮
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -283,7 +294,13 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
                 ],
               ),
             ),
-          ],
+                  ],
+                ),
+              ),
+            ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -465,11 +482,14 @@ class _CalendarGrid extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: GridView.count(
         crossAxisCount: 7,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
+        childAspectRatio: 0.85,
         children: days,
       ),
     );
