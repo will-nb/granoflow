@@ -83,11 +83,6 @@ widget_properties:
   required: false
   default_value: 'false'
   description: ''
-- name: _isHovering
-  type: bool
-  required: false
-  default_value: 'false'
-  description: ''
 widget_methods:
 - name: methodName
   return_type: 返回类型

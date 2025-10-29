@@ -29,9 +29,14 @@ class AppConstants {
       translationKey: 'tag_home',
     ),
     TagDefinition(
-      slug: '@workplace',
+      slug: '@company',
       kind: TagKind.context,
-      translationKey: 'tag_workplace',
+      translationKey: 'tag_company',
+    ),
+    TagDefinition(
+      slug: '@school',
+      kind: TagKind.context,
+      translationKey: 'tag_school',
     ),
     TagDefinition(
       slug: '@local',

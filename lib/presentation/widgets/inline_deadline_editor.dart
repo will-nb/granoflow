@@ -121,45 +121,66 @@ class InlineDeadlineEditor extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    // 无截止日期
+    // 无截止日期 - 使用药丸形
     if (deadline == null) {
-      return OutlinedButton.icon(
-        onPressed: () => _pickDateTime(context),
-        icon: const Icon(Icons.calendar_today_outlined, size: 16),
-        label: Text(l10n.taskSetDeadline),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          side: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.5),
-            style: BorderStyle.solid,
+      final color = theme.colorScheme.primary;
+      return InkWell(
+        onTap: () => _pickDateTime(context),
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: color.withValues(alpha: 0.2),
+              width: 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showIcon)
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 16,
+                  color: color,
+                ),
+              if (showIcon) const SizedBox(width: 4),
+              Text(
+                l10n.taskSetDeadline,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    // 有截止日期
+    // 有截止日期 - 使用药丸形
     final isOverdue = _isOverdue(deadline!);
     final isDueSoon = _isDueSoon(deadline!);
     final formattedDeadline = _formatDeadline(context, deadline!);
 
-    Color backgroundColor;
-    Color textColor;
+    Color color;
     String displayText;
     IconData iconData;
 
     if (isOverdue) {
-      backgroundColor = theme.colorScheme.errorContainer;
-      textColor = theme.colorScheme.onErrorContainer;
+      color = theme.colorScheme.error;
       displayText = '⚠ ${l10n.taskDeadlineOverdue}';
       iconData = Icons.warning_outlined;
     } else if (isDueSoon) {
-      backgroundColor = theme.colorScheme.tertiaryContainer;
-      textColor = theme.colorScheme.onTertiaryContainer;
+      color = theme.colorScheme.tertiary;
       displayText = '⏰ ${l10n.taskDeadlineSoon}';
       iconData = Icons.alarm_outlined;
     } else {
-      backgroundColor = theme.colorScheme.surfaceContainerHighest;
-      textColor = theme.colorScheme.onSurface;
+      color = theme.colorScheme.secondary;
       displayText = formattedDeadline;
       iconData = Icons.calendar_today_outlined;
     }
@@ -167,12 +188,18 @@ class InlineDeadlineEditor extends StatelessWidget {
     return InkWell(
       onTap: () => _pickDateTime(context),
       onLongPress: () => _showClearConfirmation(context),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      borderRadius: BorderRadius.circular(999),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: color.withValues(alpha: 0.2),
+            width: 1.0,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -181,13 +208,13 @@ class InlineDeadlineEditor extends StatelessWidget {
               Icon(
                 iconData,
                 size: 16,
-                color: textColor,
+                color: color,
               ),
-            if (showIcon) const SizedBox(width: 6),
+            if (showIcon) const SizedBox(width: 4),
             Text(
               displayText,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: textColor,
+                color: color,
                 fontWeight: FontWeight.w500,
               ),
             ),

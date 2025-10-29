@@ -94,8 +94,10 @@ class TagData {
         return l10n.tag_anywhere;
       case '@home':
         return l10n.tag_home;
-      case '@workplace':
-        return l10n.tag_workplace;
+      case '@company':
+        return l10n.tag_company;
+      case '@school':
+        return l10n.tag_school;
       case '@local':
         return l10n.tag_local;
       case '@travel':
@@ -113,11 +115,50 @@ class TagData {
   static (Color, IconData?, String?) _getTagStyle(String slug, TagKind kind) {
     // Context tags - 上下文标签（场景）
     if (slug.startsWith('@')) {
-      return (
-        OceanBreezeColorSchemes.lakeCyan,
-        Icons.place_outlined,
-        null, // ARB 文件中已包含 @ 前缀
-      );
+      switch (slug) {
+        case '@anywhere':
+          return (
+            OceanBreezeColorSchemes.lakeCyan,
+            Icons.public,
+            null,
+          );
+        case '@home':
+          return (
+            OceanBreezeColorSchemes.seaSaltBlue,
+            Icons.home,
+            null,
+          );
+        case '@company':
+          return (
+            OceanBreezeColorSchemes.warmYellow,
+            Icons.business,
+            null,
+          );
+        case '@school':
+          return (
+            OceanBreezeColorSchemes.softPink,
+            Icons.school,
+            null,
+          );
+        case '@local':
+          return (
+            OceanBreezeColorSchemes.lightBlueGray,
+            Icons.location_on,
+            null,
+          );
+        case '@travel':
+          return (
+            OceanBreezeColorSchemes.lakeCyan,
+            Icons.flight,
+            null,
+          );
+        default:
+          return (
+            OceanBreezeColorSchemes.lakeCyan,
+            Icons.place_outlined,
+            null, // ARB 文件中已包含 @ 前缀
+          );
+      }
     }
 
     // Priority tags - 优先级标签

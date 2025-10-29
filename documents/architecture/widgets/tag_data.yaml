@@ -247,12 +247,12 @@ calls:
 i18n_keys: []
 design_tokens:
 - OceanBreezeColorSchemes.lakeCyan
+- OceanBreezeColorSchemes.seaSaltBlue
+- OceanBreezeColorSchemes.warmYellow
 - OceanBreezeColorSchemes.softPink
 - OceanBreezeColorSchemes.lightBlueGray
-- OceanBreezeColorSchemes.warmYellow
 - OceanBreezeColorSchemes.silverGray
 - OceanBreezeColorSchemes.disabledGray
-- OceanBreezeColorSchemes.seaSaltBlue
 - OceanBreezeColorSchemes.secondaryText
 test_mapping:
   unit:

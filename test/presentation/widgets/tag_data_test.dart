@@ -25,8 +25,8 @@ void main() {
       // Assert
       expect(tagData.slug, '@home');
       expect(tagData.label, 'Home');
-      expect(tagData.color, OceanBreezeColorSchemes.lakeCyan);
-      expect(tagData.icon, Icons.place_outlined);
+      expect(tagData.color, OceanBreezeColorSchemes.seaSaltBlue);
+      expect(tagData.icon, Icons.home);
       expect(tagData.prefix, isNull); // ARB 文件中已包含前缀，不再单独返回
       expect(tagData.kind, TagKind.context);
     });

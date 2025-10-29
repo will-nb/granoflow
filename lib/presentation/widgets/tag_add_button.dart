@@ -87,27 +87,46 @@ class TagAddButton extends StatelessWidget {
 
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final color = theme.colorScheme.primary;
 
-    return OutlinedButton.icon(
-      onPressed: () => _showTagMenu(context),
-      icon: const Icon(Icons.add, size: 16),
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(l10n.taskAddTag),
-          const SizedBox(width: 4),
-          Icon(
-            Icons.arrow_drop_down,
-            size: 18,
-            color: theme.colorScheme.onSurfaceVariant,
+    return InkWell(
+      onTap: () => _showTagMenu(context),
+      borderRadius: BorderRadius.circular(999),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: color.withValues(alpha: 0.2),
+            width: 1.0,
           ),
-        ],
-      ),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: 0.5),
-          style: BorderStyle.solid,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.add,
+              size: 16,
+              color: color,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              l10n.taskAddTag,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 18,
+              color: color,
+            ),
+          ],
         ),
       ),
     );

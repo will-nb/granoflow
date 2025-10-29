@@ -527,7 +527,6 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
                 child: TaskRowContent(
                   task: widget.task,
                   compact: false,
-                  showTaskId: true,
                 ),
               ),
             ],

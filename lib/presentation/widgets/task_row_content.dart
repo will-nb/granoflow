@@ -8,13 +8,13 @@ import 'inline_editable_tag.dart';
 import 'inline_deadline_editor.dart';
 import 'tag_add_button.dart';
 import 'tag_grouped_menu.dart';
-import 'tag_data.dart';
 import 'modern_tag.dart';
+import 'tag_data.dart';
 import '../../data/models/tag.dart';
 
 /// 通用的任务行内容组件，支持内联编辑标签和截止日期
 /// 可在Tasks、Inbox、Projects子任务、轻量任务等多个场景复用
-class TaskRowContent extends ConsumerWidget {
+class TaskRowContent extends ConsumerStatefulWidget {
   const TaskRowContent({
     super.key,
     required this.task,
@@ -22,7 +22,7 @@ class TaskRowContent extends ConsumerWidget {
     this.showConvertAction = false,
     this.onConvertToProject,
     this.compact = false,
-    this.showTaskId = false,
+    this.useBodyText = false, // 是否使用普通文字大小（用于零散任务和子任务）
   });
 
   final Task task;
@@ -30,10 +30,90 @@ class TaskRowContent extends ConsumerWidget {
   final bool showConvertAction;
   final VoidCallback? onConvertToProject;
   final bool compact; // 紧凑模式，用于子任务显示
-  final bool showTaskId; // 是否显示任务ID（用于调试）
+  final bool useBodyText; // 是否使用普通文字大小（零散任务和子任务用）
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TaskRowContent> createState() => _TaskRowContentState();
+}
+
+class _TaskRowContentState extends ConsumerState<TaskRowContent> {
+  late TextEditingController _titleController;
+  late FocusNode _titleFocusNode;
+  bool _isEditingTitle = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.task.title);
+    _titleFocusNode = FocusNode();
+    _titleFocusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _titleFocusNode.removeListener(_onFocusChange);
+    _titleController.dispose();
+    _titleFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(TaskRowContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 如果任务标题从外部更新，同步到控制器
+    if (widget.task.title != oldWidget.task.title && !_isEditingTitle) {
+      _titleController.text = widget.task.title;
+    }
+  }
+
+  void _onFocusChange() {
+    if (!_titleFocusNode.hasFocus && _isEditingTitle) {
+      _saveTitle();
+    }
+  }
+
+  Future<void> _saveTitle() async {
+    final newTitle = _titleController.text.trim();
+    if (newTitle.isEmpty) {
+      // 如果为空，恢复原标题
+      _titleController.text = widget.task.title;
+      setState(() {
+        _isEditingTitle = false;
+      });
+      return;
+    }
+
+    if (newTitle != widget.task.title) {
+      try {
+        final taskService = ref.read(taskServiceProvider);
+        await taskService.updateDetails(
+          taskId: widget.task.id,
+          payload: TaskUpdate(title: newTitle),
+        );
+      } catch (error) {
+        // 如果保存失败，恢复原标题
+        _titleController.text = widget.task.title;
+        if (mounted) {
+          final l10n = AppLocalizations.of(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${l10n.taskUpdateError}: $error'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isEditingTitle = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Column(
@@ -43,39 +123,63 @@ class TaskRowContent extends ConsumerWidget {
         // 第一行：执行图标 + 标题 + 转换按钮
         _buildTitleRow(context, theme),
         
-        // 第二行：标签（可内联编辑）
-        _buildTagsRow(context, ref, theme),
-        
-        // 第三行：截止日期（可内联编辑）
-        if (task.dueAt != null || !compact)
-          _buildDeadlineRow(context, ref, theme),
+        // 第二行：标签 + 截止日期（可内联编辑）
+        _buildTagsAndDeadlineRow(context, ref, theme),
       ],
     );
   }
 
   Widget _buildTitleRow(BuildContext context, ThemeData theme) {
     final l10n = AppLocalizations.of(context);
-    final isCompleted = task.status == TaskStatus.completedActive;
+    final isCompleted = widget.task.status == TaskStatus.completedActive;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (leading != null)
+        if (widget.leading != null)
           Padding(
             padding: const EdgeInsets.only(right: 12, top: 4),
-            child: leading!,
+            child: widget.leading!,
           ),
         Expanded(
-          child: Text(
-            task.title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              decoration: isCompleted ? TextDecoration.lineThrough : null,
-            ),
-          ),
+          child: _isEditingTitle
+              ? TextField(
+                  controller: _titleController,
+                  focusNode: _titleFocusNode,
+                  style: (widget.useBodyText ? theme.textTheme.bodyLarge : theme.textTheme.titleMedium),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 4),
+                    isDense: true,
+                  ),
+                  maxLines: null,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _saveTitle(),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isEditingTitle = true;
+                    });
+                    // 延迟聚焦，确保TextField已经构建
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _titleFocusNode.requestFocus();
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      widget.task.title,
+                      style: (widget.useBodyText ? theme.textTheme.bodyLarge : theme.textTheme.titleMedium)?.copyWith(
+                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                  ),
+                ),
         ),
-        if (showConvertAction)
+        if (widget.showConvertAction)
           IconButton(
-            onPressed: onConvertToProject,
+            onPressed: widget.onConvertToProject,
             tooltip: l10n.projectConvertTooltip,
             icon: Icon(Icons.autorenew, color: theme.colorScheme.primary),
             padding: const EdgeInsets.all(4),
@@ -85,8 +189,9 @@ class TaskRowContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildTagsRow(BuildContext context, WidgetRef ref, ThemeData theme) {
-    if (task.tags.isEmpty && compact) {
+  Widget _buildTagsAndDeadlineRow(BuildContext context, WidgetRef ref, ThemeData theme) {
+    // 如果紧凑模式且没有标签和截止日期，则不显示
+    if (widget.compact && widget.task.tags.isEmpty && widget.task.dueAt == null) {
       return const SizedBox.shrink();
     }
 
@@ -97,49 +202,36 @@ class TaskRowContent extends ConsumerWidget {
         runSpacing: 6,
         children: [
           // 已选中的标签（可删除）
-          ...task.tags.map((slug) {
-            final tagData = _slugToTagData(context, slug);
-            if (tagData == null) return const SizedBox.shrink();
+          ...widget.task.tags.map((slug) {
+            final tagData = TagData.fromTagWithLocalization(
+              Tag(
+                id: 0,
+                slug: slug,
+                kind: _getTagKindFromSlug(slug),
+                localizedLabels: const {},
+              ),
+              context,
+            );
             return InlineEditableTag(
               label: tagData.label,
               slug: slug,
               color: tagData.color,
               icon: tagData.icon,
               prefix: tagData.prefix,
-              size: compact ? TagSize.small : TagSize.medium,
+              size: widget.compact ? TagSize.small : TagSize.medium,
               variant: TagVariant.pill,
               onRemove: (removedSlug) => _handleRemoveTag(ref, removedSlug),
             );
           }),
           // 添加标签按钮
           _buildAddTagButton(context, ref),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeadlineRow(BuildContext context, WidgetRef ref, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        children: [
-          // TaskId（如果需要显示）
-          if (showTaskId)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Text(
-                'ID: ${task.taskId}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
+          // 截止日期编辑器（和标签同一行）
+          if (widget.task.dueAt != null || !widget.compact)
+            InlineDeadlineEditor(
+              deadline: widget.task.dueAt,
+              onDeadlineChanged: (newDeadline) => _handleDeadlineChanged(ref, newDeadline),
+              showIcon: true,
             ),
-          // 截止日期编辑器
-          InlineDeadlineEditor(
-            deadline: task.dueAt,
-            onDeadlineChanged: (newDeadline) => _handleDeadlineChanged(ref, newDeadline),
-            showIcon: true,
-          ),
         ],
       ),
     );
@@ -163,7 +255,7 @@ class TaskRowContent extends ConsumerWidget {
 
     // 紧急程度组
     final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
-    final hasUrgencyTag = task.tags.any((t) => t == '#urgent' || t == '#not_urgent');
+    final hasUrgencyTag = widget.task.tags.any((t) => t == '#urgent' || t == '#not_urgent');
     if (!hasUrgencyTag) {
       urgencyTagsAsync.whenData((tags) {
         if (tags.isNotEmpty) {
@@ -177,7 +269,7 @@ class TaskRowContent extends ConsumerWidget {
 
     // 重要程度组
     final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
-    final hasImportanceTag = task.tags.any((t) => t == '#important' || t == '#not_important');
+    final hasImportanceTag = widget.task.tags.any((t) => t == '#important' || t == '#not_important');
     if (!hasImportanceTag) {
       importanceTagsAsync.whenData((tags) {
         if (tags.isNotEmpty) {
@@ -191,7 +283,7 @@ class TaskRowContent extends ConsumerWidget {
 
     // 执行方式组
     final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-    final hasExecutionTag = task.tags.any((t) => 
+    final hasExecutionTag = widget.task.tags.any((t) => 
       t == '#timed' || t == '#fragmented' || t == '#waiting'
     );
     if (!hasExecutionTag) {
@@ -207,7 +299,7 @@ class TaskRowContent extends ConsumerWidget {
 
     // 上下文组
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
-    final hasContextTag = task.tags.any((t) => t.startsWith('@'));
+    final hasContextTag = widget.task.tags.any((t) => t.startsWith('@'));
     if (!hasContextTag) {
       contextTagsAsync.whenData((tags) {
         if (tags.isNotEmpty) {
@@ -230,29 +322,29 @@ class TaskRowContent extends ConsumerWidget {
       // 检查是否是同组标签，如果是则先删除同组的旧标签
       String? tagToRemove;
       if (slug == '#urgent' || slug == '#not_urgent') {
-        tagToRemove = task.tags.firstWhere(
+        tagToRemove = widget.task.tags.firstWhere(
           (t) => t == '#urgent' || t == '#not_urgent',
           orElse: () => '',
         );
       } else if (slug == '#important' || slug == '#not_important') {
-        tagToRemove = task.tags.firstWhere(
+        tagToRemove = widget.task.tags.firstWhere(
           (t) => t == '#important' || t == '#not_important',
           orElse: () => '',
         );
       } else if (slug == '#timed' || slug == '#fragmented' || slug == '#waiting') {
-        tagToRemove = task.tags.firstWhere(
+        tagToRemove = widget.task.tags.firstWhere(
           (t) => t == '#timed' || t == '#fragmented' || t == '#waiting',
           orElse: () => '',
         );
       } else if (slug.startsWith('@')) {
-        tagToRemove = task.tags.firstWhere(
+        tagToRemove = widget.task.tags.firstWhere(
           (t) => t.startsWith('@'),
           orElse: () => '',
         );
       }
 
       // 构建新的标签列表
-      List<String> updatedTags = List.from(task.tags);
+      List<String> updatedTags = List.from(widget.task.tags);
       
       // 先删除同组标签
       if (tagToRemove != null && tagToRemove.isNotEmpty) {
@@ -263,7 +355,7 @@ class TaskRowContent extends ConsumerWidget {
       updatedTags.add(slug);
       
       await taskService.updateDetails(
-        taskId: task.id,
+        taskId: widget.task.id,
         payload: TaskUpdate(tags: updatedTags),
       );
     } catch (e) {
@@ -276,9 +368,9 @@ class TaskRowContent extends ConsumerWidget {
     try {
       final taskService = ref.read(taskServiceProvider);
       // 从任务的标签列表中移除
-      final updatedTags = task.tags.where((t) => t != slug).toList();
+      final updatedTags = widget.task.tags.where((t) => t != slug).toList();
       await taskService.updateDetails(
-        taskId: task.id,
+        taskId: widget.task.id,
         payload: TaskUpdate(tags: updatedTags),
       );
     } catch (e) {
@@ -291,7 +383,7 @@ class TaskRowContent extends ConsumerWidget {
     try {
       final taskService = ref.read(taskServiceProvider);
       await taskService.updateDetails(
-        taskId: task.id,
+        taskId: widget.task.id,
         payload: TaskUpdate(dueAt: newDeadline),
       );
     } catch (e) {
@@ -300,115 +392,18 @@ class TaskRowContent extends ConsumerWidget {
   }
 }
 
-/// 辅助函数：将标签slug转换为TagData（使用国际化）
-TagData? _slugToTagData(BuildContext context, String slug) {
-  final l10n = AppLocalizations.of(context);
-  
-  // 获取本地化标签文本
-  final label = _getLocalizedLabel(l10n, slug);
-  
-  // 确定标签类型
-  TagKind kind;
+/// 从 slug 推测 TagKind
+TagKind _getTagKindFromSlug(String slug) {
   if (slug.startsWith('@')) {
-    kind = TagKind.context;
+    return TagKind.context;
   } else if (slug == '#urgent' || slug == '#not_urgent') {
-    kind = TagKind.urgency;
+    return TagKind.urgency;
   } else if (slug == '#important' || slug == '#not_important') {
-    kind = TagKind.importance;
+    return TagKind.importance;
   } else if (slug == '#timed' || slug == '#fragmented' || slug == '#waiting') {
-    kind = TagKind.execution;
+    return TagKind.execution;
   } else {
-    kind = TagKind.special;
-  }
-  
-  // 获取样式
-  final (color, icon, prefix) = _getTagStyle(slug, kind);
-  
-  return TagData(
-    slug: slug,
-    label: label,
-    color: color,
-    icon: icon,
-    prefix: prefix,
-    kind: kind,
-  );
-}
-
-/// 获取本地化标签文本
-String _getLocalizedLabel(AppLocalizations l10n, String slug) {
-  switch (slug) {
-    // 紧急程度
-    case '#urgent':
-      return l10n.tag_urgent;
-    case '#not_urgent':
-      return l10n.tag_not_urgent;
-    // 重要程度
-    case '#important':
-      return l10n.tag_important;
-    case '#not_important':
-      return l10n.tag_not_important;
-    // 执行方式
-    case '#timed':
-      return l10n.tag_timed;
-    case '#fragmented':
-      return l10n.tag_fragmented;
-    case '#waiting':
-      return l10n.tag_waiting;
-    // 上下文
-    case '@anywhere':
-      return l10n.tag_anywhere;
-    case '@home':
-      return l10n.tag_home;
-    case '@workplace':
-      return l10n.tag_workplace;
-    case '@local':
-      return l10n.tag_local;
-    case '@travel':
-      return l10n.tag_travel;
-    default:
-      // 移除前缀作为回退
-      return slug.replaceAll('@', '').replaceAll('#', '');
+    return TagKind.special;
   }
 }
 
-/// 获取标签样式（颜色、图标、前缀）
-/// 注意：prefix 返回 null，因为 l10n 翻译中已包含前缀（如 "@屋企"、"#緊急"）
-(Color, IconData?, String?) _getTagStyle(String slug, TagKind kind) {
-  // 上下文标签
-  if (slug.startsWith('@')) {
-    switch (slug) {
-      case '@anywhere':
-        return (const Color(0xFF7F8CFF), Icons.public, null);
-      case '@home':
-        return (const Color(0xFF5AC9B0), Icons.home, null);
-      case '@workplace':
-        return (const Color(0xFFFFB86C), Icons.business, null);
-      case '@local':
-        return (const Color(0xFFFF85A2), Icons.location_on, null);
-      case '@travel':
-        return (const Color(0xFF8BE9FD), Icons.flight, null);
-      default:
-        return (const Color(0xFF7F8CFF), Icons.label, null);
-    }
-  }
-  
-  // 四象限和执行方式标签
-  switch (slug) {
-    case '#urgent':
-      return (const Color(0xFFFF5555), Icons.priority_high, null);
-    case '#not_urgent':
-      return (const Color(0xFF50FA7B), Icons.schedule, null);
-    case '#important':
-      return (const Color(0xFFFFB86C), Icons.star, null);
-    case '#not_important':
-      return (const Color(0xFFBDBDBD), Icons.star_border, null);
-    case '#timed':
-      return (const Color(0xFF8BE9FD), Icons.timer, null);
-    case '#fragmented':
-      return (const Color(0xFFF1FA8C), Icons.grain, null);
-    case '#waiting':
-      return (const Color(0xFFFFB86C), Icons.hourglass_empty, null);
-    default:
-      return (const Color(0xFF64B5F6), Icons.tag, null);
-  }
-}

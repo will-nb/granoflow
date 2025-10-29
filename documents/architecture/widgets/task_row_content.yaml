@@ -1,15 +1,15 @@
 meta:
-  name: TaskRowContent
+  name: _TaskRowContentState
   type: widget
   file_path: lib/presentation/widgets/task_row_content.dart
-  description: TaskRowContent 组件
+  description: _TaskRowContentState 组件
   version: '1.0'
   created_date: '251029'
   last_updated: '251029'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
-  name: TaskRowContent
+  name: _TaskRowContentState
   layer: presentation
   pattern: consumer
   category: ui_component
@@ -53,10 +53,25 @@ widget_properties:
   required: true
   default_value: null
   description: ''
-- name: showTaskId
+- name: useBodyText
   type: bool
   required: true
   default_value: null
+  description: ''
+- name: _titleController
+  type: TextEditingController
+  required: true
+  default_value: null
+  description: ''
+- name: _titleFocusNode
+  type: FocusNode
+  required: true
+  default_value: null
+  description: ''
+- name: _isEditingTitle
+  type: bool
+  required: false
+  default_value: 'false'
   description: ''
 widget_methods:
 - name: methodName
@@ -154,8 +169,8 @@ widget_imports:
 - inline_deadline_editor.dart
 - tag_add_button.dart
 - tag_grouped_menu.dart
-- tag_data.dart
 - modern_tag.dart
+- tag_data.dart
 - ../../data/models/tag.dart
 widget_categories:
   ui_components:

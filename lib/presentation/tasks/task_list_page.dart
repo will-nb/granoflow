@@ -2548,6 +2548,7 @@ class QuickTaskCard extends ConsumerWidget {
                 task: task,
                 showConvertAction: true,
                 leading: executionLeading,
+                useBodyText: true, // 零散任务使用普通文字大小
               ),
               treeAsync.when(
                 data: (tree) {
@@ -2828,6 +2829,7 @@ class _TaskHierarchyTile extends StatelessWidget {
             child: TaskRowContent(
               task: task,
               compact: true,
+              useBodyText: true, // 子任务使用普通文字大小
             ),
           ),
         ],
@@ -3127,11 +3129,13 @@ class _TaskHeaderRow extends ConsumerWidget {
     required this.task,
     this.showConvertAction = false,
     this.leading,
+    this.useBodyText = false, // 是否使用普通文字大小（零散任务用）
   });
 
   final Task task;
   final bool showConvertAction;
   final Widget? leading;
+  final bool useBodyText; // 是否使用普通文字大小
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -3153,7 +3157,17 @@ class _TaskHeaderRow extends ConsumerWidget {
                 child: leading!,
               ),
             Expanded(
-              child: Text(task.title, style: theme.textTheme.titleMedium),
+              child: InkWell(
+                onTap: () => _handleTitleTap(context, ref),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    task.title,
+                    style: useBodyText ? theme.textTheme.bodyLarge : theme.textTheme.titleMedium,
+                  ),
+                ),
+              ),
             ),
             if (showConvertAction)
               IconButton(
@@ -3188,6 +3202,77 @@ class _TaskHeaderRow extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  /// 处理标题点击事件，弹出编辑对话框
+  Future<void> _handleTitleTap(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController(text: task.title);
+    
+    final newTitle = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.taskEditTitle),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 100,
+          decoration: InputDecoration(
+            hintText: l10n.taskTitleHint,
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              Navigator.of(dialogContext).pop(value.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) {
+                Navigator.of(dialogContext).pop(value);
+              }
+            },
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+
+    if (newTitle != null && newTitle != task.title) {
+      try {
+        final taskService = ref.read(taskServiceProvider);
+        await taskService.updateDetails(
+          taskId: task.id,
+          payload: TaskUpdate(title: newTitle),
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.taskUpdateSuccess),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (error) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${l10n.taskUpdateError}: $error'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _confirmConvert(BuildContext context, WidgetRef ref) async {
@@ -3373,8 +3458,10 @@ String _tagLabel(AppLocalizations l10n, String slug) {
       return l10n.tag_anywhere;
     case '@home':
       return l10n.tag_home;
-    case '@workplace':
-      return l10n.tag_workplace;
+      case '@company':
+        return l10n.tag_company;
+      case '@school':
+        return l10n.tag_school;
     case '@local':
       return l10n.tag_local;
     case '@travel':

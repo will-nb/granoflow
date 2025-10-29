@@ -11,7 +11,7 @@ meta:
 widget_definition:
   name: MainDrawer
   layer: presentation
-  pattern: stateless
+  pattern: consumer
   category: ui_component
   reusable: true
 widget_types:
@@ -126,10 +126,15 @@ widget_dependencies:
   version: 版本要求
 widget_imports:
 - package:flutter/material.dart
+- package:flutter_riverpod/flutter_riverpod.dart
 - package:go_router/go_router.dart
 - package:granoflow/generated/l10n/app_localizations.dart
 - ../navigation/sidebar_destinations.dart
 - app_logo.dart
+- modern_tag.dart
+- tag_data.dart
+- ../../data/models/tag.dart
+- ../../core/providers/tag_providers.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -225,6 +230,8 @@ called_by: []
 calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/presentation/navigation/sidebar_destinations.dart
+- lib/data/models/tag.dart
+- lib/core/providers/tag_providers.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

@@ -1,3 +1,24 @@
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 📅 日历组件已定稿，AI不得自动修改
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//
+// Custom Date Picker Component - FINALIZED
+// This component is production-ready and has been thoroughly tested.
+// AI assistants MUST NOT modify this file without explicit user approval.
+//
+// 功能特性 (Features):
+// • 底部弹出式日历 (Bottom sheet presentation)
+// • 特殊日期标签：今天、明天、本周、月底 (Special date labels)
+// • 快速日期选择按钮 (Quick date options)
+// • 完整国际化支持 (Full i18n support)
+// • 防止选择过去日期 (Prevents past date selection)
+// • Material 3 设计规范 (Material 3 design compliance)
+//
+// 修改历史 (Change History):
+// 2025-10-29: 初始版本，替换系统日期选择器 (Initial version, replaces system picker)
+//
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../generated/l10n/app_localizations.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'modern_tag.dart';
 
 /// 可内联删除的标签组件
-/// 基于 ModernTag，右侧添加 × 图标，支持点击删除
+/// 基于 ModernTag，点击标签即可删除
 class InlineEditableTag extends StatefulWidget {
   const InlineEditableTag({
     super.key,
@@ -34,7 +34,6 @@ class _InlineEditableTagState extends State<InlineEditableTag>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   bool _isRemoving = false;
-  bool _isHovering = false;
 
   @override
   void initState() {
@@ -65,45 +64,16 @@ class _InlineEditableTagState extends State<InlineEditableTag>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovering = true),
-        onExit: (_) => setState(() => _isHovering = false),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ModernTag(
-              label: widget.label,
-              color: widget.color ?? Theme.of(context).colorScheme.primary,
-              icon: widget.icon,
-              prefix: widget.prefix,
-              selected: true,
-              variant: widget.variant,
-              size: widget.size,
-              showCheckmark: false,
-            ),
-            const SizedBox(width: 4),
-            Semantics(
-              label: 'Remove ${widget.label}',
-              button: true,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: _isRemoving ? null : _handleRemove,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.close,
-                    size: 14,
-                    color: _isHovering
-                        ? Theme.of(context).colorScheme.error
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: ModernTag(
+        label: widget.label,
+        color: widget.color ?? Theme.of(context).colorScheme.primary,
+        icon: widget.icon,
+        prefix: widget.prefix,
+        selected: true,
+        variant: widget.variant,
+        size: widget.size,
+        showCheckmark: false,
+        onTap: _isRemoving ? null : _handleRemove,
       ),
     );
   }
