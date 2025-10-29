@@ -2,28 +2,22 @@
   "zh": [
     "datePickerToday",
     "datePickerTomorrow",
-    "datePickerThisWeek",
     "datePickerThisMonth",
     "datePickerCustom"
   ],
 
-  "zh_CN": [
-    "flexibleDescriptionAdd",
-    "flexibleDescriptionEdit",
-    "flexibleDescriptionHide",
-    "flexibleDescriptionLabel",
-    "flexibleInputExceeded",
-    "flexibleInputHardLimit",
-    "flexibleInputSoftLimit"
-  ],
-
   "zh_HK": [
+    "commonConfirm",
+    "dateToday",
+    "dateTomorrow",
+    "dateYesterday",
     "flexibleDescriptionAdd",
     "flexibleDescriptionEdit",
     "flexibleDescriptionHide",
     "flexibleDescriptionLabel",
     "flexibleInputExceeded",
     "flexibleInputHardLimit",
-    "flexibleInputSoftLimit"
+    "flexibleInputSoftLimit",
+    "datePickerMonthEnd"
   ]
 }

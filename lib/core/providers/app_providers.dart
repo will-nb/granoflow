@@ -240,6 +240,10 @@ final taskListExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 final inboxExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 final projectsExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 
+/// Provider for managing quick tasks section expanded state
+/// true = expanded, false = collapsed, defaults to false
+final quickTasksExpandedProvider = StateProvider<bool>((ref) => false);
+
 class TaskEditActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}

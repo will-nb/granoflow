@@ -39,7 +39,30 @@ class SettingsControlsPage extends ConsumerWidget {
       'zh_HK': l10n.settingsLanguageTraditionalChinese,
     };
 
-    const fontOptions = <double>[0.875, 1.0, 1.125, 1.25];
+    // 根据屏幕方向选择字体选项
+    final orientation = MediaQuery.of(context).orientation;
+    final isPortrait = orientation == Orientation.portrait;
+    
+    // 竖屏：更小的字体以适应更多内容
+    // 横屏：相对较大的字体
+    final fontOptions = isPortrait 
+        ? <double>[0.75, 0.85, 1.0, 1.125]
+        : <double>[0.85, 1.0, 1.125, 1.25];
+    
+    // 字体大小标签映射
+    final fontLabels = isPortrait
+        ? <double, String>{
+            0.75: l10n.settingsFontSizeSmall,
+            0.85: l10n.settingsFontSizeMedium,
+            1.0: l10n.settingsFontSizeLarge,
+            1.125: l10n.settingsFontSizeXLarge,
+          }
+        : <double, String>{
+            0.85: l10n.settingsFontSizeSmall,
+            1.0: l10n.settingsFontSizeMedium,
+            1.125: l10n.settingsFontSizeLarge,
+            1.25: l10n.settingsFontSizeXLarge,
+          };
 
     final themeOptions = <ThemeMode, String>{
       ThemeMode.system: l10n.settingsThemeSystem,
@@ -88,11 +111,17 @@ class SettingsControlsPage extends ConsumerWidget {
                 .map(
                   (value) => ButtonSegment<double>(
                     value: value,
-                    label: Text(value.toStringAsFixed(2)),
+                    label: Text(fontLabels[value] ?? value.toString()),
                   ),
                 )
                 .toList(),
-            selected: <double>{fontScale},
+            selected: <double>{
+              // 如果当前字体不在选项中，选择最接近的
+              fontOptions.contains(fontScale)
+                  ? fontScale
+                  : fontOptions.reduce((a, b) =>
+                      (a - fontScale).abs() < (b - fontScale).abs() ? a : b)
+            },
             onSelectionChanged: isLoading
                 ? null
                 : (selection) async {

@@ -181,7 +181,12 @@ typography:
     label_large: 14px
   responsive_typography:
     base_size: 16px
-    scale_factors: [0.875, 1.0, 1.125, 1.25] (小、正常、大、超大)
+    scale_factors:
+      portrait: [0.75, 0.85, 1.0, 1.125] # 竖屏：小、中、大、超大
+      landscape: [0.85, 1.0, 1.125, 1.25] # 横屏：小、中、大、超大
+      rationale: 竖屏使用更小字体以适应更多内容和多语言支持，横屏空间充裕使用标准字体
+      user_labels: ["小", "中", "大", "超大"] # 用户友好标签
+      user_labels_en: ["S", "M", "L", "XL"] # 英文标签
   icon_system:
     sources:
       - material_icons: 主要图标来源

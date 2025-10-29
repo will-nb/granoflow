@@ -22,6 +22,7 @@ import '../widgets/swipe_action_handler.dart';
 import '../widgets/swipe_action_type.dart';
 import '../widgets/flexible_text_input.dart';
 import '../widgets/flexible_description_input.dart';
+import '../widgets/task_row_content.dart';
 import 'tasks_drag_handler.dart';
 import 'tasks_drag_target.dart';
 import 'tasks_drag_target_type.dart';
@@ -1464,12 +1465,7 @@ class _ProjectsDashboard extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _SectionHeader(
-          title: l10n.projectQuickTasksTitle,
-          subtitle: l10n.projectQuickTasksSubtitle,
-        ),
-        const SizedBox(height: 12),
-        _QuickTasksSection(asyncTasks: quickTasksAsync),
+        _QuickTasksCollapsibleSection(asyncTasks: quickTasksAsync),
         const SizedBox(height: 24),
         _SectionHeader(
           title: l10n.projectListTitle,
@@ -1514,30 +1510,236 @@ class _ProjectsDashboard extends ConsumerWidget {
   }
 }
 
-class _QuickTasksSection extends ConsumerWidget {
-  const _QuickTasksSection({required this.asyncTasks});
+/// Collapsible section for quick tasks, similar to ProjectCard
+class _QuickTasksCollapsibleSection extends ConsumerWidget {
+  const _QuickTasksCollapsibleSection({required this.asyncTasks});
 
   final AsyncValue<List<Task>> asyncTasks;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isExpanded = ref.watch(quickTasksExpandedProvider);
+    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    return asyncTasks.when(
-      data: (tasks) {
-        if (tasks.isEmpty) {
-          return _EmptyPlaceholder(message: l10n.projectQuickTasksEmpty);
-        }
-        return Column(
-          children: tasks
-              .map((task) => QuickTaskCard(task: task))
-              .toList(growable: false),
-        );
-      },
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: CircularProgressIndicator()),
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            final notifier = ref.read(quickTasksExpandedProvider.notifier);
+            notifier.state = !isExpanded;
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: asyncTasks.when(
+              data: (tasks) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _QuickTasksHeaderRow(
+                      isExpanded: isExpanded,
+                      taskCount: tasks.length,
+                    ),
+                    if (isExpanded && tasks.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: _QuickTasksList(tasks: tasks),
+                      ),
+                    if (isExpanded && tasks.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: _EmptyPlaceholder(
+                          message: l10n.projectQuickTasksEmpty,
+                        ),
+                      ),
+                  ],
+                );
+              },
+              loading: () => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _QuickTasksHeaderRow(isExpanded: isExpanded, taskCount: 0),
+                  if (isExpanded)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: LinearProgressIndicator(
+                        color: theme.colorScheme.primary,
+                        minHeight: 2,
+                      ),
+                    ),
+                ],
+              ),
+              error: (error, stackTrace) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _QuickTasksHeaderRow(isExpanded: isExpanded, taskCount: 0),
+                  if (isExpanded)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _ErrorBanner(message: '$error'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
-      error: (error, stackTrace) => _ErrorBanner(message: '$error'),
+    );
+  }
+}
+
+/// Header row for quick tasks section
+class _QuickTasksHeaderRow extends StatelessWidget {
+  const _QuickTasksHeaderRow({
+    required this.isExpanded,
+    required this.taskCount,
+  });
+
+  final bool isExpanded;
+  final int taskCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.projectQuickTasksTitle,
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.projectQuickTasksSubtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.secondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isExpanded ? Icons.expand_less : Icons.expand_more,
+              color: theme.colorScheme.primary,
+            ),
+          ],
+        ),
+        if (!isExpanded && taskCount > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Text(
+              '$taskCount ${l10n.projectQuickTasksTitle}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// List of quick tasks (displayed when expanded)
+class _QuickTasksList extends StatelessWidget {
+  const _QuickTasksList({required this.tasks});
+
+  final List<Task> tasks;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: tasks
+          .map((task) => _QuickTaskItem(task: task))
+          .toList(growable: false),
+    );
+  }
+}
+
+/// Individual quick task item, styled like _MilestoneCard with swipe actions
+class _QuickTaskItem extends ConsumerWidget {
+  const _QuickTaskItem({required this.task});
+
+  final Task task;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final treeAsync = ref.watch(taskTreeProvider(task.id));
+    final theme = Theme.of(context);
+
+    return DismissibleTaskTile(
+      task: task,
+      config: SwipeConfigs.tasksConfig,
+      onLeftAction: (task) => SwipeActionHandler.handleAction(
+        context,
+        ref,
+        SwipeActionType.postpone,
+        task,
+      ),
+      onRightAction: (task) => SwipeActionHandler.handleAction(
+        context,
+        ref,
+        SwipeActionType.archive,
+        task,
+      ),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        color: theme.colorScheme.surfaceContainerHigh,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TaskHeaderRow(
+                task: task,
+                showConvertAction: true,
+                leading: _buildExecutionLeading(context, task),
+              ),
+              if (task.description != null && task.description!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: DescriptionBlock(description: task.description!),
+                ),
+              treeAsync.when(
+                data: (tree) {
+                  final nodes = _flattenTree(tree, includeRoot: false);
+                  if (nodes.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _TaskHierarchyList(nodes: nodes),
+                  );
+                },
+                loading: () => Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: LinearProgressIndicator(
+                    color: theme.colorScheme.primary,
+                    minHeight: 2,
+                  ),
+                ),
+                error: (error, stackTrace) => Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _ErrorBanner(message: '$error'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -2606,11 +2808,7 @@ class _TaskHierarchyTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final task = node.task;
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final tagChips = _buildTagChips(context, task);
-    final deadlineLabel = _formatDeadline(context, task.dueAt);
-    final isCompleted = task.status == TaskStatus.completedActive;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -2627,31 +2825,9 @@ class _TaskHierarchyTile extends StatelessWidget {
           _DepthBars(depth: node.depth),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  task.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    decoration: isCompleted ? TextDecoration.lineThrough : null,
-                  ),
-                ),
-                if (deadlineLabel != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      '${l10n.projectDeadlineLabel} $deadlineLabel',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.secondary,
-                      ),
-                    ),
-                  ),
-                if (tagChips.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Wrap(spacing: 8, runSpacing: 6, children: tagChips),
-                  ),
-              ],
+            child: TaskRowContent(
+              task: task,
+              compact: true,
             ),
           ),
         ],

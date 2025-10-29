@@ -212,6 +212,7 @@ calls:
 - lib/presentation/widgets/swipe_action_type.dart
 - lib/presentation/widgets/flexible_text_input.dart
 - lib/presentation/widgets/flexible_description_input.dart
+- lib/presentation/widgets/task_row_content.dart
 - lib/core/providers/tasks_drag_provider.dart
 i18n_keys:
 - taskListQuickAddTitle

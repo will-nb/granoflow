@@ -29,13 +29,20 @@ class HomePage extends ConsumerWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 600;
-          final textTheme = Theme.of(context).textTheme;
+          final theme = Theme.of(context);
+          final textTheme = theme.textTheme;
+          final colorScheme = theme.colorScheme;
+          
+          // 根据主题亮度选择文字颜色 (Choose text color based on theme brightness)
+          final heroTextColor = theme.brightness == Brightness.light
+              ? colorScheme.onSurface  // Light 模式：海军蓝
+              : Colors.white;           // Dark 模式：白色
 
           final greeting = Text(
             l10n.homeGreeting,
             style: textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: heroTextColor,
               letterSpacing: 0.3,
             ),
             textHeightBehavior: const TextHeightBehavior(
@@ -48,7 +55,7 @@ class HomePage extends ConsumerWidget {
           final subtitle = Text(
             l10n.homeTagline,
             style: textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withValues(alpha: 0.92),
+              color: heroTextColor.withValues(alpha: 0.85),
               height: 1.4,
             ),
             textHeightBehavior: const TextHeightBehavior(
@@ -72,20 +79,25 @@ class HomePage extends ConsumerWidget {
             l10n.homeGreeting,
             textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: heroTextColor,
               letterSpacing: 0.3,
             ),
           );
           final double _subtitleH = _measureLineHeight(
             l10n.homeTagline,
             textTheme.bodyLarge?.copyWith(
-              color: Colors.white.withValues(alpha: 0.92),
+              color: heroTextColor.withValues(alpha: 0.85),
               height: 1.4,
             ),
           );
           const double _gapH = 8.0; // 与文本之间的实际间距保持一致
           final double _logoTargetH = _greetingH + _gapH + _subtitleH;
           const double _logoBottomTrim = 2.0; // 裁掉 SVG 底部留白（像素）
+
+          // 根据主题亮度选择 Logo variant (Choose Logo variant based on theme brightness)
+          final logoVariant = theme.brightness == Brightness.light
+              ? AppLogoVariant.primary      // Light 模式：彩色 Logo
+              : AppLogoVariant.onPrimary;   // Dark 模式：白色 Logo
 
           // 将 Logo + 标题 + 标语打包为一个横向 heroBlock
           final heroBlock = Row(
@@ -105,10 +117,10 @@ class HomePage extends ConsumerWidget {
                         bottom: _logoBottomTrim,
                         child: FittedBox(
                           fit: BoxFit.contain,
-                          child: const AppLogo(
+                          child: AppLogo(
                             size: 200.0,
                             showText: false,
-                            variant: AppLogoVariant.onPrimary,
+                            variant: logoVariant,
                           ),
                         ),
                       ),

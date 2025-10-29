@@ -1,6 +1,167 @@
 {
   "@@locale": "zh_CN",
   "@@comment": "重要提示：添加新的翻译键时，必须按照键名的字母升序排列插入。这确保了所有语言文件的一致性排序，便于AI维护文件。",
+  "@projectArchiveConfirmBody": {
+    "description": "归档项目时的对话内容"
+  },
+  "@projectArchiveConfirmTitle": {
+    "description": "归档项目时的对话框标题"
+  },
+  "@projectContextPickerTitle": {
+    "description": "输入 @ 时选择标签的标题"
+  },
+  "@projectConvertConfirm": {
+    "description": "转换按钮文本"
+  },
+  "@projectConvertDialogBody": {
+    "description": "任务转换对话框内容"
+  },
+  "@projectConvertDialogTitle": {
+    "description": "确认转换对话框标题"
+  },
+  "@projectConvertError": {
+    "description": "转换失败提示"
+  },
+  "@projectConvertSuccess": {
+    "description": "转换成功提示"
+  },
+  "@projectConvertTooltip": {
+    "description": "将任务转换为项目的提示"
+  },
+  "@projectCreateButton": {
+    "description": "新建项目按钮"
+  },
+  "@projectCreateError": {
+    "description": "项目创建失败提示"
+  },
+  "@projectCreateSuccess": {
+    "description": "项目创建成功提示"
+  },
+  "@projectDeadlineAutoAdjusted": {
+    "description": "自动调整项目截止日期时的提示"
+  },
+  "@projectDeadlineLabel": {
+    "description": "截止日期前缀"
+  },
+  "@projectDescriptionShowLess": {
+    "description": "收起项目或里程碑描述的按钮"
+  },
+  "@projectDescriptionShowMore": {
+    "description": "展开项目或里程碑描述的按钮"
+  },
+  "@projectListEmpty": {
+    "description": "项目列表为空提示"
+  },
+  "@projectListSubtitle": {
+    "description": "项目列表副标题"
+  },
+  "@projectListTitle": {
+    "description": "项目列表标题"
+  },
+  "@projectNoMilestonesHint": {
+    "description": "无里程碑提示"
+  },
+  "@projectProgressEmpty": {
+    "description": "无里程碑进度提示"
+  },
+  "@projectProgressLabel": {
+    "description": "项目进度摘要",
+    "placeholders": {
+      "percentage": {},
+      "completed": {},
+      "total": {}
+    }
+  },
+  "@projectQuickTasksEmpty": {
+    "description": "轻量任务为空的提示"
+  },
+  "@projectQuickTasksSubtitle": {
+    "description": "项目页轻量任务区副标题"
+  },
+  "@projectQuickTasksTitle": {
+    "description": "项目页轻量任务区标题"
+  },
+  "@projectSheetAddDescription": {
+    "description": "添加项目描述按钮"
+  },
+  "@projectSheetAddMilestone": {
+    "description": "添加里程碑按钮"
+  },
+  "@projectSheetChangeContext": {
+    "description": "更换情境标签按钮"
+  },
+  "@projectSheetContextLabel": {
+    "description": "选择情境标签的标题"
+  },
+  "@projectSheetDeadlineRequired": {
+    "description": "缺少截止日期时的提示"
+  },
+  "@projectSheetDescriptionHint": {
+    "description": "项目描述提示"
+  },
+  "@projectSheetExecutionLabel": {
+    "description": "选择执行方式标签的标题"
+  },
+  "@projectSheetHideDescription": {
+    "description": "隐藏项目描述按钮"
+  },
+  "@projectSheetMilestoneTitleHint": {
+    "description": "里程碑名称提示"
+  },
+  "@projectSheetMilestonesEmpty": {
+    "description": "里程碑为空提示"
+  },
+  "@projectSheetMilestonesTitle": {
+    "description": "里程碑区标题"
+  },
+  "@projectSheetQuadrantLabel": {
+    "description": "选择四象限标签的标题"
+  },
+  "@projectSheetSelectContext": {
+    "description": "选择情境标签按钮"
+  },
+  "@projectSheetSelectDeadline": {
+    "description": "选择截止日期按钮"
+  },
+  "@projectSheetSelectDeadlineHint": {
+    "description": "未选择截止日期时的提示"
+  },
+  "@projectSheetTitle": {
+    "description": "项目创建弹窗标题"
+  },
+  "@projectSheetTitleHint": {
+    "description": "项目名称提示"
+  },
+  "@projectShortcutPickerTitle": {
+    "description": "输入 # 时选择标签的标题"
+  },
+  "@projectSnoozeAction": {
+    "description": "暂缓项目的动作文字"
+  },
+  "@projectSnoozeConfirm": {
+    "description": "暂缓项目的确认按钮"
+  },
+  "@projectSnoozeConfirmBody": {
+    "description": "暂缓项目时的对话内容"
+  },
+  "@projectSnoozeConfirmTitle": {
+    "description": "暂缓项目时的对话框标题"
+  },
+  "@projectSnoozeError": {
+    "description": "暂缓失败时的提示"
+  },
+  "@projectSnoozeSuccess": {
+    "description": "暂缓成功时的提示"
+  },
+  "@projectStatusOverdue": {
+    "description": "项目或里程碑逾期时的标签"
+  },
+  "@tag_fragmented": {
+    "description": "碎片化任务标签"
+  },
+  "@tag_timed": {
+    "description": "计时任务标签"
+  },
   "achievements": "成就",
   "achievementsOverview": "成就总览",
   "actionAddSubtask": "添加子任务",
@@ -34,6 +195,7 @@
   "childTask": "子任务",
   "commonAdd": "添加",
   "commonCancel": "取消",
+  "commonConfirm": "确认",
   "commonDelete": "删除",
   "commonSave": "保存",
   "commonView": "查看",
@@ -55,11 +217,20 @@
   "completionTime": "完成时间",
   "createSubtask": "创建子任务",
   "dailyAchievements": "今日成就",
+  "datePickerCustom": "选择其他日期",
+  "datePickerMonthEnd": "月底",
   "datePickerOptionThisMonth": "本月月底",
   "datePickerOptionThisWeek": "本周结束",
   "datePickerOptionToday": "今天",
   "datePickerOptionTomorrow": "明天",
-  "datePickerTitle": "设置截止日期",
+  "datePickerThisMonth": "当月",
+  "datePickerThisWeek": "本周",
+  "datePickerTitle": "选择截止日期",
+  "datePickerToday": "今天",
+  "datePickerTomorrow": "明天",
+  "dateToday": "今天",
+  "dateTomorrow": "明天",
+  "dateYesterday": "昨天",
   "deleteTask": "删除任务",
   "doingStatus": "进行中",
   "editTask": "编辑任务",
@@ -80,6 +251,13 @@
   "estimatedTime": "预估时间",
   "filterByDate": "按日期筛选",
   "filterByStatus": "按状态筛选",
+  "flexibleDescriptionAdd": "添加描述",
+  "flexibleDescriptionEdit": "编辑描述",
+  "flexibleDescriptionHide": "收起描述",
+  "flexibleDescriptionLabel": "描述",
+  "flexibleInputExceeded": "已超出",
+  "flexibleInputHardLimit": "已达上限",
+  "flexibleInputSoftLimit": "建议",
   "focusSession": "专注时段",
   "fontSize": "字体大小",
   "globalUniqueId": "全局唯一ID",
@@ -102,9 +280,18 @@
   "inboxFilterReset": "重设筛选",
   "inboxInputEmpty": "请填写任务标题。",
   "inboxInputSend": "添加",
+  "inboxParentChange": "更改",
+  "inboxParentLabel": "父任务",
+  "inboxParentNone": "无（维持在根目录）",
+  "inboxParentPickerTitle": "选择父任务",
+  "inboxParentSearchPlaceholder": "搜索任务标题...",
+  "inboxParentUpdated": "父任务已更新。",
   "inboxPlanButtonLabel": "截止日期",
   "inboxPlanError": "计划任务失败",
   "inboxPlanSuccess": "任务已移至任务列表。",
+  "inboxPostponeAction": "推迟",
+  "inboxPostponeError": "推迟任务失败",
+  "inboxPostponeSuccess": "任务推迟成功",
   "inboxPriorityFilterLabel": "优先级",
   "inboxQuickAddPlaceholder": "写下新的任务想法...",
   "inboxQuickPlanAction": "移动到今日任务",
@@ -115,16 +302,6 @@
   "inboxRenameTitle": "重新命名任务",
   "inboxStatus": "收集箱",
   "inboxSwipeHint": "提示：右滑规划到今日，左滑删除。",
-  "swipeHintTemplate": "提示：右滑{rightAction}，左滑{leftAction}。",
-  "inboxPostponeAction": "推迟",
-  "inboxPostponeSuccess": "任务推迟成功",
-  "inboxPostponeError": "推迟任务失败",
-  "datePickerTitle": "选择截止日期",
-  "datePickerToday": "今天",
-  "datePickerTomorrow": "明天",
-  "datePickerThisWeek": "本周",
-  "datePickerThisMonth": "当月",
-  "datePickerCustom": "选择其他日期",
   "inboxTagError": "更新标签失败",
   "inboxTemplateApplied": "模板已套用。",
   "inboxTemplateEmpty": "暂时没有模板推荐。",
@@ -146,12 +323,62 @@
   "pendingStatus": "待处理",
   "plannerSectionLaterTitle": "以后",
   "plannerSectionOverdueTitle": "已逾期",
+  "plannerSectionThisMonthTitle": "当月",
+  "plannerSectionThisWeekTitle": "本周",
   "plannerSectionTodayTitle": "今天",
   "plannerSectionTomorrowTitle": "明天",
-  "plannerSectionThisWeekTitle": "本周",
-  "plannerSectionThisMonthTitle": "当月",
   "pomodoroTimer": "番茄时钟",
   "profile": "个人资料",
+  "projectArchiveConfirmBody": "确定要归档该项目吗？之后可以在归档区域找到。",
+  "projectArchiveConfirmTitle": "归档项目",
+  "projectContextPickerTitle": "选择情境标签",
+  "projectConvertConfirm": "转换",
+  "projectConvertDialogBody": "确定将此任务提升为项目？现有子任务会自动成为里程碑。",
+  "projectConvertDialogTitle": "转换为项目",
+  "projectConvertError": "转换失败，请稍后再试。",
+  "projectConvertSuccess": "任务已转换为项目。",
+  "projectConvertTooltip": "转换为项目",
+  "projectCreateButton": "新建项目",
+  "projectCreateError": "项目创建失败，请重试。",
+  "projectCreateSuccess": "项目创建成功。",
+  "projectDeadlineAutoAdjusted": "项目截止日期已自动延长到最晚的里程碑。",
+  "projectDeadlineLabel": "截止日期：",
+  "projectDescriptionShowLess": "收起描述",
+  "projectDescriptionShowMore": "显示完整描述",
+  "projectListEmpty": "暂无项目",
+  "projectListSubtitle": "跟踪每个项目的里程碑与进度",
+  "projectListTitle": "项目",
+  "projectNoMilestonesHint": "为项目添加里程碑以细化阶段。",
+  "projectProgressEmpty": "添加里程碑以开始追踪进度。",
+  "projectProgressLabel": "{percentage}% · {completed}/{total} 个里程碑",
+  "projectQuickTasksEmpty": "暂无轻量任务",
+  "projectQuickTasksSubtitle": "这些未归类的任务可以随时完成",
+  "projectQuickTasksTitle": "轻量任务",
+  "projectSheetAddDescription": "添加描述",
+  "projectSheetAddMilestone": "添加里程碑",
+  "projectSheetChangeContext": "更换情境标签",
+  "projectSheetContextLabel": "情境标签",
+  "projectSheetDeadlineRequired": "请为项目设置截止日期。",
+  "projectSheetDescriptionHint": "可选备注",
+  "projectSheetExecutionLabel": "执行方式",
+  "projectSheetHideDescription": "收起描述",
+  "projectSheetMilestoneTitleHint": "里程碑名称",
+  "projectSheetMilestonesEmpty": "添加里程碑以划分阶段。",
+  "projectSheetMilestonesTitle": "里程碑",
+  "projectSheetQuadrantLabel": "四象限标签",
+  "projectSheetSelectContext": "选择情境标签",
+  "projectSheetSelectDeadline": "选择截止日期",
+  "projectSheetSelectDeadlineHint": "请选择截止日期",
+  "projectSheetTitle": "创建项目",
+  "projectSheetTitleHint": "项目名称",
+  "projectShortcutPickerTitle": "选择要应用的标签",
+  "projectSnoozeAction": "暂缓",
+  "projectSnoozeConfirm": "暂缓",
+  "projectSnoozeConfirmBody": "要将项目的截止日期顺延一年吗？",
+  "projectSnoozeConfirmTitle": "暂缓项目",
+  "projectSnoozeError": "暂缓项目失败，请稍后再试。",
+  "projectSnoozeSuccess": "项目截止日期已顺延一年。",
+  "projectStatusOverdue": "已逾期",
   "reactivate": "重新激活",
   "reactivateTask": "重新激活任务",
   "recentAchievements": "近期成就",
@@ -159,9 +386,10 @@
   "sessionComplete": "时段完成",
   "settings": "设定",
   "settingsFontSizeLabel": "字体大小",
-  "settingsFontSizeLarge": "大号",
-  "settingsFontSizeMedium": "标准",
-  "settingsFontSizeSmall": "小号",
+  "settingsFontSizeLarge": "大",
+  "settingsFontSizeMedium": "中",
+  "settingsFontSizeSmall": "小",
+  "settingsFontSizeXLarge": "超大",
   "settingsLanguageEnglish": "英文",
   "settingsLanguageLabel": "语言",
   "settingsLanguageSimplifiedChinese": "简体中文",
@@ -173,28 +401,34 @@
   "settingsThemeSystem": "跟随系统",
   "startTimer": "开始计时",
   "stopTimer": "停止计时",
+  "swipeHintTemplate": "提示：右滑{rightAction}，左滑{leftAction}。",
   "switchTheme": "切换主题",
   "tag_anywhere": "@任何地点",
+  "tag_fragmented": "#碎片",
   "tag_home": "@家里",
   "tag_important": "#重要",
   "tag_local": "@本地",
   "tag_not_important": "#不重要",
   "tag_not_urgent": "#不紧急",
+  "tag_timed": "#计时",
   "tag_travel": "@旅行",
   "tag_urgent": "#紧急",
   "tag_waiting": "#等待",
-  "tag_timed": "#计时",
-  "@tag_timed": {
-    "description": "计时任务标签"
-  },
-  "tag_fragmented": "#碎片",
-  "@tag_fragmented": {
-    "description": "碎片化任务标签"
-  },
   "tag_wasted": "浪费时间",
   "tag_workplace": "@公司学校",
+  "taskAddTag": "标签",
+  "taskArchiveAction": "归档",
+  "taskArchiveError": "归档任务失败",
+  "taskArchivedSuccess": "任务归档成功",
+  "taskArchivedSuccessDetailed": "任务归档成功 - 您可以在归档页面找到它",
   "taskChain": "任务链",
+  "taskClearDeadlineBody": "确定要清除此任务的截止日期吗？",
+  "taskClearDeadlineTitle": "清除截止日期",
+  "taskDeadlineOverdue": "已逾期",
+  "taskDeadlineSoon": "即将到期",
+  "taskDeleteAction": "删除",
   "taskDetails": "任务详情",
+  "taskEditDeadline": "编辑截止日期",
   "taskId": "任务ID",
   "taskList": "任务列表",
   "taskListAddError": "添加任务失败。",
@@ -205,8 +439,8 @@
   "taskListFocusStartedToast": "已开始专注。",
   "taskListInputLabel": "任务标题",
   "taskListInputValidation": "请输入任务标题。",
-  "taskListModeTask": "任务",
   "taskListModeProject": "项目",
+  "taskListModeTask": "任务",
   "taskListNoSubtasks": "暂无子任务。",
   "taskListQuickAddTitle": "添加到{section}",
   "taskListQuickAddTooltip": "快速添加任务",
@@ -216,226 +450,18 @@
   "taskListSortError": "无法更新排序。",
   "taskListSubtaskCreatedToast": "子任务已创建。",
   "taskListSubtaskError": "创建子任务失败。",
-  "projectQuickTasksTitle": "轻量任务",
-  "@projectQuickTasksTitle": {
-    "description": "项目页轻量任务区标题"
-  },
-  "projectQuickTasksSubtitle": "这些未归类的任务可以随时完成",
-  "@projectQuickTasksSubtitle": {
-    "description": "项目页轻量任务区副标题"
-  },
-  "projectQuickTasksEmpty": "暂无轻量任务",
-  "@projectQuickTasksEmpty": {
-    "description": "轻量任务为空的提示"
-  },
-  "projectListTitle": "项目",
-  "@projectListTitle": {
-    "description": "项目列表标题"
-  },
-  "projectListSubtitle": "跟踪每个项目的里程碑与进度",
-  "@projectListSubtitle": {
-    "description": "项目列表副标题"
-  },
-  "projectListEmpty": "暂无项目",
-  "@projectListEmpty": {
-    "description": "项目列表为空提示"
-  },
-  "projectNoMilestonesHint": "为项目添加里程碑以细化阶段。",
-  "@projectNoMilestonesHint": {
-    "description": "无里程碑提示"
-  },
-  "projectDeadlineLabel": "截止日期：",
-  "@projectDeadlineLabel": {
-    "description": "截止日期前缀"
-  },
-  "projectProgressEmpty": "添加里程碑以开始追踪进度。",
-  "@projectProgressEmpty": {
-    "description": "无里程碑进度提示"
-  },
-  "projectProgressLabel": "{percentage}% · {completed}/{total} 个里程碑",
-  "@projectProgressLabel": {
-    "description": "项目进度摘要",
-    "placeholders": {
-      "percentage": {},
-      "completed": {},
-      "total": {}
-    }
-  },
-  "projectConvertTooltip": "转换为项目",
-  "@projectConvertTooltip": {
-    "description": "将任务转换为项目的提示"
-  },
-  "projectCreateButton": "新建项目",
-  "@projectCreateButton": {
-    "description": "新建项目按钮"
-  },
-  "projectSheetTitle": "创建项目",
-  "@projectSheetTitle": {
-    "description": "项目创建弹窗标题"
-  },
-  "projectSheetTitleHint": "项目名称",
-  "@projectSheetTitleHint": {
-    "description": "项目名称提示"
-  },
-  "projectSheetAddDescription": "添加描述",
-  "@projectSheetAddDescription": {
-    "description": "添加项目描述按钮"
-  },
-  "projectSheetHideDescription": "收起描述",
-  "@projectSheetHideDescription": {
-    "description": "隐藏项目描述按钮"
-  },
-  "projectSheetDescriptionHint": "可选备注",
-  "@projectSheetDescriptionHint": {
-    "description": "项目描述提示"
-  },
-  "projectSheetQuadrantLabel": "四象限标签",
-  "@projectSheetQuadrantLabel": {
-    "description": "选择四象限标签的标题"
-  },
-  "projectSheetExecutionLabel": "执行方式",
-  "@projectSheetExecutionLabel": {
-    "description": "选择执行方式标签的标题"
-  },
-  "projectSheetContextLabel": "情境标签",
-  "@projectSheetContextLabel": {
-    "description": "选择情境标签的标题"
-  },
-  "projectSheetSelectContext": "选择情境标签",
-  "@projectSheetSelectContext": {
-    "description": "选择情境标签按钮"
-  },
-  "projectSheetChangeContext": "更换情境标签",
-  "@projectSheetChangeContext": {
-    "description": "更换情境标签按钮"
-  },
-  "projectShortcutPickerTitle": "选择要应用的标签",
-  "@projectShortcutPickerTitle": {
-    "description": "输入 # 时选择标签的标题"
-  },
-  "projectContextPickerTitle": "选择情境标签",
-  "@projectContextPickerTitle": {
-    "description": "输入 @ 时选择标签的标题"
-  },
-  "projectSheetSelectDeadline": "选择截止日期",
-  "@projectSheetSelectDeadline": {
-    "description": "选择截止日期按钮"
-  },
-  "projectSheetSelectDeadlineHint": "请选择截止日期",
-  "@projectSheetSelectDeadlineHint": {
-    "description": "未选择截止日期时的提示"
-  },
-  "projectSheetDeadlineRequired": "请为项目设置截止日期。",
-  "@projectSheetDeadlineRequired": {
-    "description": "缺少截止日期时的提示"
-  },
-  "projectSheetMilestonesTitle": "里程碑",
-  "@projectSheetMilestonesTitle": {
-    "description": "里程碑区标题"
-  },
-  "projectSheetMilestonesEmpty": "添加里程碑以划分阶段。",
-  "@projectSheetMilestonesEmpty": {
-    "description": "里程碑为空提示"
-  },
-  "projectSheetAddMilestone": "添加里程碑",
-  "@projectSheetAddMilestone": {
-    "description": "添加里程碑按钮"
-  },
-  "projectSheetMilestoneTitleHint": "里程碑名称",
-  "@projectSheetMilestoneTitleHint": {
-    "description": "里程碑名称提示"
-  },
-  "projectDescriptionShowMore": "显示完整描述",
-  "@projectDescriptionShowMore": {
-    "description": "展开项目或里程碑描述的按钮"
-  },
-  "projectDescriptionShowLess": "收起描述",
-  "@projectDescriptionShowLess": {
-    "description": "收起项目或里程碑描述的按钮"
-  },
-  "projectDeadlineAutoAdjusted": "项目截止日期已自动延长到最晚的里程碑。",
-  "@projectDeadlineAutoAdjusted": {
-    "description": "自动调整项目截止日期时的提示"
-  },
-  "projectCreateSuccess": "项目创建成功。",
-  "@projectCreateSuccess": {
-    "description": "项目创建成功提示"
-  },
-  "projectCreateError": "项目创建失败，请重试。",
-  "@projectCreateError": {
-    "description": "项目创建失败提示"
-  },
-  "projectConvertDialogTitle": "转换为项目",
-  "@projectConvertDialogTitle": {
-    "description": "确认转换对话框标题"
-  },
-  "projectConvertDialogBody": "确定将此任务提升为项目？现有子任务会自动成为里程碑。",
-  "@projectConvertDialogBody": {
-    "description": "任务转换对话框内容"
-  },
-  "projectConvertConfirm": "转换",
-  "@projectConvertConfirm": {
-    "description": "转换按钮文本"
-  },
-  "projectConvertSuccess": "任务已转换为项目。",
-  "@projectConvertSuccess": {
-    "description": "转换成功提示"
-  },
-  "projectConvertError": "转换失败，请稍后再试。",
-  "@projectConvertError": {
-    "description": "转换失败提示"
-  },
-  "projectArchiveConfirmTitle": "归档项目",
-  "@projectArchiveConfirmTitle": {
-    "description": "归档项目时的对话框标题"
-  },
-  "projectArchiveConfirmBody": "确定要归档该项目吗？之后可以在归档区域找到。",
-  "@projectArchiveConfirmBody": {
-    "description": "归档项目时的对话内容"
-  },
-  "projectSnoozeAction": "暂缓",
-  "@projectSnoozeAction": {
-    "description": "暂缓项目的动作文字"
-  },
-  "projectSnoozeConfirmTitle": "暂缓项目",
-  "@projectSnoozeConfirmTitle": {
-    "description": "暂缓项目时的对话框标题"
-  },
-  "projectSnoozeConfirmBody": "要将项目的截止日期顺延一年吗？",
-  "@projectSnoozeConfirmBody": {
-    "description": "暂缓项目时的对话内容"
-  },
-  "projectSnoozeConfirm": "暂缓",
-  "@projectSnoozeConfirm": {
-    "description": "暂缓项目的确认按钮"
-  },
-  "projectSnoozeSuccess": "项目截止日期已顺延一年。",
-  "@projectSnoozeSuccess": {
-    "description": "暂缓成功时的提示"
-  },
-  "projectSnoozeError": "暂缓项目失败，请稍后再试。",
-  "@projectSnoozeError": {
-    "description": "暂缓失败时的提示"
-  },
-  "projectStatusOverdue": "已逾期",
-  "@projectStatusOverdue": {
-    "description": "项目或里程碑逾期时的标签"
-  },
   "taskListTaskArchivedError": "归档任务失败。",
-  "taskArchiveError": "归档任务失败",
-  "taskArchivedSuccess": "任务归档成功",
-  "taskArchivedSuccessDetailed": "任务归档成功 - 您可以在归档页面找到它",
-  "taskPostponeError": "推迟任务失败",
-  "taskPostponeSuccess": "任务推迟成功",
-  "taskPostponeSuccessDetailed": "任务已推迟到{date} - 您可以在任务页面找到它",
-  "taskArchiveAction": "归档",
-  "taskDeleteAction": "删除",
-  "taskPostponeAction": "推迟",
   "taskListTaskArchivedToast": "任务已归档。",
   "taskListTaskCompletedError": "完成任务失败。",
   "taskListTaskCompletedToast": "任务已完成。",
   "taskListTitle": "任务列表",
   "taskListTitleEdit": "任务列表 · 编辑模式",
+  "taskPostponeAction": "推迟",
+  "taskPostponeError": "推迟任务失败",
+  "taskPostponeSuccess": "任务推迟成功",
+  "taskPostponeSuccessDetailed": "任务已推迟到{date} - 您可以在任务页面找到它",
+  "taskRemoveTag": "移除标签",
+  "taskSetDeadline": "截止日期",
   "theme": "主题",
   "timeEstimate": "预估时间",
   "timerActiveTitle": "正在专注：{taskTitle}",

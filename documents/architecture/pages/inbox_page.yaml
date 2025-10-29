@@ -207,7 +207,7 @@ calls:
 - lib/presentation/widgets/gradient_page_scaffold.dart
 - lib/presentation/widgets/tag_data.dart
 - lib/presentation/widgets/tag_panel.dart
-- lib/presentation/widgets/task_expanded_panel.dart
+- lib/presentation/widgets/task_row_content.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

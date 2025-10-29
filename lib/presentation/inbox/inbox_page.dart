@@ -19,7 +19,7 @@ import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/tag_data.dart';
 import '../widgets/tag_panel.dart';
-import '../widgets/task_expanded_panel.dart';
+import '../widgets/task_row_content.dart';
 import 'inbox_draggable.dart';
 import 'inbox_drag_target.dart';
 
@@ -448,61 +448,8 @@ class InboxTaskTile extends ConsumerStatefulWidget {
 }
 
 class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
-  late TextEditingController _titleController;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.task.title);
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _updateTaskTitle(BuildContext context, String newTitle) async {
-    if (newTitle.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task title cannot be empty')),
-      );
-      _titleController.text = widget.task.title;
-      return;
-    }
-
-    if (newTitle.trim() == widget.task.title) {
-      setState(() {});
-      return;
-    }
-
-    try {
-      final taskService = ref.read(taskServiceProvider);
-      await taskService.updateDetails(
-        taskId: widget.task.id,
-        payload: TaskUpdate(title: newTitle.trim()),
-      );
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Task title updated successfully')),
-        );
-        setState(() {});
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update task title: $error')),
-        );
-        _titleController.text = widget.task.title;
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final expandedId = ref.watch(inboxExpandedTaskIdProvider);
-    final isExpanded = expandedId == widget.task.id;
     final isDragging = ref.watch(inboxDragProvider.select((s) => s.isDragging));
     final l10n = AppLocalizations.of(context);
 
@@ -513,7 +460,7 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
 
     return InboxDraggable(
       task: widget.task,
-      enabled: !isExpanded, // 展开时禁用拖拽
+      enabled: true, // 始终可拖拽
       child: Dismissible(
         key: ValueKey('inbox-${widget.task.id}-${widget.task.updatedAt.millisecondsSinceEpoch}'),
         background: _DismissBackground(
@@ -561,80 +508,30 @@ class _InboxTaskTileState extends ConsumerState<InboxTaskTile> {
           }
           return false;
         },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ListTile(
-              // 禁用拖拽时的 hover 效果，因为不支持嵌套子项目
-              hoverColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              enableFeedback: false,
-              leading: Icon(
-                Icons.drag_indicator,
-                color: Colors.grey[400],
-                size: 20,
-              ),
-              title: isExpanded
-                  ? TextField(
-                      controller: _titleController,
-                      enabled: true,
-                      readOnly: false,
-                      autofocus: false,
-                      canRequestFocus: true,
-                      decoration: InputDecoration(
-                        border: UnderlineInputBorder(
-                          borderSide: BorderSide(color: colorScheme.primary),
-                        ),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: colorScheme.primary.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: colorScheme.primary,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      style: Theme.of(context).textTheme.bodyLarge,
-                      onSubmitted: (value) => _updateTaskTitle(context, value),
-                    )
-                  : IgnorePointer(
-                      ignoring: true,
-                      child: Text(widget.task.title),
-                    ),
-              subtitle: Text('ID: ${widget.task.taskId}'),
-              trailing: Icon(
-                isExpanded ? Icons.expand_less : Icons.expand_more,
-              ),
-              onTap: () {
-                ref.read(inboxExpandedTaskIdProvider.notifier).state = 
-                    isExpanded ? null : widget.task.id;
-              },
-            ),
-            if (isExpanded)
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 拖拽指示器
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Divider(),
-                    const SizedBox(height: 8),
-                    TaskExpandedPanel(
-                      task: widget.task,
-                      localeName: widget.localeName,
-                      showQuickPlan: true,
-                      showDateSection: false,
-                      showSwipeHint: true,
-                      leftActionKey: 'inboxDeleteAction',
-                      rightActionKey: 'inboxQuickPlanAction',
-                      onQuickPlan: () => _quickPlan(context, ref, widget.task),
-                    ),
-                  ],
+                padding: const EdgeInsets.only(right: 12, top: 4),
+                child: Icon(
+                  Icons.drag_indicator,
+                  color: Colors.grey[400],
+                  size: 20,
                 ),
               ),
-          ],
+              // 任务内容（使用TaskRowContent）
+              Expanded(
+                child: TaskRowContent(
+                  task: widget.task,
+                  compact: false,
+                  showTaskId: true,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
