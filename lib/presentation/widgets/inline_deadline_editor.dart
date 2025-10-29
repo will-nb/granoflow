@@ -121,37 +121,28 @@ class InlineDeadlineEditor extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    // 无截止日期 - 使用药丸形
+    // 无截止日期 - Minimal 风格
     if (deadline == null) {
       final color = theme.colorScheme.primary;
       return InkWell(
         onTap: () => _pickDateTime(context),
-        borderRadius: BorderRadius.circular(999),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-              width: 1.0,
-            ),
-          ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (showIcon)
                 Icon(
                   Icons.calendar_today_outlined,
-                  size: 16,
+                  size: 14,
                   color: color,
                 ),
               if (showIcon) const SizedBox(width: 4),
               Text(
                 l10n.taskSetDeadline,
                 style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 12,
                   color: color,
                   fontWeight: FontWeight.w500,
                 ),
@@ -162,7 +153,7 @@ class InlineDeadlineEditor extends StatelessWidget {
       );
     }
 
-    // 有截止日期 - 使用药丸形
+    // 有截止日期 - Minimal 风格
     final isOverdue = _isOverdue(deadline!);
     final isDueSoon = _isDueSoon(deadline!);
     final formattedDeadline = _formatDeadline(context, deadline!);
@@ -188,32 +179,23 @@ class InlineDeadlineEditor extends StatelessWidget {
     return InkWell(
       onTap: () => _pickDateTime(context),
       onLongPress: () => _showClearConfirmation(context),
-      borderRadius: BorderRadius.circular(999),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1.0,
-          ),
-        ),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showIcon)
               Icon(
                 iconData,
-                size: 16,
+                size: 14,
                 color: color,
               ),
             if (showIcon) const SizedBox(width: 4),
             Text(
               displayText,
               style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
                 color: color,
                 fontWeight: FontWeight.w500,
               ),

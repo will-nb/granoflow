@@ -12,8 +12,8 @@ class InlineEditableTag extends StatefulWidget {
     this.color,
     this.icon,
     this.prefix,
-    this.size = TagSize.medium,
-    this.variant = TagVariant.dot,
+    this.size = TagSize.small,
+    this.variant = TagVariant.minimal,
   });
 
   final String label;

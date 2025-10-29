@@ -8,7 +8,6 @@ import 'inline_editable_tag.dart';
 import 'inline_deadline_editor.dart';
 import 'tag_add_button.dart';
 import 'tag_grouped_menu.dart';
-import 'modern_tag.dart';
 import 'tag_data.dart';
 import '../../data/models/tag.dart';
 
@@ -218,8 +217,6 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
               color: tagData.color,
               icon: tagData.icon,
               prefix: tagData.prefix,
-              size: widget.compact ? TagSize.small : TagSize.medium,
-              variant: TagVariant.pill,
               onRemove: (removedSlug) => _handleRemoveTag(ref, removedSlug),
             );
           }),

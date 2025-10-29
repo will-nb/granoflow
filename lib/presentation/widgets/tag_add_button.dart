@@ -89,42 +89,28 @@ class TagAddButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final color = theme.colorScheme.primary;
 
+    // Minimal 风格：只有图标+文字，无背景
     return InkWell(
       onTap: () => _showTagMenu(context),
-      borderRadius: BorderRadius.circular(999),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1.0,
-          ),
-        ),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.add,
-              size: 16,
+              Icons.add_circle_outline,
+              size: 14,
               color: color,
             ),
             const SizedBox(width: 4),
             Text(
               l10n.taskAddTag,
               style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
                 color: color,
                 fontWeight: FontWeight.w500,
               ),
-            ),
-            const SizedBox(width: 2),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 18,
-              color: color,
             ),
           ],
         ),

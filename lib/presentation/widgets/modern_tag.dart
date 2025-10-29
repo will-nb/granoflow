@@ -166,17 +166,27 @@ class ModernTag extends StatelessWidget {
   }
 
   /// 构建极简标签（用于密集场景）
+  /// 支持图标 + 文字，无背景
   Widget _buildMinimalTag(BuildContext context) {
     return Container(
       padding: _getPadding(),
-      child: Text(
-        prefix != null ? '$prefix$label' : label,
-        style: TextStyle(
-          fontSize: _getFontSize(),
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-          color: selected ? color : Theme.of(context).textTheme.bodyMedium?.color,
-          height: 1.2,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: _getIconSize(), color: color),
+            SizedBox(width: _getSpacing()),
+          ],
+          Text(
+            prefix != null ? '$prefix$label' : label,
+            style: TextStyle(
+              fontSize: _getFontSize(),
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected ? color : Theme.of(context).textTheme.bodyMedium?.color,
+              height: 1.2,
+            ),
+          ),
+        ],
       ),
     );
   }
