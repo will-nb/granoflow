@@ -80,6 +80,13 @@
   "estimatedTime": "Estimated Time",
   "filterByDate": "Filter by Date",
   "filterByStatus": "Filter by Status",
+  "flexibleDescriptionAdd": "Add Description",
+  "flexibleDescriptionEdit": "Edit Description",
+  "flexibleDescriptionHide": "Hide Description",
+  "flexibleDescriptionLabel": "Description",
+  "flexibleInputExceeded": "Exceeded",
+  "flexibleInputHardLimit": "Limit Reached",
+  "flexibleInputSoftLimit": "Suggested",
   "focusSession": "Focus Session",
   "fontSize": "Font Size",
   "globalUniqueId": "Global Unique ID",
@@ -252,7 +259,7 @@
   "@projectProgressEmpty": {
     "description": "Shown when there are no milestones"
   },
-  "projectProgressLabel": "{percentage}% · {completed}/{total} milestones",
+  "projectProgressLabel": "{percentage}% ? {completed}/{total} milestones",
   "@projectProgressLabel": {
     "description": "Displays project progress summary",
     "placeholders": {
@@ -435,7 +442,7 @@
   "taskListTaskCompletedError": "Complete task failed.",
   "taskListTaskCompletedToast": "Task completed.",
   "taskListTitle": "Task List",
-  "taskListTitleEdit": "Task List · Edit Mode",
+  "taskListTitleEdit": "Task List ? Edit Mode",
   "theme": "Theme",
   "timeEstimate": "Time Estimate",
   "timerActiveTitle": "Focusing: {taskTitle}",

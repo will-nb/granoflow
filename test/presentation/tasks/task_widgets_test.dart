@@ -102,7 +102,7 @@ void main() {
 
       await tester.pump();
 
-      expect(find.byIcon(Icons.timelapse), findsWidgets);
+      expect(find.byIcon(Icons.schedule), findsWidgets);
     });
   });
 }

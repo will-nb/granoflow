@@ -20,6 +20,8 @@ import '../widgets/dismissible_task_tile.dart';
 import '../widgets/swipe_configs.dart';
 import '../widgets/swipe_action_handler.dart';
 import '../widgets/swipe_action_type.dart';
+import '../widgets/flexible_text_input.dart';
+import '../widgets/flexible_description_input.dart';
 import 'tasks_drag_handler.dart';
 import 'tasks_drag_target.dart';
 import 'tasks_drag_target_type.dart';
@@ -1556,10 +1558,8 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
   bool _submitting = false;
   String? _selectedUrgencyTag;
   String? _selectedImportanceTag;
-  String? _contextTag;
   DateTime? _projectDeadline;
   String? _executionTag;
-  bool _showDescription = false;
   String? _deadlineError;
   bool _suppressProjectShortcut = false;
 
@@ -1597,29 +1597,16 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
           _assignProjectTag(slug);
         });
       },
-      onContextSelected: (slug) {
-        setState(() {
-          _contextTag = slug;
-        });
-      },
     );
   }
 
   void _onProjectDescriptionChanged() {
-    if (!_showDescription) {
-      return;
-    }
     _handleShortcutInController(
       _descriptionController,
       includeExecution: true,
       onHashtagSelected: (slug) {
         setState(() {
           _assignProjectTag(slug);
-        });
-      },
-      onContextSelected: (slug) {
-        setState(() {
-          _contextTag = slug;
         });
       },
     );
@@ -1629,7 +1616,6 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
     TextEditingController controller, {
     required bool includeExecution,
     required ValueChanged<String> onHashtagSelected,
-    required ValueChanged<String> onContextSelected,
   }) {
     if (_suppressProjectShortcut) {
       return;
@@ -1639,8 +1625,8 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
       return;
     }
     final lastChar = text.codeUnitAt(text.length - 1);
-    if (lastChar != 35 && lastChar != 64) {
-      // # or @
+    if (lastChar != 35) {
+      // #
       return;
     }
     _suppressProjectShortcut = true;
@@ -1650,23 +1636,13 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
       selection: TextSelection.collapsed(offset: trimmed.length),
     );
     _suppressProjectShortcut = false;
-    if (lastChar == 35) {
-      Future.microtask(() async {
-        final slug = await _pickHashtag(includeExecution: includeExecution);
-        if (!mounted || slug == null) {
-          return;
-        }
-        onHashtagSelected(slug);
-      });
-    } else {
-      Future.microtask(() async {
-        final slug = await _pickContextTag();
-        if (!mounted || slug == null) {
-          return;
-        }
-        onContextSelected(slug);
-      });
-    }
+    Future.microtask(() async {
+      final slug = await _pickHashtag(includeExecution: includeExecution);
+      if (!mounted || slug == null) {
+        return;
+      }
+      onHashtagSelected(slug);
+    });
   }
 
   Future<String?> _pickHashtag({required bool includeExecution}) async {
@@ -1712,40 +1688,6 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
     );
   }
 
-  Future<String?> _pickContextTag() async {
-    final options = await ref.read(contextTagOptionsProvider.future);
-    if (!mounted || options.isEmpty) {
-      return null;
-    }
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return showModalBottomSheet<String>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Text(
-                l10n.projectContextPickerTitle,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            ...options.map(
-              (tag) => ListTile(
-                leading: const Icon(Icons.alternate_email),
-                title: Text(_tagLabel(l10n, tag.slug)),
-                onTap: () => Navigator.of(sheetContext).pop(tag.slug),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _assignProjectTag(String slug) {
     if (_executionOptionSlugs.contains(slug)) {
       _executionTag = slug;
@@ -1777,7 +1719,7 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
       return;
     }
     final lastChar = text.codeUnitAt(text.length - 1);
-    if (lastChar != 35 && lastChar != 64) {
+    if (lastChar != 35) {
       return;
     }
     draft.suppressShortcut = true;
@@ -1787,27 +1729,15 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
       selection: TextSelection.collapsed(offset: trimmed.length),
     );
     draft.suppressShortcut = false;
-    if (lastChar == 35) {
-      Future.microtask(() async {
-        final slug = await _pickHashtag(includeExecution: true);
-        if (!mounted || slug == null) {
-          return;
-        }
-        setState(() {
-          draft.applyTag(slug);
-        });
+    Future.microtask(() async {
+      final slug = await _pickHashtag(includeExecution: true);
+      if (!mounted || slug == null) {
+        return;
+      }
+      setState(() {
+        draft.applyTag(slug);
       });
-    } else {
-      Future.microtask(() async {
-        final slug = await _pickContextTag();
-        if (!mounted || slug == null) {
-          return;
-        }
-        setState(() {
-          draft.contextTag = slug;
-        });
-      });
-    }
+    });
   }
 
   void _ensureProjectDeadlineCoversMilestones({bool showMessage = true}) {
@@ -1851,9 +1781,6 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
     }
     if (_executionTag != null) {
       tags.add(_executionTag!);
-    }
-    if (_contextTag != null) {
-      tags.add(_contextTag!);
     }
     return tags;
   }
@@ -1914,91 +1841,79 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
                 ],
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              FlexibleTextInput(
                 controller: _titleController,
-                maxLength: 255,
-                decoration: InputDecoration(
-                  labelText: l10n.taskListInputLabel,
-                  hintText: l10n.projectSheetTitleHint,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return l10n.taskListInputValidation;
-                  }
-                  return null;
-                },
+                softLimit: 50,
+                hardLimit: 255,
+                hintText: l10n.projectSheetTitleHint,
+                labelText: l10n.taskListInputLabel,
+                onChanged: (_) => _onProjectTitleChanged(),
               ),
               const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: () {
-                  setState(() => _showDescription = !_showDescription);
-                },
-                icon: Icon(
-                  _showDescription ? Icons.expand_less : Icons.notes_outlined,
-                ),
-                label: Text(
-                  _showDescription
-                      ? l10n.projectSheetHideDescription
-                      : l10n.projectSheetAddDescription,
-                ),
+              FlexibleDescriptionInput(
+                controller: _descriptionController,
+                softLimit: 200,
+                hardLimit: 60000,
+                hintText: l10n.projectSheetDescriptionHint,
+                labelText: l10n.flexibleDescriptionLabel,
+                onChanged: (_) => _onProjectDescriptionChanged(),
               ),
-              if (_showDescription)
-                TextField(
-                  controller: _descriptionController,
-                  maxLength: 60000,
-                  minLines: 3,
-                  maxLines: 8,
-                  decoration: InputDecoration(
-                    hintText: l10n.projectSheetDescriptionHint,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
               const SizedBox(height: 16),
-              Text(
-                l10n.projectSheetQuadrantLabel,
-                style: theme.textTheme.titleSmall,
-              ),
-              const SizedBox(height: 8),
+              // 四象限标签和执行方式标签inline排列
               Consumer(
                 builder: (context, ref, child) {
                   final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
                   final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
+                  final executionTagsAsync = ref.watch(executionTagOptionsProvider);
                   
                   return urgencyTagsAsync.when(
                     data: (urgencyTags) => importanceTagsAsync.when(
-                      data: (importanceTags) {
-                        final allQuadrantTags = [...urgencyTags, ...importanceTags];
-                        final tagData = _tagsToTagData(allQuadrantTags);
-                        final selectedTags = <String>{
-                          if (_selectedUrgencyTag != null) _selectedUrgencyTag!,
-                          if (_selectedImportanceTag != null) _selectedImportanceTag!,
-                        };
-                        
-                        return ModernTagGroup(
-                          tags: tagData,
-                          selectedTags: selectedTags,
-                          multiSelect: false,
-                          variant: TagVariant.pill,
-                          size: TagSize.medium,
-                          onSelectionChanged: (selected) {
-                            setState(() {
-                              if (selected.isEmpty) {
-                                _selectedUrgencyTag = null;
-                                _selectedImportanceTag = null;
-                              } else {
-                                final selectedSlug = selected.first;
-                                if (_urgencyTags.contains(selectedSlug)) {
-                                  _selectedUrgencyTag = selectedSlug;
-                                  _selectedImportanceTag = null;
-                                } else if (_importanceTags.contains(selectedSlug)) {
-                                  _selectedImportanceTag = selectedSlug;
+                      data: (importanceTags) => executionTagsAsync.when(
+                        data: (executionTags) {
+                          // 合并所有标签
+                          final allTags = [...urgencyTags, ...importanceTags, ...executionTags];
+                          final tagData = _tagsToTagData(allTags);
+                          final selectedTags = <String>{
+                            if (_selectedUrgencyTag != null) _selectedUrgencyTag!,
+                            if (_selectedImportanceTag != null) _selectedImportanceTag!,
+                            if (_executionTag != null) _executionTag!,
+                          };
+                          
+                          return ModernTagGroup(
+                            tags: tagData,
+                            selectedTags: selectedTags,
+                            multiSelect: false,
+                            variant: TagVariant.pill,
+                            size: TagSize.medium,
+                            onSelectionChanged: (selected) {
+                              setState(() {
+                                if (selected.isEmpty) {
                                   _selectedUrgencyTag = null;
+                                  _selectedImportanceTag = null;
+                                  _executionTag = null;
+                                } else {
+                                  final selectedSlug = selected.first;
+                                  if (_urgencyTags.contains(selectedSlug)) {
+                                    _selectedUrgencyTag = selectedSlug;
+                                    _selectedImportanceTag = null;
+                                    _executionTag = null;
+                                  } else if (_importanceTags.contains(selectedSlug)) {
+                                    _selectedImportanceTag = selectedSlug;
+                                    _selectedUrgencyTag = null;
+                                    _executionTag = null;
+                                  } else if (_executionOptionSlugs.contains(selectedSlug)) {
+                                    _executionTag = selectedSlug;
+                                    _selectedUrgencyTag = null;
+                                    _selectedImportanceTag = null;
+                                  }
                                 }
-                              }
-                            });
-                          },
-                        );
-                      },
+                              });
+                            },
+                          );
+                        },
+                        loading: () => const CircularProgressIndicator(),
+                        error: (_, __) => const Text('加载标签失败'),
+                      ),
                       loading: () => const CircularProgressIndicator(),
                       error: (_, __) => Text('加载标签失败'),
                     ),
@@ -2006,77 +1921,6 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
                     error: (_, __) => Text('加载标签失败'),
                   );
                 },
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.projectSheetExecutionLabel,
-                style: theme.textTheme.titleSmall,
-              ),
-              const SizedBox(height: 8),
-              Consumer(
-                builder: (context, ref, child) {
-                  final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-                  
-                  return executionTagsAsync.when(
-                    data: (executionTags) {
-                      final tagData = _tagsToTagData(executionTags);
-                      final selectedTags = <String>{
-                        if (_executionTag != null) _executionTag!,
-                      };
-                      
-                      return ModernTagGroup(
-                        tags: tagData,
-                        selectedTags: selectedTags,
-                        multiSelect: false,
-                        variant: TagVariant.pill,
-                        size: TagSize.medium,
-                        onSelectionChanged: (selected) {
-                          setState(() {
-                            _executionTag = selected.isEmpty ? null : selected.first;
-                          });
-                        },
-                      );
-                    },
-                    loading: () => const CircularProgressIndicator(),
-                    error: (_, __) => const Text('加载标签失败'),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.projectSheetContextLabel,
-                style: theme.textTheme.titleSmall,
-              ),
-              const SizedBox(height: 8),
-              if (_contextTag != null)
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    InputChip(
-                      label: Text(_tagLabel(l10n, _contextTag!)),
-                      avatar: const Icon(Icons.alternate_email, size: 16),
-                      onDeleted: () {
-                        setState(() => _contextTag = null);
-                      },
-                    ),
-                  ],
-                ),
-              TextButton.icon(
-                onPressed: () async {
-                  final slug = await _pickContextTag();
-                  if (!mounted || slug == null) {
-                    return;
-                  }
-                  setState(() {
-                    _contextTag = slug;
-                  });
-                },
-                icon: const Icon(Icons.alternate_email),
-                label: Text(
-                  _contextTag == null
-                      ? l10n.projectSheetSelectContext
-                      : l10n.projectSheetChangeContext,
-                ),
               ),
               const SizedBox(height: 16),
               Row(
@@ -2125,20 +1969,6 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
                           onRemove: () => _removeMilestone(index),
                           onPickDeadline: () => _pickMilestoneDeadline(index),
                           onChanged: () => setState(() {}),
-                          onPickContext: () async {
-                            final slug = await _pickContextTag();
-                            if (!mounted || slug == null) {
-                              return;
-                            }
-                            setState(() {
-                              _milestones[index].contextTag = slug;
-                            });
-                          },
-                          onClearContext: () {
-                            setState(() {
-                              _milestones[index].contextTag = null;
-                            });
-                          },
                         ),
                       ),
                   ],
@@ -2245,8 +2075,9 @@ class _ProjectCreationSheetState extends ConsumerState<_ProjectCreationSheet> {
     if (title.isEmpty) {
       return;
     }
-    final description =
-        _showDescription ? _descriptionController.text.trim() : null;
+    final description = _descriptionController.text.trim().isEmpty
+        ? null
+        : _descriptionController.text.trim();
     final sanitizedDescription =
         description != null && description.isNotEmpty ? description : null;
 
@@ -2289,7 +2120,6 @@ class _MilestoneDraft {
   String? urgencyTag;
   String? importanceTag;
   String? executionTag;
-  String? contextTag;
   VoidCallback? titleListener;
   bool suppressShortcut = false;
 
@@ -2314,9 +2144,6 @@ class _MilestoneDraft {
     if (executionTag != null) {
       tags.add(executionTag!);
     }
-    if (contextTag != null) {
-      tags.add(contextTag!);
-    }
     return tags;
   }
 
@@ -2329,22 +2156,29 @@ class _MilestoneDraft {
   }
 }
 
-class _MilestoneDraftTile extends StatelessWidget {
+class _MilestoneDraftTile extends StatefulWidget {
   const _MilestoneDraftTile({
     required this.draft,
     required this.onRemove,
     required this.onPickDeadline,
     required this.onChanged,
-    required this.onPickContext,
-    required this.onClearContext,
   });
 
   final _MilestoneDraft draft;
   final VoidCallback onRemove;
   final Future<void> Function() onPickDeadline;
   final VoidCallback onChanged;
-  final Future<void> Function() onPickContext;
-  final VoidCallback onClearContext;
+
+  @override
+  State<_MilestoneDraftTile> createState() => _MilestoneDraftTileState();
+}
+
+class _MilestoneDraftTileState extends State<_MilestoneDraftTile> {
+
+  /// 将Tag列表转换为TagData列表
+  List<TagData> _tagsToTagData(BuildContext context, List<Tag> tags) {
+    return tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2360,17 +2194,17 @@ class _MilestoneDraftTile extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: draft.titleController,
-                    maxLength: 255,
-                    decoration: InputDecoration(
-                      labelText: l10n.taskListInputLabel,
-                      hintText: l10n.projectSheetMilestoneTitleHint,
-                    ),
+                  child: FlexibleTextInput(
+                    controller: widget.draft.titleController,
+                    softLimit: 50,
+                    hardLimit: 255,
+                    hintText: l10n.projectSheetMilestoneTitleHint,
+                    labelText: l10n.taskListInputLabel,
+                    onChanged: (_) => widget.onChanged(),
                   ),
                 ),
                 IconButton(
-                  onPressed: onRemove,
+                  onPressed: widget.onRemove,
                   icon: const Icon(Icons.delete_outline),
                   tooltip: l10n.commonDelete,
                 ),
@@ -2381,99 +2215,90 @@ class _MilestoneDraftTile extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    draft.deadline != null
-                        ? _formatDeadline(context, draft.deadline) ?? ''
+                    widget.draft.deadline != null
+                        ? _formatDeadline(context, widget.draft.deadline) ?? ''
                         : l10n.projectSheetSelectDeadlineHint,
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: onPickDeadline,
+                  onPressed: widget.onPickDeadline,
                   icon: const Icon(Icons.calendar_month_outlined),
                   label: Text(l10n.projectSheetSelectDeadline),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _quadrantOptionSlugs.map((slug) {
-                final isUrgency = _urgencyTags.contains(slug);
-                final selected = isUrgency
-                    ? draft.urgencyTag == slug
-                    : draft.importanceTag == slug;
-                return ChoiceChip(
-                  label: Text(_tagLabel(l10n, slug)),
-                  selected: selected,
-                  onSelected: (value) {
-                    if (isUrgency) {
-                      if (value) {
-                        draft.urgencyTag = slug;
-                      } else if (draft.urgencyTag == slug) {
-                        draft.urgencyTag = null;
-                      }
-                    } else {
-                      if (value) {
-                        draft.importanceTag = slug;
-                      } else if (draft.importanceTag == slug) {
-                        draft.importanceTag = null;
-                      }
-                    }
-                    onChanged();
-                  },
+            // 四象限标签和执行方式标签inline排列
+            Consumer(
+              builder: (context, ref, child) {
+                final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
+                final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
+                final executionTagsAsync = ref.watch(executionTagOptionsProvider);
+                
+                return urgencyTagsAsync.when(
+                  data: (urgencyTags) => importanceTagsAsync.when(
+                    data: (importanceTags) => executionTagsAsync.when(
+                      data: (executionTags) {
+                        // 合并所有标签
+                        final allTags = [...urgencyTags, ...importanceTags, ...executionTags];
+                        final tagData = _tagsToTagData(context, allTags);
+                        final selectedTags = <String>{
+                          if (widget.draft.urgencyTag != null) widget.draft.urgencyTag!,
+                          if (widget.draft.importanceTag != null) widget.draft.importanceTag!,
+                          if (widget.draft.executionTag != null) widget.draft.executionTag!,
+                        };
+                        
+                        return ModernTagGroup(
+                          tags: tagData,
+                          selectedTags: selectedTags,
+                          multiSelect: false,
+                          variant: TagVariant.pill,
+                          size: TagSize.medium,
+                          onSelectionChanged: (selected) {
+                            if (selected.isEmpty) {
+                              widget.draft.urgencyTag = null;
+                              widget.draft.importanceTag = null;
+                              widget.draft.executionTag = null;
+                            } else {
+                              final selectedSlug = selected.first;
+                              if (_urgencyTags.contains(selectedSlug)) {
+                                widget.draft.urgencyTag = selectedSlug;
+                                widget.draft.importanceTag = null;
+                                widget.draft.executionTag = null;
+                              } else if (_importanceTags.contains(selectedSlug)) {
+                                widget.draft.importanceTag = selectedSlug;
+                                widget.draft.urgencyTag = null;
+                                widget.draft.executionTag = null;
+                              } else if (_executionOptionSlugs.contains(selectedSlug)) {
+                                widget.draft.executionTag = selectedSlug;
+                                widget.draft.urgencyTag = null;
+                                widget.draft.importanceTag = null;
+                              }
+                            }
+                            widget.onChanged();
+                          },
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (_, __) => const Text('加载标签失败'),
+                    ),
+                    loading: () => const CircularProgressIndicator(),
+                    error: (_, __) => Text('加载标签失败'),
+                  ),
+                  loading: () => const CircularProgressIndicator(),
+                  error: (_, __) => Text('加载标签失败'),
                 );
-              }).toList(growable: false),
+              },
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: _executionOptionSlugs.map((slug) {
-                final selected = draft.executionTag == slug;
-                return ChoiceChip(
-                  label: Text(_tagLabel(l10n, slug)),
-                  selected: selected,
-                  onSelected: (value) {
-                    draft.executionTag = value ? slug : null;
-                    onChanged();
-                  },
-                );
-              }).toList(growable: false),
-            ),
-            const SizedBox(height: 12),
-            if (draft.contextTag != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: InputChip(
-                  label: Text(_tagLabel(l10n, draft.contextTag!)),
-                  avatar: const Icon(Icons.alternate_email, size: 16),
-                  onDeleted: onClearContext,
-                ),
-              ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: onPickContext,
-                icon: const Icon(Icons.alternate_email),
-                label: Text(
-                  draft.contextTag == null
-                      ? l10n.projectSheetSelectContext
-                      : l10n.projectSheetChangeContext,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: draft.descriptionController,
-              maxLength: 60000,
-              minLines: 2,
-              maxLines: 6,
-              decoration: InputDecoration(
-                labelText: l10n.projectSheetDescriptionHint,
-                hintText: l10n.projectSheetDescriptionHint,
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (_) => onChanged(),
+            FlexibleDescriptionInput(
+              controller: widget.draft.descriptionController,
+              softLimit: 200,
+              hardLimit: 60000,
+              hintText: l10n.projectSheetDescriptionHint,
+              labelText: l10n.flexibleDescriptionLabel,
+              onChanged: (_) => widget.onChanged(),
             ),
           ],
         ),

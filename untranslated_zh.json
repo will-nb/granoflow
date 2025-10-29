@@ -5,5 +5,25 @@
     "datePickerThisWeek",
     "datePickerThisMonth",
     "datePickerCustom"
+  ],
+
+  "zh_CN": [
+    "flexibleDescriptionAdd",
+    "flexibleDescriptionEdit",
+    "flexibleDescriptionHide",
+    "flexibleDescriptionLabel",
+    "flexibleInputExceeded",
+    "flexibleInputHardLimit",
+    "flexibleInputSoftLimit"
+  ],
+
+  "zh_HK": [
+    "flexibleDescriptionAdd",
+    "flexibleDescriptionEdit",
+    "flexibleDescriptionHide",
+    "flexibleDescriptionLabel",
+    "flexibleInputExceeded",
+    "flexibleInputHardLimit",
+    "flexibleInputSoftLimit"
   ]
 }

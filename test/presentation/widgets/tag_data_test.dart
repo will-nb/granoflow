@@ -73,7 +73,7 @@ void main() {
       expect(tagData.slug, '#important');
       expect(tagData.label, 'Important');
       expect(tagData.color, OceanBreezeColorSchemes.warmYellow);
-      expect(tagData.icon, Icons.star_outline);
+      expect(tagData.icon, Icons.star);
       expect(tagData.prefix, isNull); // ARB 文件中已包含前缀，不再单独返回
     });
 
@@ -91,7 +91,7 @@ void main() {
 
       // Assert
       expect(tagData.color, OceanBreezeColorSchemes.lightBlueGray);
-      expect(tagData.icon, Icons.schedule);
+      expect(tagData.icon, Icons.event_available);
     });
 
     test('fromTag creates TagData for not_important tag', () {
@@ -108,7 +108,7 @@ void main() {
 
       // Assert
       expect(tagData.color, OceanBreezeColorSchemes.silverGray);
-      expect(tagData.icon, Icons.star_border);
+      expect(tagData.icon, Icons.star_outline);
     });
 
     test('fromTag creates TagData for waiting tag', () {

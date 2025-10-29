@@ -1,0 +1,252 @@
+meta:
+  id: "251201-widgets-flexible-input-redesign"
+  title: "FlexibleTextInput 和 FlexibleDescriptionInput 现代化重设计 - 迭代蓝图"
+  based_on: "documents/spec/widgets/design/251201-flexible-input-redesign.yaml"
+  status: draft
+  owner: "AI Assistant"
+  created: "2025-12-01"
+
+scope:
+  includes:
+    - "提取公共字符计数器组件 CharacterCounterChip"
+    - "重构 FlexibleTextInput 为现代卡片式设计"
+    - "重构 FlexibleDescriptionInput 优化交互"
+    - "添加国际化支持（中文、英文）"
+    - "修复多行切换 bug"
+    - "添加 Semantics 可访问性支持"
+    - "编写完整的 widget 测试"
+  
+  excludes:
+    - "不修改使用这两个组件的页面（如 create_task_dialog）"
+    - "不修改主题系统（使用现有主题）"
+    - "不添加新的依赖包"
+
+changes:
+  code_updates:
+    - file: "lib/presentation/widgets/character_counter_chip.dart"
+      type: create
+      intent: "创建可复用的字符计数器 Chip 组件，支持三种状态（正常/警告/错误）"
+      details:
+        - "接收 currentCount, softLimit, hardLimit 参数"
+        - "根据字符数显示不同样式和文本"
+        - "集成 l10n 国际化"
+        - "添加 Semantics 标签"
+    
+    - file: "lib/presentation/widgets/flexible_text_input.dart"
+      type: modify
+      intent: "重构为现代卡片式设计，修复多行切换 bug"
+      details:
+        - "移除 _buildCharacterCounter() 方法，使用 CharacterCounterChip"
+        - "添加 AnimatedContainer 实现焦点动画"
+        - "修复第77行多行切换 bug：移除 || _isMultiLine 条件"
+        - "将 OutlineInputBorder 改为自定义 Container 装饰"
+        - "添加焦点状态管理（FocusNode）"
+        - "集成 l10n：移除硬编码中文字符串"
+        - "添加 Semantics 标签"
+    
+    - file: "lib/presentation/widgets/flexible_description_input.dart"
+      type: modify
+      intent: "优化展开/收起交互，添加动画"
+      details:
+        - "移除 _buildCharacterCounter() 方法，使用 CharacterCounterChip"
+        - "优化展开按钮设计：Icon + Text + 动画箭头"
+        - "添加 AnimatedSize 实现展开/收起动画"
+        - "添加 AnimatedRotation 实现箭头旋转"
+        - "根据内容状态显示不同文案（添加/编辑）"
+        - "添加底部收起按钮"
+        - "集成 l10n：移除硬编码中文字符串"
+        - "添加 Semantics 标签"
+    
+    - file: "lib/l10n/app_zh.arb"
+      type: modify
+      intent: "添加 FlexibleInput 相关的中文国际化字符串"
+      details:
+        - "按字母顺序插入新的翻译键"
+        - "添加 6 个新的翻译键"
+    
+    - file: "lib/l10n/app_en.arb"
+      type: modify
+      intent: "添加 FlexibleInput 相关的英文国际化字符串"
+      details:
+        - "按字母顺序插入新的翻译键"
+        - "添加 6 个新的翻译键"
+  
+  data_model:
+    - entity: "无"
+      change: "不涉及数据模型变更"
+  
+  tests:
+    - type: widget
+      file: "test/presentation/widgets/character_counter_chip_test.dart"
+      focus: "测试 CharacterCounterChip 的三种状态渲染和样式"
+      test_cases:
+        - "正常状态：count <= softLimit"
+        - "警告状态：softLimit < count < hardLimit"
+        - "错误状态：count == hardLimit"
+        - "国际化文本正确显示"
+        - "颜色和图标正确应用"
+    
+    - type: widget
+      file: "test/presentation/widgets/flexible_text_input_test.dart"
+      focus: "测试 FlexibleTextInput 的交互和状态"
+      test_cases:
+        - "初始渲染正常"
+        - "字符计数器正确显示"
+        - "超过软限制时显示警告"
+        - "达到硬限制时阻止输入"
+        - "多行切换逻辑正确（可以切回单行）"
+        - "焦点状态切换正常"
+        - "国际化文本正确"
+        - "Semantics 标签存在"
+    
+    - type: widget
+      file: "test/presentation/widgets/flexible_description_input_test.dart"
+      focus: "测试 FlexibleDescriptionInput 的展开/收起交互"
+      test_cases:
+        - "初始状态为收起，显示'添加描述'"
+        - "点击展开按钮后显示输入框"
+        - "输入内容后，收起再展开显示'编辑描述'"
+        - "字符计数器正确显示"
+        - "超限警告正确显示"
+        - "点击收起按钮后隐藏输入框"
+        - "国际化文本正确"
+        - "Semantics 标签存在"
+  
+  documentation:
+    - path: "documents/spec/widgets/design/251201-flexible-input-redesign.yaml"
+      update_type: reference_only
+      note: "设计文档已创建，作为本次迭代的依据"
+    
+    - path: "documents/spec/widgets/iteration/251201-flexible-input-redesign.yaml"
+      update_type: create
+      note: "本文档，迭代蓝图"
+
+risks:
+  - name: "破坏现有使用这两个组件的页面"
+    mitigation: "组件接口保持不变，只改内部实现；实施后需手动测试相关页面"
+    affected_files:
+      - "可能使用 FlexibleTextInput 的对话框或表单"
+      - "可能使用 FlexibleDescriptionInput 的创建/编辑页面"
+  
+  - name: "国际化字符串的键名冲突"
+    mitigation: "在添加前先搜索现有键名，确保不冲突；使用明确的前缀 flexibleInput*"
+  
+  - name: "动画性能问题"
+    mitigation: "使用轻量级动画（200ms），避免复杂的 Tween；在低端设备上测试"
+  
+  - name: "测试覆盖不完整"
+    mitigation: "遵循测试计划，确保覆盖所有状态和边界条件；运行 flutter test --coverage 检查覆盖率"
+  
+  - name: "主题色在暗色模式下对比度不足"
+    mitigation: "使用 Theme.of(context).colorScheme 自适应颜色；在两种模式下手动测试"
+
+verification:
+  checklist:
+    - "✅ 所有新文件和修改文件创建完成"
+    - "✅ 运行 flutter pub get 确保依赖正常"
+    - "✅ 运行 flutter gen-l10n 生成国际化文件"
+    - "✅ 运行 flutter analyze 无错误无警告"
+    - "✅ 运行 flutter test test/presentation/widgets/character_counter_chip_test.dart 通过"
+    - "✅ 运行 flutter test test/presentation/widgets/flexible_text_input_test.dart 通过"
+    - "✅ 运行 flutter test test/presentation/widgets/flexible_description_input_test.dart 通过"
+    - "✅ 手动测试：在浅色模式下查看组件效果"
+    - "✅ 手动测试：在深色模式下查看组件效果"
+    - "✅ 手动测试：切换语言（中文/英文）验证国际化"
+    - "✅ 手动测试：焦点动画流畅"
+    - "✅ 手动测试：展开/收起动画流畅"
+    - "✅ 手动测试：字符计数器在各种状态下显示正确"
+    - "✅ 手动测试：多行切换逻辑正确（能切回单行）"
+    - "✅ 可访问性测试：屏幕阅读器能识别 Semantics"
+
+implementation_order:
+  phase_1_foundation:
+    - step: 1
+      task: "添加国际化字符串到 app_zh.arb 和 app_en.arb"
+      reason: "后续组件依赖这些字符串"
+    
+    - step: 2
+      task: "运行 flutter gen-l10n 生成国际化文件"
+      reason: "确保可以在代码中使用新的翻译键"
+    
+    - step: 3
+      task: "创建 CharacterCounterChip 组件"
+      reason: "两个主组件都依赖这个公共组件"
+  
+  phase_2_refactor:
+    - step: 4
+      task: "重构 FlexibleTextInput"
+      reason: "实现核心功能，测试新设计"
+    
+    - step: 5
+      task: "重构 FlexibleDescriptionInput"
+      reason: "基于 FlexibleTextInput 的经验继续优化"
+  
+  phase_3_testing:
+    - step: 6
+      task: "编写 character_counter_chip_test.dart"
+      reason: "确保基础组件稳定"
+    
+    - step: 7
+      task: "编写 flexible_text_input_test.dart"
+      reason: "验证核心功能"
+    
+    - step: 8
+      task: "编写 flexible_description_input_test.dart"
+      reason: "验证扩展功能"
+    
+    - step: 9
+      task: "运行所有测试和静态分析"
+      reason: "最终验证，确保质量"
+
+estimated_effort:
+  total_hours: "4-6 小时"
+  breakdown:
+    - task: "国际化字符串添加"
+      time: "30 分钟"
+    
+    - task: "CharacterCounterChip 实现"
+      time: "1 小时"
+    
+    - task: "FlexibleTextInput 重构"
+      time: "1.5 小时"
+    
+    - task: "FlexibleDescriptionInput 重构"
+      time: "1 小时"
+    
+    - task: "测试编写"
+      time: "1.5 小时"
+    
+    - task: "手动测试和调试"
+      time: "30-1.5 小时"
+
+acceptance_criteria:
+  functional:
+    - "字符计数器以 Chip 风格显示在输入框内"
+    - "输入框有现代卡片式外观（圆角、阴影）"
+    - "焦点时输入框有放大动画和边框颜色变化"
+    - "字符数超过软限制时显示警告"
+    - "字符数达到硬限制时阻止输入"
+    - "描述输入框展开/收起动画流畅"
+    - "多行切换逻辑正确，可以从多行切回单行"
+    - "所有文本支持中英文切换"
+  
+  non_functional:
+    - "所有测试通过，覆盖率 ≥ 80%"
+    - "flutter analyze 无错误无警告"
+    - "动画流畅，无卡顿（60fps）"
+    - "在浅色和深色模式下都清晰可读"
+    - "屏幕阅读器可识别所有元素"
+    - "代码无重复，遵循 DRY 原则"
+    - "符合项目代码规范"
+
+rollback_plan:
+  trigger_conditions:
+    - "测试无法通过且 3 次尝试后仍失败"
+    - "发现严重性能问题"
+    - "现有页面布局严重错乱"
+  
+  steps:
+    - "git stash 或 git reset --hard HEAD"
+    - "恢复到修改前的状态"
+    - "重新评估设计方案"
+    - "创建 checkpoint 提交以便复盘"
