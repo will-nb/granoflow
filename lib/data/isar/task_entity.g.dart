@@ -27,64 +27,81 @@ const TaskEntitySchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'dueAt': PropertySchema(
+    r'description': PropertySchema(
       id: 2,
+      name: r'description',
+      type: IsarType.string,
+    ),
+    r'dueAt': PropertySchema(
+      id: 3,
       name: r'dueAt',
       type: IsarType.dateTime,
     ),
     r'endedAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'endedAt',
       type: IsarType.dateTime,
     ),
+    r'logs': PropertySchema(
+      id: 5,
+      name: r'logs',
+      type: IsarType.objectList,
+      target: r'TaskLogEntryEntity',
+    ),
     r'parentId': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'parentId',
       type: IsarType.long,
     ),
     r'seedSlug': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'seedSlug',
       type: IsarType.string,
     ),
     r'sortIndex': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'sortIndex',
       type: IsarType.double,
     ),
     r'startedAt': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'startedAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TaskEntitystatusEnumValueMap,
     ),
     r'tags': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'taskId': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'taskId',
       type: IsarType.string,
     ),
+    r'taskKind': PropertySchema(
+      id: 13,
+      name: r'taskKind',
+      type: IsarType.byte,
+      enumMap: _TaskEntitytaskKindEnumValueMap,
+    ),
     r'templateLockCount': PropertySchema(
-      id: 11,
+      id: 14,
       name: r'templateLockCount',
       type: IsarType.long,
     ),
     r'title': PropertySchema(
-      id: 12,
+      id: 15,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 13,
+      id: 16,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -133,10 +150,23 @@ const TaskEntitySchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'taskKind': IndexSchema(
+      id: -1030952705711729561,
+      name: r'taskKind',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'taskKind',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'TaskLogEntryEntity': TaskLogEntryEntitySchema},
   getId: _taskEntityGetId,
   getLinks: _taskEntityGetLinks,
   attach: _taskEntityAttach,
@@ -149,6 +179,21 @@ int _taskEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.description;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.logs.length * 3;
+  {
+    final offsets = allOffsets[TaskLogEntryEntity]!;
+    for (var i = 0; i < object.logs.length; i++) {
+      final value = object.logs[i];
+      bytesCount +=
+          TaskLogEntryEntitySchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   {
     final value = object.seedSlug;
     if (value != null) {
@@ -175,18 +220,26 @@ void _taskEntitySerialize(
 ) {
   writer.writeBool(offsets[0], object.allowInstantComplete);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeDateTime(offsets[2], object.dueAt);
-  writer.writeDateTime(offsets[3], object.endedAt);
-  writer.writeLong(offsets[4], object.parentId);
-  writer.writeString(offsets[5], object.seedSlug);
-  writer.writeDouble(offsets[6], object.sortIndex);
-  writer.writeDateTime(offsets[7], object.startedAt);
-  writer.writeByte(offsets[8], object.status.index);
-  writer.writeStringList(offsets[9], object.tags);
-  writer.writeString(offsets[10], object.taskId);
-  writer.writeLong(offsets[11], object.templateLockCount);
-  writer.writeString(offsets[12], object.title);
-  writer.writeDateTime(offsets[13], object.updatedAt);
+  writer.writeString(offsets[2], object.description);
+  writer.writeDateTime(offsets[3], object.dueAt);
+  writer.writeDateTime(offsets[4], object.endedAt);
+  writer.writeObjectList<TaskLogEntryEntity>(
+    offsets[5],
+    allOffsets,
+    TaskLogEntryEntitySchema.serialize,
+    object.logs,
+  );
+  writer.writeLong(offsets[6], object.parentId);
+  writer.writeString(offsets[7], object.seedSlug);
+  writer.writeDouble(offsets[8], object.sortIndex);
+  writer.writeDateTime(offsets[9], object.startedAt);
+  writer.writeByte(offsets[10], object.status.index);
+  writer.writeStringList(offsets[11], object.tags);
+  writer.writeString(offsets[12], object.taskId);
+  writer.writeByte(offsets[13], object.taskKind.index);
+  writer.writeLong(offsets[14], object.templateLockCount);
+  writer.writeString(offsets[15], object.title);
+  writer.writeDateTime(offsets[16], object.updatedAt);
 }
 
 TaskEntity _taskEntityDeserialize(
@@ -198,21 +251,32 @@ TaskEntity _taskEntityDeserialize(
   final object = TaskEntity();
   object.allowInstantComplete = reader.readBool(offsets[0]);
   object.createdAt = reader.readDateTime(offsets[1]);
-  object.dueAt = reader.readDateTimeOrNull(offsets[2]);
-  object.endedAt = reader.readDateTimeOrNull(offsets[3]);
+  object.description = reader.readStringOrNull(offsets[2]);
+  object.dueAt = reader.readDateTimeOrNull(offsets[3]);
+  object.endedAt = reader.readDateTimeOrNull(offsets[4]);
   object.id = id;
-  object.parentId = reader.readLongOrNull(offsets[4]);
-  object.seedSlug = reader.readStringOrNull(offsets[5]);
-  object.sortIndex = reader.readDouble(offsets[6]);
-  object.startedAt = reader.readDateTimeOrNull(offsets[7]);
+  object.logs = reader.readObjectList<TaskLogEntryEntity>(
+        offsets[5],
+        TaskLogEntryEntitySchema.deserialize,
+        allOffsets,
+        TaskLogEntryEntity(),
+      ) ??
+      [];
+  object.parentId = reader.readLongOrNull(offsets[6]);
+  object.seedSlug = reader.readStringOrNull(offsets[7]);
+  object.sortIndex = reader.readDouble(offsets[8]);
+  object.startedAt = reader.readDateTimeOrNull(offsets[9]);
   object.status =
-      _TaskEntitystatusValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+      _TaskEntitystatusValueEnumMap[reader.readByteOrNull(offsets[10])] ??
           TaskStatus.inbox;
-  object.tags = reader.readStringList(offsets[9]) ?? [];
-  object.taskId = reader.readString(offsets[10]);
-  object.templateLockCount = reader.readLong(offsets[11]);
-  object.title = reader.readString(offsets[12]);
-  object.updatedAt = reader.readDateTime(offsets[13]);
+  object.tags = reader.readStringList(offsets[11]) ?? [];
+  object.taskId = reader.readString(offsets[12]);
+  object.taskKind =
+      _TaskEntitytaskKindValueEnumMap[reader.readByteOrNull(offsets[13])] ??
+          TaskKind.regular;
+  object.templateLockCount = reader.readLong(offsets[14]);
+  object.title = reader.readString(offsets[15]);
+  object.updatedAt = reader.readDateTime(offsets[16]);
   return object;
 }
 
@@ -228,29 +292,42 @@ P _taskEntityDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset)) as P;
-    case 5:
-      return (reader.readStringOrNull(offset)) as P;
-    case 6:
-      return (reader.readDouble(offset)) as P;
-    case 7:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 5:
+      return (reader.readObjectList<TaskLogEntryEntity>(
+            offset,
+            TaskLogEntryEntitySchema.deserialize,
+            allOffsets,
+            TaskLogEntryEntity(),
+          ) ??
+          []) as P;
+    case 6:
+      return (reader.readLongOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
+      return (reader.readDouble(offset)) as P;
+    case 9:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 10:
       return (_TaskEntitystatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TaskStatus.inbox) as P;
-    case 9:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 10:
-      return (reader.readString(offset)) as P;
     case 11:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 12:
       return (reader.readString(offset)) as P;
     case 13:
+      return (_TaskEntitytaskKindValueEnumMap[reader.readByteOrNull(offset)] ??
+          TaskKind.regular) as P;
+    case 14:
+      return (reader.readLong(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -274,6 +351,16 @@ const _TaskEntitystatusValueEnumMap = {
   4: TaskStatus.archived,
   5: TaskStatus.trashed,
   6: TaskStatus.pseudoDeleted,
+};
+const _TaskEntitytaskKindEnumValueMap = {
+  'regular': 0,
+  'project': 1,
+  'milestone': 2,
+};
+const _TaskEntitytaskKindValueEnumMap = {
+  0: TaskKind.regular,
+  1: TaskKind.project,
+  2: TaskKind.milestone,
 };
 
 Id _taskEntityGetId(TaskEntity object) {
@@ -316,6 +403,14 @@ extension TaskEntityQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'parentId'),
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhere> anyTaskKind() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'taskKind'),
       );
     });
   }
@@ -697,6 +792,96 @@ extension TaskEntityQueryWhere
       ));
     });
   }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindEqualTo(
+      TaskKind taskKind) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'taskKind',
+        value: [taskKind],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindNotEqualTo(
+      TaskKind taskKind) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'taskKind',
+              lower: [],
+              upper: [taskKind],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'taskKind',
+              lower: [taskKind],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'taskKind',
+              lower: [taskKind],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'taskKind',
+              lower: [],
+              upper: [taskKind],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindGreaterThan(
+    TaskKind taskKind, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'taskKind',
+        lower: [taskKind],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindLessThan(
+    TaskKind taskKind, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'taskKind',
+        lower: [],
+        upper: [taskKind],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindBetween(
+    TaskKind lowerTaskKind,
+    TaskKind upperTaskKind, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'taskKind',
+        lower: [lowerTaskKind],
+        includeLower: includeLower,
+        upper: [upperTaskKind],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension TaskEntityQueryFilter
@@ -761,6 +946,160 @@ extension TaskEntityQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'description',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'description',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'description',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'description',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'description',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      descriptionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'description',
+        value: '',
       ));
     });
   }
@@ -955,6 +1294,92 @@ extension TaskEntityQueryFilter
         upper: upper,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> logsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'logs',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> logsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'logs',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> logsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'logs',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      logsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'logs',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      logsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'logs',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> logsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'logs',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -1721,6 +2146,60 @@ extension TaskEntityQueryFilter
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> taskKindEqualTo(
+      TaskKind value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'taskKind',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      taskKindGreaterThan(
+    TaskKind value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'taskKind',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> taskKindLessThan(
+    TaskKind value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'taskKind',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> taskKindBetween(
+    TaskKind lower,
+    TaskKind upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'taskKind',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
       templateLockCountEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1964,7 +2443,14 @@ extension TaskEntityQueryFilter
 }
 
 extension TaskEntityQueryObject
-    on QueryBuilder<TaskEntity, TaskEntity, QFilterCondition> {}
+    on QueryBuilder<TaskEntity, TaskEntity, QFilterCondition> {
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> logsElement(
+      FilterQuery<TaskLogEntryEntity> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'logs');
+    });
+  }
+}
 
 extension TaskEntityQueryLinks
     on QueryBuilder<TaskEntity, TaskEntity, QFilterCondition> {}
@@ -1994,6 +2480,18 @@ extension TaskEntityQuerySortBy
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByDescription() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByDescriptionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
     });
   }
 
@@ -2093,6 +2591,18 @@ extension TaskEntityQuerySortBy
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByTaskKind() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'taskKind', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByTaskKindDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'taskKind', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByTemplateLockCount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'templateLockCount', Sort.asc);
@@ -2156,6 +2666,18 @@ extension TaskEntityQuerySortThenBy
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByDescription() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByDescriptionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
     });
   }
 
@@ -2267,6 +2789,18 @@ extension TaskEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByTaskKind() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'taskKind', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByTaskKindDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'taskKind', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByTemplateLockCount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'templateLockCount', Sort.asc);
@@ -2317,6 +2851,13 @@ extension TaskEntityQueryWhereDistinct
   QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByDescription(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
     });
   }
 
@@ -2376,6 +2917,12 @@ extension TaskEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByTaskKind() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'taskKind');
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QDistinct>
       distinctByTemplateLockCount() {
     return QueryBuilder.apply(this, (query) {
@@ -2418,6 +2965,12 @@ extension TaskEntityQueryProperty
     });
   }
 
+  QueryBuilder<TaskEntity, String?, QQueryOperations> descriptionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'description');
+    });
+  }
+
   QueryBuilder<TaskEntity, DateTime?, QQueryOperations> dueAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'dueAt');
@@ -2427,6 +2980,13 @@ extension TaskEntityQueryProperty
   QueryBuilder<TaskEntity, DateTime?, QQueryOperations> endedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'endedAt');
+    });
+  }
+
+  QueryBuilder<TaskEntity, List<TaskLogEntryEntity>, QQueryOperations>
+      logsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'logs');
     });
   }
 
@@ -2472,6 +3032,12 @@ extension TaskEntityQueryProperty
     });
   }
 
+  QueryBuilder<TaskEntity, TaskKind, QQueryOperations> taskKindProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'taskKind');
+    });
+  }
+
   QueryBuilder<TaskEntity, int, QQueryOperations> templateLockCountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'templateLockCount');
@@ -2490,3 +3056,784 @@ extension TaskEntityQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const TaskLogEntryEntitySchema = Schema(
+  name: r'TaskLogEntryEntity',
+  id: -909779148545180028,
+  properties: {
+    r'action': PropertySchema(
+      id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'actor': PropertySchema(
+      id: 1,
+      name: r'actor',
+      type: IsarType.string,
+    ),
+    r'next': PropertySchema(
+      id: 2,
+      name: r'next',
+      type: IsarType.string,
+    ),
+    r'previous': PropertySchema(
+      id: 3,
+      name: r'previous',
+      type: IsarType.string,
+    ),
+    r'timestamp': PropertySchema(
+      id: 4,
+      name: r'timestamp',
+      type: IsarType.dateTime,
+    )
+  },
+  estimateSize: _taskLogEntryEntityEstimateSize,
+  serialize: _taskLogEntryEntitySerialize,
+  deserialize: _taskLogEntryEntityDeserialize,
+  deserializeProp: _taskLogEntryEntityDeserializeProp,
+);
+
+int _taskLogEntryEntityEstimateSize(
+  TaskLogEntryEntity object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.action.length * 3;
+  {
+    final value = object.actor;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.next;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.previous;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _taskLogEntryEntitySerialize(
+  TaskLogEntryEntity object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.action);
+  writer.writeString(offsets[1], object.actor);
+  writer.writeString(offsets[2], object.next);
+  writer.writeString(offsets[3], object.previous);
+  writer.writeDateTime(offsets[4], object.timestamp);
+}
+
+TaskLogEntryEntity _taskLogEntryEntityDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = TaskLogEntryEntity();
+  object.action = reader.readString(offsets[0]);
+  object.actor = reader.readStringOrNull(offsets[1]);
+  object.next = reader.readStringOrNull(offsets[2]);
+  object.previous = reader.readStringOrNull(offsets[3]);
+  object.timestamp = reader.readDateTime(offsets[4]);
+  return object;
+}
+
+P _taskLogEntryEntityDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readDateTime(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension TaskLogEntryEntityQueryFilter
+    on QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QFilterCondition> {
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'actor',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'actor',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'actor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'actor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'actor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'actor',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'actor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'actor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'actor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'actor',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'actor',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      actorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'actor',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'next',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'next',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'next',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'next',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'next',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'next',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'next',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'next',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'next',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'next',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'next',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      nextIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'next',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'previous',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'previous',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'previous',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'previous',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'previous',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'previous',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'previous',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'previous',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'previous',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'previous',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'previous',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      previousIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'previous',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      timestampEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'timestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      timestampGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'timestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      timestampLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'timestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QAfterFilterCondition>
+      timestampBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'timestamp',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension TaskLogEntryEntityQueryObject
+    on QueryBuilder<TaskLogEntryEntity, TaskLogEntryEntity, QFilterCondition> {}

@@ -213,6 +213,19 @@ final rootTasksProvider = FutureProvider<List<Task>>((ref) async {
   return ref.watch(taskRepositoryProvider).listRoots();
 });
 
+final projectsProvider = StreamProvider<List<Task>>((ref) {
+  return ref.watch(taskRepositoryProvider).watchProjects();
+});
+
+final quickTasksProvider = StreamProvider<List<Task>>((ref) {
+  return ref.watch(taskRepositoryProvider).watchQuickTasks();
+});
+
+final projectMilestonesProvider =
+    StreamProvider.family<List<Task>, int>((ref, projectId) {
+      return ref.watch(taskRepositoryProvider).watchMilestones(projectId);
+    });
+
 final taskTreeProvider = StreamProvider.family<TaskTreeNode, int>((
   ref,
   rootId,
@@ -225,6 +238,7 @@ final expandedRootTaskIdProvider = StateProvider<int?>((ref) => null);
 /// Provider for managing expanded task ID in task list page
 final taskListExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 final inboxExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
+final projectsExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 
 class TaskEditActionsNotifier extends AsyncNotifier<void> {
   @override
@@ -373,6 +387,16 @@ final importanceTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   } catch (error) {
     debugPrint('ImportanceTagOptionsProvider error: $error');
     return <Tag>[]; // 返回空列表而不是抛出错误
+  }
+});
+
+final executionTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
+  try {
+    ref.watch(seedInitializerProvider);
+    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.execution);
+  } catch (error) {
+    debugPrint('ExecutionTagOptionsProvider error: $error');
+    return <Tag>[];
   }
 });
 

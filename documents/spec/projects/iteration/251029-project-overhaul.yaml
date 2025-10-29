@@ -1,0 +1,87 @@
+meta:
+  id: "251029-project-overhaul-iteration"
+  title: "Projects 视图与项目创建改造迭代"
+  based_on: "documents/spec/projects/design/251029-project-overhaul.yaml"
+  status: draft
+  owner: "will"
+
+scope:
+  includes:
+    - "Projects 模式页面（lib/presentation/tasks/task_list_page.dart 及相关 widgets/providers）"
+    - "项目创建弹窗、里程碑编辑交互"
+    - "Task 数据模型与仓库、服务层（task_kind、log 字段扩展）"
+    - "四象限/情境/特殊标签选择与展示逻辑"
+    - "快速任务区块 UI 与行为"
+  excludes:
+    - "统计/报表页面中对 log 的可视化展示"
+    - "归档列表或历史项目列表"
+    - "跨平台通知与提醒功能"
+
+changes:
+  code_updates:
+    - file: "lib/data/models/task.dart"
+      type: modify
+      intent: "新增 taskKind 字段（regular/project/milestone），扩展 log 字段用于 deadline 变更记录"
+    - file: "lib/data/repositories/task_repository.dart"
+      type: modify
+      intent: "读写 taskKind/log；提供查询 projects、milestones、quick tasks 的方法"
+    - file: "lib/core/services/task_service.dart"
+      type: modify
+      intent: "支持创建/更新项目与里程碑、记录 deadline 变更日志、处理“暂缓”逻辑（deadline +1 年）"
+    - file: "lib/presentation/tasks/task_list_page.dart"
+      type: modify
+      intent: "重构项目/里程碑/子任务展示；新增快速任务区块；整合标签胶囊、层级色条"
+    - file: "lib/presentation/tasks/widgets/*"
+      type: modify
+      intent: "新增/调整 ProjectCreateSheet、ProjectCard、MilestoneRow、TaskNode 等组件"
+    - file: "lib/core/providers/*"
+      type: modify
+      intent: "增加 projects/quickTasks/milestones Provider，更新拖拽与标签选择逻辑"
+  data_model:
+    - entity: "Task"
+      change: |
+        新增枚举 TaskKind (regular/project/milestone)；log 字段记录 deadline 变更。
+        日志结构示例：
+        ```json
+        [
+          {
+            "timestamp": "2025-10-29T09:30:00Z",
+            "action": "deadline_update",
+            "previous": "2025-10-31",
+            "next": "2025-11-05",
+            "actor": "user"
+          }
+        ]
+        ```
+  config:
+    - file: "documents/config/task_tags.yaml"
+      change: "为四象限标签组新增 timed / fragmented / waiting 分类，并声明三者互斥（单选）；与原四象限标签并列供 # 输入选择"
+  tests:
+    - type: unit
+      focus: "task_service deadline 日志记录、TaskKind 数据持久化"
+    - type: widget
+      focus: "ProjectCreateSheet 验证必填项、标签选择互斥逻辑、里程碑同步"
+    - type: widget
+      focus: "Projects 页面显示逻辑（快速任务区块、项目展开、标签胶囊、滑动操作）"
+  documentation:
+    - path: "documents/spec/projects/design/251029-project-overhaul.yaml"
+      update_type: retain
+    - path: "documents/project/rules.yaml"
+      update_type: modify
+
+risks:
+  - name: "TaskKind 改动影响既有 task 查询"
+    mitigation: "迁移脚本/默认值设置为 regular；补充单元测试确保过滤条件正确"
+  - name: "UI 重构范围大，可能引入回归"
+    mitigation: "分模块提交、补充 widget 测试与手动回归场景"
+  - name: "标签输入 (#/@) 与国际化冲突"
+    mitigation: "确认 l10n 文案覆盖，保留 fallback；限制敏感字符"
+  - name: "自动延长项目 deadline 逻辑误触"
+    mitigation: "仅在用户确认暂缓后执行，并提示可撤销"
+
+verification:
+  checklist:
+    - "flutter analyze"
+    - "flutter test --tags projects"
+    - "手动验证：创建项目+里程碑、调整 deadline、转换任务为项目、快速任务滑动操作"
+    - "确认 taskKind/log 数据在数据库中正确落盘（使用调试面板或临时脚本)"

@@ -183,6 +183,14 @@
   "tag_travel": "@Travel",
   "tag_urgent": "#Urgent",
   "tag_waiting": "#Waiting",
+  "tag_timed": "#Timed",
+  "@tag_timed": {
+    "description": "Label for timed tasks"
+  },
+  "tag_fragmented": "#Fragmented",
+  "@tag_fragmented": {
+    "description": "Label for fragmented tasks"
+  },
   "tag_wasted": "Wasted time",
   "tag_workplace": "@Workplace",
   "taskChain": "Task Chain",
@@ -208,6 +216,211 @@
   "taskListSortError": "Unable to update sort.",
   "taskListSubtaskCreatedToast": "Subtask created.",
   "taskListSubtaskError": "Create subtask failed.",
+  "projectQuickTasksTitle": "Quick Tasks",
+  "@projectQuickTasksTitle": {
+    "description": "Section title for quick tasks on project page"
+  },
+  "projectQuickTasksSubtitle": "Tasks without projects that you can handle anytime",
+  "@projectQuickTasksSubtitle": {
+    "description": "Subtitle describing quick tasks section"
+  },
+  "projectQuickTasksEmpty": "No quick tasks yet.",
+  "@projectQuickTasksEmpty": {
+    "description": "Empty state for quick tasks section"
+  },
+  "projectListTitle": "Projects",
+  "@projectListTitle": {
+    "description": "Section title for project list"
+  },
+  "projectListSubtitle": "Track progress across every project",
+  "@projectListSubtitle": {
+    "description": "Subtitle for project list section"
+  },
+  "projectListEmpty": "No projects yet.",
+  "@projectListEmpty": {
+    "description": "Empty state for project list"
+  },
+  "projectNoMilestonesHint": "Add milestones to break your project into phases.",
+  "@projectNoMilestonesHint": {
+    "description": "Hint shown when a project has no milestones"
+  },
+  "projectDeadlineLabel": "Deadline:",
+  "@projectDeadlineLabel": {
+    "description": "Label prefix for deadlines"
+  },
+  "projectProgressEmpty": "Add milestones to start tracking progress.",
+  "@projectProgressEmpty": {
+    "description": "Shown when there are no milestones"
+  },
+  "projectProgressLabel": "{percentage}% · {completed}/{total} milestones",
+  "@projectProgressLabel": {
+    "description": "Displays project progress summary",
+    "placeholders": {
+      "percentage": {},
+      "completed": {},
+      "total": {}
+    }
+  },
+  "projectConvertTooltip": "Convert to project",
+  "@projectConvertTooltip": {
+    "description": "Tooltip for converting a task into a project"
+  },
+  "projectCreateButton": "New project",
+  "@projectCreateButton": {
+    "description": "Button label for creating a project"
+  },
+  "projectSheetTitle": "Create project",
+  "@projectSheetTitle": {
+    "description": "Title of the project creation sheet"
+  },
+  "projectSheetTitleHint": "Project name",
+  "@projectSheetTitleHint": {
+    "description": "Hint text for project title"
+  },
+  "projectSheetAddDescription": "Add description",
+  "@projectSheetAddDescription": {
+    "description": "Button to add project description"
+  },
+  "projectSheetHideDescription": "Hide description",
+  "@projectSheetHideDescription": {
+    "description": "Button to hide project description"
+  },
+  "projectSheetDescriptionHint": "Optional notes about this project",
+  "@projectSheetDescriptionHint": {
+    "description": "Hint text for project description"
+  },
+  "projectSheetQuadrantLabel": "Quadrant tags",
+  "@projectSheetQuadrantLabel": {
+    "description": "Label for selecting quadrant tags"
+  },
+  "projectSheetExecutionLabel": "Execution style",
+  "@projectSheetExecutionLabel": {
+    "description": "Label for selecting execution tags"
+  },
+  "projectSheetContextLabel": "Context tag",
+  "@projectSheetContextLabel": {
+    "description": "Label for choosing a context tag"
+  },
+  "projectSheetSelectContext": "Assign context tag",
+  "@projectSheetSelectContext": {
+    "description": "Button label to pick a context tag"
+  },
+  "projectSheetChangeContext": "Change context tag",
+  "@projectSheetChangeContext": {
+    "description": "Button label to change the context tag"
+  },
+  "projectShortcutPickerTitle": "Choose a tag to apply",
+  "@projectShortcutPickerTitle": {
+    "description": "Title for the shortcut picker when typing #"
+  },
+  "projectContextPickerTitle": "Choose a context tag",
+  "@projectContextPickerTitle": {
+    "description": "Title for the shortcut picker when typing @"
+  },
+  "projectSheetSelectDeadline": "Select deadline",
+  "@projectSheetSelectDeadline": {
+    "description": "Button label to pick a deadline"
+  },
+  "projectSheetSelectDeadlineHint": "Choose a deadline",
+  "@projectSheetSelectDeadlineHint": {
+    "description": "Placeholder before a deadline is selected"
+  },
+  "projectSheetDeadlineRequired": "Please choose a deadline for the project.",
+  "@projectSheetDeadlineRequired": {
+    "description": "Validation message when deadline missing"
+  },
+  "projectSheetMilestonesTitle": "Milestones",
+  "@projectSheetMilestonesTitle": {
+    "description": "Header for milestones section"
+  },
+  "projectSheetMilestonesEmpty": "Add milestones to break this project into phases.",
+  "@projectSheetMilestonesEmpty": {
+    "description": "Empty hint for milestones"
+  },
+  "projectSheetAddMilestone": "Add milestone",
+  "@projectSheetAddMilestone": {
+    "description": "Button label to add milestone"
+  },
+  "projectSheetMilestoneTitleHint": "Milestone name",
+  "@projectSheetMilestoneTitleHint": {
+    "description": "Hint for milestone title"
+  },
+  "projectDescriptionShowMore": "Show full description",
+  "@projectDescriptionShowMore": {
+    "description": "Button label to expand project or milestone description"
+  },
+  "projectDescriptionShowLess": "Show less",
+  "@projectDescriptionShowLess": {
+    "description": "Button label to collapse project or milestone description"
+  },
+  "projectDeadlineAutoAdjusted": "Project deadline updated to match the latest milestone.",
+  "@projectDeadlineAutoAdjusted": {
+    "description": "Toast shown when project deadline auto-adjusts"
+  },
+  "projectCreateSuccess": "Project created successfully.",
+  "@projectCreateSuccess": {
+    "description": "Confirmation toast after creating a project"
+  },
+  "projectCreateError": "Failed to create project. Please try again.",
+  "@projectCreateError": {
+    "description": "Error toast when project creation fails"
+  },
+  "projectConvertDialogTitle": "Convert to project",
+  "@projectConvertDialogTitle": {
+    "description": "Dialog title when confirming conversion"
+  },
+  "projectConvertDialogBody": "Promote this task to a project? Existing subtasks will become milestones automatically.",
+  "@projectConvertDialogBody": {
+    "description": "Dialog body explaining task conversion"
+  },
+  "projectConvertConfirm": "Convert",
+  "@projectConvertConfirm": {
+    "description": "Confirmation button label for conversion dialog"
+  },
+  "projectConvertSuccess": "Task converted to project.",
+  "@projectConvertSuccess": {
+    "description": "Toast shown when conversion succeeds"
+  },
+  "projectConvertError": "Failed to convert task. Try again later.",
+  "@projectConvertError": {
+    "description": "Toast shown when conversion fails"
+  },
+  "projectArchiveConfirmTitle": "Archive project",
+  "@projectArchiveConfirmTitle": {
+    "description": "Dialog title when archiving a project"
+  },
+  "projectArchiveConfirmBody": "Archive this project? You can still find it in Archived after this.",
+  "@projectArchiveConfirmBody": {
+    "description": "Dialog body explaining project archive action"
+  },
+  "projectSnoozeAction": "Snooze",
+  "@projectSnoozeAction": {
+    "description": "Action label for snoozing a project"
+  },
+  "projectSnoozeConfirmTitle": "Snooze project",
+  "@projectSnoozeConfirmTitle": {
+    "description": "Dialog title when confirming a project snooze"
+  },
+  "projectSnoozeConfirmBody": "Delay the project deadline by one year?",
+  "@projectSnoozeConfirmBody": {
+    "description": "Dialog body when asking to snooze a project"
+  },
+  "projectSnoozeConfirm": "Snooze",
+  "@projectSnoozeConfirm": {
+    "description": "Confirmation button label for snoozing"
+  },
+  "projectSnoozeSuccess": "Project deadline extended by one year.",
+  "@projectSnoozeSuccess": {
+    "description": "Toast shown when project snooze succeeds"
+  },
+  "projectSnoozeError": "Failed to snooze project. Try again later.",
+  "@projectSnoozeError": {
+    "description": "Toast shown when project snooze fails"
+  },
+  "projectStatusOverdue": "Overdue",
+  "@projectStatusOverdue": {
+    "description": "Label shown when project or milestone is overdue"
+  },
   "taskListTaskArchivedError": "Archive task failed.",
   "taskArchiveError": "Failed to archive task",
   "taskArchivedSuccess": "Task archived successfully",

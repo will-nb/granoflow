@@ -1,5 +1,5 @@
-# Cursor AI Rules for GranoFlow Project
-# Consolidated from .cursor/rules/ directory
+# Codex Rules for GranoFlow Project
+# Curated from .cursor/rules for Codex agent usage
 
 # =============================================================================
 # 00-global.mdc - Global Rules
@@ -25,15 +25,31 @@
 - 变更需先提交前端规格：使用 `documents/` 目录下的相应文档格式。
 - 路径规范：`documents/spec/YYMMDD-<module>/` 目录结构。
 
+### 局部产品设计触发（design）
+- 当功能尚无明确设计时，用户以 `design` 开头提出需求，助手需先进入局部产品设计讨论。
+- 讨论输出采用 `documents/spec/` 下的 YAML 文档，基于 `documents/templates/design_template.yaml`。
+- 文档存放路径建议：`documents/spec/<module>/design/YYMMDD-<slug>.yaml`，其中 `<slug>` 用于同日多次迭代区分。
+- 设计阶段只描述功能目标、用户流程与呈现，不讨论技术实现；经用户确认后再进入 `plan/update_plan` 流程。
+- 每次完成 design 文档并获得确认后，需主动提醒用户创建对应的 iteration 蓝图文档（拼写：`iteration`）。
+
+### 迭代蓝图（plan 前置）
+- 设计确认后，进入 `plan` 前需编写迭代蓝图，梳理代码范围、数据模型、测试与文档变更。
+- 蓝图采用 `documents/templates/iteration_template.yaml` 模板，归档建议：`documents/spec/<module>/iteration/YYMMDD-<slug>.yaml`，与 design 保持一一对应。
+- 蓝图明确风险与验证清单，为 `plan/update_plan` 拆解提供依据。
+
 ## YAML 文档约束系统
 - `documents/` 下的文档是代码的"设计契约"（Design Contract），用于锁定架构版本，防止 AI 修改偏离既定设计
 - **修改代码前必读**：修改任何被文档描述的文件前，必须先读取对应的文档理解设计意图
 - **契约优先原则**：如果代码实现和文档描述不一致，优先以文档为准；如果文档描述不合理，应停下来讨论而非自行修改
 - **同步更新要求**：重构后必须同步更新对应的文档；如果文件被拆分/删除，对应的文档也要更新/删除
-- **文档类型**：
-  - `documents/architecture/*.yaml` - 架构设计契约
-  - `documents/config.yaml` - 配置设计契约
-  - `documents/theme.yaml` - 主题设计契约
+- **文档类型与位置**：
+  - `documents/spec/` - 规格设计契约（产品需求、用户故事、技术规范）
+  - `documents/config/` - 配置设计契约（主题、环境、本地化、代码规范）
+  - `documents/architecture/` - 架构设计契约（组件、数据流、状态管理）
+  - `documents/project/` - 项目管理契约（计划、进度、规则、KPI）
+  - `documents/plan/` - 迭代执行契约（预览和详细计划）
+  - `documents/deployment/` - 部署设计契约（上线、迁移、发布）
+  - `documents/legal/` - 法律合规契约（隐私、服务条款）
 
 ## 版本控制策略
 - **时间触发条件**：比对和上次递交是否超过半小时，超过半小时则提交，否则只用pre-commit验证代码质量。

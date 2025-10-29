@@ -66,7 +66,7 @@ test/yaml/
 ### 运行所有测试
 ```bash
 # 使用脚本
-./scripts/run_yaml_tests.sh
+scripts/anz yaml:test
 
 # 使用 Flutter 命令
 flutter test test/yaml/
@@ -75,19 +75,19 @@ flutter test test/yaml/
 ### 运行特定测试
 ```bash
 # Schema 验证
-./scripts/run_yaml_tests.sh --schema
+scripts/anz yaml:test --schema
 
 # 字段完整性
-./scripts/run_yaml_tests.sh --fields
+scripts/anz yaml:test --fields
 
 # 引用一致性
-./scripts/run_yaml_tests.sh --refs
+scripts/anz yaml:test --refs
 
 # 代码同步
-./scripts/run_yaml_tests.sh --sync
+scripts/anz yaml:test --sync
 
 # 详细模式
-./scripts/run_yaml_tests.sh --sync -v
+scripts/anz yaml:test --sync -v
 ```
 
 ### 在 Git Hooks 中自动运行
@@ -111,7 +111,7 @@ flutter test test/yaml/
 
 4. **重新运行测试**
    ```bash
-   ./scripts/run_yaml_tests.sh
+   scripts/anz yaml:test
    ```
 
 ## 📊 覆盖范围
@@ -206,8 +206,8 @@ flutter test test/yaml/
 ## 🔗 相关文档
 
 - [test/yaml/README.md](README.md) - 完整的测试文档
-- [scripts/run_yaml_tests.sh](../../scripts/run_yaml_tests.sh) - 测试运行脚本
-- [scripts/architecture_linter.py](../../scripts/architecture_linter.py) - Python Linter
+- Command: `scripts/anz yaml:test` - YAML 测试入口
+- [scripts/anz_modules/architecture/architecture_linter.py](../../scripts/anz_modules/architecture/architecture_linter.py) - Python Linter
 - [documents/project/13-plan-workflow.mdc](../../documents/project/13-plan-workflow.mdc) - 工作流文档
 
 ## 📈 统计信息
@@ -216,7 +216,7 @@ flutter test test/yaml/
 - **工具文件数**: 1 个（`yaml_test_utils.dart`）
 - **覆盖的 YAML 类型**: 6 种核心类型 + `routers.yaml`
 - **删除的旧测试**: 16 个文件
-- **新增的脚本**: 1 个（`run_yaml_tests.sh`）
+- **新增的脚本**: 1 个（`scripts/anz yaml:test`）
 
 ## 🎯 设计目标
 
@@ -281,14 +281,14 @@ flutter test test/yaml/
 scripts/anz yaml:create:all
 
 # 检查生成结果
-./scripts/run_yaml_tests.sh
+scripts/anz yaml:test
 ```
 
 ### Python Linter 报错
 ```bash
 python --version  # 确保 Python 3.x
 pip install pyyaml
-python scripts/architecture_linter.py documents/architecture/
+python scripts/anz_modules/architecture/architecture_linter.py documents/architecture/
 ```
 
 ---
@@ -296,4 +296,3 @@ python scripts/architecture_linter.py documents/architecture/
 **创建日期**: 2025-10-27  
 **最后更新**: 2025-10-27  
 **维护者**: GranoFlow 开发团队
-

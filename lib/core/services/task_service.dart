@@ -7,6 +7,36 @@ import 'metric_orchestrator.dart';
 import '../constants/task_constants.dart';
 import 'sort_index_service.dart';
 
+class ProjectMilestoneBlueprint {
+  const ProjectMilestoneBlueprint({
+    required this.title,
+    this.dueDate,
+    this.tags = const <String>[],
+    this.description,
+  });
+
+  final String title;
+  final DateTime? dueDate;
+  final List<String> tags;
+  final String? description;
+}
+
+class ProjectBlueprint {
+  const ProjectBlueprint({
+    required this.title,
+    required this.dueDate,
+    this.description,
+    this.tags = const <String>[],
+    this.milestones = const <ProjectMilestoneBlueprint>[],
+  });
+
+  final String title;
+  final DateTime dueDate;
+  final String? description;
+  final List<String> tags;
+  final List<ProjectMilestoneBlueprint> milestones;
+}
+
 class TaskService {
   TaskService({
     required TaskRepository taskRepository,
@@ -97,7 +127,92 @@ class TaskService {
     required int taskId,
     required TaskUpdate payload,
   }) async {
-    await _tasks.updateTask(taskId, payload);
+    final existing = await _tasks.findById(taskId);
+    if (existing == null) {
+      return;
+    }
+
+    DateTime? dueForUpdate;
+    if (payload.dueAt != null) {
+      dueForUpdate = _normalizeDueDate(payload.dueAt!);
+    }
+    final dueChanged = dueForUpdate != null &&
+        !_isSameInstant(existing.dueAt, dueForUpdate);
+    final now = _clock();
+    List<TaskLogEntry>? updatedLogs;
+
+    void ensureLogBuffer() {
+      updatedLogs ??= existing.logs.toList(growable: true);
+    }
+
+    if (payload.logs != null && payload.logs!.isNotEmpty) {
+      ensureLogBuffer();
+      updatedLogs!.addAll(payload.logs!);
+    }
+
+    if (dueChanged) {
+      final newDue = dueForUpdate;
+      ensureLogBuffer();
+      updatedLogs!.add(
+        TaskLogEntry(
+          timestamp: now,
+          action: existing.dueAt == null ? 'deadline_set' : 'deadline_updated',
+          previous: existing.dueAt?.toIso8601String(),
+          next: newDue.toIso8601String(),
+        ),
+      );
+    }
+
+    await _tasks.updateTask(
+      taskId,
+      TaskUpdate(
+        title: payload.title,
+        status: payload.status,
+        dueAt: dueForUpdate ?? payload.dueAt,
+        startedAt: payload.startedAt,
+        endedAt: payload.endedAt,
+        parentId: payload.parentId,
+        sortIndex: payload.sortIndex,
+        tags: payload.tags,
+        templateLockDelta: payload.templateLockDelta,
+        allowInstantComplete: payload.allowInstantComplete,
+        description: payload.description ?? existing.description,
+        taskKind: payload.taskKind,
+        logs: updatedLogs,
+      ),
+    );
+
+    if (dueChanged &&
+        existing.taskKind == TaskKind.milestone &&
+        existing.parentId != null) {
+      final parent = await _tasks.findById(existing.parentId!);
+      if (parent != null) {
+        final newDue = dueForUpdate;
+        final parentNeedsUpdate = parent.dueAt == null ||
+            newDue.isAfter(parent.dueAt!);
+        if (parentNeedsUpdate) {
+          final parentLogs = parent.logs.toList(growable: true)
+            ..add(
+              TaskLogEntry(
+                timestamp: now,
+                action: parent.dueAt == null
+                    ? 'deadline_set'
+                    : 'deadline_updated',
+                previous: parent.dueAt?.toIso8601String(),
+                next: newDue.toIso8601String(),
+              ),
+            );
+          await _tasks.updateTask(
+            parent.id,
+            TaskUpdate(
+              dueAt: newDue,
+              logs: parentLogs,
+            ),
+          );
+        }
+      }
+    }
+
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
@@ -173,6 +288,153 @@ class TaskService {
 
   Future<List<Tag>> listTagsByKind(TagKind kind) => _tags.listByKind(kind);
 
+  Stream<List<Task>> watchProjects() => _tasks.watchProjects();
+
+  Stream<List<Task>> watchQuickTasks() => _tasks.watchQuickTasks();
+
+  Stream<List<Task>> watchMilestones(int projectId) => _tasks.watchMilestones(projectId);
+
+  Future<Task> createProject(ProjectBlueprint blueprint) async {
+    final dueAt = _normalizeDueDate(blueprint.dueDate);
+    final now = _clock();
+    final projectTags = _uniqueTags(blueprint.tags);
+    final projectLogs = <TaskLogEntry>[
+      TaskLogEntry(
+        timestamp: now,
+        action: 'deadline_set',
+        next: dueAt.toIso8601String(),
+      ),
+    ];
+
+    final project = await _tasks.createTask(
+      TaskDraft(
+        title: blueprint.title,
+        status: TaskStatus.pending,
+        dueAt: dueAt,
+        sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
+        tags: projectTags,
+        allowInstantComplete: false,
+        description: blueprint.description,
+        taskKind: TaskKind.project,
+        logs: projectLogs,
+      ),
+    );
+
+    for (final milestone in blueprint.milestones) {
+      final milestoneDue = milestone.dueDate != null
+          ? _normalizeDueDate(milestone.dueDate!)
+          : null;
+      final milestoneLogs = <TaskLogEntry>[];
+      if (milestoneDue != null) {
+        milestoneLogs.add(
+          TaskLogEntry(
+            timestamp: now,
+            action: 'deadline_set',
+            next: milestoneDue.toIso8601String(),
+          ),
+        );
+      }
+      await _tasks.createTask(
+        TaskDraft(
+          title: milestone.title,
+          status: TaskStatus.pending,
+          parentId: project.id,
+          dueAt: milestoneDue,
+          sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
+          tags: _uniqueTags(milestone.tags),
+          allowInstantComplete: false,
+          description: milestone.description,
+          taskKind: TaskKind.milestone,
+          logs: milestoneLogs,
+        ),
+      );
+    }
+
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+    return project;
+  }
+
+  Future<void> convertToProject(int taskId) async {
+    final task = await _tasks.findById(taskId);
+    if (task == null) {
+      throw StateError('Task not found: $taskId');
+    }
+    if (task.taskKind == TaskKind.project) {
+      return;
+    }
+
+    final now = _clock();
+    final projectLogs = task.logs.toList(growable: true)
+      ..add(
+        TaskLogEntry(
+          timestamp: now,
+          action: 'converted_to_project',
+        ),
+      );
+    await _tasks.updateTask(
+      taskId,
+      TaskUpdate(
+        taskKind: TaskKind.project,
+        logs: projectLogs,
+      ),
+    );
+
+    final children = await _tasks.listChildren(taskId);
+    for (final child in children) {
+      if (child.taskKind == TaskKind.regular) {
+        final childLogs = child.logs.toList(growable: true)
+          ..add(
+            TaskLogEntry(
+              timestamp: now,
+              action: 'converted_to_milestone',
+            ),
+          );
+        await _tasks.updateTask(
+          child.id,
+          TaskUpdate(
+            taskKind: TaskKind.milestone,
+            logs: childLogs,
+          ),
+        );
+      }
+    }
+
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  Future<void> snoozeProject(int projectId) async {
+    final project = await _tasks.findById(projectId);
+    if (project == null) {
+      throw StateError('Project not found: $projectId');
+    }
+    if (project.taskKind != TaskKind.project) {
+      throw StateError('Task $projectId is not a project');
+    }
+
+    final now = _clock();
+    final baseDue = project.dueAt ?? _normalizeDueDate(now);
+    final newDue = _addOneYear(baseDue);
+    final logs = project.logs.toList(growable: true)
+      ..add(
+        TaskLogEntry(
+          timestamp: now,
+          action: 'deadline_snoozed',
+          previous: baseDue.toIso8601String(),
+          next: newDue.toIso8601String(),
+        ),
+      );
+
+    await _tasks.updateTask(
+      projectId,
+      TaskUpdate(
+        dueAt: newDue,
+        logs: logs,
+      ),
+    );
+
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
   Future<List<Task>> searchTasksByTitle(
     String query, {
     TaskStatus? status,
@@ -201,14 +463,62 @@ class TaskService {
     return converted;
   }
 
+  DateTime _addOneYear(DateTime date) {
+    final targetYear = date.year + 1;
+    final isLeapTarget = _isLeapYear(targetYear);
+    final isLeapDay = date.month == DateTime.february && date.day == 29;
+    final adjustedDay = isLeapDay && !isLeapTarget ? 28 : date.day;
+    return DateTime(
+      targetYear,
+      date.month,
+      adjustedDay,
+      date.hour,
+      date.minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
+  }
+
+  bool _isLeapYear(int year) {
+    if (year % 4 != 0) {
+      return false;
+    }
+    if (year % 100 != 0) {
+      return true;
+    }
+    return year % 400 == 0;
+  }
+
   bool _isContextTag(String tag) => tag.startsWith('@');
   bool _isPriorityTag(String tag) => tag.startsWith('#');
+
+  bool _isSameInstant(DateTime? a, DateTime? b) {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    return a.millisecondsSinceEpoch == b.millisecondsSinceEpoch;
+  }
+
+  List<String> _uniqueTags(Iterable<String> tags) {
+    final result = <String>[];
+    for (final tag in tags) {
+      if (tag.isEmpty) continue;
+      if (result.contains(tag)) continue;
+      result.add(tag);
+    }
+    return result;
+  }
 
   /// 处理拖拽到任务间（调整sortIndex）
   Future<void> handleDragBetweenTasks(int draggedTaskId, int beforeTaskId, int afterTaskId) async {
     debugPrint('拖拽排序Between: task=$draggedTaskId between $beforeTaskId/$afterTaskId');
-    if (_sortIndex == null) return;
-    await _sortIndex.insertBetween(
+    final sortIndex = _sortIndex;
+    if (sortIndex == null) return;
+    await sortIndex.insertBetween(
       draggedId: draggedTaskId,
       beforeId: beforeTaskId,
       afterId: afterTaskId,
@@ -233,8 +543,9 @@ class TaskService {
       }
     } else {
       final first = others.first;
-      if (_sortIndex != null) {
-        await _sortIndex.moveToHead(
+      final sortIndex = _sortIndex;
+      if (sortIndex != null) {
+        await sortIndex.moveToHead(
           draggedId: draggedTaskId,
           section: section,
           firstId: first.id,
@@ -253,13 +564,14 @@ class TaskService {
       TaskUpdate(dueAt: sectionMidTime),
     );
     final tasks = await _tasks.listSectionTasks(section);
-    if (_sortIndex != null) {
+    final sortIndex = _sortIndex;
+    if (sortIndex != null) {
       final others = tasks.where((t) => t.id != draggedTaskId).toList(growable: false);
       if (others.isEmpty) {
         await _tasks.updateTask(draggedTaskId, const TaskUpdate(sortIndex: 1024));
       } else {
         final lastOther = others.last;
-        await _sortIndex.moveToTail(
+        await sortIndex.moveToTail(
           draggedId: draggedTaskId,
           section: section,
           lastId: lastOther.id,
@@ -301,7 +613,8 @@ class TaskService {
 
   /// 处理 Inbox 任务在两个任务之间拖拽
   Future<void> handleInboxDragBetween(int draggedId, int beforeId, int afterId) async {
-    if (_sortIndex == null) return;
+    final sortIndex = _sortIndex;
+    if (sortIndex == null) return;
 
     // 邻居间隙过小则先对 Inbox 域做一次等差稀疏化
     final before = await _tasks.findById(beforeId);
@@ -309,13 +622,13 @@ class TaskService {
     if (before != null && after != null) {
       if ((after.sortIndex - before.sortIndex).abs() < 2) {
         final inboxOrdered = await _tasks.watchInbox().first;
-        await _sortIndex!.reorderIds(
+        await sortIndex.reorderIds(
           orderedIds: inboxOrdered.map((t) => t.id).toList(),
         );
       }
     }
 
-    await _sortIndex!.insertBetween(
+    await sortIndex.insertBetween(
       draggedId: draggedId,
       beforeId: beforeId,
       afterId: afterId,
@@ -325,7 +638,8 @@ class TaskService {
 
   /// 处理 Inbox 任务拖拽到列表开头
   Future<void> handleInboxDragToFirst(int draggedId) async {
-    if (_sortIndex == null) return;
+    final sortIndex = _sortIndex;
+    if (sortIndex == null) return;
     
     // 获取当前排序后的第一个 inbox 任务(排除自身)
     final inboxTasks = await _tasks.watchInbox().first;
@@ -344,12 +658,12 @@ class TaskService {
     // 如首元素与被拖拽元素间距过小，先稀疏化
     final dragged = await _tasks.findById(draggedId);
     if (dragged != null && (sortedTasks.first.sortIndex - dragged.sortIndex).abs() < 2) {
-      await _sortIndex!.reorderIds(
+      await sortIndex.reorderIds(
         orderedIds: inboxTasks.map((t) => t.id).toList(),
       );
     }
 
-    await _sortIndex!.moveToHead(
+    await sortIndex.moveToHead(
       draggedId: draggedId,
       section: TaskSection.later, // Inbox 使用 later 区域
       firstId: sortedTasks.first.id,
@@ -359,7 +673,8 @@ class TaskService {
 
   /// 处理 Inbox 任务拖拽到列表结尾
   Future<void> handleInboxDragToLast(int draggedId) async {
-    if (_sortIndex == null) return;
+    final sortIndex = _sortIndex;
+    if (sortIndex == null) return;
     
     // 获取当前排序后的最后一个 inbox 任务(排除自身)
     final inboxTasks = await _tasks.watchInbox().first;
@@ -378,12 +693,12 @@ class TaskService {
     // 如尾元素与被拖拽元素间距过小，先稀疏化
     final dragged = await _tasks.findById(draggedId);
     if (dragged != null && (sortedTasks.last.sortIndex - dragged.sortIndex).abs() < 2) {
-      await _sortIndex!.reorderIds(
+      await sortIndex.reorderIds(
         orderedIds: inboxTasks.map((t) => t.id).toList(),
       );
     }
 
-    await _sortIndex!.moveToTail(
+    await sortIndex.moveToTail(
       draggedId: draggedId,
       section: TaskSection.later, // Inbox 使用 later 区域
       lastId: sortedTasks.last.id,
@@ -391,5 +706,3 @@ class TaskService {
     debugPrint('InboxDnD last: $draggedId -> tail');
   }
 }
-
-

@@ -2,9 +2,9 @@ requirements:
   - id: "macos-icon-display-issue"
     title: "macOS 图标显示错误，显示成了内接正方形的圆角方形"
     description: "macOS 系统将我们的图标显示为圆角矩形框架内包含一个正方形图标，而不是将正方形图标裁剪为圆角矩形。这表明图标内容没有填满整个画布，导致系统将其视为'有边距的设计'。"
-    current_state: "在 scripts/icons/generate.py 中，虽然已取消安全边距并让 logo 填满整个画布，但 macOS 仍然显示为内接正方形的圆角方形。可能的原因包括：1) Logo 本身有透明边距，2) 缩放算法导致内容未完全填满画布，3) 图标格式或尺寸不符合 macOS 要求。"
+    current_state: "在 scripts/anz_modules/icons/generate.py 中，虽然已取消安全边距并让 logo 填满整个画布，但 macOS 仍然显示为内接正方形的圆角方形。可能的原因包括：1) Logo 本身有透明边距，2) 缩放算法导致内容未完全填满画布，3) 图标格式或尺寸不符合 macOS 要求。"
     affected_files:
-      - "scripts/icons/generate.py"
+      - "scripts/anz_modules/icons/generate.py"
       - "assets/logo/granostack-logo-transparent.png"
       - "macos/Runner/Assets.xcassets/AppIcon.appiconset/"
     created_date: "2025-01-26"

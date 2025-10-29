@@ -199,12 +199,12 @@ class AppConstants {
 - Hooks：
   - `scripts/git-hooks/pre-commit`：
     - 针对改动的 .dart 文件：`dart format --line-length 100` 与 `flutter analyze`
-    - 针对改动的 `documents/architecture/*.yaml`：`scripts/architecture_linter.py --files ...`
+    - 针对改动的 `documents/architecture/*.yaml`：`scripts/anz_modules/architecture/architecture_linter.py --files ...`
   - `scripts/git-hooks/pre-push`：
     - `flutter analyze`、`flutter test`（unit+widget）
     - 若存在 `integration_test/` 则尝试运行集成测试
     - 对所有 `documents/architecture/*.yaml` 执行 Linter 全量校验
-  - 安装：`bash scripts/setup_hooks.sh`
+  - 安装：`scripts/anz hooks:install`
 
 ## Plan 文档归档策略
 - 目录：`documents/plan/archive/YYYYMM/`
@@ -237,8 +237,8 @@ class AppConstants {
   - **不适用**：Constants/Config/Theme/Enums/Utils/生成代码 不生成 YAML，改用代码注释警告
   - **技术栈**：优先使用 `tools/dart_analyzer.dart`（基于 `package:analyzer` 的精确 AST 分析），降级到正则表达式分析
   - **合并模式**：支持更新现有文档，保留人工维护的字段（如 `description`、`called_by`）
-- `scripts/architecture_linter.py`：精确校验架构文档（仅改动文件）。
-- `scripts/architecture_bulk_update.py`：批量补齐缺失字段（不覆盖已有值）。
+- `scripts/anz_modules/architecture/architecture_linter.py`：精确校验架构文档（仅改动文件）。
+- `scripts/anz_modules/architecture/architecture_bulk_update.py`：批量补齐缺失字段（不覆盖已有值）。
 - 依赖图生成（可选）：由 called_by/calls 生成 Mermaid/DOT 图存放于 `documents/architecture/graphs/`。
 
 ## 架构文档创建规范

@@ -13,6 +13,12 @@ abstract class TaskRepository {
 
   Stream<List<Task>> watchInbox();
 
+  Stream<List<Task>> watchProjects();
+
+  Stream<List<Task>> watchQuickTasks();
+
+  Stream<List<Task>> watchMilestones(int projectId);
+
   Stream<List<Task>> watchInboxFiltered({
     String? contextTag,
     String? priorityTag,
@@ -111,31 +117,106 @@ class IsarTaskRepository implements TaskRepository {
           .sortBySortIndex()
           .thenByCreatedAtDesc()
           .findAll();
-      final filtered = entities.where((entity) {
-        final tags = entity.tags;
-        if (contextTag != null && contextTag.isNotEmpty) {
-          if (!tags.contains(contextTag)) {
-            return false;
-          }
-        }
-        if (priorityTag != null && priorityTag.isNotEmpty) {
-          if (!tags.contains(priorityTag)) {
-            return false;
-          }
-        }
-        if (urgencyTag != null && urgencyTag.isNotEmpty) {
-          if (!tags.contains(urgencyTag)) {
-            return false;
-          }
-        }
-        if (importanceTag != null && importanceTag.isNotEmpty) {
-          if (!tags.contains(importanceTag)) {
-            return false;
-          }
-        }
-        return true;
-      }).map(_toDomain).toList(growable: false);
+      final filtered = entities
+          .where((entity) {
+            final tags = entity.tags;
+            if (contextTag != null && contextTag.isNotEmpty) {
+              if (!tags.contains(contextTag)) {
+                return false;
+              }
+            }
+            if (priorityTag != null && priorityTag.isNotEmpty) {
+              if (!tags.contains(priorityTag)) {
+                return false;
+              }
+            }
+            if (urgencyTag != null && urgencyTag.isNotEmpty) {
+              if (!tags.contains(urgencyTag)) {
+                return false;
+              }
+            }
+            if (importanceTag != null && importanceTag.isNotEmpty) {
+              if (!tags.contains(importanceTag)) {
+                return false;
+              }
+            }
+            return true;
+          })
+          .map(_toDomain)
+          .toList(growable: false);
       return filtered;
+    });
+  }
+
+  @override
+  Stream<List<Task>> watchProjects() {
+    return _watchQuery(() async {
+      final entities = await _isar.taskEntitys
+          .filter()
+          .taskKindEqualTo(TaskKind.project)
+          .parentIdIsNull()
+          .findAll();
+      final filtered = entities
+          .where((entity) => _isActiveProjectStatus(entity.status))
+          .toList(growable: false);
+      filtered.sort((a, b) {
+        final aDue = a.dueAt ?? DateTime.fromMillisecondsSinceEpoch(4102444800000); // 2100-01-01
+        final bDue = b.dueAt ?? DateTime.fromMillisecondsSinceEpoch(4102444800000);
+        final compare = aDue.compareTo(bDue);
+        if (compare != 0) {
+          return compare;
+        }
+        return a.createdAt.compareTo(b.createdAt);
+      });
+      return filtered.map(_toDomain).toList(growable: false);
+    });
+  }
+
+  @override
+  Stream<List<Task>> watchQuickTasks() {
+    return _watchQuery(() async {
+      final entities = await _isar.taskEntitys
+          .filter()
+          .taskKindEqualTo(TaskKind.regular)
+          .parentIdIsNull()
+          .findAll();
+      final filtered = entities
+          .where((entity) => _isActiveQuickTaskStatus(entity.status))
+          .toList(growable: false);
+      filtered.sort((a, b) {
+        final aDue = a.dueAt ?? DateTime.fromMillisecondsSinceEpoch(4102444800000);
+        final bDue = b.dueAt ?? DateTime.fromMillisecondsSinceEpoch(4102444800000);
+        final compare = aDue.compareTo(bDue);
+        if (compare != 0) {
+          return compare;
+        }
+        return a.createdAt.compareTo(b.createdAt);
+      });
+      return filtered.map(_toDomain).toList(growable: false);
+    });
+  }
+
+  @override
+  Stream<List<Task>> watchMilestones(int projectId) {
+    return _watchQuery(() async {
+      final entities = await _isar.taskEntitys
+          .filter()
+          .taskKindEqualTo(TaskKind.milestone)
+          .parentIdEqualTo(projectId)
+          .findAll();
+      final filtered = entities
+          .where((entity) => _isVisibleMilestoneStatus(entity.status))
+          .toList(growable: false);
+      filtered.sort((a, b) {
+        final aDue = a.dueAt ?? DateTime.fromMillisecondsSinceEpoch(4102444800000);
+        final bDue = b.dueAt ?? DateTime.fromMillisecondsSinceEpoch(4102444800000);
+        final compare = aDue.compareTo(bDue);
+        if (compare != 0) {
+          return compare;
+        }
+        return a.createdAt.compareTo(b.createdAt);
+      });
+      return filtered.map(_toDomain).toList(growable: false);
     });
   }
 
@@ -156,7 +237,10 @@ class IsarTaskRepository implements TaskRepository {
         ..tags = draft.tags.toList()
         ..templateLockCount = 0
         ..seedSlug = draft.seedSlug
-        ..allowInstantComplete = draft.allowInstantComplete;
+        ..allowInstantComplete = draft.allowInstantComplete
+        ..description = draft.description
+        ..taskKind = draft.taskKind
+        ..logs = draft.logs.map(_logFromDomain).toList();
       final id = await _isar.taskEntitys.put(entity);
       entity.id = id;
       return _toDomain(entity);
@@ -170,7 +254,7 @@ class IsarTaskRepository implements TaskRepository {
       if (entity == null) {
         return;
       }
-      
+
       entity
         ..title = payload.title ?? entity.title
         ..status = payload.status ?? entity.status
@@ -187,8 +271,13 @@ class IsarTaskRepository implements TaskRepository {
             )
         ..allowInstantComplete =
             payload.allowInstantComplete ?? entity.allowInstantComplete
+        ..description = payload.description ?? entity.description
+        ..taskKind = payload.taskKind ?? entity.taskKind
+        ..logs = payload.logs != null
+            ? payload.logs!.map(_logFromDomain).toList()
+            : entity.logs
         ..updatedAt = _clock();
-      
+
       await _isar.taskEntitys.put(entity);
     });
   }
@@ -347,11 +436,10 @@ class IsarTaskRepository implements TaskRepository {
     if (query.trim().isEmpty) {
       return const <Task>[];
     }
-    QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder =
-        _isar.taskEntitys.filter().titleContains(
-              query,
-              caseSensitive: false,
-            );
+    QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder = _isar
+        .taskEntitys
+        .filter()
+        .titleContains(query, caseSensitive: false);
     if (status != null) {
       builder = builder.statusEqualTo(status);
     }
@@ -377,8 +465,17 @@ class IsarTaskRepository implements TaskRepository {
           ..sortIndex = payload.sortIndex ?? entity.sortIndex
           ..tags = payload.tags ?? entity.tags
           ..templateLockCount =
-              (entity.templateLockCount + payload.templateLockDelta).clamp(0, 1 << 31)
-          ..allowInstantComplete = payload.allowInstantComplete ?? entity.allowInstantComplete
+              (entity.templateLockCount + payload.templateLockDelta).clamp(
+                0,
+                1 << 31,
+              )
+          ..allowInstantComplete =
+              payload.allowInstantComplete ?? entity.allowInstantComplete
+          ..description = payload.description ?? entity.description
+          ..taskKind = payload.taskKind ?? entity.taskKind
+          ..logs = payload.logs != null
+              ? payload.logs!.map(_logFromDomain).toList()
+              : entity.logs
           ..updatedAt = _clock();
         await _isar.taskEntitys.put(entity);
       }
@@ -391,6 +488,26 @@ class IsarTaskRepository implements TaskRepository {
     return _fetchSection(section);
   }
 
+  bool _isActiveProjectStatus(TaskStatus status) {
+    return status != TaskStatus.archived &&
+        status != TaskStatus.trashed &&
+        status != TaskStatus.pseudoDeleted &&
+        status != TaskStatus.completedActive;
+  }
+
+  bool _isActiveQuickTaskStatus(TaskStatus status) {
+    return status != TaskStatus.archived &&
+        status != TaskStatus.trashed &&
+        status != TaskStatus.pseudoDeleted &&
+        status != TaskStatus.completedActive;
+  }
+
+  bool _isVisibleMilestoneStatus(TaskStatus status) {
+    return status != TaskStatus.archived &&
+        status != TaskStatus.trashed &&
+        status != TaskStatus.pseudoDeleted;
+  }
+
   Future<List<Task>> _fetchSection(TaskSection section) async {
     final now = _clock();
     final todayStart = DateTime(now.year, now.month, now.day);
@@ -400,7 +517,9 @@ class IsarTaskRepository implements TaskRepository {
     // 以周日 00:00 作为“本周”的上界、“当月”的下界
     final sundayStart = _getThisSundayStart(todayStart);
     // “以后”下界为周日与下月1日的最大者
-    final laterStart = nextMonthStart.isAfter(sundayStart) ? nextMonthStart : sundayStart;
+    final laterStart = nextMonthStart.isAfter(sundayStart)
+        ? nextMonthStart
+        : sundayStart;
 
     QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder;
     switch (section) {
@@ -423,14 +542,22 @@ class IsarTaskRepository implements TaskRepository {
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(tomorrowStart, dayAfterTomorrowStart, includeUpper: false);
+            .dueAtBetween(
+              tomorrowStart,
+              dayAfterTomorrowStart,
+              includeUpper: false,
+            );
         break;
       case TaskSection.thisWeek:
         // 本周：[>=后天00:00:00, <周日00:00:00)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(dayAfterTomorrowStart, sundayStart, includeUpper: false);
+            .dueAtBetween(
+              dayAfterTomorrowStart,
+              sundayStart,
+              includeUpper: false,
+            );
         break;
       case TaskSection.thisMonth:
         // 当月：[>=周日00:00:00, <下月1日00:00:00)
@@ -460,10 +587,10 @@ class IsarTaskRepository implements TaskRepository {
     }
 
     final results = await builder.sortBySortIndex().thenByCreatedAt().findAll();
-    
+
     // 过滤叶任务（只显示没有子任务的任务）
     final leafTasks = await _filterLeafTasks(results);
-    
+
     return leafTasks.map(_toDomain).toList(growable: false);
   }
 
@@ -485,7 +612,7 @@ class IsarTaskRepository implements TaskRepository {
 
   Future<List<TaskEntity>> _filterLeafTasks(List<TaskEntity> tasks) async {
     if (tasks.isEmpty) return tasks;
-    
+
     // 查询所有父任务ID（不限制子任务的任何条件，避免bug）
     // 利用parentId索引提升性能
     final parentIds = await _isar.taskEntitys
@@ -494,7 +621,7 @@ class IsarTaskRepository implements TaskRepository {
         .distinctByParentId()
         .findAll()
         .then((entities) => entities.map((e) => e.parentId!).toSet());
-    
+
     // 过滤出叶任务（没有子任务的任务）
     return tasks.where((task) => !parentIds.contains(task.id)).toList();
   }
@@ -547,6 +674,9 @@ class IsarTaskRepository implements TaskRepository {
       templateLockCount: entity.templateLockCount,
       seedSlug: entity.seedSlug,
       allowInstantComplete: entity.allowInstantComplete,
+      description: entity.description,
+      taskKind: entity.taskKind,
+      logs: List.unmodifiable(entity.logs.map(_logToDomain)),
     );
   }
 
@@ -566,8 +696,30 @@ class IsarTaskRepository implements TaskRepository {
       ..tags = task.tags.toList()
       ..templateLockCount = task.templateLockCount
       ..seedSlug = task.seedSlug
-      ..allowInstantComplete = task.allowInstantComplete;
+      ..allowInstantComplete = task.allowInstantComplete
+      ..description = task.description
+      ..taskKind = task.taskKind
+      ..logs = task.logs.map(_logFromDomain).toList();
     return entity;
+  }
+
+  TaskLogEntry _logToDomain(TaskLogEntryEntity entity) {
+    return TaskLogEntry(
+      timestamp: entity.timestamp,
+      action: entity.action,
+      previous: entity.previous,
+      next: entity.next,
+      actor: entity.actor,
+    );
+  }
+
+  TaskLogEntryEntity _logFromDomain(TaskLogEntry entry) {
+    return TaskLogEntryEntity()
+      ..timestamp = entry.timestamp
+      ..action = entry.action
+      ..previous = entry.previous
+      ..next = entry.next
+      ..actor = entry.actor;
   }
 
   TaskStatus _sectionToStatus(TaskSection section) {
@@ -592,11 +744,11 @@ class IsarTaskRepository implements TaskRepository {
   Future<Task?> _getLatestTask() async {
     try {
       final tasks = await _isar.taskEntitys
-        .where()
-        .sortByCreatedAtDesc()
-        .limit(1)
-        .findAll();
-      
+          .where()
+          .sortByCreatedAtDesc()
+          .limit(1)
+          .findAll();
+
       return tasks.isNotEmpty ? _toDomain(tasks.first) : null;
     } catch (e) {
       debugPrint('Error querying latest task: $e');
@@ -608,22 +760,19 @@ class IsarTaskRepository implements TaskRepository {
   Map<String, dynamic>? _parseTaskId(String taskId) {
     try {
       if (taskId.isEmpty) return null;
-      
+
       final parts = taskId.split('-');
       if (parts.length != 2) return null;
-      
+
       final datePart = parts[0];
       final suffixPart = parts[1];
-      
+
       if (datePart.length != 8) return null;
-      
+
       final suffixInt = int.tryParse(suffixPart);
       if (suffixInt == null) return null;
-      
-      return {
-        'date': datePart,
-        'suffix': suffixInt,
-      };
+
+      return {'date': datePart, 'suffix': suffixInt};
     } catch (e) {
       debugPrint('Error parsing taskId: $e');
       return null;
@@ -631,23 +780,24 @@ class IsarTaskRepository implements TaskRepository {
   }
 
   Future<String> _generateTaskId(DateTime now) async {
-    final dateString = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-    
+    final dateString =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+
     try {
       final latestTask = await _getLatestTask();
-      
+
       if (latestTask == null) {
         return '$dateString-0001';
       }
-      
+
       final parsed = _parseTaskId(latestTask.taskId);
       if (parsed == null) {
         return '$dateString-0001';
       }
-      
+
       final latestDate = parsed['date'] as String;
       final latestSuffix = parsed['suffix'] as int;
-      
+
       if (latestDate == dateString) {
         // 如果是今天，后缀+1
         final nextSuffix = (latestSuffix + 1).toString().padLeft(4, '0');
@@ -661,13 +811,6 @@ class IsarTaskRepository implements TaskRepository {
       return '$dateString-0001';
     }
   }
-
-  // 辅助方法：获取下周一
-  DateTime _getNextMonday(DateTime today) {
-    final daysUntilNextMonday = (DateTime.monday - today.weekday + 7) % 7;
-    return today.add(Duration(days: daysUntilNextMonday == 0 ? 7 : daysUntilNextMonday));
-  }
-
   // 辅助方法：获取本周周日 00:00（基于给定日期所在周）
   DateTime _getThisSundayStart(DateTime todayStart) {
     // DateTime.weekday: Monday=1 ... Sunday=7

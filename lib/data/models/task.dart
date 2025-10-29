@@ -11,7 +11,65 @@ enum TaskStatus {
   pseudoDeleted,
 }
 
-enum TaskSection { overdue, today, tomorrow, thisWeek, thisMonth, later, completed, archived, trash }
+enum TaskSection {
+  overdue,
+  today,
+  tomorrow,
+  thisWeek,
+  thisMonth,
+  later,
+  completed,
+  archived,
+  trash,
+}
+
+enum TaskKind { regular, project, milestone }
+
+@immutable
+class TaskLogEntry {
+  const TaskLogEntry({
+    required this.timestamp,
+    required this.action,
+    this.previous,
+    this.next,
+    this.actor,
+  });
+
+  final DateTime timestamp;
+  final String action;
+  final String? previous;
+  final String? next;
+  final String? actor;
+
+  TaskLogEntry copyWith({
+    DateTime? timestamp,
+    String? action,
+    String? previous,
+    String? next,
+    String? actor,
+  }) {
+    return TaskLogEntry(
+      timestamp: timestamp ?? this.timestamp,
+      action: action ?? this.action,
+      previous: previous ?? this.previous,
+      next: next ?? this.next,
+      actor: actor ?? this.actor,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TaskLogEntry &&
+        other.timestamp == timestamp &&
+        other.action == action &&
+        other.previous == previous &&
+        other.next == next &&
+        other.actor == actor;
+  }
+
+  @override
+  int get hashCode => Object.hash(timestamp, action, previous, next, actor);
+}
 
 @immutable
 class Task {
@@ -31,6 +89,9 @@ class Task {
     this.templateLockCount = 0,
     this.seedSlug,
     this.allowInstantComplete = false,
+    this.description,
+    this.taskKind = TaskKind.regular,
+    this.logs = const <TaskLogEntry>[],
   });
 
   final int id;
@@ -48,6 +109,9 @@ class Task {
   final int templateLockCount;
   final String? seedSlug;
   final bool allowInstantComplete;
+  final String? description;
+  final TaskKind taskKind;
+  final List<TaskLogEntry> logs;
 
   Task copyWith({
     int? id,
@@ -65,6 +129,9 @@ class Task {
     int? templateLockCount,
     String? seedSlug,
     bool? allowInstantComplete,
+    String? description,
+    TaskKind? taskKind,
+    List<TaskLogEntry>? logs,
   }) {
     return Task(
       id: id ?? this.id,
@@ -82,6 +149,9 @@ class Task {
       templateLockCount: templateLockCount ?? this.templateLockCount,
       seedSlug: seedSlug ?? this.seedSlug,
       allowInstantComplete: allowInstantComplete ?? this.allowInstantComplete,
+      description: description ?? this.description,
+      taskKind: taskKind ?? this.taskKind,
+      logs: logs ?? this.logs,
     );
   }
 
@@ -109,6 +179,9 @@ class Task {
     templateLockCount,
     seedSlug,
     allowInstantComplete,
+    description,
+    taskKind,
+    const ListEquality<TaskLogEntry>().hash(logs),
   ]);
 
   @override
@@ -128,7 +201,10 @@ class Task {
         const ListEquality<String>().equals(other.tags, tags) &&
         other.templateLockCount == templateLockCount &&
         other.seedSlug == seedSlug &&
-        other.allowInstantComplete == allowInstantComplete;
+        other.allowInstantComplete == allowInstantComplete &&
+        other.description == description &&
+        other.taskKind == taskKind &&
+        const ListEquality<TaskLogEntry>().equals(other.logs, logs);
   }
 
   @override
@@ -163,6 +239,9 @@ class TaskDraft {
     this.sortIndex = 0,
     this.seedSlug,
     this.allowInstantComplete = false,
+    this.description,
+    this.taskKind = TaskKind.regular,
+    this.logs = const <TaskLogEntry>[],
   });
 
   final String title;
@@ -173,6 +252,9 @@ class TaskDraft {
   final double sortIndex;
   final String? seedSlug;
   final bool allowInstantComplete;
+  final String? description;
+  final TaskKind taskKind;
+  final List<TaskLogEntry> logs;
 }
 
 class TaskUpdate {
@@ -187,6 +269,9 @@ class TaskUpdate {
     this.tags,
     this.templateLockDelta = 0,
     this.allowInstantComplete,
+    this.description,
+    this.taskKind,
+    this.logs,
   });
 
   final String? title;
@@ -199,4 +284,7 @@ class TaskUpdate {
   final List<String>? tags;
   final int templateLockDelta;
   final bool? allowInstantComplete;
+  final String? description;
+  final TaskKind? taskKind;
+  final List<TaskLogEntry>? logs;
 }

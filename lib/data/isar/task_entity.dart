@@ -41,4 +41,21 @@ class TaskEntity {
   String? seedSlug;
 
   bool allowInstantComplete = false;
+
+  String? description;
+
+  @enumerated
+  @Index()
+  TaskKind taskKind = TaskKind.regular;
+
+  List<TaskLogEntryEntity> logs = <TaskLogEntryEntity>[];
+}
+
+@embedded
+class TaskLogEntryEntity {
+  late DateTime timestamp;
+  late String action;
+  String? previous;
+  String? next;
+  String? actor;
 }

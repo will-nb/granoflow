@@ -110,13 +110,20 @@ flutter test test/yaml/
 ```
 
 ### Python Linter
-`scripts/architecture_linter.py` 提供了额外的验证：
+`scripts/anz_modules/architecture/architecture_linter.py` 提供了额外的验证：
 - YAML 语法检查
 - 必填字段验证
 - 路径有效性检查
 
 ```bash
-python scripts/architecture_linter.py documents/architecture/
+python scripts/anz_modules/architecture/architecture_linter.py documents/architecture/
+```
+
+### 快速运行
+```bash
+scripts/anz yaml:test
+scripts/anz yaml:test --schema
+scripts/anz yaml:test --sync -v
 ```
 
 ### 重新生成 YAML
@@ -193,7 +200,7 @@ scripts/anz yaml:create --from lib/presentation/widgets/modern_tag.dart
 ## 📚 相关文档
 
 - [13-plan-workflow.mdc](../../documents/project/13-plan-workflow.mdc) - YAML 文档工作流
-- [architecture_linter.py](../../scripts/architecture_linter.py) - Python 验证脚本
+- [architecture_linter.py](../../scripts/anz_modules/architecture/architecture_linter.py) - Python 验证脚本
 - [anz yaml:create](../../scripts/anz) - YAML 生成命令
 
 ## 🤝 贡献指南
@@ -236,6 +243,5 @@ python --version
 pip install pyyaml
 
 # 运行 linter
-python scripts/architecture_linter.py documents/architecture/
+python scripts/anz_modules/architecture/architecture_linter.py documents/architecture/
 ```
-

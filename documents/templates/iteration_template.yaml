@@ -1,0 +1,35 @@
+meta:
+  id: "YYMMDD-<module>-<slug>"
+  title: "迭代蓝图名称"
+  based_on: "设计文档路径（如 documents/spec/XXXX/design.yaml）"
+  status: draft
+  owner: "负责人"
+
+scope:
+  includes:
+    - "需要修改的模块或文件"
+  excludes:
+    - "明确不在范围内的部分"
+
+changes:
+  code_updates:
+    - file: "lib/..."
+      type: modify
+      intent: "修改目的"
+  data_model:
+    - entity: "数据模型或接口"
+      change: "新增字段/重命名/删除"
+  tests:
+    - type: unit
+      focus: "验证重点"
+  documentation:
+    - path: "documents/..."
+      update_type: modify
+
+risks:
+  - name: "风险或未定项"
+    mitigation: "缓解措施"
+
+verification:
+  checklist:
+    - "需要执行的验证步骤或命令"

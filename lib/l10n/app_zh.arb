@@ -183,6 +183,14 @@
   "tag_travel": "@旅行",
   "tag_urgent": "#緊急",
   "tag_waiting": "#等緊",
+  "tag_timed": "#計時",
+  "@tag_timed": {
+    "description": "計時任務標籤"
+  },
+  "tag_fragmented": "#碎片",
+  "@tag_fragmented": {
+    "description": "碎片化任務標籤"
+  },
   "tag_wasted": "嘥時間",
   "tag_workplace": "@公司學校",
   "taskChain": "任務鏈",
@@ -208,6 +216,211 @@
   "taskListSortError": "無法更新排序。",
   "taskListSubtaskCreatedToast": "子任務已建立。",
   "taskListSubtaskError": "建立子任務失敗。",
+  "projectQuickTasksTitle": "輕量任務",
+  "@projectQuickTasksTitle": {
+    "description": "項目頁輕量任務區標題"
+  },
+  "projectQuickTasksSubtitle": "這些未歸類的任務可隨時完成",
+  "@projectQuickTasksSubtitle": {
+    "description": "項目頁輕量任務區副標題"
+  },
+  "projectQuickTasksEmpty": "暫時沒有輕量任務",
+  "@projectQuickTasksEmpty": {
+    "description": "輕量任務為空提示"
+  },
+  "projectListTitle": "項目",
+  "@projectListTitle": {
+    "description": "項目列表標題"
+  },
+  "projectListSubtitle": "追蹤每個項目的里程碑與進度",
+  "@projectListSubtitle": {
+    "description": "項目列表副標題"
+  },
+  "projectListEmpty": "暫時沒有項目",
+  "@projectListEmpty": {
+    "description": "項目列表為空提示"
+  },
+  "projectNoMilestonesHint": "為項目加入里程碑以細分階段。",
+  "@projectNoMilestonesHint": {
+    "description": "無里程碑提示"
+  },
+  "projectDeadlineLabel": "截止日期：",
+  "@projectDeadlineLabel": {
+    "description": "截止日期前綴"
+  },
+  "projectProgressEmpty": "新增里程碑即可開始追蹤進度。",
+  "@projectProgressEmpty": {
+    "description": "無里程碑進度提示"
+  },
+  "projectProgressLabel": "{percentage}% · {completed}/{total} 個里程碑",
+  "@projectProgressLabel": {
+    "description": "項目進度摘要",
+    "placeholders": {
+      "percentage": {},
+      "completed": {},
+      "total": {}
+    }
+  },
+  "projectConvertTooltip": "轉換為項目",
+  "@projectConvertTooltip": {
+    "description": "將任務轉換為項目的提示"
+  },
+  "projectCreateButton": "新增項目",
+  "@projectCreateButton": {
+    "description": "新增項目按鈕"
+  },
+  "projectSheetTitle": "建立項目",
+  "@projectSheetTitle": {
+    "description": "項目建立視窗標題"
+  },
+  "projectSheetTitleHint": "項目名稱",
+  "@projectSheetTitleHint": {
+    "description": "項目名稱提示"
+  },
+  "projectSheetAddDescription": "新增描述",
+  "@projectSheetAddDescription": {
+    "description": "新增項目描述按鈕"
+  },
+  "projectSheetHideDescription": "收起描述",
+  "@projectSheetHideDescription": {
+    "description": "隱藏項目描述按鈕"
+  },
+  "projectSheetDescriptionHint": "可選備註",
+  "@projectSheetDescriptionHint": {
+    "description": "項目描述提示"
+  },
+  "projectSheetQuadrantLabel": "四象限標籤",
+  "@projectSheetQuadrantLabel": {
+    "description": "選擇四象限標籤的標題"
+  },
+  "projectSheetExecutionLabel": "執行方式",
+  "@projectSheetExecutionLabel": {
+    "description": "選擇執行方式標籤的標題"
+  },
+  "projectSheetContextLabel": "情境標籤",
+  "@projectSheetContextLabel": {
+    "description": "選擇情境標籤的標題"
+  },
+  "projectSheetSelectContext": "選擇情境標籤",
+  "@projectSheetSelectContext": {
+    "description": "選擇情境標籤按鈕"
+  },
+  "projectSheetChangeContext": "更換情境標籤",
+  "@projectSheetChangeContext": {
+    "description": "更換情境標籤按鈕"
+  },
+  "projectShortcutPickerTitle": "選擇要套用的標籤",
+  "@projectShortcutPickerTitle": {
+    "description": "輸入 # 時選擇標籤的標題"
+  },
+  "projectContextPickerTitle": "選擇情境標籤",
+  "@projectContextPickerTitle": {
+    "description": "輸入 @ 時選擇標籤的標題"
+  },
+  "projectSheetSelectDeadline": "選擇截止日期",
+  "@projectSheetSelectDeadline": {
+    "description": "選擇截止日期按鈕"
+  },
+  "projectSheetSelectDeadlineHint": "請選擇截止日期",
+  "@projectSheetSelectDeadlineHint": {
+    "description": "未選擇截止日期時的提示"
+  },
+  "projectSheetDeadlineRequired": "請為項目設定截止日期。",
+  "@projectSheetDeadlineRequired": {
+    "description": "缺少截止日期時的提示"
+  },
+  "projectSheetMilestonesTitle": "里程碑",
+  "@projectSheetMilestonesTitle": {
+    "description": "里程碑區標題"
+  },
+  "projectSheetMilestonesEmpty": "新增里程碑以細分階段。",
+  "@projectSheetMilestonesEmpty": {
+    "description": "里程碑為空提示"
+  },
+  "projectSheetAddMilestone": "新增里程碑",
+  "@projectSheetAddMilestone": {
+    "description": "新增里程碑按鈕"
+  },
+  "projectSheetMilestoneTitleHint": "里程碑名稱",
+  "@projectSheetMilestoneTitleHint": {
+    "description": "里程碑名稱提示"
+  },
+  "projectDescriptionShowMore": "顯示完整描述",
+  "@projectDescriptionShowMore": {
+    "description": "展開專案或里程碑描述的按鈕"
+  },
+  "projectDescriptionShowLess": "收起描述",
+  "@projectDescriptionShowLess": {
+    "description": "收起專案或里程碑描述的按鈕"
+  },
+  "projectDeadlineAutoAdjusted": "專案截止日期已自動延長到最晚的里程碑。",
+  "@projectDeadlineAutoAdjusted": {
+    "description": "自動調整專案截止日期時的提示"
+  },
+  "projectCreateSuccess": "專案建立成功。",
+  "@projectCreateSuccess": {
+    "description": "專案建立成功提示"
+  },
+  "projectCreateError": "專案建立失敗，請稍後再試。",
+  "@projectCreateError": {
+    "description": "專案建立失敗提示"
+  },
+  "projectConvertDialogTitle": "轉換為項目",
+  "@projectConvertDialogTitle": {
+    "description": "確認轉換對話框標題"
+  },
+  "projectConvertDialogBody": "確定將此任務提升為專案？既有子任務會自動成為里程碑。",
+  "@projectConvertDialogBody": {
+    "description": "任務轉換對話框內容"
+  },
+  "projectConvertConfirm": "轉換",
+  "@projectConvertConfirm": {
+    "description": "轉換按鈕文字"
+  },
+  "projectConvertSuccess": "任務已轉換為專案。",
+  "@projectConvertSuccess": {
+    "description": "轉換成功提示"
+  },
+  "projectConvertError": "轉換失敗，請稍後再試。",
+  "@projectConvertError": {
+    "description": "轉換失敗提示"
+  },
+  "projectArchiveConfirmTitle": "封存專案",
+  "@projectArchiveConfirmTitle": {
+    "description": "封存專案時的對話框標題"
+  },
+  "projectArchiveConfirmBody": "確定要封存此專案？之後可在封存區找到。",
+  "@projectArchiveConfirmBody": {
+    "description": "封存專案時的對話內容"
+  },
+  "projectSnoozeAction": "暫緩",
+  "@projectSnoozeAction": {
+    "description": "暫緩專案的動作文字"
+  },
+  "projectSnoozeConfirmTitle": "暫緩專案",
+  "@projectSnoozeConfirmTitle": {
+    "description": "暫緩專案時的對話框標題"
+  },
+  "projectSnoozeConfirmBody": "要將專案的截止日期順延一年嗎？",
+  "@projectSnoozeConfirmBody": {
+    "description": "暫緩專案時的對話內容"
+  },
+  "projectSnoozeConfirm": "暫緩",
+  "@projectSnoozeConfirm": {
+    "description": "暫緩專案的確認按鈕"
+  },
+  "projectSnoozeSuccess": "專案截止日期已順延一年。",
+  "@projectSnoozeSuccess": {
+    "description": "暫緩成功時的提示"
+  },
+  "projectSnoozeError": "暫緩專案失敗，請稍後再試。",
+  "@projectSnoozeError": {
+    "description": "暫緩失敗時的提示"
+  },
+  "projectStatusOverdue": "逾期",
+  "@projectStatusOverdue": {
+    "description": "專案或里程碑逾期時的標籤"
+  },
   "taskListTaskArchivedError": "封存任務失敗。",
   "taskArchiveError": "歸檔任務失敗",
   "taskArchivedSuccess": "任務歸檔成功",

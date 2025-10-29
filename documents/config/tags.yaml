@@ -27,8 +27,15 @@ tags:
       key: "tag_not_important"
 
   # 特殊标签 (Special Tags)
-  special:
+  execution:
+    - slug: "#timed"
+      key: "tag_timed"
+    - slug: "#fragmented"
+      key: "tag_fragmented"
     - slug: "#waiting"
       key: "tag_waiting"
+
+  # 额外辅助标签
+  special:
     - slug: "wasted"
       key: "tag_wasted"

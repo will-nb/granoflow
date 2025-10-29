@@ -1,11 +1,11 @@
 meta:
-  name: _SectionMeta
+  name: _FlattenedTaskNode
   type: page
   file_path: lib/presentation/tasks/task_list_page.dart
-  description: _SectionMeta 页面
+  description: _FlattenedTaskNode 页面
   version: '1.0'
-  created_date: '251028'
-  last_updated: '251028'
+  created_date: '251029'
+  last_updated: '251029'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -195,6 +195,7 @@ calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
+- lib/core/services/task_service.dart
 - lib/core/constants/task_constants.dart
 - lib/data/models/task.dart
 - lib/presentation/widgets/page_app_bar.dart
@@ -208,6 +209,7 @@ calls:
 - lib/core/providers/tasks_drag_provider.dart
 i18n_keys:
 - taskListQuickAddTitle
+- projectProgressLabel
 design_tokens: []
 test_mapping:
   unit: []

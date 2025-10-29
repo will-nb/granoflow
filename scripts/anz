@@ -174,8 +174,8 @@ generate_icons_all() {
     return 1
   fi
   
-  echo -e "${BLUE}执行: python3 scripts/icons/generate.py${NC}"
-  run_with_timeout 120 python3 scripts/icons/generate.py
+  echo -e "${BLUE}执行: python3 scripts/anz_modules/icons/generate.py${NC}"
+  run_with_timeout 120 python3 scripts/anz_modules/icons/generate.py
   
   if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ 所有平台图标生成成功！${NC}"
@@ -183,6 +183,27 @@ generate_icons_all() {
     echo -e "${RED}❌ 图标生成失败${NC}"
     return 1
   fi
+}
+
+run_yaml_tests_all() {
+  if has_help "$@"; then
+    show_yaml_test_help
+    return 0
+  fi
+
+  local timeout_seconds=600
+  echo -e "${BLUE}运行 YAML 一致性测试脚本...${NC}"
+  run_with_timeout "$timeout_seconds" bash "$ROOT_DIR/scripts/devtools/run_yaml_tests.sh" "$@"
+}
+
+install_hooks() {
+  if has_help "$@"; then
+    show_hooks_install_help
+    return 0
+  fi
+
+  echo -e "${BLUE}配置本地 Git hooks ...${NC}"
+  bash "$ROOT_DIR/scripts/devtools/setup_hooks.sh"
 }
 
 show_main_help() {
@@ -194,6 +215,7 @@ GranoFlow 项目管理脚本
 项目管理命令：
   clean           清理项目并重建
   build:aab       构建 Android App Bundle (AAB) 文件
+  hooks:install   配置/更新 Git hooks（pre-commit / pre-push）
 
 图标生成命令：
   icons:generate       生成所有平台的应用图标
@@ -201,6 +223,7 @@ GranoFlow 项目管理脚本
 文档生成命令：
   yaml:create        基于模板创建单个 architecture YAML 文档
   yaml:create:all    批量重新生成所有六大核心类型的 YAML 文档
+  yaml:test          运行 YAML 一致性测试（支持 schema/fields/refs/sync 细粒度选项）
 
 使用 '$(basename "$0") <命令> --help' 查看具体命令的详细用法
 EOF
@@ -230,6 +253,45 @@ Note:
   - 使用 --from 参数可自动分析 Dart 文件并填充 YAML 字段
   - 创建后会自动运行 Linter 校验，如有问题需修正后再提交
 YAML_HELP
+}
+
+show_yaml_test_help() {
+  cat << 'YAML_TEST_HELP'
+Usage: scripts/anz yaml:test [--all|--schema|--fields|--refs|--sync] [-v|--verbose]
+
+Description:
+  运行 YAML 架构文档的一致性测试套件。默认执行全部测试，可通过选项仅运行特定类别。
+
+Options:
+  --all        运行所有测试（默认）
+  --schema     仅验证 schema 约束（字段存在、类型正确等）
+  --fields     仅验证字段完整性（必填字段、引用字段等）
+  --refs       仅验证跨文档引用一致性（calls/called_by 等）
+  --sync       仅验证 YAML 与代码实现的同步情况
+  -v,--verbose 通过给 Flutter 测试增加 --verbose 输出
+  -h,--help    显示此帮助
+
+Examples:
+  scripts/anz yaml:test                # 运行全部测试
+  scripts/anz yaml:test --schema       # 仅运行 schema 验证
+  scripts/anz yaml:test --sync -v      # 同步验证并输出详细日志
+YAML_TEST_HELP
+}
+
+show_hooks_install_help() {
+  cat << 'HOOKS_HELP'
+Usage: scripts/anz hooks:install
+
+Description:
+  配置项目的 Git hooks（pre-commit 与 pre-push），确保在提交/推送前自动执行格式化、分析与 YAML 校验。
+
+Actions:
+  - 设置 git config core.hooksPath=scripts/git-hooks
+  - 为 pre-commit、pre-push 脚本添加执行权限
+
+Examples:
+  scripts/anz hooks:install            # 安装或更新本地 Git hooks
+HOOKS_HELP
 }
 
 # 显示 yaml:create:all 帮助
@@ -313,6 +375,10 @@ main() {
         exit 0
       fi
       generate_icons_all ;;
+
+    hooks:install)
+      shift
+      install_hooks "$@" ;;
       
     yaml:create:all)
       # 直接处理 yaml:create:all 格式
@@ -327,7 +393,7 @@ main() {
         exit 1
       fi
       echo -e "${BLUE}批量生成 Architecture YAML 文档...${NC}"
-      python3 "$ROOT_DIR/scripts/yaml_create_all.py" "$@"
+      python3 "$ROOT_DIR/scripts/anz_modules/architecture/yaml_create_all.py" "$@"
       ;;
       
     yaml:create)
@@ -361,7 +427,7 @@ main() {
         fi
         echo -e "${BLUE}分析 Dart 文件: $FROM${NC}"
         mkdir -p "$(dirname "$FILE")"
-        python3 "$ROOT_DIR/scripts/yaml_generator.py" "$FROM" "$FILE" "$TYPE"
+        python3 "$ROOT_DIR/scripts/anz_modules/architecture/yaml_generator.py" "$FROM" "$FILE" "$TYPE"
       else
         # 否则使用模板复制
         case "$TYPE" in
@@ -383,8 +449,8 @@ main() {
       
       # 运行批量补齐和 Linter
       if has_cmd python3; then
-        python3 "$ROOT_DIR/scripts/architecture_bulk_update.py" >/dev/null || true
-        python3 "$ROOT_DIR/scripts/architecture_linter.py" --files "$FILE" || { echo -e "${YELLOW}[anz] Linter 警告：请修正上述问题后再提交${NC}"; exit 1; }
+        python3 "$ROOT_DIR/scripts/anz_modules/architecture/architecture_bulk_update.py" >/dev/null || true
+        python3 "$ROOT_DIR/scripts/anz_modules/architecture/architecture_linter.py" --files "$FILE" || { echo -e "${YELLOW}[anz] Linter 警告：请修正上述问题后再提交${NC}"; exit 1; }
       fi
       ;;
       
@@ -427,7 +493,7 @@ main() {
             fi
             echo -e "${BLUE}分析 Dart 文件: $FROM${NC}"
             mkdir -p "$(dirname "$FILE")"
-            python3 "$ROOT_DIR/scripts/yaml_generator.py" "$FROM" "$FILE" "$TYPE"
+            python3 "$ROOT_DIR/scripts/anz_modules/architecture/yaml_generator.py" "$FROM" "$FILE" "$TYPE"
           else
             # 否则使用模板复制
             case "$TYPE" in
@@ -449,8 +515,8 @@ main() {
           
           # 运行批量补齐和 Linter
           if has_cmd python3; then
-            python3 "$ROOT_DIR/scripts/architecture_bulk_update.py" >/dev/null || true
-            python3 "$ROOT_DIR/scripts/architecture_linter.py" --files "$FILE" || { echo -e "${YELLOW}[anz] Linter 警告：请修正上述问题后再提交${NC}"; exit 1; }
+            python3 "$ROOT_DIR/scripts/anz_modules/architecture/architecture_bulk_update.py" >/dev/null || true
+            python3 "$ROOT_DIR/scripts/anz_modules/architecture/architecture_linter.py" --files "$FILE" || { echo -e "${YELLOW}[anz] Linter 警告：请修正上述问题后再提交${NC}"; exit 1; }
           fi
           ;;
         *)
@@ -460,6 +526,10 @@ main() {
           ;;
       esac
       ;;
+
+    yaml:test)
+      shift
+      run_yaml_tests_all "$@" ;;
       
     *)
       echo "未知命令: $1"

@@ -37,38 +37,79 @@ class StubTaskRepository implements TaskRepository {
   );
 
   @override
+  Stream<List<Task>> watchProjects() => Stream.value(
+    _tasks.values
+        .where(
+          (task) =>
+              task.taskKind == TaskKind.project &&
+              task.parentId == null &&
+              _isActiveProjectStatus(task.status),
+        )
+        .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
+        .toList(growable: false),
+  );
+
+  @override
+  Stream<List<Task>> watchQuickTasks() => Stream.value(
+    _tasks.values
+        .where(
+          (task) =>
+              task.taskKind == TaskKind.regular &&
+              task.parentId == null &&
+              _isActiveProjectStatus(task.status),
+        )
+        .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
+        .toList(growable: false),
+  );
+
+  @override
+  Stream<List<Task>> watchMilestones(int projectId) => Stream.value(
+    _tasks.values
+        .where(
+          (task) =>
+              task.taskKind == TaskKind.milestone &&
+              task.parentId == projectId &&
+              _isVisibleMilestoneStatus(task.status),
+        )
+        .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
+        .toList(growable: false),
+  );
+
+  @override
   Stream<List<Task>> watchInboxFiltered({
     String? contextTag,
     String? priorityTag,
     String? urgencyTag,
     String? importanceTag,
   }) {
-    final filtered = _tasks.values.where((task) {
-      if (task.status != TaskStatus.inbox) {
-        return false;
-      }
-      if (contextTag != null && contextTag.isNotEmpty) {
-        if (!task.tags.contains(contextTag)) {
-          return false;
-        }
-      }
-      if (priorityTag != null && priorityTag.isNotEmpty) {
-        if (!task.tags.contains(priorityTag)) {
-          return false;
-        }
-      }
-      if (urgencyTag != null && urgencyTag.isNotEmpty) {
-        if (!task.tags.contains(urgencyTag)) {
-          return false;
-        }
-      }
-      if (importanceTag != null && importanceTag.isNotEmpty) {
-        if (!task.tags.contains(importanceTag)) {
-          return false;
-        }
-      }
-      return true;
-    }).toList(growable: false);
+    final filtered = _tasks.values
+        .where((task) {
+          if (task.status != TaskStatus.inbox) {
+            return false;
+          }
+          if (contextTag != null && contextTag.isNotEmpty) {
+            if (!task.tags.contains(contextTag)) {
+              return false;
+            }
+          }
+          if (priorityTag != null && priorityTag.isNotEmpty) {
+            if (!task.tags.contains(priorityTag)) {
+              return false;
+            }
+          }
+          if (urgencyTag != null && urgencyTag.isNotEmpty) {
+            if (!task.tags.contains(urgencyTag)) {
+              return false;
+            }
+          }
+          if (importanceTag != null && importanceTag.isNotEmpty) {
+            if (!task.tags.contains(importanceTag)) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .toList(growable: false);
     return Stream.value(filtered);
   }
 
@@ -91,6 +132,9 @@ class StubTaskRepository implements TaskRepository {
       templateLockCount: 0,
       seedSlug: draft.seedSlug,
       allowInstantComplete: draft.allowInstantComplete,
+      description: draft.description,
+      taskKind: draft.taskKind,
+      logs: List.unmodifiable(draft.logs),
     );
     _tasks[task.id] = task;
     return task;
@@ -112,6 +156,9 @@ class StubTaskRepository implements TaskRepository {
       templateLockCount: existing.templateLockCount + payload.templateLockDelta,
       allowInstantComplete:
           payload.allowInstantComplete ?? existing.allowInstantComplete,
+      description: payload.description ?? existing.description,
+      taskKind: payload.taskKind ?? existing.taskKind,
+      logs: payload.logs ?? existing.logs,
       updatedAt: DateTime.now(),
     );
     _tasks[taskId] = updated;
@@ -218,12 +265,15 @@ class StubTaskRepository implements TaskRepository {
     int limit = 20,
   }) async {
     final lower = query.toLowerCase();
-    final results = _tasks.values.where((task) {
-      if (status != null && task.status != status) {
-        return false;
-      }
-      return task.title.toLowerCase().contains(lower);
-    }).take(limit).toList(growable: false);
+    final results = _tasks.values
+        .where((task) {
+          if (status != null && task.status != status) {
+            return false;
+          }
+          return task.title.toLowerCase().contains(lower);
+        })
+        .take(limit)
+        .toList(growable: false);
     return results;
   }
 
@@ -264,7 +314,9 @@ class StubTaskRepository implements TaskRepository {
                   !task.dueAt!.isBefore(tomorrowStart) &&
                   task.dueAt!.isBefore(dayAfter);
             case TaskSection.thisWeek:
-              final dayAfterTomorrow = tomorrowStart.add(const Duration(days: 2));
+              final dayAfterTomorrow = tomorrowStart.add(
+                const Duration(days: 2),
+              );
               return task.status == TaskStatus.pending &&
                   task.dueAt != null &&
                   !task.dueAt!.isBefore(dayAfterTomorrow);
@@ -286,6 +338,29 @@ class StubTaskRepository implements TaskRepository {
         })
         .sortedBy((task) => task.sortIndex)
         .toList(growable: false);
+  }
+
+  bool _isActiveProjectStatus(TaskStatus status) {
+    return status != TaskStatus.archived &&
+        status != TaskStatus.trashed &&
+        status != TaskStatus.pseudoDeleted &&
+        status != TaskStatus.completedActive;
+  }
+
+  bool _isVisibleMilestoneStatus(TaskStatus status) {
+    return status != TaskStatus.archived &&
+        status != TaskStatus.trashed &&
+        status != TaskStatus.pseudoDeleted;
+  }
+
+  int _compareDueDates(DateTime? a, DateTime? b) {
+    final aSafe = a ?? DateTime(2100, 1, 1);
+    final bSafe = b ?? DateTime(2100, 1, 1);
+    final compare = aSafe.compareTo(bSafe);
+    if (compare != 0) {
+      return compare;
+    }
+    return 0;
   }
 
   TaskTreeNode _buildTree(int rootTaskId) {
@@ -412,8 +487,18 @@ class StubTagRepository implements TagRepository {
   Future<void> initializeTags() async {
     // 测试实现：初始化一些测试标签
     final testTags = [
-      Tag(id: 1, slug: '@home', kind: TagKind.context, localizedLabels: {'en': 'Home'}),
-      Tag(id: 2, slug: '#urgent', kind: TagKind.priority, localizedLabels: {'en': 'Urgent'}),
+      Tag(
+        id: 1,
+        slug: '@home',
+        kind: TagKind.context,
+        localizedLabels: {'en': 'Home'},
+      ),
+      Tag(
+        id: 2,
+        slug: '#urgent',
+        kind: TagKind.priority,
+        localizedLabels: {'en': 'Urgent'},
+      ),
     ];
     for (final tag in testTags) {
       _tags[tag.slug] = tag;

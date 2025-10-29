@@ -19,9 +19,7 @@ fi
 ARCH_CHANGED=$(echo "$CHANGED" | grep -E '^documents/architecture/.*\.ya?ml$' || true)
 if [ -n "$ARCH_CHANGED" ]; then
   echo "[pre-commit] Lint architecture docs (precise) ..."
-  python3 scripts/architecture_linter.py --files $ARCH_CHANGED
+  python3 scripts/anz_modules/architecture/architecture_linter.py --files $ARCH_CHANGED
 fi
 
 exit 0
-
-

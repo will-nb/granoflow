@@ -2,14 +2,14 @@ import 'package:flutter/foundation.dart';
 import '../../data/models/tag.dart';
 
 /// 应用级常量定义
-/// 
+///
 /// 包含标签配置、默认值、限制等应用级别的常量。
 /// 这些常量在编译时确定，运行时不可变。
 class AppConstants {
   const AppConstants._();
 
   /// 标签定义
-  /// 
+  ///
   /// 注意：
   /// - slug 包含前缀（@ 或 #），这是标签的唯一标识符
   /// - 前缀是业务规则的一部分，用于类型识别和视觉呈现
@@ -70,20 +70,32 @@ class AppConstants {
 
     // 特殊标签
     TagDefinition(
-      slug: '#waiting',
-      kind: TagKind.special,
-      translationKey: 'tag_waiting',
-    ),
-    TagDefinition(
       slug: 'wasted',
       kind: TagKind.special,
       translationKey: 'tag_wasted',
+    ),
+
+    // 执行方式标签 - # 前缀（互斥）
+    TagDefinition(
+      slug: '#timed',
+      kind: TagKind.execution,
+      translationKey: 'tag_timed',
+    ),
+    TagDefinition(
+      slug: '#fragmented',
+      kind: TagKind.execution,
+      translationKey: 'tag_fragmented',
+    ),
+    TagDefinition(
+      slug: '#waiting',
+      kind: TagKind.execution,
+      translationKey: 'tag_waiting',
     ),
   ];
 }
 
 /// 标签定义数据类
-/// 
+///
 /// 用于定义标签的基本属性：唯一标识符、类型、翻译键。
 @immutable
 class TagDefinition {
@@ -118,4 +130,3 @@ class TagDefinition {
   @override
   int get hashCode => slug.hashCode ^ kind.hashCode ^ translationKey.hashCode;
 }
-

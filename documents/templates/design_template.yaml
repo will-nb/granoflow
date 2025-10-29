@@ -1,0 +1,28 @@
+meta:
+  id: "YYMMDD-<module>-<slug>"
+  title: "功能名称"
+  status: draft
+  owner: "负责人"
+
+background:
+  problem: "用户痛点或业务背景"
+  goal: "希望达成的收益或目标"
+
+user_flows:
+  - name: "主流程"
+    steps:
+      - "用户操作"
+      - "系统响应"
+
+ui_behavior:
+  layout: "页面结构或信息层级"
+  components:
+    - name: "组件名称"
+      purpose: "组件作用"
+      interactions: ["点击", "滑动"]
+  states:
+    - condition: "特定场景"
+      appearance: "界面/文案如何变化"
+
+open_issues:
+  - "待确认或风险项"

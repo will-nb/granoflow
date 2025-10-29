@@ -21,10 +21,8 @@ if [ -d documents/architecture ]; then
   echo "[pre-push] Lint all architecture docs ..."
   FILES=$(ls documents/architecture/**/*.yaml 2>/dev/null || ls documents/architecture/*.yaml 2>/dev/null || true)
   if [ -n "$FILES" ]; then
-    python3 scripts/architecture_linter.py --files $FILES
+    python3 scripts/anz_modules/architecture/architecture_linter.py --files $FILES
   fi
 fi
 
 exit 0
-
-
