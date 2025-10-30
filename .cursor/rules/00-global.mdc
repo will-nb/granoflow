@@ -62,3 +62,7 @@
 
 ### 防止编译错误
 如果写代码时遇到flutter analyze或flutter run报错，应该要阅读相关的g.dart文件，精确调用当前版本。这种库经常更新，你所知的版本未必适合我们。
+
+### 重构原则
+- lib/presentation 下每个dart文件不能超过600行，lib/core/utils、lib/core/providers、lib/core/services、lib/core/monetization 下的dart文件和lib/main.dart 不能超过400行，超过立刻重构。
+- lib下每个方法不能超过60行，超过立刻重构。

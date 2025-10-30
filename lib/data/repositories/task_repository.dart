@@ -619,7 +619,7 @@ class IsarTaskRepository implements TaskRepository {
       
       if (aDate == null && bDate == null) {
         // 两者都没有 dueAt，按 sortIndex 比较
-        final sortIndexComparison = (a.sortIndex ?? 0).compareTo(b.sortIndex ?? 0);
+        final sortIndexComparison = a.sortIndex.compareTo(b.sortIndex);
         if (sortIndexComparison != 0) return sortIndexComparison;
         return a.createdAt.compareTo(b.createdAt);
       }
@@ -635,7 +635,7 @@ class IsarTaskRepository implements TaskRepository {
       if (dateComparison != 0) return dateComparison;
       
       // 2. 日期相同，按 sortIndex 比较
-      final sortIndexComparison = (a.sortIndex ?? 0).compareTo(b.sortIndex ?? 0);
+      final sortIndexComparison = a.sortIndex.compareTo(b.sortIndex);
       if (sortIndexComparison != 0) return sortIndexComparison;
       
       // 3. sortIndex 也相同，按 createdAt 比较

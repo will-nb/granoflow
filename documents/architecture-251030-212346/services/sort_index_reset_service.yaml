@@ -1,7 +1,7 @@
 meta:
-  name: TaskService
+  name: SortIndexResetService
   type: service
-  file_path: lib/core/services/task_service.dart
+  file_path: lib/core/services/sort_index_reset_service.dart
   description: Service 描述
   version: '1.0'
   created_date: '251030'
@@ -190,15 +190,12 @@ lifecycle_management:
   - 资源释放
   - 状态重置
   - 连接关闭
-source_of_truth: lib/core/services/task_service.dart
+source_of_truth: lib/core/services/sort_index_reset_service.dart
 called_by: []
 calls:
 - lib/data/models/task.dart
-- lib/data/models/tag.dart
 - lib/data/repositories/task_repository.dart
-- lib/data/repositories/tag_repository.dart
 - lib/core/constants/task_constants.dart
-- lib/core/utils/task_section_utils.dart
 test_mapping:
   unit: []
   integration: []
