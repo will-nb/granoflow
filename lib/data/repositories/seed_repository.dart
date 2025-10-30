@@ -30,6 +30,7 @@ class SeedTask {
     required this.allowInstantComplete,
     this.parentSlug,
     this.sortIndex = 0,
+    this.dueAt,
   });
 
   final String slug;
@@ -39,6 +40,7 @@ class SeedTask {
   final List<String> tags;
   final bool allowInstantComplete;
   final double sortIndex;
+  final dynamic dueAt;  // 支持 int (相对天数) 或 DateTime (绝对日期)
 }
 
 class SeedTemplate {
@@ -161,6 +163,7 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
             allowInstantComplete:
                 (raw['allowInstantComplete'] as bool?) ?? false,
             sortIndex: (raw['sortIndex'] as num?)?.toDouble() ?? 0,
+            dueAt: raw['dueAt'],  // 保留原始值（int 或 null），由 SeedImportService 处理
           );
         })
         .toList(),

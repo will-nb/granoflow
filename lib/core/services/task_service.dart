@@ -513,26 +513,83 @@ class TaskService {
     return result;
   }
 
-  /// 处理拖拽到任务间（调整sortIndex）
+  /// 处理拖拽到任务间（调整sortIndex，支持跨区域）
   Future<void> handleDragBetweenTasks(int draggedTaskId, int beforeTaskId, int afterTaskId) async {
     debugPrint('拖拽排序Between: task=$draggedTaskId between $beforeTaskId/$afterTaskId');
+    
+    // 获取任务信息以检测是否跨区域
+    final draggedTask = await _tasks.findById(draggedTaskId);
+    final beforeTask = await _tasks.findById(beforeTaskId);
+    final afterTask = await _tasks.findById(afterTaskId);
+    
+    if (draggedTask == null || beforeTask == null || afterTask == null) {
+      debugPrint('任务不存在，取消拖拽');
+      return;
+    }
+    
+    // 检测目标区域（使用 beforeTask 的 section）
+    final targetSection = _getSectionForTask(beforeTask);
+    final currentSection = _getSectionForTask(draggedTask);
+    
+    // 如果跨区域拖拽，先更新 dueAt
+    if (targetSection != currentSection && beforeTask.dueAt != null) {
+      final sectionEndTime = _getSectionEndTime(targetSection);
+      debugPrint('跨区域拖拽: $currentSection -> $targetSection, 更新 dueAt 为 $sectionEndTime');
+      await _tasks.updateTask(
+        draggedTaskId,
+        TaskUpdate(dueAt: sectionEndTime),
+      );
+    }
+    
+    // 执行排序逻辑
     final sortIndex = _sortIndex;
-    if (sortIndex == null) return;
-    await sortIndex.insertBetween(
-      draggedId: draggedTaskId,
-      beforeId: beforeTaskId,
-      afterId: afterTaskId,
-    );
+    if (sortIndex != null) {
+      await sortIndex.insertBetween(
+        draggedId: draggedTaskId,
+        beforeId: beforeTaskId,
+        afterId: afterTaskId,
+      );
+    }
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+  
+  /// 根据任务的 dueAt 获取其所属区域
+  TaskSection _getSectionForTask(Task task) {
+    if (task.dueAt == null) {
+      return TaskSection.later;
+    }
+    final now = _clock();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final dayAfterTomorrow = DateTime(now.year, now.month, now.day + 2);
+    final weekStart = _getThisWeekStart(now);
+    final nextWeekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 7);
+    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
+    
+    final dueDate = DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day);
+    
+    if (dueDate.isBefore(today)) {
+      return TaskSection.overdue;
+    } else if (dueDate.isAtSameMomentAs(today)) {
+      return TaskSection.today;
+    } else if (dueDate.isAtSameMomentAs(tomorrow)) {
+      return TaskSection.tomorrow;
+    } else if (dueDate.isBefore(nextWeekStart)) {
+      return TaskSection.thisWeek;
+    } else if (dueDate.isBefore(nextMonthStart)) {
+      return TaskSection.thisMonth;
+    } else {
+      return TaskSection.later;
+    }
   }
 
   /// 处理拖拽到区域首位
   Future<void> handleDragToSectionFirst(int draggedTaskId, TaskSection section) async {
-    final sectionMidTime = _getSectionMidTime(section);
+    final sectionEndTime = _getSectionEndTime(section);
     debugPrint('拖拽到区域首位: task=$draggedTaskId, section=$section');
     await _tasks.updateTask(
       draggedTaskId,
-      TaskUpdate(dueAt: sectionMidTime),
+      TaskUpdate(dueAt: sectionEndTime),
     );
     // 找到区域首元素（排除自身），调用 moveToHead
     final tasks = await _tasks.listSectionTasks(section);
@@ -557,11 +614,11 @@ class TaskService {
 
   /// 处理拖拽到区域末位
   Future<void> handleDragToSectionLast(int draggedTaskId, TaskSection section) async {
-    final sectionMidTime = _getSectionMidTime(section);
+    final sectionEndTime = _getSectionEndTime(section);
     debugPrint('拖拽到区域末位: task=$draggedTaskId, section=$section');
     await _tasks.updateTask(
       draggedTaskId,
-      TaskUpdate(dueAt: sectionMidTime),
+      TaskUpdate(dueAt: sectionEndTime),
     );
     final tasks = await _tasks.listSectionTasks(section);
     final sortIndex = _sortIndex;
@@ -581,23 +638,30 @@ class TaskService {
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
-  /// 获取区域中间时间点（12:00:00）
-  DateTime _getSectionMidTime(TaskSection section) {
+  /// 获取区域结束时间点（第一天的 23:59:59）
+  DateTime _getSectionEndTime(TaskSection section) {
     final now = _clock();
     switch (section) {
       case TaskSection.overdue:
-        return DateTime(now.year, now.month, now.day - 1, 12, 0, 0);
+        // 已逾期：昨天 23:59:59
+        return DateTime(now.year, now.month, now.day - 1, 23, 59, 59);
       case TaskSection.today:
-        return DateTime(now.year, now.month, now.day, 12, 0, 0);
+        // 今日：今天 23:59:59
+        return DateTime(now.year, now.month, now.day, 23, 59, 59);
       case TaskSection.tomorrow:
-        return DateTime(now.year, now.month, now.day + 1, 12, 0, 0);
+        // 明日：明天 23:59:59
+        return DateTime(now.year, now.month, now.day + 1, 23, 59, 59);
       case TaskSection.thisWeek:
+        // 本周：本周一 23:59:59
         final weekStart = _getThisWeekStart(now);
-        return DateTime(weekStart.year, weekStart.month, weekStart.day + 3, 12, 0, 0);
+        return DateTime(weekStart.year, weekStart.month, weekStart.day, 23, 59, 59);
       case TaskSection.thisMonth:
-        return DateTime(now.year, now.month, 15, 12, 0, 0);
+        // 本月：当月第一天 23:59:59
+        return DateTime(now.year, now.month, 1, 23, 59, 59);
       case TaskSection.later:
-        return DateTime(now.year + 1, 1, 1, 12, 0, 0);
+        // 以后：下月第一天 23:59:59
+        final nextMonth = DateTime(now.year, now.month + 1, 1);
+        return DateTime(nextMonth.year, nextMonth.month, nextMonth.day, 23, 59, 59);
       default:
         return now;
     }

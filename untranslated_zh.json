@@ -1,9 +1,11 @@
 {
   "zh": [
+    "dragToOverdueNotAllowed",
     "datePickerToday",
     "datePickerTomorrow",
     "datePickerThisMonth",
-    "datePickerCustom"
+    "datePickerCustom",
+    "taskDragCrossSectionSuccess"
   ],
 
   "zh_HK": [

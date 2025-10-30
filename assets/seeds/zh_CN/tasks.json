@@ -34,6 +34,30 @@
       "status": "pending",
       "allowInstantComplete": true,
       "tags": ["home", "not_urgent", "important"]
+    },
+    {
+      "slug": "task_postpone_overdue",
+      "title": "推迟当前任务到今天",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": ["urgent", "important"],
+      "dueAt": -1
+    },
+    {
+      "slug": "task_today",
+      "title": "今日任务示例",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": ["home", "not_urgent"],
+      "dueAt": 0
+    },
+    {
+      "slug": "task_tomorrow",
+      "title": "明日任务示例",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": ["work", "important"],
+      "dueAt": 1
     }
   ]
 }

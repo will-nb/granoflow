@@ -1,11 +1,11 @@
 meta:
-  name: _QuickDatePicker
+  name: _InboxTaskListState
   type: page
   file_path: lib/presentation/inbox/inbox_page.dart
-  description: _QuickDatePicker 页面
+  description: _InboxTaskListState 页面
   version: '1.0'
-  created_date: '251029'
-  last_updated: '251029'
+  created_date: '251030'
+  last_updated: '251030'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -194,7 +194,6 @@ called_by: []
 calls:
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
-- lib/core/providers/inbox_drag_provider.dart
 - lib/core/theme/app_color_tokens.dart
 - lib/data/models/tag.dart
 - lib/data/models/task.dart
@@ -207,7 +206,8 @@ calls:
 - lib/presentation/widgets/gradient_page_scaffold.dart
 - lib/presentation/widgets/tag_data.dart
 - lib/presentation/widgets/tag_panel.dart
-- lib/presentation/widgets/task_row_content.dart
+- lib/presentation/widgets/reorderable_proxy_decorator.dart
+- lib/presentation/widgets/task_tile_content.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

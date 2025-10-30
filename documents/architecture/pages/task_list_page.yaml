@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/tasks/task_list_page.dart
   description: _FlattenedTaskNode 页面
   version: '1.0'
-  created_date: '251029'
-  last_updated: '251029'
+  created_date: '251030'
+  last_updated: '251030'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -205,7 +205,6 @@ calls:
 - lib/presentation/widgets/page_app_bar.dart
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/gradient_page_scaffold.dart
-- lib/presentation/widgets/task_expanded_panel.dart
 - lib/presentation/widgets/dismissible_task_tile.dart
 - lib/presentation/widgets/swipe_configs.dart
 - lib/presentation/widgets/swipe_action_handler.dart
@@ -213,7 +212,8 @@ calls:
 - lib/presentation/widgets/flexible_text_input.dart
 - lib/presentation/widgets/flexible_description_input.dart
 - lib/presentation/widgets/task_row_content.dart
-- lib/core/providers/tasks_drag_provider.dart
+- lib/presentation/widgets/reorderable_proxy_decorator.dart
+- lib/presentation/widgets/task_tile_content.dart
 i18n_keys:
 - taskListQuickAddTitle
 - projectProgressLabel

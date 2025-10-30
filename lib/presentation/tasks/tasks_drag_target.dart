@@ -82,16 +82,19 @@ class TasksPageDragTarget extends ConsumerWidget {
   }
 
   bool _canAcceptDrop(Task draggedTask) {
+    // 禁止拖拽到已逾期区域
+    if (section == models.TaskSection.overdue) {
+      return false;
+    }
+    
     switch (targetType) {
       case TasksDragTargetType.between:
         // 不能拖拽到自己上方或下方
         if (beforeTask?.id == draggedTask.id || afterTask?.id == draggedTask.id) {
           return false;
         }
-        return beforeTask != null && 
-               afterTask != null &&
-               beforeTask!.dueAt != null &&
-               afterTask!.dueAt != null;
+        // 移除 dueAt 限制，支持跨区域拖拽
+        return beforeTask != null && afterTask != null;
       case TasksDragTargetType.sectionFirst:
       case TasksDragTargetType.sectionLast:
         return section != null;

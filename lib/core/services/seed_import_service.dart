@@ -118,11 +118,29 @@ class SeedImportService {
         continue;
       }
 
+      // 处理 dueAt 字段
+      DateTime? dueAt;
+      if (seed.dueAt != null) {
+        if (seed.dueAt is int) {
+          // 相对天数：计算绝对日期（设置为目标日期的 23:59:59）
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+          final targetDay = today.add(Duration(days: seed.dueAt as int));
+          dueAt = DateTime(targetDay.year, targetDay.month, targetDay.day, 23, 59, 59);
+        } else if (seed.dueAt is DateTime) {
+          // 绝对日期：直接使用
+          dueAt = seed.dueAt as DateTime;
+        }
+      } else {
+        // 无 dueAt：默认今天 23:59:59
+        final now = DateTime.now();
+        dueAt = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      }
+
       final draft = TaskDraft(
         title: seed.title,
         status: seed.status,
-        // 为无 dueAt 的种子任务指定“今天”的到期时间，确保在 Task 列表可见
-        dueAt: DateTime.now(),
+        dueAt: dueAt,
         parentId: null,
         tags: seed.tags,
         allowInstantComplete: seed.allowInstantComplete,
