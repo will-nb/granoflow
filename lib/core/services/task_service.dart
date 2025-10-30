@@ -6,6 +6,7 @@ import '../../data/repositories/tag_repository.dart';
 import 'metric_orchestrator.dart';
 import '../constants/task_constants.dart';
 import 'sort_index_service.dart';
+import '../utils/task_section_utils.dart';
 
 class ProjectMilestoneBlueprint {
   const ProjectMilestoneBlueprint({
@@ -555,32 +556,7 @@ class TaskService {
   
   /// 根据任务的 dueAt 获取其所属区域
   TaskSection _getSectionForTask(Task task) {
-    if (task.dueAt == null) {
-      return TaskSection.later;
-    }
-    final now = _clock();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    final dayAfterTomorrow = DateTime(now.year, now.month, now.day + 2);
-    final weekStart = _getThisWeekStart(now);
-    final nextWeekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 7);
-    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
-    
-    final dueDate = DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day);
-    
-    if (dueDate.isBefore(today)) {
-      return TaskSection.overdue;
-    } else if (dueDate.isAtSameMomentAs(today)) {
-      return TaskSection.today;
-    } else if (dueDate.isAtSameMomentAs(tomorrow)) {
-      return TaskSection.tomorrow;
-    } else if (dueDate.isBefore(nextWeekStart)) {
-      return TaskSection.thisWeek;
-    } else if (dueDate.isBefore(nextMonthStart)) {
-      return TaskSection.thisMonth;
-    } else {
-      return TaskSection.later;
-    }
+    return TaskSectionUtils.getSectionForDate(task.dueAt, now: _clock());
   }
 
   /// 处理拖拽到区域首位
@@ -640,37 +616,7 @@ class TaskService {
 
   /// 获取区域结束时间点（第一天的 23:59:59）
   DateTime _getSectionEndTime(TaskSection section) {
-    final now = _clock();
-    switch (section) {
-      case TaskSection.overdue:
-        // 已逾期：昨天 23:59:59
-        return DateTime(now.year, now.month, now.day - 1, 23, 59, 59);
-      case TaskSection.today:
-        // 今日：今天 23:59:59
-        return DateTime(now.year, now.month, now.day, 23, 59, 59);
-      case TaskSection.tomorrow:
-        // 明日：明天 23:59:59
-        return DateTime(now.year, now.month, now.day + 1, 23, 59, 59);
-      case TaskSection.thisWeek:
-        // 本周：本周一 23:59:59
-        final weekStart = _getThisWeekStart(now);
-        return DateTime(weekStart.year, weekStart.month, weekStart.day, 23, 59, 59);
-      case TaskSection.thisMonth:
-        // 本月：当月第一天 23:59:59
-        return DateTime(now.year, now.month, 1, 23, 59, 59);
-      case TaskSection.later:
-        // 以后：下月第一天 23:59:59
-        final nextMonth = DateTime(now.year, now.month + 1, 1);
-        return DateTime(nextMonth.year, nextMonth.month, nextMonth.day, 23, 59, 59);
-      default:
-        return now;
-    }
-  }
-
-  /// 获取本周开始时间
-  DateTime _getThisWeekStart(DateTime now) {
-    final daysFromMonday = (now.weekday - DateTime.monday) % 7;
-    return DateTime(now.year, now.month, now.day - daysFromMonday);
+    return TaskSectionUtils.getSectionEndTime(section, now: _clock());
   }
 
   // ===== Inbox 拖拽方法 =====
