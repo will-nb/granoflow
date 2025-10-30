@@ -62,7 +62,9 @@ class DismissibleTaskTile extends StatelessWidget {
           // 右滑
           onRightAction(task);
         }
-        return true; // 直接执行，无需确认弹窗
+        // 返回 false，让 Dismissible 在回调执行后自动复位
+        // 实际的任务移除由 Provider 触发的重建来完成
+        return false;
       },
       child: child,
     );

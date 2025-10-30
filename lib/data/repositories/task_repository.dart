@@ -82,7 +82,15 @@ class IsarTaskRepository implements TaskRepository {
 
   @override
   Stream<List<Task>> watchSection(TaskSection section) {
-    return _watchQuery(() => _fetchSection(section));
+    return _watchQuery(() => _fetchSection(section)).map((tasks) {
+      if (section == TaskSection.later) {
+        debugPrint('📺 [TaskRepository.watchSection] Stream 发送的任务顺序:');
+        for (final task in tasks) {
+          debugPrint('  - ${task.title}: dueAt=${task.dueAt}');
+        }
+      }
+      return tasks;
+    });
   }
 
   @override
@@ -586,12 +594,63 @@ class IsarTaskRepository implements TaskRepository {
         break;
     }
 
-    final results = await builder.sortBySortIndex().thenByCreatedAt().findAll();
+    // 先从数据库获取数据，不做排序
+    final results = await builder.findAll();
 
     // 过滤叶任务（只显示没有子任务的任务）
     final leafTasks = await _filterLeafTasks(results);
 
-    return leafTasks.map(_toDomain).toList(growable: false);
+    // 转换为领域模型
+    final tasks = leafTasks.map(_toDomain).toList(growable: false);
+
+    // 调试日志：输出排序前的任务
+    if (section == TaskSection.later && tasks.isNotEmpty) {
+      debugPrint('📊 [TaskRepository] 以后区域排序前:');
+      for (final task in tasks) {
+        debugPrint('  - ${task.title}: dueAt=${task.dueAt}, sortIndex=${task.sortIndex}');
+      }
+    }
+
+    // 在内存中排序：先按日期（不含时间）升序，再按 sortIndex 升序，最后按 createdAt 升序
+    tasks.sort((a, b) {
+      // 1. 比较 dueAt 的日期部分（忽略时间）
+      final aDate = a.dueAt;
+      final bDate = b.dueAt;
+      
+      if (aDate == null && bDate == null) {
+        // 两者都没有 dueAt，按 sortIndex 比较
+        final sortIndexComparison = (a.sortIndex ?? 0).compareTo(b.sortIndex ?? 0);
+        if (sortIndexComparison != 0) return sortIndexComparison;
+        return a.createdAt.compareTo(b.createdAt);
+      }
+      
+      if (aDate == null) return 1; // 没有 dueAt 的排在后面
+      if (bDate == null) return -1;
+      
+      // 提取日期部分（年-月-日，忽略时分秒）
+      final aDayOnly = DateTime(aDate.year, aDate.month, aDate.day);
+      final bDayOnly = DateTime(bDate.year, bDate.month, bDate.day);
+      
+      final dateComparison = aDayOnly.compareTo(bDayOnly);
+      if (dateComparison != 0) return dateComparison;
+      
+      // 2. 日期相同，按 sortIndex 比较
+      final sortIndexComparison = (a.sortIndex ?? 0).compareTo(b.sortIndex ?? 0);
+      if (sortIndexComparison != 0) return sortIndexComparison;
+      
+      // 3. sortIndex 也相同，按 createdAt 比较
+      return a.createdAt.compareTo(b.createdAt);
+    });
+
+    // 调试日志：输出排序后的任务
+    if (section == TaskSection.later && tasks.isNotEmpty) {
+      debugPrint('📊 [TaskRepository] 以后区域排序后:');
+      for (final task in tasks) {
+        debugPrint('  - ${task.title}: dueAt=${task.dueAt}, sortIndex=${task.sortIndex}');
+      }
+    }
+
+    return tasks;
   }
 
   Future<TaskTreeNode> _buildTree(int rootTaskId) async {

@@ -291,6 +291,12 @@ class _TaskSectionTaskModeListState
   void initState() {
     super.initState();
     _roots = List<Task>.from(widget.roots);
+    if (widget.section == TaskSection.later) {
+      debugPrint('📱 [TaskListPage] initState - 以后区域任务顺序:');
+      for (final task in _roots) {
+        debugPrint('  - ${task.title}: dueAt=${task.dueAt}');
+      }
+    }
   }
 
   @override
@@ -298,6 +304,12 @@ class _TaskSectionTaskModeListState
     super.didUpdateWidget(oldWidget);
     if (widget.roots != oldWidget.roots) {
       _roots = List<Task>.from(widget.roots);
+      if (widget.section == TaskSection.later) {
+        debugPrint('📱 [TaskListPage] didUpdateWidget - 以后区域任务顺序:');
+        for (final task in _roots) {
+          debugPrint('  - ${task.title}: dueAt=${task.dueAt}');
+        }
+      }
     }
   }
 
@@ -1052,7 +1064,9 @@ List<Task> _collectRoots(List<Task> tasks) {
       roots.add(task);
     }
   }
-  roots.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+  // 保持与 TaskRepository 一致的排序：dueAt（日期部分）→ sortIndex → createdAt
+  // 注意：tasks 已经由 TaskRepository 排序，这里不需要重新排序
+  // 但为了防止 Set/Map 操作打乱顺序，我们保持原始顺序
   return roots;
 }
 
