@@ -7,10 +7,10 @@ import '../../../generated/l10n/app_localizations.dart';
 import '../../tasks/utils/hierarchy_utils.dart';
 import '../../tasks/utils/sort_index_utils.dart';
 import '../../tasks/utils/task_collection_utils.dart';
-import '../../widgets/reorderable_proxy_decorator.dart';
+// import '../../../core/providers/inbox_drag_provider.dart';
+import '../widgets/inbox_task_tile.dart';
 import '../../../core/providers/inbox_drag_provider.dart';
 import '../inbox_drag_target.dart';
-import '../widgets/inbox_task_tile.dart';
 
 class InboxTaskList extends ConsumerStatefulWidget {
   const InboxTaskList({
@@ -27,11 +27,55 @@ class InboxTaskList extends ConsumerStatefulWidget {
 class _InboxTaskListState extends ConsumerState<InboxTaskList> {
   late List<Task> _tasks;
   int? _expandedTaskId; // 手风琴模式：记录当前展开的任务ID
+  // 自管占位逻辑已移除，改回 Reorderable + 标准插入线
 
   @override
   void initState() {
     super.initState();
     _tasks = List<Task>.from(widget.tasks);
+  }
+
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) {
+      return;
+    }
+
+    // 过滤掉 trashed 状态的任务
+    final filteredTasks = _tasks.where((task) => task.status != TaskStatus.trashed).toList();
+    final rootTasks = collectRoots(filteredTasks)
+        .where((task) => !isProjectOrMilestone(task))
+        .toList();
+
+    setState(() {
+      final task = rootTasks.removeAt(oldIndex);
+      final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+      rootTasks.insert(targetIndex, task);
+      // 将排序变化反映回 _tasks（filteredTasks 已与 _tasks 同源）
+      _tasks = filteredTasks;
+    });
+
+    final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    final before = targetIndex > 0 ? rootTasks[targetIndex - 1].sortIndex : null;
+    final after = targetIndex < rootTasks.length - 1
+        ? rootTasks[targetIndex + 1].sortIndex
+        : null;
+    final newSortIndex = calculateSortIndex(before, after);
+    final task = rootTasks[targetIndex];
+    final taskService = ref.read(taskServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(sortIndex: newSortIndex),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to update sort order: $error\n$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      messenger.showSnackBar(SnackBar(content: Text(l10n.taskListSortError)));
+    }
   }
 
   @override
@@ -61,32 +105,25 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       return const SizedBox.shrink();
     }
 
-    // 使用 Column 包裹列表，在列表前后和根任务之间添加拖拽目标
-    // 允许将子任务拖拽到这些区域成为根任务
     return Column(
       children: [
-        // 列表开头的拖拽目标（可以将子任务拖拽到这里成为第一个根任务）
+        // 列表开头插入线：仅用于子任务→根级
         InboxDragTarget(
           targetType: InboxDragTargetType.first,
           beforeTask: rootTasks.isNotEmpty ? rootTasks.first : null,
           onPromoteToRoot: (dragged, newIndex) => _optimisticallyPromoteToRoot(dragged, newIndex),
         ),
-        // 使用 ReorderableListView 支持重新排序，同时每个项目内部支持展开/折叠
         ReorderableListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
           itemCount: rootTasks.length,
           onReorder: _handleReorder,
-          buildDefaultDragHandles: false,
-          proxyDecorator: ReorderableProxyDecorator.build,
-          itemBuilder: (context, index) {
+      buildDefaultDragHandles: false,
+      itemBuilder: (context, index) {
             final rootTask = rootTasks[index];
-            // 将拖拽目标放在 ReorderableDragStartListener 外面，使用 Column 包裹
-            // key 必须放在 Column 上，因为 ReorderableListView 要求每个 item 必须有 key
             return Column(
               key: ValueKey('inbox-root-item-${rootTask.id}'),
               children: [
-                // 根任务之间的拖拽目标（可以将子任务拖拽到这里成为根任务）
                 if (index > 0)
                   InboxDragTarget(
                     targetType: InboxDragTargetType.between,
@@ -94,7 +131,6 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                     afterTask: rootTask,
                     onPromoteToRoot: (dragged, newIndex) => _optimisticallyPromoteToRoot(dragged, newIndex),
                   ),
-                // 根任务项（仅把“重排手柄”放进 tile 的 leading，避免与整卡片的拖拽冲突）
                 _InboxExpandableTaskItem(
                   task: rootTask,
                   allTasks: filteredTasks,
@@ -105,19 +141,19 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                     });
                   },
                   leading: ReorderableDragStartListener(
-                    index: index,
-                    child: Icon(
-                      Icons.drag_handle,
-                      color: Colors.grey[400],
-                      size: 20,
+          index: index,
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 12, top: 12, bottom: 12),
+                      child: Icon(Icons.drag_indicator_rounded, size: 20),
                     ),
                   ),
+                  contentPadding: const EdgeInsets.only(left: 0, right: 16, top: 12, bottom: 12),
                 ),
               ],
-            );
+    );
           },
         ),
-        // 列表结尾的拖拽目标（可以将子任务拖拽到这里成为最后一个根任务）
+        // 列表结尾插入线：仅用于子任务→根级
         InboxDragTarget(
           targetType: InboxDragTargetType.last,
           afterTask: rootTasks.isNotEmpty ? rootTasks.last : null,
@@ -127,48 +163,7 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     );
   }
 
-  Future<void> _handleReorder(int oldIndex, int newIndex) async {
-    if (oldIndex == newIndex) {
-      return;
-    }
-
-    // 过滤掉 trashed 状态的任务
-    final filteredTasks = _tasks.where((task) => task.status != TaskStatus.trashed).toList();
-    final rootTasks = collectRoots(filteredTasks)
-        .where((task) => !isProjectOrMilestone(task))
-        .toList();
-    
-    setState(() {
-      final task = rootTasks.removeAt(oldIndex);
-      final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
-      rootTasks.insert(targetIndex, task);
-      // 更新 _tasks 列表以反映新的顺序
-      _tasks = filteredTasks;
-    });
-
-    final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    final before = targetIndex > 0 ? rootTasks[targetIndex - 1].sortIndex : null;
-    final after = targetIndex < rootTasks.length - 1
-        ? rootTasks[targetIndex + 1].sortIndex
-        : null;
-    final newSortIndex = calculateSortIndex(before, after);
-    final task = rootTasks[targetIndex];
-    final taskService = ref.read(taskServiceProvider);
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = AppLocalizations.of(context);
-    try {
-      await taskService.updateDetails(
-        taskId: task.id,
-        payload: TaskUpdate(sortIndex: newSortIndex),
-      );
-    } catch (error, stackTrace) {
-      debugPrint('Failed to update sort order: $error\n$stackTrace');
-      if (!mounted) {
-        return;
-      }
-      messenger.showSnackBar(SnackBar(content: Text(l10n.taskListSortError)));
-    }
-  }
+  // 自管占位逻辑移除
 
   void _optimisticallyPromoteToRoot(Task dragged, double newSortIndex) {
     final idx = _tasks.indexWhere((t) => t.id == dragged.id);
@@ -191,13 +186,15 @@ class _InboxExpandableTaskItem extends ConsumerWidget {
     required this.isExpanded,
     required this.onExpansionChanged,
     this.leading,
-  });
+    this.contentPadding,
+    });
 
   final Task task;
   final List<Task> allTasks;
   final bool isExpanded;
   final ValueChanged<bool> onExpansionChanged;
   final Widget? leading;
+  final EdgeInsetsGeometry? contentPadding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -209,7 +206,7 @@ class _InboxExpandableTaskItem extends ConsumerWidget {
 
     // 如果没有子任务，直接显示任务 tile
     if (!hasChildren) {
-      return InboxTaskTile(task: task, leading: leading);
+      return InboxTaskTile(task: task, leading: leading, contentPadding: contentPadding);
     }
 
     // 有子任务，使用 ExpansionTile 展开/折叠（移除下划线装饰）
@@ -223,7 +220,7 @@ class _InboxExpandableTaskItem extends ConsumerWidget {
       shape: const Border(),
       collapsedShape: const Border(),
       // 任务头部：任务 tile
-      title: InboxTaskTile(task: task, leading: leading),
+      title: InboxTaskTile(task: task, leading: leading, contentPadding: contentPadding),
       // 子任务列表
       children: [
         _InboxTaskChildren(
@@ -267,7 +264,7 @@ class _InboxTaskChildren extends ConsumerWidget {
 
     // 递归展示子任务（最多3级）
     return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Column(
         children: children.map((childTask) {
           return _InboxSubtaskItem(
@@ -301,6 +298,7 @@ class _InboxSubtaskItem extends ConsumerStatefulWidget {
 
 class _InboxSubtaskItemState extends ConsumerState<_InboxSubtaskItem> {
   bool _isExpanded = false;
+  static const double _indentPerLevel = 32.0; // 统一每级仅一个手柄位宽度
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +314,7 @@ class _InboxSubtaskItemState extends ConsumerState<_InboxSubtaskItem> {
     // 如果没有子任务或达到最大层级，直接显示任务 tile（带缩进）
     if (!hasChildren || maxDepthReached) {
       return Padding(
-        padding: EdgeInsets.only(left: widget.depth * 16.0, bottom: 4),
+        padding: EdgeInsets.only(left: widget.depth * _indentPerLevel, bottom: 4),
         child: InboxTaskTile(task: widget.task),
       );
     }
@@ -330,9 +328,9 @@ class _InboxSubtaskItemState extends ConsumerState<_InboxSubtaskItem> {
           _isExpanded = expanded;
         });
       },
-      tilePadding: EdgeInsets.only(left: widget.depth * 16.0, right: 16),
+      tilePadding: EdgeInsets.only(left: widget.depth * _indentPerLevel, right: 16),
       childrenPadding: EdgeInsets.only(
-        left: (widget.depth + 1) * 16.0,
+        left: 0,
         right: 16,
         bottom: 8,
       ),

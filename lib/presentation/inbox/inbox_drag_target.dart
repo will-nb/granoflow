@@ -81,23 +81,11 @@ class InboxDragTarget extends ConsumerWidget {
   }
 
   bool _canAcceptDrop(Task draggedTask) {
-    // 如果是子任务（有 parentId），可以拖拽到根级别
+    // 仅接受“子任务→根级”的提升；根任务排序交给 Reorderable 原生动画
     if (draggedTask.parentId != null) {
-      // 检查任务是否可以被移动（没有被锁定）
       return canMoveTask(draggedTask);
     }
-    
-    // 根任务之间的排序逻辑
-    switch (targetType) {
-      case InboxDragTargetType.between:
-        return beforeTask?.id != draggedTask.id && 
-               afterTask?.id != draggedTask.id &&
-               beforeTask != null && 
-               afterTask != null;
-      case InboxDragTargetType.first:
-      case InboxDragTargetType.last:
-        return true;
-    }
+    return false;
   }
 
   Future<void> _handleDrop(
@@ -113,8 +101,8 @@ class InboxDragTarget extends ConsumerWidget {
         
         // 计算合适的 sortIndex
         double newSortIndex;
-        switch (targetType) {
-          case InboxDragTargetType.between:
+    switch (targetType) {
+      case InboxDragTargetType.between:
             // 在 beforeTask 和 afterTask 之间
             if (beforeTask != null && afterTask != null) {
               newSortIndex = (beforeTask!.sortIndex + afterTask!.sortIndex) / 2;
@@ -122,19 +110,19 @@ class InboxDragTarget extends ConsumerWidget {
               newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
             }
             break;
-          case InboxDragTargetType.first:
+      case InboxDragTargetType.first:
             // 拖拽到第一个位置，使用较小的 sortIndex
             newSortIndex = beforeTask?.sortIndex != null
                 ? beforeTask!.sortIndex - 1000
                 : TaskConstants.DEFAULT_SORT_INDEX - 1000;
             break;
-          case InboxDragTargetType.last:
+      case InboxDragTargetType.last:
             // 拖拽到最后一个位置，使用较大的 sortIndex
             newSortIndex = afterTask?.sortIndex != null
                 ? afterTask!.sortIndex + 1000
                 : TaskConstants.DEFAULT_SORT_INDEX + 1000;
             break;
-        }
+    }
         
         // 将子任务移动到根级别（parentId = null）
         await taskHierarchyService.moveToParent(

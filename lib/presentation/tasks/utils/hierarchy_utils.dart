@@ -91,6 +91,37 @@ Future<int> calculateHierarchyDepth(
   return depth;
 }
 
+/// 计算任务子树的最大深度（从该任务自身算起，叶子=1）
+/// - 仅统计普通任务（排除项目/里程碑）
+/// - trashed 节点在仓库层已过滤
+Future<int> calculateSubtreeDepth(
+  Task root,
+  TaskRepository repository,
+) async {
+  // 项目/里程碑不计入层级深度：返回其普通子树的最大深度
+  if (isProjectOrMilestone(root)) {
+    final children = await repository.listChildren(root.id);
+    if (children.isEmpty) return 0;
+    int maxDepth = 0;
+    for (final child in children) {
+      final d = await calculateSubtreeDepth(child, repository);
+      if (d > maxDepth) maxDepth = d;
+    }
+    return maxDepth;
+  }
+
+  final children = await repository.listChildren(root.id);
+  final normalChildren = children.where((c) => !isProjectOrMilestone(c)).toList();
+  if (normalChildren.isEmpty) return 1; // 自身算1层
+
+  int maxDepth = 0;
+  for (final child in normalChildren) {
+    final d = await calculateSubtreeDepth(child, repository);
+    if (d > maxDepth) maxDepth = d;
+  }
+  return 1 + maxDepth;
+}
+
 /// 检查任务是否是项目或里程碑
 /// 
 /// [task] 要检查的任务

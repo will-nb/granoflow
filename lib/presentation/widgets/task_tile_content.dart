@@ -6,6 +6,7 @@ import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../tasks/utils/hierarchy_utils.dart';
 import 'task_row_content.dart';
+import '../common/drag/standard_draggable.dart';
 
 /// 统一的任务卡片内容布局
 /// 
@@ -26,11 +27,13 @@ class TaskTileContent extends ConsumerStatefulWidget {
     required this.task,
     this.compact = false,
     this.leading,
+    this.contentPadding,
   });
 
   final Task task;
   final bool compact;
   final Widget? leading;
+  final EdgeInsetsGeometry? contentPadding;
 
   @override
   ConsumerState<TaskTileContent> createState() => _TaskTileContentState();
@@ -47,7 +50,7 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
         final draggedTask = details.data;
-        // 同步检查基本条件
+        // 同步检查基本条件：仅用于决定是否可接受
         return _canAcceptAsChildSync(draggedTask, widget.task);
       },
       onAcceptWithDetails: (details) async {
@@ -75,7 +78,7 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: isHovering
-                ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
+                ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -86,28 +89,29 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
   }
 
   Widget _buildContent() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 拖拽指示器
-          Padding(
+    final handle = widget.leading != null
+        ? Padding(
             padding: const EdgeInsets.only(right: 12, top: 4),
-            child: widget.leading ?? Icon(
+            child: widget.leading!,
+          )
+        : Padding(
+            padding: const EdgeInsets.only(right: 12, top: 4),
+            child: Icon(
               Icons.drag_indicator,
               color: Colors.grey[400],
               size: 20,
             ),
-          ),
-          // 任务内容（使用 TaskRowContent 实现 inline 编辑）
-          Expanded(
+          );
+
+    return Padding(
+      padding: widget.contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: StandardDraggable<Task>(
+        data: widget.task,
+        handle: handle,
             child: TaskRowContent(
-              task: widget.task,
-              compact: widget.compact,
-            ),
+          task: widget.task,
+          compact: widget.compact,
           ),
-        ],
       ),
     );
   }
@@ -146,11 +150,48 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
       final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
       final taskRepository = ref.read(taskRepositoryProvider);
 
+      // 放手后进行同步规则拦截并提示
+      // 1) 不能拖到自身或其直接父任务
+      if (draggedTask.id == targetTask.id || draggedTask.parentId == targetTask.id) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.taskMoveBlockedSelfOrParent)),
+        );
+        return;
+      }
+      // 2) 目标不允许添加子任务
+      if (!canAcceptChildren(targetTask)) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.taskMoveBlockedTargetLocked)),
+        );
+        return;
+      }
+      // 3) 当前任务不可移动
+      if (!canMoveTask(draggedTask)) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.taskMoveBlockedSourceLocked)),
+        );
+        return;
+      }
+
       // 异步验证循环引用（在 Service 层也会验证，但这里提前验证可以避免不必要的计算）
       if (await hasCircularReference(draggedTask, targetTask.id, taskRepository)) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.taskListSortError)),
+          SnackBar(content: Text(l10n.taskMoveBlockedCycle)),
+        );
+        return;
+      }
+
+      // 层级深度限制校验：根=0，第1=1，第2=2；拖拽后最大不能超过 2
+      final targetDepth = await calculateHierarchyDepth(targetTask, taskRepository);
+      final subtreeDepth = await calculateSubtreeDepth(draggedTask, taskRepository);
+      if (targetDepth + subtreeDepth > 2) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.taskMoveBlockedDepth)),
         );
         return;
       }
@@ -177,7 +218,7 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.taskListSortError)),
+        SnackBar(content: Text(l10n.taskMoveBlockedUnknown)),
       );
     }
   }

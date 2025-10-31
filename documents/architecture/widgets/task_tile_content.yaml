@@ -1,17 +1,17 @@
 meta:
-  name: TaskTileContent
+  name: _TaskTileContentState
   type: widget
   file_path: lib/presentation/widgets/task_tile_content.dart
-  description: TaskTileContent 组件
+  description: _TaskTileContentState 组件
   version: '1.0'
   created_date: '251031'
   last_updated: '251031'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
-  name: TaskTileContent
+  name: _TaskTileContentState
   layer: presentation
-  pattern: stateless
+  pattern: consumer
   category: ui_component
   reusable: true
 widget_types:
@@ -37,6 +37,16 @@ widget_properties:
   type: bool
   required: true
   default_value: null
+  description: ''
+- name: leading
+  type: Widget
+  required: false
+  default_value: null
+  description: ''
+- name: _isHovering
+  type: bool
+  required: false
+  default_value: 'false'
   description: ''
 widget_methods:
 - name: methodName
@@ -125,8 +135,14 @@ widget_dependencies:
   version: 版本要求
 widget_imports:
 - package:flutter/material.dart
+- package:flutter_riverpod/flutter_riverpod.dart
+- ../../core/providers/repository_providers.dart
+- ../../core/providers/service_providers.dart
 - ../../data/models/task.dart
+- ../../generated/l10n/app_localizations.dart
+- ../tasks/utils/hierarchy_utils.dart
 - task_row_content.dart
+- ../common/drag/standard_draggable.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -220,7 +236,12 @@ widget_state_management:
 source_of_truth: lib/presentation/widgets/task_tile_content.dart
 called_by: []
 calls:
+- lib/core/providers/repository_providers.dart
+- lib/core/providers/service_providers.dart
 - lib/data/models/task.dart
+- lib/generated/l10n/app_localizations.dart
+- lib/presentation/tasks/utils/hierarchy_utils.dart
+- lib/presentation/common/drag/standard_draggable.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

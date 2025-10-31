@@ -39,7 +39,7 @@ class AllChildrenList extends ConsumerWidget {
           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -100,7 +100,7 @@ class _ChildTaskItem extends ConsumerWidget {
               child: Text(
                 _formatDueDate(task.dueAt!, l10n),
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ),
@@ -109,7 +109,7 @@ class _ChildTaskItem extends ConsumerWidget {
             Text(
               statusText,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
         ],

@@ -29,22 +29,23 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
     if (!enabled) return child;
 
     final dragTheme = DragTheme.of(context);
+    final content = handle != null ? _withHandle(child, handle!) : child;
     
     return LongPressDraggable<T>(
       data: data,
       dragAnchorStrategy: childDragAnchorStrategy,
-      feedback: _buildFeedback(context, dragTheme),
+      feedback: _buildFeedback(context, dragTheme, content),
       childWhenDragging: Opacity(
         opacity: DragConstants.draggingOpacity,
-        child: child,
+        child: content,
       ),
       onDragStarted: onDragStarted,
       onDragEnd: (_) => onDragEnd?.call(),
-      child: handle != null ? _withHandle(child, handle!) : child,
+      child: content,
     );
   }
 
-  Widget _buildFeedback(BuildContext context, DragTheme theme) {
+  Widget _buildFeedback(BuildContext context, DragTheme theme, Widget content) {
     return Transform.rotate(
       angle: DragConstants.tiltAngle,
       child: Transform.scale(
@@ -57,7 +58,7 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
             opacity: DragConstants.feedbackOpacity,
             child: SizedBox(
               width: DragConstants.feedbackWidth,
-              child: child,
+              child: content,
             ),
           ),
         ),

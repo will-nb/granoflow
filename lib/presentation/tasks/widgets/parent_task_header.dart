@@ -57,7 +57,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       margin: const EdgeInsets.only(bottom: 4),
@@ -73,7 +73,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
                   child: Icon(
                     Icons.subdirectory_arrow_right,
                     size: 16,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
                 // 任务标题（截断）
@@ -83,7 +83,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
                     child: Text(
                       widget.parentTask.title,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

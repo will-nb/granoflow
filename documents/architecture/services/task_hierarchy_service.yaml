@@ -195,6 +195,8 @@ called_by: []
 calls:
 - lib/data/models/task.dart
 - lib/data/repositories/task_repository.dart
+- lib/presentation/tasks/utils/hierarchy_utils.dart
+- lib/core/constants/task_constants.dart
 test_mapping:
   unit: []
   integration: []
