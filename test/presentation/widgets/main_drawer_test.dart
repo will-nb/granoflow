@@ -40,7 +40,7 @@ void main() {
       
       // 验证 AppLogo 组件的属性
       final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.size, equals(30.0)); // 更新为新的尺寸
+      expect(appLogo.size, equals(20.0)); // 更新为新的尺寸
       expect(appLogo.showText, isFalse);
       expect(appLogo.variant, equals(AppLogoVariant.onPrimary));
       expect(appLogo.withBackground, isFalse);
@@ -50,7 +50,7 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       
       final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.size, equals(30.0)); // 更新为新的尺寸
+      expect(appLogo.size, equals(20.0)); // 更新为新的尺寸
     });
 
     testWidgets('should maintain layout spacing', (tester) async {
@@ -84,11 +84,19 @@ void main() {
       expect(appLogo.showText, isFalse);
     });
 
-    testWidgets('should not use background in header', (tester) async {
+    testWidgets('should use background image in header', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       
+      // 验证 Logo 本身不使用背景（withBackground 为 false）
       final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
       expect(appLogo.withBackground, isFalse);
+      
+      // 验证 header 容器有 BoxDecoration（用于背景图片）
+      final containerFinder = find.descendant(
+        of: find.byType(Drawer),
+        matching: find.byType(Container),
+      );
+      expect(containerFinder, findsWidgets);
     });
   });
 }

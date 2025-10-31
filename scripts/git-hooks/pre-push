@@ -1,12 +1,71 @@
 #!/bin/sh
 # pre-push: 全量门禁（本地短跑）
-set -e
+set +e  # 临时禁用错误退出，以便捕获测试结果
 
 echo "[pre-push] flutter analyze ..."
 flutter analyze
+ANALYZE_EXIT=$?
+if [ $ANALYZE_EXIT -ne 0 ]; then
+  exit $ANALYZE_EXIT
+fi
 
 echo "[pre-push] YAML 一致性测试 ..."
-flutter test test/yaml/
+# 运行 YAML 测试，捕获输出和退出码
+TEMP_OUTPUT=$(mktemp)
+flutter test test/yaml/ 2>&1 | tee "$TEMP_OUTPUT"
+TEST_EXIT=${PIPESTATUS[0]}
+
+# 如果测试失败，输出统计信息
+if [ $TEST_EXIT -ne 0 ]; then
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════════════════════"
+  echo "📊 YAML 一致性测试失败统计"
+  echo "═══════════════════════════════════════════════════════════════════════════════"
+  echo ""
+  
+  # 提取受影响的 YAML 文件
+  AFFECTED_FILES=$(grep -o 'documents/architecture/[^:[:space:]]*\.yaml' "$TEMP_OUTPUT" 2>/dev/null | sort -u || true)
+  if [ -n "$AFFECTED_FILES" ]; then
+    echo "📁 受影响的 YAML 文件："
+    echo "$AFFECTED_FILES" | while read -r file; do
+      echo "  - $file"
+    done
+    echo ""
+  fi
+  
+  # 提取失败测试的名称和问题
+  FAILED_COUNT=$(grep -c "✖\|FAILED\|失败" "$TEMP_OUTPUT" 2>/dev/null || echo "0")
+  if [ "$FAILED_COUNT" != "0" ]; then
+    echo "❌ 失败测试数量: $FAILED_COUNT"
+    echo ""
+    
+    # 提取失败测试的详细信息
+    echo "📋 失败测试列表："
+    grep -E "test.*\(|✖|FAILED|失败|❌" "$TEMP_OUTPUT" 2>/dev/null | head -30 | while read -r line; do
+      echo "  $line"
+    done
+    echo ""
+  fi
+  
+  # 提取文件级别的问题摘要
+  echo "📄 文件级别问题摘要："
+  grep -E "documents/architecture/.*\.yaml.*❌|documents/architecture/.*\.yaml.*失败" "$TEMP_OUTPUT" 2>/dev/null | head -20 | while read -r line; do
+    echo "  $line"
+  done
+  echo ""
+  
+  echo "💡 提示：查看上方完整输出以获取所有失败详情"
+  echo "   可以通过以下方式查看更多信息："
+  echo "   - 查看完整的测试输出（上方）"
+  echo "   - 运行: flutter test test/yaml/ --reporter=expanded"
+  echo ""
+  
+  rm -f "$TEMP_OUTPUT"
+  exit $TEST_EXIT
+fi
+
+rm -f "$TEMP_OUTPUT"
+set -e  # 重新启用错误退出
 
 echo "[pre-push] flutter test (unit+widget) ..."
 flutter test --exclude-tags=yaml

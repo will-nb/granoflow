@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'helpers/yaml_test_utils.dart';
+import 'helpers/yaml_statistics.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
@@ -15,6 +16,15 @@ void main() {
   // 在所有测试开始前输出警告
   setUpAll(() {
     YamlTestUtils.printTestWarning();
+    YamlStatistics().clear();
+  });
+
+  // 在所有测试完成后输出统计
+  tearDownAll(() {
+    final stats = YamlStatistics();
+    if (stats.failures.isNotEmpty) {
+      stats.printStatistics();
+    }
   });
 
   group('Code Sync Tests', () {
@@ -41,24 +51,40 @@ void main() {
             final filePath = meta['file_path']?.toString();
 
             if (filePath == null || filePath.isEmpty) {
-              fail('❌ $fileName 缺少 file_path\n'
-                  '   \n'
-                  '   👉 AI 不要修改！请人工确认正确的文件路径');
+              YamlTestUtils.recordFailureAndFail(
+                testSuite: 'Code Sync Tests',
+                yamlFile: 'documents/architecture/$category/$fileName',
+                testName: 'meta.file_path should point to existing Dart file',
+                issue: '缺少 file_path',
+                suggestion: '请人工确认正确的文件路径',
+                errorMessage: '❌ $fileName 缺少 file_path\n'
+                    '   \n'
+                    '   👉 AI 不要修改！请人工确认正确的文件路径',
+              );
             }
 
             if (!YamlTestUtils.dartFileExists(filePath)) {
-              fail('❌ $fileName 的 file_path 指向不存在的文件\n'
-                  '   YAML 中的路径: $filePath\n'
-                  '   \n'
-                  '   这可能意味着:\n'
-                  '   1. Dart 文件被删除或移动了\n'
-                  '   2. YAML 中的路径错误\n'
-                  '   3. 代码重构后 YAML 未更新\n'
-                  '   \n'
-                  '   👉 AI 不要修改！请人工判断：\n'
-                  '      - Dart 文件的正确位置在哪里？\n'
-                  '      - 是否需要更新 YAML？\n'
-                  '      - 这个 YAML 是否已过时应该删除？');
+              YamlTestUtils.recordFailureAndFail(
+                testSuite: 'Code Sync Tests',
+                yamlFile: 'documents/architecture/$category/$fileName',
+                testName: 'meta.file_path should point to existing Dart file',
+                issue: 'file_path 指向不存在的文件',
+                expected: '文件应存在于: $filePath',
+                actual: '文件不存在',
+                suggestion: '请人工判断：Dart 文件的正确位置、是否需要更新 YAML、是否应删除此 YAML',
+                errorMessage: '❌ $fileName 的 file_path 指向不存在的文件\n'
+                    '   YAML 中的路径: $filePath\n'
+                    '   \n'
+                    '   这可能意味着:\n'
+                    '   1. Dart 文件被删除或移动了\n'
+                    '   2. YAML 中的路径错误\n'
+                    '   3. 代码重构后 YAML 未更新\n'
+                    '   \n'
+                    '   👉 AI 不要修改！请人工判断：\n'
+                    '      - Dart 文件的正确位置在哪里？\n'
+                    '      - 是否需要更新 YAML？\n'
+                    '      - 这个 YAML 是否已过时应该删除？',
+              );
             }
           });
 

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path;
+import 'yaml_statistics.dart';
 
 /// YAML 测试工具类
 /// 
@@ -211,6 +212,32 @@ class YamlTestUtils {
     print('');
     print('═' * 70);
     print('');
+  }
+
+  /// 记录失败并抛出异常
+  static Never recordFailureAndFail({
+    required String testSuite,
+    required String yamlFile,
+    required String testName,
+    required String issue,
+    String? expected,
+    String? actual,
+    String? suggestion,
+    String? errorMessage,
+  }) {
+    // 记录到统计收集器
+    YamlStatistics().recordFailure(
+      testSuite: testSuite,
+      yamlFile: yamlFile,
+      testName: testName,
+      issue: issue,
+      expected: expected,
+      actual: actual,
+      suggestion: suggestion,
+    );
+
+    // 抛出失败异常
+    fail(errorMessage ?? issue);
   }
 }
 

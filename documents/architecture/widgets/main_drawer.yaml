@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/main_drawer.dart
   description: MainDrawer 组件
   version: '1.0'
-  created_date: '251030'
-  last_updated: '251030'
+  created_date: '251031'
+  last_updated: '251031'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -135,6 +135,7 @@ widget_imports:
 - tag_data.dart
 - ../../data/models/tag.dart
 - ../../core/providers/tag_providers.dart
+- ../../core/providers/app_providers.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -232,6 +233,7 @@ calls:
 - lib/presentation/navigation/sidebar_destinations.dart
 - lib/data/models/tag.dart
 - lib/core/providers/tag_providers.dart
+- lib/core/providers/app_providers.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

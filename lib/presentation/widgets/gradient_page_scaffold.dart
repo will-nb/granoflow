@@ -32,7 +32,7 @@ class GradientPageScaffold extends StatelessWidget {
     return Scaffold(
       appBar: appBar,
       drawer: drawer,
-      extendBodyBehindAppBar: extendBodyBehindAppBar,
+      extendBodyBehindAppBar: extendBodyBehindAppBar || drawer != null, // 如果有 drawer 则默认扩展
       extendBody: extendBody,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,

@@ -41,4 +41,6 @@ flutter:
     - assets/seeds/zh_HK/
     - assets/images/background.light.png
     - assets/images/background.dark.png
+    - assets/images/background.light.webp
+    - assets/images/background.dark.webp
     - assets/logo/
