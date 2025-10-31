@@ -8,16 +8,23 @@ import 'swipe_action_type.dart';
 /// 提供不同页面的预配置滑动行为
 class SwipeConfigs {
   /// Inbox页面的滑动配置
-  /// 左滑：删除到回收站（危险操作），右滑：快速规划到今日（推荐操作）
+  /// 方向规范（极其重要，禁止随意改动）：
+  /// - 本项目遵循 iOS HIG/Material 约定：破坏性操作放在 trailing（左滑 endToStart）侧；
+  /// - 非破坏性高频操作放在 leading（右滑 startToEnd，LTR 环境）侧；
+  /// - Dismissible 映射（在 LTR 下）：startToEnd=右滑（显示左侧背景），endToStart=左滑（显示右侧背景）。
+  /// 因此，Inbox 的手势定义为：
+  /// - 右滑（startToEnd，常用/安全）= 快速加入今日（quickPlan，绿色）
+  /// - 左滑（endToStart，危险）= 移动到回收站（delete，红色）
+  /// 注意：请勿反转！这是与 Tasks 页面一致的既定产品规范，任何修改都需产品评审确认。
   static const SwipeActionConfig inboxConfig = SwipeActionConfig(
-    leftAction: SwipeActionType.delete,
-    rightAction: SwipeActionType.quickPlan,
-    leftHintKey: 'inboxDeleteAction',
-    rightHintKey: 'inboxQuickPlanAction',
-    leftIcon: Icons.delete,
-    rightIcon: Icons.today,
-    leftColor: OceanBreezeColorSchemes.errorDark,
-    rightColor: OceanBreezeColorSchemes.softGreen,
+    leftAction: SwipeActionType.quickPlan,
+    rightAction: SwipeActionType.delete,
+    leftHintKey: 'inboxQuickPlanAction',
+    rightHintKey: 'inboxDeleteAction',
+    leftIcon: Icons.today,
+    rightIcon: Icons.delete,
+    leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark,
   );
 
   /// Tasks页面的滑动配置

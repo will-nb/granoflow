@@ -5,7 +5,15 @@ import 'swipe_action_config.dart';
 
 /// 通用滑动任务瓦片组件
 /// 
-/// 提供可配置的滑动功能，支持不同的滑动动作和提示
+/// 手势与方向（请勿随意修改，避免方向被“纠正”成与规范相反）：
+/// - 在 LTR 环境下，DismissDirection.startToEnd 表示“右滑”，会显示左侧背景（leading side）。
+/// - 在 LTR 环境下，DismissDirection.endToStart 表示“左滑”，会显示右侧背景（trailing side）。
+/// - 我们的命名 left/rightAction 指“左/右侧背景对应的动作”，而非“左/右滑”本身。
+///   也就是说：startToEnd 触发 leftAction；endToStart 触发 rightAction。
+/// 规范约定：
+/// - 右滑（startToEnd）用于非破坏性/高频操作（如：加入今日）。
+/// - 左滑（endToStart）用于破坏性/风险操作（如：移动到回收站/删除）。
+/// 任何反转需经过产品评审，不要因为“看起来更自然”而私自调整。
 class DismissibleTaskTile extends StatelessWidget {
   /// 任务对象
   final Task task;
@@ -42,12 +50,14 @@ class DismissibleTaskTile extends StatelessWidget {
     return Dismissible(
       key: Key('dismissible_${task.id}'),
       direction: direction,
+      // 左侧背景：在 LTR 下“右滑”（startToEnd）时显示。
       background: _buildLeftBackground(
         context, 
         config.leftIcon, 
         config.leftColor, 
         _getLocalizedText(l10n, config.leftHintKey)
       ),
+      // 右侧背景：在 LTR 下“左滑”（endToStart）时显示。
       secondaryBackground: _buildRightBackground(
         context, 
         config.rightIcon, 
@@ -56,10 +66,10 @@ class DismissibleTaskTile extends StatelessWidget {
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
-          // 左滑
+          // 右滑（LTR）：触发 leftAction（显示的是左侧背景）
           onLeftAction(task);
         } else if (direction == DismissDirection.endToStart) {
-          // 右滑
+          // 左滑（LTR）：触发 rightAction（显示的是右侧背景）
           onRightAction(task);
         }
         // 返回 false，让 Dismissible 在回调执行后自动复位
@@ -71,7 +81,7 @@ class DismissibleTaskTile extends StatelessWidget {
   }
 
 
-  /// 构建左滑背景（文字靠左）
+  /// 左侧背景（在 LTR 下“右滑”时展示，文字靠左）
   Widget _buildLeftBackground(BuildContext context, IconData icon, Color color, String hint) {
     return Container(
       color: color,
@@ -100,7 +110,7 @@ class DismissibleTaskTile extends StatelessWidget {
     );
   }
 
-  /// 构建右滑背景（文字靠右）
+  /// 右侧背景（在 LTR 下“左滑”时展示，文字靠右）
   Widget _buildRightBackground(BuildContext context, IconData icon, Color color, String hint) {
     return Container(
       color: color,
