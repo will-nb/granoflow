@@ -530,6 +530,14 @@ main() {
     yaml:test)
       shift
       run_yaml_tests_all "$@" ;;
+    
+    test)
+      # 并行执行 test/ 下所有 *_test.dart，吞掉中间输出，仅输出进度与最终摘要
+      if ! has_cmd python3; then
+        echo -e "${RED}需要 Python 3 环境${NC}"
+        exit 1
+      fi
+      python3 "$ROOT_DIR/scripts/anz_modules/test/unit_test.py" ;;
       
     *)
       echo "未知命令: $1"

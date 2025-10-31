@@ -8,7 +8,8 @@ import 'package:intl/intl.dart';
 
 void main() {
   group('defaultDueDate', () {
-    final baseDate = DateTime(2025, 10, 30);
+    final now = DateTime.now();
+    final baseDate = DateTime(now.year, now.month, now.day);
 
     test('returns yesterday for overdue', () {
       final result = defaultDueDate(TaskSection.overdue);

@@ -23,9 +23,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          contextTagOptionsProvider.overrideWith((ref) async => [buildTag('@home', TagKind.context)]),
-          urgencyTagOptionsProvider.overrideWith((ref) async => [buildTag('#urgent', TagKind.urgency)]),
-          importanceTagOptionsProvider.overrideWith((ref) async => [buildTag('#important', TagKind.importance)]),
+          contextTagOptionsProvider.overrideWith((ref) async => [buildTag('home', TagKind.context)]),
+          urgencyTagOptionsProvider.overrideWith((ref) async => [buildTag('urgent', TagKind.urgency)]),
+          importanceTagOptionsProvider.overrideWith((ref) async => [buildTag('important', TagKind.importance)]),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),
@@ -47,12 +47,12 @@ void main() {
     await tester.tap(find.text(homeLabel));
     await tester.pump();
 
-    expect(container.read(inboxFilterProvider).contextTag, '@home');
+    expect(container.read(inboxFilterProvider).contextTag, 'home');
 
     await tester.tap(find.text(urgentLabel));
     await tester.pump();
 
-    expect(container.read(inboxFilterProvider).urgencyTag, '#urgent');
+    expect(container.read(inboxFilterProvider).urgencyTag, 'urgent');
 
     await tester.tap(find.text(l10n.inboxFilterReset));
     await tester.pump();

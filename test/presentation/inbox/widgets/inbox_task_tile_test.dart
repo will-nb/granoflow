@@ -47,14 +47,14 @@ void main() {
     );
   }
 
-  testWidgets('InboxTaskTile swipe left triggers quick plan', (tester) async {
+  testWidgets('InboxTaskTile swipe right triggers quick plan', (tester) async {
     final taskService = _RecordingTaskService();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           taskServiceProvider.overrideWith((ref) => taskService),
-          contextTagOptionsProvider.overrideWith((ref) async => [_StubTag('@home', TagKind.context)]),
+          contextTagOptionsProvider.overrideWith((ref) async => [_StubTag('home', TagKind.context)]),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
@@ -71,20 +71,20 @@ void main() {
     await tester.pumpAndSettle();
 
     final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    await dismissible.confirmDismiss!(DismissDirection.endToStart);
+    await dismissible.confirmDismiss!(DismissDirection.startToEnd);
     await tester.pump();
 
     expect(taskService.quickPlanCalled, isTrue);
   });
 
-  testWidgets('InboxTaskTile swipe right triggers delete', (tester) async {
+  testWidgets('InboxTaskTile swipe left triggers delete', (tester) async {
     final taskService = _RecordingTaskService();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           taskServiceProvider.overrideWith((ref) => taskService),
-          contextTagOptionsProvider.overrideWith((ref) async => [_StubTag('@home', TagKind.context)]),
+          contextTagOptionsProvider.overrideWith((ref) async => [_StubTag('home', TagKind.context)]),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
@@ -101,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
-    final future = dismissible.confirmDismiss!(DismissDirection.startToEnd);
+    final future = dismissible.confirmDismiss!(DismissDirection.endToStart);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     await future;

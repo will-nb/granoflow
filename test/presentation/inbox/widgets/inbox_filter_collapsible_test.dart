@@ -23,9 +23,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          contextTagOptionsProvider.overrideWith((ref) async => [buildTag('@home', TagKind.context)]),
-          urgencyTagOptionsProvider.overrideWith((ref) async => [buildTag('#urgent', TagKind.urgency)]),
-          importanceTagOptionsProvider.overrideWith((ref) async => [buildTag('#important', TagKind.importance)]),
+          contextTagOptionsProvider.overrideWith((ref) async => [buildTag('home', TagKind.context)]),
+          urgencyTagOptionsProvider.overrideWith((ref) async => [buildTag('urgent', TagKind.urgency)]),
+          importanceTagOptionsProvider.overrideWith((ref) async => [buildTag('important', TagKind.importance)]),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),
@@ -42,19 +42,22 @@ void main() {
     );
 
     // 默认收拢：找不到任意一个示例标签
-    expect(find.text('@home'), findsNothing);
+    final context = tester.element(find.byType(InboxFilterCollapsible));
+    final l10n = AppLocalizations.of(context);
+    final homeLabel = l10n.tag_home;
+    expect(find.text(homeLabel), findsNothing);
 
     // 点击折叠头（图标按钮行）
     await tester.tap(find.byIcon(Icons.filter_alt_outlined));
     await tester.pumpAndSettle();
 
-    // 展开后应能看到来自 provider 的标签（英文本地化回退为 slug）
-    expect(find.text('@home'), findsOneWidget);
+    // 展开后应能看到来自 provider 的标签（使用本地化文案）
+    expect(find.text(homeLabel), findsOneWidget);
 
     // 再次点击收拢
     await tester.tap(find.byIcon(Icons.filter_alt_outlined));
     await tester.pumpAndSettle();
-    expect(find.text('@home'), findsNothing);
+    expect(find.text(homeLabel), findsNothing);
   });
 }
 
