@@ -113,6 +113,7 @@
   "inboxEmptyMessage": "Capture new ideas or apply templates to get started.",
   "inboxEmptyTitle": "Inbox is empty!",
   "inboxFilterReset": "Reset Filters",
+  "inboxFilterToggleLabel": "Filter",
   "inboxInputEmpty": "Please enter task title.",
   "inboxInputSend": "Add",
   "inboxPlanButtonLabel": "Due",

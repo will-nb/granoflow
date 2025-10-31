@@ -102,6 +102,7 @@
   "inboxEmptyMessage": "捕捉新的靈感或套用模板開始吧。",
   "inboxEmptyTitle": "收集箱已清空！",
   "inboxFilterReset": "重設篩選",
+  "inboxFilterToggleLabel": "篩選",
   "inboxInputEmpty": "請填寫任務標題。",
   "inboxInputSend": "新增",
   "inboxPlanButtonLabel": "截止日期",
