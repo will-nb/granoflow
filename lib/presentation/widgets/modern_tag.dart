@@ -106,7 +106,7 @@ class ModernTag extends StatelessWidget {
             SizedBox(width: _getSpacing()),
           ],
           Text(
-            prefix != null ? '$prefix$label' : label,
+            label,
             style: TextStyle(
               color: color,
               fontSize: _getFontSize(),
@@ -150,7 +150,7 @@ class ModernTag extends StatelessWidget {
           ),
           SizedBox(width: _getSpacing()),
           Text(
-            prefix != null ? '$prefix$label' : label,
+            label,
             style: TextStyle(
               fontSize: _getFontSize(),
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
@@ -178,7 +178,7 @@ class ModernTag extends StatelessWidget {
             SizedBox(width: _getSpacing()),
           ],
           Text(
-            prefix != null ? '$prefix$label' : label,
+            label,
             style: TextStyle(
               fontSize: _getFontSize(),
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,

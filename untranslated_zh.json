@@ -20,6 +20,9 @@
     "flexibleInputExceeded",
     "flexibleInputHardLimit",
     "flexibleInputSoftLimit",
-    "datePickerMonthEnd"
+    "datePickerMonthEnd",
+    "taskAddToProject",
+    "taskRemoveFromProject",
+    "taskNoProjects"
   ]
 }

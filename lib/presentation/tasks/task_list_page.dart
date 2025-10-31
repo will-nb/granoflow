@@ -8,7 +8,6 @@ import '../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
-import 'projects/projects_dashboard.dart';
 import 'quick_tasks/quick_add_sheet.dart';
 import 'views/task_section_panel.dart';
 
@@ -20,13 +19,11 @@ class TaskListPage extends ConsumerStatefulWidget {
 }
 
 class _TaskListPageState extends ConsumerState<TaskListPage> {
-  bool _showProjects = false;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final editActions = ref.watch(taskEditActionsNotifierProvider);
-    final bool showLinearProgress = !_showProjects && editActions.isLoading;
+    final bool showLinearProgress = editActions.isLoading;
 
     // 动态获取有任务的分组
     final sectionMetas = <_SectionMeta>[
@@ -67,42 +64,9 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         behavior: HitTestBehavior.translucent,
         child: Column(
         children: [
-          // 模式切换控件
           if (showLinearProgress) const LinearProgressIndicator(),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ToggleButtons(
-                  isSelected: <bool>[!_showProjects, _showProjects],
-                  onPressed: (index) {
-                    setState(() {
-                      _showProjects = index == 1;
-                    });
-                  },
-                  constraints: const BoxConstraints(
-                    minHeight: 36,
-                    minWidth: 72,
-                  ),
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(l10n.taskListModeTask),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(l10n.taskListModeProject),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
           Expanded(
-            child: _showProjects
-                ? const ProjectsDashboard()
-                : ListView(
+            child: ListView(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
@@ -119,12 +83,10 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                                   if (tasks.isEmpty)
                                     return const SizedBox.shrink();
                                   return TaskSectionPanel(
-                                    key: ValueKey(
-                                      '${meta.section}-${_showProjects.toString()}',
-                                    ),
+                                    key: ValueKey(meta.section.toString()),
                                     section: meta.section,
                                     title: meta.title,
-                                    editMode: _showProjects,
+                                    editMode: false,
                                     onQuickAdd: () =>
                                         _handleQuickAdd(context, meta.section),
                                     tasks: tasks,

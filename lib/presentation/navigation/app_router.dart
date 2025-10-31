@@ -8,6 +8,7 @@ import '../inbox/inbox_page.dart';
 import '../completion_management/completed_page.dart';
 import '../completion_management/archived_page.dart';
 import '../completion_management/trash_page.dart';
+import '../projects/projects_page.dart';
 
 /// 应用路由配置
 class AppRouter {
@@ -28,6 +29,11 @@ class AppRouter {
             path: '/tasks',
             name: 'tasks',
             builder: (context, state) => const TaskListPage(),
+          ),
+          GoRoute(
+            path: '/projects',
+            name: 'projects',
+            builder: (context, state) => const ProjectsPage(),
           ),
           GoRoute(
             path: '/achievements',

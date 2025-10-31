@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/services/tag_service.dart';
 import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
@@ -49,8 +50,18 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     final importanceTags = ref.watch(importanceTagOptionsProvider);
     
     final task = widget.task;
-    final contextTag = task.tags.firstWhere((tag) => tag.startsWith('@'), orElse: () => '');
-    final priorityTag = task.tags.firstWhere((tag) => tag.startsWith('#'), orElse: () => '');
+    // 使用 TagService 查找上下文标签和优先级标签（兼容旧数据）
+    final contextTag = task.tags.firstWhere(
+      (tag) => TagService.getKind(tag) == TagKind.context, 
+      orElse: () => '',
+    );
+    final priorityTag = task.tags.firstWhere(
+      (tag) {
+        final kind = TagService.getKind(tag);
+        return kind == TagKind.urgency || kind == TagKind.importance;
+      }, 
+      orElse: () => '',
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

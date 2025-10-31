@@ -7,6 +7,7 @@ import 'metric_orchestrator.dart';
 import '../constants/task_constants.dart';
 import 'sort_index_service.dart';
 import '../utils/task_section_utils.dart';
+import 'tag_service.dart';
 
 class ProjectMilestoneBlueprint {
   const ProjectMilestoneBlueprint({
@@ -226,14 +227,21 @@ class TaskService {
     if (task == null) {
       return;
     }
+    // 过滤掉上下文标签和优先级标签（使用 TagService 判断类型）
     final normalized = task.tags
-        .where((tag) => !_isContextTag(tag) && !_isPriorityTag(tag))
+        .where((tag) {
+          final kind = TagService.getKind(tag);
+          return kind != TagKind.context && 
+                 kind != TagKind.urgency && 
+                 kind != TagKind.importance && 
+                 kind != TagKind.execution;
+        })
         .toList(growable: true);
     if (contextTag != null && contextTag.isNotEmpty) {
-      normalized.add(contextTag);
+      normalized.add(TagService.normalizeSlug(contextTag));
     }
     if (priorityTag != null && priorityTag.isNotEmpty) {
-      normalized.add(priorityTag);
+      normalized.add(TagService.normalizeSlug(priorityTag));
     }
     await _tasks.updateTask(taskId, TaskUpdate(tags: normalized));
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
@@ -491,8 +499,6 @@ class TaskService {
     return year % 400 == 0;
   }
 
-  bool _isContextTag(String tag) => tag.startsWith('@');
-  bool _isPriorityTag(String tag) => tag.startsWith('#');
 
   bool _isSameInstant(DateTime? a, DateTime? b) {
     if (a == null && b == null) {

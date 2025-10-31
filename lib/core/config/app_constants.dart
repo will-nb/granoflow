@@ -11,64 +11,64 @@ class AppConstants {
   /// 标签定义
   ///
   /// 注意：
-  /// - slug 包含前缀（@ 或 #），这是标签的唯一标识符
-  /// - 前缀是业务规则的一部分，用于类型识别和视觉呈现
-  /// - @ 表示上下文标签（Context），# 表示优先级标签（Priority）
-  /// - slug 在整个系统中保持一致：数据库、种子数据、UI 显示
-  /// - translationKey 对应 ARB 文件中的键，ARB 文件中的翻译应包含前缀
+  /// - slug 不包含前缀，是纯标识符（如 'home', 'urgent'）
+  /// - 标签类型通过 kind 字段定义，不依赖前缀推断
+  /// - 前缀已废弃，不再在 UI 中显示（仅通过图标和颜色区分标签类型）
+  /// - slug 在整个系统中保持一致：数据库、种子数据使用无前缀格式
+  /// - translationKey 对应 ARB 文件中的键，ARB 文件中的翻译不包含前缀
   static const List<TagDefinition> tags = [
-    // 上下文标签 - @ 前缀
+    // 上下文标签
     TagDefinition(
-      slug: '@anywhere',
+      slug: 'anywhere',
       kind: TagKind.context,
       translationKey: 'tag_anywhere',
     ),
     TagDefinition(
-      slug: '@home',
+      slug: 'home',
       kind: TagKind.context,
       translationKey: 'tag_home',
     ),
     TagDefinition(
-      slug: '@company',
+      slug: 'company',
       kind: TagKind.context,
       translationKey: 'tag_company',
     ),
     TagDefinition(
-      slug: '@school',
+      slug: 'school',
       kind: TagKind.context,
       translationKey: 'tag_school',
     ),
     TagDefinition(
-      slug: '@local',
+      slug: 'local',
       kind: TagKind.context,
       translationKey: 'tag_local',
     ),
     TagDefinition(
-      slug: '@travel',
+      slug: 'travel',
       kind: TagKind.context,
       translationKey: 'tag_travel',
     ),
 
-    // 紧急程度标签 - # 前缀
+    // 紧急程度标签
     TagDefinition(
-      slug: '#urgent',
+      slug: 'urgent',
       kind: TagKind.urgency,
       translationKey: 'tag_urgent',
     ),
     TagDefinition(
-      slug: '#not_urgent',
+      slug: 'not_urgent',
       kind: TagKind.urgency,
       translationKey: 'tag_not_urgent',
     ),
 
-    // 重要程度标签 - # 前缀
+    // 重要程度标签
     TagDefinition(
-      slug: '#important',
+      slug: 'important',
       kind: TagKind.importance,
       translationKey: 'tag_important',
     ),
     TagDefinition(
-      slug: '#not_important',
+      slug: 'not_important',
       kind: TagKind.importance,
       translationKey: 'tag_not_important',
     ),
@@ -80,19 +80,19 @@ class AppConstants {
       translationKey: 'tag_wasted',
     ),
 
-    // 执行方式标签 - # 前缀（互斥）
+    // 执行方式标签（互斥）
     TagDefinition(
-      slug: '#timed',
+      slug: 'timed',
       kind: TagKind.execution,
       translationKey: 'tag_timed',
     ),
     TagDefinition(
-      slug: '#fragmented',
+      slug: 'fragmented',
       kind: TagKind.execution,
       translationKey: 'tag_fragmented',
     ),
     TagDefinition(
-      slug: '#waiting',
+      slug: 'waiting',
       kind: TagKind.execution,
       translationKey: 'tag_waiting',
     ),
@@ -110,7 +110,7 @@ class TagDefinition {
     required this.translationKey,
   });
 
-  /// 标签唯一标识符（包含 @ 或 # 前缀）
+  /// 标签唯一标识符（不包含前缀，纯标识符如 'home', 'urgent'）
   final String slug;
 
   /// 标签类型（context、urgency、importance、special）

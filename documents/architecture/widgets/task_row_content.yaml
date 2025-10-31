@@ -163,6 +163,7 @@ widget_imports:
 - package:flutter_riverpod/flutter_riverpod.dart
 - ../../core/providers/app_providers.dart
 - ../../core/providers/service_providers.dart
+- ../../core/services/tag_service.dart
 - ../../data/models/task.dart
 - ../../generated/l10n/app_localizations.dart
 - inline_editable_tag.dart
@@ -171,6 +172,8 @@ widget_imports:
 - tag_grouped_menu.dart
 - tag_data.dart
 - ../../data/models/tag.dart
+- project_milestone_picker.dart
+- inline_project_milestone_display.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -266,6 +269,7 @@ called_by: []
 calls:
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
+- lib/core/services/tag_service.dart
 - lib/data/models/task.dart
 - lib/generated/l10n/app_localizations.dart
 - lib/data/models/tag.dart

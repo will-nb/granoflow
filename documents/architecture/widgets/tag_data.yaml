@@ -32,7 +32,7 @@ widget_properties:
   type: String
   required: true
   default_value: null
-  description: '标签唯一标识（如 @home, #urgent）'
+  description: 标签唯一标识（无前缀，如 home, urgent）
 - name: label
   type: String
   required: true
@@ -145,7 +145,7 @@ widget_dependencies:
   version: 版本要求
 widget_imports:
 - package:flutter/material.dart
-- ../../core/theme/ocean_breeze_color_schemes.dart
+- ../../core/services/tag_service.dart
 - ../../data/models/tag.dart
 - package:granoflow/generated/l10n/app_localizations.dart
 widget_categories:
@@ -241,19 +241,11 @@ widget_state_management:
 source_of_truth: lib/presentation/widgets/tag_data.dart
 called_by: []
 calls:
-- lib/core/theme/ocean_breeze_color_schemes.dart
+- lib/core/services/tag_service.dart
 - lib/data/models/tag.dart
 - lib/generated/l10n/app_localizations.dart
 i18n_keys: []
-design_tokens:
-- OceanBreezeColorSchemes.lakeCyan
-- OceanBreezeColorSchemes.seaSaltBlue
-- OceanBreezeColorSchemes.warmYellow
-- OceanBreezeColorSchemes.softPink
-- OceanBreezeColorSchemes.lightBlueGray
-- OceanBreezeColorSchemes.silverGray
-- OceanBreezeColorSchemes.disabledGray
-- OceanBreezeColorSchemes.secondaryText
+design_tokens: []
 test_mapping:
   unit:
   - test/presentation/widgets/xxx_unit_test.dart::should_do_x

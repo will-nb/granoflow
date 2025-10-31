@@ -214,6 +214,7 @@ widget_imports:
 - package:intl/intl.dart
 - ../../core/providers/app_providers.dart
 - ../../core/providers/service_providers.dart
+- ../../core/services/tag_service.dart
 - ../../data/models/tag.dart
 - ../../data/models/task.dart
 - ../../generated/l10n/app_localizations.dart
@@ -314,6 +315,7 @@ called_by: []
 calls:
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
+- lib/core/services/tag_service.dart
 - lib/data/models/tag.dart
 - lib/data/models/task.dart
 - lib/generated/l10n/app_localizations.dart

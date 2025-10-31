@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
+import '../../core/constants/font_scale_constants.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../completion_management/completed_page.dart';
 import '../completion_management/trash_page.dart';
@@ -21,7 +22,7 @@ class SettingsControlsPage extends ConsumerWidget {
         );
     final fontScale = ref.watch(fontScaleProvider).maybeWhen(
           data: (value) => value,
-          orElse: () => 1.0,
+          orElse: () => FontScaleConstants.defaultFontScale,
         );
     final themeMode = ref.watch(themeProvider).maybeWhen(
           data: (value) => value,
@@ -41,27 +42,21 @@ class SettingsControlsPage extends ConsumerWidget {
 
     // 根据屏幕方向选择字体选项
     final orientation = MediaQuery.of(context).orientation;
-    final isPortrait = orientation == Orientation.portrait;
-    
-    // 竖屏：更小的字体以适应更多内容
-    // 横屏：相对较大的字体
-    final fontOptions = isPortrait 
-        ? <double>[0.75, 0.85, 1.0, 1.125]
-        : <double>[0.85, 1.0, 1.125, 1.25];
+    final fontOptions = FontScaleConstants.getScalesForOrientation(orientation);
     
     // 字体大小标签映射
-    final fontLabels = isPortrait
+    final fontLabels = orientation == Orientation.portrait
         ? <double, String>{
-            0.75: l10n.settingsFontSizeSmall,
-            0.85: l10n.settingsFontSizeMedium,
-            1.0: l10n.settingsFontSizeLarge,
-            1.125: l10n.settingsFontSizeXLarge,
+            FontScaleConstants.portraitScales[0]: l10n.settingsFontSizeSmall,
+            FontScaleConstants.portraitScales[1]: l10n.settingsFontSizeMedium,
+            FontScaleConstants.portraitScales[2]: l10n.settingsFontSizeLarge,
+            FontScaleConstants.portraitScales[3]: l10n.settingsFontSizeXLarge,
           }
         : <double, String>{
-            0.85: l10n.settingsFontSizeSmall,
-            1.0: l10n.settingsFontSizeMedium,
-            1.125: l10n.settingsFontSizeLarge,
-            1.25: l10n.settingsFontSizeXLarge,
+            FontScaleConstants.landscapeScales[0]: l10n.settingsFontSizeSmall,
+            FontScaleConstants.landscapeScales[1]: l10n.settingsFontSizeMedium,
+            FontScaleConstants.landscapeScales[2]: l10n.settingsFontSizeLarge,
+            FontScaleConstants.landscapeScales[3]: l10n.settingsFontSizeXLarge,
           };
 
     final themeOptions = <ThemeMode, String>{

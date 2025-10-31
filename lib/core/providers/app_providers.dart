@@ -226,6 +226,51 @@ final projectMilestonesProvider =
       return ref.watch(taskRepositoryProvider).watchMilestones(projectId);
     });
 
+/// Provider for getting the parent task of a task (could be project or milestone)
+final taskParentProvider = FutureProvider.family<Task?, int>((ref, taskId) async {
+  final task = await ref.watch(taskRepositoryProvider).findById(taskId);
+  if (task?.parentId == null) return null;
+  return ref.watch(taskRepositoryProvider).findById(task!.parentId!);
+});
+
+/// Provider for getting the complete hierarchy of a task (project and milestone if applicable)
+@immutable
+class TaskProjectHierarchy {
+  const TaskProjectHierarchy({
+    required this.project,
+    this.milestone,
+  });
+
+  final Task project;
+  final Task? milestone;
+
+  bool get hasMilestone => milestone != null;
+}
+
+final taskProjectHierarchyProvider =
+    FutureProvider.family<TaskProjectHierarchy?, int>((ref, taskId) async {
+  final task = await ref.watch(taskRepositoryProvider).findById(taskId);
+  if (task == null || task.parentId == null) return null;
+
+  final parent = await ref.watch(taskRepositoryProvider).findById(task.parentId!);
+  if (parent == null) return null;
+
+  // If parent is a project, return just the project
+  if (parent.taskKind == TaskKind.project) {
+    return TaskProjectHierarchy(project: parent);
+  }
+
+  // If parent is a milestone, get its project
+  if (parent.taskKind == TaskKind.milestone && parent.parentId != null) {
+    final project = await ref.watch(taskRepositoryProvider).findById(parent.parentId!);
+    if (project != null && project.taskKind == TaskKind.project) {
+      return TaskProjectHierarchy(project: project, milestone: parent);
+    }
+  }
+
+  return null;
+});
+
 final taskTreeProvider = StreamProvider.family<TaskTreeNode, int>((
   ref,
   rootId,

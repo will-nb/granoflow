@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
+import '../../core/constants/font_scale_constants.dart';
+
 part 'preference_entity.g.dart';
 
 @collection
@@ -14,7 +16,7 @@ class PreferenceEntity {
   @enumerated
   late ThemeMode themeMode;
 
-  double fontScale = 1.0;
+  double fontScale = FontScaleConstants.defaultFontScale;
 
   late DateTime updatedAt;
 }

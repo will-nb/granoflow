@@ -164,11 +164,11 @@ class InlineDeadlineEditor extends StatelessWidget {
 
     if (isOverdue) {
       color = theme.colorScheme.error;
-      displayText = '⚠ ${l10n.taskDeadlineOverdue}';
+      displayText = l10n.taskDeadlineOverdue;
       iconData = Icons.warning_outlined;
     } else if (isDueSoon) {
       color = theme.colorScheme.tertiary;
-      displayText = '⏰ ${l10n.taskDeadlineSoon}';
+      displayText = l10n.taskDeadlineSoon;
       iconData = Icons.alarm_outlined;
     } else {
       color = theme.colorScheme.secondary;

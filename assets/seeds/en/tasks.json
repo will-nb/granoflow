@@ -5,35 +5,74 @@
       "title": "Archive this task",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_archive_to_trash",
       "title": "Archive this task, then move to trash",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_trash_to_delete",
       "title": "Move this task to trash, then delete",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_activate_from_inbox",
       "title": "Activate a task from inbox",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_timer_and_complete",
       "title": "Time this task, then choose to complete",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
+    },
+    {
+      "slug": "project_new_concept_english_3",
+      "title": "Learn New Concept English Book 3",
+      "status": "pending",
+      "taskKind": "project",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 168
+    },
+    {
+      "slug": "milestone_unit1",
+      "title": "Learn Unit 1",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 56
+    },
+    {
+      "slug": "milestone_unit2",
+      "title": "Learn Unit 2",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 112
+    },
+    {
+      "slug": "milestone_unit3",
+      "title": "Learn Unit 3",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 168
     }
   ]
 }

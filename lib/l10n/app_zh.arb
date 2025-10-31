@@ -188,18 +188,18 @@
   "startTimer": "開始計時",
   "stopTimer": "停止計時",
   "switchTheme": "切換主題",
-  "tag_anywhere": "@任何地方",
-  "tag_company": "@公司",
-  "tag_home": "@屋企",
-  "tag_important": "#重要",
-  "tag_local": "@本地",
-  "tag_school": "@學校",
-  "tag_not_important": "#唔重要",
-  "tag_not_urgent": "#唔緊急",
-  "tag_travel": "@旅行",
-  "tag_urgent": "#緊急",
+  "tag_anywhere": "任何地方",
+  "tag_company": "公司",
+  "tag_home": "屋企",
+  "tag_important": "重要",
+  "tag_local": "本地",
+  "tag_school": "學校",
+  "tag_not_important": "唔重要",
+  "tag_not_urgent": "唔緊急",
+  "tag_travel": "旅行",
+  "tag_urgent": "緊急",
   "tag_waiting": "等緊",
-  "tag_timed": "#計時",
+  "tag_timed": "計時",
   "@tag_timed": {
     "description": "計時任務標籤"
   },
@@ -458,6 +458,18 @@
   "taskPostponeAction": "推遲",
   "taskRemoveTag": "移除標籤",
   "taskSetDeadline": "截止日期",
+  "taskAddToProject": "加入項目",
+  "@taskAddToProject": {
+    "description": "加入項目/里程碑按鈕文字"
+  },
+  "taskRemoveFromProject": "移出項目",
+  "@taskRemoveFromProject": {
+    "description": "移出項目/里程碑選項文字"
+  },
+  "taskNoProjects": "暫無項目",
+  "@taskNoProjects": {
+    "description": "無項目可選時的提示"
+  },
   "taskListTaskArchivedToast": "任務已封存。",
   "taskListTaskCompletedError": "完成任務失敗。",
   "taskListTaskCompletedToast": "任務已完成。",

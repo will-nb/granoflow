@@ -468,6 +468,18 @@
   "taskPostponeSuccessDetailed": "任务已推迟到{date} - 您可以在任务页面找到它",
   "taskRemoveTag": "移除标签",
   "taskSetDeadline": "截止日期",
+  "taskAddToProject": "加入项目",
+  "@taskAddToProject": {
+    "description": "加入项目/里程碑按钮文字"
+  },
+  "taskRemoveFromProject": "移出项目",
+  "@taskRemoveFromProject": {
+    "description": "移出项目/里程碑选项文字"
+  },
+  "taskNoProjects": "暂无项目",
+  "@taskNoProjects": {
+    "description": "无项目可选时的提示"
+  },
   "taskTitleHint": "输入任务标题",
   "taskUpdateError": "更新失败",
   "taskUpdateSuccess": "任务已更新",

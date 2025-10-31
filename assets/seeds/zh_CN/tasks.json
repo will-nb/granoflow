@@ -56,8 +56,47 @@
       "title": "明日任务示例",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["work", "important"],
+      "tags": ["company", "important"],
       "dueAt": 1
+    },
+    {
+      "slug": "project_new_concept_english_3",
+      "title": "学习《新概念英语》第三册",
+      "status": "pending",
+      "taskKind": "project",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 168
+    },
+    {
+      "slug": "milestone_unit1",
+      "title": "学习第一单元",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 56
+    },
+    {
+      "slug": "milestone_unit2",
+      "title": "学习第二单元",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 112
+    },
+    {
+      "slug": "milestone_unit3",
+      "title": "学习第三单元",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 168
     }
   ]
 }

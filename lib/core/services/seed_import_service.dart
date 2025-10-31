@@ -146,6 +146,7 @@ class SeedImportService {
         allowInstantComplete: seed.allowInstantComplete,
         seedSlug: seed.slug,
         sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
+        taskKind: seed.taskKind ?? TaskKind.regular, // 使用种子数据中的 taskKind
       );
       final task = await _tasks.createTask(draft);
       slugToId[seed.slug] = task.id;

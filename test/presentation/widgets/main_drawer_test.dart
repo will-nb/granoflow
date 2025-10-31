@@ -5,12 +5,28 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:granoflow/core/theme/app_theme.dart';
 import 'package:granoflow/presentation/widgets/main_drawer.dart';
-import 'package:granoflow/presentation/widgets/app_logo.dart';
+import 'package:granoflow/presentation/widgets/drawer/drawer_header.dart' as drawer;
+import 'package:granoflow/presentation/widgets/drawer/drawer_navigation_list.dart';
+import 'package:granoflow/presentation/widgets/drawer/drawer_projects_section.dart';
+import 'package:granoflow/presentation/widgets/drawer/drawer_tags_section.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
+import 'package:granoflow/core/providers/app_providers.dart';
+import 'package:granoflow/core/providers/tag_providers.dart';
+import 'package:granoflow/data/models/task.dart';
+import 'package:granoflow/data/models/tag.dart';
 
 void main() {
   Widget buildTestWidget() {
     return ProviderScope(
+      overrides: [
+        // Mock providers to avoid Isar dependency
+        projectsProvider.overrideWith(
+          (ref) => Stream<List<Task>>.value(const <Task>[]),
+        ),
+        tagsByKindProvider.overrideWith(
+          (ref, kind) async => <Tag>[],
+        ),
+      ],
       child: MaterialApp(
         theme: AppTheme.light(),
         localizationsDelegates: const [
@@ -25,78 +41,55 @@ void main() {
           Locale('zh', 'HK'),
         ],
         home: Scaffold(
-          body: const MainDrawer(),
+          drawer: const MainDrawer(),
+          body: Container(),
         ),
       ),
     );
   }
 
-  group('MainDrawer Widget Tests', () {
-    testWidgets('should display AppLogo in header', (tester) async {
+  group('MainDrawer Integration Tests', () {
+    testWidgets('should render drawer with all sub-components', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       
-      // 验证 AppLogo 组件存在
-      expect(find.byType(AppLogo), findsOneWidget);
+      // 打开 drawer
+      final ScaffoldState scaffoldState = tester.state(find.byType(Scaffold));
+      scaffoldState.openDrawer();
+      await tester.pumpAndSettle();
       
-      // 验证 AppLogo 组件的属性
-      final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.size, equals(20.0)); // 更新为新的尺寸
-      expect(appLogo.showText, isFalse);
-      expect(appLogo.variant, equals(AppLogoVariant.onPrimary));
-      expect(appLogo.withBackground, isFalse);
+      // 验证所有子组件都存在
+      expect(find.byType(drawer.DrawerHeader), findsOneWidget);
+      expect(find.byType(DrawerNavigationList), findsOneWidget);
+      expect(find.byType(DrawerProjectsSection), findsOneWidget);
+      expect(find.byType(DrawerTagsSection), findsOneWidget);
     });
 
-    testWidgets('should have correct logo size', (tester) async {
+    testWidgets('should have correct drawer structure', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       
-      final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.size, equals(20.0)); // 更新为新的尺寸
+      // 打开 drawer
+      final ScaffoldState scaffoldState = tester.state(find.byType(Scaffold));
+      scaffoldState.openDrawer();
+      await tester.pumpAndSettle();
+      
+      // 验证 Drawer widget 存在
+      expect(find.byType(Drawer), findsOneWidget);
+      
+      // 验证 Column 和 ListView 结构
+      expect(find.byType(Column), findsWidgets);
+      expect(find.byType(ListView), findsOneWidget);
     });
 
-    testWidgets('should maintain layout spacing', (tester) async {
+    testWidgets('should have dividers between sections', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       
-      // 验证 SizedBox 存在（Logo 和文字之间的间距）
-      expect(find.byType(SizedBox), findsWidgets);
+      // 打开 drawer
+      final ScaffoldState scaffoldState = tester.state(find.byType(Scaffold));
+      scaffoldState.openDrawer();
+      await tester.pumpAndSettle();
       
-      // 验证 Row 布局存在
-      expect(find.byType(Row), findsWidgets);
-    });
-
-    testWidgets('should display greeting text', (tester) async {
-      await tester.pumpWidget(buildTestWidget());
-      
-      // 验证文字内容存在（不依赖具体文案）
-      expect(find.byType(Text), findsWidgets);
-    });
-
-    testWidgets('should use correct logo variant', (tester) async {
-      await tester.pumpWidget(buildTestWidget());
-      
-      final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.variant, equals(AppLogoVariant.onPrimary));
-    });
-
-    testWidgets('should not show logo text', (tester) async {
-      await tester.pumpWidget(buildTestWidget());
-      
-      final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.showText, isFalse);
-    });
-
-    testWidgets('should use background image in header', (tester) async {
-      await tester.pumpWidget(buildTestWidget());
-      
-      // 验证 Logo 本身不使用背景（withBackground 为 false）
-      final appLogo = tester.widget<AppLogo>(find.byType(AppLogo));
-      expect(appLogo.withBackground, isFalse);
-      
-      // 验证 header 容器有 BoxDecoration（用于背景图片）
-      final containerFinder = find.descendant(
-        of: find.byType(Drawer),
-        matching: find.byType(Container),
-      );
-      expect(containerFinder, findsWidgets);
+      // 验证 Divider 存在（项目区域和标签区域前各有一个）
+      expect(find.byType(Divider), findsNWidgets(2));
     });
   });
 }

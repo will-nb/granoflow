@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
+import '../../core/constants/font_scale_constants.dart';
 import '../isar/preference_entity.dart';
 import '../models/preference.dart';
 
@@ -80,7 +81,7 @@ class IsarPreferenceRepository implements PreferenceRepository {
       ..id = _singletonId
       ..localeCode = systemLocale
       ..themeMode = ThemeMode.system
-      ..fontScale = 1.0
+      ..fontScale = FontScaleConstants.defaultFontScale  // 默认字体大小：竖屏的"中" (Default font size: "Medium" for portrait)
       ..updatedAt = DateTime.now();
     await _isar.writeTxn(() async {
       await _isar.preferenceEntitys.put(newEntity);

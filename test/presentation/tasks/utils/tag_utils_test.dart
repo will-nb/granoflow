@@ -7,22 +7,39 @@ import 'package:granoflow/presentation/tasks/utils/tag_utils.dart';
 
 void main() {
   group('getTagKindFromSlug', () {
-    test('returns context for @ prefix', () {
+    test('returns context for context tags (compatible with old format)', () {
+      // 新格式（无前缀）
+      expect(getTagKindFromSlug('home'), TagKind.context);
+      expect(getTagKindFromSlug('anywhere'), TagKind.context);
+      // 兼容旧格式（带前缀）
       expect(getTagKindFromSlug('@home'), TagKind.context);
       expect(getTagKindFromSlug('@anywhere'), TagKind.context);
     });
 
-    test('returns urgency for urgency tags', () {
+    test('returns urgency for urgency tags (compatible with old format)', () {
+      // 新格式（无前缀）
+      expect(getTagKindFromSlug('urgent'), TagKind.urgency);
+      expect(getTagKindFromSlug('not_urgent'), TagKind.urgency);
+      // 兼容旧格式（带前缀）
       expect(getTagKindFromSlug('#urgent'), TagKind.urgency);
       expect(getTagKindFromSlug('#not_urgent'), TagKind.urgency);
     });
 
-    test('returns importance for importance tags', () {
+    test('returns importance for importance tags (compatible with old format)', () {
+      // 新格式（无前缀）
+      expect(getTagKindFromSlug('important'), TagKind.importance);
+      expect(getTagKindFromSlug('not_important'), TagKind.importance);
+      // 兼容旧格式（带前缀）
       expect(getTagKindFromSlug('#important'), TagKind.importance);
       expect(getTagKindFromSlug('#not_important'), TagKind.importance);
     });
 
-    test('returns execution for execution tags', () {
+    test('returns execution for execution tags (compatible with old format)', () {
+      // 新格式（无前缀）
+      expect(getTagKindFromSlug('timed'), TagKind.execution);
+      expect(getTagKindFromSlug('fragmented'), TagKind.execution);
+      expect(getTagKindFromSlug('waiting'), TagKind.execution);
+      // 兼容旧格式（带前缀）
       expect(getTagKindFromSlug('#timed'), TagKind.execution);
       expect(getTagKindFromSlug('#fragmented'), TagKind.execution);
       expect(getTagKindFromSlug('#waiting'), TagKind.execution);
@@ -33,52 +50,59 @@ void main() {
     });
 
     test('returns special for unknown tags', () {
+      expect(getTagKindFromSlug('unknown'), TagKind.special);
       expect(getTagKindFromSlug('#unknown'), TagKind.special);
     });
   });
 
   group('getTagStyle', () {
     test('returns consistent style for context tags', () {
-      final (color1, icon1, prefix1) = getTagStyle('@home', TagKind.context);
-      final (color2, icon2, prefix2) = getTagStyle('@company', TagKind.context);
+      final (color1, icon1, prefix1) = getTagStyle('home', TagKind.context);
+      final (color2, icon2, prefix2) = getTagStyle('company', TagKind.context);
       
-      expect(color1, color2); // All context tags same color
-      expect(icon1, Icons.place_outlined);
-      expect(icon2, Icons.place_outlined);
-      expect(prefix1, isNull);
-      expect(prefix2, isNull);
+      expect(icon1, Icons.home);
+      expect(icon2, Icons.business);
+      expect(prefix1, null); // 前缀已废弃，不再显示
+      expect(prefix2, null);
     });
 
     test('returns distinct styles for urgency tags', () {
-      final (urgentColor, urgentIcon, _) = getTagStyle('#urgent', TagKind.urgency);
-      final (notUrgentColor, notUrgentIcon, _) = getTagStyle('#not_urgent', TagKind.urgency);
+      final (urgentColor, urgentIcon, urgentPrefix) = getTagStyle('urgent', TagKind.urgency);
+      final (notUrgentColor, notUrgentIcon, notUrgentPrefix) = getTagStyle('not_urgent', TagKind.urgency);
       
       expect(urgentColor, isNot(notUrgentColor));
       expect(urgentIcon, Icons.priority_high);
       expect(notUrgentIcon, Icons.event_available);
+      expect(urgentPrefix, null); // 前缀已废弃，不再显示
+      expect(notUrgentPrefix, null);
     });
 
     test('returns distinct styles for importance tags', () {
-      final (importantColor, importantIcon, _) = getTagStyle('#important', TagKind.importance);
-      final (notImportantColor, notImportantIcon, _) = getTagStyle('#not_important', TagKind.importance);
+      final (importantColor, importantIcon, importantPrefix) = getTagStyle('important', TagKind.importance);
+      final (notImportantColor, notImportantIcon, notImportantPrefix) = getTagStyle('not_important', TagKind.importance);
       
       expect(importantColor, isNot(notImportantColor));
       expect(importantIcon, Icons.star);
       expect(notImportantIcon, Icons.star_outline);
+      expect(importantPrefix, null); // 前缀已废弃，不再显示
+      expect(notImportantPrefix, null);
     });
 
     test('returns distinct styles for execution tags', () {
-      final (timedColor, timedIcon, _) = getTagStyle('#timed', TagKind.execution);
-      final (fragmentedColor, fragmentedIcon, _) = getTagStyle('#fragmented', TagKind.execution);
-      final (waitingColor, waitingIcon, _) = getTagStyle('#waiting', TagKind.execution);
+      final (timedColor, timedIcon, timedPrefix) = getTagStyle('timed', TagKind.execution);
+      final (fragmentedColor, fragmentedIcon, fragmentedPrefix) = getTagStyle('fragmented', TagKind.execution);
+      final (waitingColor, waitingIcon, waitingPrefix) = getTagStyle('waiting', TagKind.execution);
       
       expect(timedIcon, Icons.schedule);
       expect(fragmentedIcon, Icons.flash_on_outlined);
       expect(waitingIcon, Icons.hourglass_empty);
+      expect(timedPrefix, null); // 前缀已废弃，不再显示
+      expect(fragmentedPrefix, null);
+      expect(waitingPrefix, null);
     });
 
     test('returns default style for unknown tags', () {
-      final (color, icon, prefix) = getTagStyle('#unknown', TagKind.special);
+      final (color, icon, prefix) = getTagStyle('unknown', TagKind.special);
       
       expect(color, const Color(0xFF64B5F6));
       expect(icon, Icons.tag);
@@ -101,25 +125,39 @@ void main() {
             builder: (context) {
               final l10n = AppLocalizations.of(context);
               
-              // Context tags
+              // Context tags (new format, no prefix)
+              expect(tagLabel(l10n, 'home'), isNotEmpty);
+              expect(tagLabel(l10n, 'company'), isNotEmpty);
+              // Compatible with old format
               expect(tagLabel(l10n, '@home'), isNotEmpty);
               expect(tagLabel(l10n, '@company'), isNotEmpty);
               
-              // Urgency tags
+              // Urgency tags (new format, no prefix)
+              expect(tagLabel(l10n, 'urgent'), isNotEmpty);
+              expect(tagLabel(l10n, 'not_urgent'), isNotEmpty);
+              // Compatible with old format
               expect(tagLabel(l10n, '#urgent'), isNotEmpty);
               expect(tagLabel(l10n, '#not_urgent'), isNotEmpty);
               
-              // Importance tags
+              // Importance tags (new format, no prefix)
+              expect(tagLabel(l10n, 'important'), isNotEmpty);
+              expect(tagLabel(l10n, 'not_important'), isNotEmpty);
+              // Compatible with old format
               expect(tagLabel(l10n, '#important'), isNotEmpty);
               expect(tagLabel(l10n, '#not_important'), isNotEmpty);
               
-              // Execution tags
+              // Execution tags (new format, no prefix)
+              expect(tagLabel(l10n, 'timed'), isNotEmpty);
+              expect(tagLabel(l10n, 'fragmented'), isNotEmpty);
+              expect(tagLabel(l10n, 'waiting'), isNotEmpty);
+              // Compatible with old format
               expect(tagLabel(l10n, '#timed'), isNotEmpty);
               expect(tagLabel(l10n, '#fragmented'), isNotEmpty);
               expect(tagLabel(l10n, '#waiting'), isNotEmpty);
               
               // Unknown tags
-              expect(tagLabel(l10n, '#unknown'), '#unknown');
+              expect(tagLabel(l10n, 'unknown'), 'unknown');
+              expect(tagLabel(l10n, '#unknown'), 'unknown'); // 规范化后
               
               return const SizedBox();
             },
@@ -130,16 +168,16 @@ void main() {
   });
 
   group('tag constants', () {
-    test('execution tags are correctly defined', () {
-      expect(executionTags, {'#timed', '#fragmented', '#waiting'});
+    test('execution tags are correctly defined (no prefix)', () {
+      expect(executionTags, {'timed', 'fragmented', 'waiting'});
     });
 
-    test('urgency tags are correctly defined', () {
-      expect(urgencyTags, {'#urgent', '#not_urgent'});
+    test('urgency tags are correctly defined (no prefix)', () {
+      expect(urgencyTags, {'urgent', 'not_urgent'});
     });
 
-    test('importance tags are correctly defined', () {
-      expect(importanceTags, {'#important', '#not_important'});
+    test('importance tags are correctly defined (no prefix)', () {
+      expect(importanceTags, {'important', 'not_important'});
     });
   });
 }

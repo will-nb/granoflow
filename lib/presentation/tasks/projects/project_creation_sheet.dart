@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/service_providers.dart';
+import '../../../core/services/tag_service.dart';
 import '../../../core/services/task_service.dart'
     show ProjectBlueprint, ProjectMilestoneBlueprint;
 import '../../../data/models/tag.dart';
@@ -273,18 +274,29 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
   }
 
   void _assignProjectTag(String slug) {
-    if (urgencyTagNames.contains(slug)) {
-      _selectedUrgencyTag = '#$slug';
-      _selectedImportanceTag = null;
-      _executionTag = null;
-    } else if (importanceTagNames.contains(slug)) {
-      _selectedImportanceTag = '#$slug';
-      _selectedUrgencyTag = null;
-      _executionTag = null;
-    } else if (executionTagNames.contains(slug)) {
-      _executionTag = '#$slug';
-      _selectedUrgencyTag = null;
-      _selectedImportanceTag = null;
+    // 使用 TagService 判断标签类型（兼容旧数据，自动规范化）
+    final kind = TagService.getKind(slug);
+    final normalizedSlug = TagService.normalizeSlug(slug);
+    
+    switch (kind) {
+      case TagKind.urgency:
+        _selectedUrgencyTag = normalizedSlug;
+        _selectedImportanceTag = null;
+        _executionTag = null;
+        break;
+      case TagKind.importance:
+        _selectedImportanceTag = normalizedSlug;
+        _selectedUrgencyTag = null;
+        _executionTag = null;
+        break;
+      case TagKind.execution:
+        _executionTag = normalizedSlug;
+        _selectedUrgencyTag = null;
+        _selectedImportanceTag = null;
+        break;
+      default:
+        // 其他类型的标签不做处理
+        break;
     }
   }
 
@@ -304,15 +316,11 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
     }
 
     String? resolved;
-    String prefix = '#';
-    if (contextTagNames.contains(keyword)) {
+    
+    // 使用 TagService 查找标签类型（兼容旧数据）
+    final definition = TagService.findDefinition(keyword);
+    if (definition != null) {
       resolved = keyword;
-      prefix = '@';
-    } else if (urgencyTagNames.contains(keyword) ||
-        importanceTagNames.contains(keyword) ||
-        executionTagNames.contains(keyword)) {
-      resolved = keyword;
-      prefix = '#';
     }
 
     if (resolved == null) {
@@ -320,7 +328,8 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
     }
 
     _suppressProjectShortcut = true;
-    final replacement = '$prefix$resolved';
+    // 不再添加前缀到文本（前缀已废弃）
+    final replacement = resolved;
     controller.text =
         controller.text.replaceRange(hashIndex, controller.text.length, replacement);
     controller.selection =

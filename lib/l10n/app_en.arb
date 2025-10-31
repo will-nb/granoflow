@@ -189,18 +189,18 @@
   "startTimer": "Start Timer",
   "stopTimer": "Stop Timer",
   "switchTheme": "Switch Theme",
-  "tag_anywhere": "@Anywhere",
-  "tag_company": "@Company",
-  "tag_home": "@Home",
-  "tag_important": "#Important",
-  "tag_local": "@Local",
-  "tag_school": "@School",
-  "tag_not_important": "#Not important",
-  "tag_not_urgent": "#Not urgent",
-  "tag_travel": "@Travel",
-  "tag_urgent": "#Urgent",
+  "tag_anywhere": "Anywhere",
+  "tag_company": "Company",
+  "tag_home": "Home",
+  "tag_important": "Important",
+  "tag_local": "Local",
+  "tag_school": "School",
+  "tag_not_important": "Not important",
+  "tag_not_urgent": "Not urgent",
+  "tag_travel": "Travel",
+  "tag_urgent": "Urgent",
   "tag_waiting": "Waiting",
-  "tag_timed": "#Timed",
+  "tag_timed": "Timed",
   "@tag_timed": {
     "description": "Label for timed tasks"
   },
@@ -460,6 +460,18 @@
   "taskPostponeAction": "Postpone",
   "taskRemoveTag": "Remove Tag",
   "taskSetDeadline": "Deadline",
+  "taskAddToProject": "Add to Project",
+  "@taskAddToProject": {
+    "description": "Button text for adding task to project/milestone"
+  },
+  "taskRemoveFromProject": "Remove from Project",
+  "@taskRemoveFromProject": {
+    "description": "Option text for removing task from project/milestone"
+  },
+  "taskNoProjects": "No projects available",
+  "@taskNoProjects": {
+    "description": "Message shown when there are no projects to choose from"
+  },
   "taskListTaskArchivedToast": "Task archived.",
   "taskListTaskCompletedError": "Complete task failed.",
   "taskListTaskCompletedToast": "Task completed.",

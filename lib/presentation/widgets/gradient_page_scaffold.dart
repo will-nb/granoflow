@@ -29,10 +29,23 @@ class GradientPageScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shouldExtendBody = extendBodyBehindAppBar || drawer != null;
+    final hasAppBar = appBar != null;
+    
+    // 当 extendBodyBehindAppBar 为 true 且存在 AppBar 时，
+    // 需要计算状态栏高度 + AppBar 高度的总 padding
+    double topPadding = 0;
+    if (shouldExtendBody && hasAppBar) {
+      final mediaQuery = MediaQuery.of(context);
+      final statusBarHeight = mediaQuery.padding.top;
+      final appBarHeight = appBar!.preferredSize.height;
+      topPadding = statusBarHeight + appBarHeight;
+    }
+    
     return Scaffold(
       appBar: appBar,
       drawer: drawer,
-      extendBodyBehindAppBar: extendBodyBehindAppBar || drawer != null, // 如果有 drawer 则默认扩展
+      extendBodyBehindAppBar: shouldExtendBody,
       extendBody: extendBody,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
@@ -41,7 +54,18 @@ class GradientPageScaffold extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: gradient ?? context.gradients.pageBackground,
         ),
-        child: body,
+        child: SafeArea(
+          top: shouldExtendBody && hasAppBar,
+          bottom: false,
+          left: false,
+          right: false,
+          minimum: EdgeInsets.only(
+            // SafeArea 会自动处理状态栏高度，minimum 确保总 padding 至少是
+            // 状态栏高度 + AppBar 高度
+            top: topPadding,
+          ),
+          child: body,
+        ),
       ),
     );
   }

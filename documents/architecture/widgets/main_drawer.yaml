@@ -127,15 +127,10 @@ widget_dependencies:
 widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
-- package:go_router/go_router.dart
-- package:granoflow/generated/l10n/app_localizations.dart
-- ../navigation/sidebar_destinations.dart
-- app_logo.dart
-- modern_tag.dart
-- tag_data.dart
-- ../../data/models/tag.dart
-- ../../core/providers/tag_providers.dart
-- ../../core/providers/app_providers.dart
+- drawer/drawer_header.dart
+- drawer/drawer_navigation_list.dart
+- drawer/drawer_projects_section.dart
+- drawer/drawer_tags_section.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -228,12 +223,7 @@ widget_state_management:
   considerations: 注意事项
 source_of_truth: lib/presentation/widgets/main_drawer.dart
 called_by: []
-calls:
-- lib/generated/l10n/app_localizations.dart
-- lib/presentation/navigation/sidebar_destinations.dart
-- lib/data/models/tag.dart
-- lib/core/providers/tag_providers.dart
-- lib/core/providers/app_providers.dart
+calls: []
 i18n_keys: []
 design_tokens: []
 test_mapping:

@@ -144,6 +144,7 @@ testing_strategy:
 source_of_truth: lib/data/repositories/preference_repository.dart
 called_by: []
 calls:
+- lib/core/constants/font_scale_constants.dart
 - lib/data/isar/preference_entity.dart
 - lib/data/models/preference.dart
 test_mapping:

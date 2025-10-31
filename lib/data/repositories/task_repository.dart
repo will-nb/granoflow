@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
+import '../../core/services/tag_service.dart';
 import '../isar/task_entity.dart';
 import '../models/task.dart';
 
@@ -84,7 +85,7 @@ class IsarTaskRepository implements TaskRepository {
   Stream<List<Task>> watchSection(TaskSection section) {
     return _watchQuery(() => _fetchSection(section)).map((tasks) {
       if (section == TaskSection.later) {
-        debugPrint('📺 [TaskRepository.watchSection] Stream 发送的任务顺序:');
+        debugPrint('[TaskRepository.watchSection] Stream 发送的任务顺序:');
         for (final task in tasks) {
           debugPrint('  - ${task.title}: dueAt=${task.dueAt}');
         }
@@ -128,23 +129,28 @@ class IsarTaskRepository implements TaskRepository {
       final filtered = entities
           .where((entity) {
             final tags = entity.tags;
+            // 规范化标签后进行比较（兼容旧数据）
             if (contextTag != null && contextTag.isNotEmpty) {
-              if (!tags.contains(contextTag)) {
+              final normalizedContextTag = TagService.normalizeSlug(contextTag);
+              if (!tags.any((tag) => TagService.normalizeSlug(tag) == normalizedContextTag)) {
                 return false;
               }
             }
             if (priorityTag != null && priorityTag.isNotEmpty) {
-              if (!tags.contains(priorityTag)) {
+              final normalizedPriorityTag = TagService.normalizeSlug(priorityTag);
+              if (!tags.any((tag) => TagService.normalizeSlug(tag) == normalizedPriorityTag)) {
                 return false;
               }
             }
             if (urgencyTag != null && urgencyTag.isNotEmpty) {
-              if (!tags.contains(urgencyTag)) {
+              final normalizedUrgencyTag = TagService.normalizeSlug(urgencyTag);
+              if (!tags.any((tag) => TagService.normalizeSlug(tag) == normalizedUrgencyTag)) {
                 return false;
               }
             }
             if (importanceTag != null && importanceTag.isNotEmpty) {
-              if (!tags.contains(importanceTag)) {
+              final normalizedImportanceTag = TagService.normalizeSlug(importanceTag);
+              if (!tags.any((tag) => TagService.normalizeSlug(tag) == normalizedImportanceTag)) {
                 return false;
               }
             }
@@ -242,7 +248,7 @@ class IsarTaskRepository implements TaskRepository {
         ..updatedAt = now
         ..parentId = draft.parentId
         ..sortIndex = draft.sortIndex
-        ..tags = draft.tags.toList()
+        ..tags = draft.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
         ..templateLockCount = 0
         ..seedSlug = draft.seedSlug
         ..allowInstantComplete = draft.allowInstantComplete
@@ -271,7 +277,9 @@ class IsarTaskRepository implements TaskRepository {
         ..endedAt = payload.endedAt ?? entity.endedAt
         ..parentId = payload.parentId ?? entity.parentId
         ..sortIndex = payload.sortIndex ?? entity.sortIndex
-        ..tags = payload.tags ?? entity.tags
+        ..tags = payload.tags != null
+            ? payload.tags!.map((tag) => TagService.normalizeSlug(tag)).toList()
+            : entity.tags
         ..templateLockCount =
             (entity.templateLockCount + payload.templateLockDelta).clamp(
               0,
@@ -471,7 +479,9 @@ class IsarTaskRepository implements TaskRepository {
           ..endedAt = payload.endedAt ?? entity.endedAt
           ..parentId = payload.parentId ?? entity.parentId
           ..sortIndex = payload.sortIndex ?? entity.sortIndex
-          ..tags = payload.tags ?? entity.tags
+          ..tags = payload.tags != null
+              ? payload.tags!.map((tag) => TagService.normalizeSlug(tag)).toList()
+              : entity.tags
           ..templateLockCount =
               (entity.templateLockCount + payload.templateLockDelta).clamp(
                 0,
@@ -605,7 +615,7 @@ class IsarTaskRepository implements TaskRepository {
 
     // 调试日志：输出排序前的任务
     if (section == TaskSection.later && tasks.isNotEmpty) {
-      debugPrint('📊 [TaskRepository] 以后区域排序前:');
+      debugPrint('[TaskRepository] 以后区域排序前:');
       for (final task in tasks) {
         debugPrint('  - ${task.title}: dueAt=${task.dueAt}, sortIndex=${task.sortIndex}');
       }
@@ -644,7 +654,7 @@ class IsarTaskRepository implements TaskRepository {
 
     // 调试日志：输出排序后的任务
     if (section == TaskSection.later && tasks.isNotEmpty) {
-      debugPrint('📊 [TaskRepository] 以后区域排序后:');
+      debugPrint('[TaskRepository] 以后区域排序后:');
       for (final task in tasks) {
         debugPrint('  - ${task.title}: dueAt=${task.dueAt}, sortIndex=${task.sortIndex}');
       }
@@ -717,6 +727,11 @@ class IsarTaskRepository implements TaskRepository {
   }
 
   Task _toDomain(TaskEntity entity) {
+    // 规范化 tags（兼容旧数据，去除前缀）
+    final normalizedTags = entity.tags
+        .map((tag) => TagService.normalizeSlug(tag))
+        .toList(growable: false);
+    
     return Task(
       id: entity.id,
       taskId: entity.taskId,
@@ -729,7 +744,7 @@ class IsarTaskRepository implements TaskRepository {
       updatedAt: entity.updatedAt,
       parentId: entity.parentId,
       sortIndex: entity.sortIndex,
-      tags: List.unmodifiable(entity.tags),
+      tags: List.unmodifiable(normalizedTags),
       templateLockCount: entity.templateLockCount,
       seedSlug: entity.seedSlug,
       allowInstantComplete: entity.allowInstantComplete,
@@ -752,7 +767,7 @@ class IsarTaskRepository implements TaskRepository {
       ..updatedAt = task.updatedAt
       ..parentId = task.parentId
       ..sortIndex = task.sortIndex
-      ..tags = task.tags.toList()
+      ..tags = task.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
       ..templateLockCount = task.templateLockCount
       ..seedSlug = task.seedSlug
       ..allowInstantComplete = task.allowInstantComplete

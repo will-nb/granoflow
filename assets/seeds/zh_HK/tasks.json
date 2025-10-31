@@ -5,35 +5,74 @@
       "title": "歸檔這個任務",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_archive_to_trash",
       "title": "把這個任務歸檔，然後丟進垃圾箱",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_trash_to_delete",
       "title": "把這個任務丟進垃圾箱，然後刪除",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_activate_from_inbox",
       "title": "從收集箱激活一條任務",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
     },
     {
       "slug": "task_timer_and_complete",
       "title": "為這個任務計時，然後選擇完成",
       "status": "pending",
       "allowInstantComplete": true,
-      "tags": ["@home", "#not_urgent", "#important"]
+      "tags": ["home", "not_urgent", "important"]
+    },
+    {
+      "slug": "project_new_concept_english_3",
+      "title": "學習《新概念英語》第三冊",
+      "status": "pending",
+      "taskKind": "project",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 168
+    },
+    {
+      "slug": "milestone_unit1",
+      "title": "學習第一單元",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 56
+    },
+    {
+      "slug": "milestone_unit2",
+      "title": "學習第二單元",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 112
+    },
+    {
+      "slug": "milestone_unit3",
+      "title": "學習第三單元",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_new_concept_english_3",
+      "allowInstantComplete": false,
+      "tags": [],
+      "dueAt": 168
     }
   ]
 }
