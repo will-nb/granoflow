@@ -275,7 +275,6 @@ class IsarTaskRepository implements TaskRepository {
         ..dueAt = payload.dueAt ?? entity.dueAt
         ..startedAt = payload.startedAt ?? entity.startedAt
         ..endedAt = payload.endedAt ?? entity.endedAt
-        ..parentId = payload.parentId ?? entity.parentId
         ..sortIndex = payload.sortIndex ?? entity.sortIndex
         ..tags = payload.tags != null
             ? payload.tags!.map((tag) => TagService.normalizeSlug(tag)).toList()
@@ -293,6 +292,13 @@ class IsarTaskRepository implements TaskRepository {
             ? payload.logs!.map(_logFromDomain).toList()
             : entity.logs
         ..updatedAt = _clock();
+
+      // parentId 更新策略：
+      if (payload.clearParent == true) {
+        entity.parentId = null;
+      } else if (payload.parentId != null) {
+        entity.parentId = payload.parentId;
+      }
 
       await _isar.taskEntitys.put(entity);
     });
@@ -424,7 +430,11 @@ class IsarTaskRepository implements TaskRepository {
         .sortBySortIndex()
         .thenByCreatedAt()
         .findAll();
-    return children.map(_toDomain).toList(growable: false);
+    // 过滤掉 trashed 状态的任务（在内存中过滤，因为 Isar 可能不支持 statusNotEqualTo）
+    return children
+        .where((entity) => entity.status != TaskStatus.trashed)
+        .map(_toDomain)
+        .toList(growable: false);
   }
 
   @override
@@ -477,7 +487,6 @@ class IsarTaskRepository implements TaskRepository {
           ..dueAt = payload.dueAt ?? entity.dueAt
           ..startedAt = payload.startedAt ?? entity.startedAt
           ..endedAt = payload.endedAt ?? entity.endedAt
-          ..parentId = payload.parentId ?? entity.parentId
           ..sortIndex = payload.sortIndex ?? entity.sortIndex
           ..tags = payload.tags != null
               ? payload.tags!.map((tag) => TagService.normalizeSlug(tag)).toList()
@@ -495,6 +504,12 @@ class IsarTaskRepository implements TaskRepository {
               ? payload.logs!.map(_logFromDomain).toList()
               : entity.logs
           ..updatedAt = _clock();
+
+        if (payload.clearParent == true) {
+          entity.parentId = null;
+        } else if (payload.parentId != null) {
+          entity.parentId = payload.parentId;
+        }
         await _isar.taskEntitys.put(entity);
       }
     });

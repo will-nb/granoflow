@@ -272,6 +272,7 @@ class TaskUpdate {
     this.description,
     this.taskKind,
     this.logs,
+    this.clearParent,
   });
 
   final String? title;
@@ -287,4 +288,7 @@ class TaskUpdate {
   final String? description;
   final TaskKind? taskKind;
   final List<TaskLogEntry>? logs;
+  /// 当需要显式将 parentId 置为 null 时，传 true；
+  /// 否则保持现有行为（未提供 parentId 则不改动）。
+  final bool? clearParent;
 }
