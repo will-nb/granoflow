@@ -21,6 +21,7 @@ class TaskRowContent extends ConsumerStatefulWidget {
     super.key,
     required this.task,
     this.leading,
+    this.trailing,
     this.showConvertAction = false,
     this.onConvertToProject,
     this.compact = false,
@@ -29,6 +30,7 @@ class TaskRowContent extends ConsumerStatefulWidget {
 
   final Task task;
   final Widget? leading;
+  final Widget? trailing; // 尾部内容（如展开/收缩按钮）
   final bool showConvertAction;
   final VoidCallback? onConvertToProject;
   final bool compact; // 紧凑模式，用于子任务显示
@@ -179,6 +181,11 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
                   ),
                 ),
         ),
+        if (widget.trailing != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 8, top: 4),
+            child: widget.trailing!,
+          ),
         if (widget.showConvertAction)
           IconButton(
             onPressed: widget.onConvertToProject,

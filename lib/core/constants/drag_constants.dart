@@ -19,4 +19,6 @@ class DragConstants {
   static const double insertionLineSpreadRadius = 0.0; // 无扩散
   // 插入目标标准高度（独立区域，不覆盖任务表面）
   static const double insertionTargetHeight = 8.0; // 标准实现：小的独立区域
+  // 任务表面排除区（用于位置检测，上下各 16 像素）
+  static const double taskSurfaceExclusionZone = 16.0;
 }

@@ -12,12 +12,14 @@ class InboxTaskTile extends ConsumerWidget {
     super.key,
     required this.task,
     this.contentPadding,
+    this.trailing,
     this.onDragStarted,
     this.onDragEnd,
   });
 
   final Task task;
   final EdgeInsetsGeometry? contentPadding;
+  final Widget? trailing; // 尾部内容（如展开/收缩按钮）
   final VoidCallback? onDragStarted;
   final VoidCallback? onDragEnd;
 
@@ -47,6 +49,7 @@ class InboxTaskTile extends ConsumerWidget {
       child: TaskTileContent(
         task: task,
         leading: const Icon(Icons.drag_indicator_rounded, size: 20),
+        trailing: trailing,
         contentPadding: contentPadding,
         onDragStarted: onDragStarted,
         onDragEnd: onDragEnd,

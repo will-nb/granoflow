@@ -89,15 +89,4 @@ class _StandardDragTargetState<T extends Object> extends State<StandardDragTarge
       ),
     );
   }
-
-  EdgeInsets _getMargin(InsertionType type) {
-    switch (type) {
-      case InsertionType.between:
-        return const EdgeInsets.symmetric(vertical: 12);
-      case InsertionType.first:
-        return const EdgeInsets.only(bottom: 12);
-      case InsertionType.last:
-        return const EdgeInsets.only(top: 12);
-    }
-  }
 }

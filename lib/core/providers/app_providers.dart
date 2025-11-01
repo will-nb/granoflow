@@ -282,7 +282,7 @@ final expandedRootTaskIdProvider = StateProvider<int?>((ref) => null);
 
 /// Provider for managing expanded task ID in task list page
 final taskListExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
-final inboxExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
+final inboxExpandedTaskIdProvider = StateProvider<Set<int>>((ref) => <int>{});
 final projectsExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 
 /// Provider for managing quick tasks section expanded state

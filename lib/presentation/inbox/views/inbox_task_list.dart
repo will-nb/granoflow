@@ -8,6 +8,8 @@ import '../../../generated/l10n/app_localizations.dart';
 import '../../tasks/utils/hierarchy_utils.dart';
 import '../../tasks/utils/sort_index_utils.dart';
 import '../../tasks/utils/task_collection_utils.dart';
+import '../../tasks/utils/tree_flattening_utils.dart';
+import '../../../core/providers/app_providers.dart';
 import '../../widgets/task_drag_intent_helper.dart';
 import '../../common/drag/task_drag_intent_target.dart';
 import '../../common/drag/standard_drag_target.dart';
@@ -19,12 +21,15 @@ import '../widgets/inbox_task_tile.dart';
 /// - 列表内任务重排序（拖拽改变顺序）
 /// - 跨区域拖拽（将任务拖到其他任务上使其成为子任务）
 /// - 拖拽时的视觉反馈（倾斜、缩放、阴影效果）
+/// - 层级缩进显示（每个层级缩进 16px）
 ///
-/// 使用 [ReorderableListView] 实现列表内排序功能，并通过
+/// 使用 [TaskTreeNode] 和 [flattenTree] 构建层级结构，并通过
 /// [TaskDragIntentTarget] 处理跨区域拖拽和目标任务识别。
 ///
 /// 注意：
-/// - 只显示根任务（没有父任务的任务）
+/// - 显示完整的任务层级结构（包括所有子任务）
+/// - 排序功能只影响根任务（子任务不参与排序）
+/// - 插入目标只在根任务之间显示
 /// - 自动过滤掉已删除（trashed）状态的任务
 /// - 自动过滤掉项目（project）和里程碑（milestone）类型的任务
 class InboxTaskList extends ConsumerStatefulWidget {
@@ -60,6 +65,89 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     super.didUpdateWidget(oldWidget);
     if (widget.tasks != oldWidget.tasks) {
       _tasks = List<Task>.from(widget.tasks);
+    }
+  }
+
+  /// 构建任务层级树
+  ///
+  /// 从任务列表构建 TaskTreeNode 层级树结构。
+  /// 只包含非项目/非里程碑的任务，并按照 sortIndex 排序子任务。
+  ///
+  /// [tasks] 要构建树的任务列表
+  /// 返回根任务树的列表
+  List<TaskTreeNode> _buildTaskTree(List<Task> tasks) {
+    final byId = {for (final task in tasks) task.id: task};
+    final roots = collectRoots(tasks)
+        .where((task) => !isProjectOrMilestone(task))
+        .toList();
+    return roots.map((root) => _buildSubtree(root, byId)).toList();
+  }
+
+  /// 递归构建子树
+  ///
+  /// 为给定任务构建包含所有子任务的子树结构。
+  ///
+  /// [task] 当前任务
+  /// [byId] 任务 ID 到任务的映射
+  /// 返回包含当前任务及其所有子任务的树节点
+  TaskTreeNode _buildSubtree(Task task, Map<int, Task> byId) {
+    final children = byId.values
+        .where((t) => t.parentId == task.id && !isProjectOrMilestone(t))
+        .toList()
+      ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    final childNodes = children.map((child) => _buildSubtree(child, byId)).toList();
+    return TaskTreeNode(task: task, children: childNodes);
+  }
+
+  /// 扁平化任务树，根据展开状态决定是否包含子任务
+  ///
+  /// 只有当父任务展开时才包含其子任务。
+  /// 默认所有任务都是收缩状态（不展开子任务）。
+  ///
+  /// [node] 要扁平化的树节点
+  /// [depth] 当前深度（从0开始）
+  /// [expandedTaskIds] 已展开的任务 ID 集合
+  /// 返回扁平化的任务节点列表
+  List<FlattenedTaskNode> _flattenTreeWithExpansion(
+    TaskTreeNode node, {
+    int depth = 0,
+    required Set<int> expandedTaskIds,
+  }) {
+    final result = <FlattenedTaskNode>[];
+    // 总是包含当前任务
+    result.add(FlattenedTaskNode(node.task, depth));
+    
+    // 只有当当前任务展开时才包含子任务
+    if (expandedTaskIds.contains(node.task.id)) {
+      for (final child in node.children) {
+        result.addAll(
+          _flattenTreeWithExpansion(
+            child,
+            depth: depth + 1,
+            expandedTaskIds: expandedTaskIds,
+          ),
+        );
+      }
+    }
+    
+    return result;
+  }
+
+  /// 填充任务 ID 到是否有子任务的映射
+  ///
+  /// 递归遍历树，标记每个任务是否有子任务（非项目/非里程碑的子任务）。
+  void _populateHasChildrenMap(
+    TaskTreeNode node,
+    Map<int, bool> map,
+    List<Task> allTasks,
+  ) {
+    // 检查是否有非项目/非里程碑的子任务
+    final hasChildren = node.children.isNotEmpty;
+    map[node.task.id] = hasChildren;
+    
+    // 递归处理子任务
+    for (final child in node.children) {
+      _populateHasChildrenMap(child, map, allTasks);
     }
   }
 
@@ -112,32 +200,70 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       return;
     }
     
-    // 计算 before：目标位置之前的任务的 sortIndex
-    final before = targetIndex > 0 ? rootTasks[targetIndex - 1].sortIndex : null;
+    // 计算 before 和 after：目标位置前后任务的 sortIndex
+    // 注意：需要考虑被拖拽任务本身，如果 before/after 位置是被拖拽的任务，需要跳过
     
-    // 计算 after：目标位置之后的任务的 sortIndex
-    // 注意：需要考虑被拖拽任务本身，如果 after 位置是被拖拽的任务，需要跳过
+    double? before;
     double? after;
+    
     if (insertionIndex <= oldIndex) {
-      // 向前移动：after 应该是 insertionIndex 位置的任务（跳过被拖拽的任务）
-      // 如果 insertionIndex < rootTasks.length 且 insertionIndex != oldIndex
-      if (insertionIndex < rootTasks.length) {
-        if (insertionIndex != oldIndex) {
-          after = rootTasks[insertionIndex].sortIndex;
+      // 向前移动：targetIndex = insertionIndex
+      // before：目标位置之前的任务
+      if (targetIndex > 0) {
+        final beforeIndex = targetIndex - 1;
+        // 如果 before 位置是被拖拽的任务，需要再往前找
+        if (beforeIndex == oldIndex) {
+          before = beforeIndex > 0 ? rootTasks[beforeIndex - 1].sortIndex : null;
         } else {
-          // 如果 insertionIndex == oldIndex，after 应该是 oldIndex + 1 的任务
-          after = insertionIndex + 1 < rootTasks.length
+          before = rootTasks[beforeIndex].sortIndex;
+        }
+      } else {
+        before = null;
+      }
+      
+      // after：目标位置之后的任务
+      if (targetIndex < rootTasks.length - 1) {
+        final afterIndex = targetIndex + 1;
+        // 如果 after 位置是被拖拽的任务，需要再往后找
+        if (afterIndex == oldIndex) {
+          after = afterIndex < rootTasks.length - 1
+              ? rootTasks[afterIndex + 1].sortIndex
+              : null;
+        } else {
+          after = rootTasks[afterIndex].sortIndex;
+        }
+      } else {
+        after = null;
+      }
+    } else {
+      // 向后移动：targetIndex = insertionIndex - 1
+      // before：目标位置之前的任务
+      if (targetIndex > 0) {
+        final beforeIndex = targetIndex - 1;
+        // 如果 before 位置是被拖拽的任务，需要再往前找
+        if (beforeIndex == oldIndex) {
+          before = beforeIndex > 0 ? rootTasks[beforeIndex - 1].sortIndex : null;
+        } else {
+          before = rootTasks[beforeIndex].sortIndex;
+        }
+      } else {
+        before = null;
+      }
+      
+      // after：目标位置之后的任务（也就是 insertionIndex 位置的任务）
+      if (insertionIndex < rootTasks.length) {
+        // insertionIndex 位置的任务（跳过被拖拽的任务）
+        if (insertionIndex == oldIndex) {
+          // 不应该发生，因为向后移动时 insertionIndex > oldIndex
+          after = insertionIndex < rootTasks.length - 1
               ? rootTasks[insertionIndex + 1].sortIndex
               : null;
+        } else {
+          after = rootTasks[insertionIndex].sortIndex;
         }
       } else {
         after = null; // 插入到末尾
       }
-    } else {
-      // 向后移动：after 应该是 insertionIndex 位置的任务
-      after = insertionIndex < rootTasks.length
-          ? rootTasks[insertionIndex].sortIndex
-          : null;
     }
     
     final newSortIndex = calculateSortIndex(before, after);
@@ -173,13 +299,43 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     // 过滤掉 trashed 状态的任务
     final filteredTasks = _tasks.where((task) => task.status != TaskStatus.trashed).toList();
 
-    // 过滤出根任务
+    // 构建任务层级树
+    final taskTrees = _buildTaskTree(filteredTasks);
+    
+    // 获取展开状态（默认所有任务都是收缩的）
+    final expandedTaskIds = ref.watch(inboxExpandedTaskIdProvider);
+    
+    // 扁平化为带深度的任务列表（根据展开状态）
+    final flattenedTasks = <FlattenedTaskNode>[];
+    for (final tree in taskTrees) {
+      flattenedTasks.addAll(
+        _flattenTreeWithExpansion(
+          tree,
+          depth: 0,
+          expandedTaskIds: expandedTaskIds,
+        ),
+      );
+    }
+
+    if (flattenedTasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    // 创建任务 ID 到是否有子任务的映射（用于显示展开/收缩按钮）
+    final taskIdToHasChildren = <int, bool>{};
+    for (final tree in taskTrees) {
+      _populateHasChildrenMap(tree, taskIdToHasChildren, filteredTasks);
+    }
+
+    // 获取根任务列表（仅用于排序逻辑和插入目标）
     final rootTasks = collectRoots(filteredTasks)
         .where((task) => !isProjectOrMilestone(task))
         .toList();
-
-    if (rootTasks.isEmpty) {
-      return const SizedBox.shrink();
+    
+    // 创建任务映射：任务 ID -> 根任务索引（仅用于根任务）
+    final taskIdToIndex = <int, int>{};
+    for (var i = 0; i < rootTasks.length; i++) {
+      taskIdToIndex[rootTasks[i].id] = i;
     }
 
     // 标准实现：使用 Column 包裹任务和插入目标
@@ -190,7 +346,7 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 列表开头的插入目标
+        // 列表开头的插入目标（只针对根任务）
         TaskDragIntentTarget.insertion(
           key: const ValueKey('inbox-insertion-first'),
           meta: TaskDragIntentMeta(
@@ -202,11 +358,13 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
           insertionType: InsertionType.first,
           showWhenIdle: false,
           canAccept: (draggedTask, _) {
-            return rootTasks.isNotEmpty && draggedTask.id != rootTasks[0].id;
+            return rootTasks.isNotEmpty && 
+                   taskIdToIndex.containsKey(draggedTask.id) &&
+                   draggedTask.id != rootTasks[0].id;
           },
           onPerform: (draggedTask, ref, context, l10n) async {
-            final oldIndex = rootTasks.indexWhere((t) => t.id == draggedTask.id);
-            if (oldIndex == -1) {
+            final oldIndex = taskIdToIndex[draggedTask.id];
+            if (oldIndex == null) {
               return const TaskDragIntentResult.blocked(
                 blockReasonKey: 'taskMoveBlockedUnknown',
                 blockLogTag: 'taskNotFound',
@@ -224,102 +382,164 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
             }
           },
         ),
-        // 遍历任务，每个任务后面跟一个插入目标
-        ...rootTasks.asMap().entries.map((entry) {
+        // 遍历扁平化的任务列表（包含子任务）
+        ...flattenedTasks.asMap().entries.map((entry) {
           final index = entry.key;
-          final task = entry.value;
-          final afterTask = index < rootTasks.length - 1 ? rootTasks[index + 1] : null;
+          final flattenedNode = entry.value;
+          final task = flattenedNode.task;
+          final depth = flattenedNode.depth;
+          
+          // 查找下一个根任务的索引（用于插入目标）
+          int? nextRootIndex;
+          Task? nextRootTask;
+          if (depth == 0) {
+            // 当前是根任务，查找下一个根任务
+            for (var i = index + 1; i < flattenedTasks.length; i++) {
+              if (flattenedTasks[i].depth == 0) {
+                nextRootTask = flattenedTasks[i].task;
+                nextRootIndex = taskIdToIndex[nextRootTask.id];
+                break;
+              }
+            }
+          }
+          
+          final rootIndex = taskIdToIndex[task.id];
+          final isRootTask = rootIndex != null;
           
           return [
-            // 任务卡片（带让位动画）
+            // 任务卡片（带缩进和让位动画）
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
-              transform: dragState.isDragging && dragState.hoveredInsertionIndex != null
-                  ? _calculateYieldingTransform(
-                      index: index,
-                      draggedTaskIndex: rootTasks.indexWhere((t) => t.id == dragState.draggedTask?.id),
-                      hoveredInsertionIndex: dragState.hoveredInsertionIndex!,
-                      totalTasks: rootTasks.length,
-                    )
-                  : null,
-              child: TaskDragIntentTarget.surface(
-                key: ValueKey('inbox-${task.id}'),
+              transform: () {
+                if (!dragState.isDragging || 
+                    dragState.hoveredInsertionIndex == null ||
+                    rootIndex == null) {
+                  return null;
+                }
+                return _calculateYieldingTransform(
+                  index: rootIndex,
+                  draggedTaskIndex: taskIdToIndex[dragState.draggedTask?.id] ?? -1,
+                  hoveredInsertionIndex: dragState.hoveredInsertionIndex!,
+                  totalTasks: rootTasks.length,
+                );
+              }(),
+              child: Padding(
+                padding: EdgeInsets.only(left: depth * 20.0), // 层级缩进：每个层级20px
+                child: TaskDragIntentTarget.surface(
+                  key: ValueKey('inbox-${task.id}'),
+                  meta: TaskDragIntentMeta(
+                    page: 'Inbox',
+                    targetType: 'taskSurface',
+                    targetId: task.id,
+                    targetTaskId: task.id,
+                  ),
+                  canAccept: (draggedTask, _) =>
+                      TaskDragIntentHelper.canAcceptAsChild(draggedTask, task),
+                  onPerform: (draggedTask, ref, context, l10n) async {
+                    final result = await TaskDragIntentHelper.handleDropOnTask(
+                      draggedTask,
+                      task,
+                      context,
+                      ref,
+                      l10n,
+                    );
+                    return result;
+                  },
+                  onHover: (isHovering, _) {
+                    if (isHovering) {
+                      dragNotifier.updateTaskSurfaceHover(task.id);
+                    } else {
+                      dragNotifier.clearHover();
+                    }
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      final hasChildren = taskIdToHasChildren[task.id] ?? false;
+                      final isExpanded = expandedTaskIds.contains(task.id);
+                      
+                      // 构建展开/收缩按钮（仅当有子任务时显示）
+                      Widget? expandCollapseButton;
+                      if (hasChildren) {
+                        expandCollapseButton = IconButton(
+                          icon: Icon(
+                            isExpanded ? Icons.expand_less : Icons.expand_more,
+                            size: 20,
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            final expandedNotifier = ref.read(inboxExpandedTaskIdProvider.notifier);
+                            final currentExpanded = Set<int>.from(expandedNotifier.state);
+                            // 如果当前已展开，则从集合中移除；否则添加到集合中
+                            if (isExpanded) {
+                              currentExpanded.remove(task.id);
+                            } else {
+                              currentExpanded.add(task.id);
+                            }
+                            expandedNotifier.state = currentExpanded;
+                          },
+                        );
+                      }
+                      
+                      return InboxTaskTile(
+                        task: task,
+                        trailing: expandCollapseButton,
+                        onDragStarted: () {
+                          dragNotifier.startDrag(task);
+                        },
+                        onDragEnd: () {
+                          dragNotifier.endDrag();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            // 插入目标（只在根任务之间显示，不包括子任务）
+            if (isRootTask && nextRootIndex != null && nextRootTask != null)
+              TaskDragIntentTarget.insertion(
+                key: ValueKey('inbox-insertion-after-${task.id}'),
                 meta: TaskDragIntentMeta(
                   page: 'Inbox',
-                  targetType: 'taskSurface',
-                  targetId: task.id,
-                  targetTaskId: task.id,
+                  targetType: 'insertionBetween',
+                  targetId: nextRootIndex,
+                  targetTaskId: nextRootTask.id,
                 ),
-                canAccept: (draggedTask, _) =>
-                    TaskDragIntentHelper.canAcceptAsChild(draggedTask, task),
+                insertionType: nextRootIndex == rootTasks.length - 1
+                    ? InsertionType.last
+                    : InsertionType.between,
+                showWhenIdle: false,
+                canAccept: (draggedTask, _) {
+                  final draggedRootIndex = taskIdToIndex[draggedTask.id];
+                  if (draggedRootIndex == null || 
+                      draggedTask.id == task.id || 
+                      (nextRootTask != null && draggedTask.id == nextRootTask.id)) {
+                    return false;
+                  }
+                  return true;
+                },
                 onPerform: (draggedTask, ref, context, l10n) async {
-                  final result = await TaskDragIntentHelper.handleDropOnTask(
-                    draggedTask,
-                    task,
-                    context,
-                    ref,
-                    l10n,
-                  );
-                  return result;
+                  final oldIndex = taskIdToIndex[draggedTask.id];
+                  if (oldIndex == null) {
+                    return const TaskDragIntentResult.blocked(
+                      blockReasonKey: 'taskMoveBlockedUnknown',
+                      blockLogTag: 'taskNotFound',
+                    );
+                  }
+                  await _handleReorder(oldIndex, nextRootIndex!);
+                  dragNotifier.endDrag();
+                  return const TaskDragIntentResult.success();
                 },
                 onHover: (isHovering, _) {
                   if (isHovering) {
-                    dragNotifier.updateTaskSurfaceHover(task.id);
+                    dragNotifier.updateInsertionHover(nextRootIndex!);
                   } else {
                     dragNotifier.clearHover();
                   }
                 },
-                child: InboxTaskTile(
-                  task: task,
-                  onDragStarted: () {
-                    dragNotifier.startDrag(task);
-                  },
-                  onDragEnd: () {
-                    dragNotifier.endDrag();
-                  },
-                ),
               ),
-            ),
-            // 任务后的插入目标（最后一个任务后是 last 类型）
-            TaskDragIntentTarget.insertion(
-              key: ValueKey('inbox-insertion-after-$index'),
-              meta: TaskDragIntentMeta(
-                page: 'Inbox',
-                targetType: 'insertionBetween',
-                targetId: index + 1,
-                targetTaskId: afterTask?.id ?? task.id,
-              ),
-              insertionType: index == rootTasks.length - 1
-                  ? InsertionType.last
-                  : InsertionType.between,
-              showWhenIdle: false,
-              canAccept: (draggedTask, _) {
-                if (draggedTask.id == task.id || draggedTask.id == afterTask?.id) {
-                  return false;
-                }
-                return true;
-              },
-              onPerform: (draggedTask, ref, context, l10n) async {
-                final oldIndex = rootTasks.indexWhere((t) => t.id == draggedTask.id);
-                if (oldIndex == -1) {
-                  return const TaskDragIntentResult.blocked(
-                    blockReasonKey: 'taskMoveBlockedUnknown',
-                    blockLogTag: 'taskNotFound',
-                  );
-                }
-                await _handleReorder(oldIndex, index + 1);
-                dragNotifier.endDrag();
-                return const TaskDragIntentResult.success();
-              },
-              onHover: (isHovering, _) {
-                if (isHovering) {
-                  dragNotifier.updateInsertionHover(index + 1);
-                } else {
-                  dragNotifier.clearHover();
-                }
-              },
-            ),
           ];
         }).expand((widgets) => widgets),
       ],

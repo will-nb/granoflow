@@ -268,6 +268,9 @@ class _TaskDragIntentTargetState extends ConsumerState<TaskDragIntentTarget> {
     if (_isHovering == isHovering) {
       return;
     }
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _isHovering = isHovering;
     });
