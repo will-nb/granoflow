@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/inbox_drag_provider.dart';
+import '../../../core/providers/service_providers.dart';
 import '../../../data/models/task.dart';
-import '../../common/drag/cross_section_draggable_list.dart';
+import '../../../generated/l10n/app_localizations.dart';
 import '../../tasks/utils/hierarchy_utils.dart';
+import '../../tasks/utils/sort_index_utils.dart';
 import '../../tasks/utils/task_collection_utils.dart';
-import 'inbox_delegate.dart';
+import '../widgets/inbox_task_tile.dart';
 
 class InboxTaskList extends ConsumerStatefulWidget {
   const InboxTaskList({
@@ -22,8 +23,6 @@ class InboxTaskList extends ConsumerStatefulWidget {
 
 class _InboxTaskListState extends ConsumerState<InboxTaskList> {
   late List<Task> _tasks;
-  int? _expandedTaskId; // 手风琴模式：记录当前展开的任务ID
-  late final controller = ref.read(inboxListControllerProvider);
 
   @override
   void initState() {
@@ -38,10 +37,43 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       _tasks = List<Task>.from(widget.tasks);
     }
   }
-  
-  @override
-  void dispose() {
-    super.dispose();
+
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) {
+      return;
+    }
+
+    // 过滤掉 trashed 状态的任务
+    final filteredTasks = _tasks.where((task) => task.status != TaskStatus.trashed).toList();
+    final rootTasks = collectRoots(filteredTasks)
+        .where((task) => !isProjectOrMilestone(task))
+        .toList();
+
+    // 计算新的 sortIndex（使用我们修复后的逻辑）
+    final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    final before = targetIndex > 0 ? rootTasks[targetIndex - 1].sortIndex : null;
+    final after = targetIndex < rootTasks.length - 1
+        ? rootTasks[targetIndex + 1].sortIndex
+        : null;
+    final newSortIndex = calculateSortIndex(before, after);
+    final task = rootTasks[oldIndex];
+    
+    final taskService = ref.read(taskServiceProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(sortIndex: newSortIndex),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to update sort order: $error\n$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      messenger.showSnackBar(SnackBar(content: Text(l10n.taskListSortError)));
+    }
   }
 
   @override
@@ -50,12 +82,11 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       return const SizedBox.shrink();
     }
 
-    // 过滤掉 trashed 状态的任务（双重保障，Repository 层已经过滤）
+    // 过滤掉 trashed 状态的任务
     final filteredTasks = _tasks.where((task) => task.status != TaskStatus.trashed).toList();
 
-    // 过滤出根任务（parentId == null 或者 parent 不在 inbox 中）
+    // 过滤出根任务
     final rootTasks = collectRoots(filteredTasks)
-        // 排除项目和里程碑类型的根任务（只显示普通任务）
         .where((task) => !isProjectOrMilestone(task))
         .toList();
 
@@ -63,26 +94,27 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       return const SizedBox.shrink();
     }
 
-    final delegate = InboxDelegate(
-      ref: ref,
-      allTasks: filteredTasks,
-      expandedTaskId: _expandedTaskId,
-      onExpansionChanged: (taskId) {
-        setState(() {
-          _expandedTaskId = taskId;
-        });
-      },
-    );
-
-    return CrossSectionDraggableList<Task>(
-      items: rootTasks,
-      delegate: delegate,
-      controller: controller,
-      sectionId: 'inbox',
-      physics: const NeverScrollableScrollPhysics(),
+    return ReorderableListView.builder(
       shrinkWrap: true,
-      showPromoteTarget: false,
-      dragStateProvider: inboxDragProvider,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: rootTasks.length,
+      onReorder: _handleReorder,
+      buildDefaultDragHandles: false,
+      itemBuilder: (context, index) {
+        final task = rootTasks[index];
+        return InboxTaskTile(
+          key: ValueKey('inbox-${task.id}'),
+          task: task,
+          leading: ReorderableDragStartListener(
+            index: index,
+            child: const Padding(
+              padding: EdgeInsets.only(right: 12, top: 12, bottom: 12),
+              child: Icon(Icons.drag_indicator_rounded, size: 20),
+            ),
+          ),
+          contentPadding: const EdgeInsets.only(left: 0, right: 16, top: 12, bottom: 12),
+        );
+      },
     );
   }
 }

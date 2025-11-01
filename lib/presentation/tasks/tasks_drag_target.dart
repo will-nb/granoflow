@@ -14,7 +14,7 @@ import 'tasks_drag_target_type.dart';
 
 /// Tasks页面拖拽目标组件
 ///
-/// 支持3种拖拽目标类型，提供视觉反馈和拖拽处理
+/// 支持在任务之间插入拖拽目标，提供视觉反馈和拖拽处理
 class TasksPageDragTarget extends ConsumerWidget {
   const TasksPageDragTarget({
     super.key,
@@ -40,9 +40,6 @@ class TasksPageDragTarget extends ConsumerWidget {
       switch (targetType) {
         case TasksDragTargetType.between:
           return beforeTask?.id;
-        case TasksDragTargetType.sectionFirst:
-        case TasksDragTargetType.sectionLast:
-          return section?.index;
       }
     }
 
@@ -92,10 +89,6 @@ class TasksPageDragTarget extends ConsumerWidget {
     switch (type) {
       case TasksDragTargetType.between:
         return InsertionType.between;
-      case TasksDragTargetType.sectionFirst:
-        return InsertionType.first;
-      case TasksDragTargetType.sectionLast:
-        return InsertionType.last;
     }
   }
 
@@ -130,15 +123,6 @@ class TasksPageDragTarget extends ConsumerWidget {
           );
         }
         return ok;
-      case TasksDragTargetType.sectionFirst:
-      case TasksDragTargetType.sectionLast:
-        final ok2 = section != null;
-        if (kDebugMode) {
-          debugPrint(
-            '[DnD] {event: rule, page: Tasks, rule: sectionPresent, src: ${draggedTask.id}, ok: $ok2, section: ${section?.name}}',
-          );
-        }
-        return ok2;
     }
   }
 
@@ -273,18 +257,6 @@ class TasksPageDragTarget extends ConsumerWidget {
           ),
           previous: beforeTask,
           next: afterTask,
-        );
-      case TasksDragTargetType.sectionFirst:
-        return _SortContext(
-          sortIndex: calculateSortIndex(null, afterTask?.sortIndex),
-          previous: null,
-          next: afterTask,
-        );
-      case TasksDragTargetType.sectionLast:
-        return _SortContext(
-          sortIndex: calculateSortIndex(beforeTask?.sortIndex, null),
-          previous: beforeTask,
-          next: null,
         );
     }
   }

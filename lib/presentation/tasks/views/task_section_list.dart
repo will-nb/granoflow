@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/repository_providers.dart';
-import '../../../core/providers/tasks_drag_provider.dart';
+import '../../../core/providers/service_providers.dart';
 import '../../../data/models/task.dart';
-import '../../common/drag/cross_section_draggable_list.dart';
-import '../../common/drag/draggable_list_controller.dart';
-import '../../common/drag/draggable_list_delegate.dart';
 import '../utils/hierarchy_utils.dart';
 import '../utils/list_comparison_utils.dart' as task_list_utils;
+import '../utils/sort_index_utils.dart';
 import '../widgets/ancestor_task_chain.dart';
 import '../widgets/parent_task_header.dart';
-import 'task_section_delegate.dart';
+import '../../widgets/reorderable_proxy_decorator.dart';
 import 'task_tree_tile.dart';
 
 class TaskSectionTaskModeList extends ConsumerStatefulWidget {
@@ -31,20 +29,11 @@ class TaskSectionTaskModeList extends ConsumerStatefulWidget {
 
 class _TaskSectionTaskModeListState extends ConsumerState<TaskSectionTaskModeList> {
   late List<Task> _roots;
-  late DraggableListController<Task> _controller;
-  late TaskSectionDelegate _delegate;
 
   @override
   void initState() {
     super.initState();
     _roots = List<Task>.from(widget.roots);
-    _controller = ref.read(taskSectionListControllerProvider(widget.section));
-    _delegate = TaskSectionDelegate(
-      section: widget.section,
-      ref: ref,
-      getDisplayedParentIds: _getDisplayedParentIdsUpTo,
-      tasks: _roots,  // Pass tasks to delegate
-    );
   }
 
   @override
@@ -52,23 +41,44 @@ class _TaskSectionTaskModeListState extends ConsumerState<TaskSectionTaskModeLis
     super.didUpdateWidget(oldWidget);
     if (oldWidget.roots != widget.roots) {
       _roots = List<Task>.from(widget.roots);
-      // Recreate delegate with updated tasks
-      _delegate = TaskSectionDelegate(
-        section: widget.section,
-        ref: ref,
-        getDisplayedParentIds: _getDisplayedParentIdsUpTo,
-        tasks: _roots,
-      );
     }
   }
-  
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
-  // 添加一个状态来控制拖拽模式
-  bool _useLongPressDrag = false;
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) {
+      return;
+    }
+
+    // 计算新的 sortIndex 和 dueAt
+    final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    final before = targetIndex > 0 ? _roots[targetIndex - 1].sortIndex : null;
+    final after = targetIndex < _roots.length - 1
+        ? _roots[targetIndex + 1].sortIndex
+        : null;
+    final newSortIndex = calculateSortIndex(before, after);
+    
+    // 计算新的 dueAt：同一区域内，使用相邻任务的 dueAt
+    DateTime? newDueAt;
+    if (targetIndex > 0 && _roots[targetIndex - 1].dueAt != null) {
+      newDueAt = _roots[targetIndex - 1].dueAt;
+    } else if (targetIndex < _roots.length - 1 && _roots[targetIndex + 1].dueAt != null) {
+      newDueAt = _roots[targetIndex + 1].dueAt;
+    } else {
+      newDueAt = _roots[oldIndex].dueAt;
+    }
+    
+    final task = _roots[oldIndex];
+    final taskService = ref.read(taskServiceProvider);
+    
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(sortIndex: newSortIndex, dueAt: newDueAt),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to update task order: $error\n$stackTrace');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,27 +86,34 @@ class _TaskSectionTaskModeListState extends ConsumerState<TaskSectionTaskModeLis
       return const SizedBox.shrink();
     }
 
-    return CrossSectionDraggableList<Task>(
-      items: _roots,
-      delegate: _delegate,
-      controller: _controller,
-      sectionId: widget.section.name,
-      physics: const NeverScrollableScrollPhysics(),
+    return ReorderableListView.builder(
       shrinkWrap: true,
-      showPromoteTarget: widget.section != TaskSection.overdue,
-      dragStateProvider: tasksDragProvider,
-      useLongPressDrag: _useLongPressDrag,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _roots.length,
+      onReorder: _handleReorder,
+      buildDefaultDragHandles: false,
+      proxyDecorator: ReorderableProxyDecorator.build,
+      itemBuilder: (context, index) {
+        final task = _roots[index];
+        return ReorderableDragStartListener(
+          key: ValueKey('task-${task.id}'),
+          index: index,
+          child: TaskWithParentChain(
+            section: widget.section,
+            task: task,
+            displayedParentIds: _getDisplayedParentIdsUpTo(index),
+          ),
+        );
+      },
     );
   }
 
   /// 获取到当前索引为止已经显示的父任务 ID 集合
-  /// 
-  /// 用于避免重复显示父任务
   Set<int> _getDisplayedParentIdsUpTo(int index) {
     final displayedParentIds = <int>{};
     for (int i = 0; i < index; i++) {
-      if (i < _controller.items.length) {
-        final task = _controller.items[i];
+      if (i < _roots.length) {
+        final task = _roots[i];
         if (task.parentId != null) {
           displayedParentIds.add(task.parentId!);
         }
@@ -123,23 +140,11 @@ class TaskSectionProjectModePanel extends ConsumerStatefulWidget {
 class _TaskSectionProjectModePanelState
     extends ConsumerState<TaskSectionProjectModePanel> {
   late List<Task> _roots;
-  late DraggableListController<Task> _controller;
-  late TaskSectionDelegate _delegate;
-  
-  // 添加一个状态来控制拖拽模式
-  bool _useLongPressDrag = false;
 
   @override
   void initState() {
     super.initState();
     _roots = List<Task>.from(widget.roots);
-    _controller = ref.read(taskSectionListControllerProvider(widget.section));
-    _delegate = TaskSectionDelegate(
-      section: widget.section,
-      ref: ref,
-      getDisplayedParentIds: (_) => <int>{}, // Project mode doesn't use parent chain display
-      tasks: _roots,  // Pass tasks to delegate
-    );
   }
 
   @override
@@ -147,130 +152,99 @@ class _TaskSectionProjectModePanelState
     super.didUpdateWidget(oldWidget);
     if (!task_list_utils.listEquals(oldWidget.roots, widget.roots)) {
       _roots = List<Task>.from(widget.roots);
-      // Recreate delegate with updated tasks
-      _delegate = TaskSectionDelegate(
-        section: widget.section,
-        ref: ref,
-        getDisplayedParentIds: (_) => <int>{},
-        tasks: _roots,
-      );
     }
   }
-  
-  @override
-  void dispose() {
-    super.dispose();
+
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) {
+      return;
+    }
+
+    // 计算新的 sortIndex 和 dueAt
+    final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    final before = targetIndex > 0 ? _roots[targetIndex - 1].sortIndex : null;
+    final after = targetIndex < _roots.length - 1
+        ? _roots[targetIndex + 1].sortIndex
+        : null;
+    final newSortIndex = calculateSortIndex(before, after);
+    
+    // 计算新的 dueAt
+    DateTime? newDueAt;
+    if (targetIndex > 0 && _roots[targetIndex - 1].dueAt != null) {
+      newDueAt = _roots[targetIndex - 1].dueAt;
+    } else if (targetIndex < _roots.length - 1 && _roots[targetIndex + 1].dueAt != null) {
+      newDueAt = _roots[targetIndex + 1].dueAt;
+    } else {
+      newDueAt = _roots[oldIndex].dueAt;
+    }
+    
+    final task = _roots[oldIndex];
+    final taskService = ref.read(taskServiceProvider);
+    
+    try {
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: TaskUpdate(sortIndex: newSortIndex, dueAt: newDueAt),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to update task order: $error\n$stackTrace');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return CrossSectionDraggableList<Task>(
-      items: _roots,
-      delegate: ProjectModeDelegate(
-        section: widget.section,
-        ref: ref,
-        baseDelegate: _delegate,
-      ),
-      controller: _controller,
-      sectionId: '${widget.section.name}-project',
-      physics: const NeverScrollableScrollPhysics(),
+    return ReorderableListView.builder(
       shrinkWrap: true,
-      showPromoteTarget: false,
-      dragStateProvider: tasksDragProvider,
-      useLongPressDrag: _useLongPressDrag,
-    );
-  }
-}
-
-/// Project mode delegate that wraps tasks in cards
-class ProjectModeDelegate extends DraggableListDelegate<Task> {
-  final TaskSection section;
-  final WidgetRef ref;
-  final TaskSectionDelegate baseDelegate;
-  
-  ProjectModeDelegate({
-    required this.section,
-    required this.ref,
-    required this.baseDelegate,
-  });
-  
-  // Forward all methods to base delegate
-  @override
-  bool canReorder(Task item, int oldIndex, int newIndex) =>
-      baseDelegate.canReorder(item, oldIndex, newIndex);
-  
-  @override
-  Future<void> onReorder(Task item, int oldIndex, int newIndex) =>
-      baseDelegate.onReorder(item, oldIndex, newIndex);
-  
-  @override
-  bool canAcceptExternal(Task draggedItem, int targetIndex) =>
-      baseDelegate.canAcceptExternal(draggedItem, targetIndex);
-  
-  @override
-  Future<void> onAcceptExternal(Task draggedItem, int targetIndex) =>
-      baseDelegate.onAcceptExternal(draggedItem, targetIndex);
-  
-  @override
-  bool canMakeChild(Task draggedItem, Task targetItem) =>
-      baseDelegate.canMakeChild(draggedItem, targetItem);
-  
-  @override
-  Future<void> onMakeChild(Task draggedItem, Task targetItem) =>
-      baseDelegate.onMakeChild(draggedItem, targetItem);
-  
-  @override
-  bool canPromoteToRoot(Task item) => baseDelegate.canPromoteToRoot(item);
-  
-  @override
-  Future<void> onPromoteToRoot(Task item) => baseDelegate.onPromoteToRoot(item);
-  
-  @override
-  String getItemId(Task item) => baseDelegate.getItemId(item);
-  
-  // Custom item builder with card wrapper
-  @override
-  Widget buildItem(BuildContext context, Task item, int index, Animation<double> animation) {
-    return SizeTransition(
-      sizeFactor: animation,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Icon(Icons.drag_indicator_rounded),
-                  ),
-                  Expanded(
-                    child: ProjectNodeHeader(
-                      task: item,
-                      section: section,
-                    ),
-                  ),
-                ],
-              ),
-              TaskTreeTile(
-                section: section,
-                rootTask: item,
-                editMode: true,
-                padding: const EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  bottom: 12,
-                ),
-              ),
-            ],
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _roots.length,
+      onReorder: _handleReorder,
+      buildDefaultDragHandles: false,
+      proxyDecorator: ReorderableProxyDecorator.build,
+      itemBuilder: (context, index) {
+        final task = _roots[index];
+        return Card(
+          key: ValueKey('project-${task.id}'),
+          margin: const EdgeInsets.only(bottom: 12),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ),
-      ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Icon(Icons.drag_indicator_rounded),
+                      ),
+                    ),
+                    Expanded(
+                      child: ProjectNodeHeader(
+                        task: task,
+                        section: widget.section,
+                      ),
+                    ),
+                  ],
+                ),
+                TaskTreeTile(
+                  section: widget.section,
+                  rootTask: task,
+                  editMode: true,
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

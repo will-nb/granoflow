@@ -8,22 +8,55 @@ import '../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
-import '../widgets/drag_to_remove_handler.dart';
 import 'quick_tasks/quick_add_sheet.dart';
 import 'views/task_section_panel.dart';
 
+/// Tasks 页面主组件
+///
+/// 这个页面用来显示所有的任务，按照时间分组展示：
+/// - 逾期：已经过了截止日期的任务
+/// - 今天：今天要完成的任务
+/// - 明天：明天要完成的任务
+/// - 本周：这周要完成的任务
+/// - 本月：这个月要完成的任务
+/// - 以后：以后要完成的任务
+///
+/// 页面会自动循环生成每个分区，每个分区用 [TaskSectionPanel] 组件来展示任务列表。
+/// 如果某个分区没有任务，就不会显示这个分区。
 class TaskListPage extends ConsumerStatefulWidget {
   const TaskListPage({super.key, this.initialSection});
 
-  /// 可选：通过路由参数传入的初始分区字符串（例如 today、tomorrow、thisWeek 等）
+  /// 可选的初始分区参数
+  ///
+  /// 如果提供了这个参数，页面加载时会自动滚动到指定的分区。
+  /// 可以通过路由参数传入，比如从其他地方跳转过来时，直接定位到某个分区。
+  ///
+  /// 支持的值：
+  /// - 'overdue'：逾期分区
+  /// - 'today'：今天分区
+  /// - 'tomorrow'：明天分区
+  /// - 'thisWeek'：本周分区
+  /// - 'thisMonth'：本月分区
+  /// - 'later'：以后分区
   final String? initialSection;
 
   @override
   ConsumerState<TaskListPage> createState() => _TaskListPageState();
 }
 
+/// TaskListPage 的内部状态管理类
+///
+/// 负责管理页面的滚动、自动滚动到指定分区等功能。
 class _TaskListPageState extends ConsumerState<TaskListPage> {
+  /// 页面滚动的控制器
+  ///
+  /// 用来控制整个页面的滚动位置，比如滚动到某个分区。
   final ScrollController _scrollController = ScrollController();
+
+  /// 每个分区的全局键（GlobalKey）映射表
+  ///
+  /// 这些键用来定位每个分区在页面中的位置，方便自动滚动到指定分区。
+  /// 比如用户点击某个通知要查看"今天"的任务，就可以用这个键找到"今天"分区并滚动过去。
   final Map<TaskSection, GlobalKey> _sectionKeys = {
     TaskSection.overdue: GlobalKey(),
     TaskSection.today: GlobalKey(),
@@ -33,21 +66,34 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     TaskSection.later: GlobalKey(),
   };
 
+  /// 是否已经执行过自动滚动
+  ///
+  /// 用来确保自动滚动只执行一次，避免重复滚动。
   bool _didAutoScroll = false;
 
   @override
   void dispose() {
+    // 页面销毁时，释放滚动控制器，避免内存泄漏
     _scrollController.dispose();
     super.dispose();
   }
 
+  /// 构建页面 UI
+  ///
+  /// 这个方法会：
+  /// 1. 定义所有要显示的分区（逾期、今天、明天等）
+  /// 2. 循环遍历每个分区，为每个分区生成一个 [TaskSectionPanel] 组件
+  /// 3. 如果某个分区没有任务，就不显示这个分区
+  /// 4. 如果设置了初始分区，会自动滚动到那个分区
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final editActions = ref.watch(taskEditActionsNotifierProvider);
+    // 如果正在执行任务操作（比如删除、移动任务），显示顶部的进度条
     final bool showLinearProgress = editActions.isLoading;
 
-    // 动态获取有任务的分组
+    // 定义所有要显示的分区信息
+    // 这里定义了页面上会显示的所有分区，按照顺序从上到下排列
     final sectionMetas = <_SectionMeta>[
       _SectionMeta(
         section: TaskSection.overdue,
@@ -80,12 +126,13 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
       drawer: const MainDrawer(),
       body: GestureDetector(
         onTap: () {
-          // 点击空白区域时移除焦点
+          // 点击页面空白区域时，移除输入框的焦点（收起键盘）
           FocusManager.instance.primaryFocus?.unfocus();
         },
         behavior: HitTestBehavior.translucent,
         child: Column(
         children: [
+          // 如果正在执行任务操作，在顶部显示进度条
           if (showLinearProgress) const LinearProgressIndicator(),
           Expanded(
             child: ListView(
@@ -94,18 +141,23 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                       horizontal: 16,
                       vertical: 12,
                     ),
+                    // 循环遍历所有分区，为每个分区生成对应的 UI
                     children: sectionMetas
                         .expand((meta) => [
-                              if (meta.section == sectionMetas.first.section)
-                                const DragToRemoveHandler(),
+                              // 使用 Consumer 来监听每个分区的任务数据变化
+                              // 当任务数据更新时，会自动刷新对应的分区显示
                               Consumer(
                             builder: (context, ref, child) {
+                              // 从数据源获取这个分区的任务列表
                               final tasksAsync = ref.watch(
                                 taskSectionsProvider(meta.section),
                               );
+                              // 根据数据状态（加载中、成功、失败）显示不同的内容
                               return tasksAsync.when(
                                 data: (tasks) {
+                                      // 如果这个分区没有任务，就不显示这个分区
                                       if (tasks.isEmpty) return const SizedBox.shrink();
+                                      // 创建分区面板组件，用来显示这个分区的任务列表
                                       final panel = TaskSectionPanel(
                                         key: _sectionKeys[meta.section],
                                     section: meta.section,
@@ -114,10 +166,13 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                                         onQuickAdd: () => _handleQuickAdd(context, meta.section),
                                     tasks: tasks,
                                   );
+                                      // 检查是否需要自动滚动到这个分区
                                       _maybeAutoScroll(meta.section);
                                       return panel;
                                 },
+                                // 加载中时，不显示任何内容（避免闪烁）
                                 loading: () => const SizedBox.shrink(),
+                                // 加载失败时，也不显示错误（避免影响用户体验）
                                 error: (_, __) => const SizedBox.shrink(),
                               );
                             },
@@ -132,27 +187,46 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     );
   }
 
+  /// 可能需要自动滚动到指定的分区
+  ///
+  /// 如果用户在打开页面时指定了要查看的分区（比如通过 initialSection 参数），
+  /// 这个方法会在那个分区第一次显示到页面上时，自动滚动到那个分区。
+  ///
+  /// [builtSection] 当前正在构建的分区
   void _maybeAutoScroll(TaskSection builtSection) {
+    // 如果已经滚动过了，就不再滚动
     if (_didAutoScroll) return;
+    // 解析用户指定的初始分区
     final target = _parseSection(widget.initialSection);
+    // 如果用户没有指定，就不滚动
     if (target == null) return;
-    // 当目标分区第一次构建到树中时，执行滚动
+    // 如果当前构建的分区不是目标分区，就不滚动（等目标分区构建时再滚动）
     if (builtSection != target) return;
+    // 在当前这一帧渲染完成后，执行滚动
+    // 这样可以确保分区已经完全渲染到页面上，才能正确滚动
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final key = _sectionKeys[target];
       final ctx = key?.currentContext;
       if (ctx != null) {
         _didAutoScroll = true;
+        // 平滑滚动到目标分区，滚动时间 350 毫秒
         await Scrollable.ensureVisible(
           ctx,
           duration: const Duration(milliseconds: 350),
-          alignment: 0.05,
-          curve: Curves.easeInOut,
+          alignment: 0.05, // 分区显示在页面顶部往下一点的位置（5%）
+          curve: Curves.easeInOut, // 使用平滑的滚动动画
         );
       }
     });
   }
 
+  /// 把字符串转换成对应的分区枚举值
+  ///
+  /// 比如 'today' 会转换成 [TaskSection.today]。
+  /// 如果字符串不匹配任何一个分区，就返回 null。
+  ///
+  /// [raw] 原始字符串，比如 'today'、'tomorrow' 等
+  /// 返回对应的分区枚举值，如果不匹配就返回 null
   TaskSection? _parseSection(String? raw) {
     if (raw == null || raw.isEmpty) return null;
     switch (raw) {
@@ -173,39 +247,58 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     }
   }
 
+  /// 处理快速添加任务的操作
+  ///
+  /// 当用户点击某个分区标题旁边的"快速添加"按钮时，会调用这个方法。
+  /// 这个方法会：
+  /// 1. 弹出一个底部弹窗，让用户输入任务标题和选择截止日期
+  /// 2. 创建一个新任务并保存到数据库中
+  /// 3. 把任务规划到指定的分区（设置对应的截止日期）
+  /// 4. 显示成功或失败的提示消息
+  ///
+  /// [context] 页面上下文，用来显示弹窗和提示消息
+  /// [section] 要添加任务的分区（比如"今天"、"明天"等）
   Future<void> _handleQuickAdd(
     BuildContext context,
     TaskSection section,
   ) async {
     final l10n = AppLocalizations.of(context);
+    // 弹出底部弹窗，让用户输入任务信息
     final result = await showModalBottomSheet<QuickAddResult>(
       context: context,
-      isScrollControlled: true,
+      isScrollControlled: true, // 允许弹窗占据大部分屏幕高度
       builder: (sheetContext) => QuickAddSheet(section: section),
     );
+    // 如果用户取消输入（点击取消或点击空白处），就不做任何操作
     if (result == null) {
       return;
     }
 
     final taskService = ref.read(taskServiceProvider);
     try {
+      // 先创建一个新任务，保存到收件箱
       final newTask = await taskService.captureInboxTask(title: result.title);
+      // 然后把任务规划到指定的分区（设置截止日期）
       await taskService.planTask(
         taskId: newTask.id,
         dueDateLocal: result.dueDate,
         section: section,
       );
+      // 检查页面是否还存在（用户可能已经关闭了页面）
       if (!context.mounted) {
         return;
       }
+      // 显示成功提示消息
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.taskListAddedToast)));
     } catch (error, stackTrace) {
+      // 如果出错了，打印错误信息到控制台（方便调试）
       debugPrint('Failed to add task: $error\n$stackTrace');
       if (!context.mounted) {
         return;
       }
+      // 显示失败提示消息
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.taskListAddError)));
@@ -213,9 +306,16 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   }
 }
 
+/// 分区元数据类
+///
+/// 用来保存每个分区的信息，包括分区类型和显示的标题。
+/// 这个类很简单，就是把分区枚举值和标题打包在一起，方便在循环中使用。
 class _SectionMeta {
   const _SectionMeta({required this.section, required this.title});
 
+  /// 分区类型，比如 TaskSection.today（今天）、TaskSection.tomorrow（明天）等
   final TaskSection section;
+
+  /// 分区显示的标题文字，比如"今天"、"明天"等（会根据用户的语言设置显示不同文字）
   final String title;
 }

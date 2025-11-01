@@ -44,47 +44,5 @@ void main() {
         widget.margin == const EdgeInsets.symmetric(vertical: 12)
       ), findsNothing);
     });
-
-    testWidgets('idle should not show indicator for section first target', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: TasksPageDragTarget(
-                targetType: TasksDragTargetType.sectionFirst,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // 空闲状态下不应渲染默认指示线
-      expect(find.byWidgetPredicate((widget) => 
-        widget is Container && 
-        widget.constraints?.maxHeight == 2.0 &&
-        widget.margin == const EdgeInsets.only(bottom: 12)
-      ), findsNothing);
-    });
-
-    testWidgets('idle should not show indicator for section last target', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: Scaffold(
-              body: TasksPageDragTarget(
-                targetType: TasksDragTargetType.sectionLast,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // 空闲状态下不应渲染默认指示线
-      expect(find.byWidgetPredicate((widget) => 
-        widget is Container && 
-        widget.constraints?.maxHeight == 2.0 &&
-        widget.margin == const EdgeInsets.only(top: 12)
-      ), findsNothing);
-    });
   });
 }
