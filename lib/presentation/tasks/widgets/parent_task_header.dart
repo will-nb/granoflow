@@ -4,6 +4,7 @@ import '../../../core/providers/repository_providers.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import 'all_children_list.dart';
+import 'package:go_router/go_router.dart';
 
 /// 父任务头部组件
 /// 
@@ -105,7 +106,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
                       _showAllChildren ? Icons.expand_less : Icons.expand_more,
                       size: 18,
                     ),
-                    tooltip: '显示全部子任务',
+                    tooltip: l10n.showAllSubtasks,
                     onPressed: () {
                       setState(() {
                         _showAllChildren = !_showAllChildren;
@@ -129,25 +130,60 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
   }
 
   Future<void> _jumpToParentTask(BuildContext context, WidgetRef ref) async {
-    // 查找父任务所在的区域
     final taskRepository = ref.read(taskRepositoryProvider);
     final parentTask = await taskRepository.findById(widget.parentTask.id);
-    if (parentTask == null) {
-      return;
+    if (parentTask == null) return;
+
+    final section = _locateSectionForTask(parentTask);
+    // 使用 go_router 导航到 /tasks?section=xxx 并让任务页自动滚动定位
+    if (!context.mounted) return;
+    context.go('/tasks${section != null ? '?section=$section' : ''}');
+  }
+
+  /// 基于任务状态与截止日期，推断其所在的任务分区（用于跳转定位）
+  /// 返回的字符串需与 TaskListPage._parseSection 对应
+  String? _locateSectionForTask(Task task) {
+    switch (task.status) {
+      case TaskStatus.completedActive:
+      case TaskStatus.archived:
+      case TaskStatus.trashed:
+      case TaskStatus.pseudoDeleted:
+        // 这些不在任务主列表的计划分区中，跳到任务页但不定位具体分区
+        return null;
+      case TaskStatus.inbox:
+        return null;
+      case TaskStatus.pending:
+        break;
+      case TaskStatus.doing:
+        // 按进行中视为 pending 的同类分区
+        break;
     }
 
-    // TODO: 实现跳转到父任务所在区域的功能
-    // 这需要找到父任务所在的 section，然后滚动到那个区域
-    // 暂时显示一个提示
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '跳转到父任务: ${parentTask.title}',
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final tomorrowStart = todayStart.add(const Duration(days: 1));
+    final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
+    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
+    final sundayStart = _getThisSundayStart(todayStart);
+    final laterStart = nextMonthStart.isAfter(sundayStart) ? nextMonthStart : sundayStart;
+
+    final due = task.dueAt;
+    if (due == null) return 'later';
+    final dueDay = DateTime(due.year, due.month, due.day);
+
+    if (dueDay.isBefore(todayStart)) return 'overdue';
+    if (!dueDay.isBefore(tomorrowStart) && dueDay.isBefore(dayAfterTomorrowStart)) return 'tomorrow';
+    if (dueDay.isAtSameMomentAs(todayStart)) return 'today';
+    if (!dueDay.isBefore(dayAfterTomorrowStart) && dueDay.isBefore(sundayStart)) return 'thisWeek';
+    if (!dueDay.isBefore(sundayStart) && dueDay.isBefore(nextMonthStart)) return 'thisMonth';
+    if (!dueDay.isBefore(laterStart)) return 'later';
+    return 'later';
+  }
+
+  DateTime _getThisSundayStart(DateTime todayStart) {
+    final daysUntilSunday = (DateTime.sunday - todayStart.weekday + 7) % 7;
+    final sunday = todayStart.add(Duration(days: daysUntilSunday));
+    return DateTime(sunday.year, sunday.month, sunday.day);
   }
 }
 

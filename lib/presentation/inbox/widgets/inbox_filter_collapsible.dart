@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import 'inbox_tag_filter_strip.dart';
 

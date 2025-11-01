@@ -1,0 +1,85 @@
+meta:
+  id: "251031-tasks-dnd-due-date-sync"
+  title: "任务层级拖拽与截止时间联动 - 迭代蓝图"
+  based_on: "documents/spec/projects/tasks/design/251031-task-dnd-due-date-sync.yaml"
+  status: draft
+  owner: "AI Assistant"
+
+scope:
+  includes:
+    - "统一 Inbox / Tasks 拖拽逻辑所需的公共组件与服务层更新"
+    - "拖拽导致的父子关系调整、排序、截止日期联动改动"
+    - "跨分区拖拽相关的 UI 提示与底部提醒"
+    - "拖拽日志输出与调试信息一致化"
+  excludes:
+    - "任务详情页或其它模块的拖拽/排序行为"
+    - "模板、智能推荐等非拖拽相关功能"
+
+changes:
+  code_updates:
+    - file: "lib/presentation/common/drag/task_drag_intent_target.dart"
+      type: add
+      intent: "抽象 Inbox / Tasks 共用的 DragTarget 逻辑，统一高亮、拦截与日志输出"
+    - file: "lib/presentation/widgets/task_tile_content.dart"
+      type: modify
+      intent: "接入共享 DragTarget，并在 onAccept 时触发移入父任务与截止日期同步"
+    - file: "lib/presentation/tasks/tasks_drag_target.dart"
+      type: modify
+      intent: "改为复用共享组件，新增跨分区插入时的截止日期计算"
+    - file: "lib/presentation/inbox/inbox_drag_target.dart"
+      type: modify
+      intent: "复用共享组件，使 Inbox 与 Tasks 拖拽反馈一致"
+    - file: "lib/presentation/tasks/views/task_section_list.dart"
+      type: modify
+      intent: "在 section 首尾/间隔插入点计算 sortIndex 与区域起始日期"
+    - file: "lib/presentation/widgets/drag_to_remove_handler.dart"
+      type: modify
+      intent: "复用共享 DragTarget，并在移出父任务时统一日志与提醒"
+    - file: "lib/presentation/tasks/utils/hierarchy_utils.dart"
+      type: modify
+      intent: "提供层级深度计算与区域日期规则的工具方法"
+    - file: "lib/core/services/task_hierarchy_service.dart"
+      type: modify
+      intent: "扩展 moveToParent 支持同时更新 dueDate、sortIndex；对拦截结果输出统一提醒码"
+    - file: "lib/data/repositories/task_repository.dart"
+      type: modify
+      intent: "确保 TaskUpdate 可同时写入 dueDate、sortIndex、clearParent，并记录调试日志"
+  data_model:
+    - entity: "TaskUpdate"
+      change: "确认 dueDate 字段支持可空更新；若需显式清空使用既有 clearParent；无需新增字段"
+  tests:
+    - type: unit
+      focus: "日期规则计算：分区顶部/尾部/邻居继承" 
+    - type: unit
+      focus: "TaskHierarchyService.moveToParent：移入/移出父任务、跨分区日期更新"
+    - type: widget
+      focus: "Tasks 页面拖拽拦截提示与底部提醒（含三层限制、锁定任务）"
+    - type: widget
+      focus: "Inbox / Tasks 拖拽高亮一致性（可通过控制拖拽状态验证颜色/样式）"
+  documentation:
+    - path: "documents/spec/tasks/iteration/251031-task-dnd-due-date-sync.yaml"
+      update_type: add
+    - path: "documents/spec/tasks/iteration/02_acceptance_tests.md"
+      update_type: modify
+    - path: "documents/spec/tasks/design/251031-task-dnd-due-date-sync.yaml"
+      update_type: revise-if-needed（保持设计同步，如后续范围变更）
+
+risks:
+  - name: "抽象后的拖拽组件影响现有排序/拖拽反馈"
+    mitigation: "分阶段替换并保留回退开关，详测 Inbox 与 Tasks 两页面"
+  - name: "截止日期自动调整可能覆盖用户手动设置"
+    mitigation: "在拦截提示中告知逻辑，并新增测试覆盖日期继承场景"
+  - name: "层级限制与跨分区日期规则冲突"
+    mitigation: "服务层按顺序执行校验，优先层级，再判断日期；日志标记 block 原因"
+  - name: "多语言提示遗漏"
+    mitigation: "更新 .arb 文案并补充单元测试检查映射"
+
+verification:
+  checklist:
+    - "flutter analyze"
+    - "scripts/anz test"
+    - "必要时：flutter pub run build_runner build --delete-conflicting-outputs"
+    - "flutter test integration_test（若新增跨页面集成验证）"
+    - "手动验证 Inbox/Tasks 拖拽：移入、移出、跨分区、超三层拦截"
+    - "核对 `[DnD]` 日志输出含 taskId、action、blockReason"
+

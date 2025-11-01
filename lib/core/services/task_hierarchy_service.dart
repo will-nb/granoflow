@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../data/models/task.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../presentation/tasks/utils/hierarchy_utils.dart';
@@ -31,12 +33,20 @@ class TaskHierarchyService {
     required int taskId,
     required int? parentId,
     required double sortIndex,
+    DateTime? dueDate,
+    bool clearParent = false,
   }) async {
+    if (kDebugMode) {
+      debugPrint('[DnD] {event: service:moveToParent:start, taskId: $taskId, parentId: $parentId, sortIndex: $sortIndex, dueAt: $dueDate, clearParent: $clearParent}');
+    }
     final task = await _tasks.findById(taskId);
     if (task == null) return;
     
     // 验证锁定状态：被拖拽的任务是否被锁定
     if (!canMoveTask(task)) {
+      if (kDebugMode) {
+        debugPrint('[DnD] {event: service:block:sourceLocked, taskId: $taskId}');
+      }
       throw StateError('Task is locked and cannot be moved.');
     }
     
@@ -44,34 +54,59 @@ class TaskHierarchyService {
     if (parentId != null) {
       parent = await _tasks.findById(parentId);
       if (parent == null) {
+        if (kDebugMode) {
+          debugPrint('[DnD] {event: service:error:parentNotFound, parentId: $parentId}');
+        }
         throw StateError('Parent task $parentId not found.');
       }
       
-      // 验证锁定状态：目标父任务是否可以接受子任务
+      // 验证锁定状态与类型：目标父任务是否可以接受子任务
       if (!canAcceptChildren(parent)) {
+        if (kDebugMode) {
+          debugPrint('[DnD] {event: service:block:targetLocked, taskId: $taskId, parentId: $parentId}');
+        }
         throw StateError('Parent task is locked; cannot add children.');
       }
       
       // 验证循环引用
       if (await hasCircularReference(task, parentId, _tasks)) {
+        if (kDebugMode) {
+          debugPrint('[DnD] {event: service:block:cycle, taskId: $taskId, parentId: $parentId}');
+        }
         throw StateError('Cannot move task to its own descendant.');
       }
       
       // 验证层级深度限制（最多3级，不含里程碑和项目）
-      final currentDepth = await calculateHierarchyDepth(task, _tasks);
-      if (currentDepth >= 3) {
+      // 采用父深度 + 被拖拽子树深度 的合并判断
+      final parentDepth = await calculateHierarchyDepth(parent, _tasks);
+      final draggedSubtreeDepth = await calculateSubtreeDepth(task, _tasks);
+      if (kDebugMode) {
+        debugPrint('[DnD] {event: service:depthCheck, taskId: $taskId, parentId: $parentId, parentDepth: $parentDepth, subtreeDepth: $draggedSubtreeDepth}');
+      }
+      if (parentDepth + draggedSubtreeDepth > 2) {
+        if (kDebugMode) {
+          debugPrint('[DnD] {event: service:block:depth, taskId: $taskId, parentId: $parentId}');
+        }
         throw StateError('Task hierarchy depth limit (3 levels) exceeded.');
       }
     }
     
+    if (kDebugMode) {
+      debugPrint('[DnD] {event: service:repo:updateTask, taskId: $taskId, parentId: $parentId, sortIndex: $sortIndex}');
+    }
     await _tasks.updateTask(
       taskId,
       TaskUpdate(
         parentId: parentId,
         sortIndex: sortIndex,
-        clearParent: parentId == null ? true : null,
+        clearParent: parentId == null || clearParent ? true : null,
+        dueAt: dueDate,
       ),
     );
+    if (kDebugMode) {
+      final saved = await _tasks.findById(taskId);
+      debugPrint('[DnD] {event: service:done, taskId: $taskId, parentId: ${saved?.parentId}, sortIndex: ${saved?.sortIndex}, dueAt: ${saved?.dueAt}}');
+    }
   }
   
   /// 计算将任务移动到父任务下的合适 sortIndex

@@ -5,7 +5,6 @@ import '../../../core/providers/app_providers.dart';
 import '../../../data/models/task_template.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../widgets/error_banner.dart';
-import '../widgets/inbox_tag_filter_strip.dart';
 import '../widgets/inbox_filter_collapsible.dart';
 
 class InboxCaptureSection extends ConsumerWidget {

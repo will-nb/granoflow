@@ -277,6 +277,7 @@ data_model:
       - actual_time_tracking: 结束时自动计算actualMinutes = (endedAt - startedAt)，为预估准确性分析提供依据
       - inbox_context_only: status=inbox时只能设置context标签，不允许priority标签
       - has_children: 计算字段，判断是否存在活跃子任务（子任务状态为pending/doing）
+      - project_milestone_isolation: 项目和里程碑（taskKind=project 或 taskKind=milestone）不在任何常规任务列表中显示，即使它们没有子任务；这是系统的核心设计原则
 
 
 status_flow:
@@ -357,6 +358,11 @@ logic_rules:
         logic: NOT EXISTS(SELECT 1 FROM tasks WHERE parentId = this.id AND status IN ('pending', 'doing'))
         parent_completion: 父任务在所有子任务完成后显示在任务列表中
         benefit: 专注可执行任务和待确认的父任务，减少视觉干扰
+    - project_milestone_exclusion:
+        rule: 项目和里程碑（taskKind=project 或 taskKind=milestone）是特殊任务类型，它们不在任何常规任务列表中出现，即使它们没有子任务
+        scope: 所有任务列表视图，包括任务清单页各分栏、收集箱、已完成列表、已归档列表等
+        display_channels: 项目和里程碑只能通过专门的 Projects 视图（watchProjects）和项目详情页（watchMilestones）来查看和管理
+        enforcement: 此规则必须在数据层（repository）、服务层（service）和UI层同时执行，确保项目和里程碑与普通任务完全分离
     - parent_chain_expansion:
         trigger: 点击叶子任务时展开
         mechanism: 递归查询父任务链，直至根节点
@@ -470,6 +476,39 @@ monetization:
     cn: 18
     hk: 23
   trial_period_days: 14
+  - id: onboarding_seeds
+    name: 首次安装种子数据
+    purpose: 通过预置数据帮助用户理解标签、模板和操作流程
+    components:
+      - seed_tags: 固定标签集合（context、priority、special），用户不可修改
+      - seed_tasks: 示例任务树，涵盖运动、减脂、学习、“使用 GranoFlow” 等场景
+      - seed_templates: 与示例任务对应的模板（如瑜伽训练、跑步、背单词）
+      - seed_inbox_items: 收集箱范例条目，引导用户完成“加入任务清单”流程
+    interactions:
+      - first_run_import: 应用首次启动时从 `assets/seeds/` 目录导入上述数据
+      - tutorial_tasks: 示例任务包含“操作学习”步骤，点击即可标记完成，无需计时
+      - template_auto_suggest: 种子模板在任务输入框中优先展示，帮助用户理解模板功能
+    rules:
+      - tags_immutable: 种子标签写入后不可新增或删除；后续更新通过迁移脚本统一处理
+      - tutorial_no_timer: 教学型任务可直接完成不进入计时页，结束会话对话框需支持“直接完成”选项
+      - seed_versioning: 维护 `assets/seeds/version.json` 作为导入版本，避免重复导入
+      - slug_mapping: 种子任务、模板需携带 slug 字段，导入时以 slug 建立映射后再写入真实 id
+      - locale_variant: `assets/seeds/<locale>/` 存放本地化任务与模板文案；根据系统语言选择导入，缺省或缺少语种时回退到英文
+
+  - id: focus_reflection
+    name: 专注回顾记录
+    purpose: 支持在结束专注时快速点评成果或问题
+    components:
+      - reflection_toggle: 在结束会话对话框展示“记录本次心得”入口
+      - reflection_textfield: 可选文本输入（限制 200 字）描述效率问题或亮点
+      - wasted_quick_toggle: 直接点击“浪费时间”标签视为负面反馈
+    interactions:
+      - submit_reflection: 保存文本到 FocusSession，支持空内容
+      - skip_reflection: 默认不要求填写，避免给用户额外负担
+    rules:
+      - reflection_optional: 默认收起文本框，只在用户点击入口时展开
+      - analytics_opt_in: 记录仅保存在本地，不触发任何分享或同步
+
   - id: onboarding_seeds
     name: 首次安装种子数据
     purpose: 通过预置数据帮助用户理解标签、模板和操作流程

@@ -1,12 +1,9 @@
 # 50-testing.mdc - Testing Rules
 
-- 分层：unit（纯 Dart）、widget（关键组件）、integration（端到端）。
-- 远程依赖：全部 mock；单元测试不连接真实服务。
-- 遵循 `analysis_options.yaml` 的分析规则。
-
 ## 常用测试命令
 ```bash
-flutter test test/unit -r compact
+scripts/anz test //全面测试，只显示错误
+flutter test test -r compact
 flutter test test/presentation -r compact
 flutter test integration_test -d macos
 ```
@@ -20,9 +17,10 @@ flutter test integration_test -d macos
 3) 分析：列出报错文件与行上下文、可能原因（代码缺陷/测试用例/fixture）。
 4) 解释：用通俗语言说明错误本质与知识点。
 5) 决策：修代码/改测试/移除不必要测试（三选一，给出理由）。
+6) 确认：列出每个报错测试的测试目标，期望，当前实现差异，由用户确认修改哪个。明确提示：请注意，AI经常判断错误，请务必人工审核。
 6) 修改并重跑：
    ```bash
-   flutter analyze && flutter test {测试文件名} -r compact -v
+   scripts/anz test
    ```
 7) 重试上限：同一测试文件最多 3 次；若无进展，停止该文件调试并恢复到最接近正确的状态。
 8) 小结：说明问题根因、有效修改与当前结果。

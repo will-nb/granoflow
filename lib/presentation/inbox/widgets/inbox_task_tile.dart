@@ -42,7 +42,12 @@ class InboxTaskTile extends ConsumerWidget {
           task,
         );
       },
-      child: TaskTileContent(task: task, leading: leading, contentPadding: contentPadding),
+      child: TaskTileContent(
+        task: task,
+        leading: leading,
+        contentPadding: contentPadding,
+        dragPage: 'Inbox',
+      ),
     );
     return tileContent;
   }

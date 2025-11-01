@@ -28,7 +28,10 @@ class AppRouter {
           GoRoute(
             path: '/tasks',
             name: 'tasks',
-            builder: (context, state) => const TaskListPage(),
+            builder: (context, state) {
+              final sectionParam = state.uri.queryParameters['section'];
+              return TaskListPage(initialSection: sectionParam);
+            },
           ),
           GoRoute(
             path: '/projects',

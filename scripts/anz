@@ -112,6 +112,23 @@ clean_project() {
     fi
   done
   
+  # 删除 Android Gradle 缓存（解决代码不更新问题）
+  if [ -d "android/.gradle" ]; then
+    echo -e "${YELLOW}  - 删除 android/.gradle/ 文件夹（Gradle 构建缓存）${NC}"
+    rm -rf android/.gradle
+  fi
+  
+  if [ -d "android/app/.gradle" ]; then
+    echo -e "${YELLOW}  - 删除 android/app/.gradle/ 文件夹（App 模块缓存）${NC}"
+    rm -rf android/app/.gradle
+  fi
+  
+  # 可选：清理 Android IDE 缓存
+  if [ -d "android/.idea" ]; then
+    echo -e "${YELLOW}  - 删除 android/.idea/ 文件夹（Android Studio 缓存）${NC}"
+    rm -rf android/.idea
+  fi
+  
   echo -e "${GREEN}✅ 构建文件夹清理完成${NC}"
   
   # 4. flutter gen-l10n
@@ -530,7 +547,7 @@ main() {
     yaml:test)
       shift
       run_yaml_tests_all "$@" ;;
-    
+      
     test)
       # 并行执行 test/ 下所有 *_test.dart，吞掉中间输出，仅输出进度与最终摘要
       if ! has_cmd python3; then

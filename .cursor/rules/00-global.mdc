@@ -49,7 +49,7 @@
   - 我说的集成测试是指项目根目录下的integration_test，直接用macos测试这样就不用连接手机了
   - 测试全部通过后进行flutter analyze进行测试，同样要保证所有failed和error都必须解决，不可绕过递交
   - 所有warning和info请自行判断是按提示解决还是直接屏蔽
-  - 通过后git commit提交，但是不要push
+  - 通过后执行pre-commit再次确认，并给出`git commit -m "详细注释"`,但不要真的执行
   - 到此修改完成
 
 ### 界面与交互规则

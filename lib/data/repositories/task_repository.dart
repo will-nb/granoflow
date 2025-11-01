@@ -105,6 +105,7 @@ class IsarTaskRepository implements TaskRepository {
       final results = await _isar.taskEntitys
           .filter()
           .statusEqualTo(TaskStatus.inbox)
+          .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
           .sortBySortIndex()
           .thenByCreatedAtDesc()
           .findAll();
@@ -123,6 +124,7 @@ class IsarTaskRepository implements TaskRepository {
       final entities = await _isar.taskEntitys
           .filter()
           .statusEqualTo(TaskStatus.inbox)
+          .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
           .sortBySortIndex()
           .thenByCreatedAtDesc()
           .findAll();
@@ -268,6 +270,7 @@ class IsarTaskRepository implements TaskRepository {
       if (entity == null) {
         return;
       }
+      final oldParentId = entity.parentId;
 
       entity
         ..title = payload.title ?? entity.title
@@ -301,6 +304,9 @@ class IsarTaskRepository implements TaskRepository {
       }
 
       await _isar.taskEntitys.put(entity);
+      if (kDebugMode) {
+        debugPrint('[DnD] {event: repo:updateTask, id: $taskId, taskKind: ${entity.taskKind}, clearParent: ${payload.clearParent == true}, oldParentId: $oldParentId, newParentId: ${entity.parentId}, dueAt: ${entity.dueAt}, sortIndex: ${entity.sortIndex}, status: ${entity.status}}');
+      }
     });
   }
 
@@ -416,6 +422,7 @@ class IsarTaskRepository implements TaskRepository {
     final roots = await _isar.taskEntitys
         .filter()
         .parentIdIsNull()
+        .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务，排除项目和里程碑
         .sortBySortIndex()
         .thenByCreatedAt()
         .findAll();
@@ -430,9 +437,12 @@ class IsarTaskRepository implements TaskRepository {
         .sortBySortIndex()
         .thenByCreatedAt()
         .findAll();
-    // 过滤掉 trashed 状态的任务（在内存中过滤，因为 Isar 可能不支持 statusNotEqualTo）
+    // 过滤掉 trashed 状态的任务和里程碑（里程碑只能在项目详情页显示）
     return children
-        .where((entity) => entity.status != TaskStatus.trashed)
+        .where((entity) => 
+          entity.status != TaskStatus.trashed &&
+          entity.taskKind != TaskKind.milestone  // 添加：排除里程碑
+        )
         .map(_toDomain)
         .toList(growable: false);
   }
@@ -465,7 +475,8 @@ class IsarTaskRepository implements TaskRepository {
     QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder = _isar
         .taskEntitys
         .filter()
-        .titleContains(query, caseSensitive: false);
+        .titleContains(query, caseSensitive: false)
+        .taskKindEqualTo(TaskKind.regular);  // 添加：搜索时只搜索普通任务
     if (status != null) {
       builder = builder.statusEqualTo(status);
     }
@@ -481,6 +492,7 @@ class IsarTaskRepository implements TaskRepository {
         final entity = await _isar.taskEntitys.get(entry.key);
         if (entity == null) continue;
         final payload = entry.value;
+        final oldParentId = entity.parentId;
         entity
           ..title = payload.title ?? entity.title
           ..status = payload.status ?? entity.status
@@ -511,6 +523,9 @@ class IsarTaskRepository implements TaskRepository {
           entity.parentId = payload.parentId;
         }
         await _isar.taskEntitys.put(entity);
+        if (kDebugMode) {
+          debugPrint('[DnD] {event: repo:batchUpdate, id: ${entry.key}, clearParent: ${payload.clearParent == true}, oldParentId: $oldParentId, newParentId: ${entity.parentId}}');
+        }
       }
     });
   }
@@ -547,12 +562,20 @@ class IsarTaskRepository implements TaskRepository {
     final tomorrowStart = todayStart.add(const Duration(days: 1));
     final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
     final nextMonthStart = DateTime(now.year, now.month + 1, 1);
-    // 以周日 00:00 作为“本周”的上界、“当月”的下界
-    final sundayStart = _getThisSundayStart(todayStart);
-    // “以后”下界为周日与下月1日的最大者
-    final laterStart = nextMonthStart.isAfter(sundayStart)
+    
+    // 使用与 TaskSectionUtils.getSectionForDate 相同的逻辑计算本周边界
+    // 本周一（weekStart）
+    final daysFromMonday = (now.weekday - DateTime.monday) % 7;
+    final weekStart = DateTime(now.year, now.month, now.day - daysFromMonday);
+    // 下周一（nextWeekStart = weekStart + 7天）
+    final nextWeekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 7);
+    // 本周结束（本周日 23:59:59 = 下周一 00:00:00 - 1 秒）
+    final thisWeekEnd = nextWeekStart.subtract(const Duration(milliseconds: 1));
+    
+    // "以后"下界为下周一开始与下月1日的最大者
+    final laterStart = nextMonthStart.isAfter(nextWeekStart)
         ? nextMonthStart
-        : sundayStart;
+        : nextWeekStart;
 
     QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder;
     switch (section) {
@@ -561,6 +584,7 @@ class IsarTaskRepository implements TaskRepository {
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
+            .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
             .dueAtLessThan(todayStart, include: false);
         break;
       case TaskSection.today:
@@ -568,6 +592,7 @@ class IsarTaskRepository implements TaskRepository {
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
+            .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
             .dueAtBetween(todayStart, tomorrowStart, includeUpper: false);
         break;
       case TaskSection.tomorrow:
@@ -575,6 +600,7 @@ class IsarTaskRepository implements TaskRepository {
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
+            .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
             .dueAtBetween(
               tomorrowStart,
               dayAfterTomorrowStart,
@@ -582,51 +608,142 @@ class IsarTaskRepository implements TaskRepository {
             );
         break;
       case TaskSection.thisWeek:
-        // 本周：[>=后天00:00:00, <周日00:00:00)
+        // 本周：[>=后天00:00:00, <下周一00:00:00) - 与 TaskSectionUtils.getSectionForDate 保持一致
+        // 如果 dayAfterTomorrowStart >= nextWeekStart（例如今天是周六），则 thisWeek 为空范围
+        if (dayAfterTomorrowStart.isBefore(nextWeekStart)) {
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
+              .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
             .dueAtBetween(
               dayAfterTomorrowStart,
-              sundayStart,
+                nextWeekStart,
               includeUpper: false,
             );
+        } else {
+          // 空范围：使用一个永远为 false 的条件（dueAt 必须同时 < today 和 > today+365）
+          builder = _isar.taskEntitys
+              .filter()
+              .statusEqualTo(TaskStatus.pending)
+              .taskKindEqualTo(TaskKind.regular)
+              .dueAtLessThan(todayStart, include: false)
+              .and()
+              .dueAtGreaterThan(todayStart.add(const Duration(days: 365)), include: false);
+        }
         break;
       case TaskSection.thisMonth:
-        // 当月：[>=周日00:00:00, <下月1日00:00:00)
+        // 当月：[>=下周一00:00:00, <下月1日00:00:00) - 与 TaskSectionUtils.getSectionForDate 保持一致
+        // 如果 thisWeekEnd >= nextMonthStart（本周跨月），则 thisMonth 为空范围
+        if (thisWeekEnd.isBefore(nextMonthStart)) {
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(sundayStart, nextMonthStart, includeUpper: false);
+              .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
+              .dueAtBetween(nextWeekStart, nextMonthStart, includeUpper: false);
+        } else {
+          // 空范围：使用一个永远为 false 的条件（dueAt 必须同时 < today 和 > today+365）
+          builder = _isar.taskEntitys
+              .filter()
+              .statusEqualTo(TaskStatus.pending)
+              .taskKindEqualTo(TaskKind.regular)
+              .dueAtLessThan(todayStart, include: false)
+              .and()
+              .dueAtGreaterThan(todayStart.add(const Duration(days: 365)), include: false);
+        }
         break;
       case TaskSection.later:
-        // 以后：[>=max(周日00:00:00, 下月1日00:00:00), ~)
+        // 以后：[>=max(下周一00:00:00, 下月1日00:00:00), ~)
         builder = _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
+            .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务
             .dueAtGreaterThan(laterStart, include: true);
         break;
       case TaskSection.completed:
-        builder = _isar.taskEntitys.filter().statusEqualTo(
-          TaskStatus.completedActive,
-        );
+        builder = _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.completedActive)
+            .taskKindEqualTo(TaskKind.regular);  // 添加：只显示普通任务
         break;
       case TaskSection.archived:
-        builder = _isar.taskEntitys.filter().statusEqualTo(TaskStatus.archived);
+        builder = _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.archived)
+            .taskKindEqualTo(TaskKind.regular);  // 添加：只显示普通任务
         break;
       case TaskSection.trash:
-        builder = _isar.taskEntitys.filter().statusEqualTo(TaskStatus.trashed);
+        builder = _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.trashed)
+            .taskKindEqualTo(TaskKind.regular);  // 添加：只显示普通任务
         break;
     }
 
     // 先从数据库获取数据，不做排序
     final results = await builder.findAll();
 
-    // 过滤叶任务（只显示没有子任务的任务）
-    final leafTasks = await _filterLeafTasks(results);
+    // 不再过滤叶任务 - 让 UI 层通过 collectRoots 处理层级关系
+    // 原因：如果父任务在当前区域而子任务不在，父任务不应该被过滤掉
+    final tasks = results.map(_toDomain).toList(growable: false);
 
-    // 转换为领域模型
-    final tasks = leafTasks.map(_toDomain).toList(growable: false);
+    // 调试日志：输出查询结果和过滤情况
+    if (kDebugMode) {
+      final taskKindFiltered = results.where((e) => e.taskKind == TaskKind.regular).length;
+      debugPrint('[TaskRepository._fetchSection] section=$section, 查询结果数=${results.length} (taskKind=regular: $taskKindFiltered), 最终任务数=${tasks.length}');
+      // 输出被过滤掉的非 regular 任务
+      final nonRegularTasks = results.where((e) => e.taskKind != TaskKind.regular).toList();
+      if (nonRegularTasks.isNotEmpty) {
+        debugPrint('[TaskRepository._fetchSection] 发现 ${nonRegularTasks.length} 个非 regular 任务被 taskKind 过滤条件过滤掉');
+        for (final task in nonRegularTasks.take(5)) {
+          debugPrint('  - taskId=${task.id}, taskKind=${task.taskKind}, title=${task.title}');
+        }
+      }
+      // 输出查询的日期范围信息
+      switch (section) {
+        case TaskSection.overdue:
+          debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, dueAt < $todayStart');
+          break;
+        case TaskSection.today:
+          debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $todayStart <= dueAt < $tomorrowStart');
+          break;
+        case TaskSection.tomorrow:
+          debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $tomorrowStart <= dueAt < $dayAfterTomorrowStart');
+          break;
+        case TaskSection.thisWeek:
+          if (dayAfterTomorrowStart.isBefore(nextWeekStart)) {
+            debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $dayAfterTomorrowStart <= dueAt < $nextWeekStart');
+          } else {
+            debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, thisWeek为空范围（今天是周六或周日）');
+          }
+          break;
+        case TaskSection.thisMonth:
+          if (thisWeekEnd.isBefore(nextMonthStart)) {
+            debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $nextWeekStart <= dueAt < $nextMonthStart (thisWeekEnd=$thisWeekEnd < nextMonthStart=$nextMonthStart)');
+          } else {
+            debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, thisMonth为空范围（本周跨月，thisWeekEnd=$thisWeekEnd >= nextMonthStart=$nextMonthStart）');
+          }
+          break;
+        case TaskSection.later:
+          debugPrint('[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, dueAt >= $laterStart');
+          break;
+        case TaskSection.completed:
+          debugPrint('[TaskRepository._fetchSection] 查询条件: status=completedActive, taskKind=regular');
+          break;
+        case TaskSection.archived:
+          debugPrint('[TaskRepository._fetchSection] 查询条件: status=archived, taskKind=regular');
+          break;
+        case TaskSection.trash:
+          debugPrint('[TaskRepository._fetchSection] 查询条件: status=trashed, taskKind=regular');
+          break;
+      }
+      // 输出最终任务列表的详细信息（前10个）
+      if (tasks.isNotEmpty) {
+        debugPrint('[TaskRepository._fetchSection] 最终任务列表 (前10个):');
+        for (final task in tasks.take(10)) {
+          debugPrint('  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, taskKind=${task.taskKind}, status=${task.status}, parentId=${task.parentId}');
+        }
+      }
+    }
 
     // 调试日志：输出排序前的任务
     if (section == TaskSection.later && tasks.isNotEmpty) {
@@ -692,22 +809,6 @@ class IsarTaskRepository implements TaskRepository {
       children.map((child) => _buildTree(child.id)),
     );
     return TaskTreeNode(task: _toDomain(entity), children: nodes);
-  }
-
-  Future<List<TaskEntity>> _filterLeafTasks(List<TaskEntity> tasks) async {
-    if (tasks.isEmpty) return tasks;
-
-    // 查询所有父任务ID（不限制子任务的任何条件，避免bug）
-    // 利用parentId索引提升性能
-    final parentIds = await _isar.taskEntitys
-        .filter()
-        .parentIdIsNotNull()
-        .distinctByParentId()
-        .findAll()
-        .then((entities) => entities.map((e) => e.parentId!).toSet());
-
-    // 过滤出叶任务（没有子任务的任务）
-    return tasks.where((task) => !parentIds.contains(task.id)).toList();
   }
 
   Stream<T> _watchQuery<T>(Future<T> Function() fetcher) {
@@ -899,12 +1000,5 @@ class IsarTaskRepository implements TaskRepository {
       debugPrint('Error generating taskId: $e');
       return '$dateString-0001';
     }
-  }
-  // 辅助方法：获取本周周日 00:00（基于给定日期所在周）
-  DateTime _getThisSundayStart(DateTime todayStart) {
-    // DateTime.weekday: Monday=1 ... Sunday=7
-    final daysUntilSunday = (DateTime.sunday - todayStart.weekday + 7) % 7;
-    final sunday = todayStart.add(Duration(days: daysUntilSunday));
-    return DateTime(sunday.year, sunday.month, sunday.day);
   }
 }

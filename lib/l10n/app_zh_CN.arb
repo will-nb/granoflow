@@ -401,6 +401,7 @@
   "settingsThemeLabel": "主题",
   "settingsThemeLight": "浅色",
   "settingsThemeSystem": "跟随系统",
+  "showAllSubtasks": "显示全部子任务",
   "startTimer": "开始计时",
   "stopTimer": "停止计时",
   "swipeHintTemplate": "提示：右滑{rightAction}，左滑{leftAction}。",

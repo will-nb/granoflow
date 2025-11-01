@@ -182,8 +182,8 @@ Future<List<Task>> buildAncestorChain(
 /// 
 /// 返回 true 如果任务可以接受子任务（未被锁定且不是项目/里程碑）
 bool canAcceptChildren(Task task) {
-  // 是否允许作为父任务：仅依据结构是否可编辑；
-  // 展示层是否隐藏项目/里程碑由 UI 决定，这里不做限制。
+  // 业务约束：项目/里程碑不可作为父任务；且需可编辑结构
+  if (isProjectOrMilestone(task)) return false;
   return task.canEditStructure;
 }
 

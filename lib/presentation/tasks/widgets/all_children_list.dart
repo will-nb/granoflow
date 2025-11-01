@@ -4,6 +4,7 @@ import '../../../core/providers/repository_providers.dart';
 import '../../../core/utils/task_status_utils.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 
 /// 显示父任务的所有子任务列表（不可编辑）
 /// 
@@ -78,7 +79,9 @@ class _ChildTaskItem extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final statusText = getTaskStatusDisplayText(task.status, l10n);
 
-    return Padding(
+    return InkWell(
+      onTap: () => _handleTap(context),
+      child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,6 +117,7 @@ class _ChildTaskItem extends ConsumerWidget {
             ),
         ],
       ),
+      ),
     );
   }
 
@@ -129,6 +133,56 @@ class _ChildTaskItem extends ConsumerWidget {
     } else {
       return '${dueDate.year}/${dueDate.month}/${dueDate.day}';
     }
+  }
+
+  void _handleTap(BuildContext context) {
+    switch (task.status) {
+      case TaskStatus.inbox:
+        context.go('/inbox');
+        return;
+      case TaskStatus.pending:
+        final section = _locateSectionForTask(task);
+        context.go('/tasks${section != null ? '?section=$section' : ''}');
+        return;
+      case TaskStatus.doing:
+        final section2 = _locateSectionForTask(task);
+        context.go('/tasks${section2 != null ? '?section=$section2' : ''}');
+        return;
+      case TaskStatus.completedActive:
+      case TaskStatus.archived:
+      case TaskStatus.trashed:
+      case TaskStatus.pseudoDeleted:
+        context.go('/tasks');
+        return;
+    }
+  }
+
+  String? _locateSectionForTask(Task task) {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final tomorrowStart = todayStart.add(const Duration(days: 1));
+    final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
+    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
+    final sundayStart = _getThisSundayStart(todayStart);
+    final laterStart = nextMonthStart.isAfter(sundayStart) ? nextMonthStart : sundayStart;
+
+    final due = task.dueAt;
+    if (due == null) return 'later';
+    final dueDay = DateTime(due.year, due.month, due.day);
+
+    if (dueDay.isBefore(todayStart)) return 'overdue';
+    if (dueDay.isAtSameMomentAs(todayStart)) return 'today';
+    if (!dueDay.isBefore(tomorrowStart) && dueDay.isBefore(dayAfterTomorrowStart)) return 'tomorrow';
+    if (!dueDay.isBefore(dayAfterTomorrowStart) && dueDay.isBefore(sundayStart)) return 'thisWeek';
+    if (!dueDay.isBefore(sundayStart) && dueDay.isBefore(nextMonthStart)) return 'thisMonth';
+    if (!dueDay.isBefore(laterStart)) return 'later';
+    return 'later';
+  }
+
+  DateTime _getThisSundayStart(DateTime todayStart) {
+    final daysUntilSunday = (DateTime.sunday - todayStart.weekday + 7) % 7;
+    final sunday = todayStart.add(Duration(days: daysUntilSunday));
+    return DateTime(sunday.year, sunday.month, sunday.day);
   }
 }
 

@@ -21,6 +21,6 @@
 - Web: `flutter build web`
 
 ## 测试策略
-- 单元测试：`flutter test test/unit`
+- 单元测试：`flutter test test`
 - 组件测试：`flutter test test/presentation`
 - 集成测试：`flutter test integration_test -d macos`

@@ -7,6 +7,8 @@ import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/views/task_tree_tile.dart';
+import 'package:granoflow/presentation/tasks/widgets/parent_task_header.dart';
+import 'package:granoflow/presentation/tasks/widgets/all_children_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
@@ -40,6 +42,8 @@ void main() {
       ProviderScope(
         overrides: [
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
+          parentTaskChildrenCountProvider.overrideWith((ref, parentId) async => 1),
+          parentTaskChildrenProvider.overrideWith((ref, parentId) async => [child]),
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
               if (taskId == root.id) {
@@ -82,8 +86,11 @@ void main() {
     await tester.pump();
 
     expect(find.text('Task 1'), findsOneWidget);
+    await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Task 1'));
+    // 展开父任务的“显示全部子任务”
+    final l10n = AppLocalizations.of(tester.element(find.byType(Scaffold)));
+    await tester.tap(find.text(l10n.showAllSubtasks));
     await tester.pumpAndSettle();
 
     expect(find.text('Task 2'), findsOneWidget);

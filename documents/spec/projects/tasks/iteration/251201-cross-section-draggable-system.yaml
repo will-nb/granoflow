@@ -1,0 +1,279 @@
+meta:
+  id: "251201-cross-section-draggable-system"
+  title: "跨区域拖拽系统重构 - 迭代蓝图"
+  based_on: "基于251031-task-dnd-due-date-sync的扩展实现"
+  status: draft
+  owner: "开发团队"
+  created_at: "2025-11-01"
+  estimated_effort: "3-5天"
+
+background:
+  problem:
+    - "ReorderableListView 仅支持列表内部排序，无法实现跨区域拖拽"
+    - "ReorderableListView 的手势系统与自定义 DragTarget 不兼容"
+    - "已实现的任务成为子任务/提升为根任务功能被 ReorderableListView 阻断"
+    - "TasksPageDragHandler 和 InboxDraggable 组件已创建但未使用"
+  solution:
+    - "使用 AnimatedList + Draggable/DragTarget 替代 ReorderableListView"
+    - "创建统一的跨区域拖拽列表组件，支持复杂拖拽场景"
+    - "激活并集成已有的拖拽处理组件"
+
+scope:
+  includes:
+    - "创建统一的跨区域拖拽列表组件 CrossSectionDraggableList"
+    - "替换 Tasks 和 Inbox 页面的 ReorderableListView 实现"
+    - "支持任务跨区域移动（今天→本周→本月等）"
+    - "支持任务成为子任务（拖拽到其他任务上）"
+    - "支持任务提升为根任务（拖拽到特定区域）"
+    - "保持所有现有拖拽视觉效果（倾斜、缩放、半透明、阴影）"
+    - "确保未来页面（项目看板、标签管理等）的复用性"
+  excludes:
+    - "修改现有的数据模型结构"
+    - "改变业务逻辑规则（如三层限制、任务锁定等）"
+    - "修改现有的视觉设计"
+    - "改变现有的 API 接口"
+
+changes:
+  code_updates:
+    # 新增核心组件
+    - file: "lib/presentation/common/drag/cross_section_draggable_list.dart"
+      type: add
+      intent: "创建统一的可跨区域拖拽列表组件，支持泛型，处理所有拖拽场景"
+      details:
+        - "使用 AnimatedList 替代 ReorderableListView"
+        - "集成 StandardDraggable 和 TaskDragIntentTarget"
+        - "处理同区域排序和跨区域移动"
+        - "支持自定义插入目标和提升目标"
+    
+    - file: "lib/presentation/common/drag/draggable_list_controller.dart"
+      type: add
+      intent: "管理拖拽状态、动画、手势冲突和自动滚动"
+      details:
+        - "处理拖拽时的间隙动画"
+        - "管理手势优先级，避免冲突"
+        - "实现拖拽到边缘时的自动滚动"
+    
+    - file: "lib/presentation/common/drag/draggable_list_delegate.dart"
+      type: add
+      intent: "定义拖拽行为的抽象接口，支持策略模式"
+      details:
+        - "定义 canReorder、onReorder 接口"
+        - "定义 canAcceptExternal、onAcceptExternal 接口"
+        - "定义 canMakeChild、onMakeChild 接口"
+        - "定义 canPromoteToRoot、onPromoteToRoot 接口"
+    
+    # 修改现有页面
+    - file: "lib/presentation/tasks/views/task_section_list.dart"
+      type: modify
+      intent: "替换 ReorderableListView 为 CrossSectionDraggableList"
+      details:
+        - "移除 ReorderableListView 和 ReorderableDragStartListener"
+        - "集成 CrossSectionDraggableList"
+        - "实现 DraggableListDelegate 接口"
+        - "保持现有的业务逻辑不变"
+    
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      type: modify
+      intent: "使用统一的拖拽系统，确保行为一致性"
+      details:
+        - "替换 ReorderableListView"
+        - "使用相同的拖拽组件和视觉效果"
+    
+    # 激活未使用的组件
+    - file: "lib/presentation/tasks/tasks_drag_handler.dart"
+      type: modify
+      intent: "移除 enabled 参数，始终启用拖拽"
+      details:
+        - "简化组件逻辑"
+        - "确保与 CrossSectionDraggableList 集成"
+    
+    - file: "lib/presentation/inbox/inbox_draggable.dart"
+      type: modify
+      intent: "激活并集成到 Inbox 页面"
+      details:
+        - "与 InboxTaskTile 集成"
+        - "统一拖拽行为"
+    
+    # 更新任务卡片
+    - file: "lib/presentation/widgets/task_tile_content.dart"
+      type: modify
+      intent: "确保拖拽功能正常工作"
+      details:
+        - "验证 TaskDragIntentTarget.surface 正常接收"
+        - "确保 StandardDraggable 不被其他组件覆盖"
+    
+  architecture:
+    patterns:
+      - name: "组合模式 (Composite Pattern)"
+        rationale: "通过组合 Draggable、DragTarget 等基础组件实现复杂功能"
+        implementation: "CrossSectionDraggableList 组合多个拖拽组件"
+      
+      - name: "策略模式 (Strategy Pattern)"
+        rationale: "不同拖拽行为（排序/成为子任务/提升）使用策略接口"
+        implementation: "DraggableListDelegate 定义行为接口"
+      
+      - name: "模板方法模式 (Template Method Pattern)"
+        rationale: "定义拖拽流程框架，具体步骤由子类实现"
+        implementation: "CrossSectionDraggableList 定义流程，页面实现具体逻辑"
+    
+    principles:
+      - "单一职责原则：每个组件负责一个明确的功能"
+      - "开闭原则：通过接口扩展新功能，不修改现有代码"
+      - "依赖倒置原则：依赖抽象接口而非具体实现"
+  
+  data_model:
+    - entity: "无需修改"
+      rationale: "仅改变 UI 层实现，不影响数据模型"
+  
+  tests:
+    unit:
+      - focus: "CrossSectionDraggableList 核心逻辑"
+        coverage:
+          - "拖拽状态管理"
+          - "手势冲突处理"
+          - "动画控制"
+      
+      - focus: "DraggableListController 行为"
+        coverage:
+          - "自动滚动逻辑"
+          - "间隙计算"
+          - "位置跟踪"
+    
+    widget:
+      - focus: "拖拽视觉效果一致性"
+        coverage:
+          - "倾斜角度（1.5度）"
+          - "缩放效果（1.03倍）"
+          - "透明度（0.98）"
+          - "阴影效果"
+      
+      - focus: "跨区域拖拽交互"
+        coverage:
+          - "任务从今天拖到本周"
+          - "任务从本周拖到本月"
+          - "任务拖拽成为子任务"
+          - "子任务提升为根任务"
+    
+    integration:
+      - name: "tasks_cross_section_drag_test.dart"
+        scenarios:
+          - "完整的跨区域拖拽流程"
+          - "拖拽后数据持久化验证"
+          - "拖拽取消和撤销"
+      
+      - name: "inbox_drag_compatibility_test.dart"
+        scenarios:
+          - "Inbox 页面拖拽行为一致性"
+          - "子任务提升流程"
+  
+  documentation:
+    - path: "documents/spec/projects/tasks/iteration/251201-cross-section-draggable-system.yaml"
+      update_type: add
+      intent: "本文档"
+    
+    - path: "documents/architecture/widgets/cross_section_draggable_list.yaml"
+      update_type: add
+      intent: "记录组件架构和使用方法"
+    
+    - path: "documents/spec/projects/tasks/design/251201-cross-section-draggable-system.yaml"
+      update_type: add_if_needed
+      intent: "如需用户确认，创建对应的设计文档"
+    
+    - path: "README.md"
+      update_type: modify
+      intent: "更新拖拽功能说明"
+
+risks:
+  technical:
+    - name: "手势冲突"
+      probability: "中"
+      impact: "高"
+      mitigation: 
+        - "使用 GestureDetector 的手势竞争机制"
+        - "设置合适的手势识别优先级"
+        - "添加手势冲突测试用例"
+    
+    - name: "性能影响"
+      probability: "低"
+      impact: "中"
+      mitigation:
+        - "使用 AnimatedList 优化动画性能"
+        - "限制同时进行的动画数量"
+        - "使用性能分析工具监控"
+    
+    - name: "向后兼容性"
+      probability: "低"
+      impact: "高"
+      mitigation:
+        - "保持所有公开 API 不变"
+        - "仅替换内部实现"
+        - "添加功能开关以便回滚"
+  
+  business:
+    - name: "用户学习成本"
+      probability: "低"
+      impact: "低"
+      mitigation:
+        - "保持视觉效果完全一致"
+        - "新功能符合用户直觉"
+        - "提供使用引导"
+
+timeline:
+  phases:
+    - phase: "基础组件开发"
+      duration: "1天"
+      deliverables:
+        - "CrossSectionDraggableList 组件"
+        - "DraggableListController"
+        - "DraggableListDelegate 接口"
+    
+    - phase: "页面集成"
+      duration: "1天"
+      deliverables:
+        - "Tasks 页面集成"
+        - "Inbox 页面集成"
+        - "激活未使用的拖拽组件"
+    
+    - phase: "测试和调试"
+      duration: "1天"
+      deliverables:
+        - "单元测试"
+        - "Widget 测试"
+        - "集成测试"
+    
+    - phase: "优化和文档"
+      duration: "0.5天"
+      deliverables:
+        - "性能优化"
+        - "文档更新"
+        - "代码审查"
+
+verification:
+  checklist:
+    code_quality:
+      - "✓ flutter analyze 无错误"
+      - "✓ dart format . --line-length 100"
+      - "✓ 所有新代码有适当注释"
+    
+    functionality:
+      - "✓ 跨区域拖拽正常工作"
+      - "✓ 任务可成为子任务"
+      - "✓ 子任务可提升为根任务"
+      - "✓ 视觉效果与原来一致"
+      - "✓ 手势无冲突"
+    
+    testing:
+      - "✓ flutter test 全部通过"
+      - "✓ 新增测试覆盖率 > 80%"
+      - "✓ 手动测试所有拖拽场景"
+    
+    performance:
+      - "✓ 拖拽动画流畅（60fps）"
+      - "✓ 内存使用合理"
+      - "✓ 无明显性能退化"
+
+notes:
+  - "本方案基于 Flutter 社区最佳实践和成功案例"
+  - "参考了 Trello、Notion 等应用的拖拽交互设计"
+  - "确保所有改动都是渐进式的，可以分步骤实施"
+  - "保留了未来扩展到其他页面（项目看板等）的能力"

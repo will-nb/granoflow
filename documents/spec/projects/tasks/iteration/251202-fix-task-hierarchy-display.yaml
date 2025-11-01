@@ -1,0 +1,178 @@
+meta:
+  id: "251202-fix-task-hierarchy-display"
+  title: "修复任务层级展示"
+  status: draft
+  owner: "AI Assistant"
+  created: "2025-12-02"
+  version: "1.0"
+  design_ref: "250131-task-hierarchy-drag-and-display"
+
+problem:
+  context: |
+    任务层级拖拽功能已经实现，但展示部分没有按照设计要求工作。
+    当前存在以下问题：
+    1. 父任务没有跟随子任务显示在相应区域
+    2. 祖先任务链（祖任务→父任务→当前任务）没有显示
+    3. TaskTreeTile 的逻辑错误，总是显示 ParentTaskInOwnSection
+    4. _TaskWithParentChain 组件已实现但未使用
+    5. 任务查询可能没有包含跟随子任务的父任务
+
+  impact: |
+    - 用户无法看到任务的层级关系
+    - 父任务可能错过重要的子任务截止日期
+    - 任务组织结构不清晰
+    - 违背了"父任务跟随子任务"的设计原则
+
+  root_cause: |
+    1. TaskSectionDelegate.buildItem 直接使用 TaskTreeTile，跳过了父任务链展示
+    2. TaskTreeView 逻辑错误，没有判断父任务是否在当前区域
+    3. 任务查询逻辑可能不完整
+
+scope:
+  included:
+    - 修复 TaskSectionDelegate 的任务渲染逻辑
+    - 修正 TaskTreeView 的判断逻辑
+    - 确保 _TaskWithParentChain 被正确使用
+    - 验证任务查询包含跟随子任务的父任务
+    - 添加必要的日志用于调试
+
+  excluded:
+    - Inbox 的手风琴模式（已在其他地方实现）
+    - 拖拽功能本身（已经正常工作）
+    - 项目模式的展示（不受影响）
+    - 新增功能或 UI 组件
+
+technical_plan:
+  overview: |
+    修复任务层级展示，确保：
+    1. 子任务在任何区域时，如果该区域不是父任务的截止区域，父任务以简化标题形式显示在上方
+    2. 只有当子任务和父任务在同一截止区域时，以父任务为主体显示（完整功能）
+    3. 祖先任务链正确显示（最多3级）
+    4. 排除项目和里程碑的干扰
+
+  changes:
+    - file: "lib/presentation/tasks/views/task_section_delegate.dart"
+      changes:
+        - "修改 buildItem 方法使用 _TaskWithParentChain"
+        - "导入必要的组件"
+      rationale: "启用父任务链展示功能"
+
+    - file: "lib/presentation/tasks/views/task_tree_tile.dart"
+      changes:
+        - "修正 TaskTreeView 的逻辑判断"
+        - "判断当前任务是否与父任务在同一截止区域"
+        - "同区域时以父任务为主体显示，不同区域时只显示当前任务"
+        - "添加必要的导入"
+      rationale: "确保只在父子任务同区域时才以父任务为主体显示"
+
+    - file: "lib/data/repositories/task_repository.dart"
+      changes:
+        - "验证 _fetchSection 方法的查询逻辑"
+        - "查询不仅包含截止日期在当前区域的任务"
+        - "还要包含有子任务在当前区域但自己不在的父任务"
+        - "添加调试日志显示查询结果"
+      rationale: "确保数据层返回所有需要显示的任务，包括跟随子任务的父任务"
+
+    - file: "lib/presentation/tasks/views/task_section_list.dart"
+      changes:
+        - "将 _TaskWithParentChain 从私有改为公开"
+        - "确保组件可以被其他文件使用"
+      rationale: "允许 TaskSectionDelegate 使用该组件"
+
+implementation_steps:
+  - step: "修改 TaskSectionList 导出组件"
+    details:
+      - "将 _TaskWithParentChain 改名为 TaskWithParentChain（去掉下划线）"
+      - "确保相关的 import 正确"
+    validation: "编译通过，无命名冲突"
+
+  - step: "更新 TaskSectionDelegate"
+    details:
+      - "导入 TaskWithParentChain"
+      - "修改 buildItem 方法使用新组件"
+      - "传递必要的参数"
+    validation: "任务显示包含父任务链"
+
+  - step: "修正 TaskTreeView 逻辑"
+    details:
+      - "导入 TaskSectionUtils"
+      - "获取父任务的截止区域"
+      - "比较当前任务所在区域和父任务截止区域"
+      - "如果相同：以父任务为主体显示（ParentTaskInOwnSection）"
+      - "如果不同：只显示当前任务（TaskLeafTile）"
+    validation: "只有父子任务在同一截止区域时才以父任务为主体显示"
+
+  - step: "验证数据查询"
+    details:
+      - "检查 _fetchSection 是否正确处理父任务"
+      - "添加日志输出查询结果"
+      - "确保 collectRoots 函数正确工作"
+    validation: "日志显示包含了跟随子任务的父任务"
+
+  - step: "测试完整流程"
+    details:
+      - "创建父子任务关系"
+      - "设置不同的截止日期"
+      - "验证显示效果符合设计"
+    validation: "父任务跟随子任务，祖先链正确显示"
+
+testing_strategy:
+  manual_tests:
+    - scenario: "子任务今天截止，父任务下周截止（不同区域）"
+      expected: |
+        今天区域显示：
+        - ParentTaskHeader（父任务简化标题）
+        - 子任务（完整功能）
+        
+        下周区域显示：
+        - 父任务（完整功能，如果没有子任务在此区域）
+        
+    - scenario: "子任务和父任务都是今天截止（同一区域）"
+      expected: |
+        今天区域显示：
+        - ParentTaskInOwnSection（父任务完整功能为主体）
+          - 子任务作为其下属显示（在展开的子任务列表中）
+
+    - scenario: "三级任务层级，都在不同区域"
+      expected: |
+        今天区域显示（只有第三级任务今天截止）：
+        - AncestorTaskChain（祖任务简化标题）
+        - ParentTaskHeader（父任务简化标题）
+        - 第三级子任务（完整功能）
+
+    - scenario: "父任务有多个子任务，部分在同区域，部分在不同区域"
+      expected: |
+        今天区域（只有子任务A今天截止，父任务下周截止）：
+        - ParentTaskHeader（父任务简化标题）
+        - 子任务A（完整功能）
+        
+        下周区域（父任务和子任务B都下周截止）：
+        - ParentTaskInOwnSection（父任务完整功能为主体）
+          - 子任务B在其展开列表中
+
+  unit_tests:
+    - "测试 TaskWithParentChain 的渲染逻辑"
+    - "测试 TaskTreeView 的区域判断"
+    - "测试查询结果包含正确的任务"
+
+rollback_plan:
+  - "恢复 TaskSectionDelegate 的原始 buildItem 实现"
+  - "恢复 TaskTreeView 的原始逻辑"
+  - "移除添加的日志"
+
+monitoring:
+  - "观察任务加载性能（递归查询可能影响）"
+  - "检查内存使用（避免重复渲染）"
+  - "监控用户反馈"
+
+success_criteria:
+  - "子任务在非父任务截止区域时，父任务以简化标题形式显示在上方"
+  - "子任务和父任务在同一截止区域时，以父任务为主体显示"
+  - "祖先任务链完整展示（最多3级）"
+  - "项目和里程碑被正确排除，不作为父任务显示"
+  - "数据查询包含跟随子任务的父任务"
+  - "性能没有明显下降"
+
+notes: |
+  这个迭代专注于修复已有功能的展示问题，不添加新功能。
+  主要是连接已有组件，确保它们按设计工作。
