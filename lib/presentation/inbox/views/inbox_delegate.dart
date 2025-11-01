@@ -8,6 +8,7 @@ import '../../common/drag/draggable_list_delegate.dart';
 import '../../common/drag/draggable_list_controller.dart';
 import '../../tasks/utils/hierarchy_utils.dart';
 import '../../tasks/utils/sort_index_utils.dart';
+import '../../tasks/utils/task_collection_utils.dart';
 import '../widgets/inbox_task_tile.dart';
 
 /// InboxTaskList 的拖拽行为委托实现
@@ -32,11 +33,24 @@ class InboxDelegate extends DraggableListDelegate<Task> {
   
   @override
   Future<void> onReorder(Task item, int oldIndex, int newIndex) async {
-    final tasks = ref.read(inboxListControllerProvider).items;
+    // CRITICAL FIX: Use allTasks instead of controller.items for reliable data
+    // 
+    // Problem: controller.items may be empty or stale during drag operations because:
+    // 1. It's populated asynchronously via addPostFrameCallback in initState
+    // 2. It may not be updated yet when onReorder is called
+    // 3. User can drag before PostFrameCallback executes
+    // 
+    // Solution: Use allTasks (passed to delegate constructor) which always contains
+    // the current data. Filter and collect roots the same way the original code did.
+    final filteredTasks = allTasks.where((task) => task.status != TaskStatus.trashed).toList();
+    final rootTasks = collectRoots(filteredTasks)
+        .where((task) => !isProjectOrMilestone(task))
+        .toList();
+    
     final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
     
-    final beforeTask = targetIndex > 0 ? tasks[targetIndex - 1] : null;
-    final afterTask = targetIndex < tasks.length - 1 ? tasks[targetIndex + 1] : null;
+    final beforeTask = targetIndex > 0 ? rootTasks[targetIndex - 1] : null;
+    final afterTask = targetIndex < rootTasks.length - 1 ? rootTasks[targetIndex + 1] : null;
     
     final beforeSortIndex = beforeTask?.sortIndex;
     final afterSortIndex = afterTask?.sortIndex;
@@ -73,18 +87,23 @@ class InboxDelegate extends DraggableListDelegate<Task> {
   
   @override
   Future<void> onAcceptExternal(Task draggedItem, int targetIndex) async {
-    final tasks = ref.read(inboxListControllerProvider).items;
+    // Use allTasks + collectRoots for reliable data (same fix as onReorder)
+    final filteredTasks = allTasks.where((task) => task.status != TaskStatus.trashed).toList();
+    final rootTasks = collectRoots(filteredTasks)
+        .where((task) => !isProjectOrMilestone(task))
+        .toList();
+    
     final taskService = ref.read(taskServiceProvider);
     
     // 计算新的排序索引
     double newSortIndex;
     if (targetIndex == 0) {
-      newSortIndex = tasks.isNotEmpty ? tasks.first.sortIndex - 1000 : 0;
-    } else if (targetIndex >= tasks.length) {
-      newSortIndex = tasks.isNotEmpty ? tasks.last.sortIndex + 1000 : 0;
+      newSortIndex = rootTasks.isNotEmpty ? rootTasks.first.sortIndex - 1000 : 0;
+    } else if (targetIndex >= rootTasks.length) {
+      newSortIndex = rootTasks.isNotEmpty ? rootTasks.last.sortIndex + 1000 : 0;
     } else {
-      final beforeTask = tasks[targetIndex - 1];
-      final afterTask = tasks[targetIndex];
+      final beforeTask = rootTasks[targetIndex - 1];
+      final afterTask = rootTasks[targetIndex];
       newSortIndex = calculateSortIndex(beforeTask.sortIndex, afterTask.sortIndex);
     }
     

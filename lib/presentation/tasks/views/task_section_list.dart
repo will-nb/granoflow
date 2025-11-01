@@ -43,6 +43,7 @@ class _TaskSectionTaskModeListState extends ConsumerState<TaskSectionTaskModeLis
       section: widget.section,
       ref: ref,
       getDisplayedParentIds: _getDisplayedParentIdsUpTo,
+      tasks: _roots,  // Pass tasks to delegate
     );
   }
 
@@ -51,6 +52,13 @@ class _TaskSectionTaskModeListState extends ConsumerState<TaskSectionTaskModeLis
     super.didUpdateWidget(oldWidget);
     if (oldWidget.roots != widget.roots) {
       _roots = List<Task>.from(widget.roots);
+      // Recreate delegate with updated tasks
+      _delegate = TaskSectionDelegate(
+        section: widget.section,
+        ref: ref,
+        getDisplayedParentIds: _getDisplayedParentIdsUpTo,
+        tasks: _roots,
+      );
     }
   }
   
@@ -130,6 +138,7 @@ class _TaskSectionProjectModePanelState
       section: widget.section,
       ref: ref,
       getDisplayedParentIds: (_) => <int>{}, // Project mode doesn't use parent chain display
+      tasks: _roots,  // Pass tasks to delegate
     );
   }
 
@@ -138,6 +147,13 @@ class _TaskSectionProjectModePanelState
     super.didUpdateWidget(oldWidget);
     if (!task_list_utils.listEquals(oldWidget.roots, widget.roots)) {
       _roots = List<Task>.from(widget.roots);
+      // Recreate delegate with updated tasks
+      _delegate = TaskSectionDelegate(
+        section: widget.section,
+        ref: ref,
+        getDisplayedParentIds: (_) => <int>{},
+        tasks: _roots,
+      );
     }
   }
   

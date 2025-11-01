@@ -17,11 +17,13 @@ class TaskSectionDelegate extends DraggableListDelegate<Task> {
   final TaskSection section;
   final WidgetRef ref;
   final Set<int> Function(int index) getDisplayedParentIds;
+  final List<Task> tasks;  // Task list for reliable data access
   
   TaskSectionDelegate({
     required this.section,
     required this.ref,
     required this.getDisplayedParentIds,
+    required this.tasks,  // Add tasks parameter
   });
   
   @override
@@ -32,7 +34,8 @@ class TaskSectionDelegate extends DraggableListDelegate<Task> {
   
   @override
   Future<void> onReorder(Task item, int oldIndex, int newIndex) async {
-    final tasks = ref.read(taskSectionListControllerProvider(section)).items;
+    // Use the tasks parameter passed to constructor instead of controller.items
+    // (same fix as InboxDelegate - controller.items may be empty or stale)
     final targetIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
     
     if (kDebugMode) {
@@ -110,7 +113,7 @@ class TaskSectionDelegate extends DraggableListDelegate<Task> {
   
   @override
   Future<void> onAcceptExternal(Task draggedItem, int targetIndex) async {
-    final tasks = ref.read(taskSectionListControllerProvider(section)).items;
+    // Use the tasks parameter instead of controller.items (same fix as onReorder)
     final taskService = ref.read(taskServiceProvider);
     
     // 计算新的排序索引

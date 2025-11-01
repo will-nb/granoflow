@@ -76,8 +76,20 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
     }
     _scrollController = ScrollController();
     widget.controller.setScrollController(_scrollController);
-    // 延迟初始化以避免在构建阶段修改 provider
-    // 使用 addPostFrameCallback 确保在第一帧渲染完成后再初始化
+    
+    // CRITICAL FIX: Defer controller initialization to avoid Riverpod error
+    // 
+    // Problem: Calling controller.initItems() directly in initState() triggers
+    // Riverpod's "Tried to modify a provider while the widget tree was building" error
+    // because the controller is a ChangeNotifier managed by ChangeNotifierProvider.
+    // Modifying it during initState (which is part of the build phase) is forbidden.
+    // 
+    // Why not Future.microtask?: microtask executes before the first frame completes,
+    // which is still considered part of the build phase by Riverpod's safety checks.
+    // 
+    // Solution: Use addPostFrameCallback to defer initialization until after the
+    // first frame is completely rendered. This ensures we're not modifying the
+    // provider during any part of the build phase.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         if (kDebugMode) {
@@ -91,8 +103,33 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
   @override
   void didUpdateWidget(CrossSectionDraggableList<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    
+    // CRITICAL FIX: Defer controller update to avoid Riverpod error
+    // 
+    // Problem: didUpdateWidget is part of the widget lifecycle (similar to build,
+    // initState, dispose). Calling controller.updateItems() here directly triggers
+    // notifyListeners(), which violates Riverpod's rule against modifying providers
+    // during the widget tree building phase.
+    // 
+    // This causes the error: "Tried to modify a provider while the widget tree was building"
+    // 
+    // Why this happens:
+    // 1. User drags and reorders a task
+    // 2. Database updates successfully
+    // 3. Repository emits new data via Stream
+    // 4. Widget receives new items via didUpdateWidget
+    // 5. controller.updateItems() triggers notifyListeners()
+    // 6. Error: We're still in the build phase!
+    // 
+    // Solution: Use addPostFrameCallback to defer the update until after the current
+    // frame is completely rendered. This ensures we're not modifying the provider
+    // during the build phase.
     if (oldWidget.items != widget.items) {
-      widget.controller.updateItems(widget.items);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.controller.updateItems(widget.items);
+        }
+      });
     }
   }
   
@@ -111,10 +148,28 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
         if (widget.showPromoteTarget)
           widget.delegate.buildPromoteTarget(context) ?? const SizedBox.shrink(),
           
-        // 主列表
+        // CRITICAL FIX: Use widget.items instead of controller.items for AnimatedList
+        // 
+        // Problem: The original code used `widget.controller.items.length` for initialItemCount.
+        // However, controller.items is EMPTY ([]) at widget creation time because
+        // controller.initItems() is deferred to addPostFrameCallback (see initState above).
+        // This caused AnimatedList to be created with initialItemCount=0, meaning
+        // itemBuilder would NEVER be called, resulting in an empty list display!
+        // 
+        // Timeline of the bug:
+        // 1. initState(): controller.items = [] (empty, not initialized yet)
+        // 2. build(): AnimatedList created with initialItemCount = controller.items.length = 0
+        // 3. addPostFrameCallback(): controller.initItems() populates controller.items
+        // 4. Problem: AnimatedList already created with initialItemCount=0, won't rebuild!
+        // 5. Result: itemBuilder never called → empty screen with only drag targets visible
+        // 
+        // Solution: Use widget.items.length directly. widget.items is immediately available
+        // and contains the actual data, ensuring AnimatedList is created with the correct
+        // item count from the start. The controller will be populated later via
+        // addPostFrameCallback, but AnimatedList will already know how many items to render.
         AnimatedList(
           key: widget.controller.listKey,
-          initialItemCount: widget.items.length,  // 使用 widget.items 而不是 controller.items
+          initialItemCount: widget.items.length,  // Use widget.items, NOT controller.items
           controller: _scrollController,
           padding: widget.padding,
           physics: widget.physics,
@@ -124,7 +179,15 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
               debugPrint('[CrossSectionDraggableList] itemBuilder called - sectionId=${widget.sectionId}, index=$index, items.length=${widget.controller.items.length}');
             }
             
-            // 边界检查 - 使用 widget.items 而不是 controller.items
+            // CRITICAL: Use widget.items for data access, not controller.items
+            // 
+            // Reason: During initial build, controller.items is empty because initItems()
+            // hasn't been called yet (deferred to addPostFrameCallback). To access the
+            // actual data during itemBuilder, we must use widget.items.
+            // 
+            // Note: After initialization, controller.items will match widget.items, but
+            // for consistency and correctness during the initial render, always use
+            // widget.items in itemBuilder.
             if (index >= widget.items.length) {
               if (kDebugMode) {
                 debugPrint('[CrossSectionDraggableList] 越界 - index=$index >= items.length=${widget.items.length}');
@@ -132,7 +195,7 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
               return const SizedBox.shrink();
             }
             
-            final item = widget.items[index];
+            final item = widget.items[index];  // Use widget.items, NOT controller.items
             if (kDebugMode) {
               debugPrint('[CrossSectionDraggableList] 构建项目 - index=$index, itemId=${widget.delegate.getItemId(item)}');
             }

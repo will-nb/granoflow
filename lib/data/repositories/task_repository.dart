@@ -679,11 +679,41 @@ class IsarTaskRepository implements TaskRepository {
         break;
     }
 
-    // 先从数据库获取数据，不做排序
+    // Query database for tasks matching date criteria
     final results = await builder.findAll();
 
-    // 不再过滤叶任务 - 让 UI 层通过 collectRoots 处理层级关系
-    // 原因：如果父任务在当前区域而子任务不在，父任务不应该被过滤掉
+    // CRITICAL FIX: Removed _filterLeafTasks() call to support parent task display
+    // 
+    // Problem: The original code called _filterLeafTasks(results) which filtered out
+    // ALL tasks that have children, regardless of whether those children are in the
+    // current section or not. This caused severe display issues:
+    // 
+    // 1. Parent tasks completely disappeared from their own sections
+    // 2. Parent tasks couldn't be shown with simplified headers when "following" children
+    // 3. The entire task hierarchy system broke down
+    // 
+    // Example of the bug:
+    // - Parent task (id=2) due today, child task (id=1) also due today
+    // - Parent has children → _filterLeafTasks removes parent from results
+    // - Today section shows only child (id=1)
+    // - But child's parentId=2 → UI tries to display parent header → parent not in list!
+    // - Result: Empty screen because rendering fails
+    // 
+    // Another example:
+    // - Parent task due next week, child due today
+    // - Today section: _filterLeafTasks removes child (it's a leaf, but parent is elsewhere)
+    // - Next week: _filterLeafTasks removes parent (it has a child, even though child is elsewhere!)
+    // - Result: Parent disappears completely from all sections!
+    // 
+    // Solution: Return ALL tasks matching the date criteria. Let the UI layer handle
+    // hierarchy display through:
+    // - collectRoots(): Filters tasks to show roots (no parent OR parent not in list)
+    // - TaskWithParentChain: Queries and displays parent headers on demand
+    // - TaskTreeView: Shows parent with children when both in same section
+    // 
+    // This separation of concerns is architecturally correct:
+    // - Data layer: Returns tasks by date/status criteria (domain logic)
+    // - UI layer: Handles display logic and parent-child relationships (presentation logic)
     final tasks = results.map(_toDomain).toList(growable: false);
 
     // 调试日志：输出查询结果和过滤情况
