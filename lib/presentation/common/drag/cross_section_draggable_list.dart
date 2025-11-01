@@ -167,14 +167,16 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
         // and contains the actual data, ensuring AnimatedList is created with the correct
         // item count from the start. The controller will be populated later via
         // addPostFrameCallback, but AnimatedList will already know how many items to render.
-        AnimatedList(
-          key: widget.controller.listKey,
-          initialItemCount: widget.items.length,  // Use widget.items, NOT controller.items
+        ListView.builder(
+          key: ValueKey('${widget.sectionId}-${widget.items.length}'),  // Rebuild when item count changes
+          itemCount: widget.items.length,  // Use widget.items for current count
           controller: _scrollController,
           padding: widget.padding,
           physics: widget.physics,
           shrinkWrap: widget.shrinkWrap,
-          itemBuilder: (context, index, animation) {
+          itemBuilder: (context, index) {
+            // Provide a default animation for compatibility with delegate.buildItem
+            final animation = AlwaysStoppedAnimation<double>(1.0);
             if (kDebugMode) {
               debugPrint('[CrossSectionDraggableList] itemBuilder called - sectionId=${widget.sectionId}, index=$index, items.length=${widget.controller.items.length}');
             }
