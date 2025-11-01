@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_tile_content.dart
   description: _TaskTileContentState 组件
   version: '1.0'
-  created_date: '251031'
-  last_updated: '251031'
+  created_date: '251101'
+  last_updated: '251101'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -43,10 +43,15 @@ widget_properties:
   required: false
   default_value: null
   description: ''
-- name: _isHovering
-  type: bool
+- name: contentPadding
+  type: EdgeInsetsGeometry
   required: false
-  default_value: 'false'
+  default_value: null
+  description: ''
+- name: dragPage
+  type: String
+  required: true
+  default_value: null
   description: ''
 widget_methods:
 - name: methodName
@@ -135,6 +140,7 @@ widget_dependencies:
   version: 版本要求
 widget_imports:
 - package:flutter/material.dart
+- package:flutter/foundation.dart
 - package:flutter_riverpod/flutter_riverpod.dart
 - ../../core/providers/repository_providers.dart
 - ../../core/providers/service_providers.dart
@@ -143,6 +149,7 @@ widget_imports:
 - ../tasks/utils/hierarchy_utils.dart
 - task_row_content.dart
 - ../common/drag/standard_draggable.dart
+- ../common/drag/task_drag_intent_target.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -242,6 +249,7 @@ calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/presentation/tasks/utils/hierarchy_utils.dart
 - lib/presentation/common/drag/standard_draggable.dart
+- lib/presentation/common/drag/task_drag_intent_target.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

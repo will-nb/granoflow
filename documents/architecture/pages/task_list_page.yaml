@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/tasks/task_list_page.dart
   description: _SectionMeta 页面
   version: '1.0'
-  created_date: '251031'
-  last_updated: '251031'
+  created_date: '251101'
+  last_updated: '251101'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -199,6 +199,7 @@ calls:
 - lib/presentation/widgets/gradient_page_scaffold.dart
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/page_app_bar.dart
+- lib/presentation/widgets/drag_to_remove_handler.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

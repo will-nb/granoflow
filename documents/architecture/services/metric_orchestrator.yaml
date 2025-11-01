@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/services/metric_orchestrator.dart
   description: Service 描述
   version: '1.0'
-  created_date: '251031'
-  last_updated: '251031'
+  created_date: '251101'
+  last_updated: '251101'
   schema_version: 1
   last_synced_sha: ''
 service_definition:

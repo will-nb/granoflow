@@ -104,31 +104,49 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
   void didUpdateWidget(CrossSectionDraggableList<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // CRITICAL FIX: Defer controller update to avoid Riverpod error
-    // 
-    // Problem: didUpdateWidget is part of the widget lifecycle (similar to build,
-    // initState, dispose). Calling controller.updateItems() here directly triggers
-    // notifyListeners(), which violates Riverpod's rule against modifying providers
-    // during the widget tree building phase.
-    // 
-    // This causes the error: "Tried to modify a provider while the widget tree was building"
-    // 
-    // Why this happens:
-    // 1. User drags and reorders a task
-    // 2. Database updates successfully
-    // 3. Repository emits new data via Stream
-    // 4. Widget receives new items via didUpdateWidget
-    // 5. controller.updateItems() triggers notifyListeners()
-    // 6. Error: We're still in the build phase!
-    // 
-    // Solution: Use addPostFrameCallback to defer the update until after the current
-    // frame is completely rendered. This ensures we're not modifying the provider
-    // during the build phase.
+    // CRITICAL: Sync AnimatedList state with new data
+    //
+    // Problem: When items change (e.g., task dragged to another section), AnimatedList
+    // doesn't automatically update. We need to manually call insertItem/removeItem.
+    //
+    // Solution: Compare old and new items, calculate diff, apply changes to AnimatedList.
     if (oldWidget.items != widget.items) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          widget.controller.updateItems(widget.items);
+        if (!mounted) return;
+        
+        // Simple ID-based diff: find removed and inserted items
+        final oldIds = oldWidget.items.map((e) => widget.delegate.getItemId(e)).toSet();
+        final newIds = widget.items.map((e) => widget.delegate.getItemId(e)).toSet();
+        
+        final removedIds = oldIds.difference(newIds);
+        final addedIds = newIds.difference(oldIds);
+        
+        // Step 1: Remove items (from end to start to avoid index shifts)
+        for (var i = oldWidget.items.length - 1; i >= 0; i--) {
+          final itemId = widget.delegate.getItemId(oldWidget.items[i]);
+          if (removedIds.contains(itemId)) {
+            widget.controller.removeItem(
+              i,
+              (context, animation) => widget.delegate.buildItem(
+                context,
+                oldWidget.items[i],
+                i,
+                animation,
+              ),
+            );
+          }
         }
+        
+        // Step 2: Insert new items
+        for (var i = 0; i < widget.items.length; i++) {
+          final itemId = widget.delegate.getItemId(widget.items[i]);
+          if (addedIds.contains(itemId)) {
+            widget.controller.insertItem(i, widget.items[i]);
+          }
+        }
+        
+        // Step 3: Update controller's internal list
+        widget.controller.updateItems(widget.items);
       });
     }
   }
@@ -167,16 +185,14 @@ class _CrossSectionDraggableListState<T extends Object> extends ConsumerState<Cr
         // and contains the actual data, ensuring AnimatedList is created with the correct
         // item count from the start. The controller will be populated later via
         // addPostFrameCallback, but AnimatedList will already know how many items to render.
-        ListView.builder(
-          key: ValueKey('${widget.sectionId}-${widget.items.length}'),  // Rebuild when item count changes
-          itemCount: widget.items.length,  // Use widget.items for current count
+        AnimatedList(
+          key: widget.controller.listKey,
+          initialItemCount: widget.items.length,  // Use widget.items, NOT controller.items
           controller: _scrollController,
           padding: widget.padding,
           physics: widget.physics,
           shrinkWrap: widget.shrinkWrap,
-          itemBuilder: (context, index) {
-            // Provide a default animation for compatibility with delegate.buildItem
-            final animation = AlwaysStoppedAnimation<double>(1.0);
+          itemBuilder: (context, index, animation) {
             if (kDebugMode) {
               debugPrint('[CrossSectionDraggableList] itemBuilder called - sectionId=${widget.sectionId}, index=$index, items.length=${widget.controller.items.length}');
             }
