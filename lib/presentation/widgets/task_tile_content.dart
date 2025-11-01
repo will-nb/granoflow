@@ -29,6 +29,7 @@ class TaskTileContent extends ConsumerStatefulWidget {
     this.onDragStarted,
     this.onDragUpdate,
     this.onDragEnd,
+    this.childWhenDraggingOpacity,
   });
 
   final Task task;
@@ -39,6 +40,7 @@ class TaskTileContent extends ConsumerStatefulWidget {
   final VoidCallback? onDragStarted;
   final void Function(DragUpdateDetails)? onDragUpdate;
   final VoidCallback? onDragEnd;
+  final double? childWhenDraggingOpacity;
 
   @override
   ConsumerState<TaskTileContent> createState() => _TaskTileContentState();
@@ -75,6 +77,7 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
         onDragStarted: widget.onDragStarted,
         onDragUpdate: widget.onDragUpdate,
         onDragEnd: widget.onDragEnd,
+        childWhenDraggingOpacity: widget.childWhenDraggingOpacity,
         child: TaskRowContent(
           task: widget.task,
           compact: widget.compact,

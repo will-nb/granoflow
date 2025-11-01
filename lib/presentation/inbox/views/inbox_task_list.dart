@@ -156,28 +156,6 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     }
   }
 
-  /// 递归获取任务的所有子任务 ID
-  ///
-  /// [task] 要查找子任务的任务
-  /// [taskMap] 任务 ID 到任务的映射（用于查找子任务）
-  /// 返回该任务的所有子任务 ID 集合（递归包含子任务的子任务）
-  Set<int> _getAllChildTaskIds(Task task, Map<int, Task> taskMap) {
-    final result = <int>{};
-
-    // 找到所有直接子任务
-    final directChildren = taskMap.values
-        .where((t) => t.parentId == task.id && !isProjectOrMilestone(t))
-        .toList();
-
-    // 递归处理每个子任务
-    for (final child in directChildren) {
-      result.add(child.id);
-      // 递归获取子任务的子任务
-      result.addAll(_getAllChildTaskIds(child, taskMap));
-    }
-
-    return result;
-  }
 
   /// 将扁平化列表索引转换为根任务插入索引
   ///
@@ -214,11 +192,14 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     }
 
     // 如果是子任务，找到它的根父任务
-    final taskMap = {for (final t in filteredTasks) t.id: t};
+    // 使用 filteredTasks 查找父任务（数据已在内存中）
     Task? currentTask = task;
     while (currentTask != null && currentTask.parentId != null) {
-      final parent = taskMap[currentTask.parentId];
-      if (parent == null) break;
+      final parentId = currentTask.parentId!;
+      final parent = filteredTasks.firstWhere(
+        (t) => t.id == parentId,
+        orElse: () => throw StateError('Parent task not found'),
+      );
       final parentRootIndex = taskIdToIndex[parent.id];
       if (parentRootIndex != null) {
         // 找到根父任务，返回它的索引 + 1（插入到它之后）
@@ -244,9 +225,11 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     String targetType,
     WidgetRef ref,
   ) async {
+    // 检查是否是子任务升级为根任务的情况
+    final isSubtaskPromotion = draggedTask.parentId != null;
     if (kDebugMode) {
       debugPrint(
-        '[DnD] {event: _handleInsertionDrop:start, page: Inbox, src: ${draggedTask.id}, targetType: $targetType, beforeTask: ${beforeTask?.id}, afterTask: ${afterTask?.id}, beforeSortIndex: ${beforeTask?.sortIndex}, afterSortIndex: ${afterTask?.sortIndex}}',
+        '[DnD] {event: _handleInsertionDrop:start, page: Inbox, src: ${draggedTask.id}, isSubtaskPromotion: $isSubtaskPromotion, originalParentId: ${draggedTask.parentId}, targetType: $targetType, beforeTask: ${beforeTask?.id}, afterTask: ${afterTask?.id}, beforeSortIndex: ${beforeTask?.sortIndex}, afterSortIndex: ${afterTask?.sortIndex}}',
       );
     }
     try {
@@ -285,6 +268,11 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
 
       // 统一使用 moveToParent 处理
       if (kDebugMode) {
+        if (isSubtaskPromotion && aboveTaskParentId == null) {
+          debugPrint(
+            '[DnD] {event: subtaskPromotion, page: Inbox, src: ${draggedTask.id}, originalParentId: ${draggedTask.parentId}, newParentId: null (root), sortIndex: $newSortIndex}',
+          );
+        }
         debugPrint(
           '[DnD] {event: call:moveToParent, page: Inbox, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex}',
         );
@@ -302,8 +290,11 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       final sortIndexService = ref.read(sortIndexServiceProvider);
       final allInboxTasks = await taskRepository.watchInbox().first;
       await sortIndexService.reorderTasksForInbox(tasks: allInboxTasks);
-
+      
       if (kDebugMode) {
+        debugPrint(
+          '[DnD] {event: reorderTasksForInbox:completed, page: Inbox, taskCount: ${allInboxTasks.length}}',
+        );
         debugPrint(
           '[DnD] {event: accept:success, page: Inbox, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex}',
         );
@@ -333,24 +324,24 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
   /// [hoveredTaskId] 当前悬停的任务 ID（如果是任务表面）
   /// [hoveredInsertionIndex] 当前悬停的插入位置索引（如果是插入间隔）
   /// [flattenedTasks] 扁平化任务列表
-  /// [taskMap] 任务映射
+  /// [filteredTasks] 所有任务列表（用于查找父任务）
   /// 返回 true 如果移动出扩展区，应该提升为 level 1
   bool _isMovedOutOfExpandedArea(
     Task task,
     int? hoveredTaskId,
     int? hoveredInsertionIndex,
     List<FlattenedTaskNode> flattenedTasks,
-    Map<int, Task> taskMap,
+    List<Task> filteredTasks,
   ) {
     if (task.parentId == null) {
       return false; // 根任务不存在扩展区
     }
 
-    // 找到父任务
-    final parentTask = taskMap[task.parentId];
-    if (parentTask == null) {
-      return false;
-    }
+    // 使用 filteredTasks 查找父任务（数据已在内存中）
+    final parentTask = filteredTasks.firstWhere(
+      (t) => t.id == task.parentId,
+      orElse: () => throw StateError('Parent task not found'),
+    );
 
     // 找到父任务在扁平化列表中的位置索引
     int? parentFlattenedIndex;
@@ -405,63 +396,25 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     return false;
   }
 
-  /// 自动提升子任务为根任务
-  ///
-  /// [task] 要提升的任务
-  /// [ref] WidgetRef 用于获取服务
-  Future<void> _promoteToRoot(Task task, WidgetRef ref) async {
-    try {
-      final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
-
-      // 计算合适的 sortIndex（插入到第一个根任务之前）
-      final filteredTasks = _tasks
-          .where((task) => task.status != TaskStatus.trashed)
-          .toList();
-      final rootTasks = collectRoots(
-        filteredTasks,
-      ).where((task) => !isProjectOrMilestone(task)).toList();
-
-      final newSortIndex = SortIndexCalculator.insertAtFirst(
-        rootTasks.isNotEmpty ? rootTasks[0].sortIndex : null,
-      );
-
-      if (kDebugMode) {
-        debugPrint(
-          '[DnD] {event: promoteToRoot:auto, page: Inbox, src: ${task.id}, sortIndex: $newSortIndex}',
-        );
-      }
-
-      await taskHierarchyService.moveToParent(
-        taskId: task.id,
-        parentId: null,
-        sortIndex: newSortIndex,
-        clearParent: true,
-      );
-
-      if (kDebugMode) {
-        debugPrint(
-          '[DnD] {event: promoteToRoot:success, page: Inbox, src: ${task.id}}',
-        );
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint(
-          '[DnD] {event: promoteToRoot:error, page: Inbox, src: ${task.id}, error: $e}',
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_tasks.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    // 过滤掉 trashed 状态的任务
-    final filteredTasks = _tasks
-        .where((task) => task.status != TaskStatus.trashed)
-        .toList();
+    // 获取虚拟字段 levelMap 和 childrenMap
+    final levelMapAsync = ref.watch(inboxTaskLevelMapProvider);
+    final childrenMapAsync = ref.watch(inboxTaskChildrenMapProvider);
+
+    // 使用 AsyncValue.when 处理异步加载
+    return levelMapAsync.when(
+      data: (levelMap) {
+        return childrenMapAsync.when(
+          data: (childrenMap) {
+            // 过滤掉 trashed 状态的任务
+            final filteredTasks = _tasks
+                .where((task) => task.status != TaskStatus.trashed)
+                .toList();
 
     // 构建任务层级树
     final taskTrees = _buildTaskTree(filteredTasks);
@@ -480,6 +433,10 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
         ),
       );
     }
+
+    // 子任务拖拽时也采用与根任务相同的策略：保留在 flattenedTasks 中，通过 opacity 控制可见性
+    // 这样可以让位动画正常工作，其他任务能够填补空位
+    final dragState = ref.watch(inboxDragProvider);
 
     if (flattenedTasks.isEmpty) {
       return const SizedBox.shrink();
@@ -505,7 +462,6 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
     // 标准实现：使用 Column 包裹任务和插入目标
     // 插入目标作为独立的小区域放在任务之间，不覆盖任务表面
     final dragNotifier = ref.read(inboxDragProvider.notifier);
-    final dragState = ref.watch(inboxDragProvider);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -557,18 +513,31 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
               // 检测是否移出扩展区
               final draggedTask = dragState.draggedTask;
               if (draggedTask != null) {
-                final taskMap = {for (final t in filteredTasks) t.id: t};
                 final movedOut = _isMovedOutOfExpandedArea(
                   draggedTask,
                   null,
                   0,
                   flattenedTasks,
-                  taskMap,
+                  filteredTasks,
                 );
                 if (movedOut) {
-                  await _promoteToRoot(draggedTask, ref);
-                  dragNotifier.endDrag();
-                  return;
+                  // 移出扩展区：只更新UI状态，不修改数据库
+                  dragNotifier.setDraggedTaskHidden(true);
+                  if (kDebugMode) {
+                    debugPrint(
+                      '[DnD] {event: movedOutOfExpansion, page: Inbox, taskId: ${draggedTask.id}, action: hideFromUI}',
+                    );
+                  }
+                } else {
+                  // 回到扩展区内：恢复显示
+                  if (dragState.isDraggedTaskHiddenFromExpansion == true) {
+                    dragNotifier.setDraggedTaskHidden(false);
+                    if (kDebugMode) {
+                      debugPrint(
+                        '[DnD] {event: movedBackToExpansion, page: Inbox, taskId: ${draggedTask.id}, action: showInUI}',
+                      );
+                    }
+                  }
                 }
               }
 
@@ -604,56 +573,84 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
 
               return [
                 // 任务卡片（带缩进和让位动画）
-                Opacity(
-                  // 被拖拽的任务在拖拽时完全隐藏（避免残影）
-                  opacity: isDraggedTask ? 0.0 : 1.0,
-                  child: AnimatedContainer(
+                // 注意：被拖拽任务的隐藏现在由 StandardDraggable 的 childWhenDraggingOpacity 控制
+                AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,
                     transform: () {
                       if (!dragState.isDragging ||
-                          dragState.hoveredInsertionIndex == null ||
-                          rootIndex == null) {
+                          dragState.hoveredInsertionIndex == null) {
                         return null;
                       }
 
-                      // 转换扁平化列表索引为根任务插入索引
-                      final rootInsertionIndex =
-                          _convertFlattenedIndexToRootInsertionIndex(
-                            dragState.hoveredInsertionIndex!,
-                            flattenedTasks,
-                            taskIdToIndex,
-                            rootTasks,
-                            filteredTasks,
-                          );
-
-                      // 构建 taskMap 用于计算 level 和 parentId
-                      final taskMap = {for (final t in filteredTasks) t.id: t};
-
-                      // 计算被拖拽任务的 level 和 parentId
+                      // 使用虚拟字段 levelMap 计算 level
                       final draggedTask = dragState.draggedTask;
-                      int? draggedTaskLevel;
-                      int? draggedTaskParentId;
-                      if (draggedTask != null) {
-                        draggedTaskLevel = getTaskLevel(draggedTask, taskMap);
-                        draggedTaskParentId = draggedTask.parentId;
+                      if (draggedTask == null) {
+                        return null;
                       }
+                      
+                      final draggedTaskLevel = levelMap[draggedTask.id] ?? 1;
+                      final draggedTaskParentId = draggedTask.parentId;
 
                       // 计算当前任务的 level 和 parentId
-                      final currentTaskLevel = getTaskLevel(task, taskMap);
+                      final currentTaskLevel = levelMap[task.id] ?? 1;
                       final currentTaskParentId = task.parentId;
 
-                      return _calculateYieldingTransform(
-                        index: rootIndex,
-                        draggedTaskIndex:
-                            taskIdToIndex[dragState.draggedTask?.id] ?? -1,
-                        hoveredInsertionIndex: rootInsertionIndex,
-                        totalTasks: rootTasks.length,
-                        draggedTaskLevel: draggedTaskLevel,
-                        currentTaskLevel: currentTaskLevel,
-                        draggedTaskParentId: draggedTaskParentId,
-                        currentTaskParentId: currentTaskParentId,
-                      );
+                      // 判断是根任务还是子任务
+                      final isRootTask = rootIndex != null;
+                      
+                      if (isRootTask) {
+                        // 根任务：使用根任务索引和转换后的插入索引
+                        // rootIndex 在这里肯定不为 null（因为 isRootTask 检查过）
+                        
+                        // 转换扁平化列表索引为根任务插入索引
+                        final rootInsertionIndex =
+                            _convertFlattenedIndexToRootInsertionIndex(
+                              dragState.hoveredInsertionIndex!,
+                              flattenedTasks,
+                              taskIdToIndex,
+                              rootTasks,
+                              filteredTasks,
+                            );
+
+                        return _calculateYieldingTransform(
+                          index: rootIndex,
+                          draggedTaskIndex:
+                              taskIdToIndex[draggedTask.id] ?? -1,
+                          hoveredInsertionIndex: rootInsertionIndex,
+                          totalTasks: rootTasks.length,
+                          draggedTaskLevel: draggedTaskLevel,
+                          currentTaskLevel: currentTaskLevel,
+                          draggedTaskParentId: draggedTaskParentId,
+                          currentTaskParentId: currentTaskParentId,
+                        );
+                      } else {
+                        // 子任务：使用扁平化列表索引
+                        // 查找被拖拽子任务在 flattenedTasks 中的原始位置
+                        int draggedTaskFlattenedIndex = -1;
+                        for (var i = 0; i < flattenedTasks.length; i++) {
+                          if (flattenedTasks[i].task.id == draggedTask.id) {
+                            draggedTaskFlattenedIndex = i;
+                            break;
+                          }
+                        }
+                        
+                        if (draggedTaskFlattenedIndex == -1) {
+                          return null;
+                        }
+
+                        // 对于子任务，直接使用 flattenedIndex
+                        return _calculateYieldingTransform(
+                          index: index,
+                          draggedTaskIndex: draggedTaskFlattenedIndex,
+                          hoveredInsertionIndex: dragState.hoveredInsertionIndex!,
+                          totalTasks: flattenedTasks.length,
+                          draggedTaskLevel: draggedTaskLevel,
+                          currentTaskLevel: currentTaskLevel,
+                          draggedTaskParentId: draggedTaskParentId,
+                          currentTaskParentId: currentTaskParentId,
+                        );
+                      }
                     }(),
                     child: Padding(
                       padding: EdgeInsets.only(
@@ -688,20 +685,31 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                             // 检测是否移出扩展区
                             final draggedTask = dragState.draggedTask;
                             if (draggedTask != null) {
-                              final taskMap = {
-                                for (final t in filteredTasks) t.id: t,
-                              };
                               final movedOut = _isMovedOutOfExpandedArea(
                                 draggedTask,
                                 task.id,
                                 null,
                                 flattenedTasks,
-                                taskMap,
+                                filteredTasks,
                               );
                               if (movedOut) {
-                                await _promoteToRoot(draggedTask, ref);
-                                dragNotifier.endDrag();
-                                return;
+                                // 移出扩展区：只更新UI状态，不修改数据库
+                                dragNotifier.setDraggedTaskHidden(true);
+                                if (kDebugMode) {
+                                  debugPrint(
+                                    '[DnD] {event: movedOutOfExpansion, page: Inbox, taskId: ${draggedTask.id}, action: hideFromUI}',
+                                  );
+                                }
+                              } else {
+                                // 回到扩展区内：恢复显示
+                                if (dragState.isDraggedTaskHiddenFromExpansion == true) {
+                                  dragNotifier.setDraggedTaskHidden(false);
+                                  if (kDebugMode) {
+                                    debugPrint(
+                                      '[DnD] {event: movedBackToExpansion, page: Inbox, taskId: ${draggedTask.id}, action: showInUI}',
+                                    );
+                                  }
+                                }
                               }
                             }
 
@@ -751,12 +759,10 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                             return InboxTaskTile(
                               task: task,
                               trailing: expandCollapseButton,
+                              childWhenDraggingOpacity: isDraggedTask ? 0.0 : null,
                               onDragStarted: () {
-                                // 构建 taskMap 用于计算 level
-                                final taskMap = {
-                                  for (final t in filteredTasks) t.id: t,
-                                };
-                                final taskLevel = getTaskLevel(task, taskMap);
+                                // 使用虚拟字段 levelMap 和 childrenMap
+                                final taskLevel = levelMap[task.id] ?? 1;
 
                                 // 获取展开状态管理器
                                 final expandedNotifier = ref.read(
@@ -768,10 +774,7 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
 
                                 if (taskLevel == 1) {
                                   // 根任务：收缩所有子任务
-                                  final childTaskIds = _getAllChildTaskIds(
-                                    task,
-                                    taskMap,
-                                  );
+                                  final childTaskIds = childrenMap[task.id] ?? <int>{};
                                   final updatedExpanded = Set<int>.from(
                                     currentExpanded,
                                   );
@@ -787,10 +790,7 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                                     return;
                                   }
                                   // 收缩自己的子任务
-                                  final childTaskIds = _getAllChildTaskIds(
-                                    task,
-                                    taskMap,
-                                  );
+                                  final childTaskIds = childrenMap[task.id] ?? <int>{};
                                   final updatedExpanded = Set<int>.from(
                                     currentExpanded,
                                   );
@@ -808,7 +808,45 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                                   details.globalPosition,
                                 );
                               },
-                              onDragEnd: () {
+                              onDragEnd: () async {
+                                if (kDebugMode) {
+                                  debugPrint(
+                                    '[DnD] {event: onDragEnd:called, taskId: ${task.id}}',
+                                  );
+                                }
+                                
+                                // 在 endDrag() 之前立即读取状态，确保获取到最新的偏移量
+                                final dragState = ref.read(inboxDragProvider);
+                                
+                                // 保存偏移量，因为 endDrag() 会清空状态
+                                final horizontalOffset = dragState.horizontalOffset;
+                                final verticalOffset = dragState.verticalOffset;
+                                
+                                if (kDebugMode) {
+                                  debugPrint(
+                                    '[DnD] {event: onDragEnd:stateRead, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+                                  );
+                                }
+
+                                // 使用闭包中捕获的 task 对象，而不是状态中的 draggedTask
+                                // 因为状态可能在 onDragEnd 之前被清空
+                                final taskService = ref.read(taskServiceProvider);
+                                final taskHierarchyService =
+                                    ref.read(taskHierarchyServiceProvider);
+                                
+                                if (kDebugMode) {
+                                  debugPrint(
+                                    '[DnD] {event: onDragEnd:leftDragPromotion:attempt, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+                                  );
+                                }
+                                
+                                await taskService.handleLeftDragPromotion(
+                                  task.id,
+                                  taskHierarchyService,
+                                  horizontalOffset: horizontalOffset,
+                                  verticalOffset: verticalOffset,
+                                );
+
                                 dragNotifier.endDrag();
                               },
                             );
@@ -817,7 +855,6 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                       ),
                     ),
                   ),
-                ),
                 // 插入目标（支持在根任务之间和子任务之间显示）
                 if (nextTask != null)
                   TaskDragIntentTarget.insertion(
@@ -888,20 +925,31 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                         // 检测是否移出扩展区
                         final draggedTask = dragState.draggedTask;
                         if (draggedTask != null) {
-                          final taskMap = {
-                            for (final t in filteredTasks) t.id: t,
-                          };
                           final movedOut = _isMovedOutOfExpandedArea(
                             draggedTask,
                             null,
                             insertionIndex,
                             flattenedTasks,
-                            taskMap,
+                            filteredTasks,
                           );
                           if (movedOut) {
-                            await _promoteToRoot(draggedTask, ref);
-                            dragNotifier.endDrag();
-                            return;
+                            // 移出扩展区：只更新UI状态，不修改数据库
+                            dragNotifier.setDraggedTaskHidden(true);
+                            if (kDebugMode) {
+                              debugPrint(
+                                '[DnD] {event: movedOutOfExpansion, page: Inbox, taskId: ${draggedTask.id}, action: hideFromUI}',
+                              );
+                            }
+                          } else {
+                            // 回到扩展区内：恢复显示
+                            if (dragState.isDraggedTaskHiddenFromExpansion == true) {
+                              dragNotifier.setDraggedTaskHidden(false);
+                              if (kDebugMode) {
+                                debugPrint(
+                                  '[DnD] {event: movedBackToExpansion, page: Inbox, taskId: ${draggedTask.id}, action: showInUI}',
+                                );
+                              }
+                            }
                           }
                         }
 
@@ -914,7 +962,21 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
               ];
             })
             .expand((widgets) => widgets),
-      ],
+          ],
+        );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) {
+            debugPrint('Error loading children map: $error');
+            return const SizedBox.shrink();
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) {
+        debugPrint('Error loading level map: $error');
+        return const SizedBox.shrink();
+      },
     );
   }
 

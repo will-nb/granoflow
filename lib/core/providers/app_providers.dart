@@ -14,6 +14,8 @@ import '../services/task_template_service.dart';
 import '../constants/task_constants.dart';
 import '../monetization/monetization_service.dart';
 import '../monetization/monetization_state.dart';
+import '../../data/repositories/task_repository.dart';
+import '../../presentation/tasks/utils/hierarchy_utils.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
 
@@ -207,6 +209,101 @@ final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
         urgencyTag: filter.urgencyTag,
         importanceTag: filter.importanceTag,
       );
+});
+
+/// Provider for getting task level map (虚拟字段)
+///
+/// 返回 taskId -> level 的映射，level 是计算属性（虚拟字段）
+/// 自动响应 inboxTasksProvider 的变化
+///
+/// 使用方式：
+/// ```dart
+/// final levelMapAsync = ref.watch(inboxTaskLevelMapProvider);
+/// return levelMapAsync.when(
+///   data: (levelMap) {
+///     final taskLevel = levelMap[task.id] ?? 1;
+///     // ...
+///   },
+///   loading: () => CircularProgressIndicator(),
+///   error: (_, __) => SizedBox.shrink(),
+/// );
+/// ```
+final inboxTaskLevelMapProvider = FutureProvider<Map<int, int>>((ref) async {
+  final tasksAsync = ref.watch(inboxTasksProvider);
+  final tasks = await tasksAsync.requireValue;
+  final taskRepository = ref.watch(taskRepositoryProvider);
+  final levelMap = <int, int>{};
+
+  // 批量计算所有任务的 level
+  for (final task in tasks) {
+    final depth = await calculateHierarchyDepth(task, taskRepository);
+    levelMap[task.id] = depth + 1;
+  }
+
+  return levelMap;
+});
+
+/// 辅助函数：递归获取所有后代任务 ID
+Future<Set<int>> _getAllDescendants(
+  int taskId,
+  TaskRepository repository,
+) async {
+  final result = <int>{};
+  final children = await repository.listChildren(taskId);
+  final normalChildren =
+      children.where((t) => !isProjectOrMilestone(t)).toList();
+
+  for (final child in normalChildren) {
+    result.add(child.id);
+    result.addAll(await _getAllDescendants(child.id, repository));
+  }
+
+  return result;
+}
+
+/// Provider for getting task children map (虚拟字段)
+///
+/// 返回 taskId -> Set<子任务ID> 的映射
+/// 自动响应 inboxTasksProvider 的变化
+///
+/// 使用方式：
+/// ```dart
+/// final childrenMapAsync = ref.watch(inboxTaskChildrenMapProvider);
+/// return childrenMapAsync.when(
+///   data: (childrenMap) {
+///     final childTaskIds = childrenMap[task.id] ?? <int>{};
+///     // ...
+///   },
+///   loading: () => CircularProgressIndicator(),
+///   error: (_, __) => SizedBox.shrink(),
+/// );
+/// ```
+final inboxTaskChildrenMapProvider =
+    FutureProvider<Map<int, Set<int>>>((ref) async {
+  final tasksAsync = ref.watch(inboxTasksProvider);
+  final tasks = await tasksAsync.requireValue;
+  final taskRepository = ref.watch(taskRepositoryProvider);
+  final childrenMap = <int, Set<int>>{};
+
+  // 为每个任务查找所有子任务
+  for (final task in tasks) {
+    final children = await taskRepository.listChildren(task.id);
+    final normalChildren = children
+        .where((t) => !isProjectOrMilestone(t))
+        .map((t) => t.id)
+        .toSet();
+
+    // 递归添加子任务的子任务
+    final allChildren = <int>{...normalChildren};
+    for (final childId in normalChildren) {
+      final childChildren = await _getAllDescendants(childId, taskRepository);
+      allChildren.addAll(childChildren);
+    }
+
+    childrenMap[task.id] = allChildren;
+  }
+
+  return childrenMap;
 });
 
 final rootTasksProvider = FutureProvider<List<Task>>((ref) async {

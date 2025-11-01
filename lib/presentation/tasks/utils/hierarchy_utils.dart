@@ -51,46 +51,6 @@ Future<bool> hasCircularReference(
   return false; // 不存在循环引用
 }
 
-/// 计算任务的层级深度（同步版本，使用任务映射）
-///
-/// [task] 要计算深度的任务
-/// [taskMap] 任务 ID 到任务的映射（已查询好的任务列表）
-///
-/// 返回任务的层级深度（从0开始，根任务为0）
-/// 最多支持3级（不含里程碑和项目）
-/// 项目和里程碑不计入层级深度
-///
-/// 如果任务映射中缺少父任务信息，会返回已计算的深度
-int calculateTaskDepthSync(Task task, Map<int, Task> taskMap) {
-  if (task.parentId == null) {
-    return 0;
-  }
-
-  int depth = 0;
-  int? currentParentId = task.parentId;
-  const maxDepth = 10; // 防止无限循环的保护措施
-
-  while (currentParentId != null && depth < maxDepth) {
-    final parent = taskMap[currentParentId];
-    if (parent == null) {
-      // 如果任务映射中找不到父任务，返回已计算的深度
-      break;
-    }
-
-    // 项目和里程碑不计入层级深度
-    if (parent.taskKind == TaskKind.project ||
-        parent.taskKind == TaskKind.milestone) {
-      currentParentId = parent.parentId;
-      continue;
-    }
-
-    depth++;
-    currentParentId = parent.parentId;
-  }
-
-  return depth;
-}
-
 /// 计算任务的层级深度
 ///
 /// [task] 要计算深度的任务
@@ -244,8 +204,9 @@ bool canMoveTask(Task task) {
 /// level 3: 三级任务
 ///
 /// [task] 要计算层级的任务
-/// [taskMap] 任务 ID 到任务的映射（用于查找父任务）
+/// [repository] 任务仓库，用于查询父任务
 /// 返回任务的层级（1-3）
-int getTaskLevel(Task task, Map<int, Task> taskMap) {
-  return calculateTaskDepthSync(task, taskMap) + 1;
+Future<int> getTaskLevel(Task task, TaskRepository repository) async {
+  final depth = await calculateHierarchyDepth(task, repository);
+  return depth + 1;
 }

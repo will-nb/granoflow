@@ -17,6 +17,7 @@ class InboxDragState {
     this.currentDragPosition,
     this.horizontalOffset,
     this.verticalOffset,
+    this.isDraggedTaskHiddenFromExpansion,
   });
 
   final Task? draggedTask;
@@ -34,6 +35,8 @@ class InboxDragState {
   final double? horizontalOffset;
   // 垂直位移（dy = currentDragPosition.dy - dragStartPosition.dy）
   final double? verticalOffset;
+  // 被拖拽的子任务是否已移出扩展区，应该在UI上隐藏
+  final bool? isDraggedTaskHiddenFromExpansion;
 
   bool get isDragging => draggedTask != null;
 
@@ -47,6 +50,7 @@ class InboxDragState {
     Offset? currentDragPosition,
     double? horizontalOffset,
     double? verticalOffset,
+    bool? isDraggedTaskHiddenFromExpansion,
   }) {
     return InboxDragState(
       draggedTask: draggedTask ?? this.draggedTask,
@@ -58,6 +62,7 @@ class InboxDragState {
       currentDragPosition: currentDragPosition ?? this.currentDragPosition,
       horizontalOffset: horizontalOffset ?? this.horizontalOffset,
       verticalOffset: verticalOffset ?? this.verticalOffset,
+      isDraggedTaskHiddenFromExpansion: isDraggedTaskHiddenFromExpansion ?? this.isDraggedTaskHiddenFromExpansion,
     );
   }
 
@@ -73,7 +78,8 @@ class InboxDragState {
         other.dragStartPosition == dragStartPosition &&
         other.currentDragPosition == currentDragPosition &&
         other.horizontalOffset == horizontalOffset &&
-        other.verticalOffset == verticalOffset;
+        other.verticalOffset == verticalOffset &&
+        other.isDraggedTaskHiddenFromExpansion == isDraggedTaskHiddenFromExpansion;
   }
 
   @override
@@ -86,7 +92,8 @@ class InboxDragState {
         dragStartPosition.hashCode ^
         currentDragPosition.hashCode ^
         horizontalOffset.hashCode ^
-        verticalOffset.hashCode;
+        verticalOffset.hashCode ^
+        isDraggedTaskHiddenFromExpansion.hashCode;
   }
 }
 
@@ -110,6 +117,13 @@ class InboxDragNotifier extends StateNotifier<InboxDragState> {
 
   void endDrag() {
     state = const InboxDragState();
+  }
+
+  /// 设置被拖拽任务在UI上的隐藏状态（用于子任务移出扩展区时）
+  /// 
+  /// [hidden] true 表示隐藏，false 表示显示，null 表示重置
+  void setDraggedTaskHidden(bool? hidden) {
+    state = state.copyWith(isDraggedTaskHiddenFromExpansion: hidden);
   }
 
   /// 更新拖拽位置

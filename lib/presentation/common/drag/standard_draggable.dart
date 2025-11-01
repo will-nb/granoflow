@@ -16,7 +16,8 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
     this.onDragUpdate,
     this.onDragEnd,
     this.enabled = true,
-    this.useLongPress = true,  // 新增：控制是否使用长按
+    this.useLongPress = true,
+    this.childWhenDraggingOpacity, // 新增：允许自定义 childWhenDragging 的透明度
     super.key,
   });
 
@@ -28,6 +29,7 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
   final VoidCallback? onDragEnd;
   final bool enabled;
   final bool useLongPress; // 新增：是否使用长按拖拽
+  final double? childWhenDraggingOpacity; // 新增参数
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,7 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
     
     final feedback = _buildFeedback(context, dragTheme, content);
     final childWhenDragging = Opacity(
-      opacity: DragConstants.draggingOpacity,
+      opacity: childWhenDraggingOpacity ?? DragConstants.draggingOpacity, // 使用自定义值或默认值
       child: content,
     );
     

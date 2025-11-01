@@ -16,6 +16,7 @@ class InboxTaskTile extends ConsumerWidget {
     this.onDragStarted,
     this.onDragUpdate,
     this.onDragEnd,
+    this.childWhenDraggingOpacity,
   });
 
   final Task task;
@@ -24,6 +25,7 @@ class InboxTaskTile extends ConsumerWidget {
   final VoidCallback? onDragStarted;
   final void Function(DragUpdateDetails)? onDragUpdate;
   final VoidCallback? onDragEnd;
+  final double? childWhenDraggingOpacity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,6 +58,7 @@ class InboxTaskTile extends ConsumerWidget {
         onDragStarted: onDragStarted,
         onDragUpdate: onDragUpdate,
         onDragEnd: onDragEnd,
+        childWhenDraggingOpacity: childWhenDraggingOpacity,
       ),
     );
     return tileContent;

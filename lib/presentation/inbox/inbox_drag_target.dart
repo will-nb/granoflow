@@ -140,12 +140,9 @@ class InboxDragTarget extends ConsumerWidget {
               aboveTaskParentId = beforeTask!.parentId;
             } else {
               // 不是兄弟（不同级别）：根据向右拖动情况决定
-              // 需要获取所有任务来构建任务映射，用于计算层级深度
-              final allTasks = await taskRepository.watchInbox().first;
-              final taskMap = {for (final task in allTasks) task.id: task};
-              
-              final beforeDepth = calculateTaskDepthSync(beforeTask!, taskMap);
-              final afterDepth = calculateTaskDepthSync(afterTask!, taskMap);
+              // 使用异步方法计算层级深度
+              final beforeDepth = await calculateHierarchyDepth(beforeTask!, taskRepository);
+              final afterDepth = await calculateHierarchyDepth(afterTask!, taskRepository);
               
               // 从 dragState 获取水平位移
               final horizontalOffset = dragState.horizontalOffset ?? 0.0;

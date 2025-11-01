@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/providers/repository_providers.dart';
-import '../../../core/services/sort_index_service.dart';
 import '../../../core/utils/task_section_utils.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
