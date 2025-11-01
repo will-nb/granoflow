@@ -12,10 +12,14 @@ class InboxTaskTile extends ConsumerWidget {
     super.key,
     required this.task,
     this.contentPadding,
+    this.onDragStarted,
+    this.onDragEnd,
   });
 
   final Task task;
   final EdgeInsetsGeometry? contentPadding;
+  final VoidCallback? onDragStarted;
+  final VoidCallback? onDragEnd;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +48,8 @@ class InboxTaskTile extends ConsumerWidget {
         task: task,
         leading: const Icon(Icons.drag_indicator_rounded, size: 20),
         contentPadding: contentPadding,
-        dragPage: 'Inbox',
+        onDragStarted: onDragStarted,
+        onDragEnd: onDragEnd,
       ),
     );
     return tileContent;

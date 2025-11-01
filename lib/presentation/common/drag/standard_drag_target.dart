@@ -18,6 +18,7 @@ class StandardDragTarget<T extends Object> extends StatefulWidget {
     this.child,
     this.onHoverChanged,
     this.showWhenIdle = false,
+    this.useMargin = true,
     super.key,
   });
 
@@ -29,6 +30,8 @@ class StandardDragTarget<T extends Object> extends StatefulWidget {
   final void Function(bool isHovering)? onHoverChanged;
   // 是否在未悬停时也渲染默认插入线（保持与 Tasks 行为一致）
   final bool showWhenIdle;
+  // 是否使用 margin（在 Positioned 场景下应该设为 false）
+  final bool useMargin;
 
   @override
   State<StandardDragTarget<T>> createState() => _StandardDragTargetState<T>();
@@ -75,18 +78,14 @@ class _StandardDragTargetState<T extends Object> extends State<StandardDragTarge
   // 背景高亮已移除，仅保留插入线，因此不再需要计算hover背景色
 
   Widget _buildDefaultInsertionLine(BuildContext context, DragTheme theme, bool isHovering) {
-    final baseColor = widget.type == InsertionType.between
-        ? theme.insertionLineBetweenColor
-        : theme.insertionLineSectionColor;
-
+    // 标准实现：插入目标是一个小的独立区域，不显示视觉元素
+    // 让位动画已经足够明显了，不需要额外的插入线
     return Container(
-      height: isHovering
-          ? DragConstants.insertionLineHeight
-          : DragConstants.insertionHitHeight,
-      margin: _getMargin(widget.type),
-      decoration: BoxDecoration(
-        color: isHovering ? baseColor : Colors.transparent,
-        borderRadius: BorderRadius.circular(1),
+      height: DragConstants.insertionTargetHeight,
+      // 标准实现：插入目标作为独立区域，不使用 margin
+      // margin 只在需要视觉间距时使用（如使用 margin 的场景）
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
     );
   }

@@ -118,7 +118,8 @@ class TaskDragIntentTarget extends ConsumerStatefulWidget {
   }) : style = TaskDragTargetStyle.surface,
        insertionType = null,
        showWhenIdle = false,
-       insertionChild = null;
+       insertionChild = null,
+       useMargin = true;
 
   const TaskDragIntentTarget.insertion({
     super.key,
@@ -130,6 +131,7 @@ class TaskDragIntentTarget extends ConsumerStatefulWidget {
     this.onResult,
     this.insertionChild,
     this.showWhenIdle = false,
+    this.useMargin = true,
   }) : style = TaskDragTargetStyle.insertion,
        hoverColor = null,
        borderRadius = null,
@@ -151,6 +153,7 @@ class TaskDragIntentTarget extends ConsumerStatefulWidget {
   final InsertionType? insertionType;
   final Widget? insertionChild;
   final bool showWhenIdle;
+  final bool useMargin;
 
   @override
   ConsumerState<TaskDragIntentTarget> createState() =>
@@ -207,6 +210,7 @@ class _TaskDragIntentTargetState extends ConsumerState<TaskDragIntentTarget> {
     return StandardDragTarget<Task>(
       type: widget.insertionType ?? InsertionType.between,
       showWhenIdle: widget.showWhenIdle,
+      useMargin: widget.useMargin,
       child: widget.insertionChild,
       onHoverChanged: (isHovering) {
         _handleHover(isHovering);

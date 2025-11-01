@@ -1,0 +1,265 @@
+meta:
+  id: "251201-fix-drag-target-in-reorderable-list"
+  title: "修复 ReorderableListView 中 DragTarget 拖拽移入/移出功能失效问题"
+  status: draft
+  owner: "开发团队"
+  created_at: "2025-11-01"
+  estimated_effort: "2-3小时"
+
+background:
+  problem: |
+    在修复 Inbox 页面拖动宽度问题时，将 `ReorderableDragStartListener` 移到最外层包裹整个 item，
+    导致拖拽移入和移出功能失效：
+    1. 拖拽任务到目标任务上时，目标任务不会变色（hover 效果失效）
+    2. 松手后源任务回到原地，拖拽未被接受
+    3. `TaskDragIntentTarget.surface` 中的 `DragTarget` 无法接收到拖拽事件
+    4. Tasks 和 Inbox 页面都存在同样的问题
+    
+    根本原因：
+    - `ReorderableDragStartListener` 包裹了整个 item，包括 `TaskTileContent` 内部的 `TaskDragIntentTarget.surface`
+    - Flutter 的手势系统优先级导致 `ReorderableListView` 的拖拽手势优先于 `DragTarget` 的拖拽接收
+    - `DragTarget` 在 `ReorderableDragStartListener` 内部时，无法接收到来自其他 item 的拖拽事件
+
+  goal: |
+    - 修复拖拽移入/移出功能，确保 `DragTarget` 能够正常接收拖拽事件
+    - 保持 `ReorderableDragStartListener` 在最外层的结构（用于列表内部排序）
+    - 确保跨区域拖拽和成为子任务功能正常工作
+    - 保持拖动宽度修复（全宽显示）
+    - 确保 Tasks 和 Inbox 页面的行为一致
+
+solution:
+  approach: |
+    采用方案 B：将 `TaskDragIntentTarget.surface` 移到 `ReorderableDragStartListener` 外层
+    
+    结构变更：
+    - 之前：ReorderableDragStartListener > TaskTileContent (包含 DragTarget)
+    - 之后：TaskDragIntentTarget.surface > ReorderableDragStartListener > TaskTileContent (不包含 DragTarget)
+    
+    这样 `DragTarget` 在外层，可以接收所有拖拽事件，不会被 `ReorderableDragStartListener` 阻止。
+
+implementation:
+  phase_1_extract_helper:
+    name: "提取拖拽逻辑到 Helper 类"
+    description: |
+      将 `TaskTileContent` 内部的私有方法提取为公共的 helper 类，以便在列表组件中复用
+    
+    steps:
+      - file: "lib/presentation/widgets/task_drag_intent_helper.dart"
+        action: "create"
+        content: |
+          创建新的 helper 类，包含：
+          - `canAcceptAsChild(Task draggedTask, Task targetTask) -> bool`
+          - `handleDropOnTask(Task draggedTask, Task targetTask, ...) -> Future<TaskDragIntentResult>`
+          这些方法从 `TaskTileContent` 中提取出来，保持原有逻辑不变
+
+  phase_2_modify_task_tile_content:
+    name: "修改 TaskTileContent：移除内部的 DragTarget"
+    description: |
+      修改 `TaskTileContent`，移除内部的 `TaskDragIntentTarget.surface` 包裹，只返回内容部分
+    
+    steps:
+      - file: "lib/presentation/widgets/task_tile_content.dart"
+        action: "modify"
+        changes:
+          - 移除 `dragPage` 参数（不再需要）
+          - 移除 `build()` 方法中的 `TaskDragIntentTarget.surface` 包裹
+          - 直接返回 `_buildContent()` 的结果
+          - 保持其他参数和逻辑不变
+
+  phase_3_modify_inbox_task_list:
+    name: "修改 InboxTaskList：在外层添加 DragTarget"
+    description: |
+      在 `InboxTaskList.itemBuilder` 中，将 `TaskDragIntentTarget.surface` 移到外层包裹 `ReorderableDragStartListener`
+    
+    steps:
+      - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+        action: "modify"
+        changes:
+          - 导入 `TaskDragIntentHelper` 和 `TaskDragIntentTarget`
+          - 在 `itemBuilder` 中，将返回结构改为：
+            ```dart
+            return TaskDragIntentTarget.surface(
+              meta: TaskDragIntentMeta(
+                page: 'Inbox',
+                targetType: 'taskSurface',
+                targetId: task.id,
+                targetTaskId: task.id,
+              ),
+              canAccept: (draggedTask, _) =>
+                  TaskDragIntentHelper.canAcceptAsChild(draggedTask, task),
+              onPerform: (draggedTask, ref, context, l10n) async {
+                return TaskDragIntentHelper.handleDropOnTask(
+                  draggedTask, task, context, ref, l10n,
+                );
+              },
+              child: ReorderableDragStartListener(
+                key: ValueKey('inbox-${task.id}'),
+                index: index,
+                child: InboxTaskTile(task: task),
+              ),
+            );
+            ```
+
+  phase_4_modify_task_section_list:
+    name: "修改 TaskSectionTaskModeList：在外层添加 DragTarget"
+    description: |
+      在 `TaskSectionTaskModeList.itemBuilder` 中，将 `TaskDragIntentTarget.surface` 移到外层包裹 `ReorderableDragStartListener`
+    
+    steps:
+      - file: "lib/presentation/tasks/views/task_section_list.dart"
+        action: "modify"
+        changes:
+          - 导入 `TaskDragIntentHelper` 和 `TaskDragIntentTarget`
+          - 在 `itemBuilder` 中，将返回结构改为：
+            ```dart
+            return TaskDragIntentTarget.surface(
+              meta: TaskDragIntentMeta(
+                page: 'Tasks',
+                targetType: 'taskSurface',
+                targetId: task.id,
+                targetTaskId: task.id,
+              ),
+              canAccept: (draggedTask, _) =>
+                  TaskDragIntentHelper.canAcceptAsChild(draggedTask, task),
+              onPerform: (draggedTask, ref, context, l10n) async {
+                return TaskDragIntentHelper.handleDropOnTask(
+                  draggedTask, task, context, ref, l10n,
+                );
+              },
+              child: ReorderableDragStartListener(
+                key: ValueKey('task-${task.id}'),
+                index: index,
+                child: TaskWithParentChain(...),
+              ),
+            );
+            ```
+
+  phase_5_fix_inbox_task_tile:
+    name: "修复 InboxTaskTile：移除 dragPage 参数"
+    description: |
+      移除 `InboxTaskTile` 中传递给 `TaskTileContent` 的 `dragPage` 参数（因为该参数已被移除）
+    
+    steps:
+      - file: "lib/presentation/inbox/widgets/inbox_task_tile.dart"
+        action: "modify"
+        changes:
+          - 移除第47行的 `dragPage: 'Inbox',` 参数
+          - 保持其他代码不变
+
+  phase_6_verify_nested_usage:
+    name: "验证嵌套使用场景"
+    description: |
+      验证 `TaskLeafTile` 和 `ParentTaskInOwnSection` 中的 `TaskTileContent` 使用是否正确
+      这些组件在 `TaskTreeView` 中使用，而 `TaskTreeView` 在 `TaskWithParentChain` 中使用，
+      最终在 `TaskSectionTaskModeList.itemBuilder` 中，所以会被外层的 `TaskDragIntentTarget` 包裹
+    
+    verification:
+      - 确认 `TaskLeafTile` 中 `TaskTileContent` 的使用不需要修改（没有传 dragPage）
+      - 确认 `ParentTaskInOwnSection` 中 `TaskTileContent` 的使用不需要修改（没有传 dragPage）
+      - 确认嵌套的 `TaskTileContent` 也能正常接收拖拽事件（通过外层的 `TaskDragIntentTarget`）
+
+testing:
+  test_cases:
+    - name: "Inbox 页面拖拽移入功能"
+      steps:
+        - 打开 Inbox 页面
+        - 长按拖拽图标，拖拽任务 A 到任务 B 上
+        - 验证任务 B 高亮显示（变色）
+        - 松手后验证任务 A 成为任务 B 的子任务
+      
+    - name: "Inbox 页面拖拽移出功能"
+      steps:
+        - 打开 Inbox 页面
+        - 长按拖拽图标，拖拽子任务到列表空白处
+        - 验证可以移出父任务
+    
+    - name: "Tasks 页面拖拽移入功能"
+      steps:
+        - 打开 Tasks 页面
+        - 长按拖拽图标，拖拽任务 A 到任务 B 上
+        - 验证任务 B 高亮显示（变色）
+        - 松手后验证任务 A 成为任务 B 的子任务
+      
+    - name: "Tasks 页面拖拽移出功能"
+      steps:
+        - 打开 Tasks 页面
+        - 长按拖拽图标，拖拽子任务到其他位置
+        - 验证可以移出父任务
+    
+    - name: "嵌套任务拖拽功能（TaskLeafTile）"
+      steps:
+        - 打开 Tasks 页面，找到有子任务的任务
+        - 长按拖拽图标，拖拽其他任务到嵌套的 `TaskLeafTile` 上
+        - 验证可以正常成为子任务
+    
+    - name: "父任务卡片拖拽功能（ParentTaskInOwnSection）"
+      steps:
+        - 打开 Tasks 页面，找到父任务
+        - 长按拖拽图标，拖拽其他任务到父任务卡片上
+        - 验证可以正常成为子任务
+    
+    - name: "列表内部排序功能"
+      steps:
+        - 在 Inbox 和 Tasks 页面分别测试
+        - 拖动任务（不拖拽图标）进行排序
+        - 验证排序功能正常，拖动宽度正确（全宽显示）
+    
+    - name: "跨区域拖拽功能"
+      steps:
+        - 在 Tasks 页面，长按拖拽图标
+        - 将任务从一个分区拖到另一个分区
+        - 验证跨区域拖拽功能正常
+
+files_to_modify:
+  - file: "lib/presentation/widgets/task_drag_intent_helper.dart"
+    type: "create"
+    description: "新建 helper 类，提取拖拽逻辑"
+  
+  - file: "lib/presentation/widgets/task_tile_content.dart"
+    type: "modify"
+    description: "移除内部的 DragTarget，移除 dragPage 参数"
+  
+  - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+    type: "modify"
+    description: "在外层添加 TaskDragIntentTarget.surface"
+  
+  - file: "lib/presentation/tasks/views/task_section_list.dart"
+    type: "modify"
+    description: "在外层添加 TaskDragIntentTarget.surface"
+  
+  - file: "lib/presentation/inbox/widgets/inbox_task_tile.dart"
+    type: "modify"
+    description: "移除 dragPage 参数"
+
+files_not_to_modify:
+  - file: "lib/presentation/tasks/views/task_leaf_tile.dart"
+    reason: "没有使用 dragPage 参数，不需要修改"
+  
+  - file: "lib/presentation/tasks/widgets/parent_task_in_own_section.dart"
+    reason: "没有使用 dragPage 参数，且会通过外层的 TaskDragIntentTarget 接收拖拽事件"
+
+risks:
+  - name: "嵌套组件的拖拽事件传递"
+    description: "TaskLeafTile 和 ParentTaskInOwnSection 中的 TaskTileContent 是嵌套在 TaskTreeView 中的，需要验证外层的 TaskDragIntentTarget 能否正确接收事件"
+    mitigation: "在测试阶段重点验证这些嵌套场景"
+  
+  - name: "API 变更影响"
+    description: "移除 dragPage 参数可能会影响其他使用 TaskTileContent 的地方"
+    mitigation: "已检查所有使用位置，只有 InboxTaskTile 需要修改"
+
+rollback_plan:
+  - 如果出现问题，可以回退到之前的实现：
+    1. 恢复 `TaskTileContent` 的原始实现
+    2. 恢复 `InboxTaskList` 和 `TaskSectionTaskModeList` 的 itemBuilder
+    3. 但需要解决拖动宽度问题（可能需要其他方案）
+
+success_criteria:
+  - Inbox 和 Tasks 页面的拖拽移入/移出功能正常工作
+  - 目标任务在拖拽悬停时正确高亮显示
+  - 松手后拖拽操作被正确接受
+  - 列表内部排序功能正常
+  - 拖动宽度保持全宽显示
+  - 嵌套场景（TaskLeafTile、ParentTaskInOwnSection）的拖拽功能正常
+  - 代码编译无错误
+  - 所有现有测试通过
+

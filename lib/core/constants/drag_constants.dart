@@ -17,6 +17,6 @@ class DragConstants {
   static const double insertionLineHeight = 2.0; // 更细
   static const double insertionLineBlurRadius = 0.0; // 无阴影
   static const double insertionLineSpreadRadius = 0.0; // 无扩散
-  // 空闲命中区高度（透明，不改变视觉，但保证 DragTarget 可被命中）
-  static const double insertionHitHeight = 1.0;
+  // 插入目标标准高度（独立区域，不覆盖任务表面）
+  static const double insertionTargetHeight = 8.0; // 标准实现：小的独立区域
 }
