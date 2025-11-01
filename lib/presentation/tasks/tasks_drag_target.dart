@@ -190,6 +190,25 @@ class TasksPageDragTarget extends ConsumerWidget {
         payload: TaskUpdate(sortIndex: newSortIndex, dueAt: newDueDate),
       );
 
+      // 批量重排目标日期同一天的所有任务的sortIndex
+      // 需要从数据库重新查询，因为移动后可能跨日期
+      final taskRepository = ref.read(taskRepositoryProvider);
+      final sortIndexService = ref.read(sortIndexServiceProvider);
+      
+      // 查询所有pending状态的普通任务（Tasks页面显示的任务）
+      final allPendingTasks = await taskRepository.listAll();
+      final pendingRegularTasks = allPendingTasks
+          .where((task) => 
+              task.status == TaskStatus.pending &&
+              task.taskKind == TaskKind.regular)
+          .toList();
+      
+      // 批量重排目标日期同一天的任务
+      await sortIndexService.reorderTasksForSameDate(
+        allTasks: pendingRegularTasks,
+        targetDate: newDueDate,
+      );
+
       // 记录拖拽后的任务分布（延迟一小段时间让数据库更新完成）
       if (kDebugMode) {
         await Future.delayed(const Duration(milliseconds: 100));

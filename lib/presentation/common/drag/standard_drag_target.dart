@@ -19,6 +19,7 @@ class StandardDragTarget<T extends Object> extends StatefulWidget {
     this.onHoverChanged,
     this.showWhenIdle = false,
     this.useMargin = true,
+    this.expandedHeight,
     super.key,
   });
 
@@ -32,6 +33,8 @@ class StandardDragTarget<T extends Object> extends StatefulWidget {
   final bool showWhenIdle;
   // 是否使用 margin（在 Positioned 场景下应该设为 false）
   final bool useMargin;
+  // 动态扩展高度（用于让位动画时扩展插入目标覆盖整个让出的空间）
+  final double? expandedHeight;
 
   @override
   State<StandardDragTarget<T>> createState() => _StandardDragTargetState<T>();
@@ -80,8 +83,12 @@ class _StandardDragTargetState<T extends Object> extends State<StandardDragTarge
   Widget _buildDefaultInsertionLine(BuildContext context, DragTheme theme, bool isHovering) {
     // 标准实现：插入目标是一个小的独立区域，不显示视觉元素
     // 让位动画已经足够明显了，不需要额外的插入线
+    // 按照官方标准：一旦让位动画发生（expandedHeight != null），整个让出的空间都应该可以接受拖拽
+    // 不需要等待精确悬停，直接使用扩展高度覆盖整个让出的空间
+    final height = widget.expandedHeight ?? DragConstants.insertionTargetHeight;
+    
     return Container(
-      height: DragConstants.insertionTargetHeight,
+      height: height,
       // 标准实现：插入目标作为独立区域，不使用 margin
       // margin 只在需要视觉间距时使用（如使用 margin 的场景）
       decoration: const BoxDecoration(

@@ -13,6 +13,7 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
     required this.data,
     this.handle,
     this.onDragStarted,
+    this.onDragUpdate,
     this.onDragEnd,
     this.enabled = true,
     this.useLongPress = true,  // 新增：控制是否使用长按
@@ -23,6 +24,7 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
   final T data;
   final Widget? handle; // 可选拖拽手柄
   final VoidCallback? onDragStarted;
+  final void Function(DragUpdateDetails)? onDragUpdate;
   final VoidCallback? onDragEnd;
   final bool enabled;
   final bool useLongPress; // 新增：是否使用长按拖拽
@@ -52,6 +54,13 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
       onDragStarted?.call();
     };
     
+    final onDragUpdateWithLog = (DragUpdateDetails details) {
+      if (kDebugMode && details.localPosition.distance < 1) {
+        debugPrint('[Drag] Long press detected, waiting for drag threshold...');
+      }
+      onDragUpdate?.call(details);
+    };
+    
     final onDragEndWithLog = (DraggableDetails details) {
       if (kDebugMode) {
         debugPrint('[Drag] Drag ended - data: $data, '
@@ -71,13 +80,8 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
         feedback: feedback,
         childWhenDragging: childWhenDragging,
         onDragStarted: onDragStartedWithLog,
+        onDragUpdate: onDragUpdateWithLog,
         onDragEnd: onDragEndWithLog,
-        // 添加长按监听以记录日志
-        onDragUpdate: (details) {
-          if (kDebugMode && details.localPosition.distance < 1) {
-            debugPrint('[Drag] Long press detected, waiting for drag threshold...');
-          }
-        },
         child: content,
       );
     } else {
@@ -87,6 +91,7 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
         feedback: feedback,
         childWhenDragging: childWhenDragging,
         onDragStarted: onDragStartedWithLog,
+        onDragUpdate: onDragUpdateWithLog,
         onDragEnd: onDragEndWithLog,
         child: content,
       );

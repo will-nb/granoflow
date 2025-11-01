@@ -1,0 +1,418 @@
+meta:
+  id: "250115-simplified-drag-system"
+  title: "简化拖拽系统：基于 level 的层级拖拽逻辑"
+  status: draft
+  owner: "开发团队"
+  created_at: "2025-01-15"
+  estimated_effort: "13-19小时"
+  design_doc: "250115-simplified-drag-system"
+
+background:
+  problem: |
+    当前拖拽系统存在以下问题：
+    
+    1. **让位动画问题**：
+       - 当拖拽经过多个任务时，每个让位都会留下空白间隔
+       - 任务没有连续排列，视觉上出现多余的空隙
+       - 原因是每个任务独立计算 transform，没有全局协调，跨层级让位导致问题
+    
+    2. **拖拽逻辑复杂**：
+       - 需要判断水平拖拽方向（左右移动超过 30px）
+       - 需要处理不同层级的任务（根任务、子任务）
+       - 需要判断 beforeTask 和 afterTask 是否是兄弟
+       - 需要根据深度比较决定 parentId
+       - 逻辑过于复杂，容易出错，包含 3 层嵌套条件分支
+    
+    3. **层级判断不清晰**：
+       - 没有统一的 level 概念（1/2/3）
+       - 每次计算深度都需要传递 taskMap
+       - 难以判断任务是否可以拖拽
+    
+    4. **sortIndex 硬编码**：
+       - 多处使用 -1000、+1000 等硬编码值
+       - 容易出错，难以维护
+
+  goal: |
+    通过引入 level 概念和简化拖拽规则，实现：
+    1. **清晰的层级系统**：level 1/2/3 对应根任务/二级任务/三级任务
+    2. **简化的拖拽逻辑**：
+       - 根任务（level 1）：拖拽时自动收缩子任务，只处理同级排序
+       - 子任务（level 2/3）：只能在父任务的扩展区域内拖拽
+       - 移出扩展区自动提升为根任务（用户以为是手抖）
+    3. **正确的让位动画**：只在同级任务之间让位，避免空白间隔
+    4. **统一的 sortIndex 计算**：创建专门的类处理，避免硬编码
+    5. **核心逻辑复杂度降低 70-80%**：移除 3 层嵌套、异步查询、多次深度计算
+
+solution:
+  approach: |
+    核心策略：
+    1. **引入 level 系统**：通过 `getTaskLevel` 函数统一计算任务层级
+    2. **简化拖拽规则**：
+       - 根任务：自动收缩子任务，简化逻辑
+       - 子任务：限制拖拽范围（父任务的扩展区域），移出自动提升
+    3. **统一 sortIndex 计算**：创建 `SortIndexCalculator` 类
+    4. **修复让位动画**：添加层级检查，只在同级让位
+    5. **移除复杂判断**：删除水平拖拽判断、兄弟判断、深度比较等逻辑
+  
+  key_changes:
+    - "添加 `getTaskLevel` 函数统一计算任务层级"
+    - "创建 `SortIndexCalculator` 类统一处理 sortIndex 计算"
+    - "简化 `_handleInsertionDrop`：移除 3 层嵌套、异步查询、深度计算"
+    - "移除 `_checkAndPromoteToRoot`：合并到扩展区检测逻辑"
+    - "实现扩展区检测：子任务移出扩展区自动提升为根任务"
+    - "修复让位动画：添加层级检查，只在同级任务之间让位"
+    - "拖拽开始逻辑：根任务自动收缩子任务，子任务检查展开状态"
+
+implementation:
+  phase_1_level_system:
+    name: "实现 level 系统和 sortIndex 计算类"
+    description: |
+      第一步：建立基础工具类，为后续简化做准备
+      
+      1. 在 `hierarchy_utils.dart` 中添加 `getTaskLevel` 函数
+      2. 创建 `SortIndexCalculator` 类，统一处理 sortIndex 计算
+      3. 添加单元测试验证功能正确性
+    
+    steps:
+      - file: "lib/presentation/tasks/utils/hierarchy_utils.dart"
+        action: "modify"
+        changes:
+          - 在文件末尾添加 `getTaskLevel` 函数
+          - 函数签名：`int getTaskLevel(Task task, Map<int, Task> taskMap)`
+          - 实现逻辑：调用 `calculateTaskDepthSync` 并返回 `depth + 1`
+          - 添加详细的注释说明 level 1/2/3 的含义
+    
+      - file: "lib/presentation/tasks/utils/sort_index_calculator.dart"
+        action: "create"
+        content: |
+          创建新文件，包含：
+          - `class SortIndexCalculator`：排序索引计算器
+          - `static const double defaultInterval = 1000.0`：默认排序间隔
+          - `static double insertAtFirst(double? firstTaskSortIndex)`：插入到最前面
+          - `static double insertAtLast(double? lastTaskSortIndex)`：插入到最后面
+          - `static double insertBetween(double before, double after)`：插入到两个任务之间
+          - `static double insertAfter(double taskSortIndex)`：插入到任务之后
+          - `static double insertBefore(double taskSortIndex)`：插入到任务之前
+          - 所有方法都使用 `defaultInterval` 常量，避免硬编码
+          - 添加详细的注释和示例
+    
+      - file: "test/unit/presentation/tasks/utils/sort_index_calculator_test.dart"
+        action: "create"
+        content: |
+          创建单元测试文件，测试：
+          - `insertAtFirst`：各种边界情况（null, 正数, 负数）
+          - `insertAtLast`：各种边界情况
+          - `insertBetween`：正常情况、相同值、极值
+          - `insertAfter` 和 `insertBefore`：正常情况
+    
+      - file: "test/unit/presentation/tasks/utils/hierarchy_utils_test.dart"
+        action: "modify"
+        changes:
+          - 添加 `getTaskLevel` 的测试用例
+          - 测试 level 1（根任务）、level 2、level 3 的计算
+          - 测试项目和里程碑不计入层级深度的情况
+    
+    acceptance_criteria:
+      - "`getTaskLevel` 函数正确计算任务的层级（1/2/3）"
+      - "`SortIndexCalculator` 类提供所有必需的 API"
+      - "所有单元测试通过"
+      - "代码通过 `flutter analyze`"
+    
+    estimated_effort: "1-2 hours"
+
+  phase_2_drag_start_logic:
+    name: "实现拖拽开始时的逻辑"
+    description: |
+      第二步：在拖拽开始时根据 level 执行不同的逻辑
+      
+      1. 根任务（level 1）：自动收缩所有子任务
+      2. 子任务（level 2/3）：检查是否展开，禁止拖拽未展开的任务，收缩自己的子任务
+    
+    steps:
+      - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+        action: "modify"
+        changes:
+          - 在文件顶部添加 `getTaskLevel` 的 import
+          - 在 `onDragStarted` 回调中添加 level 判断逻辑：
+            - 构建 `taskMap = {for (final t in filteredTasks) t.id: t}`
+            - 调用 `getTaskLevel(task, taskMap)` 获取层级
+            - 如果 level == 1：
+              - 获取 `inboxExpandedTaskIdProvider.notifier`
+              - 找到该任务的所有子任务 ID（递归查找）
+              - 从 `expandedTaskIds` 中移除所有子任务的 ID
+              - 更新 `expandedTaskIds` 状态
+            - 如果 level > 1：
+              - 检查 `expandedTaskIds.contains(task.id)`
+              - 如果未展开，直接返回（禁止拖拽）
+              - 如果已展开，收缩该任务的所有子任务（类似根任务的逻辑）
+          - 确保逻辑在 `dragNotifier.startDrag` 之前执行
+      
+      - file: "lib/core/providers/inbox_drag_provider.dart"
+        action: "modify"
+        changes:
+          - 如果需要，添加辅助方法支持拖拽状态管理
+          - 确保 `startDrag` 方法正常工作
+    
+    acceptance_criteria:
+      - "拖拽根任务时，所有子任务自动收缩"
+      - "拖拽未展开的子任务时，拖拽被禁止（无效果）"
+      - "拖拽已展开的子任务时，该任务的子任务自动收缩"
+      - "代码通过 `flutter analyze`"
+      - "手动测试验证拖拽行为符合预期"
+    
+    estimated_effort: "2-3 hours"
+
+  phase_3_expanded_area_detection:
+    name: "实现扩展区检测和自动提升逻辑"
+    description: |
+      第三步：实现扩展区检测，子任务移出扩展区时自动提升为根任务
+      
+      1. 实现 `_isMovedOutOfExpandedArea` 方法
+      2. 在 `onHover` 回调中检测是否移出扩展区
+      3. 实现自动提升为根任务的逻辑
+      4. 使用 `SortIndexCalculator` 计算 sortIndex
+    
+    steps:
+      - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+        action: "modify"
+        changes:
+          - 添加 `SortIndexCalculator` 的 import
+          - 实现 `_isMovedOutOfExpandedArea` 方法：
+            - 参数：`Task task, int? hoveredTaskId, int? hoveredInsertionIndex, List<FlattenedTaskNode> flattenedTasks, Map<int, Task> taskMap`
+            - 如果 `task.parentId == null`，返回 `false`（根任务不存在扩展区）
+            - 找到父任务 `taskMap[task.parentId]`
+            - 在 `flattenedTasks` 中找到父任务的位置索引
+            - 找到父任务的最后一个子任务的位置索引（在扁平化列表中）
+            - 检查 `hoveredTaskId` 或 `hoveredInsertionIndex` 是否在扩展区内
+            - 如果父任务未展开（所有子任务都不在扁平化列表中），返回 `true`
+            - 返回检测结果
+          - 实现 `_promoteToRoot` 方法（私有辅助方法）：
+            - 参数：`Task task, WidgetRef ref`
+            - 计算合适的 sortIndex（使用 `SortIndexCalculator.insertAtFirst`）
+            - 调用 `taskHierarchyService.moveToParent` 提升为根任务
+            - 添加日志输出
+          - 在插入目标的 `onHover` 回调中：
+            - 检测是否移出扩展区（调用 `_isMovedOutOfExpandedArea`）
+            - 如果移出，调用 `_promoteToRoot`，然后调用 `dragNotifier.endDrag()`
+          - 在任务表面的 `onHover` 回调中：
+            - 同样检测是否移出扩展区
+            - 如果移出，执行自动提升逻辑
+      
+      - file: "test/unit/presentation/inbox/views/inbox_task_list_test.dart"
+        action: "modify"
+        changes:
+          - 添加扩展区检测的测试用例
+          - 测试各种边界情况
+    
+    acceptance_criteria:
+      - "子任务在父任务扩展区内拖拽正常"
+      - "子任务移出扩展区时自动提升为根任务"
+      - "自动提升后拖拽结束"
+      - "sortIndex 使用 `SortIndexCalculator` 计算"
+      - "代码通过 `flutter analyze`"
+      - "手动测试验证自动提升行为"
+    
+    estimated_effort: "3-4 hours"
+
+  phase_4_yielding_animation:
+    name: "修复让位动画，只在同级任务之间"
+    description: |
+      第四步：修复让位动画的 bug，确保只在同级任务之间让位
+      
+      1. 修改 `_calculateYieldingTransform` 方法
+      2. 添加层级和父任务检查
+      3. 确保只在同级任务之间让位
+    
+    steps:
+      - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+        action: "modify"
+        changes:
+          - 修改 `_calculateYieldingTransform` 方法的签名：
+            - 添加参数：`int? draggedTaskLevel, int? currentTaskLevel, int? draggedTaskParentId, int? currentTaskParentId`
+          - 在方法开始处添加层级检查：
+            - 如果 `draggedTaskLevel != currentTaskLevel`，返回 `null`（不同层级，不让位）
+            - 如果 `draggedTaskLevel > 1`（子任务）：
+              - 检查 `draggedTaskParentId != currentTaskParentId`
+              - 如果不同父任务，返回 `null`（不同父任务，不让位）
+          - 保持原有的让位逻辑不变
+          - 在调用 `_calculateYieldingTransform` 的地方：
+            - 计算 `draggedTaskLevel = getTaskLevel(draggedTask, taskMap)`
+            - 计算 `currentTaskLevel = getTaskLevel(task, taskMap)`
+            - 传递 `draggedTask.parentId` 和 `task.parentId`
+          - 确保所有调用处都传递新参数
+      
+      - file: "test/unit/presentation/inbox/views/inbox_task_list_test.dart"
+        action: "modify"
+        changes:
+          - 添加让位动画的测试用例
+          - 测试同级任务让位
+          - 测试不同级任务不让位
+          - 测试不同父任务的子任务不让位
+    
+    acceptance_criteria:
+      - "同级任务之间正确让位"
+      - "不同级任务之间不让位（修复空白间隔 bug）"
+      - "不同父任务的子任务之间不让位"
+      - "代码通过 `flutter analyze`"
+      - "手动测试验证让位动画正确"
+    
+    estimated_effort: "2-3 hours"
+
+  phase_5_insertion_drop_logic:
+    name: "简化插入间隔的逻辑"
+    description: |
+      第五步：简化 `_handleInsertionDrop` 方法，移除复杂判断
+      
+      1. 移除兄弟判断、深度计算、水平拖拽判断
+      2. 直接使用 `beforeTask.parentId` 作为新 `parentId`
+      3. 使用 `SortIndexCalculator` 替换硬编码
+    
+    steps:
+      - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+        action: "modify"
+        changes:
+          - 修改 `_handleInsertionDrop` 方法：
+            - 移除异步获取所有任务的逻辑（`await taskRepository.watchInbox().first`）
+            - 移除 `taskMap` 的构建
+            - 移除 `areSiblings` 的判断
+            - 移除 `beforeDepth` 和 `afterDepth` 的计算
+            - 移除 `horizontalOffset` 和 `isRightDrag` 的判断
+            - 简化逻辑：
+              - `if (targetType == 'first')`：`aboveTaskParentId = null`, `newSortIndex = SortIndexCalculator.insertAtFirst(...)`
+              - `else if (targetType == 'last')`：`aboveTaskParentId = beforeTask?.parentId`, `newSortIndex = SortIndexCalculator.insertAtLast(...)`
+              - `else`（between）：`aboveTaskParentId = beforeTask?.parentId`, `newSortIndex = SortIndexCalculator.insertBetween(...)`
+            - 移除所有相关的 debug 日志（或简化）
+            - 保持 `moveToParent` 调用不变
+          - 确保所有调用 `_handleInsertionDrop` 的地方正常工作
+      
+      - file: "lib/presentation/inbox/inbox_drag_target.dart"
+        action: "modify"
+        changes:
+          - 如果该文件也有类似的复杂逻辑，同样简化
+          - 使用 `SortIndexCalculator` 替换硬编码
+    
+      - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+        action: "modify"
+        changes:
+          - 移除 `_checkAndPromoteToRoot` 方法（不再需要）
+          - 移除 `onDragEnd` 中对 `_checkAndPromoteToRoot` 的调用
+          - 移除 `horizontalOffset` 和 `verticalOffset` 的相关代码（如果不再需要）
+    
+    acceptance_criteria:
+      - "`_handleInsertionDrop` 方法简化，代码行数减少 50% 以上"
+      - "移除所有硬编码的 sortIndex 计算"
+      - "移除兄弟判断、深度计算、水平拖拽判断"
+      - "所有拖拽操作正常工作"
+      - "代码通过 `flutter analyze`"
+      - "手动测试验证所有拖拽场景"
+    
+    estimated_effort: "2-3 hours"
+
+  phase_6_testing_and_cleanup:
+    name: "测试、清理和文档更新"
+    description: |
+      第六步：全面测试、清理代码、更新文档
+      
+      1. 编写完整的单元测试和集成测试
+      2. 清理未使用的代码和导入
+      3. 更新相关文档
+    
+    steps:
+      - file: "test/unit/presentation/inbox/views/inbox_task_list_test.dart"
+        action: "modify"
+        changes:
+          - 添加完整的单元测试覆盖所有新功能
+          - 测试拖拽根任务、子任务的各种场景
+          - 测试扩展区检测的各种边界情况
+          - 测试让位动画的正确性
+      
+      - file: "test/integration/inbox_drag_test.dart"
+        action: "modify"
+        changes:
+          - 添加集成测试验证完整的拖拽流程
+          - 测试用户场景
+    
+      - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+        action: "modify"
+        changes:
+          - 清理未使用的导入
+          - 清理未使用的变量和方法
+          - 确保代码通过 `flutter analyze`
+      
+      - file: "lib/presentation/inbox/inbox_drag_target.dart"
+        action: "modify"
+        changes:
+          - 如果该文件有修改，同样清理未使用的代码
+      
+      - file: "documents/spec/projects/tasks/design/250115-simplified-drag-system.yaml"
+        action: "modify"
+        changes:
+          - 更新 status 为 "completed"（完成时）
+          - 记录实际实现过程中的问题和解决方案
+    
+    acceptance_criteria:
+      - "所有单元测试通过"
+      - "所有集成测试通过"
+      - "代码通过 `flutter analyze`"
+      - "代码通过 `dart format`"
+      - "手动测试所有关键场景"
+      - "文档更新完成"
+    
+    estimated_effort: "3-4 hours"
+
+checklists:
+  code_quality:
+    - "flutter analyze"
+    - "dart format . --line-length 100"
+    - "检查所有硬编码是否已移除"
+    - "检查所有 sortIndex 计算是否使用 SortIndexCalculator"
+  
+  testing:
+    - "flutter test"
+    - "单元测试：level 计算"
+    - "单元测试：sortIndex 计算"
+    - "单元测试：扩展区检测"
+    - "单元测试：让位动画"
+    - "集成测试：完整拖拽流程"
+    - "手工验证：拖拽根任务"
+    - "手工验证：拖拽子任务"
+    - "手工验证：移出扩展区自动提升"
+    - "手工验证：让位动画无空白间隔"
+  
+  documentation:
+    - "更新 design 文档状态"
+    - "更新相关注释"
+    - "如有必要，更新用户文档"
+
+risks:
+  - name: "扩展区检测逻辑复杂"
+    mitigation: |
+      仔细设计算法，添加充分的单元测试
+      在实现过程中逐步验证边界情况
+  
+  - name: "自动提升可能影响用户体验"
+    mitigation: |
+      通过测试确保自动提升的时机合理
+      如果用户反馈不好，可以改为提示用户或调整阈值
+  
+  - name: "让位动画修改可能引入新 bug"
+    mitigation: |
+      保持原有逻辑不变，只添加层级检查
+      添加充分的测试覆盖
+
+dependencies:
+  - "lib/presentation/tasks/utils/hierarchy_utils.dart"
+  - "lib/presentation/inbox/views/inbox_task_list.dart"
+  - "lib/core/constants/task_constants.dart"
+  - "lib/core/providers/inbox_drag_provider.dart"
+
+related_documents:
+  - "documents/spec/projects/tasks/design/250115-simplified-drag-system.yaml"
+  - "documents/spec/projects/tasks/design/251201-unified-drag-system.yaml"
+
+signoff:
+  required_approvals:
+    - architecture: "开发团队"
+    - product: "产品团队"
+    - qa: "QA 团队"
+

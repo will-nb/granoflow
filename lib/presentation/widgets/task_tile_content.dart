@@ -27,6 +27,7 @@ class TaskTileContent extends ConsumerStatefulWidget {
     this.trailing,
     this.contentPadding,
     this.onDragStarted,
+    this.onDragUpdate,
     this.onDragEnd,
   });
 
@@ -36,6 +37,7 @@ class TaskTileContent extends ConsumerStatefulWidget {
   final Widget? trailing; // 尾部内容（如展开/收缩按钮）
   final EdgeInsetsGeometry? contentPadding;
   final VoidCallback? onDragStarted;
+  final void Function(DragUpdateDetails)? onDragUpdate;
   final VoidCallback? onDragEnd;
 
   @override
@@ -71,6 +73,7 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
         data: widget.task,
         handle: handle,
         onDragStarted: widget.onDragStarted,
+        onDragUpdate: widget.onDragUpdate,
         onDragEnd: widget.onDragEnd,
         child: TaskRowContent(
           task: widget.task,

@@ -95,22 +95,15 @@ class InboxDragTarget extends ConsumerWidget {
   }
 
   bool _canAcceptDrop(Task draggedTask) {
-    // 仅接受“子任务→根级”的提升；根任务排序交给 Reorderable 原生动画
-    if (draggedTask.parentId != null) {
-      final movable = canMoveTask(draggedTask);
-      if (kDebugMode) {
-        debugPrint(
-          '[DnD] {event: rule, page: Inbox, rule: subtaskOnly, src: ${draggedTask.id}, canMove: $movable}',
-        );
-      }
-      return movable;
-    }
+    // 统一接受根任务和子任务，都使用"成为兄弟"的逻辑
+    // 检查任务是否可移动
+    final movable = canMoveTask(draggedTask);
     if (kDebugMode) {
       debugPrint(
-        '[DnD] {event: block, page: Inbox, reason: notSubtask, src: ${draggedTask.id}}',
+        '[DnD] {event: rule, page: Inbox, rule: canAccept, src: ${draggedTask.id}, parentId: ${draggedTask.parentId}, canMove: $movable}',
       );
     }
-    return false;
+    return movable;
   }
 
   Future<TaskDragIntentResult> _handleDrop(
@@ -119,85 +112,134 @@ class InboxDragTarget extends ConsumerWidget {
     InboxDragNotifier dragNotifier,
   ) async {
     try {
-      final taskService = ref.read(taskServiceProvider);
-      // 如果是子任务拖拽到根级别，先将其设置为根任务
-      if (draggedTask.parentId != null) {
-        final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
-
-        // 计算合适的 sortIndex
-        double newSortIndex;
-        switch (targetType) {
-          case InboxDragTargetType.between:
-            // 在 beforeTask 和 afterTask 之间
-            if (beforeTask != null && afterTask != null) {
-              newSortIndex = (beforeTask!.sortIndex + afterTask!.sortIndex) / 2;
-            } else {
-              newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
-            }
-            break;
-          case InboxDragTargetType.first:
-            // 拖拽到第一个位置，使用较小的 sortIndex
-            newSortIndex = beforeTask?.sortIndex != null
-                ? beforeTask!.sortIndex - 1000
-                : TaskConstants.DEFAULT_SORT_INDEX - 1000;
-            break;
-          case InboxDragTargetType.last:
-            // 拖拽到最后一个位置，使用较大的 sortIndex
-            newSortIndex = afterTask?.sortIndex != null
-                ? afterTask!.sortIndex + 1000
-                : TaskConstants.DEFAULT_SORT_INDEX + 1000;
-            break;
-        }
-
-        // 将子任务移动到根级别（parentId = null）
-        if (kDebugMode) {
-          debugPrint(
-            '[DnD] {event: call:moveToParent, page: Inbox, action: promoteToRoot, src: ${draggedTask.id}, parent: null, sortIndex: $newSortIndex}',
-          );
-        }
-        await taskHierarchyService.moveToParent(
-          taskId: draggedTask.id,
-          parentId: null,
-          sortIndex: newSortIndex,
-          clearParent: true,
-        );
-        if (kDebugMode) {
-          debugPrint(
-            '[DnD] {event: accept:success, page: Inbox, action: promoteToRoot, src: ${draggedTask.id}, sortIndex: $newSortIndex}',
-          );
-        }
-        // 直接回读数据库确认 parentId 等字段
-        try {
-          final taskRepository = ref.read(taskRepositoryProvider);
-          final saved = await taskRepository.findById(draggedTask.id);
-          if (kDebugMode) {
-            debugPrint(
-              '[DnD] {event: db:readback, page: Inbox, task: ${draggedTask.id}, parentId: ${saved?.parentId}, status: ${saved?.status}, sortIndex: ${saved?.sortIndex}}',
-            );
-          }
-        } catch (_) {}
-        // 乐观更新：通知上层列表立即更新本地数据，避免等待流刷新
-        onPromoteToRoot?.call(draggedTask, newSortIndex);
-
-        return const TaskDragIntentResult.success(clearParent: true);
-      }
-
-      // 根任务之间的排序逻辑（原有逻辑）
+      final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
+      final taskRepository = ref.read(taskRepositoryProvider);
+      final dragState = ref.read(inboxDragProvider);
+      
+      // 确定上方任务的 parentId
+      int? aboveTaskParentId;
+      double newSortIndex;
+      
       switch (targetType) {
-        case InboxDragTargetType.between:
-          await taskService.handleInboxDragBetween(
-            draggedTask.id,
-            beforeTask!.id,
-            afterTask!.id,
-          );
-          break;
         case InboxDragTargetType.first:
-          await taskService.handleInboxDragToFirst(draggedTask.id);
+          // 顶部插入目标：成为根项目（parentId = null）
+          aboveTaskParentId = null;
+          newSortIndex = beforeTask?.sortIndex != null
+              ? beforeTask!.sortIndex - 1000
+              : TaskConstants.DEFAULT_SORT_INDEX - 1000;
           break;
+          
+        case InboxDragTargetType.between:
+          // 中间插入目标：需要判断 beforeTask 和 afterTask 是否是兄弟
+          if (beforeTask != null && afterTask != null) {
+            // 判断是否是兄弟（同一 parentId）
+            final areSiblings = beforeTask!.parentId == afterTask!.parentId;
+            
+            if (areSiblings) {
+              // 是兄弟：成为 beforeTask 的兄弟
+              aboveTaskParentId = beforeTask!.parentId;
+            } else {
+              // 不是兄弟（不同级别）：根据向右拖动情况决定
+              // 需要获取所有任务来构建任务映射，用于计算层级深度
+              final allTasks = await taskRepository.watchInbox().first;
+              final taskMap = {for (final task in allTasks) task.id: task};
+              
+              final beforeDepth = calculateTaskDepthSync(beforeTask!, taskMap);
+              final afterDepth = calculateTaskDepthSync(afterTask!, taskMap);
+              
+              // 从 dragState 获取水平位移
+              final horizontalOffset = dragState.horizontalOffset ?? 0.0;
+              final isRightDrag = horizontalOffset > 30.0;
+              
+              if (kDebugMode) {
+                debugPrint(
+                  '[DnD] {event: betweenNotSiblings, page: Inbox, before: ${beforeTask!.id} (depth: $beforeDepth), after: ${afterTask!.id} (depth: $afterDepth), horizontalOffset: $horizontalOffset, isRightDrag: $isRightDrag}',
+                );
+              }
+              
+              if (isRightDrag) {
+                // 向右拖动：成为层级较深的那个任务的兄弟
+                aboveTaskParentId = beforeDepth > afterDepth 
+                    ? beforeTask!.parentId 
+                    : afterTask!.parentId;
+              } else {
+                // 没有向右拖动：成为层级较浅的那个任务的兄弟
+                aboveTaskParentId = beforeDepth < afterDepth 
+                    ? beforeTask!.parentId 
+                    : afterTask!.parentId;
+              }
+            }
+            
+            // 计算 sortIndex
+            newSortIndex = (beforeTask!.sortIndex + afterTask!.sortIndex) / 2;
+          } else {
+            // 如果 beforeTask 或 afterTask 为 null，使用默认值
+            aboveTaskParentId = beforeTask?.parentId;
+            newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
+          }
+          break;
+          
         case InboxDragTargetType.last:
-          await taskService.handleInboxDragToLast(draggedTask.id);
+          // 底部插入目标：最后一个任务作为 beforeTask（afterTask = null）
+          // 成为最后一个任务的兄弟
+          aboveTaskParentId = beforeTask?.parentId;
+          newSortIndex = beforeTask?.sortIndex != null
+              ? beforeTask!.sortIndex + 1000
+              : TaskConstants.DEFAULT_SORT_INDEX + 1000;
           break;
       }
+
+      // 统一使用 moveToParent 处理
+      if (kDebugMode) {
+        debugPrint(
+          '[DnD] {event: call:moveToParent, page: Inbox, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex}',
+        );
+      }
+      
+      await taskHierarchyService.moveToParent(
+        taskId: draggedTask.id,
+        parentId: aboveTaskParentId,
+        sortIndex: newSortIndex,
+        clearParent: aboveTaskParentId == null,
+      );
+
+      // 批量重排所有inbox任务的sortIndex
+      final sortIndexService = ref.read(sortIndexServiceProvider);
+      final allInboxTasks = await taskRepository.watchInbox().first;
+      await sortIndexService.reorderTasksForInbox(tasks: allInboxTasks);
+      
+      if (kDebugMode) {
+        debugPrint(
+          '[DnD] {event: reorderTasksForInbox:completed, page: Inbox, taskCount: ${allInboxTasks.length}}',
+        );
+      }
+      
+      if (kDebugMode) {
+        debugPrint(
+          '[DnD] {event: accept:success, page: Inbox, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex}',
+        );
+      }
+      
+      // 直接回读数据库确认 parentId 等字段
+      try {
+        final saved = await taskRepository.findById(draggedTask.id);
+        if (kDebugMode) {
+          debugPrint(
+            '[DnD] {event: db:readback, page: Inbox, task: ${draggedTask.id}, parentId: ${saved?.parentId}, status: ${saved?.status}, sortIndex: ${saved?.sortIndex}}',
+          );
+        }
+      } catch (_) {}
+      
+      // 如果提升为根项目，触发回调
+      if (aboveTaskParentId == null) {
+        onPromoteToRoot?.call(draggedTask, newSortIndex);
+      }
+      
+      return TaskDragIntentResult.success(
+        parentId: aboveTaskParentId,
+        sortIndex: newSortIndex,
+        clearParent: aboveTaskParentId == null,
+      );
     } catch (e) {
       if (kDebugMode) {
         debugPrint(
@@ -209,6 +251,5 @@ class InboxDragTarget extends ConsumerWidget {
         blockLogTag: 'serviceError',
       );
     }
-    return const TaskDragIntentResult.success();
   }
 }

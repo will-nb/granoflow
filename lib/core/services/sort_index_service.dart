@@ -5,6 +5,7 @@ import '../../data/repositories/task_repository.dart';
 /// - 取中值插入；
 /// - 无间隙时在插入点附近做局部重排；
 /// - 支持整域批量重排（按有序ID列表）。
+/// - 统一管理任务排序规则和 sortIndex 修改逻辑
 class SortIndexService {
   SortIndexService({
     required TaskRepository taskRepository,
@@ -20,7 +21,86 @@ class SortIndexService {
   static const double _minGap = 2.0;
   static const int _window = 50;
 
+  // ===== 排序方法（静态方法，纯函数，不依赖服务状态） =====
+
+  /// Inbox页面的排序比较函数
+  ///
+  /// 排序规则：sortIndex升序 → createdAt降序（兜底）
+  static int _compareTasksForInbox(Task a, Task b) {
+    // 1. 按 sortIndex 升序排序
+    final sortIndexComparison = a.sortIndex.compareTo(b.sortIndex);
+    if (sortIndexComparison != 0) return sortIndexComparison;
+
+    // 2. sortIndex 相同，按 createdAt 降序排序（新任务在前）
+    return b.createdAt.compareTo(a.createdAt);
+  }
+
+  /// Tasks页面的排序比较函数
+  ///
+  /// 排序规则：dueAt升序 → sortIndex升序 → createdAt降序（兜底）
+  static int _compareTasksForTasksPage(Task a, Task b) {
+    // 1. 比较 dueAt 的日期部分（忽略时间）
+    final aDate = a.dueAt;
+    final bDate = b.dueAt;
+
+    if (aDate == null && bDate == null) {
+      // 两者都没有 dueAt，按 sortIndex 升序 → createdAt 降序
+      final sortIndexComparison = a.sortIndex.compareTo(b.sortIndex);
+      if (sortIndexComparison != 0) return sortIndexComparison;
+      return b.createdAt.compareTo(a.createdAt);
+    }
+
+    if (aDate == null) return 1; // 没有 dueAt 的排在后面
+    if (bDate == null) return -1;
+
+    // 提取日期部分（年-月-日，忽略时分秒）
+    final aDayOnly = DateTime(aDate.year, aDate.month, aDate.day);
+    final bDayOnly = DateTime(bDate.year, bDate.month, bDate.day);
+
+    final dateComparison = aDayOnly.compareTo(bDayOnly);
+    if (dateComparison != 0) return dateComparison;
+
+    // 2. 日期相同，按 sortIndex 升序
+    final sortIndexComparison = a.sortIndex.compareTo(b.sortIndex);
+    if (sortIndexComparison != 0) return sortIndexComparison;
+
+    // 3. sortIndex 也相同，按 createdAt 降序（新任务在前）
+    return b.createdAt.compareTo(a.createdAt);
+  }
+
+  /// 子任务排序比较函数
+  ///
+  /// 排序规则：sortIndex升序 → createdAt降序（兜底）
+  /// 用于在各自父任务内对子任务进行排序
+  static int _compareTasksForChildren(Task a, Task b) {
+    // 与 Inbox 排序规则相同：sortIndex升序 → createdAt降序
+    return _compareTasksForInbox(a, b);
+  }
+
+  /// 对任务列表进行排序（Inbox页面）
+  ///
+  /// [tasks] 要排序的任务列表（会被原地修改）
+  static void sortTasksForInbox(List<Task> tasks) {
+    tasks.sort(_compareTasksForInbox);
+  }
+
+  /// 对任务列表进行排序（Tasks页面）
+  ///
+  /// [tasks] 要排序的任务列表（会被原地修改）
+  static void sortTasksForTasksPage(List<Task> tasks) {
+    tasks.sort(_compareTasksForTasksPage);
+  }
+
+  /// 对子任务列表进行排序
+  ///
+  /// [tasks] 要排序的子任务列表（会被原地修改）
+  static void sortChildrenTasks(List<Task> tasks) {
+    tasks.sort(_compareTasksForChildren);
+  }
+
   /// 直接按域内的有序ID进行重排（标准化）
+  ///
+  /// [orderedIds] 已排序的任务ID列表
   Future<void> reorderIds({
     required List<int> orderedIds,
     String? domainKey,
@@ -31,6 +111,119 @@ class SortIndexService {
     final updates = <int, TaskUpdate>{};
     for (int i = 0; i < orderedIds.length; i++) {
       updates[orderedIds[i]] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    }
+    await _tasks.batchUpdate(updates);
+  }
+
+  /// 按任务列表排序并重排（Inbox页面）
+  ///
+  /// 接收任务列表，使用统一的排序规则排序后，批量更新 sortIndex
+  Future<void> reorderTasksForInbox({
+    required List<Task> tasks,
+    double start = 1024,
+    double step = _step,
+  }) async {
+    if (tasks.isEmpty) return;
+    final sorted = List<Task>.from(tasks);
+    sortTasksForInbox(sorted);
+    final updates = <int, TaskUpdate>{};
+    for (int i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    }
+    await _tasks.batchUpdate(updates);
+  }
+
+  /// 按任务列表排序并重排（Tasks页面）
+  ///
+  /// 接收任务列表，使用统一的排序规则排序后，批量更新 sortIndex
+  Future<void> reorderTasksForTasksPage({
+    required List<Task> tasks,
+    double start = 1024,
+    double step = _step,
+  }) async {
+    if (tasks.isEmpty) return;
+    final sorted = List<Task>.from(tasks);
+    sortTasksForTasksPage(sorted);
+    final updates = <int, TaskUpdate>{};
+    for (int i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    }
+    await _tasks.batchUpdate(updates);
+  }
+
+  /// 批量重排子任务的sortIndex
+  ///
+  /// 接收子任务列表，使用统一的排序规则排序后，批量更新 sortIndex
+  /// 用于父任务内的子任务重排序
+  ///
+  /// [children] 子任务列表
+  /// [start] 起始 sortIndex 值
+  /// [step] sortIndex 间隔
+  Future<void> reorderChildrenTasks({
+    required List<Task> children,
+    double start = 1024,
+    double step = _step,
+  }) async {
+    if (children.isEmpty) return;
+    final sorted = List<Task>.from(children);
+    sortChildrenTasks(sorted);
+    final updates = <int, TaskUpdate>{};
+    for (int i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    }
+    await _tasks.batchUpdate(updates);
+  }
+
+  /// 按日期分组批量重排同一天的任务（Tasks页面）
+  ///
+  /// 从任务列表中筛选出与目标日期同一天的任务，按统一排序规则排序后批量更新 sortIndex
+  /// 用于Tasks页面中，当任务移动后，只重排同一天内的任务
+  ///
+  /// [allTasks] 所有任务列表（用于筛选）
+  /// [targetDate] 目标日期（只比较日期部分，忽略时分秒）
+  /// [start] 起始 sortIndex 值
+  /// [step] sortIndex 间隔
+  Future<void> reorderTasksForSameDate({
+    required List<Task> allTasks,
+    required DateTime? targetDate,
+    double start = 1024,
+    double step = _step,
+  }) async {
+    if (targetDate == null) {
+      // 如果目标日期为 null，筛选所有没有 dueAt 的任务
+      final tasksWithoutDate = allTasks.where((task) => task.dueAt == null).toList();
+      if (tasksWithoutDate.isEmpty) return;
+      
+      final sorted = List<Task>.from(tasksWithoutDate);
+      sortTasksForTasksPage(sorted);
+      final updates = <int, TaskUpdate>{};
+      for (int i = 0; i < sorted.length; i++) {
+        updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+      }
+      await _tasks.batchUpdate(updates);
+      return;
+    }
+
+    // 提取目标日期的日期部分（年-月-日，忽略时分秒）
+    final targetDayOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+
+    // 筛选出同一天的任务
+    final sameDateTasks = allTasks.where((task) {
+      if (task.dueAt == null) return false;
+      final taskDayOnly = DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day);
+      return taskDayOnly == targetDayOnly;
+    }).toList();
+
+    if (sameDateTasks.isEmpty) return;
+
+    // 使用统一的排序规则排序
+    final sorted = List<Task>.from(sameDateTasks);
+    sortTasksForTasksPage(sorted);
+    
+    // 批量更新 sortIndex
+    final updates = <int, TaskUpdate>{};
+    for (int i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
     }
     await _tasks.batchUpdate(updates);
   }
@@ -129,6 +322,8 @@ class SortIndexService {
   }
 
   /// 对一个区域做规范化（按当前顺序等差赋值）
+  ///
+  /// 使用统一的排序规则：Tasks页面使用 dueAt升序 → sortIndex升序 → createdAt降序
   Future<void> normalizeSection({
     required TaskSection section,
     double start = 1024,
@@ -136,7 +331,9 @@ class SortIndexService {
   }) async {
     final tasks = await _tasks.listSectionTasks(section);
     if (tasks.isEmpty) return;
-    final ordered = tasks..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    // 使用统一的排序函数：Tasks页面的排序规则
+    final ordered = List<Task>.from(tasks);
+    sortTasksForTasksPage(ordered);
     final updates = <int, TaskUpdate>{};
     for (int i = 0; i < ordered.length; i++) {
       updates[ordered[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());

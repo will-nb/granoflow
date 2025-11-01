@@ -424,7 +424,7 @@ class IsarTaskRepository implements TaskRepository {
         .parentIdIsNull()
         .taskKindEqualTo(TaskKind.regular)  // 添加：只显示普通任务，排除项目和里程碑
         .sortBySortIndex()
-        .thenByCreatedAt()
+        .thenByCreatedAtDesc()
         .findAll();
     return roots.map(_toDomain).toList(growable: false);
   }
@@ -435,7 +435,7 @@ class IsarTaskRepository implements TaskRepository {
         .filter()
         .parentIdEqualTo(parentId)
         .sortBySortIndex()
-        .thenByCreatedAt()
+        .thenByCreatedAtDesc()
         .findAll();
     // 过滤掉 trashed 状态的任务和里程碑（里程碑只能在项目详情页显示）
     return children
@@ -783,17 +783,18 @@ class IsarTaskRepository implements TaskRepository {
       }
     }
 
-    // 在内存中排序：先按日期（不含时间）升序，再按 sortIndex 升序，最后按 createdAt 升序
+    // 在内存中排序：先按日期（不含时间）升序，再按 sortIndex 升序，最后按 createdAt 降序
+    // 使用统一的排序工具函数
     tasks.sort((a, b) {
       // 1. 比较 dueAt 的日期部分（忽略时间）
       final aDate = a.dueAt;
       final bDate = b.dueAt;
       
       if (aDate == null && bDate == null) {
-        // 两者都没有 dueAt，按 sortIndex 比较
+        // 两者都没有 dueAt，按 sortIndex 升序 → createdAt 降序
         final sortIndexComparison = a.sortIndex.compareTo(b.sortIndex);
         if (sortIndexComparison != 0) return sortIndexComparison;
-        return a.createdAt.compareTo(b.createdAt);
+        return b.createdAt.compareTo(a.createdAt);
       }
       
       if (aDate == null) return 1; // 没有 dueAt 的排在后面
@@ -806,12 +807,12 @@ class IsarTaskRepository implements TaskRepository {
       final dateComparison = aDayOnly.compareTo(bDayOnly);
       if (dateComparison != 0) return dateComparison;
       
-      // 2. 日期相同，按 sortIndex 比较
+      // 2. 日期相同，按 sortIndex 升序
       final sortIndexComparison = a.sortIndex.compareTo(b.sortIndex);
       if (sortIndexComparison != 0) return sortIndexComparison;
       
-      // 3. sortIndex 也相同，按 createdAt 比较
-      return a.createdAt.compareTo(b.createdAt);
+      // 3. sortIndex 也相同，按 createdAt 降序（新任务在前）
+      return b.createdAt.compareTo(a.createdAt);
     });
 
     // 调试日志：输出排序后的任务

@@ -30,15 +30,18 @@ final appConfigProvider = Provider<AppConfig>((ref) {
   return AppConfig.fromEnvironment();
 });
 
-final taskServiceProvider = Provider<TaskService>((ref) {
-  final sortIndexService = SortIndexService(
+final sortIndexServiceProvider = Provider<SortIndexService>((ref) {
+  return SortIndexService(
     taskRepository: ref.watch(taskRepositoryProvider),
   );
+});
+
+final taskServiceProvider = Provider<TaskService>((ref) {
   return TaskService(
     taskRepository: ref.watch(taskRepositoryProvider),
     tagRepository: ref.watch(tagRepositoryProvider),
     metricOrchestrator: ref.watch(metricOrchestratorProvider),
-    sortIndexService: sortIndexService,
+    sortIndexService: ref.watch(sortIndexServiceProvider),
   );
 });
 

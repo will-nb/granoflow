@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/repository_providers.dart';
 import '../../../core/providers/service_providers.dart';
+import '../../../core/services/sort_index_service.dart';
 import '../../../data/models/task.dart';
 import '../utils/hierarchy_utils.dart';
 import '../utils/list_comparison_utils.dart' as task_list_utils;
@@ -204,6 +205,24 @@ class _TaskSectionProjectModePanelState
       await taskService.updateDetails(
         taskId: task.id,
         payload: TaskUpdate(sortIndex: newSortIndex, dueAt: newDueAt),
+      );
+
+      // 批量重排目标日期同一天的所有任务的sortIndex
+      final taskRepository = ref.read(taskRepositoryProvider);
+      final sortIndexService = ref.read(sortIndexServiceProvider);
+      
+      // 查询所有pending状态的普通任务（Tasks页面显示的任务）
+      final allPendingTasks = await taskRepository.listAll();
+      final pendingRegularTasks = allPendingTasks
+          .where((t) => 
+              t.status == TaskStatus.pending &&
+              t.taskKind == TaskKind.regular)
+          .toList();
+      
+      // 批量重排目标日期同一天的任务
+      await sortIndexService.reorderTasksForSameDate(
+        allTasks: pendingRegularTasks,
+        targetDate: newDueAt,
       );
     } catch (error, stackTrace) {
       debugPrint('Failed to update task order: $error\n$stackTrace');

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/service_providers.dart';
+import '../../../core/providers/repository_providers.dart';
+import '../../../core/services/sort_index_service.dart';
 import '../../../core/utils/task_section_utils.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
@@ -314,6 +316,15 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
         taskId: updatedNode.task.id,
         payload: TaskUpdate(sortIndex: newSortIndex),
       );
+
+      // 批量重排该父任务的所有子任务的sortIndex
+      final taskRepository = ref.read(taskRepositoryProvider);
+      final sortIndexService = ref.read(sortIndexServiceProvider);
+      final parentId = updatedNode.task.parentId;
+      if (parentId != null) {
+        final allChildren = await taskRepository.listChildren(parentId);
+        await sortIndexService.reorderChildrenTasks(children: allChildren);
+      }
     } catch (error, stackTrace) {
       debugPrint('Failed to update child sort: $error\n$stackTrace');
       if (!mounted) {

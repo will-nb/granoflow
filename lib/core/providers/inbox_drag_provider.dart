@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/task.dart';
 
@@ -12,6 +13,10 @@ class InboxDragState {
     this.hoverTargetId,
     this.hoveredInsertionIndex,
     this.hoveredTaskId,
+    this.dragStartPosition,
+    this.currentDragPosition,
+    this.horizontalOffset,
+    this.verticalOffset,
   });
 
   final Task? draggedTask;
@@ -21,6 +26,14 @@ class InboxDragState {
   final int? hoveredInsertionIndex;
   // 统一拖拽系统：当前悬停的任务 ID
   final int? hoveredTaskId;
+  // 拖拽起始位置（全局坐标）
+  final Offset? dragStartPosition;
+  // 当前拖拽位置（全局坐标）
+  final Offset? currentDragPosition;
+  // 水平位移（dx = currentDragPosition.dx - dragStartPosition.dx）
+  final double? horizontalOffset;
+  // 垂直位移（dy = currentDragPosition.dy - dragStartPosition.dy）
+  final double? verticalOffset;
 
   bool get isDragging => draggedTask != null;
 
@@ -30,6 +43,10 @@ class InboxDragState {
     int? hoverTargetId,
     int? hoveredInsertionIndex,
     int? hoveredTaskId,
+    Offset? dragStartPosition,
+    Offset? currentDragPosition,
+    double? horizontalOffset,
+    double? verticalOffset,
   }) {
     return InboxDragState(
       draggedTask: draggedTask ?? this.draggedTask,
@@ -37,6 +54,10 @@ class InboxDragState {
       hoverTargetId: hoverTargetId ?? this.hoverTargetId,
       hoveredInsertionIndex: hoveredInsertionIndex ?? this.hoveredInsertionIndex,
       hoveredTaskId: hoveredTaskId ?? this.hoveredTaskId,
+      dragStartPosition: dragStartPosition ?? this.dragStartPosition,
+      currentDragPosition: currentDragPosition ?? this.currentDragPosition,
+      horizontalOffset: horizontalOffset ?? this.horizontalOffset,
+      verticalOffset: verticalOffset ?? this.verticalOffset,
     );
   }
 
@@ -48,7 +69,11 @@ class InboxDragState {
         other.hoverTarget == hoverTarget &&
         other.hoverTargetId == hoverTargetId &&
         other.hoveredInsertionIndex == hoveredInsertionIndex &&
-        other.hoveredTaskId == hoveredTaskId;
+        other.hoveredTaskId == hoveredTaskId &&
+        other.dragStartPosition == dragStartPosition &&
+        other.currentDragPosition == currentDragPosition &&
+        other.horizontalOffset == horizontalOffset &&
+        other.verticalOffset == verticalOffset;
   }
 
   @override
@@ -57,7 +82,11 @@ class InboxDragState {
         hoverTarget.hashCode ^
         hoverTargetId.hashCode ^
         hoveredInsertionIndex.hashCode ^
-        hoveredTaskId.hashCode;
+        hoveredTaskId.hashCode ^
+        dragStartPosition.hashCode ^
+        currentDragPosition.hashCode ^
+        horizontalOffset.hashCode ^
+        verticalOffset.hashCode;
   }
 }
 
@@ -65,12 +94,59 @@ class InboxDragState {
 class InboxDragNotifier extends StateNotifier<InboxDragState> {
   InboxDragNotifier() : super(const InboxDragState());
 
-  void startDrag(Task task) {
-    state = InboxDragState(draggedTask: task);
+  /// 开始拖拽
+  /// 
+  /// [task] 被拖拽的任务
+  /// [startPosition] 拖拽起始位置（全局坐标）
+  void startDrag(Task task, Offset startPosition) {
+    state = InboxDragState(
+      draggedTask: task,
+      dragStartPosition: startPosition,
+      currentDragPosition: startPosition,
+      horizontalOffset: 0.0,
+      verticalOffset: 0.0,
+    );
   }
 
   void endDrag() {
     state = const InboxDragState();
+  }
+
+  /// 更新拖拽位置
+  /// 
+  /// [position] 当前拖拽位置（全局坐标）
+  /// 自动计算水平位移（dx）
+  void updateDragPosition(Offset position) {
+    if (state.dragStartPosition == null) {
+      // 如果起始位置不存在，使用当前位置作为起始位置
+      state = state.copyWith(
+        dragStartPosition: position,
+        currentDragPosition: position,
+        horizontalOffset: 0.0,
+      );
+      return;
+    }
+
+    // 如果起始位置是 Offset.zero（占位符），将其更新为第一次的实际位置
+    final startPos = state.dragStartPosition!;
+    if (startPos == Offset.zero && state.currentDragPosition == Offset.zero) {
+      // 第一次更新：将起始位置设置为当前位置
+      state = state.copyWith(
+        dragStartPosition: position,
+        currentDragPosition: position,
+        horizontalOffset: 0.0,
+        verticalOffset: 0.0,
+      );
+      return;
+    }
+
+    final dx = position.dx - state.dragStartPosition!.dx;
+    final dy = position.dy - state.dragStartPosition!.dy;
+    state = state.copyWith(
+      currentDragPosition: position,
+      horizontalOffset: dx,
+      verticalOffset: dy,
+    );
   }
 
   void updateHoverTarget(InboxDragTargetType? type, {int? targetId}) {

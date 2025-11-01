@@ -1,9 +1,18 @@
 import '../../../data/models/task.dart';
+import '../../../core/services/sort_index_service.dart';
 
 /// Collects root tasks from a list of tasks.
 /// 
 /// Root tasks are those without a parent or whose parent is not in the list.
-/// The order of tasks is preserved from the input list (assuming it's already sorted).
+/// 
+/// 排序规则：
+/// - 如果输入任务列表包含 dueAt（Tasks 页面），根任务已经由 TaskRepository 按
+///   dueAt升序 → sortIndex升序 → createdAt降序 排序，保持原顺序。
+/// - 如果输入任务列表不包含 dueAt（Inbox 页面），根任务按 sortIndex升序 → 
+///   createdAt降序 排序。
+/// 
+/// [tasks] 输入的任务列表
+/// 返回根任务列表
 List<Task> collectRoots(List<Task> tasks) {
   final byId = {for (final task in tasks) task.id: task};
   final roots = <Task>[];
@@ -13,9 +22,16 @@ List<Task> collectRoots(List<Task> tasks) {
       roots.add(task);
     }
   }
-  // 保持与 TaskRepository 一致的排序：dueAt（日期部分）→ sortIndex → createdAt
-  // 注意：tasks 已经由 TaskRepository 排序，这里不需要重新排序
-  // 但为了防止 Set/Map 操作打乱顺序，我们保持原始顺序
+  
+  // 判断是否需要排序：如果所有任务都没有 dueAt，说明是 Inbox 页面，需要排序
+  // 如果部分任务有 dueAt，说明是 Tasks 页面，任务已经由 TaskRepository 排序，保持原顺序
+  final hasAnyDueAt = roots.any((task) => task.dueAt != null);
+  if (!hasAnyDueAt && roots.isNotEmpty) {
+    // Inbox 页面：使用 Inbox 排序规则（sortIndex升序 → createdAt降序）
+    SortIndexService.sortTasksForInbox(roots);
+  }
+  // Tasks 页面：保持原顺序（已经由 TaskRepository 排序）
+  
   return roots;
 }
 

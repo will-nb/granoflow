@@ -666,9 +666,8 @@ class TaskService {
     if (before != null && after != null) {
       if ((after.sortIndex - before.sortIndex).abs() < 2) {
         final inboxOrdered = await _tasks.watchInbox().first;
-        await sortIndex.reorderIds(
-          orderedIds: inboxOrdered.map((t) => t.id).toList(),
-        );
+        // 使用统一的排序和重排方法
+        await sortIndex.reorderTasksForInbox(tasks: inboxOrdered);
       }
     }
 
@@ -687,12 +686,9 @@ class TaskService {
     
     // 获取当前排序后的第一个 inbox 任务(排除自身)
     final inboxTasks = await _tasks.watchInbox().first;
-    final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList()
-      ..sort((a, b) {
-        final cmp = a.sortIndex.compareTo(b.sortIndex);
-        if (cmp != 0) return cmp;
-        return b.createdAt.compareTo(a.createdAt);
-      });
+    final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList();
+    // 使用统一的排序函数：sortIndex升序 → createdAt降序
+    SortIndexService.sortTasksForInbox(sortedTasks);
 
     if (sortedTasks.isEmpty) {
       await _tasks.updateTask(draggedId, const TaskUpdate(sortIndex: 1024));
@@ -702,9 +698,8 @@ class TaskService {
     // 如首元素与被拖拽元素间距过小，先稀疏化
     final dragged = await _tasks.findById(draggedId);
     if (dragged != null && (sortedTasks.first.sortIndex - dragged.sortIndex).abs() < 2) {
-      await sortIndex.reorderIds(
-        orderedIds: inboxTasks.map((t) => t.id).toList(),
-      );
+      // 使用统一的排序和重排方法
+      await sortIndex.reorderTasksForInbox(tasks: inboxTasks);
     }
 
     await sortIndex.moveToHead(
@@ -722,12 +717,9 @@ class TaskService {
     
     // 获取当前排序后的最后一个 inbox 任务(排除自身)
     final inboxTasks = await _tasks.watchInbox().first;
-    final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList()
-      ..sort((a, b) {
-        final cmp = a.sortIndex.compareTo(b.sortIndex);
-        if (cmp != 0) return cmp;
-        return b.createdAt.compareTo(a.createdAt);
-      });
+    final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList();
+    // 使用统一的排序函数：sortIndex升序 → createdAt降序
+    SortIndexService.sortTasksForInbox(sortedTasks);
 
     if (sortedTasks.isEmpty) {
       await _tasks.updateTask(draggedId, const TaskUpdate(sortIndex: 1024));
@@ -737,9 +729,8 @@ class TaskService {
     // 如尾元素与被拖拽元素间距过小，先稀疏化
     final dragged = await _tasks.findById(draggedId);
     if (dragged != null && (sortedTasks.last.sortIndex - dragged.sortIndex).abs() < 2) {
-      await sortIndex.reorderIds(
-        orderedIds: inboxTasks.map((t) => t.id).toList(),
-      );
+      // 使用统一的排序和重排方法
+      await sortIndex.reorderTasksForInbox(tasks: inboxTasks);
     }
 
     await sortIndex.moveToTail(
