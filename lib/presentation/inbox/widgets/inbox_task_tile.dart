@@ -11,12 +11,10 @@ class InboxTaskTile extends ConsumerWidget {
   const InboxTaskTile({
     super.key,
     required this.task,
-    this.leading,
     this.contentPadding,
   });
 
   final Task task;
-  final Widget? leading;
   final EdgeInsetsGeometry? contentPadding;
 
   @override
@@ -44,7 +42,7 @@ class InboxTaskTile extends ConsumerWidget {
       },
       child: TaskTileContent(
         task: task,
-        leading: leading,
+        leading: const Icon(Icons.drag_indicator_rounded, size: 20),
         contentPadding: contentPadding,
         dragPage: 'Inbox',
       ),

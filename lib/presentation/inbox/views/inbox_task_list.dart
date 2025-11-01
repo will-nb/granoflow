@@ -7,6 +7,7 @@ import '../../../generated/l10n/app_localizations.dart';
 import '../../tasks/utils/hierarchy_utils.dart';
 import '../../tasks/utils/sort_index_utils.dart';
 import '../../tasks/utils/task_collection_utils.dart';
+import '../../widgets/reorderable_proxy_decorator.dart';
 import '../widgets/inbox_task_tile.dart';
 
 class InboxTaskList extends ConsumerStatefulWidget {
@@ -100,19 +101,15 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       itemCount: rootTasks.length,
       onReorder: _handleReorder,
       buildDefaultDragHandles: false,
+      proxyDecorator: ReorderableProxyDecorator.build,
       itemBuilder: (context, index) {
         final task = rootTasks[index];
-        return InboxTaskTile(
+        return ReorderableDragStartListener(
           key: ValueKey('inbox-${task.id}'),
-          task: task,
-          leading: ReorderableDragStartListener(
-            index: index,
-            child: const Padding(
-              padding: EdgeInsets.only(right: 12, top: 12, bottom: 12),
-              child: Icon(Icons.drag_indicator_rounded, size: 20),
-            ),
+          index: index,
+          child: InboxTaskTile(
+            task: task,
           ),
-          contentPadding: const EdgeInsets.only(left: 0, right: 16, top: 12, bottom: 12),
         );
       },
     );
