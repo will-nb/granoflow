@@ -9,6 +9,7 @@ class DragConstants {
   static const double draggingOpacity = 0.92; // 原位略透明
   static const double feedbackElevation = 8.0; // 中等阴影
   static const double feedbackWidth = 300.0; // 反馈宽度
+  static const double feedbackPadding = 8.0; // 反馈内边距（文字和阴影边框的间距）
   
   // 动画时长
   static const Duration hoverAnimationDuration = Duration(milliseconds: 120);

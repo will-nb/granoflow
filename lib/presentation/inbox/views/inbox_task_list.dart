@@ -655,13 +655,19 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                     child: Builder(
                       builder: (context) {
                         final colorScheme = Theme.of(context).colorScheme;
+                        
+                        // 判断当前任务是否属于某个展开父任务的扩展区域
+                        // 条件：有父任务且父任务已展开
+                        final isInExpandedArea = task.parentId != null &&
+                            expandedTaskIds.contains(task.parentId);
+                        
                         return Container(
                           padding: EdgeInsets.only(
                             left: depth * 20.0,
                           ), // 层级缩进：每个层级20px
-                          decoration: depth > 0
+                          decoration: isInExpandedArea
                               ? BoxDecoration(
-                                  // 为扩展区（子任务）添加微妙的背景色
+                                  // 为扩展区（展开父任务的所有子任务）添加微妙的背景色
                                   color: colorScheme.surfaceContainerHighest
                                       .withValues(alpha: 0.15),
                                 )

@@ -109,11 +109,14 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
           elevation: DragConstants.feedbackElevation,
           borderRadius: BorderRadius.circular(8),
           shadowColor: theme.shadowColor.withValues(alpha: 0.3),
-          child: Opacity(
-            opacity: DragConstants.feedbackOpacity,
-            child: SizedBox(
-              width: DragConstants.feedbackWidth,
-              child: content,
+          child: Padding(
+            padding: const EdgeInsets.all(DragConstants.feedbackPadding),
+            child: Opacity(
+              opacity: DragConstants.feedbackOpacity,
+              child: SizedBox(
+                width: DragConstants.feedbackWidth,
+                child: content,
+              ),
             ),
           ),
         ),
