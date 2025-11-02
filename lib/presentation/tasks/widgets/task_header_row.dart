@@ -22,6 +22,7 @@ class TaskHeaderRow extends ConsumerWidget {
   final bool showConvertAction;
   final Widget? leading;
   final bool useBodyText;
+
   /// 任务的层级（level），用于判断是否是子任务
   /// level > 1 表示是子任务，子任务不显示截止日期
   final int? taskLevel;
@@ -190,13 +191,13 @@ class TaskHeaderRow extends ConsumerWidget {
     }
 
     try {
-      await ref.read(taskServiceProvider).convertToProject(task.id);
+      await ref.read(projectServiceProvider).convertTaskToProject(task.id);
       if (!context.mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.projectConvertSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.projectConvertSuccess)));
     } catch (error) {
       if (!context.mounted) {
         return;

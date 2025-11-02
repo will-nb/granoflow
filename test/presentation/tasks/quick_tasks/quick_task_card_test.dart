@@ -20,7 +20,6 @@ void main() {
       sortIndex: 0,
       templateLockCount: 0,
       allowInstantComplete: false,
-      taskKind: TaskKind.regular,
       logs: const <TaskLogEntry>[],
     );
 

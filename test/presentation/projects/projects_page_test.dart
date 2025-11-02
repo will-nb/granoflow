@@ -6,8 +6,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/core/providers/tag_providers.dart';
-import 'package:granoflow/core/services/task_service.dart';
+import 'package:granoflow/core/services/project_service.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
+import 'package:granoflow/data/models/milestone.dart';
+import 'package:granoflow/data/models/project.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/data/models/tag.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
@@ -25,22 +27,30 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
   Future<void> archive(int taskId) async {}
 
   @override
-  Future<void> addSubtask({required int parentId, required String title}) async {}
+  Future<void> addSubtask({
+    required int parentId,
+    required String title,
+  }) async {}
 
   @override
   Future<void> editTitle({required int taskId, required String title}) async {}
 }
 
-class _FakeTaskService extends Fake implements TaskService {}
+class _FakeProjectService extends Fake implements ProjectService {}
 
 void main() {
-  Widget buildTestWidget({List<Task>? projects}) {
+  Widget buildTestWidget({List<Project>? projects}) {
     return ProviderScope(
       overrides: [
-        projectsProvider.overrideWith(
-          (ref) => Stream<List<Task>>.value(projects ?? const <Task>[]),
+        projectsDomainProvider.overrideWith(
+          (ref) => Stream<List<Project>>.value(projects ?? const <Project>[]),
         ),
-        projectMilestonesProvider.overrideWithProvider((projectId) {
+        projectMilestonesDomainProvider.overrideWithProvider((projectId) {
+          return StreamProvider<List<Milestone>>((ref) {
+            return Stream.value(const <Milestone>[]);
+          });
+        }),
+        milestoneTasksProvider.overrideWithProvider((milestoneId) {
           return StreamProvider<List<Task>>((ref) {
             return Stream.value(const <Task>[]);
           });
@@ -49,11 +59,11 @@ void main() {
           (ref) => Stream<List<Task>>.value(const <Task>[]),
         ),
         projectsExpandedTaskIdProvider.overrideWith((ref) => null),
-        taskEditActionsNotifierProvider.overrideWith(() => _FakeTaskEditActions()),
-        taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-        tagsByKindProvider.overrideWith(
-          (ref, kind) async => <Tag>[],
+        taskEditActionsNotifierProvider.overrideWith(
+          () => _FakeTaskEditActions(),
         ),
+        projectServiceProvider.overrideWith((ref) => _FakeProjectService()),
+        tagsByKindProvider.overrideWith((ref, kind) async => <Tag>[]),
       ],
       child: MaterialApp(
         theme: AppTheme.light(),
@@ -74,7 +84,9 @@ void main() {
   }
 
   group('ProjectsPage Widget Tests', () {
-    testWidgets('should render ProjectsPage with correct structure', (tester) async {
+    testWidgets('should render ProjectsPage with correct structure', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pump();
 
@@ -98,7 +110,9 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pump();
 
-      final l10n = AppLocalizations.of(tester.element(find.byType(ProjectsPage)));
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(ProjectsPage)),
+      );
       // 在 AppBar 中查找标题（可能有多个同名文本，但 AppBar 中的应该存在）
       expect(find.byType(AppBar), findsOneWidget);
       final appBar = tester.widget<AppBar>(find.byType(AppBar));
@@ -120,29 +134,38 @@ void main() {
       expect(find.byType(MainDrawer), findsOneWidget);
     });
 
-    testWidgets('should render ProjectsDashboard with empty project list', (tester) async {
+    testWidgets('should render ProjectsDashboard with empty project list', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(projects: []));
       await tester.pump();
 
-      final l10n = AppLocalizations.of(tester.element(find.byType(ProjectsPage)));
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(ProjectsPage)),
+      );
       expect(find.text(l10n.projectListEmpty), findsOneWidget);
     });
 
-    testWidgets('should render ProjectsDashboard with projects', (tester) async {
-      final project = Task(
+    testWidgets('should render ProjectsDashboard with projects', (
+      tester,
+    ) async {
+      final project = Project(
         id: 1,
-        taskId: 'project-1',
+        projectId: 'project-1',
         title: 'Test Project',
         status: TaskStatus.pending,
+        dueAt: null,
+        startedAt: null,
+        endedAt: null,
         createdAt: DateTime(2025, 1, 1),
         updatedAt: DateTime(2025, 1, 1),
-        dueAt: null,
-        tags: const <String>[],
         sortIndex: 0,
+        tags: const <String>[],
         templateLockCount: 0,
+        seedSlug: null,
         allowInstantComplete: false,
-        logs: const <TaskLogEntry>[],
-        taskKind: TaskKind.project,
+        description: null,
+        logs: const <ProjectLogEntry>[],
       );
 
       await tester.pumpWidget(buildTestWidget(projects: [project]));
@@ -151,7 +174,9 @@ void main() {
       expect(find.text('Test Project'), findsOneWidget);
     });
 
-    testWidgets('should have correct page structure with Scaffold', (tester) async {
+    testWidgets('should have correct page structure with Scaffold', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pump();
 
@@ -167,7 +192,9 @@ void main() {
       await tester.pump();
 
       // 验证 ProjectsDashboard 被正确渲染
-      final dashboard = tester.widget<ProjectsDashboard>(find.byType(ProjectsDashboard));
+      final dashboard = tester.widget<ProjectsDashboard>(
+        find.byType(ProjectsDashboard),
+      );
       expect(dashboard, isNotNull);
     });
   });

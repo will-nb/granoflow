@@ -23,7 +23,6 @@ Task _createTask({required int id}) {
     tags: const [],
     templateLockCount: 0,
     logs: const [],
-    taskKind: TaskKind.regular,
   );
 }
 

@@ -31,7 +31,7 @@ class SeedTask {
     this.parentSlug,
     this.sortIndex = 0,
     this.dueAt,
-    this.taskKind, // 新增字段
+    this.taskKind,
   });
 
   final String slug;
@@ -42,7 +42,7 @@ class SeedTask {
   final bool allowInstantComplete;
   final double sortIndex;
   final dynamic dueAt;
-  final TaskKind? taskKind; // 新增字段，默认为 null（即 regular）
+  final String? taskKind; // 从种子文件中读取的字符串，用于区分项目/里程碑/普通任务
 }
 
 class SeedTemplate {
@@ -166,7 +166,7 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
                 (raw['allowInstantComplete'] as bool?) ?? false,
             sortIndex: (raw['sortIndex'] as num?)?.toDouble() ?? 0,
             dueAt: raw['dueAt'],
-            taskKind: _parseTaskKind(raw['taskKind'] as String?), // 新增
+            taskKind: raw['taskKind'] as String?,
           );
         })
         .toList(),
@@ -196,18 +196,4 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
         )
         .toList(),
   );
-}
-
-// 添加辅助函数解析 taskKind
-TaskKind? _parseTaskKind(String? kindStr) {
-  if (kindStr == null) return null;
-  switch (kindStr.toLowerCase()) {
-    case 'project':
-      return TaskKind.project;
-    case 'milestone':
-      return TaskKind.milestone;
-    case 'regular':
-    default:
-      return TaskKind.regular;
-  }
 }

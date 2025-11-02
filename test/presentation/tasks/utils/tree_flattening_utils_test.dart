@@ -108,7 +108,6 @@ Task _createTask({required int id}) {
     logs: const [],
     createdAt: now,
     updatedAt: now,
-    taskKind: TaskKind.regular,
   );
 }
 

@@ -4,6 +4,8 @@ import 'package:isar/isar.dart';
 import '../../data/repositories/focus_session_repository.dart';
 import '../../data/repositories/metric_repository.dart';
 import '../../data/repositories/preference_repository.dart';
+import '../../data/repositories/milestone_repository.dart';
+import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/seed_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import '../../data/repositories/task_repository.dart';
@@ -15,6 +17,14 @@ final isarProvider = Provider<Isar>((ref) {
 
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {
   return IsarTaskRepository(ref.watch(isarProvider));
+});
+
+final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
+  return IsarProjectRepository(ref.watch(isarProvider));
+});
+
+final milestoneRepositoryProvider = Provider<MilestoneRepository>((ref) {
+  return IsarMilestoneRepository(ref.watch(isarProvider));
 });
 
 final focusSessionRepositoryProvider = Provider<FocusSessionRepository>((ref) {

@@ -45,6 +45,8 @@ void main() {
       ProviderScope(
         overrides: [
           inboxTasksProvider.overrideWith((ref) => Stream<List<Task>>.value(const <Task>[])),
+          inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{}),
+          inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
           templateSuggestionsProvider.overrideWithProvider(
             (query) => FutureProvider((ref) async => <TaskTemplate>[_template('Template')]),
           ),
@@ -77,6 +79,8 @@ void main() {
       ProviderScope(
         overrides: [
           inboxTasksProvider.overrideWith((ref) => Stream<List<Task>>.value(<Task>[task])),
+          inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{task.id: 1}),
+          inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
           templateSuggestionsProvider.overrideWithProvider(
             (query) => FutureProvider((ref) async => const <TaskTemplate>[]),
           ),

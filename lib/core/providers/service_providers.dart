@@ -5,6 +5,8 @@ import '../services/focus_flow_service.dart';
 import '../services/metric_orchestrator.dart';
 import '../services/preference_service.dart';
 import '../services/seed_import_service.dart';
+import '../services/milestone_service.dart';
+import '../services/project_service.dart';
 import '../services/task_hierarchy_service.dart';
 import '../services/task_service.dart';
 import '../services/sort_index_service.dart';
@@ -31,9 +33,7 @@ final appConfigProvider = Provider<AppConfig>((ref) {
 });
 
 final sortIndexServiceProvider = Provider<SortIndexService>((ref) {
-  return SortIndexService(
-    taskRepository: ref.watch(taskRepositoryProvider),
-  );
+  return SortIndexService(taskRepository: ref.watch(taskRepositoryProvider));
 });
 
 final taskServiceProvider = Provider<TaskService>((ref) {
@@ -42,6 +42,21 @@ final taskServiceProvider = Provider<TaskService>((ref) {
     tagRepository: ref.watch(tagRepositoryProvider),
     metricOrchestrator: ref.watch(metricOrchestratorProvider),
     sortIndexService: ref.watch(sortIndexServiceProvider),
+  );
+});
+
+final projectServiceProvider = Provider<ProjectService>((ref) {
+  return ProjectService(
+    projectRepository: ref.watch(projectRepositoryProvider),
+    milestoneRepository: ref.watch(milestoneRepositoryProvider),
+    taskRepository: ref.watch(taskRepositoryProvider),
+    metricOrchestrator: ref.watch(metricOrchestratorProvider),
+  );
+});
+
+final milestoneServiceProvider = Provider<MilestoneService>((ref) {
+  return MilestoneService(
+    milestoneRepository: ref.watch(milestoneRepositoryProvider),
   );
 });
 
@@ -85,6 +100,8 @@ final seedImportServiceProvider = Provider<SeedImportService>((ref) {
     tagRepository: ref.watch(tagRepositoryProvider),
     taskRepository: ref.watch(taskRepositoryProvider),
     templateRepository: ref.watch(taskTemplateRepositoryProvider),
+    projectService: ref.watch(projectServiceProvider),
+    milestoneRepository: ref.watch(milestoneRepositoryProvider),
     metricOrchestrator: ref.watch(metricOrchestratorProvider),
   );
 });

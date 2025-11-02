@@ -26,10 +26,12 @@ class TaskSectionTaskModeList extends ConsumerStatefulWidget {
   final List<Task> roots;
 
   @override
-  ConsumerState<TaskSectionTaskModeList> createState() => _TaskSectionTaskModeListState();
+  ConsumerState<TaskSectionTaskModeList> createState() =>
+      _TaskSectionTaskModeListState();
 }
 
-class _TaskSectionTaskModeListState extends ConsumerState<TaskSectionTaskModeList> {
+class _TaskSectionTaskModeListState
+    extends ConsumerState<TaskSectionTaskModeList> {
   late List<Task> _roots;
 
   @override
@@ -58,20 +60,21 @@ class _TaskSectionTaskModeListState extends ConsumerState<TaskSectionTaskModeLis
         ? _roots[targetIndex + 1].sortIndex
         : null;
     final newSortIndex = calculateSortIndex(before, after);
-    
+
     // 计算新的 dueAt：同一区域内，使用相邻任务的 dueAt
     DateTime? newDueAt;
     if (targetIndex > 0 && _roots[targetIndex - 1].dueAt != null) {
       newDueAt = _roots[targetIndex - 1].dueAt;
-    } else if (targetIndex < _roots.length - 1 && _roots[targetIndex + 1].dueAt != null) {
+    } else if (targetIndex < _roots.length - 1 &&
+        _roots[targetIndex + 1].dueAt != null) {
       newDueAt = _roots[targetIndex + 1].dueAt;
     } else {
       newDueAt = _roots[oldIndex].dueAt;
     }
-    
+
     final task = _roots[oldIndex];
     final taskService = ref.read(taskServiceProvider);
-    
+
     try {
       await taskService.updateDetails(
         taskId: task.id,
@@ -153,7 +156,8 @@ class TaskSectionProjectModePanel extends ConsumerStatefulWidget {
   final List<Task> roots;
 
   @override
-  ConsumerState<TaskSectionProjectModePanel> createState() => _TaskSectionProjectModePanelState();
+  ConsumerState<TaskSectionProjectModePanel> createState() =>
+      _TaskSectionProjectModePanelState();
 }
 
 class _TaskSectionProjectModePanelState
@@ -186,20 +190,21 @@ class _TaskSectionProjectModePanelState
         ? _roots[targetIndex + 1].sortIndex
         : null;
     final newSortIndex = calculateSortIndex(before, after);
-    
+
     // 计算新的 dueAt
     DateTime? newDueAt;
     if (targetIndex > 0 && _roots[targetIndex - 1].dueAt != null) {
       newDueAt = _roots[targetIndex - 1].dueAt;
-    } else if (targetIndex < _roots.length - 1 && _roots[targetIndex + 1].dueAt != null) {
+    } else if (targetIndex < _roots.length - 1 &&
+        _roots[targetIndex + 1].dueAt != null) {
       newDueAt = _roots[targetIndex + 1].dueAt;
     } else {
       newDueAt = _roots[oldIndex].dueAt;
     }
-    
+
     final task = _roots[oldIndex];
     final taskService = ref.read(taskServiceProvider);
-    
+
     try {
       await taskService.updateDetails(
         taskId: task.id,
@@ -209,15 +214,19 @@ class _TaskSectionProjectModePanelState
       // 批量重排目标日期同一天的所有任务的sortIndex
       final taskRepository = ref.read(taskRepositoryProvider);
       final sortIndexService = ref.read(sortIndexServiceProvider);
-      
+
       // 查询所有pending状态的普通任务（Tasks页面显示的任务）
+      // 在新架构下，普通任务没有关联项目或里程碑
       final allPendingTasks = await taskRepository.listAll();
       final pendingRegularTasks = allPendingTasks
-          .where((t) => 
-              t.status == TaskStatus.pending &&
-              t.taskKind == TaskKind.regular)
+          .where(
+            (t) =>
+                t.status == TaskStatus.pending &&
+                t.projectId == null &&
+                t.milestoneId == null,
+          )
           .toList();
-      
+
       // 批量重排目标日期同一天的任务
       await sortIndexService.reorderTasksForSameDate(
         allTasks: pendingRegularTasks,
@@ -287,7 +296,7 @@ class _TaskSectionProjectModePanelState
 }
 
 /// 任务及其父任务链的包装组件
-/// 
+///
 /// 在显示任务之前，先显示它的祖先任务链和父任务
 class TaskWithParentChain extends ConsumerWidget {
   const TaskWithParentChain({
@@ -306,22 +315,22 @@ class TaskWithParentChain extends ConsumerWidget {
     // 如果任务没有父任务，直接显示任务
     if (task.parentId == null) {
       if (kDebugMode) {
-        debugPrint('[TaskWithParentChain] 任务无父任务，直接显示: taskId=${task.id}, title=${task.title}');
+        debugPrint(
+          '[TaskWithParentChain] 任务无父任务，直接显示: taskId=${task.id}, title=${task.title}',
+        );
       }
-      return TaskTreeTile(
-        section: section,
-        rootTask: task,
-        editMode: false,
-      );
+      return TaskTreeTile(section: section, rootTask: task, editMode: false);
     }
 
     if (kDebugMode) {
-      debugPrint('[TaskWithParentChain] 任务有父任务，准备显示父任务链: taskId=${task.id}, parentId=${task.parentId}, section=${section.name}');
+      debugPrint(
+        '[TaskWithParentChain] 任务有父任务，准备显示父任务链: taskId=${task.id}, parentId=${task.parentId}, section=${section.name}',
+      );
     }
 
     // 检查父任务是否是项目或里程碑
     final parentAsync = ref.watch(parentTaskProvider(task.parentId!));
-    
+
     return parentAsync.when(
       data: (parent) {
         if (parent == null || isProjectOrMilestone(parent)) {
@@ -340,10 +349,7 @@ class TaskWithParentChain extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 显示祖先任务链
-            AncestorTaskChain(
-              taskId: task.id,
-              currentSection: section,
-            ),
+            AncestorTaskChain(taskId: task.id, currentSection: section),
             // 显示父任务（如果还没有显示过）
             if (!parentAlreadyDisplayed)
               ParentTaskHeader(
@@ -352,30 +358,23 @@ class TaskWithParentChain extends ConsumerWidget {
                 depth: 0,
               ),
             // 显示当前任务
-            TaskTreeTile(
-              section: section,
-              rootTask: task,
-              editMode: false,
-            ),
+            TaskTreeTile(section: section, rootTask: task, editMode: false),
           ],
         );
       },
-      loading: () => TaskTreeTile(
-        section: section,
-        rootTask: task,
-        editMode: false,
-      ),
-      error: (_, __) => TaskTreeTile(
-        section: section,
-        rootTask: task,
-        editMode: false,
-      ),
+      loading: () =>
+          TaskTreeTile(section: section, rootTask: task, editMode: false),
+      error: (_, __) =>
+          TaskTreeTile(section: section, rootTask: task, editMode: false),
     );
   }
 }
 
 /// Provider: 获取父任务
-final parentTaskProvider = FutureProvider.family<Task?, int>((ref, parentId) async {
+final parentTaskProvider = FutureProvider.family<Task?, int>((
+  ref,
+  parentId,
+) async {
   final taskRepository = ref.read(taskRepositoryProvider);
   return taskRepository.findById(parentId);
 });

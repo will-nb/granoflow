@@ -4,8 +4,8 @@ meta:
   file_path: lib/data/repositories/task_template_repository.dart
   description: Repository 描述
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 repository_definition:

@@ -5,42 +5,12 @@ import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import '../../presentation/tasks/utils/hierarchy_utils.dart';
 import '../../presentation/tasks/utils/sort_index_calculator.dart';
-import 'metric_orchestrator.dart';
 import '../constants/task_constants.dart';
-import 'sort_index_service.dart';
-import 'task_hierarchy_service.dart';
 import '../utils/task_section_utils.dart';
+import 'metric_orchestrator.dart';
+import 'sort_index_service.dart';
 import 'tag_service.dart';
-
-class ProjectMilestoneBlueprint {
-  const ProjectMilestoneBlueprint({
-    required this.title,
-    this.dueDate,
-    this.tags = const <String>[],
-    this.description,
-  });
-
-  final String title;
-  final DateTime? dueDate;
-  final List<String> tags;
-  final String? description;
-}
-
-class ProjectBlueprint {
-  const ProjectBlueprint({
-    required this.title,
-    required this.dueDate,
-    this.description,
-    this.tags = const <String>[],
-    this.milestones = const <ProjectMilestoneBlueprint>[],
-  });
-
-  final String title;
-  final DateTime dueDate;
-  final String? description;
-  final List<String> tags;
-  final List<ProjectMilestoneBlueprint> milestones;
-}
+import 'task_hierarchy_service.dart';
 
 class TaskService {
   TaskService({
@@ -68,17 +38,19 @@ class TaskService {
   Future<List<Task>> _getAllDescendantTasks(int taskId) async {
     final result = <Task>[];
     final children = await _tasks.listChildren(taskId);
-    
+
     // 只处理普通任务，排除 project 和 milestone
-    final normalChildren = children.where((t) => !isProjectOrMilestone(t)).toList();
-    
+    final normalChildren = children
+        .where((t) => !isProjectOrMilestone(t))
+        .toList();
+
     for (final child in normalChildren) {
       result.add(child);
       // 递归获取子任务的子任务
       final grandchildren = await _getAllDescendantTasks(child.id);
       result.addAll(grandchildren);
     }
-    
+
     return result;
   }
 
@@ -179,9 +151,12 @@ class TaskService {
     }
 
     if (kDebugMode) {
-      final oldSection = TaskSectionUtils.getSectionForDate(existing.dueAt, now: _clock());
+      final oldSection = TaskSectionUtils.getSectionForDate(
+        existing.dueAt,
+        now: _clock(),
+      );
       debugPrint(
-        '[TaskService.updateDetails] 开始更新: taskId=$taskId, oldDueAt=${existing.dueAt}, oldSortIndex=${existing.sortIndex}, oldStatus=${existing.status}, oldTaskKind=${existing.taskKind}, oldSection=$oldSection',
+        '[TaskService.updateDetails] 开始更新: taskId=$taskId, oldDueAt=${existing.dueAt}, oldSortIndex=${existing.sortIndex}, oldStatus=${existing.status}, oldSection=$oldSection',
       );
     }
 
@@ -189,14 +164,20 @@ class TaskService {
     if (payload.dueAt != null) {
       dueForUpdate = _normalizeDueDate(payload.dueAt!);
     }
-    final dueChanged = dueForUpdate != null &&
-        !_isSameInstant(existing.dueAt, dueForUpdate);
+    final dueChanged =
+        dueForUpdate != null && !_isSameInstant(existing.dueAt, dueForUpdate);
     final now = _clock();
     List<TaskLogEntry>? updatedLogs;
 
     if (kDebugMode && dueChanged) {
-      final newSection = TaskSectionUtils.getSectionForDate(dueForUpdate, now: now);
-      final oldSection = TaskSectionUtils.getSectionForDate(existing.dueAt, now: now);
+      final newSection = TaskSectionUtils.getSectionForDate(
+        dueForUpdate,
+        now: now,
+      );
+      final oldSection = TaskSectionUtils.getSectionForDate(
+        existing.dueAt,
+        now: now,
+      );
       debugPrint(
         '[TaskService.updateDetails] 日期变更: taskId=$taskId, oldDueAt=${existing.dueAt} (section=$oldSection), newDueAt=$dueForUpdate (section=$newSection)',
       );
@@ -238,7 +219,6 @@ class TaskService {
         templateLockDelta: payload.templateLockDelta,
         allowInstantComplete: payload.allowInstantComplete,
         description: payload.description ?? existing.description,
-        taskKind: payload.taskKind,
         logs: updatedLogs,
       ),
     );
@@ -246,43 +226,18 @@ class TaskService {
     if (kDebugMode) {
       final updated = await _tasks.findById(taskId);
       if (updated != null) {
-        final newSection = TaskSectionUtils.getSectionForDate(updated.dueAt, now: now);
+        final newSection = TaskSectionUtils.getSectionForDate(
+          updated.dueAt,
+          now: now,
+        );
         debugPrint(
-          '[TaskService.updateDetails] 更新完成: taskId=$taskId, newDueAt=${updated.dueAt}, newSortIndex=${updated.sortIndex}, newStatus=${updated.status}, newTaskKind=${updated.taskKind}, newSection=$newSection',
+          '[TaskService.updateDetails] 更新完成: taskId=$taskId, newDueAt=${updated.dueAt}, newSortIndex=${updated.sortIndex}, newStatus=${updated.status}, newSection=$newSection',
         );
       }
     }
 
-    if (dueChanged &&
-        existing.taskKind == TaskKind.milestone &&
-        existing.parentId != null) {
-      final parent = await _tasks.findById(existing.parentId!);
-      if (parent != null) {
-        final newDue = dueForUpdate;
-        final parentNeedsUpdate = parent.dueAt == null ||
-            newDue.isAfter(parent.dueAt!);
-        if (parentNeedsUpdate) {
-          final parentLogs = parent.logs.toList(growable: true)
-            ..add(
-              TaskLogEntry(
-                timestamp: now,
-                action: parent.dueAt == null
-                    ? 'deadline_set'
-                    : 'deadline_updated',
-                previous: parent.dueAt?.toIso8601String(),
-                next: newDue.toIso8601String(),
-              ),
-            );
-          await _tasks.updateTask(
-            parent.id,
-            TaskUpdate(
-              dueAt: newDue,
-              logs: parentLogs,
-            ),
-          );
-        }
-      }
-    }
+    // 在新架构下，里程碑是独立的模型，截止日期更新由 MilestoneService 处理
+    // 这里不再需要检查 taskKind.milestone 并更新父项目
 
     // 如果截止日期变化，同步更新所有子任务的截止日期
     // 如果 dueChanged 为 true，则 dueForUpdate 一定不为 null
@@ -323,50 +278,40 @@ class TaskService {
       }
     }
 
-    // 如果项目/里程碑变化（parentId 指向项目或里程碑），同步更新所有子任务的项目/里程碑
-    // 注意：子任务的 parentId 仍然指向它们的直接父任务，但需要通过更新它们的 parentId 来
-    // 使它们也属于同一个项目/里程碑
-    // 实际上，由于子任务的 parentId 指向父任务，而父任务的 parentId 现在指向项目/里程碑，
-    // 子任务会自动通过 parentId 链继承项目/里程碑关系，所以这里不需要额外同步
-    // 但如果父任务从项目/里程碑中移除（parentId 变为 null 或其他任务），子任务也应该相应更新
-    if (payload.parentId != null && payload.parentId != existing.parentId) {
-      // 检查新的 parentId 是否指向项目或里程碑
-      final newParent = await _tasks.findById(payload.parentId!);
-      if (newParent != null && 
-          (newParent.taskKind == TaskKind.project || 
-           newParent.taskKind == TaskKind.milestone)) {
-        // 这是项目/里程碑变更
-        // 由于子任务的 parentId 指向父任务，而父任务的 parentId 现在指向项目/里程碑，
-        // 子任务会自动继承项目/里程碑关系，无需额外操作
-        // 但如果父任务被移出项目（parentId 变为 null 或普通任务），我们需要同步更新子任务
-        // 这里只处理父任务加入项目/里程碑的情况，子任务会自动继承
+    // 如果项目/里程碑变化（projectId/milestoneId），同步更新所有子任务的项目/里程碑关联
+    final projectIdChanged =
+        (payload.projectId != existing.projectId) ||
+        (payload.clearProject == true && existing.projectId != null);
+    final milestoneIdChanged =
+        (payload.milestoneId != existing.milestoneId) ||
+        (payload.clearMilestone == true && existing.milestoneId != null);
+
+    if (projectIdChanged || milestoneIdChanged) {
+      final allChildren = await _getAllDescendantTasks(taskId);
+      if (allChildren.isNotEmpty) {
+        final newProjectId = payload.clearProject == true
+            ? null
+            : (payload.projectId ?? existing.projectId);
+        final newMilestoneId = payload.clearMilestone == true
+            ? null
+            : (payload.milestoneId ?? existing.milestoneId);
+
         if (kDebugMode) {
           debugPrint(
-            '[TaskService.updateDetails] 父任务加入项目/里程碑: taskId=$taskId, newParentId=${payload.parentId}, 子任务将自动继承项目/里程碑关系',
+            '[TaskService.updateDetails] 同步子任务项目/里程碑: taskId=$taskId, childrenCount=${allChildren.length}, newProjectId=$newProjectId, newMilestoneId=$newMilestoneId',
           );
         }
-      } else if (payload.parentId == null || 
-                 (newParent != null && 
-                  newParent.taskKind != TaskKind.project && 
-                  newParent.taskKind != TaskKind.milestone)) {
-        // 父任务从项目/里程碑中移除或移动到普通任务下
-        // 检查原来的 parentId 是否指向项目/里程碑
-        final oldParent = existing.parentId != null 
-            ? await _tasks.findById(existing.parentId!) 
-            : null;
-        if (oldParent != null && 
-            (oldParent.taskKind == TaskKind.project || 
-             oldParent.taskKind == TaskKind.milestone)) {
-          // 父任务从项目/里程碑中移除，子任务也应该相应移除
-          // 但子任务的 parentId 仍然指向父任务，所以它们会自动跟随父任务移出项目/里程碑
-          // 这里不需要额外操作，因为子任务的 parentId 指向父任务，父任务移出项目后，
-          // 子任务也会自动移出
-          if (kDebugMode) {
-            debugPrint(
-              '[TaskService.updateDetails] 父任务移出项目/里程碑: taskId=$taskId, oldParentId=${existing.parentId}, 子任务将自动跟随移出',
-            );
-          }
+
+        final updates = <int, TaskUpdate>{};
+        for (final child in allChildren) {
+          updates[child.id] = TaskUpdate(
+            projectId: newProjectId,
+            milestoneId: newMilestoneId,
+            clearProject: payload.clearProject,
+            clearMilestone: payload.clearMilestone,
+          );
         }
+        await _tasks.batchUpdate(updates);
       }
     }
 
@@ -396,10 +341,10 @@ class TaskService {
     final normalized = task.tags
         .where((tag) {
           final kind = TagService.getKind(tag);
-          return kind != TagKind.context && 
-                 kind != TagKind.urgency && 
-                 kind != TagKind.importance && 
-                 kind != TagKind.execution;
+          return kind != TagKind.context &&
+              kind != TagKind.urgency &&
+              kind != TagKind.importance &&
+              kind != TagKind.execution;
         })
         .toList(growable: true);
     if (contextTag != null && contextTag.isNotEmpty) {
@@ -409,7 +354,7 @@ class TaskService {
       normalized.add(TagService.normalizeSlug(priorityTag));
     }
     await _tasks.updateTask(taskId, TaskUpdate(tags: normalized));
-    
+
     // 同步更新所有子任务的标签
     final allChildren = await _getAllDescendantTasks(taskId);
     if (allChildren.isNotEmpty) {
@@ -424,7 +369,7 @@ class TaskService {
       }
       await _tasks.batchUpdate(updates);
     }
-    
+
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
@@ -478,152 +423,7 @@ class TaskService {
 
   Future<List<Tag>> listTagsByKind(TagKind kind) => _tags.listByKind(kind);
 
-  Stream<List<Task>> watchProjects() => _tasks.watchProjects();
-
   Stream<List<Task>> watchQuickTasks() => _tasks.watchQuickTasks();
-
-  Stream<List<Task>> watchMilestones(int projectId) => _tasks.watchMilestones(projectId);
-
-  Future<Task> createProject(ProjectBlueprint blueprint) async {
-    final dueAt = _normalizeDueDate(blueprint.dueDate);
-    final now = _clock();
-    final projectTags = _uniqueTags(blueprint.tags);
-    final projectLogs = <TaskLogEntry>[
-      TaskLogEntry(
-        timestamp: now,
-        action: 'deadline_set',
-        next: dueAt.toIso8601String(),
-      ),
-    ];
-
-    final project = await _tasks.createTask(
-      TaskDraft(
-        title: blueprint.title,
-        status: TaskStatus.pending,
-        dueAt: dueAt,
-        sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
-        tags: projectTags,
-        allowInstantComplete: false,
-        description: blueprint.description,
-        taskKind: TaskKind.project,
-        logs: projectLogs,
-      ),
-    );
-
-    for (final milestone in blueprint.milestones) {
-      final milestoneDue = milestone.dueDate != null
-          ? _normalizeDueDate(milestone.dueDate!)
-          : null;
-      final milestoneLogs = <TaskLogEntry>[];
-      if (milestoneDue != null) {
-        milestoneLogs.add(
-          TaskLogEntry(
-            timestamp: now,
-            action: 'deadline_set',
-            next: milestoneDue.toIso8601String(),
-          ),
-        );
-      }
-      await _tasks.createTask(
-        TaskDraft(
-          title: milestone.title,
-          status: TaskStatus.pending,
-          parentId: project.id,
-          dueAt: milestoneDue,
-          sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
-          tags: _uniqueTags(milestone.tags),
-          allowInstantComplete: false,
-          description: milestone.description,
-          taskKind: TaskKind.milestone,
-          logs: milestoneLogs,
-        ),
-      );
-    }
-
-    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
-    return project;
-  }
-
-  Future<void> convertToProject(int taskId) async {
-    final task = await _tasks.findById(taskId);
-    if (task == null) {
-      throw StateError('Task not found: $taskId');
-    }
-    if (task.taskKind == TaskKind.project) {
-      return;
-    }
-
-    final now = _clock();
-    final projectLogs = task.logs.toList(growable: true)
-      ..add(
-        TaskLogEntry(
-          timestamp: now,
-          action: 'converted_to_project',
-        ),
-      );
-    await _tasks.updateTask(
-      taskId,
-      TaskUpdate(
-        taskKind: TaskKind.project,
-        logs: projectLogs,
-      ),
-    );
-
-    final children = await _tasks.listChildren(taskId);
-    for (final child in children) {
-      if (child.taskKind == TaskKind.regular) {
-        final childLogs = child.logs.toList(growable: true)
-          ..add(
-            TaskLogEntry(
-              timestamp: now,
-              action: 'converted_to_milestone',
-            ),
-          );
-        await _tasks.updateTask(
-          child.id,
-          TaskUpdate(
-            taskKind: TaskKind.milestone,
-            logs: childLogs,
-          ),
-        );
-      }
-    }
-
-    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
-  }
-
-  Future<void> snoozeProject(int projectId) async {
-    final project = await _tasks.findById(projectId);
-    if (project == null) {
-      throw StateError('Project not found: $projectId');
-    }
-    if (project.taskKind != TaskKind.project) {
-      throw StateError('Task $projectId is not a project');
-    }
-
-    final now = _clock();
-    final baseDue = project.dueAt ?? _normalizeDueDate(now);
-    final newDue = _addOneYear(baseDue);
-    final logs = project.logs.toList(growable: true)
-      ..add(
-        TaskLogEntry(
-          timestamp: now,
-          action: 'deadline_snoozed',
-          previous: baseDue.toIso8601String(),
-          next: newDue.toIso8601String(),
-        ),
-      );
-
-    await _tasks.updateTask(
-      projectId,
-      TaskUpdate(
-        dueAt: newDue,
-        logs: logs,
-      ),
-    );
-
-    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
-  }
 
   Future<List<Task>> searchTasksByTitle(
     String query, {
@@ -633,11 +433,7 @@ class TaskService {
     if (query.trim().isEmpty) {
       return Future.value(const <Task>[]);
     }
-    return _tasks.searchByTitle(
-      query,
-      status: status,
-      limit: limit,
-    );
+    return _tasks.searchByTitle(query, status: status, limit: limit);
   }
 
   DateTime _normalizeDueDate(DateTime localDate) {
@@ -653,34 +449,6 @@ class TaskService {
     return converted;
   }
 
-  DateTime _addOneYear(DateTime date) {
-    final targetYear = date.year + 1;
-    final isLeapTarget = _isLeapYear(targetYear);
-    final isLeapDay = date.month == DateTime.february && date.day == 29;
-    final adjustedDay = isLeapDay && !isLeapTarget ? 28 : date.day;
-    return DateTime(
-      targetYear,
-      date.month,
-      adjustedDay,
-      date.hour,
-      date.minute,
-      date.second,
-      date.millisecond,
-      date.microsecond,
-    );
-  }
-
-  bool _isLeapYear(int year) {
-    if (year % 4 != 0) {
-      return false;
-    }
-    if (year % 100 != 0) {
-      return true;
-    }
-    return year % 400 == 0;
-  }
-
-
   bool _isSameInstant(DateTime? a, DateTime? b) {
     if (a == null && b == null) {
       return true;
@@ -691,44 +459,39 @@ class TaskService {
     return a.millisecondsSinceEpoch == b.millisecondsSinceEpoch;
   }
 
-  List<String> _uniqueTags(Iterable<String> tags) {
-    final result = <String>[];
-    for (final tag in tags) {
-      if (tag.isEmpty) continue;
-      if (result.contains(tag)) continue;
-      result.add(tag);
-    }
-    return result;
-  }
-
   /// 处理拖拽到任务间（调整sortIndex，支持跨区域）
-  Future<void> handleDragBetweenTasks(int draggedTaskId, int beforeTaskId, int afterTaskId) async {
-    debugPrint('拖拽排序Between: task=$draggedTaskId between $beforeTaskId/$afterTaskId');
-    
+  Future<void> handleDragBetweenTasks(
+    int draggedTaskId,
+    int beforeTaskId,
+    int afterTaskId,
+  ) async {
+    debugPrint(
+      '拖拽排序Between: task=$draggedTaskId between $beforeTaskId/$afterTaskId',
+    );
+
     // 获取任务信息以检测是否跨区域
     final draggedTask = await _tasks.findById(draggedTaskId);
     final beforeTask = await _tasks.findById(beforeTaskId);
     final afterTask = await _tasks.findById(afterTaskId);
-    
+
     if (draggedTask == null || beforeTask == null || afterTask == null) {
       debugPrint('任务不存在，取消拖拽');
       return;
     }
-    
+
     // 检测目标区域（使用 beforeTask 的 section）
     final targetSection = _getSectionForTask(beforeTask);
     final currentSection = _getSectionForTask(draggedTask);
-    
+
     // 如果跨区域拖拽，先更新 dueAt
     if (targetSection != currentSection && beforeTask.dueAt != null) {
       final sectionEndTime = _getSectionEndTime(targetSection);
-      debugPrint('跨区域拖拽: $currentSection -> $targetSection, 更新 dueAt 为 $sectionEndTime');
-      await _tasks.updateTask(
-        draggedTaskId,
-        TaskUpdate(dueAt: sectionEndTime),
+      debugPrint(
+        '跨区域拖拽: $currentSection -> $targetSection, 更新 dueAt 为 $sectionEndTime',
       );
+      await _tasks.updateTask(draggedTaskId, TaskUpdate(dueAt: sectionEndTime));
     }
-    
+
     // 执行排序逻辑
     final sortIndex = _sortIndex;
     if (sortIndex != null) {
@@ -740,26 +503,31 @@ class TaskService {
     }
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
-  
+
   /// 根据任务的 dueAt 获取其所属区域
   TaskSection _getSectionForTask(Task task) {
     return TaskSectionUtils.getSectionForDate(task.dueAt, now: _clock());
   }
 
   /// 处理拖拽到区域首位
-  Future<void> handleDragToSectionFirst(int draggedTaskId, TaskSection section) async {
+  Future<void> handleDragToSectionFirst(
+    int draggedTaskId,
+    TaskSection section,
+  ) async {
     final sectionEndTime = _getSectionEndTime(section);
     debugPrint('拖拽到区域首位: task=$draggedTaskId, section=$section');
-    await _tasks.updateTask(
-      draggedTaskId,
-      TaskUpdate(dueAt: sectionEndTime),
-    );
+    await _tasks.updateTask(draggedTaskId, TaskUpdate(dueAt: sectionEndTime));
     // 找到区域首元素（排除自身），调用 moveToHead
     final tasks = await _tasks.listSectionTasks(section);
-    final others = tasks.where((t) => t.id != draggedTaskId).toList(growable: false);
+    final others = tasks
+        .where((t) => t.id != draggedTaskId)
+        .toList(growable: false);
     if (others.isEmpty) {
       if (_sortIndex != null) {
-        await _tasks.updateTask(draggedTaskId, const TaskUpdate(sortIndex: 1024));
+        await _tasks.updateTask(
+          draggedTaskId,
+          const TaskUpdate(sortIndex: 1024),
+        );
       }
     } else {
       final first = others.first;
@@ -776,19 +544,24 @@ class TaskService {
   }
 
   /// 处理拖拽到区域末位
-  Future<void> handleDragToSectionLast(int draggedTaskId, TaskSection section) async {
+  Future<void> handleDragToSectionLast(
+    int draggedTaskId,
+    TaskSection section,
+  ) async {
     final sectionEndTime = _getSectionEndTime(section);
     debugPrint('拖拽到区域末位: task=$draggedTaskId, section=$section');
-    await _tasks.updateTask(
-      draggedTaskId,
-      TaskUpdate(dueAt: sectionEndTime),
-    );
+    await _tasks.updateTask(draggedTaskId, TaskUpdate(dueAt: sectionEndTime));
     final tasks = await _tasks.listSectionTasks(section);
     final sortIndex = _sortIndex;
     if (sortIndex != null) {
-      final others = tasks.where((t) => t.id != draggedTaskId).toList(growable: false);
+      final others = tasks
+          .where((t) => t.id != draggedTaskId)
+          .toList(growable: false);
       if (others.isEmpty) {
-        await _tasks.updateTask(draggedTaskId, const TaskUpdate(sortIndex: 1024));
+        await _tasks.updateTask(
+          draggedTaskId,
+          const TaskUpdate(sortIndex: 1024),
+        );
       } else {
         final lastOther = others.last;
         await sortIndex.moveToTail(
@@ -809,7 +582,11 @@ class TaskService {
   // ===== Inbox 拖拽方法 =====
 
   /// 处理 Inbox 任务在两个任务之间拖拽
-  Future<void> handleInboxDragBetween(int draggedId, int beforeId, int afterId) async {
+  Future<void> handleInboxDragBetween(
+    int draggedId,
+    int beforeId,
+    int afterId,
+  ) async {
     final sortIndex = _sortIndex;
     if (sortIndex == null) return;
 
@@ -836,7 +613,7 @@ class TaskService {
   Future<void> handleInboxDragToFirst(int draggedId) async {
     final sortIndex = _sortIndex;
     if (sortIndex == null) return;
-    
+
     // 获取当前排序后的第一个 inbox 任务(排除自身)
     final inboxTasks = await _tasks.watchInbox().first;
     final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList();
@@ -850,7 +627,8 @@ class TaskService {
 
     // 如首元素与被拖拽元素间距过小，先稀疏化
     final dragged = await _tasks.findById(draggedId);
-    if (dragged != null && (sortedTasks.first.sortIndex - dragged.sortIndex).abs() < 2) {
+    if (dragged != null &&
+        (sortedTasks.first.sortIndex - dragged.sortIndex).abs() < 2) {
       // 使用统一的排序和重排方法
       await sortIndex.reorderTasksForInbox(tasks: inboxTasks);
     }
@@ -867,7 +645,7 @@ class TaskService {
   Future<void> handleInboxDragToLast(int draggedId) async {
     final sortIndex = _sortIndex;
     if (sortIndex == null) return;
-    
+
     // 获取当前排序后的最后一个 inbox 任务(排除自身)
     final inboxTasks = await _tasks.watchInbox().first;
     final sortedTasks = inboxTasks.where((t) => t.id != draggedId).toList();
@@ -881,7 +659,8 @@ class TaskService {
 
     // 如尾元素与被拖拽元素间距过小，先稀疏化
     final dragged = await _tasks.findById(draggedId);
-    if (dragged != null && (sortedTasks.last.sortIndex - dragged.sortIndex).abs() < 2) {
+    if (dragged != null &&
+        (sortedTasks.last.sortIndex - dragged.sortIndex).abs() < 2) {
       // 使用统一的排序和重排方法
       await sortIndex.reorderTasksForInbox(tasks: inboxTasks);
     }
@@ -983,7 +762,9 @@ class TaskService {
     // referenceTask 在这里肯定不为 null（因为前面的分支都有返回值或赋值）
 
     // 计算新的 sortIndex：排在参考任务之后
-    final newSortIndex = SortIndexCalculator.insertAfter(referenceTask.sortIndex);
+    final newSortIndex = SortIndexCalculator.insertAfter(
+      referenceTask.sortIndex,
+    );
 
     if (kDebugMode) {
       debugPrint(
@@ -1026,13 +807,13 @@ class TaskService {
   }
 
   /// 将子任务提升为根任务（用于滑动动作）
-  /// 
+  ///
   /// 无论子任务是 level 2 还是 level 3，都直接设置为根任务（parentId = null）
   /// 这是滑动动作专用的方法，与拖拽的 handlePromoteToIndependent 不同
-  /// 
+  ///
   /// [taskId] 要提升的任务 ID
   /// [taskLevel] 任务的层级（可选），如果提供则避免重新计算
-  /// 
+  ///
   /// 返回 true 如果成功执行了提升操作，false 如果条件不满足或操作失败
   Future<bool> promoteSubtaskToRoot(int taskId, {int? taskLevel}) async {
     // 获取任务信息
@@ -1096,7 +877,8 @@ class TaskService {
                 .toList();
             SortIndexService.sortTasksForInbox(updatedRootTasks);
             if (updatedRootTasks.isNotEmpty) {
-              newSortIndex = (updatedRootTasks.first.sortIndex - 1024).toDouble();
+              newSortIndex = (updatedRootTasks.first.sortIndex - 1024)
+                  .toDouble();
             } else {
               newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
             }

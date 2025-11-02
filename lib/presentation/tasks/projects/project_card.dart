@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/service_providers.dart';
+import '../../../data/models/milestone.dart';
+import '../../../data/models/project.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/tag_utils.dart';
@@ -15,16 +17,15 @@ import '../milestones/milestone_card.dart';
 import '../widgets/empty_placeholder.dart';
 
 class ProjectCard extends ConsumerWidget {
-  const ProjectCard({
-    super.key,
-    required this.project,
-  });
+  const ProjectCard({super.key, required this.project});
 
-  final Task project;
+  final Project project;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final milestonesAsync = ref.watch(projectMilestonesProvider(project.id));
+    final milestonesAsync = ref.watch(
+      projectMilestonesDomainProvider(project.projectId),
+    );
     final expandedId = ref.watch(projectsExpandedTaskIdProvider);
     final isExpanded = expandedId == project.id;
     final theme = Theme.of(context);
@@ -53,7 +54,7 @@ class ProjectCard extends ConsumerWidget {
             if (!confirmed) {
               return false;
             }
-            await _archiveTask(context, ref, project.id);
+            await _archiveProject(context, ref, project.id);
             return true;
           }
 
@@ -65,12 +66,16 @@ class ProjectCard extends ConsumerWidget {
           return false;
         },
         child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           elevation: 0,
           child: InkWell(
             borderRadius: BorderRadius.circular(24),
             onTap: () {
-              final notifier = ref.read(projectsExpandedTaskIdProvider.notifier);
+              final notifier = ref.read(
+                projectsExpandedTaskIdProvider.notifier,
+              );
               notifier.state = isExpanded ? null : project.id;
             },
             child: Padding(
@@ -82,18 +87,26 @@ class ProjectCard extends ConsumerWidget {
                       .where((m) => m.status == TaskStatus.completedActive)
                       .length;
                   final progress = total == 0 ? 0.0 : completed / total;
-                  final overdue = project.dueAt != null && project.dueAt!.isBefore(DateTime.now());
+                  final overdue =
+                      project.dueAt != null &&
+                      project.dueAt!.isBefore(DateTime.now());
                   final hasDescription =
-                      project.description != null && project.description!.isNotEmpty;
+                      project.description != null &&
+                      project.description!.isNotEmpty;
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ProjectHeaderRow(project: project, isExpanded: isExpanded),
+                      ProjectHeaderRow(
+                        project: project,
+                        isExpanded: isExpanded,
+                      ),
                       if (hasDescription)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: DescriptionBlock(description: project.description!),
+                          child: DescriptionBlock(
+                            description: project.description!,
+                          ),
                         ),
                       const SizedBox(height: 12),
                       ProjectProgressBar(
@@ -140,7 +153,10 @@ class ProjectCard extends ConsumerWidget {
     );
   }
 
-  Future<bool> _confirmProjectArchive(BuildContext context, Task project) async {
+  Future<bool> _confirmProjectArchive(
+    BuildContext context,
+    Project project,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final result = await showDialog<bool>(
       context: context,
@@ -162,7 +178,10 @@ class ProjectCard extends ConsumerWidget {
     return result == true;
   }
 
-  Future<bool> _confirmProjectSnooze(BuildContext context, Task project) async {
+  Future<bool> _confirmProjectSnooze(
+    BuildContext context,
+    Project project,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final result = await showDialog<bool>(
       context: context,
@@ -184,12 +203,15 @@ class ProjectCard extends ConsumerWidget {
     return result == true;
   }
 
-  Future<void> _archiveTask(BuildContext context, WidgetRef ref, int taskId) async {
-    final notifier = ref.read(taskEditActionsNotifierProvider.notifier);
+  Future<void> _archiveProject(
+    BuildContext context,
+    WidgetRef ref,
+    int projectId,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
     try {
-      await notifier.archive(taskId);
+      await ref.read(projectServiceProvider).archiveProject(projectId);
       if (!context.mounted) {
         return;
       }
@@ -207,16 +229,15 @@ class ProjectCard extends ConsumerWidget {
     }
   }
 
-  Future<void> _snoozeProject(BuildContext context, WidgetRef ref, Task project) async {
+  Future<void> _snoozeProject(
+    BuildContext context,
+    WidgetRef ref,
+    Project project,
+  ) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref.read(taskServiceProvider).updateDetails(
-            taskId: project.id,
-            payload: TaskUpdate(
-              dueAt: DateTime.now().add(const Duration(days: 1)),
-            ),
-          );
+      await ref.read(projectServiceProvider).snoozeProject(project.id);
       if (!context.mounted) {
         return;
       }
@@ -228,9 +249,7 @@ class ProjectCard extends ConsumerWidget {
       if (!context.mounted) {
         return;
       }
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.projectSnoozeError)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.projectSnoozeError)));
     }
   }
 }
@@ -242,8 +261,8 @@ class ProjectDetails extends ConsumerWidget {
     required this.milestones,
   });
 
-  final Task project;
-  final List<Task> milestones;
+  final Project project;
+  final List<Milestone> milestones;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -266,7 +285,7 @@ class ProjectHeaderRow extends StatelessWidget {
     required this.isExpanded,
   });
 
-  final Task project;
+  final Project project;
   final bool isExpanded;
 
   @override
@@ -274,8 +293,12 @@ class ProjectHeaderRow extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final deadlineLabel = formatDeadline(context, project.dueAt);
-    final tagChips = buildTagChips(context, project);
-    final overdue = project.dueAt != null && project.dueAt!.isBefore(DateTime.now());
+    final tagChips = project.tags
+        .map((slug) => buildModernTag(context, slug))
+        .whereType<Widget>()
+        .toList(growable: false);
+    final overdue =
+        project.dueAt != null && project.dueAt!.isBefore(DateTime.now());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/task.dart';
-import 'project_milestone_text_utils.dart';
+
+import '../../core/services/project_models.dart';
+import '../../data/models/milestone.dart';
+import '../../data/models/project.dart';
 import 'project_milestone_picker.dart';
+import 'project_milestone_text_utils.dart';
 
 /// 可内联编辑的项目/里程碑显示组件
 /// 风格与 InlineDeadlineEditor 和 InlineEditableTag 一致（Minimal 风格）
@@ -12,21 +15,19 @@ class InlineProjectMilestoneDisplay extends ConsumerWidget {
     required this.project,
     this.milestone,
     required this.onSelected,
-    this.currentParentId,
     this.showIcon = true,
   });
 
-  final Task project;
-  final Task? milestone;
-  final ValueChanged<int?> onSelected;
-  final int? currentParentId;
+  final Project project;
+  final Milestone? milestone;
+  final ValueChanged<ProjectMilestoneSelection?> onSelected;
   final bool showIcon;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final color = theme.colorScheme.secondary;
-    
+
     final displayText = truncateProjectMilestoneText(
       projectName: project.title,
       milestoneName: milestone?.title,
@@ -34,12 +35,11 @@ class InlineProjectMilestoneDisplay extends ConsumerWidget {
 
     return InkWell(
       onTap: () {
-        // 点击时打开选择器
-        final picker = ProjectMilestonePicker(
+        ProjectMilestonePicker(
           onSelected: onSelected,
-          currentParentId: currentParentId,
-        );
-        picker.showPickerMenu(context, ref);
+          currentProjectId: project.projectId,
+          currentMilestoneId: milestone?.milestoneId,
+        ).showPickerMenu(context, ref);
       },
       borderRadius: BorderRadius.circular(12),
       child: Padding(
@@ -71,4 +71,3 @@ class InlineProjectMilestoneDisplay extends ConsumerWidget {
     );
   }
 }
-

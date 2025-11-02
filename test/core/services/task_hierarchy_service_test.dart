@@ -113,7 +113,6 @@ class _TestTaskRepository extends TaskRepository {
       seedSlug: existing.seedSlug,
       allowInstantComplete: existing.allowInstantComplete,
       description: existing.description,
-      taskKind: existing.taskKind,
       logs: existing.logs,
     );
     lastUpdate = payload;
@@ -147,6 +146,18 @@ class _TestTaskRepository extends TaskRepository {
 
   @override
   Stream<List<Task>> watchMilestones(int projectId) =>
+      throw UnimplementedError();
+
+  @override
+  Stream<List<Task>> watchTasksByProjectId(String projectId) =>
+      throw UnimplementedError();
+
+  @override
+  Stream<List<Task>> watchTasksByMilestoneId(String milestoneId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<Task>> listTasksByMilestoneId(String milestoneId) async =>
       throw UnimplementedError();
 
   @override

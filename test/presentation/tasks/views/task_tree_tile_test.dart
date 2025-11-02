@@ -9,16 +9,19 @@ import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/views/task_tree_tile.dart';
 import 'package:granoflow/presentation/tasks/widgets/parent_task_header.dart';
 import 'package:granoflow/presentation/tasks/widgets/all_children_list.dart';
+import 'package:granoflow/presentation/tasks/views/task_section_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required int id, int? parentId}) {
+Task _createTask({required int id, int? parentId, DateTime? dueAt}) {
+  // 如果没有指定 dueAt，使用同一个日期，确保父子任务在同一区域
+  final taskDueAt = dueAt ?? DateTime(2025, 1, 15); // 使用固定日期，确保在同一区域
   return Task(
     id: id,
     taskId: 'task-$id',
     title: 'Task $id',
     status: TaskStatus.pending,
-    dueAt: DateTime(2025, 1, id),
+    dueAt: taskDueAt,
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
     parentId: parentId,
@@ -27,7 +30,6 @@ Task _createTask({required int id, int? parentId}) {
     templateLockCount: 0,
     allowInstantComplete: false,
     logs: const [],
-    taskKind: TaskKind.regular,
   );
 }
 
@@ -35,8 +37,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('TaskTreeTile renders root and child tasks', (tester) async {
-    final root = _createTask(id: 1);
-    final child = _createTask(id: 2, parentId: 1);
+    // 使用今天作为日期，确保任务在 TaskSection.today 区域
+    final today = DateTime.now();
+    final root = _createTask(id: 1, dueAt: today);
+    final child = _createTask(id: 2, parentId: 1, dueAt: today);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -68,6 +72,11 @@ void main() {
           importanceTagOptionsProvider.overrideWith((ref) async => const []),
           executionTagOptionsProvider.overrideWith((ref) async => const []),
           contextTagOptionsProvider.overrideWith((ref) async => const []),
+          taskProjectHierarchyProvider.overrideWith((ref, taskId) async => null),
+          parentTaskProvider.overrideWith((ref, parentId) async {
+            if (parentId == root.id) return null;
+            return null;
+          }),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -88,7 +97,7 @@ void main() {
     expect(find.text('Task 1'), findsOneWidget);
     await tester.pumpAndSettle();
 
-    // 展开父任务的“显示全部子任务”
+    // 展开父任务的"显示全部子任务"
     final l10n = AppLocalizations.of(tester.element(find.byType(Scaffold)));
     await tester.tap(find.text(l10n.showAllSubtasks));
     await tester.pumpAndSettle();

@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/inline_project_milestone_display.dart
   description: InlineProjectMilestoneDisplay 组件
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -29,22 +29,17 @@ widget_types:
   usage: 状态管理、数据绑定、复杂交互
 widget_properties:
 - name: project
-  type: Task
+  type: Project
   required: true
   default_value: null
   description: ''
 - name: milestone
-  type: Task
+  type: Milestone
   required: false
   default_value: null
   description: ''
 - name: onSelected
-  type: ValueChanged<int>
-  required: false
-  default_value: null
-  description: ''
-- name: currentParentId
-  type: int
+  type: ValueChanged<ProjectMilestoneSelection>
   required: false
   default_value: null
   description: ''
@@ -141,9 +136,11 @@ widget_dependencies:
 widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
-- ../../data/models/task.dart
-- project_milestone_text_utils.dart
+- ../../core/services/project_models.dart
+- ../../data/models/milestone.dart
+- ../../data/models/project.dart
 - project_milestone_picker.dart
+- project_milestone_text_utils.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -237,7 +234,9 @@ widget_state_management:
 source_of_truth: lib/presentation/widgets/inline_project_milestone_display.dart
 called_by: []
 calls:
-- lib/data/models/task.dart
+- lib/core/services/project_models.dart
+- lib/data/models/milestone.dart
+- lib/data/models/project.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

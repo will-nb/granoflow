@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/app_providers.dart';
-import '../../data/models/task.dart';
+import '../../core/services/project_models.dart';
+import '../../data/models/project.dart';
 import '../../generated/l10n/app_localizations.dart';
 
 /// 项目/里程碑菜单组件
@@ -10,14 +11,18 @@ class ProjectMilestoneMenu extends ConsumerStatefulWidget {
   const ProjectMilestoneMenu({
     super.key,
     required this.onSelected,
-    this.currentParentId,
+    this.currentProjectId,
+    this.currentMilestoneId,
   });
 
-  /// 选择回调：传入选中的任务ID（项目或里程碑）
-  final ValueChanged<int?> onSelected;
+  /// 选择回调：传入选中的项目/里程碑信息，或 null（表示移出）
+  final ValueChanged<ProjectMilestoneSelection?> onSelected;
 
-  /// 当前任务的父任务ID（如果有）
-  final int? currentParentId;
+  /// 当前任务关联的项目 ID（业务 ID）
+  final String? currentProjectId;
+
+  /// 当前任务关联的里程碑 ID（业务 ID）
+  final String? currentMilestoneId;
 
   @override
   ConsumerState<ProjectMilestoneMenu> createState() =>
@@ -41,7 +46,7 @@ class _ProjectMilestoneMenuState extends ConsumerState<ProjectMilestoneMenu> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final projectsAsync = ref.watch(projectsProvider);
+    final projectsAsync = ref.watch(projectsDomainProvider);
 
     return projectsAsync.when(
       data: (projects) {
@@ -64,11 +69,13 @@ class _ProjectMilestoneMenuState extends ConsumerState<ProjectMilestoneMenu> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 如果任务已关联，显示"移出"选项
-            if (widget.currentParentId != null) ...[
+            if (widget.currentProjectId != null) ...[
               ListTile(
                 dense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 leading: Icon(
                   Icons.remove_circle_outline,
                   size: 20,
@@ -85,13 +92,16 @@ class _ProjectMilestoneMenuState extends ConsumerState<ProjectMilestoneMenu> {
               const Divider(height: 1),
             ],
             // 项目列表
-            ...projects.map((project) => _ProjectSection(
-                  project: project,
-                  isExpanded: _expandedProjects.contains(project.id),
-                  onToggle: () => _toggleProject(project.id),
-                  onSelected: widget.onSelected,
-                  currentParentId: widget.currentParentId,
-                )),
+            ...projects.map(
+              (project) => _ProjectSection(
+                project: project,
+                isExpanded: _expandedProjects.contains(project.id),
+                onToggle: () => _toggleProject(project.id),
+                onSelected: widget.onSelected,
+                currentProjectId: widget.currentProjectId,
+                currentMilestoneId: widget.currentMilestoneId,
+              ),
+            ),
           ],
         );
       },
@@ -118,19 +128,23 @@ class _ProjectSection extends ConsumerWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.onSelected,
-    this.currentParentId,
+    this.currentProjectId,
+    this.currentMilestoneId,
   });
 
-  final Task project;
+  final Project project;
   final bool isExpanded;
   final VoidCallback onToggle;
-  final ValueChanged<int?> onSelected;
-  final int? currentParentId;
+  final ValueChanged<ProjectMilestoneSelection?> onSelected;
+  final String? currentProjectId;
+  final String? currentMilestoneId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final milestonesAsync = ref.watch(projectMilestonesProvider(project.id));
+    final milestonesAsync = ref.watch(
+      projectMilestonesDomainProvider(project.projectId),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,21 +152,24 @@ class _ProjectSection extends ConsumerWidget {
         // 项目项
         ListTile(
           dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
+          ),
           leading: Icon(
             Icons.folder_outlined,
             size: 20,
-            color: currentParentId == project.id
+            color: currentProjectId == project.projectId
                 ? theme.colorScheme.primary
                 : theme.colorScheme.onSurfaceVariant,
           ),
           title: Text(
             project.title,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: currentParentId == project.id
+              color: currentProjectId == project.projectId
                   ? theme.colorScheme.primary
                   : null,
-              fontWeight: currentParentId == project.id
+              fontWeight: currentProjectId == project.projectId
                   ? FontWeight.w600
                   : null,
             ),
@@ -176,7 +193,7 @@ class _ProjectSection extends ConsumerWidget {
           onTap: () {
             if (milestonesAsync.hasValue && milestonesAsync.value!.isEmpty) {
               // 没有里程碑，直接选择项目
-              onSelected(project.id);
+              onSelected(ProjectMilestoneSelection.project(project));
             } else {
               // 有里程碑，展开/收起
               onToggle();
@@ -192,7 +209,8 @@ class _ProjectSection extends ConsumerWidget {
               }
               return Column(
                 children: milestones.map((milestone) {
-                  final isSelected = currentParentId == milestone.id;
+                  final isSelected =
+                      currentMilestoneId == milestone.milestoneId;
                   return Padding(
                     padding: const EdgeInsets.only(left: 16),
                     child: ListTile(
@@ -211,14 +229,16 @@ class _ProjectSection extends ConsumerWidget {
                       title: Text(
                         milestone.title,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isSelected
-                              ? theme.colorScheme.primary
-                              : null,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : null,
+                          color: isSelected ? theme.colorScheme.primary : null,
+                          fontWeight: isSelected ? FontWeight.w600 : null,
                         ),
                       ),
-                      onTap: () => onSelected(milestone.id),
+                      onTap: () => onSelected(
+                        ProjectMilestoneSelection.milestone(
+                          project: project,
+                          milestone: milestone,
+                        ),
+                      ),
                     ),
                   );
                 }).toList(),
@@ -234,4 +254,3 @@ class _ProjectSection extends ConsumerWidget {
     );
   }
 }
-

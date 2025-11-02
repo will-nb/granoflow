@@ -149,7 +149,7 @@ class TasksPageDragTarget extends ConsumerWidget {
 
       if (kDebugMode) {
         debugPrint(
-          '[DnD] {event: drop:start, page: Tasks, tgtType: $targetType, src: ${draggedTask.id}, taskKind: ${draggedTask.taskKind}, status: ${draggedTask.status}, currentSection: $currentSection, targetSection: $targetSection, oldDueAt: ${draggedTask.dueAt}, newDueAt: $newDueDate, newSortIndex: $newSortIndex, oldSortIndex: ${draggedTask.sortIndex}}',
+          '[DnD] {event: drop:start, page: Tasks, tgtType: $targetType, src: ${draggedTask.id}, status: ${draggedTask.status}, currentSection: $currentSection, targetSection: $targetSection, oldDueAt: ${draggedTask.dueAt}, newDueAt: $newDueDate, newSortIndex: $newSortIndex, oldSortIndex: ${draggedTask.sortIndex}}',
         );
         debugPrint(
           '[DnD] {neighbors: beforeTask: ${context.previous?.id} (dueAt: ${context.previous?.dueAt}, section: ${context.previous != null ? TaskSectionUtils.getSectionForDate(context.previous!.dueAt, now: now) : null}), afterTask: ${context.next?.id} (dueAt: ${context.next?.dueAt}, section: ${context.next != null ? TaskSectionUtils.getSectionForDate(context.next!.dueAt, now: now) : null})}',
@@ -160,22 +160,30 @@ class TasksPageDragTarget extends ConsumerWidget {
       if (kDebugMode) {
         final taskRepo = ref.read(taskRepositoryProvider);
         try {
-          final currentSectionTasks = await taskRepo.listSectionTasks(currentSection);
-          final targetSectionTasks = await taskRepo.listSectionTasks(targetSection);
+          final currentSectionTasks = await taskRepo.listSectionTasks(
+            currentSection,
+          );
+          final targetSectionTasks = await taskRepo.listSectionTasks(
+            targetSection,
+          );
           debugPrint(
             '[DnD] {before: currentSection=$currentSection, taskCount=${currentSectionTasks.length}, targetSection=$targetSection, taskCount=${targetSectionTasks.length}}',
           );
           if (currentSectionTasks.isNotEmpty) {
             debugPrint('[DnD] {currentSectionTasks (前5个):');
             for (final task in currentSectionTasks.take(5)) {
-              debugPrint('  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, taskKind=${task.taskKind}, status=${task.status}');
+              debugPrint(
+                '  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, status=${task.status}',
+              );
             }
             debugPrint('}');
           }
           if (targetSectionTasks.isNotEmpty) {
             debugPrint('[DnD] {targetSectionTasks (前5个):');
             for (final task in targetSectionTasks.take(5)) {
-              debugPrint('  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, taskKind=${task.taskKind}, status=${task.status}');
+              debugPrint(
+                '  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, status=${task.status}',
+              );
             }
             debugPrint('}');
           }
@@ -194,15 +202,19 @@ class TasksPageDragTarget extends ConsumerWidget {
       // 需要从数据库重新查询，因为移动后可能跨日期
       final taskRepository = ref.read(taskRepositoryProvider);
       final sortIndexService = ref.read(sortIndexServiceProvider);
-      
+
       // 查询所有pending状态的普通任务（Tasks页面显示的任务）
+      // 在新架构下，普通任务没有关联项目或里程碑
       final allPendingTasks = await taskRepository.listAll();
       final pendingRegularTasks = allPendingTasks
-          .where((task) => 
-              task.status == TaskStatus.pending &&
-              task.taskKind == TaskKind.regular)
+          .where(
+            (task) =>
+                task.status == TaskStatus.pending &&
+                task.projectId == null &&
+                task.milestoneId == null,
+          )
           .toList();
-      
+
       // 批量重排目标日期同一天的任务
       await sortIndexService.reorderTasksForSameDate(
         allTasks: pendingRegularTasks,
@@ -214,21 +226,31 @@ class TasksPageDragTarget extends ConsumerWidget {
         await Future.delayed(const Duration(milliseconds: 100));
         final taskRepo = ref.read(taskRepositoryProvider);
         try {
-          final currentSectionTasksAfter = await taskRepo.listSectionTasks(currentSection);
-          final targetSectionTasksAfter = await taskRepo.listSectionTasks(targetSection);
+          final currentSectionTasksAfter = await taskRepo.listSectionTasks(
+            currentSection,
+          );
+          final targetSectionTasksAfter = await taskRepo.listSectionTasks(
+            targetSection,
+          );
           debugPrint(
             '[DnD] {after: currentSection=$currentSection, taskCount=${currentSectionTasksAfter.length}, targetSection=$targetSection, taskCount=${targetSectionTasksAfter.length}}',
           );
           // 检查被拖拽的任务是否在目标区域
-          final taskInTarget = targetSectionTasksAfter.any((t) => t.id == draggedTask.id);
-          final taskInCurrent = currentSectionTasksAfter.any((t) => t.id == draggedTask.id);
+          final taskInTarget = targetSectionTasksAfter.any(
+            (t) => t.id == draggedTask.id,
+          );
+          final taskInCurrent = currentSectionTasksAfter.any(
+            (t) => t.id == draggedTask.id,
+          );
           debugPrint(
             '[DnD] {validation: task ${draggedTask.id} inTarget=$taskInTarget, inCurrent=$taskInCurrent, expectedInTarget=${currentSection != targetSection}}',
           );
           if (targetSectionTasksAfter.isNotEmpty) {
             debugPrint('[DnD] {targetSectionTasksAfter (前10个):');
             for (final task in targetSectionTasksAfter.take(10)) {
-              debugPrint('  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, taskKind=${task.taskKind}, status=${task.status}');
+              debugPrint(
+                '  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, status=${task.status}',
+              );
             }
             debugPrint('}');
           }
@@ -308,16 +330,22 @@ class TasksPageDragTarget extends ConsumerWidget {
     // 跨区域拖拽
     // 优先使用邻居任务的 dueAt（如果邻居也在目标区域）
     if (hasBefore && beforeDue != null) {
-      final beforeSection = TaskSectionUtils.getSectionForDate(beforeDue, now: now);
+      final beforeSection = TaskSectionUtils.getSectionForDate(
+        beforeDue,
+        now: now,
+      );
       if (beforeSection == targetSection) {
-      return beforeDue;
+        return beforeDue;
       }
     }
     if (!hasBefore && hasAfter && afterDue != null) {
-      final afterSection = TaskSectionUtils.getSectionForDate(afterDue, now: now);
+      final afterSection = TaskSectionUtils.getSectionForDate(
+        afterDue,
+        now: now,
+      );
       if (afterSection == targetSection) {
-      return afterDue;
-    }
+        return afterDue;
+      }
     }
 
     // 如果没有有效的邻居任务，使用目标区域的结束时间（23:59:59）

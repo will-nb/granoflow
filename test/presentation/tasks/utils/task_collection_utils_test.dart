@@ -44,16 +44,18 @@ void main() {
       expect(roots.map((t) => t.id), [1, 2, 3]);
     });
 
-    test('preserves input order', () {
+    test('sorts tasks by sortIndex when no dueAt (Inbox behavior)', () {
+      // 当任务没有 dueAt 时，collectRoots 会按 sortIndex 升序排序（Inbox 页面行为）
       final tasks = [
-        _createTask(id: 3, parentId: null),
-        _createTask(id: 1, parentId: null),
-        _createTask(id: 2, parentId: null),
+        _createTask(id: 3, parentId: null), // sortIndex: 3 * 1024 = 3072
+        _createTask(id: 1, parentId: null), // sortIndex: 1 * 1024 = 1024
+        _createTask(id: 2, parentId: null), // sortIndex: 2 * 1024 = 2048
       ];
 
       final roots = collectRoots(tasks);
 
-      expect(roots.map((t) => t.id), [3, 1, 2]); // order preserved
+      // 应该按 sortIndex 升序排序：1, 2, 3
+      expect(roots.map((t) => t.id), [1, 2, 3]);
     });
 
     test('returns empty list for empty input', () {
@@ -64,20 +66,21 @@ void main() {
 }
 
 Task _createTask({required int id, int? parentId}) {
-  final now = DateTime.now();
+  // 使用固定的时间基准，确保排序可预测
+  // sortIndex 设置为 id * 1024，确保每个任务有唯一的 sortIndex
+  final baseTime = DateTime(2025, 1, 1);
   return Task(
     id: id,
     taskId: 'task-$id',
     title: 'Task $id',
     status: TaskStatus.pending,
     parentId: parentId,
-    sortIndex: 0,
+    sortIndex: id * 1024.0, // 确保每个任务有唯一的 sortIndex，按 id 顺序排序
     tags: const [],
     templateLockCount: 0,
     logs: const [],
-    createdAt: now,
-    updatedAt: now,
-    taskKind: TaskKind.regular,
+    createdAt: baseTime.add(Duration(hours: id)), // 每个任务有不同的 createdAt
+    updatedAt: baseTime.add(Duration(hours: id)),
   );
 }
 

@@ -9,6 +9,8 @@ import 'core/app.dart';
 import 'core/providers/repository_providers.dart';
 import 'data/isar/focus_session_entity.dart';
 import 'data/isar/preference_entity.dart';
+import 'data/isar/project_entity.dart';
+import 'data/isar/milestone_entity.dart';
 import 'data/isar/seed_import_log_entity.dart';
 import 'data/isar/tag_entity.dart';
 import 'data/isar/task_entity.dart';
@@ -35,6 +37,8 @@ Future<Isar> _openIsar() async {
       TagEntitySchema,
       PreferenceEntitySchema,
       SeedImportLogEntitySchema,
+      ProjectEntitySchema,
+      MilestoneEntitySchema,
     ],
     directory: dir.path,
     inspector: false,

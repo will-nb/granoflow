@@ -1,0 +1,147 @@
+meta:
+  id: "251102-project-milestone-split-iteration"
+  title: "Task/Project/Milestone 拆表迭代蓝图"
+  based_on: "documents/spec/projects/251102-project-milestone-split/design.md"
+  status: draft
+  owner: "will"
+
+scope:
+  includes:
+    - "数据模型：lib/data/models (task.dart, project.dart, milestone.dart, 相关 draft/update 模型)"
+    - "持久化：lib/data/isar/task_entity.dart 与新增 project_entity.dart、milestone_entity.dart"
+    - "仓库层：lib/data/repositories/task_repository.dart、新增 project_repository.dart、milestone_repository.dart 及测试桩"
+    - "服务层：lib/core/services/task_service.dart 拆分及新增 ProjectService/MilestoneService"
+    - "迁移脚本：lib/data/migrations/task_table_split_migrator.dart（命名暂定）及相关入口"
+    - "状态管理：lib/core/providers/app_providers.dart 及项目/里程碑相关 Provider"
+    - "展示层：lib/presentation 下涉及项目、里程碑、任务树的 Widget 与工具类 (hierarchy_utils.dart 等)"
+    - "国际化：l10n 文案（如需新增迁移提示或错误信息）"
+    - "自动化测试：test/ 与 integration_test/ 中触及项目、里程碑、任务的用例"
+  excludes:
+    - "统计/报表等二次数据消费模块"
+    - "外部同步或 API 导出功能"
+    - "与拆表无关的 UI 视觉重构"
+
+changes:
+  code_updates:
+    - file: "lib/data/models/task.dart"
+      type: modify
+      intent: "移除 taskKind，新增 projectId/milestoneId 字段与相关 copyWith 支持"
+    - file: "lib/data/models/project.dart"
+      type: add
+      intent: "定义 Project/ProjectDraft/ProjectUpdate 领域模型与日志结构"
+    - file: "lib/data/models/milestone.dart"
+      type: add
+      intent: "定义 Milestone/MilestoneDraft/MilestoneUpdate 领域模型"
+    - file: "lib/data/isar/task_entity.dart"
+      type: modify
+      intent: "重构父子关系字段为 parentTaskId，新增 projectIsarId/milestoneIsarId 索引"
+    - file: "lib/data/isar/project_entity.dart"
+      type: add
+      intent: "声明项目集合 schema 及日志嵌套体"
+    - file: "lib/data/isar/milestone_entity.dart"
+      type: add
+      intent: "声明里程碑集合 schema 及日志嵌套体"
+    - file: "lib/data/repositories/task_repository.dart"
+      type: modify
+      intent: "更新 CRUD、过滤、树构建逻辑；提供按 projectId/milestoneId 检索的 API"
+    - file: "lib/data/repositories/project_repository.dart"
+      type: add
+      intent: "封装 ProjectEntity ↔ Project 的读写、排序、过滤"
+    - file: "lib/data/repositories/milestone_repository.dart"
+      type: add
+      intent: "封装 MilestoneEntity ↔ Milestone 的 CRUD 与排序"
+    - file: "lib/core/services/task_service.dart"
+      type: modify
+      intent: "职责聚焦普通任务，改用 projectId/milestoneId 归属；移除旧 taskKind 分支"
+    - file: "lib/core/services/project_service.dart"
+      type: add
+      intent: "实现项目生命周期、截止日期同步、归档/暂缓逻辑"
+    - file: "lib/core/services/milestone_service.dart"
+      type: add
+      intent: "实现里程碑管理、排序、与项目状态联动"
+    - file: "lib/core/providers/app_providers.dart"
+      type: modify
+      intent: "提供新的项目/里程碑流与聚合 Provider，更新任务引用"
+    - file: "lib/presentation/tasks/utils/hierarchy_utils.dart"
+      type: modify
+      intent: "任务层级仅使用 parentTaskId，新增基于 projectId/milestoneId 的上下文辅助"
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      type: modify
+      intent: "适配拆表后的任务归属，确保拖拽、筛选、显示保持一致"
+    - file: "lib/presentation/tasks/views/task_section_list.dart"
+      type: modify
+      intent: "更新项目/里程碑数据来源与 UI 组合"
+    - file: "lib/presentation/common/drag/*"
+      type: modify
+      intent: "重连拖拽目标在新归属模型下的行为"
+    - file: "lib/data/migrations/task_table_split_migrator.dart"
+      type: add
+      intent: "实现实体拆表迁移及回滚逻辑"
+    - file: "scripts/migrate_task_table_split.dart"
+      type: add
+      intent: "提供 CLI 入口执行迁移/回滚"
+    - file: "temp/iteration_plan_virtual_field_level.md"
+      type: retain
+      intent: "用于记录迁移执行日志（如需）"
+  data_model:
+    - entity: "ProjectEntity"
+      change: |
+        新增集合，字段包含 projectId、status、dueAt、sortIndex、tags、templateLockCount、allowInstantComplete、description、logs。
+        需为 projectId、status、dueAt 建立索引，便于排序与查询。
+    - entity: "MilestoneEntity"
+      change: |
+        新增集合，字段包含 milestoneId、projectIsarId、status、dueAt、sortIndex 等；projectIsarId+status 组合建立复合索引。
+    - entity: "TaskEntity"
+      change: |
+        移除 taskKind 字段，新增 parentTaskId、projectIsarId、milestoneIsarId；parentTaskId、projectIsarId、milestoneIsarId 均索引化。
+    - entity: "Task"
+      change: |
+        Domain 模型新增 projectId/milestoneId（业务 ID），移除 taskKind；copyWith、Draft、Update 一并调整。
+  config:
+    - file: "documents/config/data_migrations.yaml"
+      change: "登记 task_table_split 迁移条目，注明版本号与执行步骤"
+    - file: "documents/project/rules.yaml"
+      change: "补充拆表后模型约束（任务 parent 仅指向任务、项目/里程碑归属字段一致性）"
+  tests:
+    - type: unit
+      focus: "ProjectRepository/MilestoneRepository CRUD；TaskRepository 新过滤逻辑；迁移脚本校验"
+    - type: unit
+      focus: "ProjectService/MilestoneService 行为（deadline 同步、归档、排序）"
+    - type: widget
+      focus: "项目列表、里程碑列表、任务树在新数据源下的展示与拖拽"
+    - type: integration
+      focus: "端到端：创建项目→添加里程碑→添加任务→拖拽→归档→迁移前后数据一致性"
+  documentation:
+    - path: "documents/spec/projects/251102-project-milestone-split/design.md"
+      update_type: retain
+    - path: "documents/spec/projects/251102-project-milestone-split/02_acceptance_tests.md"
+      update_type: add
+    - path: "README.md"
+      update_type: modify
+    - path: "documents/spec/projects/251102-task-type-refactor/design.md"
+      update_type: annotate
+
+risks:
+  - name: "迁移过程中父子关系失真"
+    mitigation: "迁移脚本阶段性校验，每步对比计数与引用完整性，生成校验报告；提供 rollback"
+  - name: "跨表查询性能退化"
+    mitigation: "为关键字段建索引，新增仓库层缓存策略，重跑性能敏感测试"
+  - name: "UI 逻辑遗漏导致行为偏差"
+    mitigation: "全量搜索 taskKind 使用点，迁移后编写针对性 widget 测试并执行手动回归"
+  - name: "服务拆分后逻辑重复或遗漏"
+    mitigation: "引入共享的 ProjectContext 辅助类，撰写单测覆盖边界场景"
+  - name: "迁移脚本不可重复执行"
+    mitigation: "脚本设计为幂等（检测是否已迁移），同时提供 dry-run 模式"
+
+verification:
+  checklist:
+    - "flutter pub get"
+    - "flutter analyze"
+    - "flutter test"
+    - "flutter test integration_test"
+    - "dart run scripts/migrate_task_table_split.dart --dry-run"
+    - "dart run scripts/migrate_task_table_split.dart --apply"
+    - "迁移后手动验证：项目/里程碑/任务创建、编辑、拖拽、归档、暂缓等关键流程，与拆表前表现一致"
+    - "检查 Isar 数据：确认 Project/Milestone/Task 三表记录数及引用一致"
+    - "更新 documents/spec/projects/251102-project-milestone-split/02_acceptance_tests.md 实际执行结果"
+

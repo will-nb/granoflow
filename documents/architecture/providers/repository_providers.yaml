@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/providers/repository_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -205,6 +205,8 @@ calls:
 - lib/data/repositories/focus_session_repository.dart
 - lib/data/repositories/metric_repository.dart
 - lib/data/repositories/preference_repository.dart
+- lib/data/repositories/milestone_repository.dart
+- lib/data/repositories/project_repository.dart
 - lib/data/repositories/seed_repository.dart
 - lib/data/repositories/tag_repository.dart
 - lib/data/repositories/task_repository.dart
