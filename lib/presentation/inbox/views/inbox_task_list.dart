@@ -652,207 +652,219 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                         );
                       }
                     }(),
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: depth * 20.0,
-                      ), // 层级缩进：每个层级20px
-                      child: TaskDragIntentTarget.surface(
-                        key: ValueKey('inbox-${task.id}'),
-                        meta: TaskDragIntentMeta(
-                          page: 'Inbox',
-                          targetType: 'taskSurface',
-                          targetId: task.id,
-                          targetTaskId: task.id,
-                        ),
-                        canAccept: (draggedTask, _) =>
-                            TaskDragIntentHelper.canAcceptAsChild(
-                              draggedTask,
-                              task,
+                    child: Builder(
+                      builder: (context) {
+                        final colorScheme = Theme.of(context).colorScheme;
+                        return Container(
+                          padding: EdgeInsets.only(
+                            left: depth * 20.0,
+                          ), // 层级缩进：每个层级20px
+                          decoration: depth > 0
+                              ? BoxDecoration(
+                                  // 为扩展区（子任务）添加微妙的背景色
+                                  color: colorScheme.surfaceContainerHighest
+                                      .withValues(alpha: 0.15),
+                                )
+                              : null,
+                          child: TaskDragIntentTarget.surface(
+                            key: ValueKey('inbox-${task.id}'),
+                            meta: TaskDragIntentMeta(
+                              page: 'Inbox',
+                              targetType: 'taskSurface',
+                              targetId: task.id,
+                              targetTaskId: task.id,
                             ),
-                        onPerform: (draggedTask, ref, context, l10n) async {
-                          final result =
-                              await TaskDragIntentHelper.handleDropOnTask(
-                                draggedTask,
-                                task,
-                                context,
-                                ref,
-                                l10n,
-                              );
-                          return result;
-                        },
-                        onHover: (isHovering, _) async {
-                          if (isHovering) {
-                            // 检测是否移出扩展区
-                            final draggedTask = dragState.draggedTask;
-                            if (draggedTask != null) {
-                              final movedOut = _isMovedOutOfExpandedArea(
-                                draggedTask,
-                                task.id,
-                                null,
-                                flattenedTasks,
-                                filteredTasks,
-                              );
-                              if (movedOut) {
-                                // 移出扩展区：只更新UI状态，不修改数据库
-                                dragNotifier.setDraggedTaskHidden(true);
-                                if (kDebugMode) {
-                                  debugPrint(
-                                    '[DnD] {event: movedOutOfExpansion, page: Inbox, taskId: ${draggedTask.id}, action: hideFromUI}',
-                                  );
-                                }
-                              } else {
-                                // 回到扩展区内：恢复显示
-                                if (dragState.isDraggedTaskHiddenFromExpansion == true) {
-                                  dragNotifier.setDraggedTaskHidden(false);
-                                  if (kDebugMode) {
-                                    debugPrint(
-                                      '[DnD] {event: movedBackToExpansion, page: Inbox, taskId: ${draggedTask.id}, action: showInUI}',
-                                    );
-                                  }
-                                }
-                              }
-                            }
-
-                            dragNotifier.updateTaskSurfaceHover(task.id);
-                          } else {
-                            dragNotifier.clearHover();
-                          }
-                        },
-                        child: Builder(
-                          builder: (context) {
-                            final hasChildren =
-                                taskIdToHasChildren[task.id] ?? false;
-                            final isExpanded = expandedTaskIds.contains(
-                              task.id,
-                            );
-
-                            // 构建展开/收缩按钮（仅当有子任务时显示）
-                            Widget? expandCollapseButton;
-                            if (hasChildren) {
-                              expandCollapseButton = IconButton(
-                                icon: Icon(
-                                  isExpanded
-                                      ? Icons.expand_less
-                                      : Icons.expand_more,
-                                  size: 20,
+                            canAccept: (draggedTask, _) =>
+                                TaskDragIntentHelper.canAcceptAsChild(
+                                  draggedTask,
+                                  task,
                                 ),
-                                padding: const EdgeInsets.all(4),
-                                constraints: const BoxConstraints(),
-                                onPressed: () {
-                                  final expandedNotifier = ref.read(
-                                    inboxExpandedTaskIdProvider.notifier,
+                            onPerform: (draggedTask, ref, context, l10n) async {
+                              final result =
+                                  await TaskDragIntentHelper.handleDropOnTask(
+                                    draggedTask,
+                                    task,
+                                    context,
+                                    ref,
+                                    l10n,
                                   );
-                                  final currentExpanded = Set<int>.from(
-                                    expandedNotifier.state,
-                                  );
-                                  // 如果当前已展开，则从集合中移除；否则添加到集合中
-                                  if (isExpanded) {
-                                    currentExpanded.remove(task.id);
-                                  } else {
-                                    currentExpanded.add(task.id);
-                                  }
-                                  expandedNotifier.state = currentExpanded;
-                                },
-                              );
-                            }
-
-                            return InboxTaskTile(
-                              task: task,
-                              trailing: expandCollapseButton,
-                              childWhenDraggingOpacity: isDraggedTask ? 0.0 : null,
-                              onDragStarted: () {
-                                // 使用虚拟字段 levelMap 和 childrenMap
-                                final taskLevel = levelMap[task.id] ?? 1;
-
-                                // 获取展开状态管理器
-                                final expandedNotifier = ref.read(
-                                  inboxExpandedTaskIdProvider.notifier,
-                                );
-                                final currentExpanded = Set<int>.from(
-                                  expandedNotifier.state,
-                                );
-
-                                if (taskLevel == 1) {
-                                  // 根任务：收缩所有子任务
-                                  final childTaskIds = childrenMap[task.id] ?? <int>{};
-                                  final updatedExpanded = Set<int>.from(
-                                    currentExpanded,
-                                  );
-                                  updatedExpanded.removeAll(childTaskIds);
-                                  expandedNotifier.state = updatedExpanded;
-                                } else {
-                                  // 子任务：检查是否展开
-                                  final isExpanded = expandedTaskIds.contains(
+                              return result;
+                            },
+                            onHover: (isHovering, _) async {
+                              if (isHovering) {
+                                // 检测是否移出扩展区
+                                final draggedTask = dragState.draggedTask;
+                                if (draggedTask != null) {
+                                  final movedOut = _isMovedOutOfExpandedArea(
+                                    draggedTask,
                                     task.id,
+                                    null,
+                                    flattenedTasks,
+                                    filteredTasks,
                                   );
-                                  if (!isExpanded) {
-                                    // 禁止拖拽未展开的任务
-                                    return;
+                                  if (movedOut) {
+                                    // 移出扩展区：只更新UI状态，不修改数据库
+                                    dragNotifier.setDraggedTaskHidden(true);
+                                    if (kDebugMode) {
+                                      debugPrint(
+                                        '[DnD] {event: movedOutOfExpansion, page: Inbox, taskId: ${draggedTask.id}, action: hideFromUI}',
+                                      );
+                                    }
+                                  } else {
+                                    // 回到扩展区内：恢复显示
+                                    if (dragState.isDraggedTaskHiddenFromExpansion == true) {
+                                      dragNotifier.setDraggedTaskHidden(false);
+                                      if (kDebugMode) {
+                                        debugPrint(
+                                          '[DnD] {event: movedBackToExpansion, page: Inbox, taskId: ${draggedTask.id}, action: showInUI}',
+                                        );
+                                      }
+                                    }
                                   }
-                                  // 收缩自己的子任务
-                                  final childTaskIds = childrenMap[task.id] ?? <int>{};
-                                  final updatedExpanded = Set<int>.from(
-                                    currentExpanded,
-                                  );
-                                  updatedExpanded.removeAll(childTaskIds);
-                                  expandedNotifier.state = updatedExpanded;
                                 }
 
-                                // 在 onDragStarted 时还没有全局位置，使用 Offset.zero 作为占位符
-                                // 实际位置会在第一次 onDragUpdate 时更新
-                                dragNotifier.startDrag(task, Offset.zero);
-                              },
-                              onDragUpdate: (details) {
-                                // 更新拖拽位置（全局坐标）
-                                dragNotifier.updateDragPosition(
-                                  details.globalPosition,
-                                );
-                              },
-                              onDragEnd: () async {
-                                if (kDebugMode) {
-                                  debugPrint(
-                                    '[DnD] {event: onDragEnd:called, taskId: ${task.id}}',
-                                  );
-                                }
-                                
-                                // 在 endDrag() 之前立即读取状态，确保获取到最新的偏移量
-                                final dragState = ref.read(inboxDragProvider);
-                                
-                                // 保存偏移量，因为 endDrag() 会清空状态
-                                final horizontalOffset = dragState.horizontalOffset;
-                                final verticalOffset = dragState.verticalOffset;
-                                
-                                if (kDebugMode) {
-                                  debugPrint(
-                                    '[DnD] {event: onDragEnd:stateRead, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
-                                  );
-                                }
-
-                                // 使用闭包中捕获的 task 对象，而不是状态中的 draggedTask
-                                // 因为状态可能在 onDragEnd 之前被清空
-                                final taskService = ref.read(taskServiceProvider);
-                                final taskHierarchyService =
-                                    ref.read(taskHierarchyServiceProvider);
-                                
-                                if (kDebugMode) {
-                                  debugPrint(
-                                    '[DnD] {event: onDragEnd:leftDragPromotion:attempt, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
-                                  );
-                                }
-                                
-                                await taskService.handleLeftDragPromotion(
+                                dragNotifier.updateTaskSurfaceHover(task.id);
+                              } else {
+                                dragNotifier.clearHover();
+                              }
+                            },
+                            child: Builder(
+                              builder: (context) {
+                                final hasChildren =
+                                    taskIdToHasChildren[task.id] ?? false;
+                                final isExpanded = expandedTaskIds.contains(
                                   task.id,
-                                  taskHierarchyService,
-                                  horizontalOffset: horizontalOffset,
-                                  verticalOffset: verticalOffset,
                                 );
 
-                                dragNotifier.endDrag();
+                                // 构建展开/收缩按钮（仅当有子任务时显示）
+                                Widget? expandCollapseButton;
+                                if (hasChildren) {
+                                  expandCollapseButton = IconButton(
+                                    icon: Icon(
+                                      isExpanded
+                                          ? Icons.expand_less
+                                          : Icons.expand_more,
+                                      size: 20,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      final expandedNotifier = ref.read(
+                                        inboxExpandedTaskIdProvider.notifier,
+                                      );
+                                      final currentExpanded = Set<int>.from(
+                                        expandedNotifier.state,
+                                      );
+                                      // 如果当前已展开，则从集合中移除；否则添加到集合中
+                                      if (isExpanded) {
+                                        currentExpanded.remove(task.id);
+                                      } else {
+                                        currentExpanded.add(task.id);
+                                      }
+                                      expandedNotifier.state = currentExpanded;
+                                    },
+                                  );
+                                }
+
+                                return InboxTaskTile(
+                                  task: task,
+                                  trailing: expandCollapseButton,
+                                  childWhenDraggingOpacity: isDraggedTask ? 0.0 : null,
+                                  onDragStarted: () {
+                                    // 使用虚拟字段 levelMap 和 childrenMap
+                                    final taskLevel = levelMap[task.id] ?? 1;
+
+                                    // 获取展开状态管理器
+                                    final expandedNotifier = ref.read(
+                                      inboxExpandedTaskIdProvider.notifier,
+                                    );
+                                    final currentExpanded = Set<int>.from(
+                                      expandedNotifier.state,
+                                    );
+
+                                    if (taskLevel == 1) {
+                                      // 根任务：收缩所有子任务
+                                      final childTaskIds = childrenMap[task.id] ?? <int>{};
+                                      final updatedExpanded = Set<int>.from(
+                                        currentExpanded,
+                                      );
+                                      updatedExpanded.removeAll(childTaskIds);
+                                      expandedNotifier.state = updatedExpanded;
+                                    } else {
+                                      // 子任务：检查是否展开
+                                      final isExpanded = expandedTaskIds.contains(
+                                        task.id,
+                                      );
+                                      if (!isExpanded) {
+                                        // 禁止拖拽未展开的任务
+                                        return;
+                                      }
+                                      // 收缩自己的子任务
+                                      final childTaskIds = childrenMap[task.id] ?? <int>{};
+                                      final updatedExpanded = Set<int>.from(
+                                        currentExpanded,
+                                      );
+                                      updatedExpanded.removeAll(childTaskIds);
+                                      expandedNotifier.state = updatedExpanded;
+                                    }
+
+                                    // 在 onDragStarted 时还没有全局位置，使用 Offset.zero 作为占位符
+                                    // 实际位置会在第一次 onDragUpdate 时更新
+                                    dragNotifier.startDrag(task, Offset.zero);
+                                  },
+                                  onDragUpdate: (details) {
+                                    // 更新拖拽位置（全局坐标）
+                                    dragNotifier.updateDragPosition(
+                                      details.globalPosition,
+                                    );
+                                  },
+                                  onDragEnd: () async {
+                                    if (kDebugMode) {
+                                      debugPrint(
+                                        '[DnD] {event: onDragEnd:called, taskId: ${task.id}}',
+                                      );
+                                    }
+                                    
+                                    // 在 endDrag() 之前立即读取状态，确保获取到最新的偏移量
+                                    final dragState = ref.read(inboxDragProvider);
+                                    
+                                    // 保存偏移量，因为 endDrag() 会清空状态
+                                    final horizontalOffset = dragState.horizontalOffset;
+                                    final verticalOffset = dragState.verticalOffset;
+                                    
+                                    if (kDebugMode) {
+                                      debugPrint(
+                                        '[DnD] {event: onDragEnd:stateRead, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+                                      );
+                                    }
+
+                                    // 使用闭包中捕获的 task 对象，而不是状态中的 draggedTask
+                                    // 因为状态可能在 onDragEnd 之前被清空
+                                    final taskService = ref.read(taskServiceProvider);
+                                    final taskHierarchyService =
+                                        ref.read(taskHierarchyServiceProvider);
+                                    
+                                    if (kDebugMode) {
+                                      debugPrint(
+                                        '[DnD] {event: onDragEnd:leftDragPromotion:attempt, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+                                      );
+                                    }
+                                    
+                                    await taskService.handleLeftDragPromotion(
+                                      task.id,
+                                      taskHierarchyService,
+                                      horizontalOffset: horizontalOffset,
+                                      verticalOffset: verticalOffset,
+                                    );
+
+                                    dragNotifier.endDrag();
+                                  },
+                                );
                               },
-                            );
-                          },
-                        ),
-                      ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 // 插入目标（支持在根任务之间和子任务之间显示）
