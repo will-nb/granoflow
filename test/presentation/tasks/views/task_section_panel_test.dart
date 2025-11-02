@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
+import 'package:granoflow/core/providers/repository_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
+import 'package:granoflow/core/providers/tasks_section_drag_provider.dart';
 import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
@@ -48,6 +50,19 @@ void main() {
           importanceTagOptionsProvider.overrideWith((ref) async => const []),
           executionTagOptionsProvider.overrideWith((ref) async => const []),
           contextTagOptionsProvider.overrideWith((ref) async => const []),
+          // Mock the new async providers for TasksSectionTaskList
+          tasksSectionTaskLevelMapProvider.overrideWith(
+            (ref, section) async => {task.id: 1},
+          ),
+          tasksSectionTaskChildrenMapProvider.overrideWith(
+            (ref, section) async => <int, Set<int>>{},
+          ),
+          tasksSectionExpandedTaskIdProvider.overrideWith(
+            (ref, section) => <int>{},
+          ),
+          tasksSectionDragProvider.overrideWith(
+            (ref, section) => TasksSectionDragNotifier(),
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -66,6 +81,7 @@ void main() {
     );
 
     await tester.pump();
+    await tester.pump(); // Pump again to allow async providers to resolve
 
     expect(find.text('Task 1'), findsOneWidget);
   });

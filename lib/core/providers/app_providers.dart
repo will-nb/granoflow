@@ -428,6 +428,87 @@ final taskListExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 final inboxExpandedTaskIdProvider = StateProvider<Set<int>>((ref) => <int>{});
 final projectsExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 
+/// Provider for managing expanded task IDs in tasks section (按分区管理)
+///
+/// 每个分区独立管理展开状态，使用 StateProvider.family 按分区分别管理。
+///
+/// 使用方式：
+/// ```dart
+/// final expandedTaskIds = ref.watch(tasksSectionExpandedTaskIdProvider(TaskSection.today));
+/// ```
+final tasksSectionExpandedTaskIdProvider =
+    StateProvider.family<Set<int>, TaskSection>((ref, section) => <int>{});
+
+/// Provider for getting task level map for a specific section (虚拟字段)
+///
+/// 返回指定分区的 taskId -> level 的映射
+/// 自动响应 taskSectionsProvider(section) 的变化
+///
+/// 使用方式：
+/// ```dart
+/// final levelMapAsync = ref.watch(tasksSectionTaskLevelMapProvider(TaskSection.today));
+/// return levelMapAsync.when(
+///   data: (levelMap) {
+///     final taskLevel = levelMap[task.id] ?? 1;
+///     // ...
+///   },
+///   loading: () => CircularProgressIndicator(),
+///   error: (_, __) => SizedBox.shrink(),
+/// );
+/// ```
+final tasksSectionTaskLevelMapProvider =
+    FutureProvider.family<Map<int, int>, TaskSection>((ref, section) async {
+  final tasksAsync = ref.watch(taskSectionsProvider(section));
+  final tasks = await tasksAsync.requireValue;
+  final taskRepository = ref.watch(taskRepositoryProvider);
+  return _calculateTaskLevelMap(tasks, taskRepository);
+});
+
+/// Provider for getting task children map for a specific section (虚拟字段)
+///
+/// 返回指定分区的 taskId -> Set<子任务ID> 的映射
+/// 自动响应 taskSectionsProvider(section) 的变化
+///
+/// 使用方式：
+/// ```dart
+/// final childrenMapAsync = ref.watch(tasksSectionTaskChildrenMapProvider(TaskSection.today));
+/// return childrenMapAsync.when(
+///   data: (childrenMap) {
+///     final childTaskIds = childrenMap[task.id] ?? <int>{};
+///     // ...
+///   },
+///   loading: () => CircularProgressIndicator(),
+///   error: (_, __) => SizedBox.shrink(),
+/// );
+/// ```
+final tasksSectionTaskChildrenMapProvider =
+    FutureProvider.family<Map<int, Set<int>>, TaskSection>((ref, section) async {
+  final tasksAsync = ref.watch(taskSectionsProvider(section));
+  final tasks = await tasksAsync.requireValue;
+  final taskRepository = ref.watch(taskRepositoryProvider);
+  final childrenMap = <int, Set<int>>{};
+
+  // 为每个任务查找所有子任务
+  for (final task in tasks) {
+    final children = await taskRepository.listChildren(task.id);
+    final normalChildren = children
+        .where((t) => !isProjectOrMilestone(t))
+        .map((t) => t.id)
+        .toSet();
+
+    // 递归添加子任务的子任务
+    final allChildren = <int>{...normalChildren};
+    for (final childId in normalChildren) {
+      final childChildren = await _getAllDescendants(childId, taskRepository);
+      allChildren.addAll(childChildren);
+    }
+
+    childrenMap[task.id] = allChildren;
+  }
+
+  return childrenMap;
+});
+
 /// Provider for managing quick tasks section expanded state
 /// true = expanded, false = collapsed, defaults to false
 final quickTasksExpandedProvider = StateProvider<bool>((ref) => false);

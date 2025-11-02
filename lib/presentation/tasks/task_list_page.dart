@@ -130,58 +130,67 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
           FocusManager.instance.primaryFocus?.unfocus();
         },
         behavior: HitTestBehavior.translucent,
-        child: Column(
-        children: [
-          // 如果正在执行任务操作，在顶部显示进度条
-          if (showLinearProgress) const LinearProgressIndicator(),
-          Expanded(
-            child: ListView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    // 循环遍历所有分区，为每个分区生成对应的 UI
-                    children: sectionMetas
-                        .expand((meta) => [
-                              // 使用 Consumer 来监听每个分区的任务数据变化
-                              // 当任务数据更新时，会自动刷新对应的分区显示
-                              Consumer(
-                            builder: (context, ref, child) {
-                              // 从数据源获取这个分区的任务列表
-                              final tasksAsync = ref.watch(
-                                taskSectionsProvider(meta.section),
-                              );
-                              // 根据数据状态（加载中、成功、失败）显示不同的内容
-                              return tasksAsync.when(
-                                data: (tasks) {
-                                      // 如果这个分区没有任务，就不显示这个分区
-                                      if (tasks.isEmpty) return const SizedBox.shrink();
-                                      // 创建分区面板组件，用来显示这个分区的任务列表
-                                      final panel = TaskSectionPanel(
-                                        key: _sectionKeys[meta.section],
-                                    section: meta.section,
-                                    title: meta.title,
-                                    editMode: false,
-                                        onQuickAdd: () => _handleQuickAdd(context, meta.section),
-                                    tasks: tasks,
-                                  );
-                                      // 检查是否需要自动滚动到这个分区
-                                      _maybeAutoScroll(meta.section);
-                                      return panel;
-                                },
-                                // 加载中时，不显示任何内容（避免闪烁）
-                                loading: () => const SizedBox.shrink(),
-                                // 加载失败时，也不显示错误（避免影响用户体验）
-                                error: (_, __) => const SizedBox.shrink(),
-                              );
-                            },
-                          ),
-                            ])
-                        .toList(growable: false),
-                  ),
-          ),
-        ],
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            // 如果正在执行任务操作，在顶部显示进度条
+            if (showLinearProgress)
+              const SliverToBoxAdapter(
+                child: LinearProgressIndicator(),
+              ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(
+                  // 循环遍历所有分区，为每个分区生成对应的 UI
+                  sectionMetas
+                      .expand((meta) => [
+                            // 使用 Consumer 来监听每个分区的任务数据变化
+                            // 当任务数据更新时，会自动刷新对应的分区显示
+                            Consumer(
+                              builder: (context, ref, child) {
+                                // 从数据源获取这个分区的任务列表
+                                final tasksAsync = ref.watch(
+                                  taskSectionsProvider(meta.section),
+                                );
+                                // 根据数据状态（加载中、成功、失败）显示不同的内容
+                                return tasksAsync.when(
+                                  data: (tasks) {
+                                    // 如果这个分区没有任务，就不显示这个分区
+                                    if (tasks.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    // 创建分区面板组件，用来显示这个分区的任务列表
+                                    final panel = TaskSectionPanel(
+                                      key: _sectionKeys[meta.section],
+                                      section: meta.section,
+                                      title: meta.title,
+                                      editMode: false,
+                                      onQuickAdd: () =>
+                                          _handleQuickAdd(context, meta.section),
+                                      tasks: tasks,
+                                    );
+                                    // 检查是否需要自动滚动到这个分区
+                                    _maybeAutoScroll(meta.section);
+                                    return panel;
+                                  },
+                                  // 加载中时，不显示任何内容（避免闪烁）
+                                  loading: () => const SizedBox.shrink(),
+                                  // 加载失败时，也不显示错误（避免影响用户体验）
+                                  error: (_, __) => const SizedBox.shrink(),
+                                );
+                              },
+                            ),
+                          ])
+                      .toList(growable: false),
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 48)),
+          ],
         ),
       ),
     );

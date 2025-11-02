@@ -9,6 +9,7 @@ import '../utils/task_collection_utils.dart';
 import '../widgets/empty_section_hint.dart';
 import '../widgets/error_banner.dart';
 import 'task_section_list.dart';
+import 'tasks_section_task_list.dart';
 
 class TaskSectionPanel extends ConsumerWidget {
   const TaskSectionPanel({
@@ -95,7 +96,7 @@ class TaskSectionPanel extends ConsumerWidget {
                 if (kDebugMode) {
                   debugPrint('[TaskSectionPanel] 使用任务模式显示');
                 }
-                return TaskSectionTaskModeList(section: section, roots: roots);
+                return TasksSectionTaskList(section: section, tasks: tasks);
               },
               loading: () => const Padding(
                 padding: EdgeInsets.all(12),
