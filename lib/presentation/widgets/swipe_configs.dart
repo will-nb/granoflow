@@ -39,4 +39,19 @@ class SwipeConfigs {
     leftColor: OceanBreezeColorSchemes.softGreen,
     rightColor: OceanBreezeColorSchemes.softPink,
   );
+
+  /// Inbox页面子任务的滑动配置
+  /// 方向规范：与 inboxConfig 保持一致
+  /// - 右滑（startToEnd，常用/安全）= 提升为独立任务（promoteToIndependent，绿色）
+  /// - 左滑（endToStart，危险）= 移动到回收站（delete，红色）
+  static const SwipeActionConfig inboxSubtaskConfig = SwipeActionConfig(
+    leftAction: SwipeActionType.promoteToIndependent,
+    rightAction: SwipeActionType.delete,
+    leftHintKey: 'actionPromoteToIndependent',
+    rightHintKey: 'inboxDeleteAction',
+    leftIcon: Icons.arrow_upward,
+    rightIcon: Icons.delete,
+    leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark,
+  );
 }

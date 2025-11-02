@@ -15,12 +15,14 @@ class SwipeActionHandler {
   /// [ref] - WidgetRef
   /// [actionType] - 滑动动作类型
   /// [task] - 要处理的任务
+  /// [taskLevel] - 任务的层级（可选），用于提升为独立任务时避免重新计算
   static Future<void> handleAction(
     BuildContext context,
     WidgetRef ref,
     SwipeActionType actionType,
-    Task task,
-  ) async {
+    Task task, {
+    int? taskLevel,
+  }) async {
     switch (actionType) {
       case SwipeActionType.quickPlan:
         await _handleQuickPlan(context, ref, task);
@@ -33,6 +35,9 @@ class SwipeActionHandler {
         break;
       case SwipeActionType.delete:
         await _handleDelete(context, ref, task);
+        break;
+      case SwipeActionType.promoteToIndependent:
+        await _handlePromoteToIndependent(context, ref, task, taskLevel: taskLevel);
         break;
     }
   }
@@ -236,6 +241,54 @@ class SwipeActionHandler {
     } else {
       // 使用简单的日期格式
       return '${date.month}/${date.day}';
+    }
+  }
+
+  /// 处理提升为独立任务动作（滑动触发）
+  /// 
+  /// 使用专门的方法 promoteSubtaskToRoot，直接设置 parentId = null
+  /// 与拖拽的 handlePromoteToIndependent 不同，不依赖偏移量检查
+  static Future<void> _handlePromoteToIndependent(
+    BuildContext context,
+    WidgetRef ref,
+    Task task, {
+    int? taskLevel,
+  }) async {
+    final taskService = ref.read(taskServiceProvider);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    
+    try {
+      // 调用滑动专用的提升方法，直接设置 parentId = null
+      final success = await taskService.promoteSubtaskToRoot(
+        task.id,
+        taskLevel: taskLevel, // 传递 taskLevel，避免重复计算
+      );
+      
+      if (!success) {
+        // 如果提升失败（可能是任务不是子任务或其他原因）
+        if (!context.mounted) return;
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.promoteToIndependentError)),
+        );
+        return;
+      }
+      
+      if (!context.mounted) return;
+      
+      // 显示详细的成功反馈
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.promoteToIndependentSuccess),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to promote task to independent: $error\n$stackTrace');
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.promoteToIndependentError}: $error')),
+      );
     }
   }
 }

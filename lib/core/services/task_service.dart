@@ -61,6 +61,27 @@ class TaskService {
   final SortIndexService? _sortIndex;
   final DateTime Function() _clock;
 
+  /// 递归获取所有后代任务（包括子任务的子任务）
+  ///
+  /// [taskId] 起始任务 ID
+  /// 返回所有后代任务的列表（排除 project 和 milestone）
+  Future<List<Task>> _getAllDescendantTasks(int taskId) async {
+    final result = <Task>[];
+    final children = await _tasks.listChildren(taskId);
+    
+    // 只处理普通任务，排除 project 和 milestone
+    final normalChildren = children.where((t) => !isProjectOrMilestone(t)).toList();
+    
+    for (final child in normalChildren) {
+      result.add(child);
+      // 递归获取子任务的子任务
+      final grandchildren = await _getAllDescendantTasks(child.id);
+      result.addAll(grandchildren);
+    }
+    
+    return result;
+  }
+
   Future<Task> captureInboxTask({
     required String title,
     List<String> tags = const <String>[],
@@ -125,6 +146,23 @@ class TaskService {
     } catch (_) {
       // 忽略排序错误，保证主流程
     }
+
+    // 如果任务有子任务，同步更新所有子任务的截止日期和状态
+    // 子任务的状态会通过 batchUpdate 中的状态转换逻辑自动变为 pending
+    final allChildren = await _getAllDescendantTasks(taskId);
+    if (allChildren.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          '[TaskService.planTask] 同步子任务截止日期: taskId=$taskId, childrenCount=${allChildren.length}, newDueAt=$normalizedDue, section=$section',
+        );
+      }
+      final updates = <int, TaskUpdate>{};
+      for (final child in allChildren) {
+        updates[child.id] = TaskUpdate(dueAt: normalizedDue);
+      }
+      await _tasks.batchUpdate(updates);
+    }
+
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
@@ -246,7 +284,103 @@ class TaskService {
       }
     }
 
+    // 如果截止日期变化，同步更新所有子任务的截止日期
+    // 如果 dueChanged 为 true，则 dueForUpdate 一定不为 null
+    if (dueChanged) {
+      final allChildren = await _getAllDescendantTasks(taskId);
+      if (allChildren.isNotEmpty) {
+        if (kDebugMode) {
+          debugPrint(
+            '[TaskService.updateDetails] 同步子任务截止日期: taskId=$taskId, childrenCount=${allChildren.length}, newDueAt=$dueForUpdate',
+          );
+        }
+        final updates = <int, TaskUpdate>{};
+        for (final child in allChildren) {
+          updates[child.id] = TaskUpdate(dueAt: dueForUpdate);
+        }
+        await _tasks.batchUpdate(updates);
+      }
+    }
+
+    // 如果标签变化，同步更新所有子任务的标签
+    if (payload.tags != null) {
+      // 检查标签是否真的发生变化
+      final tagsChanged = !_areTagsEqual(payload.tags!, existing.tags);
+      if (tagsChanged) {
+        final allChildren = await _getAllDescendantTasks(taskId);
+        if (allChildren.isNotEmpty) {
+          if (kDebugMode) {
+            debugPrint(
+              '[TaskService.updateDetails] 同步子任务标签: taskId=$taskId, childrenCount=${allChildren.length}, newTags=${payload.tags}',
+            );
+          }
+          final updates = <int, TaskUpdate>{};
+          for (final child in allChildren) {
+            updates[child.id] = TaskUpdate(tags: payload.tags);
+          }
+          await _tasks.batchUpdate(updates);
+        }
+      }
+    }
+
+    // 如果项目/里程碑变化（parentId 指向项目或里程碑），同步更新所有子任务的项目/里程碑
+    // 注意：子任务的 parentId 仍然指向它们的直接父任务，但需要通过更新它们的 parentId 来
+    // 使它们也属于同一个项目/里程碑
+    // 实际上，由于子任务的 parentId 指向父任务，而父任务的 parentId 现在指向项目/里程碑，
+    // 子任务会自动通过 parentId 链继承项目/里程碑关系，所以这里不需要额外同步
+    // 但如果父任务从项目/里程碑中移除（parentId 变为 null 或其他任务），子任务也应该相应更新
+    if (payload.parentId != null && payload.parentId != existing.parentId) {
+      // 检查新的 parentId 是否指向项目或里程碑
+      final newParent = await _tasks.findById(payload.parentId!);
+      if (newParent != null && 
+          (newParent.taskKind == TaskKind.project || 
+           newParent.taskKind == TaskKind.milestone)) {
+        // 这是项目/里程碑变更
+        // 由于子任务的 parentId 指向父任务，而父任务的 parentId 现在指向项目/里程碑，
+        // 子任务会自动继承项目/里程碑关系，无需额外操作
+        // 但如果父任务被移出项目（parentId 变为 null 或普通任务），我们需要同步更新子任务
+        // 这里只处理父任务加入项目/里程碑的情况，子任务会自动继承
+        if (kDebugMode) {
+          debugPrint(
+            '[TaskService.updateDetails] 父任务加入项目/里程碑: taskId=$taskId, newParentId=${payload.parentId}, 子任务将自动继承项目/里程碑关系',
+          );
+        }
+      } else if (payload.parentId == null || 
+                 (newParent != null && 
+                  newParent.taskKind != TaskKind.project && 
+                  newParent.taskKind != TaskKind.milestone)) {
+        // 父任务从项目/里程碑中移除或移动到普通任务下
+        // 检查原来的 parentId 是否指向项目/里程碑
+        final oldParent = existing.parentId != null 
+            ? await _tasks.findById(existing.parentId!) 
+            : null;
+        if (oldParent != null && 
+            (oldParent.taskKind == TaskKind.project || 
+             oldParent.taskKind == TaskKind.milestone)) {
+          // 父任务从项目/里程碑中移除，子任务也应该相应移除
+          // 但子任务的 parentId 仍然指向父任务，所以它们会自动跟随父任务移出项目/里程碑
+          // 这里不需要额外操作，因为子任务的 parentId 指向父任务，父任务移出项目后，
+          // 子任务也会自动移出
+          if (kDebugMode) {
+            debugPrint(
+              '[TaskService.updateDetails] 父任务移出项目/里程碑: taskId=$taskId, oldParentId=${existing.parentId}, 子任务将自动跟随移出',
+            );
+          }
+        }
+      }
+    }
+
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  /// 比较两个标签列表是否相等
+  bool _areTagsEqual(List<String> tags1, List<String> tags2) {
+    if (tags1.length != tags2.length) {
+      return false;
+    }
+    final sorted1 = List<String>.from(tags1)..sort();
+    final sorted2 = List<String>.from(tags2)..sort();
+    return sorted1.toString() == sorted2.toString();
   }
 
   Future<void> updateTags({
@@ -275,6 +409,22 @@ class TaskService {
       normalized.add(TagService.normalizeSlug(priorityTag));
     }
     await _tasks.updateTask(taskId, TaskUpdate(tags: normalized));
+    
+    // 同步更新所有子任务的标签
+    final allChildren = await _getAllDescendantTasks(taskId);
+    if (allChildren.isNotEmpty) {
+      if (kDebugMode) {
+        debugPrint(
+          '[TaskService.updateTags] 同步子任务标签: taskId=$taskId, childrenCount=${allChildren.length}, newTags=$normalized',
+        );
+      }
+      final updates = <int, TaskUpdate>{};
+      for (final child in allChildren) {
+        updates[child.id] = TaskUpdate(tags: normalized);
+      }
+      await _tasks.batchUpdate(updates);
+    }
+    
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
@@ -747,7 +897,7 @@ class TaskService {
   /// 处理子任务向左拖拽升级为根任务
   ///
   /// 当子任务向左拖拽超过指定阈值（30px）且垂直位移较小时，
-  /// 将其升级为根任务，排序在原父任务/祖任务之后。
+  /// 将其提升为独立任务，排序在原父任务/祖任务之后。
   ///
   /// [taskId] 被拖拽的任务 ID
   /// [taskHierarchyService] 任务层级服务，用于执行 moveToParent 操作
@@ -756,8 +906,8 @@ class TaskService {
   /// [leftDragThreshold] 向左拖拽的阈值（默认 -30.0）
   /// [verticalThreshold] 垂直位移的最大允许值（默认 50.0）
   ///
-  /// 返回 true 如果成功执行了升级操作，false 如果条件不满足或操作失败
-  Future<bool> handleLeftDragPromotion(
+  /// 返回 true 如果成功执行了提升操作，false 如果条件不满足或操作失败
+  Future<bool> handlePromoteToIndependent(
     int taskId,
     TaskHierarchyService taskHierarchyService, {
     required double? horizontalOffset,
@@ -837,7 +987,7 @@ class TaskService {
 
     if (kDebugMode) {
       debugPrint(
-        '[DnD] {event: leftDragPromotion, taskId: $taskId, taskLevel: $taskLevel, targetParentId: $targetParentId, referenceTaskId: ${referenceTask.id}, newSortIndex: $newSortIndex, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+        '[DnD] {event: promoteToIndependent, taskId: $taskId, taskLevel: $taskLevel, targetParentId: $targetParentId, referenceTaskId: ${referenceTask.id}, newSortIndex: $newSortIndex, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
       );
     }
 
@@ -859,7 +1009,7 @@ class TaskService {
 
       if (kDebugMode) {
         debugPrint(
-          '[DnD] {event: leftDragPromotion:success, taskId: $taskId}',
+          '[DnD] {event: promoteToIndependent:success, taskId: $taskId}',
         );
       }
 
@@ -867,7 +1017,126 @@ class TaskService {
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint(
-          '[DnD] {event: leftDragPromotion:error, taskId: $taskId, error: $e}',
+          '[DnD] {event: promoteToIndependent:error, taskId: $taskId, error: $e}',
+        );
+        debugPrint('$stackTrace');
+      }
+      return false;
+    }
+  }
+
+  /// 将子任务提升为根任务（用于滑动动作）
+  /// 
+  /// 无论子任务是 level 2 还是 level 3，都直接设置为根任务（parentId = null）
+  /// 这是滑动动作专用的方法，与拖拽的 handlePromoteToIndependent 不同
+  /// 
+  /// [taskId] 要提升的任务 ID
+  /// [taskLevel] 任务的层级（可选），如果提供则避免重新计算
+  /// 
+  /// 返回 true 如果成功执行了提升操作，false 如果条件不满足或操作失败
+  Future<bool> promoteSubtaskToRoot(int taskId, {int? taskLevel}) async {
+    // 获取任务信息
+    final task = await _tasks.findById(taskId);
+    if (task == null || task.parentId == null) {
+      // 任务不存在或已经是根任务
+      if (kDebugMode) {
+        debugPrint(
+          '[TaskService.promoteSubtaskToRoot] 失败: taskId=$taskId, 任务不存在或已是根任务',
+        );
+      }
+      return false;
+    }
+
+    // 如果传入了 taskLevel，使用它；否则需要计算
+    int actualLevel;
+    if (taskLevel != null && taskLevel > 1) {
+      actualLevel = taskLevel;
+    } else {
+      // 如果没有传入，计算 level（性能较差，不推荐）
+      final taskDepth = await calculateHierarchyDepth(task, _tasks);
+      actualLevel = taskDepth + 1;
+    }
+
+    if (actualLevel < 2) {
+      // 已经是根任务
+      return false;
+    }
+
+    // 直接设置为根任务：parentId = null
+    // 获取当前 inbox 任务列表，计算合适的 sortIndex
+    try {
+      final inboxTasks = await _tasks.watchInbox().first;
+      final rootTasks = inboxTasks
+          .where((t) => t.parentId == null && t.id != taskId)
+          .toList();
+
+      // 使用统一的排序函数排序根任务
+      SortIndexService.sortTasksForInbox(rootTasks);
+
+      // 计算新的 sortIndex：插入到第一个根任务之前
+      final sortIndexService = _sortIndex;
+      double newSortIndex;
+      if (rootTasks.isEmpty) {
+        // 如果没有其他根任务，使用默认值
+        newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
+      } else {
+        // 插入到第一个根任务之前
+        final firstRoot = rootTasks.first;
+        if (sortIndexService != null) {
+          // 检查是否需要先规范化区域
+          final dragged = await _tasks.findById(taskId);
+          if (dragged != null &&
+              (firstRoot.sortIndex - dragged.sortIndex).abs() < 2.0) {
+            // 间隙太小，先规范化区域
+            await sortIndexService.normalizeSection(section: TaskSection.later);
+            // 重新获取第一个根任务（可能 sortIndex 已变化）
+            final updatedInboxTasks = await _tasks.watchInbox().first;
+            final updatedRootTasks = updatedInboxTasks
+                .where((t) => t.parentId == null && t.id != taskId)
+                .toList();
+            SortIndexService.sortTasksForInbox(updatedRootTasks);
+            if (updatedRootTasks.isNotEmpty) {
+              newSortIndex = (updatedRootTasks.first.sortIndex - 1024).toDouble();
+            } else {
+              newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
+            }
+          } else {
+            // 间隙足够，直接计算
+            newSortIndex = (firstRoot.sortIndex - 1024).toDouble();
+          }
+        } else {
+          // 退化实现：直接计算
+          newSortIndex = (firstRoot.sortIndex - 1024).toDouble();
+        }
+      }
+
+      // 一次性更新：清空 parentId 并设置 sortIndex
+      await _tasks.updateTask(
+        taskId,
+        TaskUpdate(
+          clearParent: true, // 清空 parentId，变为根任务
+          sortIndex: newSortIndex,
+        ),
+      );
+
+      // 批量重排所有 inbox 任务的 sortIndex（确保有足够的间隙）
+      if (sortIndexService != null) {
+        final allInboxTasks = await _tasks.watchInbox().first;
+        await sortIndexService.reorderTasksForInbox(tasks: allInboxTasks);
+      }
+
+      if (kDebugMode) {
+        debugPrint(
+          '[TaskService.promoteSubtaskToRoot] 成功: taskId=$taskId, level=$actualLevel -> 1',
+        );
+      }
+
+      await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+      return true;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          '[TaskService.promoteSubtaskToRoot] 错误: taskId=$taskId, error=$e',
         );
         debugPrint('$stackTrace');
       }

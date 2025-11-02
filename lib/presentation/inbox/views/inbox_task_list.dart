@@ -772,13 +772,17 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                                   );
                                 }
 
+                                // 获取任务的层级
+                                final taskLevel = levelMap[task.id] ?? 1;
+                                
                                 return InboxTaskTile(
                                   task: task,
                                   trailing: expandCollapseButton,
                                   childWhenDraggingOpacity: isDraggedTask ? 0.0 : null,
+                                  taskLevel: taskLevel,
                                   onDragStarted: () {
                                     // 使用虚拟字段 levelMap 和 childrenMap
-                                    final taskLevel = levelMap[task.id] ?? 1;
+                                    final taskLevelForDrag = levelMap[task.id] ?? 1;
 
                                     // 获取展开状态管理器
                                     final expandedNotifier = ref.read(
@@ -788,7 +792,7 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                                       expandedNotifier.state,
                                     );
 
-                                    if (taskLevel == 1) {
+                                    if (taskLevelForDrag == 1) {
                                       // 根任务：收缩所有子任务
                                       final childTaskIds = childrenMap[task.id] ?? <int>{};
                                       final updatedExpanded = Set<int>.from(
@@ -852,11 +856,11 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                                     
                                     if (kDebugMode) {
                                       debugPrint(
-                                        '[DnD] {event: onDragEnd:leftDragPromotion:attempt, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+                                        '[DnD] {event: onDragEnd:promoteToIndependent:attempt, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
                                       );
                                     }
                                     
-                                    await taskService.handleLeftDragPromotion(
+                                    await taskService.handlePromoteToIndependent(
                                       task.id,
                                       taskHierarchyService,
                                       horizontalOffset: horizontalOffset,

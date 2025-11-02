@@ -263,15 +263,35 @@ class IsarTaskRepository implements TaskRepository {
     });
   }
 
-  @override
-  Future<void> updateTask(int taskId, TaskUpdate payload) async {
-    await _isar.writeTxn(() async {
-      final entity = await _isar.taskEntitys.get(taskId);
-      if (entity == null) {
-        return;
-      }
-      final oldParentId = entity.parentId;
+  /// 应用任务更新到实体对象
+  ///
+  /// 包含状态转换逻辑（dueAt 变化时自动转换为 pending）和所有字段更新逻辑
+  /// 这是一个私有辅助方法，不涉及数据库操作，只处理实体对象的修改
+  ///
+  /// [entity] 要更新的实体对象（会被直接修改）
+  /// [payload] 更新内容
+  /// [taskId] 任务 ID（仅用于调试日志）
+  void _applyTaskUpdate(TaskEntity entity, TaskUpdate payload, {int? taskId}) {
+    final oldStatus = entity.status;
 
+    // 触发器逻辑：如果截止日期发生变化，自动将状态转换为 pending
+    // 判断截止日期是否变化（忽略 null 的情况）
+    final dueAtChanged = payload.dueAt != null && 
+                         payload.dueAt != entity.dueAt;
+    if (dueAtChanged) {
+      // 无论当前状态是什么，只要截止日期变化，都转换为 pending
+      // 但如果 payload.status 显式指定了值，则使用指定的值（显式指定优先）
+      if (payload.status == null) {
+        entity.status = TaskStatus.pending;
+        if (kDebugMode && taskId != null) {
+          debugPrint(
+            '[TaskRepository._applyTaskUpdate] 自动转换状态: taskId=$taskId, oldStatus=$oldStatus, newStatus=pending (dueAt changed)',
+          );
+        }
+      }
+    }
+
+    // 应用字段更新
       entity
         ..title = payload.title ?? entity.title
         ..status = payload.status ?? entity.status
@@ -302,6 +322,19 @@ class IsarTaskRepository implements TaskRepository {
       } else if (payload.parentId != null) {
         entity.parentId = payload.parentId;
       }
+  }
+
+  @override
+  Future<void> updateTask(int taskId, TaskUpdate payload) async {
+    await _isar.writeTxn(() async {
+      final entity = await _isar.taskEntitys.get(taskId);
+      if (entity == null) {
+        return;
+      }
+      final oldParentId = entity.parentId;
+
+      // 应用更新逻辑
+      _applyTaskUpdate(entity, payload, taskId: taskId);
 
       await _isar.taskEntitys.put(entity);
       if (kDebugMode) {
@@ -318,19 +351,19 @@ class IsarTaskRepository implements TaskRepository {
     required double sortIndex,
     DateTime? dueAt,
   }) async {
-    await _isar.writeTxn(() async {
-      final entity = await _isar.taskEntitys.get(taskId);
-      if (entity == null) {
-        return;
-      }
-      entity
-        ..parentId = targetParentId
-        ..status = _sectionToStatus(targetSection)
-        ..sortIndex = sortIndex
-        ..dueAt = dueAt ?? entity.dueAt
-        ..updatedAt = _clock();
-      await _isar.taskEntitys.put(entity);
-    });
+    // 通过 updateTask 统一处理，显式指定 status 确保状态根据 section 正确设置
+    // 显式指定的 status 优先级高于自动状态转换逻辑
+    final status = _sectionToStatus(targetSection);
+    await updateTask(
+      taskId,
+      TaskUpdate(
+        parentId: targetParentId,
+        clearParent: targetParentId == null, // 如果 targetParentId 为 null，清空 parentId
+        status: status,
+        sortIndex: sortIndex,
+        dueAt: dueAt,
+      ),
+    );
   }
 
   @override
@@ -493,38 +526,13 @@ class IsarTaskRepository implements TaskRepository {
         if (entity == null) continue;
         final payload = entry.value;
         final oldParentId = entity.parentId;
-        entity
-          ..title = payload.title ?? entity.title
-          ..status = payload.status ?? entity.status
-          ..dueAt = payload.dueAt ?? entity.dueAt
-          ..startedAt = payload.startedAt ?? entity.startedAt
-          ..endedAt = payload.endedAt ?? entity.endedAt
-          ..sortIndex = payload.sortIndex ?? entity.sortIndex
-          ..tags = payload.tags != null
-              ? payload.tags!.map((tag) => TagService.normalizeSlug(tag)).toList()
-              : entity.tags
-          ..templateLockCount =
-              (entity.templateLockCount + payload.templateLockDelta).clamp(
-                0,
-                1 << 31,
-              )
-          ..allowInstantComplete =
-              payload.allowInstantComplete ?? entity.allowInstantComplete
-          ..description = payload.description ?? entity.description
-          ..taskKind = payload.taskKind ?? entity.taskKind
-          ..logs = payload.logs != null
-              ? payload.logs!.map(_logFromDomain).toList()
-              : entity.logs
-          ..updatedAt = _clock();
 
-        if (payload.clearParent == true) {
-          entity.parentId = null;
-        } else if (payload.parentId != null) {
-          entity.parentId = payload.parentId;
-        }
+        // 使用统一的更新逻辑，确保状态转换逻辑被正确应用
+        _applyTaskUpdate(entity, payload, taskId: entry.key);
+
         await _isar.taskEntitys.put(entity);
         if (kDebugMode) {
-          debugPrint('[DnD] {event: repo:batchUpdate, id: ${entry.key}, clearParent: ${payload.clearParent == true}, oldParentId: $oldParentId, newParentId: ${entity.parentId}}');
+          debugPrint('[DnD] {event: repo:batchUpdate, id: ${entry.key}, clearParent: ${payload.clearParent == true}, oldParentId: $oldParentId, newParentId: ${entity.parentId}, dueAt: ${entity.dueAt}, status: ${entity.status}}');
         }
       }
     });

@@ -15,12 +15,16 @@ class TaskHeaderRow extends ConsumerWidget {
     this.showConvertAction = false,
     this.leading,
     this.useBodyText = false,
+    this.taskLevel, // 任务的层级（level），用于判断是否是子任务
   });
 
   final Task task;
   final bool showConvertAction;
   final Widget? leading;
   final bool useBodyText;
+  /// 任务的层级（level），用于判断是否是子任务
+  /// level > 1 表示是子任务，子任务不显示截止日期
+  final int? taskLevel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,7 +68,8 @@ class TaskHeaderRow extends ConsumerWidget {
               ),
           ],
         ),
-        if (deadlineLabel != null)
+        // 如果是子任务（level > 1），不显示截止日期
+        if (deadlineLabel != null && (taskLevel == null || taskLevel! <= 1))
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(

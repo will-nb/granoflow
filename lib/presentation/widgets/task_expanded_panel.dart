@@ -22,6 +22,7 @@ class TaskExpandedPanel extends ConsumerStatefulWidget {
     this.rightActionKey,
     this.onQuickPlan,
     this.onDateChanged,
+    this.taskLevel, // 任务的层级（level），用于判断是否是子任务
   });
 
   final Task task;
@@ -33,6 +34,9 @@ class TaskExpandedPanel extends ConsumerStatefulWidget {
   final String? rightActionKey;
   final VoidCallback? onQuickPlan;
   final ValueChanged<DateTime?>? onDateChanged;
+  /// 任务的层级（level），用于判断是否是子任务
+  /// level > 1 表示是子任务，子任务不显示截止日期
+  final int? taskLevel;
 
   @override
   ConsumerState<TaskExpandedPanel> createState() => _TaskExpandedPanelState();
@@ -66,26 +70,28 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        contextTags.when(
-          data: (tags) {
-            // 合并urgency和importance标签
-            final allPriorityTags = <Tag>[];
-            urgencyTags.whenData((urgencyTags) => allPriorityTags.addAll(urgencyTags));
-            importanceTags.whenData((importanceTags) => allPriorityTags.addAll(importanceTags));
-            
-            return TagPanel(
-              contextTags: tags,
-              priorityTags: allPriorityTags,
-              localeName: widget.localeName,
-              selectedContext: contextTag.isEmpty ? null : contextTag,
-              selectedPriority: priorityTag.isEmpty ? null : priorityTag,
-              onContextChanged: (tag) => _updateTags(context, ref, task.id, tag, priorityTag),
-              onPriorityChanged: (tag) => _updateTags(context, ref, task.id, contextTag, tag),
-            );
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (error, stackTrace) => ErrorBanner(message: '$error'),
-        ),
+        // 如果是子任务（level > 1），不显示标签选择面板
+        if (widget.taskLevel == null || widget.taskLevel! <= 1)
+          contextTags.when(
+            data: (tags) {
+              // 合并urgency和importance标签
+              final allPriorityTags = <Tag>[];
+              urgencyTags.whenData((urgencyTags) => allPriorityTags.addAll(urgencyTags));
+              importanceTags.whenData((importanceTags) => allPriorityTags.addAll(importanceTags));
+              
+              return TagPanel(
+                contextTags: tags,
+                priorityTags: allPriorityTags,
+                localeName: widget.localeName,
+                selectedContext: contextTag.isEmpty ? null : contextTag,
+                selectedPriority: priorityTag.isEmpty ? null : priorityTag,
+                onContextChanged: (tag) => _updateTags(context, ref, task.id, tag, priorityTag),
+                onPriorityChanged: (tag) => _updateTags(context, ref, task.id, contextTag, tag),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (error, stackTrace) => ErrorBanner(message: '$error'),
+          ),
         
         if (widget.showSwipeHint) ...[
           const SizedBox(height: 12),
@@ -164,6 +170,11 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
   }
 
   Widget _buildDateSection(BuildContext context) {
+    // 如果是子任务（level > 1），不显示日期部分
+    if (widget.taskLevel != null && widget.taskLevel! > 1) {
+      return const SizedBox.shrink();
+    }
+    
     final l10n = AppLocalizations.of(context);
     
     return Row(

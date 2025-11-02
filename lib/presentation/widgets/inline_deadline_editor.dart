@@ -11,11 +11,15 @@ class InlineDeadlineEditor extends StatelessWidget {
     required this.deadline,
     required this.onDeadlineChanged,
     this.showIcon = true,
+    this.taskLevel,
   });
 
   final DateTime? deadline;
   final ValueChanged<DateTime?> onDeadlineChanged;
   final bool showIcon;
+  /// 任务的层级（level），用于判断是否是子任务
+  /// level > 1 表示是子任务，子任务不显示截止日期
+  final int? taskLevel;
 
   /// 格式化截止日期为相对时间（不显示时间）
   String _formatDeadline(BuildContext context, DateTime deadline) {
@@ -118,6 +122,11 @@ class InlineDeadlineEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 如果是子任务（level > 1），不显示截止日期编辑器
+    if (taskLevel != null && taskLevel! > 1) {
+      return const SizedBox.shrink();
+    }
+
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 

@@ -211,6 +211,26 @@ final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
       );
 });
 
+/// 辅助函数：计算任务列表的 level 映射
+///
+/// [tasks] 任务列表
+/// [repository] 任务仓库
+/// 返回 taskId -> level 的映射（level = depth + 1）
+Future<Map<int, int>> _calculateTaskLevelMap(
+  List<Task> tasks,
+  TaskRepository repository,
+) async {
+  final levelMap = <int, int>{};
+  
+  // 批量计算所有任务的 level
+  for (final task in tasks) {
+    final depth = await calculateHierarchyDepth(task, repository);
+    levelMap[task.id] = depth + 1;
+  }
+  
+  return levelMap;
+}
+
 /// Provider for getting task level map (虚拟字段)
 ///
 /// 返回 taskId -> level 的映射，level 是计算属性（虚拟字段）
@@ -232,15 +252,29 @@ final inboxTaskLevelMapProvider = FutureProvider<Map<int, int>>((ref) async {
   final tasksAsync = ref.watch(inboxTasksProvider);
   final tasks = await tasksAsync.requireValue;
   final taskRepository = ref.watch(taskRepositoryProvider);
-  final levelMap = <int, int>{};
+  return _calculateTaskLevelMap(tasks, taskRepository);
+});
 
-  // 批量计算所有任务的 level
-  for (final task in tasks) {
-    final depth = await calculateHierarchyDepth(task, taskRepository);
-    levelMap[task.id] = depth + 1;
-  }
-
-  return levelMap;
+/// 通用的任务 level 映射 Provider (Family)
+///
+/// 接受任务列表作为参数，返回 taskId -> level 的映射
+/// 可以在任何页面使用，统一计算任务的 level（虚拟字段）
+///
+/// 使用方式：
+/// ```dart
+/// final tasksAsync = ref.watch(someTaskListProvider);
+/// final levelMapAsync = tasksAsync.when(
+///   data: (tasks) => ref.watch(taskLevelMapProvider(tasks)),
+///   loading: () => const AsyncLoading<Map<int, int>>(),
+///   error: (_, __) => const AsyncError<Map<int, int>>(null, StackTrace.empty),
+/// );
+/// ```
+final taskLevelMapProvider = FutureProvider.family<Map<int, int>, List<Task>>((
+  ref,
+  tasks,
+) async {
+  final taskRepository = ref.watch(taskRepositoryProvider);
+  return _calculateTaskLevelMap(tasks, taskRepository);
 });
 
 /// 辅助函数：递归获取所有后代任务 ID

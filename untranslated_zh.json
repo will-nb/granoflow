@@ -9,6 +9,7 @@
   ],
 
   "zh_HK": [
+    "actionPromoteToIndependent",
     "commonConfirm",
     "dateToday",
     "dateTomorrow",
@@ -20,6 +21,8 @@
     "flexibleInputExceeded",
     "flexibleInputHardLimit",
     "flexibleInputSoftLimit",
+    "promoteToIndependentError",
+    "promoteToIndependentSuccess",
     "datePickerMonthEnd",
     "taskAddToProject",
     "taskRemoveFromProject",

@@ -142,6 +142,8 @@ class DismissibleTaskTile extends StatelessWidget {
   /// 获取本地化文本
   String _getLocalizedText(AppLocalizations l10n, String key) {
     switch (key) {
+      case 'actionPromoteToIndependent':
+        return l10n.actionPromoteToIndependent;
       case 'inboxDeleteAction':
         return l10n.inboxDeleteAction;
       case 'inboxQuickPlanAction':

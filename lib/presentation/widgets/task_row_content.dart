@@ -26,6 +26,7 @@ class TaskRowContent extends ConsumerStatefulWidget {
     this.onConvertToProject,
     this.compact = false,
     this.useBodyText = false, // 是否使用普通文字大小（用于零散任务和子任务）
+    this.taskLevel, // 任务的层级（level），用于判断是否是子任务，level > 1 表示是子任务
   });
 
   final Task task;
@@ -35,6 +36,9 @@ class TaskRowContent extends ConsumerStatefulWidget {
   final VoidCallback? onConvertToProject;
   final bool compact; // 紧凑模式，用于子任务显示
   final bool useBodyText; // 是否使用普通文字大小（零散任务和子任务用）
+  /// 任务的层级（level），用于判断是否是子任务
+  /// level > 1 表示是子任务，子任务不显示截止日期
+  final int? taskLevel;
 
   @override
   ConsumerState<TaskRowContent> createState() => _TaskRowContentState();
@@ -199,6 +203,9 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   }
 
   Widget _buildTagsAndDeadlineRow(BuildContext context, WidgetRef ref, ThemeData theme) {
+    // 如果是子任务（level > 1），不显示标签和项目功能
+    final isSubtask = widget.taskLevel != null && widget.taskLevel! > 1;
+    
     // 如果紧凑模式且没有标签、截止日期和项目/里程碑，则不显示
     final hierarchyAsync = ref.watch(taskProjectHierarchyProvider(widget.task.id));
     final hasProject = hierarchyAsync.hasValue && hierarchyAsync.value != null;
@@ -207,6 +214,11 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         widget.task.tags.isEmpty && 
         widget.task.dueAt == null && 
         !hasProject) {
+      return const SizedBox.shrink();
+    }
+
+    // 如果是子任务，不显示任何标签和项目功能（包括截止日期）
+    if (isSubtask) {
       return const SizedBox.shrink();
     }
 
@@ -237,11 +249,14 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
           // 项目/里程碑按钮或显示
           _buildProjectMilestoneButton(context, ref),
           // 截止日期编辑器（和标签同一行）
-          if (widget.task.dueAt != null || !widget.compact)
+          // 如果是子任务（level > 1），不显示截止日期编辑器
+          if ((widget.taskLevel == null || widget.taskLevel! <= 1) &&
+              (widget.task.dueAt != null || !widget.compact))
             InlineDeadlineEditor(
               deadline: widget.task.dueAt,
               onDeadlineChanged: (newDeadline) => _handleDeadlineChanged(ref, newDeadline),
               showIcon: true,
+              taskLevel: widget.taskLevel,
             ),
         ],
       ),

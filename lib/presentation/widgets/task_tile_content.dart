@@ -30,6 +30,7 @@ class TaskTileContent extends ConsumerStatefulWidget {
     this.onDragUpdate,
     this.onDragEnd,
     this.childWhenDraggingOpacity,
+    this.taskLevel, // 任务的层级（level），用于判断是否是子任务
   });
 
   final Task task;
@@ -41,6 +42,9 @@ class TaskTileContent extends ConsumerStatefulWidget {
   final void Function(DragUpdateDetails)? onDragUpdate;
   final VoidCallback? onDragEnd;
   final double? childWhenDraggingOpacity;
+  /// 任务的层级（level），用于判断是否是子任务
+  /// level > 1 表示是子任务，子任务不显示截止日期
+  final int? taskLevel;
 
   @override
   ConsumerState<TaskTileContent> createState() => _TaskTileContentState();
@@ -82,6 +86,7 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
           task: widget.task,
           compact: widget.compact,
           trailing: widget.trailing,
+          taskLevel: widget.taskLevel,
         ),
       ),
     );

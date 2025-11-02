@@ -48,6 +48,7 @@ class TaskHierarchyTile extends StatelessWidget {
               task: task,
               compact: true,
               useBodyText: true,
+              taskLevel: node.depth + 1, // level = depth + 1
             ),
           ),
         ],
