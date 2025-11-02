@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/services/tag_service.dart';
-import '../../../core/services/task_service.dart'
-    show ProjectBlueprint, ProjectMilestoneBlueprint;
+import '../../../core/services/project_models.dart';
 import '../../../data/models/tag.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/date_utils.dart';
@@ -17,12 +16,11 @@ import '../../widgets/modern_tag.dart';
 import '../../widgets/modern_tag_group.dart';
 
 class ProjectCreationSheet extends ConsumerStatefulWidget {
-  const ProjectCreationSheet({
-    super.key,
-  });
+  const ProjectCreationSheet({super.key});
 
   @override
-  ConsumerState<ProjectCreationSheet> createState() => _ProjectCreationSheetState();
+  ConsumerState<ProjectCreationSheet> createState() =>
+      _ProjectCreationSheetState();
 }
 
 class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
@@ -76,7 +74,10 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(l10n.projectSheetTitle, style: Theme.of(context).textTheme.titleLarge),
+                    Text(
+                      l10n.projectSheetTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.of(context).pop(false),
@@ -107,10 +108,9 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       _deadlineError!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: Theme.of(context).colorScheme.error),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                 const SizedBox(height: 12),
@@ -157,7 +157,11 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
       data: (urgencyTags) => importanceTagsAsync.when(
         data: (importanceTags) => executionTagsAsync.when(
           data: (executionTags) {
-            final allTags = [...urgencyTags, ...importanceTags, ...executionTags];
+            final allTags = [
+              ...urgencyTags,
+              ...importanceTags,
+              ...executionTags,
+            ];
             final tagData = allTags
                 .map((tag) => TagData.fromTagWithLocalization(tag, context))
                 .toList(growable: false);
@@ -217,8 +221,10 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(l10n.projectSheetMilestonesTitle,
-                style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.projectSheetMilestonesTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             TextButton.icon(
               onPressed: _addMilestone,
               icon: const Icon(Icons.add),
@@ -254,30 +260,37 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
     if (_suppressProjectShortcut) {
       return;
     }
-    _handleShortcutInController(_titleController, includeExecution: true, onHashtagSelected: (slug) {
-      setState(() {
-        _assignProjectTag(slug);
-      });
-    });
+    _handleShortcutInController(
+      _titleController,
+      includeExecution: true,
+      onHashtagSelected: (slug) {
+        setState(() {
+          _assignProjectTag(slug);
+        });
+      },
+    );
   }
 
   void _onProjectDescriptionChanged() {
     if (_suppressProjectShortcut) {
       return;
     }
-    _handleShortcutInController(_descriptionController, includeExecution: true,
-        onHashtagSelected: (slug) {
-      setState(() {
-        _assignProjectTag(slug);
-      });
-    });
+    _handleShortcutInController(
+      _descriptionController,
+      includeExecution: true,
+      onHashtagSelected: (slug) {
+        setState(() {
+          _assignProjectTag(slug);
+        });
+      },
+    );
   }
 
   void _assignProjectTag(String slug) {
     // 使用 TagService 判断标签类型（兼容旧数据，自动规范化）
     final kind = TagService.getKind(slug);
     final normalizedSlug = TagService.normalizeSlug(slug);
-    
+
     switch (kind) {
       case TagKind.urgency:
         _selectedUrgencyTag = normalizedSlug;
@@ -316,7 +329,7 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
     }
 
     String? resolved;
-    
+
     // 使用 TagService 查找标签类型（兼容旧数据）
     final definition = TagService.findDefinition(keyword);
     if (definition != null) {
@@ -330,10 +343,14 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
     _suppressProjectShortcut = true;
     // 不再添加前缀到文本（前缀已废弃）
     final replacement = resolved;
-    controller.text =
-        controller.text.replaceRange(hashIndex, controller.text.length, replacement);
-    controller.selection =
-        TextSelection.collapsed(offset: controller.text.length);
+    controller.text = controller.text.replaceRange(
+      hashIndex,
+      controller.text.length,
+      replacement,
+    );
+    controller.selection = TextSelection.collapsed(
+      offset: controller.text.length,
+    );
     _suppressProjectShortcut = false;
     onHashtagSelected(resolved);
   }
@@ -431,8 +448,9 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
     final description = _descriptionController.text.trim().isEmpty
         ? null
         : _descriptionController.text.trim();
-    final sanitizedDescription =
-        description != null && description.isNotEmpty ? description : null;
+    final sanitizedDescription = description != null && description.isNotEmpty
+        ? description
+        : null;
 
     final blueprint = ProjectBlueprint(
       title: title,
@@ -444,7 +462,7 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
 
     setState(() => _submitting = true);
     try {
-      await ref.read(taskServiceProvider).createProject(blueprint);
+      await ref.read(projectServiceProvider).createProject(blueprint);
       if (!mounted) {
         return;
       }
@@ -454,9 +472,9 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.projectCreateError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.projectCreateError)));
       setState(() => _submitting = false);
     }
   }
@@ -464,8 +482,8 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
 
 class MilestoneDraft {
   MilestoneDraft()
-      : titleController = TextEditingController(),
-        descriptionController = TextEditingController();
+    : titleController = TextEditingController(),
+      descriptionController = TextEditingController();
 
   final TextEditingController titleController;
   final TextEditingController descriptionController;
@@ -523,7 +541,9 @@ class MilestoneDraftTile extends ConsumerStatefulWidget {
 
 class _MilestoneDraftTileState extends ConsumerState<MilestoneDraftTile> {
   List<TagData> _tagsToTagData(BuildContext context, List<Tag> tags) {
-    return tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList();
+    return tags
+        .map((tag) => TagData.fromTagWithLocalization(tag, context))
+        .toList();
   }
 
   @override
@@ -578,19 +598,30 @@ class _MilestoneDraftTileState extends ConsumerState<MilestoneDraftTile> {
             Consumer(
               builder: (context, ref, child) {
                 final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
-                final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
-                final executionTagsAsync = ref.watch(executionTagOptionsProvider);
+                final importanceTagsAsync = ref.watch(
+                  importanceTagOptionsProvider,
+                );
+                final executionTagsAsync = ref.watch(
+                  executionTagOptionsProvider,
+                );
 
                 return urgencyTagsAsync.when(
                   data: (urgencyTags) => importanceTagsAsync.when(
                     data: (importanceTags) => executionTagsAsync.when(
                       data: (executionTags) {
-                        final allTags = [...urgencyTags, ...importanceTags, ...executionTags];
+                        final allTags = [
+                          ...urgencyTags,
+                          ...importanceTags,
+                          ...executionTags,
+                        ];
                         final tagData = _tagsToTagData(context, allTags);
                         final selectedTags = <String>{
-                          if (widget.draft.urgencyTag != null) widget.draft.urgencyTag!,
-                          if (widget.draft.importanceTag != null) widget.draft.importanceTag!,
-                          if (widget.draft.executionTag != null) widget.draft.executionTag!,
+                          if (widget.draft.urgencyTag != null)
+                            widget.draft.urgencyTag!,
+                          if (widget.draft.importanceTag != null)
+                            widget.draft.importanceTag!,
+                          if (widget.draft.executionTag != null)
+                            widget.draft.executionTag!,
                         };
 
                         return ModernTagGroup(

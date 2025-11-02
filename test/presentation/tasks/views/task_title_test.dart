@@ -15,7 +15,6 @@ Task _createTask() {
     templateLockCount: 0,
     allowInstantComplete: false,
     logs: const [],
-    taskKind: TaskKind.regular,
   );
 }
 

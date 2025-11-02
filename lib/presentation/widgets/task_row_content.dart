@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/services/project_models.dart';
 import '../../core/services/tag_service.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
@@ -130,7 +131,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
       children: [
         // 第一行：执行图标 + 标题 + 转换按钮
         _buildTitleRow(context, theme),
-        
+
         // 第二行：标签 + 截止日期（可内联编辑）
         _buildTagsAndDeadlineRow(context, ref, theme),
       ],
@@ -154,7 +155,9 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
               ? TextField(
                   controller: _titleController,
                   focusNode: _titleFocusNode,
-                  style: (widget.useBodyText ? theme.textTheme.bodyLarge : theme.textTheme.titleMedium),
+                  style: (widget.useBodyText
+                      ? theme.textTheme.bodyLarge
+                      : theme.textTheme.titleMedium),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 4),
@@ -178,9 +181,15 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
                       widget.task.title,
-                      style: (widget.useBodyText ? theme.textTheme.bodyLarge : theme.textTheme.titleMedium)?.copyWith(
-                        decoration: isCompleted ? TextDecoration.lineThrough : null,
-                      ),
+                      style:
+                          (widget.useBodyText
+                                  ? theme.textTheme.bodyLarge
+                                  : theme.textTheme.titleMedium)
+                              ?.copyWith(
+                                decoration: isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
                     ),
                   ),
                 ),
@@ -202,17 +211,23 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
     );
   }
 
-  Widget _buildTagsAndDeadlineRow(BuildContext context, WidgetRef ref, ThemeData theme) {
+  Widget _buildTagsAndDeadlineRow(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+  ) {
     // 如果是子任务（level > 1），不显示标签和项目功能
     final isSubtask = widget.taskLevel != null && widget.taskLevel! > 1;
-    
+
     // 如果紧凑模式且没有标签、截止日期和项目/里程碑，则不显示
-    final hierarchyAsync = ref.watch(taskProjectHierarchyProvider(widget.task.id));
+    final hierarchyAsync = ref.watch(
+      taskProjectHierarchyProvider(widget.task.id),
+    );
     final hasProject = hierarchyAsync.hasValue && hierarchyAsync.value != null;
-    
-    if (widget.compact && 
-        widget.task.tags.isEmpty && 
-        widget.task.dueAt == null && 
+
+    if (widget.compact &&
+        widget.task.tags.isEmpty &&
+        widget.task.dueAt == null &&
         !hasProject) {
       return const SizedBox.shrink();
     }
@@ -254,7 +269,8 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
               (widget.task.dueAt != null || !widget.compact))
             InlineDeadlineEditor(
               deadline: widget.task.dueAt,
-              onDeadlineChanged: (newDeadline) => _handleDeadlineChanged(ref, newDeadline),
+              onDeadlineChanged: (newDeadline) =>
+                  _handleDeadlineChanged(ref, newDeadline),
               showIcon: true,
               taskLevel: widget.taskLevel,
             ),
@@ -281,64 +297,80 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
 
     // 紧急程度组
     final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
-    final hasUrgencyTag = widget.task.tags.any((t) => 
-      TagService.getKind(t) == TagKind.urgency
+    final hasUrgencyTag = widget.task.tags.any(
+      (t) => TagService.getKind(t) == TagKind.urgency,
     );
     if (!hasUrgencyTag) {
       urgencyTagsAsync.whenData((tags) {
         if (tags.isNotEmpty) {
-          tagGroups.add(TagGroup(
-            title: '紧急程度', // l10n.tag_group_urgency
-            tags: tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList(),
-          ));
+          tagGroups.add(
+            TagGroup(
+              title: '紧急程度', // l10n.tag_group_urgency
+              tags: tags
+                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                  .toList(),
+            ),
+          );
         }
       });
     }
 
     // 重要程度组
     final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
-    final hasImportanceTag = widget.task.tags.any((t) => 
-      TagService.getKind(t) == TagKind.importance
+    final hasImportanceTag = widget.task.tags.any(
+      (t) => TagService.getKind(t) == TagKind.importance,
     );
     if (!hasImportanceTag) {
       importanceTagsAsync.whenData((tags) {
         if (tags.isNotEmpty) {
-          tagGroups.add(TagGroup(
-            title: '重要程度', // l10n.tag_group_importance
-            tags: tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList(),
-          ));
+          tagGroups.add(
+            TagGroup(
+              title: '重要程度', // l10n.tag_group_importance
+              tags: tags
+                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                  .toList(),
+            ),
+          );
         }
       });
     }
 
     // 执行方式组
     final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-    final hasExecutionTag = widget.task.tags.any((t) => 
-      TagService.getKind(t) == TagKind.execution
+    final hasExecutionTag = widget.task.tags.any(
+      (t) => TagService.getKind(t) == TagKind.execution,
     );
     if (!hasExecutionTag) {
       executionTagsAsync.whenData((tags) {
         if (tags.isNotEmpty) {
-          tagGroups.add(TagGroup(
-            title: '执行方式', // l10n.tag_group_execution
-            tags: tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList(),
-          ));
+          tagGroups.add(
+            TagGroup(
+              title: '执行方式', // l10n.tag_group_execution
+              tags: tags
+                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                  .toList(),
+            ),
+          );
         }
       });
     }
 
     // 上下文组
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
-    final hasContextTag = widget.task.tags.any((t) => 
-      TagService.getKind(t) == TagKind.context
+    final hasContextTag = widget.task.tags.any(
+      (t) => TagService.getKind(t) == TagKind.context,
     );
     if (!hasContextTag) {
       contextTagsAsync.whenData((tags) {
         if (tags.isNotEmpty) {
-          tagGroups.add(TagGroup(
-            title: '上下文', // l10n.tag_group_context
-            tags: tags.map((tag) => TagData.fromTagWithLocalization(tag, context)).toList(),
-          ));
+          tagGroups.add(
+            TagGroup(
+              title: '上下文', // l10n.tag_group_context
+              tags: tags
+                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                  .toList(),
+            ),
+          );
         }
       });
     }
@@ -350,7 +382,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   Future<void> _handleAddTag(WidgetRef ref, String slug) async {
     try {
       final taskService = ref.read(taskServiceProvider);
-      
+
       // 检查是否是同组标签，如果是则先删除同组的旧标签
       // 使用 TagService 判断同组关系（兼容旧数据）
       String? tagToRemove;
@@ -363,7 +395,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
 
       // 构建新的标签列表
       List<String> updatedTags = List.from(widget.task.tags);
-      
+
       // 先删除同组标签
       if (tagToRemove != null && tagToRemove.isNotEmpty) {
         updatedTags = updatedTags.where((t) => t != tagToRemove).toList();
@@ -372,7 +404,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
       // 添加新标签（确保使用规范化后的 slug）
       final normalizedSlug = TagService.normalizeSlug(slug);
       updatedTags.add(normalizedSlug);
-      
+
       await taskService.updateDetails(
         taskId: widget.task.id,
         payload: TaskUpdate(tags: updatedTags),
@@ -402,7 +434,10 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   }
 
   /// 处理截止日期变更
-  Future<void> _handleDeadlineChanged(WidgetRef ref, DateTime? newDeadline) async {
+  Future<void> _handleDeadlineChanged(
+    WidgetRef ref,
+    DateTime? newDeadline,
+  ) async {
     try {
       final taskService = ref.read(taskServiceProvider);
       await taskService.updateDetails(
@@ -416,23 +451,27 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
 
   /// 构建项目/里程碑按钮或显示组件
   Widget _buildProjectMilestoneButton(BuildContext context, WidgetRef ref) {
-    final hierarchyAsync = ref.watch(taskProjectHierarchyProvider(widget.task.id));
+    final hierarchyAsync = ref.watch(
+      taskProjectHierarchyProvider(widget.task.id),
+    );
 
     return hierarchyAsync.when(
       data: (hierarchy) {
         if (hierarchy == null) {
           // 未关联项目/里程碑，显示"加入项目"按钮
           return ProjectMilestonePicker(
-            onSelected: (taskId) => _handleProjectMilestoneChanged(ref, taskId),
-            currentParentId: widget.task.parentId,
+            onSelected: (selection) =>
+                _handleProjectMilestoneChanged(ref, selection),
+            currentProjectId: widget.task.projectId,
+            currentMilestoneId: widget.task.milestoneId,
           );
         } else {
           // 已关联，显示项目/里程碑信息
           return InlineProjectMilestoneDisplay(
             project: hierarchy.project,
             milestone: hierarchy.milestone,
-            onSelected: (taskId) => _handleProjectMilestoneChanged(ref, taskId),
-            currentParentId: widget.task.parentId,
+            onSelected: (selection) =>
+                _handleProjectMilestoneChanged(ref, selection),
           );
         }
       },
@@ -441,20 +480,30 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         debugPrint('Failed to load project hierarchy: $error');
         // 出错时显示"加入项目"按钮
         return ProjectMilestonePicker(
-          onSelected: (taskId) => _handleProjectMilestoneChanged(ref, taskId),
-          currentParentId: widget.task.parentId,
+          onSelected: (selection) =>
+              _handleProjectMilestoneChanged(ref, selection),
+          currentProjectId: widget.task.projectId,
+          currentMilestoneId: widget.task.milestoneId,
         );
       },
     );
   }
 
   /// 处理项目/里程碑变更
-  Future<void> _handleProjectMilestoneChanged(WidgetRef ref, int? taskId) async {
+  Future<void> _handleProjectMilestoneChanged(
+    WidgetRef ref,
+    ProjectMilestoneSelection? selection,
+  ) async {
     try {
       final taskService = ref.read(taskServiceProvider);
       await taskService.updateDetails(
         taskId: widget.task.id,
-        payload: TaskUpdate(parentId: taskId),
+        payload: TaskUpdate(
+          projectId: selection?.project?.projectId,
+          milestoneId: selection?.milestone?.milestoneId,
+          clearProject: selection == null,
+          clearMilestone: selection == null || !selection.hasMilestone,
+        ),
       );
       // 刷新项目层级 provider，以便 UI 立即更新
       ref.invalidate(taskProjectHierarchyProvider(widget.task.id));
@@ -472,5 +521,3 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
     }
   }
 }
-
-

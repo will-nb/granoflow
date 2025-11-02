@@ -1,7 +1,10 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:io' show Platform;
+
+import '../../core/services/project_models.dart';
 import '../../generated/l10n/app_localizations.dart';
 import 'project_milestone_menu.dart';
 
@@ -11,14 +14,18 @@ class ProjectMilestonePicker extends ConsumerWidget {
   const ProjectMilestonePicker({
     super.key,
     required this.onSelected,
-    this.currentParentId,
+    this.currentProjectId,
+    this.currentMilestoneId,
   });
 
-  /// 选择回调：传入选中的任务ID（项目或里程碑），或 null（表示移出）
-  final ValueChanged<int?> onSelected;
+  /// 选择回调：传入选中的项目/里程碑，或 null（表示移出）
+  final ValueChanged<ProjectMilestoneSelection?> onSelected;
 
-  /// 当前任务的父任务ID（如果有）
-  final int? currentParentId;
+  /// 当前任务关联的项目 ID（业务 ID）
+  final String? currentProjectId;
+
+  /// 当前任务关联的里程碑 ID（业务 ID）
+  final String? currentMilestoneId;
 
   bool get _isMobile {
     if (kIsWeb) return false;
@@ -31,6 +38,11 @@ class ProjectMilestonePicker extends ConsumerWidget {
 
   /// Show the project/milestone picker menu
   Future<void> showPickerMenu(BuildContext context, WidgetRef ref) async {
+    Future<void> handleSelection(ProjectMilestoneSelection? selection) async {
+      Navigator.pop(context);
+      onSelected(selection);
+    }
+
     if (_isMobile) {
       // 移动端使用 BottomSheet
       await showModalBottomSheet(
@@ -40,11 +52,9 @@ class ProjectMilestonePicker extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: ProjectMilestoneMenu(
-                onSelected: (taskId) {
-                  Navigator.pop(context);
-                  onSelected(taskId);
-                },
-                currentParentId: currentParentId,
+                onSelected: handleSelection,
+                currentProjectId: currentProjectId,
+                currentMilestoneId: currentMilestoneId,
               ),
             ),
           ),
@@ -76,11 +86,9 @@ class ProjectMilestonePicker extends ConsumerWidget {
             child: SizedBox(
               width: 280,
               child: ProjectMilestoneMenu(
-                onSelected: (taskId) {
-                  Navigator.pop(context);
-                  onSelected(taskId);
-                },
-                currentParentId: currentParentId,
+                onSelected: handleSelection,
+                currentProjectId: currentProjectId,
+                currentMilestoneId: currentMilestoneId,
               ),
             ),
           ),
@@ -92,8 +100,8 @@ class ProjectMilestonePicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
     final color = theme.colorScheme.primary;
+    final l10n = AppLocalizations.of(context);
 
     // Minimal 风格：只有图标+文字，无背景
     return InkWell(
@@ -104,11 +112,7 @@ class ProjectMilestonePicker extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.folder_outlined,
-              size: 14,
-              color: color,
-            ),
+            Icon(Icons.folder_outlined, size: 14, color: color),
             const SizedBox(width: 4),
             Text(
               l10n.taskAddToProject,
@@ -124,4 +128,3 @@ class ProjectMilestonePicker extends ConsumerWidget {
     );
   }
 }
-

@@ -11,7 +11,7 @@ import 'package:granoflow/data/repositories/task_repository.dart';
 import '../../presentation/test_support/fakes.dart';
 
 void main() {
-  group('TaskService project workflows', () {
+  group('TaskService', () {
     late StubTaskRepository taskRepository;
     late StubTagRepository tagRepository;
     late TaskService service;
@@ -28,65 +28,6 @@ void main() {
       );
     });
 
-    test('createProject persists descriptions on project and milestones', () async {
-      final project = await service.createProject(
-        ProjectBlueprint(
-          title: 'Quarterly Planning',
-          dueDate: DateTime(2024, 2, 29),
-          description: 'Full planning narrative with 60k allowance.',
-          tags: const <String>['#urgent'],
-          milestones: <ProjectMilestoneBlueprint>[
-            ProjectMilestoneBlueprint(
-              title: 'Kickoff',
-              dueDate: DateTime(2024, 3, 5),
-              tags: const <String>['#timed'],
-              description: 'Align stakeholders and finalize scope.',
-            ),
-          ],
-        ),
-      );
-
-      final storedProject = await taskRepository.findById(project.id);
-      final milestones = await taskRepository.listChildren(project.id);
-
-      expect(storedProject, isNotNull);
-      expect(storedProject!.description,
-          equals('Full planning narrative with 60k allowance.'));
-
-      expect(milestones, hasLength(1));
-      expect(milestones.first.description,
-          equals('Align stakeholders and finalize scope.'));
-    });
-
-    test('snoozeProject extends deadline by one year and logs change', () async {
-      final project = await service.createProject(
-        ProjectBlueprint(
-          title: 'Leap Project',
-          dueDate: DateTime(2024, 2, 29),
-          milestones: const <ProjectMilestoneBlueprint>[],
-        ),
-      );
-
-      final before = await taskRepository.findById(project.id);
-      expect(before?.dueAt, isNotNull);
-      final originalDueIso = before!.dueAt!.toIso8601String();
-
-      await service.snoozeProject(project.id);
-
-      final after = await taskRepository.findById(project.id);
-      expect(after, isNotNull);
-
-      expect(
-        after!.dueAt,
-        equals(DateTime(2025, 2, 28, 23, 59, 59, 999)),
-        reason: 'Leap day should clamp to Feb 28 on non-leap year',
-      );
-
-      expect(after.logs.last.action, 'deadline_snoozed');
-      expect(after.logs.last.previous, originalDueIso);
-      expect(after.logs.last.next, after.dueAt!.toIso8601String());
-    });
-
     test('updateDetails appends provided logs instead of replacing', () async {
       final initialLog = TaskLogEntry(
         timestamp: fixedNow,
@@ -98,7 +39,6 @@ void main() {
           title: 'Documentation',
           status: TaskStatus.pending,
           dueAt: fixedNow,
-          taskKind: TaskKind.project,
           logs: <TaskLogEntry>[initialLog],
         ),
       );
@@ -181,7 +121,8 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
   }) async => throw UnimplementedError();
 
   @override
-  Future<FocusSession?> findById(int sessionId) async => throw UnimplementedError();
+  Future<FocusSession?> findById(int sessionId) async =>
+      throw UnimplementedError();
 
   @override
   Future<List<FocusSession>> listRecentSessions({
@@ -197,7 +138,8 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
   }) async => throw UnimplementedError();
 
   @override
-  Future<int> totalMinutesForTask(int taskId) async => throw UnimplementedError();
+  Future<int> totalMinutesForTask(int taskId) async =>
+      throw UnimplementedError();
 
   @override
   Future<int> totalMinutesOverall() async => 0;

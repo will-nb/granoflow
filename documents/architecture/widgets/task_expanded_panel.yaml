@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_expanded_panel.dart
   description: _QuickDateOption 组件
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -73,6 +73,11 @@ widget_properties:
   required: false
   default_value: null
   description: ''
+- name: taskLevel
+  type: int
+  required: false
+  default_value: null
+  description: 任务的层级（level），用于判断是否是子任务 level > 1 表示是子任务，子任务不显示截止日期
 - name: _isPlanning
   type: bool
   required: false

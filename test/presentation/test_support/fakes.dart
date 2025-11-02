@@ -37,24 +37,17 @@ class StubTaskRepository implements TaskRepository {
   );
 
   @override
-  Stream<List<Task>> watchProjects() => Stream.value(
-    _tasks.values
-        .where(
-          (task) =>
-              task.taskKind == TaskKind.project &&
-              task.parentId == null &&
-              _isActiveProjectStatus(task.status),
-        )
-        .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
-        .toList(growable: false),
-  );
+  @Deprecated('使用 ProjectRepository 和 ProjectService 替代')
+  Stream<List<Task>> watchProjects() =>
+      throw UnimplementedError('watchProjects 已废弃');
 
   @override
   Stream<List<Task>> watchQuickTasks() => Stream.value(
     _tasks.values
         .where(
           (task) =>
-              task.taskKind == TaskKind.regular &&
+              task.projectId == null &&
+              task.milestoneId == null &&
               task.parentId == null &&
               _isActiveProjectStatus(task.status),
         )
@@ -63,17 +56,34 @@ class StubTaskRepository implements TaskRepository {
   );
 
   @override
-  Stream<List<Task>> watchMilestones(int projectId) => Stream.value(
+  @Deprecated('使用 MilestoneRepository 和 MilestoneService 替代')
+  Stream<List<Task>> watchMilestones(int projectId) =>
+      throw UnimplementedError('watchMilestones 已废弃');
+
+  @override
+  Stream<List<Task>> watchTasksByProjectId(String projectId) => Stream.value(
     _tasks.values
-        .where(
-          (task) =>
-              task.taskKind == TaskKind.milestone &&
-              task.parentId == projectId &&
-              _isVisibleMilestoneStatus(task.status),
-        )
+        .where((task) => task.projectId == projectId)
         .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
         .toList(growable: false),
   );
+
+  @override
+  Stream<List<Task>> watchTasksByMilestoneId(String milestoneId) =>
+      Stream.value(
+        _tasks.values
+            .where((task) => task.milestoneId == milestoneId)
+            .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
+            .toList(growable: false),
+      );
+
+  @override
+  Future<List<Task>> listTasksByMilestoneId(String milestoneId) async {
+    return _tasks.values
+        .where((task) => task.milestoneId == milestoneId)
+        .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
+        .toList(growable: false);
+  }
 
   @override
   Stream<List<Task>> watchInboxFiltered({
@@ -127,13 +137,15 @@ class StubTaskRepository implements TaskRepository {
       createdAt: now,
       updatedAt: now,
       parentId: draft.parentId,
+      parentTaskId: draft.parentTaskId,
+      projectId: draft.projectId,
+      milestoneId: draft.milestoneId,
       sortIndex: draft.sortIndex,
       tags: List.unmodifiable(draft.tags),
       templateLockCount: 0,
       seedSlug: draft.seedSlug,
       allowInstantComplete: draft.allowInstantComplete,
       description: draft.description,
-      taskKind: draft.taskKind,
       logs: List.unmodifiable(draft.logs),
     );
     _tasks[task.id] = task;
@@ -150,14 +162,24 @@ class StubTaskRepository implements TaskRepository {
       dueAt: payload.dueAt,
       startedAt: payload.startedAt,
       endedAt: payload.endedAt,
-      parentId: payload.parentId ?? existing.parentId,
+      parentId: payload.clearParent == true
+          ? null
+          : payload.parentId ?? existing.parentId,
+      parentTaskId: payload.clearParent == true
+          ? null
+          : payload.parentTaskId ?? existing.parentTaskId,
+      projectId: payload.clearProject == true
+          ? null
+          : payload.projectId ?? existing.projectId,
+      milestoneId: payload.clearMilestone == true
+          ? null
+          : payload.milestoneId ?? existing.milestoneId,
       sortIndex: payload.sortIndex ?? existing.sortIndex,
       tags: payload.tags ?? existing.tags,
       templateLockCount: existing.templateLockCount + payload.templateLockDelta,
       allowInstantComplete:
           payload.allowInstantComplete ?? existing.allowInstantComplete,
       description: payload.description ?? existing.description,
-      taskKind: payload.taskKind ?? existing.taskKind,
       logs: payload.logs ?? existing.logs,
       updatedAt: DateTime.now(),
     );
@@ -347,11 +369,6 @@ class StubTaskRepository implements TaskRepository {
         status != TaskStatus.completedActive;
   }
 
-  bool _isVisibleMilestoneStatus(TaskStatus status) {
-    return status != TaskStatus.archived &&
-        status != TaskStatus.trashed &&
-        status != TaskStatus.pseudoDeleted;
-  }
 
   int _compareDueDates(DateTime? a, DateTime? b) {
     final aSafe = a ?? DateTime(2100, 1, 1);

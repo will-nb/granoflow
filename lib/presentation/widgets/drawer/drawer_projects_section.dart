@@ -11,8 +11,8 @@ class DrawerProjectsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectsAsync = ref.watch(projectsProvider);
-    
+    final projectsAsync = ref.watch(projectsDomainProvider);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
@@ -36,7 +36,10 @@ class DrawerProjectsSection extends ConsumerWidget {
                   context.go('/projects');
                 },
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -51,7 +54,7 @@ class DrawerProjectsSection extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          
+
           // 项目列表
           projectsAsync.when(
             data: (projects) {
@@ -61,13 +64,15 @@ class DrawerProjectsSection extends ConsumerWidget {
                   child: Text(
                     '暂无项目',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 );
               }
-              
+
               // 只显示前3个项目
               final displayProjects = projects.take(3).toList();
               return Column(
@@ -81,7 +86,10 @@ class DrawerProjectsSection extends ConsumerWidget {
                       },
                       borderRadius: BorderRadius.circular(8),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 6,
+                        ),
                         child: Row(
                           children: [
                             Icon(
@@ -93,10 +101,13 @@ class DrawerProjectsSection extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 project.title,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -104,10 +115,13 @@ class DrawerProjectsSection extends ConsumerWidget {
                             if (project.dueAt != null)
                               Text(
                                 _formatProjectDueDate(project.dueAt!),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  fontSize: 11,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                      fontSize: 11,
+                                    ),
                               ),
                           ],
                         ),
@@ -144,7 +158,7 @@ class DrawerProjectsSection extends ConsumerWidget {
   String _formatProjectDueDate(DateTime dueDate) {
     final now = DateTime.now();
     final difference = dueDate.difference(now).inDays;
-    
+
     if (difference < 0) {
       return '已逾期';
     } else if (difference == 0) {

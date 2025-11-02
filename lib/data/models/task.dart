@@ -23,8 +23,6 @@ enum TaskSection {
   trash,
 }
 
-enum TaskKind { regular, project, milestone }
-
 @immutable
 class TaskLogEntry {
   const TaskLogEntry({
@@ -84,13 +82,15 @@ class Task {
     this.startedAt,
     this.endedAt,
     this.parentId,
+    this.parentTaskId,
+    this.projectId,
+    this.milestoneId,
     this.sortIndex = 0,
     this.tags = const <String>[],
     this.templateLockCount = 0,
     this.seedSlug,
     this.allowInstantComplete = false,
     this.description,
-    this.taskKind = TaskKind.regular,
     this.logs = const <TaskLogEntry>[],
   });
 
@@ -104,13 +104,15 @@ class Task {
   final DateTime createdAt;
   final DateTime updatedAt;
   final int? parentId;
+  final int? parentTaskId;
+  final String? projectId;
+  final String? milestoneId;
   final double sortIndex;
   final List<String> tags;
   final int templateLockCount;
   final String? seedSlug;
   final bool allowInstantComplete;
   final String? description;
-  final TaskKind taskKind;
   final List<TaskLogEntry> logs;
 
   Task copyWith({
@@ -124,13 +126,15 @@ class Task {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? parentId,
+    int? parentTaskId,
+    String? projectId,
+    String? milestoneId,
     double? sortIndex,
     List<String>? tags,
     int? templateLockCount,
     String? seedSlug,
     bool? allowInstantComplete,
     String? description,
-    TaskKind? taskKind,
     List<TaskLogEntry>? logs,
   }) {
     return Task(
@@ -144,13 +148,15 @@ class Task {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       parentId: parentId ?? this.parentId,
+      parentTaskId: parentTaskId ?? this.parentTaskId,
+      projectId: projectId ?? this.projectId,
+      milestoneId: milestoneId ?? this.milestoneId,
       sortIndex: sortIndex ?? this.sortIndex,
       tags: tags ?? this.tags,
       templateLockCount: templateLockCount ?? this.templateLockCount,
       seedSlug: seedSlug ?? this.seedSlug,
       allowInstantComplete: allowInstantComplete ?? this.allowInstantComplete,
       description: description ?? this.description,
-      taskKind: taskKind ?? this.taskKind,
       logs: logs ?? this.logs,
     );
   }
@@ -180,7 +186,9 @@ class Task {
     seedSlug,
     allowInstantComplete,
     description,
-    taskKind,
+    parentTaskId,
+    projectId,
+    milestoneId,
     const ListEquality<TaskLogEntry>().hash(logs),
   ]);
 
@@ -197,13 +205,15 @@ class Task {
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt &&
         other.parentId == parentId &&
+        other.parentTaskId == parentTaskId &&
+        other.projectId == projectId &&
+        other.milestoneId == milestoneId &&
         other.sortIndex == sortIndex &&
         const ListEquality<String>().equals(other.tags, tags) &&
         other.templateLockCount == templateLockCount &&
         other.seedSlug == seedSlug &&
         other.allowInstantComplete == allowInstantComplete &&
         other.description == description &&
-        other.taskKind == taskKind &&
         const ListEquality<TaskLogEntry>().equals(other.logs, logs);
   }
 
@@ -235,12 +245,14 @@ class TaskDraft {
     required this.status,
     this.dueAt,
     this.parentId,
+    this.parentTaskId,
+    this.projectId,
+    this.milestoneId,
     this.tags = const <String>[],
     this.sortIndex = 0,
     this.seedSlug,
     this.allowInstantComplete = false,
     this.description,
-    this.taskKind = TaskKind.regular,
     this.logs = const <TaskLogEntry>[],
   });
 
@@ -248,12 +260,14 @@ class TaskDraft {
   final TaskStatus status;
   final DateTime? dueAt;
   final int? parentId;
+  final int? parentTaskId;
+  final String? projectId;
+  final String? milestoneId;
   final List<String> tags;
   final double sortIndex;
   final String? seedSlug;
   final bool allowInstantComplete;
   final String? description;
-  final TaskKind taskKind;
   final List<TaskLogEntry> logs;
 }
 
@@ -265,14 +279,18 @@ class TaskUpdate {
     this.startedAt,
     this.endedAt,
     this.parentId,
+    this.parentTaskId,
+    this.projectId,
+    this.milestoneId,
     this.sortIndex,
     this.tags,
     this.templateLockDelta = 0,
     this.allowInstantComplete,
     this.description,
-    this.taskKind,
     this.logs,
     this.clearParent,
+    this.clearProject,
+    this.clearMilestone,
   });
 
   final String? title;
@@ -281,14 +299,23 @@ class TaskUpdate {
   final DateTime? startedAt;
   final DateTime? endedAt;
   final int? parentId;
+  final int? parentTaskId;
+  final String? projectId;
+  final String? milestoneId;
   final double? sortIndex;
   final List<String>? tags;
   final int templateLockDelta;
   final bool? allowInstantComplete;
   final String? description;
-  final TaskKind? taskKind;
   final List<TaskLogEntry>? logs;
+
   /// 当需要显式将 parentId 置为 null 时，传 true；
   /// 否则保持现有行为（未提供 parentId 则不改动）。
   final bool? clearParent;
+
+  /// 当需要显式将 projectId 置为 null 时，传 true。
+  final bool? clearProject;
+
+  /// 当需要显式将 milestoneId 置为 null 时，传 true。
+  final bool? clearMilestone;
 }

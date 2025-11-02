@@ -15,7 +15,10 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
   Future<void> build() async {}
 
   @override
-  Future<void> addSubtask({required int parentId, required String title}) async {}
+  Future<void> addSubtask({
+    required int parentId,
+    required String title,
+  }) async {}
 
   @override
   Future<void> editTitle({required int taskId, required String title}) async {}
@@ -28,31 +31,46 @@ void main() {
   testWidgets('ProjectTreeView expands to show children', (tester) async {
     final parent = Task(
       id: 1,
-      taskId: 'project-1',
-      title: 'Parent Project',
+      taskId: 'task-1',
+      title: 'Parent Task',
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
+      parentId: null,
+      parentTaskId: null,
+      projectId: null,
+      milestoneId: null,
       sortIndex: 0,
+      tags: const <String>[],
       templateLockCount: 0,
+      seedSlug: null,
       allowInstantComplete: false,
+      description: null,
       logs: const <TaskLogEntry>[],
-      taskKind: TaskKind.project,
     );
     final child = Task(
       id: 2,
       taskId: 'task-2',
-      title: 'Child Milestone',
+      title: 'Child Task',
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
+      parentId: 1,
+      parentTaskId: 1,
+      projectId: null,
+      milestoneId: null,
       sortIndex: 1,
+      tags: const <String>[],
       templateLockCount: 0,
+      seedSlug: null,
       allowInstantComplete: false,
+      description: null,
       logs: const <TaskLogEntry>[],
-      taskKind: TaskKind.milestone,
     );
-    final tree = TaskTreeNode(task: parent, children: [TaskTreeNode(task: child, children: const [])]);
+    final tree = TaskTreeNode(
+      task: parent,
+      children: [TaskTreeNode(task: child, children: const [])],
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -61,7 +79,9 @@ void main() {
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) => Stream.value(tree));
           }),
-          taskEditActionsNotifierProvider.overrideWith(() => _FakeTaskEditActions()),
+          taskEditActionsNotifierProvider.overrideWith(
+            () => _FakeTaskEditActions(),
+          ),
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
         ],
         child: MaterialApp(
@@ -69,7 +89,10 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
-              child: ProjectTreeView(tree: tree, section: TaskSection.thisMonth),
+              child: ProjectTreeView(
+                tree: tree,
+                section: TaskSection.thisMonth,
+              ),
             ),
           ),
         ),
@@ -78,7 +101,6 @@ void main() {
 
     await tester.pump();
 
-    expect(find.text('Parent Project'), findsOneWidget);
+    expect(find.text('Parent Task'), findsOneWidget);
   });
 }
-

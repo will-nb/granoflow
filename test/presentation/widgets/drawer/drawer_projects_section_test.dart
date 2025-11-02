@@ -6,8 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/tag_providers.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
-import 'package:granoflow/data/models/task.dart';
+import 'package:granoflow/data/models/project.dart';
 import 'package:granoflow/data/models/tag.dart';
+import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/presentation/projects/projects_page.dart';
 import 'package:granoflow/presentation/widgets/drawer/drawer_projects_section.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
@@ -15,26 +16,26 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   Widget buildTestWidget({
-    required List<Task> projects,
+    required List<Project> projects,
     bool isLoading = false,
     bool hasError = false,
   }) {
     return ProviderScope(
       overrides: [
         if (hasError)
-          projectsProvider.overrideWith(
-            (ref) => Stream<List<Task>>.error('Test error'),
+          projectsDomainProvider.overrideWith(
+            (ref) => Stream<List<Project>>.error('Test error'),
           )
         else if (isLoading)
-          projectsProvider.overrideWith(
-            (ref) => Stream<List<Task>>.periodic(
+          projectsDomainProvider.overrideWith(
+            (ref) => Stream<List<Project>>.periodic(
               const Duration(seconds: 10),
-              (i) => <Task>[],
+              (i) => <Project>[],
             ).take(0),
           )
         else
-          projectsProvider.overrideWith(
-            (ref) => Stream<List<Task>>.value(projects),
+          projectsDomainProvider.overrideWith(
+            (ref) => Stream<List<Project>>.value(projects),
           ),
       ],
       child: MaterialApp(
@@ -50,66 +51,68 @@ void main() {
           Locale('zh', 'CN'),
           Locale('zh', 'HK'),
         ],
-        home: const Scaffold(
-          body: DrawerProjectsSection(),
-        ),
+        home: const Scaffold(body: DrawerProjectsSection()),
       ),
     );
   }
 
-  Task _createProject({
+  Project _createProject({
     required int id,
     required String title,
     DateTime? dueAt,
   }) {
-    return Task(
+    return Project(
       id: id,
-      taskId: 'project-$id',
+      projectId: 'project-$id',
       title: title,
       status: TaskStatus.pending,
+      dueAt: dueAt,
+      startedAt: null,
+      endedAt: null,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
-      dueAt: dueAt,
-      tags: const <String>[],
       sortIndex: 0,
+      tags: const <String>[],
       templateLockCount: 0,
+      seedSlug: null,
       allowInstantComplete: false,
-      logs: const <TaskLogEntry>[],
-      taskKind: TaskKind.project,
+      description: null,
+      logs: const <ProjectLogEntry>[],
     );
   }
 
   group('DrawerProjectsSection Widget Tests', () {
     testWidgets('should display section title and add button', (tester) async {
       await tester.pumpWidget(buildTestWidget(projects: []));
-      
+
       expect(find.text('最近项目'), findsOneWidget);
       expect(find.text('添加项目'), findsOneWidget);
     });
 
-    testWidgets('should show loading indicator when projects are loading',
-        (tester) async {
+    testWidgets('should show loading indicator when projects are loading', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(projects: [], isLoading: true));
-      
+
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('should display empty state when no projects', (tester) async {
       await tester.pumpWidget(buildTestWidget(projects: []));
       await tester.pump(); // 等待异步状态完成
-      
+
       expect(find.text('暂无项目'), findsOneWidget);
     });
 
     testWidgets('should display up to 3 projects', (tester) async {
-      final projects = List.generate(5, (i) => _createProject(
-            id: i + 1,
-            title: 'Project ${i + 1}',
-          ));
-      
+      final projects = List.generate(
+        5,
+        (i) => _createProject(id: i + 1, title: 'Project ${i + 1}'),
+      );
+
       await tester.pumpWidget(buildTestWidget(projects: projects));
       await tester.pump();
-      
+
       // 应该只显示3个项目
       expect(find.text('Project 1'), findsOneWidget);
       expect(find.text('Project 2'), findsOneWidget);
@@ -120,27 +123,32 @@ void main() {
 
     testWidgets('should show project title and icon', (tester) async {
       final project = _createProject(id: 1, title: 'Test Project');
-      
+
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
-      
+
       expect(find.text('Test Project'), findsOneWidget);
       expect(find.byIcon(Icons.folder_outlined), findsOneWidget);
     });
 
     testWidgets('should format and display due date correctly', (tester) async {
       final now = DateTime.now();
-      final dueDate = DateTime(now.year, now.month, now.day, 23, 59)
-          .add(const Duration(days: 5)); // 使用当天结束时间，避免时区问题
+      final dueDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        23,
+        59,
+      ).add(const Duration(days: 5)); // 使用当天结束时间，避免时区问题
       final project = _createProject(
         id: 1,
         title: 'Test Project',
         dueAt: dueDate,
       );
-      
+
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
-      
+
       // 应该显示 "5天后"（根据实际计算的差值）
       final difference = dueDate.difference(DateTime.now()).inDays;
       if (difference == 5) {
@@ -158,26 +166,31 @@ void main() {
         title: 'Test Project',
         dueAt: DateTime(now.year, now.month, now.day),
       );
-      
+
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
-      
+
       expect(find.text('今天'), findsOneWidget);
     });
 
     testWidgets('should format due date as "明天" for tomorrow', (tester) async {
       final now = DateTime.now();
-      final dueDate = DateTime(now.year, now.month, now.day, 23, 59)
-          .add(const Duration(days: 1)); // 使用当天结束时间
+      final dueDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        23,
+        59,
+      ).add(const Duration(days: 1)); // 使用当天结束时间
       final project = _createProject(
         id: 1,
         title: 'Test Project',
         dueAt: dueDate,
       );
-      
+
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
-      
+
       // 验证显示明天或日期格式
       final difference = dueDate.difference(DateTime.now()).inDays;
       if (difference == 1) {
@@ -188,20 +201,26 @@ void main() {
       }
     });
 
-    testWidgets('should format due date as "X天后" for within 7 days',
-        (tester) async {
+    testWidgets('should format due date as "X天后" for within 7 days', (
+      tester,
+    ) async {
       final now = DateTime.now();
-      final dueDate = DateTime(now.year, now.month, now.day, 23, 59)
-          .add(const Duration(days: 3)); // 使用当天结束时间
+      final dueDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        23,
+        59,
+      ).add(const Duration(days: 3)); // 使用当天结束时间
       final project = _createProject(
         id: 1,
         title: 'Test Project',
         dueAt: dueDate,
       );
-      
+
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
-      
+
       // 验证显示"X天后"格式（根据实际计算的差值）
       final difference = dueDate.difference(DateTime.now()).inDays;
       if (difference >= 2 && difference <= 7) {
@@ -212,20 +231,24 @@ void main() {
       }
     });
 
-    testWidgets('should format due date as "M/D" for beyond 7 days',
-        (tester) async {
+    testWidgets('should format due date as "M/D" for beyond 7 days', (
+      tester,
+    ) async {
       final now = DateTime.now();
-      final dueDate = DateTime(now.year, now.month, now.day)
-          .add(const Duration(days: 10)); // 10天后，超过7天
+      final dueDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).add(const Duration(days: 10)); // 10天后，超过7天
       final project = _createProject(
         id: 1,
         title: 'Test Project',
         dueAt: dueDate,
       );
-      
+
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
-      
+
       // 应该显示 M/D 格式（例如 3/15）
       final expectedText = '${dueDate.month}/${dueDate.day}';
       expect(find.text(expectedText), findsOneWidget);
@@ -238,31 +261,30 @@ void main() {
         title: 'Test Project',
         dueAt: now.subtract(const Duration(days: 5)),
       );
-      
+
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
-      
+
       expect(find.text('已逾期'), findsOneWidget);
     });
 
     testWidgets('should handle error state', (tester) async {
       await tester.pumpWidget(buildTestWidget(projects: [], hasError: true));
       await tester.pump();
-      
+
       expect(find.text('加载失败'), findsOneWidget);
     });
 
-    testWidgets('should navigate to /projects when "添加项目" button is tapped',
-        (tester) async {
+    testWidgets('should navigate to /projects when "添加项目" button is tapped', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            projectsProvider.overrideWith(
-              (ref) => Stream<List<Task>>.value(const <Task>[]),
+            projectsDomainProvider.overrideWith(
+              (ref) => Stream<List<Project>>.value(const <Project>[]),
             ),
-            tagsByKindProvider.overrideWith(
-              (ref, kind) async => <Tag>[],
-            ),
+            tagsByKindProvider.overrideWith((ref, kind) async => <Tag>[]),
           ],
           child: MaterialApp.router(
             theme: AppTheme.light(),

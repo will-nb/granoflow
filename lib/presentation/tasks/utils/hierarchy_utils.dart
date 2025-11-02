@@ -63,12 +63,13 @@ Future<int> calculateHierarchyDepth(
   Task task,
   TaskRepository repository,
 ) async {
-  if (task.parentId == null) {
+  // 在新架构下，只通过 parentTaskId 追踪层级
+  if (task.parentTaskId == null) {
     return 0;
   }
 
   int depth = 0;
-  int? currentParentId = task.parentId;
+  int? currentParentId = task.parentTaskId;
   const maxDepth = 10; // 防止无限循环的保护措施
 
   while (currentParentId != null && depth < maxDepth) {
@@ -77,58 +78,39 @@ Future<int> calculateHierarchyDepth(
       break;
     }
 
-    // 项目和里程碑不计入层级深度
-    if (parent.taskKind == TaskKind.project ||
-        parent.taskKind == TaskKind.milestone) {
-      currentParentId = parent.parentId;
-      continue;
-    }
-
+    // 只追踪普通任务的层级，parentTaskId 确保只指向普通任务
     depth++;
-    currentParentId = parent.parentId;
+    currentParentId = parent.parentTaskId;
   }
 
   return depth;
 }
 
 /// 计算任务子树的最大深度（从该任务自身算起，叶子=1）
-/// - 仅统计普通任务（排除项目/里程碑）
+/// - 仅统计普通任务
 /// - trashed 节点在仓库层已过滤
 Future<int> calculateSubtreeDepth(Task root, TaskRepository repository) async {
-  // 项目/里程碑不计入层级深度：返回其普通子树的最大深度
-  if (isProjectOrMilestone(root)) {
-    final children = await repository.listChildren(root.id);
-    if (children.isEmpty) return 0;
-    int maxDepth = 0;
-    for (final child in children) {
-      final d = await calculateSubtreeDepth(child, repository);
-      if (d > maxDepth) maxDepth = d;
-    }
-    return maxDepth;
-  }
-
   final children = await repository.listChildren(root.id);
-  final normalChildren = children
-      .where((c) => !isProjectOrMilestone(c))
-      .toList();
-  if (normalChildren.isEmpty) return 1; // 自身算1层
+  if (children.isEmpty) return 1; // 自身算1层
 
   int maxDepth = 0;
-  for (final child in normalChildren) {
+  for (final child in children) {
     final d = await calculateSubtreeDepth(child, repository);
     if (d > maxDepth) maxDepth = d;
   }
   return 1 + maxDepth;
 }
 
-/// 检查任务是否是项目或里程碑
+/// 检查任务是否关联了项目或里程碑
+///
+/// 在新架构下，Task 对象只表示普通任务，此函数检查任务是否关联了项目或里程碑。
 ///
 /// [task] 要检查的任务
 ///
-/// 返回 true 如果任务是项目或里程碑
+/// 返回 true 如果任务关联了项目或里程碑
 bool isProjectOrMilestone(Task task) {
-  return task.taskKind == TaskKind.project ||
-      task.taskKind == TaskKind.milestone;
+  // 新架构下通过 projectId 或 milestoneId 判断关联关系
+  return task.projectId != null || task.milestoneId != null;
 }
 
 /// 构建任务的祖先任务链（向上递归查找）
@@ -137,40 +119,29 @@ bool isProjectOrMilestone(Task task) {
 /// [repository] 任务仓库，用于查询任务
 ///
 /// 返回祖先任务列表（从最远的祖先到最近的父任务）
-/// 最多3级（不含里程碑和项目）
-/// 排除项目和里程碑类型的父任务
+/// 最多3级
+/// 只追踪普通任务的层级（通过 parentTaskId）
 Future<List<Task>> buildAncestorChain(
   int taskId,
   TaskRepository repository,
 ) async {
   final ancestors = <Task>[];
-  int? currentParentId = await repository
-      .findById(taskId)
-      .then((task) => task?.parentId);
-  const maxDepth = 10; // 防止无限循环的保护措施
-  int depth = 0;
+  final task = await repository.findById(taskId);
+  if (task == null) {
+    return ancestors;
+  }
 
-  while (currentParentId != null && depth < maxDepth) {
+  int? currentParentId = task.parentTaskId;
+  const maxDepth = 3; // 最多3级
+
+  for (int depth = 0; depth < maxDepth && currentParentId != null; depth++) {
     final parent = await repository.findById(currentParentId);
     if (parent == null) {
       break;
     }
 
-    // 排除项目和里程碑
-    if (parent.taskKind == TaskKind.project ||
-        parent.taskKind == TaskKind.milestone) {
-      currentParentId = parent.parentId;
-      continue;
-    }
-
     ancestors.add(parent);
-    currentParentId = parent.parentId;
-    depth++;
-
-    // 最多3级
-    if (depth >= 3) {
-      break;
-    }
+    currentParentId = parent.parentTaskId;
   }
 
   // 反转列表，使最远的祖先在最后（符合显示顺序：祖任务→父任务→当前任务）

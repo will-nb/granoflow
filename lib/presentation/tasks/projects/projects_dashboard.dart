@@ -15,7 +15,7 @@ class ProjectsDashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectsAsync = ref.watch(projectsProvider);
+    final projectsAsync = ref.watch(projectsDomainProvider);
     final quickTasksAsync = ref.watch(quickTasksProvider);
     final l10n = AppLocalizations.of(context);
 
@@ -75,4 +75,3 @@ class ProjectsDashboard extends ConsumerWidget {
     }
   }
 }
-

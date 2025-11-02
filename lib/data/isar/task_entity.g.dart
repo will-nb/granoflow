@@ -48,60 +48,79 @@ const TaskEntitySchema = CollectionSchema(
       type: IsarType.objectList,
       target: r'TaskLogEntryEntity',
     ),
-    r'parentId': PropertySchema(
+    r'milestoneId': PropertySchema(
       id: 6,
+      name: r'milestoneId',
+      type: IsarType.string,
+    ),
+    r'milestoneIsarId': PropertySchema(
+      id: 7,
+      name: r'milestoneIsarId',
+      type: IsarType.long,
+    ),
+    r'parentId': PropertySchema(
+      id: 8,
       name: r'parentId',
       type: IsarType.long,
     ),
+    r'parentTaskId': PropertySchema(
+      id: 9,
+      name: r'parentTaskId',
+      type: IsarType.long,
+    ),
+    r'projectId': PropertySchema(
+      id: 10,
+      name: r'projectId',
+      type: IsarType.string,
+    ),
+    r'projectIsarId': PropertySchema(
+      id: 11,
+      name: r'projectIsarId',
+      type: IsarType.long,
+    ),
     r'seedSlug': PropertySchema(
-      id: 7,
+      id: 12,
       name: r'seedSlug',
       type: IsarType.string,
     ),
     r'sortIndex': PropertySchema(
-      id: 8,
+      id: 13,
       name: r'sortIndex',
       type: IsarType.double,
     ),
     r'startedAt': PropertySchema(
-      id: 9,
+      id: 14,
       name: r'startedAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 10,
+      id: 15,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TaskEntitystatusEnumValueMap,
     ),
     r'tags': PropertySchema(
-      id: 11,
+      id: 16,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'taskId': PropertySchema(
-      id: 12,
+      id: 17,
       name: r'taskId',
       type: IsarType.string,
     ),
-    r'taskKind': PropertySchema(
-      id: 13,
-      name: r'taskKind',
-      type: IsarType.byte,
-      enumMap: _TaskEntitytaskKindEnumValueMap,
-    ),
     r'templateLockCount': PropertySchema(
-      id: 14,
+      id: 18,
       name: r'templateLockCount',
       type: IsarType.long,
     ),
     r'title': PropertySchema(
-      id: 15,
+      id: 19,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 16,
+      id: 20,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -151,16 +170,68 @@ const TaskEntitySchema = CollectionSchema(
         )
       ],
     ),
-    r'taskKind': IndexSchema(
-      id: -1030952705711729561,
-      name: r'taskKind',
+    r'parentTaskId': IndexSchema(
+      id: 1235852618244535635,
+      name: r'parentTaskId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'taskKind',
+          name: r'parentTaskId',
           type: IndexType.value,
           caseSensitive: false,
+        )
+      ],
+    ),
+    r'projectIsarId': IndexSchema(
+      id: 5677975367602273851,
+      name: r'projectIsarId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'projectIsarId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'projectId': IndexSchema(
+      id: 3305656282123791113,
+      name: r'projectId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'projectId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'milestoneIsarId': IndexSchema(
+      id: -242233065855209486,
+      name: r'milestoneIsarId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'milestoneIsarId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'milestoneId': IndexSchema(
+      id: 6650917624138872266,
+      name: r'milestoneId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'milestoneId',
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     )
@@ -192,6 +263,18 @@ int _taskEntityEstimateSize(
       final value = object.logs[i];
       bytesCount +=
           TaskLogEntryEntitySchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
+  {
+    final value = object.milestoneId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.projectId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
@@ -229,17 +312,21 @@ void _taskEntitySerialize(
     TaskLogEntryEntitySchema.serialize,
     object.logs,
   );
-  writer.writeLong(offsets[6], object.parentId);
-  writer.writeString(offsets[7], object.seedSlug);
-  writer.writeDouble(offsets[8], object.sortIndex);
-  writer.writeDateTime(offsets[9], object.startedAt);
-  writer.writeByte(offsets[10], object.status.index);
-  writer.writeStringList(offsets[11], object.tags);
-  writer.writeString(offsets[12], object.taskId);
-  writer.writeByte(offsets[13], object.taskKind.index);
-  writer.writeLong(offsets[14], object.templateLockCount);
-  writer.writeString(offsets[15], object.title);
-  writer.writeDateTime(offsets[16], object.updatedAt);
+  writer.writeString(offsets[6], object.milestoneId);
+  writer.writeLong(offsets[7], object.milestoneIsarId);
+  writer.writeLong(offsets[8], object.parentId);
+  writer.writeLong(offsets[9], object.parentTaskId);
+  writer.writeString(offsets[10], object.projectId);
+  writer.writeLong(offsets[11], object.projectIsarId);
+  writer.writeString(offsets[12], object.seedSlug);
+  writer.writeDouble(offsets[13], object.sortIndex);
+  writer.writeDateTime(offsets[14], object.startedAt);
+  writer.writeByte(offsets[15], object.status.index);
+  writer.writeStringList(offsets[16], object.tags);
+  writer.writeString(offsets[17], object.taskId);
+  writer.writeLong(offsets[18], object.templateLockCount);
+  writer.writeString(offsets[19], object.title);
+  writer.writeDateTime(offsets[20], object.updatedAt);
 }
 
 TaskEntity _taskEntityDeserialize(
@@ -262,21 +349,23 @@ TaskEntity _taskEntityDeserialize(
         TaskLogEntryEntity(),
       ) ??
       [];
-  object.parentId = reader.readLongOrNull(offsets[6]);
-  object.seedSlug = reader.readStringOrNull(offsets[7]);
-  object.sortIndex = reader.readDouble(offsets[8]);
-  object.startedAt = reader.readDateTimeOrNull(offsets[9]);
+  object.milestoneId = reader.readStringOrNull(offsets[6]);
+  object.milestoneIsarId = reader.readLongOrNull(offsets[7]);
+  object.parentId = reader.readLongOrNull(offsets[8]);
+  object.parentTaskId = reader.readLongOrNull(offsets[9]);
+  object.projectId = reader.readStringOrNull(offsets[10]);
+  object.projectIsarId = reader.readLongOrNull(offsets[11]);
+  object.seedSlug = reader.readStringOrNull(offsets[12]);
+  object.sortIndex = reader.readDouble(offsets[13]);
+  object.startedAt = reader.readDateTimeOrNull(offsets[14]);
   object.status =
-      _TaskEntitystatusValueEnumMap[reader.readByteOrNull(offsets[10])] ??
+      _TaskEntitystatusValueEnumMap[reader.readByteOrNull(offsets[15])] ??
           TaskStatus.inbox;
-  object.tags = reader.readStringList(offsets[11]) ?? [];
-  object.taskId = reader.readString(offsets[12]);
-  object.taskKind =
-      _TaskEntitytaskKindValueEnumMap[reader.readByteOrNull(offsets[13])] ??
-          TaskKind.regular;
-  object.templateLockCount = reader.readLong(offsets[14]);
-  object.title = reader.readString(offsets[15]);
-  object.updatedAt = reader.readDateTime(offsets[16]);
+  object.tags = reader.readStringList(offsets[16]) ?? [];
+  object.taskId = reader.readString(offsets[17]);
+  object.templateLockCount = reader.readLong(offsets[18]);
+  object.title = reader.readString(offsets[19]);
+  object.updatedAt = reader.readDateTime(offsets[20]);
   return object;
 }
 
@@ -306,28 +395,35 @@ P _taskEntityDeserializeProp<P>(
           ) ??
           []) as P;
     case 6:
-      return (reader.readLongOrNull(offset)) as P;
-    case 7:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 9:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readLongOrNull(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset)) as P;
+    case 13:
+      return (reader.readDouble(offset)) as P;
+    case 14:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 15:
       return (_TaskEntitystatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TaskStatus.inbox) as P;
-    case 11:
-      return (reader.readStringList(offset) ?? []) as P;
-    case 12:
-      return (reader.readString(offset)) as P;
-    case 13:
-      return (_TaskEntitytaskKindValueEnumMap[reader.readByteOrNull(offset)] ??
-          TaskKind.regular) as P;
-    case 14:
-      return (reader.readLong(offset)) as P;
-    case 15:
-      return (reader.readString(offset)) as P;
     case 16:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 17:
+      return (reader.readString(offset)) as P;
+    case 18:
+      return (reader.readLong(offset)) as P;
+    case 19:
+      return (reader.readString(offset)) as P;
+    case 20:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -351,16 +447,6 @@ const _TaskEntitystatusValueEnumMap = {
   4: TaskStatus.archived,
   5: TaskStatus.trashed,
   6: TaskStatus.pseudoDeleted,
-};
-const _TaskEntitytaskKindEnumValueMap = {
-  'regular': 0,
-  'project': 1,
-  'milestone': 2,
-};
-const _TaskEntitytaskKindValueEnumMap = {
-  0: TaskKind.regular,
-  1: TaskKind.project,
-  2: TaskKind.milestone,
 };
 
 Id _taskEntityGetId(TaskEntity object) {
@@ -407,10 +493,26 @@ extension TaskEntityQueryWhereSort
     });
   }
 
-  QueryBuilder<TaskEntity, TaskEntity, QAfterWhere> anyTaskKind() {
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhere> anyParentTaskId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'taskKind'),
+        const IndexWhereClause.any(indexName: r'parentTaskId'),
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhere> anyProjectIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'projectIsarId'),
+      );
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhere> anyMilestoneIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'milestoneIsarId'),
       );
     });
   }
@@ -793,93 +895,474 @@ extension TaskEntityQueryWhere
     });
   }
 
-  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindEqualTo(
-      TaskKind taskKind) {
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> parentTaskIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'taskKind',
-        value: [taskKind],
+        indexName: r'parentTaskId',
+        value: [null],
       ));
     });
   }
 
-  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindNotEqualTo(
-      TaskKind taskKind) {
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      parentTaskIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'parentTaskId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> parentTaskIdEqualTo(
+      int? parentTaskId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'parentTaskId',
+        value: [parentTaskId],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      parentTaskIdNotEqualTo(int? parentTaskId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskKind',
+              indexName: r'parentTaskId',
               lower: [],
-              upper: [taskKind],
+              upper: [parentTaskId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskKind',
-              lower: [taskKind],
+              indexName: r'parentTaskId',
+              lower: [parentTaskId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskKind',
-              lower: [taskKind],
+              indexName: r'parentTaskId',
+              lower: [parentTaskId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskKind',
+              indexName: r'parentTaskId',
               lower: [],
-              upper: [taskKind],
+              upper: [parentTaskId],
               includeUpper: false,
             ));
       }
     });
   }
 
-  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindGreaterThan(
-    TaskKind taskKind, {
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      parentTaskIdGreaterThan(
+    int? parentTaskId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'taskKind',
-        lower: [taskKind],
+        indexName: r'parentTaskId',
+        lower: [parentTaskId],
         includeLower: include,
         upper: [],
       ));
     });
   }
 
-  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindLessThan(
-    TaskKind taskKind, {
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> parentTaskIdLessThan(
+    int? parentTaskId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'taskKind',
+        indexName: r'parentTaskId',
         lower: [],
-        upper: [taskKind],
+        upper: [parentTaskId],
         includeUpper: include,
       ));
     });
   }
 
-  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> taskKindBetween(
-    TaskKind lowerTaskKind,
-    TaskKind upperTaskKind, {
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> parentTaskIdBetween(
+    int? lowerParentTaskId,
+    int? upperParentTaskId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'taskKind',
-        lower: [lowerTaskKind],
+        indexName: r'parentTaskId',
+        lower: [lowerParentTaskId],
         includeLower: includeLower,
-        upper: [upperTaskKind],
+        upper: [upperParentTaskId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      projectIsarIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'projectIsarId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      projectIsarIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'projectIsarId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> projectIsarIdEqualTo(
+      int? projectIsarId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'projectIsarId',
+        value: [projectIsarId],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      projectIsarIdNotEqualTo(int? projectIsarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectIsarId',
+              lower: [],
+              upper: [projectIsarId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectIsarId',
+              lower: [projectIsarId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectIsarId',
+              lower: [projectIsarId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectIsarId',
+              lower: [],
+              upper: [projectIsarId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      projectIsarIdGreaterThan(
+    int? projectIsarId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'projectIsarId',
+        lower: [projectIsarId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> projectIsarIdLessThan(
+    int? projectIsarId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'projectIsarId',
+        lower: [],
+        upper: [projectIsarId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> projectIsarIdBetween(
+    int? lowerProjectIsarId,
+    int? upperProjectIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'projectIsarId',
+        lower: [lowerProjectIsarId],
+        includeLower: includeLower,
+        upper: [upperProjectIsarId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> projectIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'projectId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> projectIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'projectId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> projectIdEqualTo(
+      String? projectId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'projectId',
+        value: [projectId],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> projectIdNotEqualTo(
+      String? projectId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectId',
+              lower: [],
+              upper: [projectId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectId',
+              lower: [projectId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectId',
+              lower: [projectId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'projectId',
+              lower: [],
+              upper: [projectId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIsarIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'milestoneIsarId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIsarIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'milestoneIsarId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIsarIdEqualTo(int? milestoneIsarId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'milestoneIsarId',
+        value: [milestoneIsarId],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIsarIdNotEqualTo(int? milestoneIsarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneIsarId',
+              lower: [],
+              upper: [milestoneIsarId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneIsarId',
+              lower: [milestoneIsarId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneIsarId',
+              lower: [milestoneIsarId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneIsarId',
+              lower: [],
+              upper: [milestoneIsarId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIsarIdGreaterThan(
+    int? milestoneIsarId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'milestoneIsarId',
+        lower: [milestoneIsarId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIsarIdLessThan(
+    int? milestoneIsarId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'milestoneIsarId',
+        lower: [],
+        upper: [milestoneIsarId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIsarIdBetween(
+    int? lowerMilestoneIsarId,
+    int? upperMilestoneIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'milestoneIsarId',
+        lower: [lowerMilestoneIsarId],
+        includeLower: includeLower,
+        upper: [upperMilestoneIsarId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> milestoneIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'milestoneId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause>
+      milestoneIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'milestoneId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> milestoneIdEqualTo(
+      String? milestoneId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'milestoneId',
+        value: [milestoneId],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterWhereClause> milestoneIdNotEqualTo(
+      String? milestoneId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [],
+              upper: [milestoneId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [milestoneId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [milestoneId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [],
+              upper: [milestoneId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -1383,6 +1866,234 @@ extension TaskEntityQueryFilter
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'milestoneId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'milestoneId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'milestoneId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'milestoneId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'milestoneId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'milestoneId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'milestoneId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'milestoneId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'milestoneId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'milestoneId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'milestoneId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'milestoneId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIsarIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'milestoneIsarId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIsarIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'milestoneIsarId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIsarIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'milestoneIsarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIsarIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'milestoneIsarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIsarIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'milestoneIsarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      milestoneIsarIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'milestoneIsarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> parentIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1446,6 +2157,306 @@ extension TaskEntityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'parentId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      parentTaskIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'parentTaskId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      parentTaskIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'parentTaskId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      parentTaskIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'parentTaskId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      parentTaskIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'parentTaskId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      parentTaskIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'parentTaskId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      parentTaskIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'parentTaskId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'projectId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'projectId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> projectIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'projectId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'projectId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> projectIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'projectId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> projectIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'projectId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'projectId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> projectIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'projectId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> projectIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'projectId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> projectIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'projectId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'projectId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'projectId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIsarIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'projectIsarId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIsarIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'projectIsarId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIsarIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'projectIsarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIsarIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'projectIsarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIsarIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'projectIsarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      projectIsarIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'projectIsarId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -2146,60 +3157,6 @@ extension TaskEntityQueryFilter
     });
   }
 
-  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> taskKindEqualTo(
-      TaskKind value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'taskKind',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
-      taskKindGreaterThan(
-    TaskKind value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'taskKind',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> taskKindLessThan(
-    TaskKind value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'taskKind',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> taskKindBetween(
-    TaskKind lower,
-    TaskKind upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'taskKind',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
   QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
       templateLockCountEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
@@ -2519,6 +3476,31 @@ extension TaskEntityQuerySortBy
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByMilestoneId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByMilestoneIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByMilestoneIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneIsarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy>
+      sortByMilestoneIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneIsarId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByParentId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'parentId', Sort.asc);
@@ -2528,6 +3510,42 @@ extension TaskEntityQuerySortBy
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByParentIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'parentId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByParentTaskId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentTaskId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByParentTaskIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentTaskId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByProjectId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByProjectIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByProjectIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectIsarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByProjectIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectIsarId', Sort.desc);
     });
   }
 
@@ -2588,18 +3606,6 @@ extension TaskEntityQuerySortBy
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByTaskIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taskId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByTaskKind() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'taskKind', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByTaskKindDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'taskKind', Sort.desc);
     });
   }
 
@@ -2717,6 +3723,31 @@ extension TaskEntityQuerySortThenBy
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByMilestoneId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByMilestoneIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByMilestoneIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneIsarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy>
+      thenByMilestoneIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'milestoneIsarId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByParentId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'parentId', Sort.asc);
@@ -2726,6 +3757,42 @@ extension TaskEntityQuerySortThenBy
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByParentIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'parentId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByParentTaskId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentTaskId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByParentTaskIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentTaskId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByProjectId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByProjectIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByProjectIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectIsarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByProjectIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'projectIsarId', Sort.desc);
     });
   }
 
@@ -2786,18 +3853,6 @@ extension TaskEntityQuerySortThenBy
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByTaskIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taskId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByTaskKind() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'taskKind', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByTaskKindDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'taskKind', Sort.desc);
     });
   }
 
@@ -2873,9 +3928,41 @@ extension TaskEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByMilestoneId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'milestoneId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByMilestoneIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'milestoneIsarId');
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByParentId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'parentId');
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByParentTaskId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'parentTaskId');
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByProjectId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'projectId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByProjectIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'projectIsarId');
     });
   }
 
@@ -2914,12 +4001,6 @@ extension TaskEntityQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'taskId', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByTaskKind() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'taskKind');
     });
   }
 
@@ -2990,9 +4071,39 @@ extension TaskEntityQueryProperty
     });
   }
 
+  QueryBuilder<TaskEntity, String?, QQueryOperations> milestoneIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'milestoneId');
+    });
+  }
+
+  QueryBuilder<TaskEntity, int?, QQueryOperations> milestoneIsarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'milestoneIsarId');
+    });
+  }
+
   QueryBuilder<TaskEntity, int?, QQueryOperations> parentIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'parentId');
+    });
+  }
+
+  QueryBuilder<TaskEntity, int?, QQueryOperations> parentTaskIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'parentTaskId');
+    });
+  }
+
+  QueryBuilder<TaskEntity, String?, QQueryOperations> projectIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'projectId');
+    });
+  }
+
+  QueryBuilder<TaskEntity, int?, QQueryOperations> projectIsarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'projectIsarId');
     });
   }
 
@@ -3029,12 +4140,6 @@ extension TaskEntityQueryProperty
   QueryBuilder<TaskEntity, String, QQueryOperations> taskIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'taskId');
-    });
-  }
-
-  QueryBuilder<TaskEntity, TaskKind, QQueryOperations> taskKindProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'taskKind');
     });
   }
 

@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/swipe_configs.dart
   description: SwipeConfigs 组件
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -48,6 +48,15 @@ widget_properties:
     leftIcon: Icons.schedule, rightIcon: Icons.archive, leftColor: OceanBreezeColorSchemes.softGreen,
     rightColor: OceanBreezeColorSchemes.softPink)'
   description: Tasks页面的滑动配置 左滑：智能推迟（安全操作），右滑：归档任务（警告操作）
+- name: inboxSubtaskConfig
+  type: SwipeActionConfig
+  required: false
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.promoteToIndependent,
+    rightAction: SwipeActionType.delete, leftHintKey: ''actionPromoteToIndependent'',
+    rightHintKey: ''inboxDeleteAction'', leftIcon: Icons.arrow_upward, rightIcon:
+    Icons.delete, leftColor: OceanBreezeColorSchemes.softGreen, rightColor: OceanBreezeColorSchemes.errorDark)'
+  description: Inbox页面子任务的滑动配置 方向规范：与 inboxConfig 保持一致 - 右滑（startToEnd，常用/安全）= 提升为独立任务（promoteToIndependent，绿色）
+    - 左滑（endToStart，危险）= 移动到回收站（delete，红色）
 widget_methods:
 - name: methodName
   return_type: 返回类型

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/focus_session.dart';
+import '../../data/models/milestone.dart';
+import '../../data/models/project.dart';
 import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
 import '../../data/models/task_template.dart';
@@ -20,17 +22,14 @@ import 'repository_providers.dart';
 import 'service_providers.dart';
 
 final appLocaleProvider = StreamProvider<Locale>((ref) {
-  return ref
-      .watch(preferenceServiceProvider)
-      .watch()
-      .map((pref) {
-        final parts = pref.localeCode.split('_');
-        if (parts.length == 2) {
-          return Locale(parts[0], parts[1]);
-        } else {
-          return Locale(pref.localeCode);
-        }
-      });
+  return ref.watch(preferenceServiceProvider).watch().map((pref) {
+    final parts = pref.localeCode.split('_');
+    if (parts.length == 2) {
+      return Locale(parts[0], parts[1]);
+    } else {
+      return Locale(pref.localeCode);
+    }
+  });
 });
 
 final themeProvider = StreamProvider<ThemeMode>((ref) {
@@ -50,7 +49,7 @@ final fontScaleProvider = StreamProvider<double>((ref) {
 final seedInitializerProvider = FutureProvider<void>((ref) async {
   ref.keepAlive();
   final service = ref.watch(seedImportServiceProvider);
-  
+
   // 等待 appLocaleProvider 加载完成，而不是使用默认值
   final localeAsync = ref.watch(appLocaleProvider);
   final localeValue = await localeAsync.when(
@@ -67,12 +66,12 @@ final seedInitializerProvider = FutureProvider<void>((ref) async {
     },
     error: (_, __) => Future.value(const Locale('en')),
   );
-  
+
   // 构造完整的 locale 代码 (如 zh_CN, zh_HK, en)
   final locale = localeValue.countryCode != null
       ? '${localeValue.languageCode}_${localeValue.countryCode}'
       : localeValue.languageCode;
-  
+
   debugPrint('SeedInitializer: locale = $locale');
   await service.importIfNeeded(locale);
 });
@@ -153,7 +152,8 @@ class InboxFilterState {
   }
 
   @override
-  int get hashCode => Object.hash(contextTag, priorityTag, urgencyTag, importanceTag);
+  int get hashCode =>
+      Object.hash(contextTag, priorityTag, urgencyTag, importanceTag);
 }
 
 class InboxFilterNotifier extends StateNotifier<InboxFilterState> {
@@ -203,7 +203,9 @@ final inboxFilterProvider =
 
 final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
   final filter = ref.watch(inboxFilterProvider);
-  return ref.watch(taskRepositoryProvider).watchInboxFiltered(
+  return ref
+      .watch(taskRepositoryProvider)
+      .watchInboxFiltered(
         contextTag: filter.contextTag,
         priorityTag: filter.priorityTag,
         urgencyTag: filter.urgencyTag,
@@ -221,13 +223,13 @@ Future<Map<int, int>> _calculateTaskLevelMap(
   TaskRepository repository,
 ) async {
   final levelMap = <int, int>{};
-  
+
   // 批量计算所有任务的 level
   for (final task in tasks) {
     final depth = await calculateHierarchyDepth(task, repository);
     levelMap[task.id] = depth + 1;
   }
-  
+
   return levelMap;
 }
 
@@ -284,8 +286,9 @@ Future<Set<int>> _getAllDescendants(
 ) async {
   final result = <int>{};
   final children = await repository.listChildren(taskId);
-  final normalChildren =
-      children.where((t) => !isProjectOrMilestone(t)).toList();
+  final normalChildren = children
+      .where((t) => !isProjectOrMilestone(t))
+      .toList();
 
   for (final child in normalChildren) {
     result.add(child.id);
@@ -312,8 +315,9 @@ Future<Set<int>> _getAllDescendants(
 ///   error: (_, __) => SizedBox.shrink(),
 /// );
 /// ```
-final inboxTaskChildrenMapProvider =
-    FutureProvider<Map<int, Set<int>>>((ref) async {
+final inboxTaskChildrenMapProvider = FutureProvider<Map<int, Set<int>>>((
+  ref,
+) async {
   final tasksAsync = ref.watch(inboxTasksProvider);
   final tasks = await tasksAsync.requireValue;
   final taskRepository = ref.watch(taskRepositoryProvider);
@@ -344,21 +348,31 @@ final rootTasksProvider = FutureProvider<List<Task>>((ref) async {
   return ref.watch(taskRepositoryProvider).listRoots();
 });
 
-final projectsProvider = StreamProvider<List<Task>>((ref) {
-  return ref.watch(taskRepositoryProvider).watchProjects();
+final projectsDomainProvider = StreamProvider<List<Project>>((ref) {
+  return ref.watch(projectServiceProvider).watchActiveProjects();
+});
+
+final projectMilestonesDomainProvider =
+    StreamProvider.family<List<Milestone>, String>((ref, projectId) {
+      return ref.watch(projectServiceProvider).watchMilestones(projectId);
+    });
+
+final milestoneTasksProvider = StreamProvider.family<List<Task>, String>((
+  ref,
+  milestoneId,
+) {
+  return ref.watch(taskRepositoryProvider).watchTasksByMilestoneId(milestoneId);
 });
 
 final quickTasksProvider = StreamProvider<List<Task>>((ref) {
   return ref.watch(taskRepositoryProvider).watchQuickTasks();
 });
 
-final projectMilestonesProvider =
-    StreamProvider.family<List<Task>, int>((ref, projectId) {
-      return ref.watch(taskRepositoryProvider).watchMilestones(projectId);
-    });
-
 /// Provider for getting the parent task of a task (could be project or milestone)
-final taskParentProvider = FutureProvider.family<Task?, int>((ref, taskId) async {
+final taskParentProvider = FutureProvider.family<Task?, int>((
+  ref,
+  taskId,
+) async {
   final task = await ref.watch(taskRepositoryProvider).findById(taskId);
   if (task?.parentId == null) return null;
   return ref.watch(taskRepositoryProvider).findById(task!.parentId!);
@@ -367,40 +381,38 @@ final taskParentProvider = FutureProvider.family<Task?, int>((ref, taskId) async
 /// Provider for getting the complete hierarchy of a task (project and milestone if applicable)
 @immutable
 class TaskProjectHierarchy {
-  const TaskProjectHierarchy({
-    required this.project,
-    this.milestone,
-  });
+  const TaskProjectHierarchy({required this.project, this.milestone});
 
-  final Task project;
-  final Task? milestone;
+  final Project project;
+  final Milestone? milestone;
 
   bool get hasMilestone => milestone != null;
 }
 
 final taskProjectHierarchyProvider =
     FutureProvider.family<TaskProjectHierarchy?, int>((ref, taskId) async {
-  final task = await ref.watch(taskRepositoryProvider).findById(taskId);
-  if (task == null || task.parentId == null) return null;
+      final task = await ref.watch(taskRepositoryProvider).findById(taskId);
+      if (task == null) return null;
 
-  final parent = await ref.watch(taskRepositoryProvider).findById(task.parentId!);
-  if (parent == null) return null;
+      final projectId = task.projectId;
+      if (projectId == null || projectId.isEmpty) {
+        return null;
+      }
 
-  // If parent is a project, return just the project
-  if (parent.taskKind == TaskKind.project) {
-    return TaskProjectHierarchy(project: parent);
-  }
+      final projectService = ref.watch(projectServiceProvider);
+      final project = await projectService.findByProjectId(projectId);
+      if (project == null) {
+        return null;
+      }
 
-  // If parent is a milestone, get its project
-  if (parent.taskKind == TaskKind.milestone && parent.parentId != null) {
-    final project = await ref.watch(taskRepositoryProvider).findById(parent.parentId!);
-    if (project != null && project.taskKind == TaskKind.project) {
-      return TaskProjectHierarchy(project: project, milestone: parent);
-    }
-  }
+      Milestone? milestone;
+      final milestoneId = task.milestoneId;
+      if (milestoneId != null && milestoneId.isNotEmpty) {
+        milestone = await projectService.findMilestoneById(milestoneId);
+      }
 
-  return null;
-});
+      return TaskProjectHierarchy(project: project, milestone: milestone);
+    });
 
 final taskTreeProvider = StreamProvider.family<TaskTreeNode, int>((
   ref,
@@ -541,7 +553,9 @@ final priorityTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   try {
     // 依赖种子初始化：导入完成后会刷新本 Provider
     ref.watch(seedInitializerProvider);
-    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.priority);
+    return await ref
+        .watch(taskServiceProvider)
+        .listTagsByKind(TagKind.priority);
   } catch (error) {
     debugPrint('PriorityTagOptionsProvider error: $error');
     return <Tag>[]; // 返回空列表而不是抛出错误
@@ -563,7 +577,9 @@ final importanceTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   try {
     // 依赖种子初始化：导入完成后会刷新本 Provider
     ref.watch(seedInitializerProvider);
-    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.importance);
+    return await ref
+        .watch(taskServiceProvider)
+        .listTagsByKind(TagKind.importance);
   } catch (error) {
     debugPrint('ImportanceTagOptionsProvider error: $error');
     return <Tag>[]; // 返回空列表而不是抛出错误
@@ -573,7 +589,9 @@ final importanceTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
 final executionTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   try {
     ref.watch(seedInitializerProvider);
-    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.execution);
+    return await ref
+        .watch(taskServiceProvider)
+        .listTagsByKind(TagKind.execution);
   } catch (error) {
     debugPrint('ExecutionTagOptionsProvider error: $error');
     return <Tag>[];

@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_row_content.dart
   description: _TaskRowContentState 组件
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -38,6 +38,11 @@ widget_properties:
   required: false
   default_value: null
   description: ''
+- name: trailing
+  type: Widget
+  required: false
+  default_value: null
+  description: ''
 - name: showConvertAction
   type: bool
   required: true
@@ -58,6 +63,11 @@ widget_properties:
   required: true
   default_value: null
   description: ''
+- name: taskLevel
+  type: int
+  required: false
+  default_value: null
+  description: 任务的层级（level），用于判断是否是子任务 level > 1 表示是子任务，子任务不显示截止日期
 - name: _titleController
   type: TextEditingController
   required: true
@@ -163,6 +173,7 @@ widget_imports:
 - package:flutter_riverpod/flutter_riverpod.dart
 - ../../core/providers/app_providers.dart
 - ../../core/providers/service_providers.dart
+- ../../core/services/project_models.dart
 - ../../core/services/tag_service.dart
 - ../../data/models/task.dart
 - ../../generated/l10n/app_localizations.dart
@@ -269,6 +280,7 @@ called_by: []
 calls:
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
+- lib/core/services/project_models.dart
 - lib/core/services/tag_service.dart
 - lib/data/models/task.dart
 - lib/generated/l10n/app_localizations.dart

@@ -32,6 +32,26 @@ class TaskEntity {
   @Index()
   int? parentId;
 
+  /// 拆表过渡字段：新的父任务引用仅指向普通任务。
+  @Index()
+  int? parentTaskId;
+
+  /// 任务所属项目的 Isar id（可为空）。
+  @Index()
+  int? projectIsarId;
+
+  /// 任务所属项目的业务 ID。
+  @Index()
+  String? projectId;
+
+  /// 任务所属里程碑的 Isar id（可为空）。
+  @Index()
+  int? milestoneIsarId;
+
+  /// 任务所属里程碑的业务 ID。
+  @Index()
+  String? milestoneId;
+
   double sortIndex = 0;
 
   List<String> tags = <String>[];
@@ -43,10 +63,6 @@ class TaskEntity {
   bool allowInstantComplete = false;
 
   String? description;
-
-  @enumerated
-  @Index()
-  TaskKind taskKind = TaskKind.regular;
 
   List<TaskLogEntryEntity> logs = <TaskLogEntryEntity>[];
 }

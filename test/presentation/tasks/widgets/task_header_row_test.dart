@@ -23,7 +23,6 @@ void main() {
       templateLockCount: 0,
       allowInstantComplete: false,
       logs: const [],
-      taskKind: TaskKind.regular,
     );
 
     await tester.pumpWidget(

@@ -102,7 +102,6 @@ Task _createTask({required int id, double sortIndex = 0}) {
     logs: const [],
     createdAt: now,
     updatedAt: now,
-    taskKind: TaskKind.regular,
   );
 }
 

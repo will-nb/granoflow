@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/project_milestone_menu.dart
   description: _ProjectSection 组件
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -29,22 +29,27 @@ widget_types:
   usage: 状态管理、数据绑定、复杂交互
 widget_properties:
 - name: onSelected
-  type: ValueChanged<int>
+  type: ValueChanged<ProjectMilestoneSelection>
   required: false
   default_value: null
-  description: 选择回调：传入选中的任务ID（项目或里程碑）
-- name: currentParentId
-  type: int
+  description: 选择回调：传入选中的项目/里程碑信息，或 null（表示移出）
+- name: currentProjectId
+  type: String
   required: false
   default_value: null
-  description: 当前任务的父任务ID（如果有）
+  description: 当前任务关联的项目 ID（业务 ID）
+- name: currentMilestoneId
+  type: String
+  required: false
+  default_value: null
+  description: 当前任务关联的里程碑 ID（业务 ID）
 - name: _expandedProjects
   type: Set<int>
   required: false
   default_value: '{}'
   description: ''
 - name: project
-  type: Task
+  type: Project
   required: true
   default_value: null
   description: ''
@@ -59,12 +64,17 @@ widget_properties:
   default_value: null
   description: ''
 - name: onSelected
-  type: ValueChanged<int>
+  type: ValueChanged<ProjectMilestoneSelection>
   required: false
   default_value: null
   description: ''
-- name: currentParentId
-  type: int
+- name: currentProjectId
+  type: String
+  required: false
+  default_value: null
+  description: ''
+- name: currentMilestoneId
+  type: String
   required: false
   default_value: null
   description: ''
@@ -157,7 +167,8 @@ widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
 - ../../core/providers/app_providers.dart
-- ../../data/models/task.dart
+- ../../core/services/project_models.dart
+- ../../data/models/project.dart
 - ../../generated/l10n/app_localizations.dart
 widget_categories:
   ui_components:
@@ -253,7 +264,8 @@ source_of_truth: lib/presentation/widgets/project_milestone_menu.dart
 called_by: []
 calls:
 - lib/core/providers/app_providers.dart
-- lib/data/models/task.dart
+- lib/core/services/project_models.dart
+- lib/data/models/project.dart
 - lib/generated/l10n/app_localizations.dart
 i18n_keys: []
 design_tokens: []

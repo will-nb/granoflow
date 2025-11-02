@@ -36,7 +36,6 @@ void main() {
           title: 'Test Task',
           sortIndex: 1000,
           status: TaskStatus.pending,
-          taskKind: TaskKind.regular,
           dueAt: now,
           createdAt: now,
           updatedAt: now,

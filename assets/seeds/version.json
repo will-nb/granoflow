@@ -1,4 +1,4 @@
 {
-  "version": "2024.10.22.1",
-  "notes": "Initial seed set providing core tags, tutorial tasks, starter templates, and inbox examples."
+  "version": "2025.01.20.1",
+  "notes": "项目/里程碑架构变更：已拆分到独立表。种子数据格式保持兼容（仍使用 taskKind 字段），seed_import_service 会自动创建对应的 Project/Milestone 实体。"
 }

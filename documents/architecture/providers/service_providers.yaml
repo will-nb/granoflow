@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/providers/service_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251101'
-  last_updated: '251101'
+  created_date: '251102'
+  last_updated: '251102'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -207,6 +207,8 @@ calls:
 - lib/core/services/metric_orchestrator.dart
 - lib/core/services/preference_service.dart
 - lib/core/services/seed_import_service.dart
+- lib/core/services/milestone_service.dart
+- lib/core/services/project_service.dart
 - lib/core/services/task_hierarchy_service.dart
 - lib/core/services/task_service.dart
 - lib/core/services/sort_index_service.dart
