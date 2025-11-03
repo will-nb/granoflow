@@ -18,6 +18,7 @@ class InboxDragState {
     this.horizontalOffset,
     this.verticalOffset,
     this.isDraggedTaskHiddenFromExpansion,
+    this.committedInsertionIndex,
   });
 
   final Task? draggedTask;
@@ -27,6 +28,8 @@ class InboxDragState {
   final int? hoveredInsertionIndex;
   // 统一拖拽系统：当前悬停的任务 ID
   final int? hoveredTaskId;
+  // 已提交的插入位置索引（让位动画触发时的位置，即使后续hover状态变化也保留）
+  final int? committedInsertionIndex;
   // 拖拽起始位置（全局坐标）
   final Offset? dragStartPosition;
   // 当前拖拽位置（全局坐标）
@@ -51,6 +54,7 @@ class InboxDragState {
     double? horizontalOffset,
     double? verticalOffset,
     bool? isDraggedTaskHiddenFromExpansion,
+    int? committedInsertionIndex,
   }) {
     return InboxDragState(
       draggedTask: draggedTask ?? this.draggedTask,
@@ -63,6 +67,7 @@ class InboxDragState {
       horizontalOffset: horizontalOffset ?? this.horizontalOffset,
       verticalOffset: verticalOffset ?? this.verticalOffset,
       isDraggedTaskHiddenFromExpansion: isDraggedTaskHiddenFromExpansion ?? this.isDraggedTaskHiddenFromExpansion,
+      committedInsertionIndex: committedInsertionIndex ?? this.committedInsertionIndex,
     );
   }
 
@@ -79,7 +84,8 @@ class InboxDragState {
         other.currentDragPosition == currentDragPosition &&
         other.horizontalOffset == horizontalOffset &&
         other.verticalOffset == verticalOffset &&
-        other.isDraggedTaskHiddenFromExpansion == isDraggedTaskHiddenFromExpansion;
+        other.isDraggedTaskHiddenFromExpansion == isDraggedTaskHiddenFromExpansion &&
+        other.committedInsertionIndex == committedInsertionIndex;
   }
 
   @override
@@ -93,7 +99,8 @@ class InboxDragState {
         currentDragPosition.hashCode ^
         horizontalOffset.hashCode ^
         verticalOffset.hashCode ^
-        isDraggedTaskHiddenFromExpansion.hashCode;
+        isDraggedTaskHiddenFromExpansion.hashCode ^
+        committedInsertionIndex.hashCode;
   }
 }
 
@@ -116,6 +123,7 @@ class InboxDragNotifier extends StateNotifier<InboxDragState> {
   }
 
   void endDrag() {
+    // 拖拽结束时清除所有状态，包括已提交的插入位置
     state = const InboxDragState();
   }
 
@@ -129,22 +137,10 @@ class InboxDragNotifier extends StateNotifier<InboxDragState> {
   /// 更新拖拽位置
   /// 
   /// [position] 当前拖拽位置（全局坐标）
-  /// 自动计算水平位移（dx）
+  /// 自动计算水平位移（dx）和垂直位移（dy）
   void updateDragPosition(Offset position) {
-    if (state.dragStartPosition == null) {
-      // 如果起始位置不存在，使用当前位置作为起始位置
-      state = state.copyWith(
-        dragStartPosition: position,
-        currentDragPosition: position,
-        horizontalOffset: 0.0,
-      );
-      return;
-    }
-
-    // 如果起始位置是 Offset.zero（占位符），将其更新为第一次的实际位置
-    final startPos = state.dragStartPosition!;
-    if (startPos == Offset.zero && state.currentDragPosition == Offset.zero) {
-      // 第一次更新：将起始位置设置为当前位置
+    // 如果起始位置不存在或者是占位符（Offset.zero），设置为当前位置
+    if (state.dragStartPosition == null || state.dragStartPosition == Offset.zero) {
       state = state.copyWith(
         dragStartPosition: position,
         currentDragPosition: position,
@@ -154,6 +150,7 @@ class InboxDragNotifier extends StateNotifier<InboxDragState> {
       return;
     }
 
+    // 计算相对于起始位置的偏移量
     final dx = position.dx - state.dragStartPosition!.dx;
     final dy = position.dy - state.dragStartPosition!.dy;
     state = state.copyWith(
@@ -168,10 +165,25 @@ class InboxDragNotifier extends StateNotifier<InboxDragState> {
   }
 
   /// 统一拖拽系统：更新插入位置悬停状态
+  /// 
+  /// 当插入位置改变时，记录为已提交位置（committedInsertionIndex），
+  /// 这样即使后续hover状态变化，也能记住让位动画触发时的插入位置
   void updateInsertionHover(int? insertionIndex) {
+    // 当新的插入索引不为 null 且与当前不同时，记录为已提交位置
+    int? newCommittedIndex;
+    if (insertionIndex != null && 
+        insertionIndex != state.hoveredInsertionIndex) {
+      // 插入位置改变，记录为已提交位置
+      newCommittedIndex = insertionIndex;
+    } else {
+      // 保持当前的已提交位置不变
+      newCommittedIndex = state.committedInsertionIndex;
+    }
+    
     state = state.copyWith(
       hoveredInsertionIndex: insertionIndex,
       hoveredTaskId: null, // 清除任务表面悬停
+      committedInsertionIndex: newCommittedIndex,
     );
   }
 
@@ -184,6 +196,9 @@ class InboxDragNotifier extends StateNotifier<InboxDragState> {
   }
 
   /// 统一拖拽系统：清除所有悬停状态
+  /// 
+  /// 注意：只清除 hover 状态，保留 committedInsertionIndex（已提交的插入位置）
+  /// 这样即使离开插入区域，仍能记住之前让位动画触发时的位置
   void clearHover() {
     // 即使已经是清除状态，也要触发更新，确保 UI 能正确还原
     if (state.hoveredInsertionIndex == null && state.hoveredTaskId == null) {
@@ -193,6 +208,7 @@ class InboxDragNotifier extends StateNotifier<InboxDragState> {
     state = state.copyWith(
       hoveredInsertionIndex: null,
       hoveredTaskId: null,
+      // 不清除 committedInsertionIndex，保留已提交的位置
     );
   }
 }

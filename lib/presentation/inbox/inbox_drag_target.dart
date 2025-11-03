@@ -54,7 +54,7 @@ class InboxDragTarget extends ConsumerWidget {
       ),
       insertionType: _mapToInsertionType(targetType),
       showWhenIdle: false,
-      canAccept: (dragged, _) => _canAcceptDrop(dragged),
+      canAccept: (dragged, _) => _canAcceptDrop(dragged, targetId),
       onPerform: (dragged, ref, context, l10n) async {
         try {
           return await _handleDrop(dragged, ref, dragNotifier);
@@ -72,9 +72,31 @@ class InboxDragTarget extends ConsumerWidget {
       },
       onHover: (isHovering, _) {
         if (isHovering) {
+          // 同时更新新旧两套API，确保状态同步
           dragNotifier.updateHoverTarget(targetType, targetId: targetId);
+          
+          // 根据 targetType 计算并更新 insertionIndex
+          int? insertionIndex;
+          switch (targetType) {
+            case InboxDragTargetType.first:
+              insertionIndex = 0;
+              break;
+            case InboxDragTargetType.last:
+              // 对于 last 类型，需要从外部传入实际的 insertionIndex
+              // 这里先设为 -1 作为占位符，实际使用时应该从 context 中获取
+              insertionIndex = -1;
+              break;
+            case InboxDragTargetType.between:
+              // between 类型需要根据 beforeTask/afterTask 计算，暂时保留旧的 API
+              break;
+          }
+          
+          if (insertionIndex != null) {
+            dragNotifier.updateInsertionHover(insertionIndex);
+          }
         } else {
           dragNotifier.updateHoverTarget(null);
+          dragNotifier.clearHover();
         }
       },
       onResult: (_, __, ___, ____, _____) {
@@ -94,15 +116,31 @@ class InboxDragTarget extends ConsumerWidget {
     }
   }
 
-  bool _canAcceptDrop(Task draggedTask) {
+  bool _canAcceptDrop(Task draggedTask, int? targetId) {
     // 统一接受根任务和子任务，都使用"成为兄弟"的逻辑
     // 检查任务是否可移动
     final movable = canMoveTask(draggedTask);
+    
     if (kDebugMode) {
+      // 详细记录 canAccept 检查的每个步骤
+      final steps = <String, Object?>{
+        'movable': movable,
+        'status': draggedTask.status.name,
+        'parentId': draggedTask.parentId,
+        'beforeTask': beforeTask?.id,
+        'afterTask': afterTask?.id,
+      };
+      
+      String reason = '';
+      if (!movable) {
+        reason = 'task is not movable (status: ${draggedTask.status.name})';
+      }
+      
       debugPrint(
-        '[DnD] {event: rule, page: Inbox, rule: canAccept, src: ${draggedTask.id}, parentId: ${draggedTask.parentId}, canMove: $movable}',
+        '[DnD] {event: canAccept:check, page: Inbox, tgtType: $targetType, tgtId: $targetId, src: ${draggedTask.id}, steps: $steps, result: $movable, reason: ${reason.isNotEmpty ? "\"$reason\"" : "null"}}',
       );
     }
+    
     return movable;
   }
 

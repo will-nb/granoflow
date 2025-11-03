@@ -62,6 +62,9 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
         dragAnchorStrategy: childDragAnchorStrategy,
         feedback: feedback,
         childWhenDragging: childWhenDragging,
+        // 设置延迟为 300ms，提高响应性（默认约 500ms）
+        // 这个值在响应性和误触发之间取得平衡
+        delay: const Duration(milliseconds: 300),
         onDragStarted: onDragStartedWithLog,
         onDragUpdate: onDragUpdateWithLog,
         onDragEnd: onDragEndWithLog,

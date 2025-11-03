@@ -50,6 +50,8 @@ class InboxTaskList extends ConsumerStatefulWidget {
 }
 
 class _InboxTaskListState extends ConsumerState<InboxTaskList> {
+  // 用于追踪上次记录日志的位置，实现基于位置变化的日志节流
+  double? _lastLoggedDragY;
   /// 内部维护的任务列表副本
   ///
   /// 用于在组件更新时保持列表状态的稳定性
@@ -209,6 +211,59 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
 
     // 如果找不到根父任务，返回根任务列表长度（底部插入）
     return rootTasks.length;
+  }
+
+  /// 从插入索引转换为 beforeTask/afterTask
+  ///
+  /// [insertionIndex] 插入位置索引（扁平化列表索引）
+  /// [flattenedTasks] 扁平化任务列表
+  /// [rootTasks] 根任务列表
+  /// [taskIdToIndex] 任务 ID 到根任务索引的映射
+  /// [filteredTasks] 所有任务列表（用于查找父任务）
+  /// 返回包含 beforeTask、afterTask 和 targetType 的记录
+  ({
+    Task? beforeTask,
+    Task? afterTask,
+    String targetType,
+  }) _findTasksForInsertionIndex(
+    int insertionIndex,
+    List<FlattenedTaskNode> flattenedTasks,
+    List<Task> rootTasks,
+    Map<int, int> taskIdToIndex,
+    List<Task> filteredTasks,
+  ) {
+    // 将扁平化列表索引转换为根任务插入索引
+    final rootInsertionIndex = _convertFlattenedIndexToRootInsertionIndex(
+      insertionIndex,
+      flattenedTasks,
+      taskIdToIndex,
+      rootTasks,
+      filteredTasks,
+    );
+
+    // 根据根任务插入索引确定 beforeTask、afterTask 和 targetType
+    if (rootInsertionIndex == 0) {
+      // 顶部插入
+      return (
+        beforeTask: null,
+        afterTask: rootTasks.isEmpty ? null : rootTasks.first,
+        targetType: 'first',
+      );
+    } else if (rootInsertionIndex >= rootTasks.length) {
+      // 底部插入
+      return (
+        beforeTask: rootTasks.isEmpty ? null : rootTasks.last,
+        afterTask: null,
+        targetType: 'last',
+      );
+    } else {
+      // 中间插入
+      return (
+        beforeTask: rootTasks[rootInsertionIndex - 1],
+        afterTask: rootTasks[rootInsertionIndex],
+        targetType: 'between',
+      );
+    }
   }
 
   /// 统一处理插入目标的 drop 逻辑
@@ -818,13 +873,47 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
 
                                     // 在 onDragStarted 时还没有全局位置，使用 Offset.zero 作为占位符
                                     // 实际位置会在第一次 onDragUpdate 时更新
+                                    if (kDebugMode) {
+                                      debugPrint(
+                                        '[DnD] {event: onDragStarted, taskId: ${task.id}, title: "${task.title}", placeholderPosition: Offset.zero}',
+                                      );
+                                    }
                                     dragNotifier.startDrag(task, Offset.zero);
                                   },
                                   onDragUpdate: (details) {
                                     // 更新拖拽位置（全局坐标）
+                                    final dragState = ref.read(inboxDragProvider);
+                                    final oldHoverTarget = dragState.hoverTarget;
+                                    final oldHoverTargetId = dragState.hoverTargetId;
+                                    final oldHoveredInsertionIndex = dragState.hoveredInsertionIndex;
+                                    
                                     dragNotifier.updateDragPosition(
                                       details.globalPosition,
                                     );
+                                    
+                                    // 读取更新后的状态
+                                    final updatedState = ref.read(inboxDragProvider);
+                                    final newHoverTarget = updatedState.hoverTarget;
+                                    final newHoverTargetId = updatedState.hoverTargetId;
+                                    final newHoveredInsertionIndex = updatedState.hoveredInsertionIndex;
+                                    
+                                    // 检查 hover 状态是否变化
+                                    final hoverTargetChanged = oldHoverTarget != newHoverTarget || 
+                                                               oldHoverTargetId != newHoverTargetId ||
+                                                               oldHoveredInsertionIndex != newHoveredInsertionIndex;
+                                    
+                                    // 检查位置是否变化（每移动20像素记录一次）
+                                    final currentY = details.globalPosition.dy;
+                                    final positionChanged = _lastLoggedDragY == null || 
+                                                           (currentY - _lastLoggedDragY!).abs() > 20.0;
+                                    
+                                    // 记录日志：hover 状态变化或位置变化超过阈值
+                                    if (kDebugMode && (hoverTargetChanged || positionChanged)) {
+                                      _lastLoggedDragY = currentY;
+                                      debugPrint(
+                                        '[DnD] {event: onDragUpdate, taskId: ${task.id}, position: (${details.globalPosition.dx.toStringAsFixed(1)}, ${details.globalPosition.dy.toStringAsFixed(1)}), offset: (${updatedState.horizontalOffset?.toStringAsFixed(1) ?? "null"}, ${updatedState.verticalOffset?.toStringAsFixed(1) ?? "null"}), hoverTarget: ${oldHoverTarget?.name ?? "null"}->${newHoverTarget?.name ?? "null"}, hoverTargetId: ${oldHoverTargetId ?? "null"}->${newHoverTargetId ?? "null"}, hoveredInsertionIndex: ${oldHoveredInsertionIndex ?? "null"}->${newHoveredInsertionIndex ?? "null"}}',
+                                      );
+                                    }
                                   },
                                   onDragEnd: () async {
                                     if (kDebugMode) {
@@ -839,11 +928,54 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                                     // 保存偏移量，因为 endDrag() 会清空状态
                                     final horizontalOffset = dragState.horizontalOffset;
                                     final verticalOffset = dragState.verticalOffset;
+                                    final startPosition = dragState.dragStartPosition;
+                                    final endPosition = dragState.currentDragPosition;
+                                    final hoverTarget = dragState.hoverTarget;
+                                    final hoverTargetId = dragState.hoverTargetId;
+                                    final hoveredInsertionIndex = dragState.hoveredInsertionIndex;
+                                    final committedInsertionIndex = dragState.committedInsertionIndex;
+                                    
+                                    // 确定最终 hover 状态显示：优先使用 hoveredInsertionIndex
+                                    String? finalHoverDisplay;
+                                    if (hoveredInsertionIndex != null) {
+                                      // 使用 insertionIndex 来确定 hover 状态
+                                      if (hoveredInsertionIndex == 0) {
+                                        finalHoverDisplay = 'first';
+                                      } else if (hoveredInsertionIndex == -1) {
+                                        finalHoverDisplay = 'last';
+                                      } else {
+                                        finalHoverDisplay = 'between($hoveredInsertionIndex)';
+                                      }
+                                    } else {
+                                      // 回退到旧的 hoverTarget
+                                      finalHoverDisplay = hoverTarget?.name;
+                                    }
+                                    
+                                    // 确定插入位置来源：优先使用 committedInsertionIndex
+                                    final insertionIndexToUse = committedInsertionIndex ?? hoveredInsertionIndex;
+                                    final insertionSource = committedInsertionIndex != null 
+                                        ? 'committed' 
+                                        : (hoveredInsertionIndex != null ? 'hovered' : 'none');
                                     
                                     if (kDebugMode) {
                                       debugPrint(
-                                        '[DnD] {event: onDragEnd:stateRead, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+                                        '[DnD] {event: onDragEnd:complete, taskId: ${task.id}, startPos: (${startPosition?.dx.toStringAsFixed(1) ?? "null"}, ${startPosition?.dy.toStringAsFixed(1) ?? "null"}), endPos: (${endPosition?.dx.toStringAsFixed(1) ?? "null"}, ${endPosition?.dy.toStringAsFixed(1) ?? "null"}), offset: (${horizontalOffset?.toStringAsFixed(1) ?? "null"}, ${verticalOffset?.toStringAsFixed(1) ?? "null"}), finalHoverTarget: ${finalHoverDisplay ?? "null"}, finalHoverTargetId: ${hoverTargetId ?? "null"}, hoveredInsertionIndex: ${hoveredInsertionIndex ?? "null"}, committedInsertionIndex: ${committedInsertionIndex ?? "null"}, insertionSource: $insertionSource}',
                                       );
+                                    }
+
+                                    // 边界检查：如果偏移量为0或极小，可能是点击而非拖拽，不触发提升独立
+                                    const minDragThreshold = 2.0; // 最小拖拽阈值（像素）
+                                    final hasMoved = (horizontalOffset?.abs() ?? 0.0) > minDragThreshold ||
+                                                    (verticalOffset?.abs() ?? 0.0) > minDragThreshold;
+                                    
+                                    if (!hasMoved) {
+                                      if (kDebugMode) {
+                                        debugPrint(
+                                          '[DnD] {event: onDragEnd:skipped, taskId: ${task.id}, reason: noMovement, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset, wasAccepted: false, acceptReason: "movement below threshold"}',
+                                        );
+                                      }
+                                      dragNotifier.endDrag();
+                                      return;
                                     }
 
                                     // 使用闭包中捕获的 task 对象，而不是状态中的 draggedTask
@@ -852,18 +984,57 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                                     final taskHierarchyService =
                                         ref.read(taskHierarchyServiceProvider);
                                     
-                                    if (kDebugMode) {
-                                      debugPrint(
-                                        '[DnD] {event: onDragEnd:promoteToIndependent:attempt, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset}',
+                                    // 优先使用已提交的插入位置（让位动画触发时的位置）
+                                    if (insertionIndexToUse != null) {
+                                      // 从插入索引转换为 beforeTask/afterTask
+                                      final tasksInfo = _findTasksForInsertionIndex(
+                                        insertionIndexToUse,
+                                        flattenedTasks,
+                                        rootTasks,
+                                        taskIdToIndex,
+                                        filteredTasks,
+                                      );
+                                      
+                                      if (kDebugMode) {
+                                        debugPrint(
+                                          '[DnD] {event: onDragEnd:moveToInsertion, taskId: ${task.id}, insertionIndex: $insertionIndexToUse, source: $insertionSource, targetType: ${tasksInfo.targetType}, beforeTask: ${tasksInfo.beforeTask?.id ?? "null"}, afterTask: ${tasksInfo.afterTask?.id ?? "null"}}',
+                                        );
+                                      }
+                                      
+                                      // 执行插入操作
+                                      await _handleInsertionDrop(
+                                        task,
+                                        tasksInfo.beforeTask,
+                                        tasksInfo.afterTask,
+                                        tasksInfo.targetType,
+                                        ref,
+                                      );
+                                      
+                                      dragNotifier.endDrag();
+                                      return;
+                                    }
+
+                                    // 如果没有插入位置，检查是否被插入目标接受（fallback，保持向后兼容）
+                                    final wasAccepted = hoveredInsertionIndex != null || 
+                                                        (hoverTarget != null && hoverTargetId != null);
+                                    
+                                    if (!wasAccepted) {
+                                      if (kDebugMode) {
+                                        debugPrint(
+                                          '[DnD] {event: onDragEnd:notAccepted, taskId: ${task.id}, reason: noInsertionPosition, hoverTarget: ${hoverTarget?.name ?? "null"}, hoverTargetId: ${hoverTargetId ?? "null"}, hoveredInsertionIndex: ${hoveredInsertionIndex ?? "null"}, committedInsertionIndex: ${committedInsertionIndex ?? "null"}}',
+                                        );
+                                        debugPrint(
+                                          '[DnD] {event: onDragEnd:promoteToIndependent:attempt, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset, reason: "fallback to promote"}',
+                                        );
+                                      }
+                                      
+                                      await taskService.handlePromoteToIndependent(
+                                        task.id,
+                                        taskHierarchyService,
+                                        horizontalOffset: horizontalOffset,
+                                        verticalOffset: verticalOffset,
                                       );
                                     }
-                                    
-                                    await taskService.handlePromoteToIndependent(
-                                      task.id,
-                                      taskHierarchyService,
-                                      horizontalOffset: horizontalOffset,
-                                      verticalOffset: verticalOffset,
-                                    );
 
                                     dragNotifier.endDrag();
                                   },
@@ -1061,8 +1232,10 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
       return null;
     }
 
-    // 有让位动画，返回 taskHeight 覆盖整个让出的空间
-    return DragConstants.taskHeight;
+    // 有让位动画时，仍然使用默认高度（34像素）
+    // 让位动画由任务的 AnimatedContainer transform 处理，插入目标不需要扩展到 60 像素
+    // 这样可以保持任务之间的间距美观，同时仍然能正确接收拖拽
+    return null;
   }
 
   /// 计算让位动画的 Transform
