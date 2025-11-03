@@ -1120,43 +1120,57 @@ class _TasksSectionTaskListState
                                             return;
                                           }
 
-                                          // 如果没有插入位置，检查是否被插入目标接受（fallback，保持向后兼容）
+                                          // 如果没有插入位置，检查是否满足向左拖动升级子任务的条件（fallback）
                                           final wasAccepted = hoveredInsertionIndex != null;
                                           
                                           if (!wasAccepted) {
-                                            if (kDebugMode) {
-                                              debugPrint(
-                                                '[DnD] {event: onDragEnd:notAccepted, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, reason: noInsertionPosition, hoveredInsertionIndex: ${hoveredInsertionIndex ?? "null"}, committedInsertionIndex: ${committedInsertionIndex ?? "null"}}',
-                                              );
-                                              debugPrint(
-                                                '[DnD] {event: onDragEnd:promoteToIndependent:attempt, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset, reason: "fallback to promote"}',
-                                              );
-                                            }
+                                            // 只在满足以下所有条件时才尝试升级为独立任务：
+                                            // 1. 任务是子任务（有父任务）
+                                            // 2. 向左拖动超过阈值（-30.0px）
+                                            // 3. 垂直位移较小（小于50.0px），表示接近水平拖动
+                                            final isSubtask = task.parentId != null;
+                                            final isLeftDrag = horizontalOffset != null && horizontalOffset < -30.0;
+                                            final isHorizontalDrag = verticalOffset != null && verticalOffset.abs() < 50.0;
                                             
-                                            // 调用 handlePromoteToIndependent 来处理向左拖拽升级
-                                            await taskService.handlePromoteToIndependent(
-                                              task.id,
-                                              taskHierarchyService,
-                                              horizontalOffset: horizontalOffset,
-                                              verticalOffset: verticalOffset,
-                                            );
-
-                                            // 注意：handlePromoteToIndependent 内部使用的是 reorderTasksForInbox
-                                            // 对于 tasks 页面，我们需要额外调用 reorderTasksForSameDate
-                                            // 获取任务的 dueAt（用于确定重排的目标日期）
-                                            final taskRepository = ref.read(taskRepositoryProvider);
-                                            final updatedTask = await taskRepository.findById(task.id);
-                                            if (updatedTask != null) {
-                                              final sortIndexService = ref.read(sortIndexServiceProvider);
-                                              final allTasks = await taskRepository.listAll();
-                                              await sortIndexService.reorderTasksForSameDate(
-                                                allTasks: allTasks,
-                                                targetDate: updatedTask.dueAt,
-                                              );
-                                              
+                                            if (isSubtask && isLeftDrag && isHorizontalDrag) {
                                               if (kDebugMode) {
                                                 debugPrint(
-                                                  '[DnD] {event: onDragEnd:reorderTasksForSameDate:completed, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, targetDate: ${updatedTask.dueAt}}',
+                                                  '[DnD] {event: onDragEnd:promoteToIndependent:attempt, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset, reason: "left drag to promote"}',
+                                                );
+                                              }
+                                              
+                                              // 调用 handlePromoteToIndependent 来处理向左拖拽升级
+                                              await taskService.handlePromoteToIndependent(
+                                                task.id,
+                                                taskHierarchyService,
+                                                horizontalOffset: horizontalOffset,
+                                                verticalOffset: verticalOffset,
+                                              );
+
+                                              // 注意：handlePromoteToIndependent 内部使用的是 reorderTasksForInbox
+                                              // 对于 tasks 页面，我们需要额外调用 reorderTasksForSameDate
+                                              // 获取任务的 dueAt（用于确定重排的目标日期）
+                                              final taskRepository = ref.read(taskRepositoryProvider);
+                                              final updatedTask = await taskRepository.findById(task.id);
+                                              if (updatedTask != null) {
+                                                final sortIndexService = ref.read(sortIndexServiceProvider);
+                                                final allTasks = await taskRepository.listAll();
+                                                await sortIndexService.reorderTasksForSameDate(
+                                                  allTasks: allTasks,
+                                                  targetDate: updatedTask.dueAt,
+                                                );
+                                                
+                                                if (kDebugMode) {
+                                                  debugPrint(
+                                                    '[DnD] {event: onDragEnd:reorderTasksForSameDate:completed, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, targetDate: ${updatedTask.dueAt}}',
+                                                  );
+                                                }
+                                              }
+                                            } else {
+                                              // 不满足向左拖动升级的条件，直接结束拖拽
+                                              if (kDebugMode) {
+                                                debugPrint(
+                                                  '[DnD] {event: onDragEnd:noAction, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, reason: noInsertionPositionAndNotPromote, horizontalOffset: $horizontalOffset, verticalOffset: $verticalOffset, isSubtask: $isSubtask, isLeftDrag: $isLeftDrag, isHorizontalDrag: $isHorizontalDrag}',
                                                 );
                                               }
                                             }
