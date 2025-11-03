@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,43 +57,22 @@ class TaskSectionPanel extends ConsumerWidget {
             const SizedBox(height: 12),
             tasksAsync.when(
               data: (tasks) {
-                if (kDebugMode) {
-                  debugPrint('[TaskSectionPanel] section=${section.name}, tasks.length=${tasks.length}');
-                }
                 if (tasks.isEmpty) {
-                  if (kDebugMode) {
-                    debugPrint('[TaskSectionPanel] 任务为空，显示空状态提示');
-                  }
                   return EmptySectionHint(
                     message: l10n.taskListEmptySectionHint,
                   );
                 }
                 final roots = collectRoots(tasks);
-                if (kDebugMode) {
-                  debugPrint('[TaskSectionPanel] section=${section.name}, roots.length=${roots.length}');
-                  for (final root in roots.take(3)) {
-                    debugPrint('  - root: id=${root.id}, title=${root.title}, parentId=${root.parentId}');
-                  }
-                }
                 if (roots.isEmpty) {
-                  if (kDebugMode) {
-                    debugPrint('[TaskSectionPanel] 根任务为空，显示空状态提示');
-                  }
                   return EmptySectionHint(
                     message: l10n.taskListEmptySectionHint,
                   );
                 }
                 if (editMode) {
-                  if (kDebugMode) {
-                    debugPrint('[TaskSectionPanel] 使用项目模式显示');
-                  }
                   return TaskSectionProjectModePanel(
                     section: section,
                     roots: roots,
                   );
-                }
-                if (kDebugMode) {
-                  debugPrint('[TaskSectionPanel] 使用任务模式显示');
                 }
                 return TasksSectionTaskList(section: section, tasks: tasks);
               },

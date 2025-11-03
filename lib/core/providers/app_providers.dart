@@ -390,28 +390,36 @@ class TaskProjectHierarchy {
 }
 
 final taskProjectHierarchyProvider =
-    FutureProvider.family<TaskProjectHierarchy?, int>((ref, taskId) async {
-      final task = await ref.watch(taskRepositoryProvider).findById(taskId);
-      if (task == null) return null;
+    StreamProvider.family<TaskProjectHierarchy?, int>((ref, taskId) async* {
+      // 使用 watchTaskById 监听任务变化，这样当任务的项目/里程碑字段更新时，会自动触发
+      final taskStream = ref.watch(taskRepositoryProvider).watchTaskById(taskId);
+      await for (final task in taskStream) {
+        if (task == null) {
+          yield null;
+          continue;
+        }
 
-      final projectId = task.projectId;
-      if (projectId == null || projectId.isEmpty) {
-        return null;
+        final projectId = task.projectId;
+        if (projectId == null || projectId.isEmpty) {
+          yield null;
+          continue;
+        }
+
+        final projectService = ref.watch(projectServiceProvider);
+        final project = await projectService.findByProjectId(projectId);
+        if (project == null) {
+          yield null;
+          continue;
+        }
+
+        Milestone? milestone;
+        final milestoneId = task.milestoneId;
+        if (milestoneId != null && milestoneId.isNotEmpty) {
+          milestone = await projectService.findMilestoneById(milestoneId);
+        }
+
+        yield TaskProjectHierarchy(project: project, milestone: milestone);
       }
-
-      final projectService = ref.watch(projectServiceProvider);
-      final project = await projectService.findByProjectId(projectId);
-      if (project == null) {
-        return null;
-      }
-
-      Milestone? milestone;
-      final milestoneId = task.milestoneId;
-      if (milestoneId != null && milestoneId.isNotEmpty) {
-        milestone = await projectService.findMilestoneById(milestoneId);
-      }
-
-      return TaskProjectHierarchy(project: project, milestone: milestone);
     });
 
 final taskTreeProvider = StreamProvider.family<TaskTreeNode, int>((

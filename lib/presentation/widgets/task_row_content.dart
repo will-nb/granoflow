@@ -4,6 +4,7 @@ import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/services/project_models.dart';
 import '../../core/services/tag_service.dart';
+import '../../core/utils/task_section_utils.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
 import 'inline_editable_tag.dart';
@@ -459,11 +460,14 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
       data: (hierarchy) {
         if (hierarchy == null) {
           // 未关联项目/里程碑，显示"加入项目"按钮
+          // 注意：不使用 widget.task.projectId，因为 widget 属性不会自动更新
+          // 而是从最新的 hierarchy 状态判断（如果为 null，说明没有项目）
           return ProjectMilestonePicker(
             onSelected: (selection) =>
                 _handleProjectMilestoneChanged(ref, selection),
-            currentProjectId: widget.task.projectId,
-            currentMilestoneId: widget.task.milestoneId,
+            // 使用 null，因为 hierarchy 已经是 null
+            currentProjectId: null,
+            currentMilestoneId: null,
           );
         } else {
           // 已关联，显示项目/里程碑信息
@@ -482,8 +486,8 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         return ProjectMilestonePicker(
           onSelected: (selection) =>
               _handleProjectMilestoneChanged(ref, selection),
-          currentProjectId: widget.task.projectId,
-          currentMilestoneId: widget.task.milestoneId,
+          currentProjectId: null,
+          currentMilestoneId: null,
         );
       },
     );
@@ -496,6 +500,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   ) async {
     try {
       final taskService = ref.read(taskServiceProvider);
+      
       await taskService.updateDetails(
         taskId: widget.task.id,
         payload: TaskUpdate(
@@ -505,8 +510,32 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
           clearMilestone: selection == null || !selection.hasMilestone,
         ),
       );
-      // 刷新项目层级 provider，以便 UI 立即更新
-      ref.invalidate(taskProjectHierarchyProvider(widget.task.id));
+
+      // taskProjectHierarchyProvider 现在是 StreamProvider，会自动响应任务变化
+      // 不需要手动刷新，stream 会自动触发更新
+      // 但是，为了确保其他相关 provider 也能更新，我们仍然需要刷新它们
+      if (mounted) {
+        // 如果任务在 inbox 中，刷新 inbox provider
+        if (widget.task.status == TaskStatus.inbox) {
+          ref.invalidate(inboxTasksProvider);
+          // inbox 相关的依赖 provider 也会自动刷新
+        }
+
+        // 如果任务是 pending 状态且有 dueAt，刷新对应的 section provider
+        // 项目/里程碑变更不会改变任务的 section（除非 dueAt 也改变）
+        if (widget.task.status == TaskStatus.pending && widget.task.dueAt != null) {
+          final section = TaskSectionUtils.getSectionForDate(widget.task.dueAt);
+          ref.invalidate(taskSectionsProvider(section));
+
+          // 刷新该 section 相关的 level map 和 children map provider
+          ref.invalidate(
+            tasksSectionTaskLevelMapProvider(section),
+          );
+          ref.invalidate(
+            tasksSectionTaskChildrenMapProvider(section),
+          );
+        }
+      }
     } catch (e) {
       debugPrint('Failed to update project/milestone: $e');
       if (mounted) {

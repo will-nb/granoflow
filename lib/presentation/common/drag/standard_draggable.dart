@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/drag_constants.dart';
 import '../../../core/theme/drag_theme.dart';
@@ -38,11 +37,6 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
     final dragTheme = DragTheme.of(context);
     final content = handle != null ? _withHandle(child, handle!) : child;
     
-    // 记录拖拽类型
-    if (kDebugMode) {
-      debugPrint('[Drag] Creating ${useLongPress ? "LongPress" : "Immediate"}Draggable for data: $data');
-    }
-    
     final feedback = _buildFeedback(context, dragTheme, content);
     final childWhenDragging = Opacity(
       opacity: childWhenDraggingOpacity ?? DragConstants.draggingOpacity, // 使用自定义值或默认值
@@ -50,27 +44,14 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
     );
     
     final onDragStartedWithLog = () {
-      if (kDebugMode) {
-        debugPrint('[Drag] Drag started - data: $data, timestamp: ${DateTime.now().toIso8601String()}');
-      }
       onDragStarted?.call();
     };
     
     final onDragUpdateWithLog = (DragUpdateDetails details) {
-      if (kDebugMode && details.localPosition.distance < 1) {
-        debugPrint('[Drag] Long press detected, waiting for drag threshold...');
-      }
       onDragUpdate?.call(details);
     };
     
     final onDragEndWithLog = (DraggableDetails details) {
-      if (kDebugMode) {
-        debugPrint('[Drag] Drag ended - data: $data, '
-                  'wasAccepted: ${details.wasAccepted}, '
-                  'velocity: ${details.velocity}, '
-                  'offset: ${details.offset}, '
-                  'timestamp: ${DateTime.now().toIso8601String()}');
-      }
       onDragEnd?.call();
     };
     

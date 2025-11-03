@@ -59,6 +59,9 @@ abstract class TaskRepository {
 
   Future<Task?> findById(int id);
 
+  /// 监听单个任务的变化
+  Stream<Task?> watchTaskById(int id);
+
   Future<Task?> findBySlug(String slug);
 
   Future<List<Task>> listRoots();
@@ -91,15 +94,7 @@ class IsarTaskRepository implements TaskRepository {
 
   @override
   Stream<List<Task>> watchSection(TaskSection section) {
-    return _watchQuery(() => _fetchSection(section)).map((tasks) {
-      if (section == TaskSection.later) {
-        debugPrint('[TaskRepository.watchSection] Stream 发送的任务顺序:');
-        for (final task in tasks) {
-          debugPrint('  - ${task.title}: dueAt=${task.dueAt}');
-        }
-      }
-      return tasks;
-    });
+    return _watchQuery(() => _fetchSection(section));
   }
 
   @override
@@ -116,12 +111,9 @@ class IsarTaskRepository implements TaskRepository {
           .sortBySortIndex()
           .thenByCreatedAtDesc()
           .findAll();
-      // 过滤出普通任务（没有关联项目或里程碑）
-      final regularTasks = results
-          .where(_isRegularTask)
-          .map(_toDomain)
-          .toList(growable: false);
-      return regularTasks;
+      // 移除过滤，让 inbox 页面显示所有任务（包括关联项目的）
+      final tasks = results.map(_toDomain).toList(growable: false);
+      return tasks;
     });
   }
 
@@ -139,10 +131,9 @@ class IsarTaskRepository implements TaskRepository {
           .sortBySortIndex()
           .thenByCreatedAtDesc()
           .findAll();
-      // 先过滤出普通任务，再按标签过滤
-      final filtered = entities
-          .where(_isRegularTask)
-          .where((entity) {
+      // 移除 _isRegularTask 过滤，让 inbox 页面显示所有任务（包括关联项目的）
+      // 然后按标签过滤
+      final filtered = entities.where((entity) {
             final tags = entity.tags;
             // 规范化标签后进行比较（兼容旧数据）
             if (contextTag != null && contextTag.isNotEmpty) {
@@ -306,8 +297,6 @@ class IsarTaskRepository implements TaskRepository {
   /// [payload] 更新内容
   /// [taskId] 任务 ID（仅用于调试日志）
   void _applyTaskUpdate(TaskEntity entity, TaskUpdate payload, {int? taskId}) {
-    final oldStatus = entity.status;
-
     // 触发器逻辑：如果截止日期发生变化，自动将状态转换为 pending
     // 判断截止日期是否变化（忽略 null 的情况）
     final dueAtChanged = payload.dueAt != null && payload.dueAt != entity.dueAt;
@@ -316,11 +305,6 @@ class IsarTaskRepository implements TaskRepository {
       // 但如果 payload.status 显式指定了值，则使用指定的值（显式指定优先）
       if (payload.status == null) {
         entity.status = TaskStatus.pending;
-        if (kDebugMode && taskId != null) {
-          debugPrint(
-            '[TaskRepository._applyTaskUpdate] 自动转换状态: taskId=$taskId, oldStatus=$oldStatus, newStatus=pending (dueAt changed)',
-          );
-        }
       }
     }
 
@@ -500,6 +484,14 @@ class IsarTaskRepository implements TaskRepository {
   Future<Task?> findById(int id) async {
     final entity = await _isar.taskEntitys.get(id);
     return entity == null ? null : _toDomain(entity);
+  }
+
+  @override
+  Stream<Task?> watchTaskById(int id) {
+    return _watchQuery(() async {
+      final entity = await _isar.taskEntitys.get(id);
+      return entity == null ? null : _toDomain(entity);
+    });
   }
 
   @override
@@ -787,109 +779,9 @@ class IsarTaskRepository implements TaskRepository {
     // This separation of concerns is architecturally correct:
     // - Data layer: Returns tasks by date/status criteria (domain logic)
     // - UI layer: Handles display logic and parent-child relationships (presentation logic)
-    // 过滤出普通任务（没有关联项目或里程碑）
-    final regularResults = results.where(_isRegularTask).toList();
-    final tasks = regularResults.map(_toDomain).toList(growable: false);
-
-    // 调试日志：输出查询结果和过滤情况
-    if (kDebugMode) {
-      debugPrint(
-        '[TaskRepository._fetchSection] section=$section, 查询结果数=${results.length} (普通任务: ${regularResults.length}), 最终任务数=${tasks.length}',
-      );
-      // 输出被过滤掉的任务（关联了项目或里程碑）
-      final nonRegularTasks = results
-          .where((e) => !_isRegularTask(e))
-          .toList();
-      if (nonRegularTasks.isNotEmpty) {
-        debugPrint(
-          '[TaskRepository._fetchSection] 发现 ${nonRegularTasks.length} 个关联项目/里程碑的任务被过滤掉',
-        );
-        for (final task in nonRegularTasks.take(5)) {
-          debugPrint(
-            '  - taskId=${task.id}, projectId=${task.projectId}, milestoneId=${task.milestoneId}, title=${task.title}',
-          );
-        }
-      }
-      // 输出查询的日期范围信息
-      switch (section) {
-        case TaskSection.overdue:
-          debugPrint(
-            '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, dueAt < $todayStart',
-          );
-          break;
-        case TaskSection.today:
-          debugPrint(
-            '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $todayStart <= dueAt < $tomorrowStart',
-          );
-          break;
-        case TaskSection.tomorrow:
-          debugPrint(
-            '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $tomorrowStart <= dueAt < $dayAfterTomorrowStart',
-          );
-          break;
-        case TaskSection.thisWeek:
-          if (dayAfterTomorrowStart.isBefore(nextWeekStart)) {
-            debugPrint(
-              '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $dayAfterTomorrowStart <= dueAt < $nextWeekStart',
-            );
-          } else {
-            debugPrint(
-              '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, thisWeek为空范围（今天是周六或周日）',
-            );
-          }
-          break;
-        case TaskSection.thisMonth:
-          if (thisWeekEnd.isBefore(nextMonthStart)) {
-            debugPrint(
-              '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, $nextWeekStart <= dueAt < $nextMonthStart (thisWeekEnd=$thisWeekEnd < nextMonthStart=$nextMonthStart)',
-            );
-          } else {
-            debugPrint(
-              '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, thisMonth为空范围（本周跨月，thisWeekEnd=$thisWeekEnd >= nextMonthStart=$nextMonthStart）',
-            );
-          }
-          break;
-        case TaskSection.later:
-          debugPrint(
-            '[TaskRepository._fetchSection] 查询条件: status=pending, taskKind=regular, dueAt >= $laterStart',
-          );
-          break;
-        case TaskSection.completed:
-          debugPrint(
-            '[TaskRepository._fetchSection] 查询条件: status=completedActive, taskKind=regular',
-          );
-          break;
-        case TaskSection.archived:
-          debugPrint(
-            '[TaskRepository._fetchSection] 查询条件: status=archived, taskKind=regular',
-          );
-          break;
-        case TaskSection.trash:
-          debugPrint(
-            '[TaskRepository._fetchSection] 查询条件: status=trashed, taskKind=regular',
-          );
-          break;
-      }
-      // 输出最终任务列表的详细信息（前10个）
-      if (tasks.isNotEmpty) {
-        debugPrint('[TaskRepository._fetchSection] 最终任务列表 (前10个):');
-        for (final task in tasks.take(10)) {
-          debugPrint(
-            '  id=${task.id}, title="${task.title}", dueAt=${task.dueAt}, sortIndex=${task.sortIndex}, projectId=${task.projectId}, milestoneId=${task.milestoneId}, status=${task.status}, parentId=${task.parentId}',
-          );
-        }
-      }
-    }
-
-    // 调试日志：输出排序前的任务
-    if (section == TaskSection.later && tasks.isNotEmpty) {
-      debugPrint('[TaskRepository] 以后区域排序前:');
-      for (final task in tasks) {
-        debugPrint(
-          '  - ${task.title}: dueAt=${task.dueAt}, sortIndex=${task.sortIndex}',
-        );
-      }
-    }
+    // 移除过滤，让 tasks 页面显示所有任务（包括关联项目的）
+    // Inbox 页面使用 watchInbox() 方法，它会单独过滤普通任务
+    final tasks = results.map(_toDomain).toList(growable: false);
 
     // 在内存中排序：先按日期（不含时间）升序，再按 sortIndex 升序，最后按 createdAt 降序
     // 使用统一的排序工具函数
@@ -923,15 +815,6 @@ class IsarTaskRepository implements TaskRepository {
       return b.createdAt.compareTo(a.createdAt);
     });
 
-    // 调试日志：输出排序后的任务
-    if (section == TaskSection.later && tasks.isNotEmpty) {
-      debugPrint('[TaskRepository] 以后区域排序后:');
-      for (final task in tasks) {
-        debugPrint(
-          '  - ${task.title}: dueAt=${task.dueAt}, sortIndex=${task.sortIndex}',
-        );
-      }
-    }
 
     return tasks;
   }

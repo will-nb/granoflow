@@ -255,6 +255,9 @@ class StubTaskRepository implements TaskRepository {
   Future<Task?> findById(int id) async => _tasks[id];
 
   @override
+  Stream<Task?> watchTaskById(int id) => Stream.value(_tasks[id]);
+
+  @override
   Future<Task?> findBySlug(String slug) async =>
       _tasks.values.firstWhereOrNull((task) => task.seedSlug == slug);
 

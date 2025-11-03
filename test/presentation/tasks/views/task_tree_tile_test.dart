@@ -72,7 +72,7 @@ void main() {
           importanceTagOptionsProvider.overrideWith((ref) async => const []),
           executionTagOptionsProvider.overrideWith((ref) async => const []),
           contextTagOptionsProvider.overrideWith((ref) async => const []),
-          taskProjectHierarchyProvider.overrideWith((ref, taskId) async => null),
+          taskProjectHierarchyProvider.overrideWith((ref, taskId) => Stream.value(null)),
           parentTaskProvider.overrideWith((ref, parentId) async {
             if (parentId == root.id) return null;
             return null;

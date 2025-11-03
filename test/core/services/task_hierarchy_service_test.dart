@@ -90,6 +90,9 @@ class _TestTaskRepository extends TaskRepository {
   Future<Task?> findById(int id) async => tasks[id];
 
   @override
+  Stream<Task?> watchTaskById(int id) => Stream.value(tasks[id]);
+
+  @override
   Future<void> updateTask(int taskId, TaskUpdate payload) async {
     final existing = tasks[taskId];
     if (existing == null) return;

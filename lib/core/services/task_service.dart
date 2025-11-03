@@ -150,15 +150,6 @@ class TaskService {
       return;
     }
 
-    if (kDebugMode) {
-      final oldSection = TaskSectionUtils.getSectionForDate(
-        existing.dueAt,
-        now: _clock(),
-      );
-      debugPrint(
-        '[TaskService.updateDetails] 开始更新: taskId=$taskId, oldDueAt=${existing.dueAt}, oldSortIndex=${existing.sortIndex}, oldStatus=${existing.status}, oldSection=$oldSection',
-      );
-    }
 
     DateTime? dueForUpdate;
     if (payload.dueAt != null) {
@@ -169,19 +160,6 @@ class TaskService {
     final now = _clock();
     List<TaskLogEntry>? updatedLogs;
 
-    if (kDebugMode && dueChanged) {
-      final newSection = TaskSectionUtils.getSectionForDate(
-        dueForUpdate,
-        now: now,
-      );
-      final oldSection = TaskSectionUtils.getSectionForDate(
-        existing.dueAt,
-        now: now,
-      );
-      debugPrint(
-        '[TaskService.updateDetails] 日期变更: taskId=$taskId, oldDueAt=${existing.dueAt} (section=$oldSection), newDueAt=$dueForUpdate (section=$newSection)',
-      );
-    }
 
     void ensureLogBuffer() {
       updatedLogs ??= existing.logs.toList(growable: true);
@@ -220,21 +198,13 @@ class TaskService {
         allowInstantComplete: payload.allowInstantComplete,
         description: payload.description ?? existing.description,
         logs: updatedLogs,
+        projectId: payload.projectId,
+        milestoneId: payload.milestoneId,
+        clearProject: payload.clearProject,
+        clearMilestone: payload.clearMilestone,
       ),
     );
 
-    if (kDebugMode) {
-      final updated = await _tasks.findById(taskId);
-      if (updated != null) {
-        final newSection = TaskSectionUtils.getSectionForDate(
-          updated.dueAt,
-          now: now,
-        );
-        debugPrint(
-          '[TaskService.updateDetails] 更新完成: taskId=$taskId, newDueAt=${updated.dueAt}, newSortIndex=${updated.sortIndex}, newStatus=${updated.status}, newSection=$newSection',
-        );
-      }
-    }
 
     // 在新架构下，里程碑是独立的模型，截止日期更新由 MilestoneService 处理
     // 这里不再需要检查 taskKind.milestone 并更新父项目

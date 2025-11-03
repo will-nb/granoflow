@@ -85,15 +85,14 @@ class _TasksSectionTaskListState
   /// 构建任务层级树
   ///
   /// 从任务列表构建 TaskTreeNode 层级树结构。
-  /// 只包含非项目/非里程碑的任务，并按照 sortIndex 排序子任务。
+  /// 显示所有根任务（包括关联项目/里程碑的），子任务按照 sortIndex 排序。
   ///
   /// [tasks] 要构建树的任务列表
   /// 返回根任务树的列表
   List<TaskTreeNode> _buildTaskTree(List<Task> tasks) {
     final byId = {for (final task in tasks) task.id: task};
-    final roots = collectRoots(
-      tasks,
-    ).where((task) => !isProjectOrMilestone(task)).toList();
+    // 显示所有根任务，包括关联项目/里程碑的根任务
+    final roots = collectRoots(tasks);
     return roots.map((root) => _buildSubtree(root, byId)).toList();
   }
 
@@ -490,9 +489,8 @@ class _TasksSectionTaskListState
             }
 
             // 获取根任务列表（仅用于排序逻辑和插入目标）
-            final rootTasks = collectRoots(
-              filteredTasks,
-            ).where((task) => !isProjectOrMilestone(task)).toList();
+            // 显示所有根任务，包括关联项目/里程碑的根任务
+            final rootTasks = collectRoots(filteredTasks);
 
             // 创建任务映射：任务 ID -> 根任务索引（仅用于根任务）
             final taskIdToIndex = <int, int>{};
