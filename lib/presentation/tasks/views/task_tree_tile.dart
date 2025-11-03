@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/app_providers.dart';
+import '../../../core/theme/app_spacing_tokens.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../../core/utils/task_section_utils.dart';
@@ -238,9 +239,14 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final spacingTokens = spacing ?? AppSpacingTokens.light;
     if (_nodes.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: spacingTokens.cardHorizontalPadding,
+          vertical: spacingTokens.cardVerticalPadding,
+        ),
         child: Text(l10n.taskListNoSubtasks),
       );
     }

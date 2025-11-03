@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/service_providers.dart';
 import '../../../core/providers/repository_providers.dart';
-import '../../../core/providers/tasks_section_drag_provider.dart';
+import '../../../core/providers/tasks_drag_provider.dart';
 import '../../../core/constants/task_constants.dart';
 import '../../../core/constants/drag_constants.dart';
 import '../../../core/utils/task_section_utils.dart';
@@ -307,26 +307,35 @@ class _TasksSectionTaskListState
       int? aboveTaskParentId;
       double newSortIndex;
 
-      // 确定目标 dueDate：使用 beforeTask 的 dueAt，如果没有则使用 draggedTask 的原始 dueAt
-      DateTime? targetDueDate = beforeTask?.dueAt ?? draggedTask.dueAt;
+      // 确定目标 dueDate 和目标 section
+      // 优先使用 beforeTask 或 afterTask 的 dueAt 来确定目标区域
+      DateTime? targetDueDate = beforeTask?.dueAt ?? afterTask?.dueAt ?? draggedTask.dueAt;
+      
+      // 计算目标 section
+      final now = DateTime.now();
+      final targetSection = TaskSectionUtils.getSectionForDate(targetDueDate, now: now);
+      final currentSection = TaskSectionUtils.getSectionForDate(draggedTask.dueAt, now: now);
+      
+      // 如果是跨区域拖拽，需要使用目标区域的结束时间
+      if (targetSection != currentSection) {
+        if (kDebugMode) {
+          debugPrint(
+            '[DnD] {event: crossSectionDrag, page: Tasks, src: ${draggedTask.id}, currentSection: $currentSection, targetSection: $targetSection, beforeTask: ${beforeTask?.id}, afterTask: ${afterTask?.id}, beforeTaskDueAt: ${beforeTask?.dueAt}, afterTaskDueAt: ${afterTask?.dueAt}}',
+          );
+        }
+        // 跨区域拖拽：使用目标区域的结束时间
+        targetDueDate = TaskSectionUtils.getSectionEndTime(targetSection, now: now);
+      }
 
       if (targetType == 'first') {
         // 顶部插入目标：成为根项目（parentId = null）
         aboveTaskParentId = null;
         newSortIndex = SortIndexCalculator.insertAtFirst(beforeTask?.sortIndex);
-        // 如果 beforeTask 没有 dueAt，使用 section 的代表日期
-        if (targetDueDate == null) {
-          targetDueDate = TaskSectionUtils.getSectionEndTime(section);
-        }
       } else if (targetType == 'last') {
         // 底部插入目标：最后一个任务作为 beforeTask（afterTask = null）
         // 成为最后一个任务的兄弟
         aboveTaskParentId = beforeTask?.parentId;
         newSortIndex = SortIndexCalculator.insertAtLast(beforeTask?.sortIndex);
-        // 如果 beforeTask 没有 dueAt，使用 section 的代表日期
-        if (targetDueDate == null) {
-          targetDueDate = TaskSectionUtils.getSectionEndTime(section);
-        }
       } else {
         // 中间插入目标：成为 beforeTask 的兄弟
         aboveTaskParentId = beforeTask?.parentId;
@@ -336,16 +345,12 @@ class _TasksSectionTaskListState
             beforeTask.sortIndex,
             afterTask.sortIndex,
           );
-          // 使用 beforeTask 的 dueAt
-          targetDueDate = beforeTask.dueAt ?? draggedTask.dueAt;
         } else if (beforeTask != null) {
           // 只有 beforeTask 存在：插入到 beforeTask 之后
           newSortIndex = SortIndexCalculator.insertAfter(beforeTask.sortIndex);
-          targetDueDate = beforeTask.dueAt ?? draggedTask.dueAt;
         } else {
           // 两个任务都不存在：使用默认值（这种情况理论上不应该发生）
           newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
-          targetDueDate = TaskSectionUtils.getSectionEndTime(section);
         }
       }
 
@@ -529,9 +534,7 @@ class _TasksSectionTaskListState
 
             // 子任务拖拽时也采用与根任务相同的策略：保留在 flattenedTasks 中，通过 opacity 控制可见性
             // 这样可以让位动画正常工作，其他任务能够填补空位
-            final dragState = ref.watch(
-              tasksSectionDragProvider(widget.section),
-            );
+            final dragState = ref.watch(tasksDragProvider);
 
             if (flattenedTasks.isEmpty) {
               return const SizedBox.shrink();
@@ -555,9 +558,7 @@ class _TasksSectionTaskListState
 
             // 标准实现：使用 Column 包裹任务和插入目标
             // 插入目标作为独立的小区域放在任务之间，不覆盖任务表面
-            final dragNotifier = ref.read(
-              tasksSectionDragProvider(widget.section).notifier,
-            );
+            final dragNotifier = ref.read(tasksDragProvider.notifier);
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -638,7 +639,7 @@ class _TasksSectionTaskListState
                         }
                       }
 
-                      dragNotifier.updateInsertionHover(0);
+                      dragNotifier.updateInsertionHover(0, widget.section);
                     }
                     // 不在 onLeave 时清除 hover，保持扩展的命中区域有效
                     // 这样即使指针稍微移出，插入索引仍保持活跃，直到进入另一个目标或拖拽结束
@@ -678,6 +679,12 @@ class _TasksSectionTaskListState
                           transform: () {
                             if (!dragState.isDragging ||
                                 dragState.hoveredInsertionIndex == null) {
+                              return null;
+                            }
+
+                            // 只处理当前 section 的拖拽（跨区域拖拽的让位动画在目标 section 中处理）
+                            if (dragState.hoveredInsertionSection != null &&
+                                dragState.hoveredInsertionSection != widget.section) {
                               return null;
                             }
 
@@ -934,9 +941,7 @@ class _TasksSectionTaskListState
                                         },
                                         onDragUpdate: (details) {
                                           // 更新拖拽位置（全局坐标）
-                                          final dragState = ref.read(
-                                            tasksSectionDragProvider(widget.section),
-                                          );
+                                          final dragState = ref.read(tasksDragProvider);
                                           final oldHoveredInsertionIndex = dragState.hoveredInsertionIndex;
                                           final oldHoveredTaskId = dragState.hoveredTaskId;
                                           
@@ -945,9 +950,7 @@ class _TasksSectionTaskListState
                                           );
                                           
                                           // 读取更新后的状态
-                                          final updatedState = ref.read(
-                                            tasksSectionDragProvider(widget.section),
-                                          );
+                                          final updatedState = ref.read(tasksDragProvider);
                                           final newHoveredInsertionIndex = updatedState.hoveredInsertionIndex;
                                           final newHoveredTaskId = updatedState.hoveredTaskId;
                                           
@@ -976,9 +979,7 @@ class _TasksSectionTaskListState
                                           }
                                           
                                           // 在 endDrag() 之前立即读取状态，确保获取到最新的偏移量
-                                          final dragState = ref.read(
-                                            tasksSectionDragProvider(widget.section),
-                                          );
+                                          final dragState = ref.read(tasksDragProvider);
                                           
                                           // 保存偏移量，因为 endDrag() 会清空状态
                                           final horizontalOffset = dragState.horizontalOffset;
@@ -986,8 +987,10 @@ class _TasksSectionTaskListState
                                           final startPosition = dragState.dragStartPosition;
                                           final endPosition = dragState.currentDragPosition;
                                           final hoveredInsertionIndex = dragState.hoveredInsertionIndex;
+                                          final hoveredInsertionSection = dragState.hoveredInsertionSection;
                                           final hoveredTaskId = dragState.hoveredTaskId;
                                           final committedInsertionIndex = dragState.committedInsertionIndex;
+                                          final committedInsertionSection = dragState.committedInsertionSection;
                                           
                                           // 确定最终 hover 状态显示
                                           String? finalHoverDisplay;
@@ -1005,13 +1008,17 @@ class _TasksSectionTaskListState
                                           
                                           // 确定插入位置来源：优先使用 committedInsertionIndex
                                           final insertionIndexToUse = committedInsertionIndex ?? hoveredInsertionIndex;
+                                          final insertionSectionToUse = committedInsertionSection ?? hoveredInsertionSection ?? widget.section;
                                           final insertionSource = committedInsertionIndex != null 
                                               ? 'committed' 
                                               : (hoveredInsertionIndex != null ? 'hovered' : 'none');
                                           
+                                          // 检查是否是跨区域拖拽
+                                          final isCrossSection = insertionSectionToUse != widget.section;
+                                          
                                           if (kDebugMode) {
                                             debugPrint(
-                                              '[DnD] {event: onDragEnd:complete, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, startPos: (${startPosition?.dx.toStringAsFixed(1) ?? "null"}, ${startPosition?.dy.toStringAsFixed(1) ?? "null"}), endPos: (${endPosition?.dx.toStringAsFixed(1) ?? "null"}, ${endPosition?.dy.toStringAsFixed(1) ?? "null"}), offset: (${horizontalOffset?.toStringAsFixed(1) ?? "null"}, ${verticalOffset?.toStringAsFixed(1) ?? "null"}), finalHoverTarget: ${finalHoverDisplay ?? "null"}, hoveredInsertionIndex: ${hoveredInsertionIndex ?? "null"}, committedInsertionIndex: ${committedInsertionIndex ?? "null"}, insertionSource: $insertionSource}',
+                                              '[DnD] {event: onDragEnd:complete, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, startPos: (${startPosition?.dx.toStringAsFixed(1) ?? "null"}, ${startPosition?.dy.toStringAsFixed(1) ?? "null"}), endPos: (${endPosition?.dx.toStringAsFixed(1) ?? "null"}, ${endPosition?.dy.toStringAsFixed(1) ?? "null"}), offset: (${horizontalOffset?.toStringAsFixed(1) ?? "null"}, ${verticalOffset?.toStringAsFixed(1) ?? "null"}), finalHoverTarget: ${finalHoverDisplay ?? "null"}, hoveredInsertionIndex: ${hoveredInsertionIndex ?? "null"}, hoveredInsertionSection: ${hoveredInsertionSection?.name ?? "null"}, committedInsertionIndex: ${committedInsertionIndex ?? "null"}, committedInsertionSection: ${committedInsertionSection?.name ?? "null"}, insertionSource: $insertionSource, insertionSectionToUse: ${insertionSectionToUse.name}, isCrossSection: $isCrossSection}',
                                             );
                                           }
 
@@ -1038,28 +1045,74 @@ class _TasksSectionTaskListState
                                           
                                           // 优先使用已提交的插入位置（让位动画触发时的位置）
                                           if (insertionIndexToUse != null) {
-                                            // 从插入索引转换为 beforeTask/afterTask
-                                            final tasksInfo = _findTasksForInsertionIndex(
-                                              insertionIndexToUse,
-                                              flattenedTasks,
-                                              rootTasks,
-                                              taskIdToIndex,
-                                              filteredTasks,
-                                            );
+                                            // 如果是跨区域拖拽，需要从目标 section 获取任务列表
+                                            Task? beforeTask;
+                                            Task? afterTask;
+                                            String targetType;
+                                            
+                                            if (isCrossSection) {
+                                              // 跨区域拖拽：从目标 section 获取任务列表
+                                              final taskRepository = ref.read(taskRepositoryProvider);
+                                              final targetSectionTasks = await taskRepository.listSectionTasks(insertionSectionToUse);
+                                              
+                                              // 过滤掉 trashed 状态的任务
+                                              final filteredTargetTasks = targetSectionTasks
+                                                  .where((t) => t.status != TaskStatus.trashed)
+                                                  .toList();
+                                              
+                                              // 获取目标 section 的根任务
+                                              final targetRootTasks = collectRoots(filteredTargetTasks);
+                                              
+                                              // 根据插入索引确定 beforeTask 和 afterTask
+                                              if (insertionIndexToUse == 0) {
+                                                // 顶部插入
+                                                beforeTask = null;
+                                                afterTask = targetRootTasks.isEmpty ? null : targetRootTasks.first;
+                                                targetType = 'first';
+                                              } else if (insertionIndexToUse >= targetRootTasks.length) {
+                                                // 底部插入
+                                                beforeTask = targetRootTasks.isEmpty ? null : targetRootTasks.last;
+                                                afterTask = null;
+                                                targetType = 'last';
+                                              } else {
+                                                // 中间插入
+                                                beforeTask = targetRootTasks[insertionIndexToUse - 1];
+                                                afterTask = targetRootTasks[insertionIndexToUse];
+                                                targetType = 'between';
+                                              }
+                                              
+                                              if (kDebugMode) {
+                                                debugPrint(
+                                                  '[DnD] {event: onDragEnd:crossSectionMove, page: Tasks, fromSection: ${widget.section.name}, toSection: ${insertionSectionToUse.name}, taskId: ${task.id}, insertionIndex: $insertionIndexToUse, targetType: $targetType, beforeTask: ${beforeTask?.id ?? "null"}, afterTask: ${afterTask?.id ?? "null"}}',
+                                                );
+                                              }
+                                            } else {
+                                              // 同区域拖拽：使用当前 section 的任务列表
+                                              final tasksInfo = _findTasksForInsertionIndex(
+                                                insertionIndexToUse,
+                                                flattenedTasks,
+                                                rootTasks,
+                                                taskIdToIndex,
+                                                filteredTasks,
+                                              );
+                                              beforeTask = tasksInfo.beforeTask;
+                                              afterTask = tasksInfo.afterTask;
+                                              targetType = tasksInfo.targetType;
+                                            }
                                             
                                             if (kDebugMode) {
                                               debugPrint(
-                                                '[DnD] {event: onDragEnd:moveToInsertion, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, insertionIndex: $insertionIndexToUse, source: $insertionSource, targetType: ${tasksInfo.targetType}, beforeTask: ${tasksInfo.beforeTask?.id ?? "null"}, afterTask: ${tasksInfo.afterTask?.id ?? "null"}}',
+                                                '[DnD] {event: onDragEnd:moveToInsertion, page: Tasks, section: ${widget.section.name}, taskId: ${task.id}, insertionIndex: $insertionIndexToUse, source: $insertionSource, targetType: $targetType, beforeTask: ${beforeTask?.id ?? "null"}, afterTask: ${afterTask?.id ?? "null"}}',
                                               );
                                             }
                                             
-                                            // 执行插入操作
+                                            // 执行插入操作（传入目标 section）
                                             await _handleInsertionDrop(
                                               task,
-                                              tasksInfo.beforeTask,
-                                              tasksInfo.afterTask,
-                                              tasksInfo.targetType,
-                                              widget.section,
+                                              beforeTask,
+                                              afterTask,
+                                              targetType,
+                                              insertionSectionToUse, // 使用目标 section 而不是当前 section
                                               ref,
                                             );
                                             
@@ -1223,7 +1276,7 @@ class _TasksSectionTaskListState
                                   }
                                 }
 
-                                dragNotifier.updateInsertionHover(insertionIndex);
+                                dragNotifier.updateInsertionHover(insertionIndex, widget.section);
                               }
                               // 不在 onLeave 时清除 hover，保持扩展的命中区域有效
                               // 这样即使指针稍微移出，插入索引仍保持活跃，直到进入另一个目标或拖拽结束
@@ -1261,7 +1314,7 @@ class _TasksSectionTaskListState
   /// - 否则返回 null，使用默认的 8px 高度
   ///
   /// [flattenedIndex] 插入位置的扁平化列表索引
-  /// [dragState] 当前拖拽状态
+  /// [dragState] 全局拖拽状态
   /// [flattenedTasks] 扁平化任务列表
   /// [taskIdToIndex] 任务 ID 到根任务索引的映射
   /// [rootTasks] 根任务列表
@@ -1269,7 +1322,7 @@ class _TasksSectionTaskListState
   /// 返回动态高度（如果有让位动画）或 null（使用默认高度）
   double? _calculateInsertionTargetHeight(
     int flattenedIndex,
-    TasksSectionDragState dragState,
+    TasksDragState dragState,
     List<FlattenedTaskNode> flattenedTasks,
     Map<int, int> taskIdToIndex,
     List<Task> rootTasks,
@@ -1277,6 +1330,12 @@ class _TasksSectionTaskListState
   ) {
     // 如果没有拖拽，使用默认高度
     if (!dragState.isDragging || dragState.hoveredInsertionIndex == null) {
+      return null;
+    }
+
+    // 只处理当前 section 的拖拽（跨区域拖拽的插入目标高度在目标 section 中处理）
+    if (dragState.hoveredInsertionSection != null &&
+        dragState.hoveredInsertionSection != widget.section) {
       return null;
     }
 
@@ -1295,7 +1354,8 @@ class _TasksSectionTaskListState
     );
 
     // 获取被拖拽任务的根任务索引
-    final draggedTaskId = dragState.draggedTask?.id;
+    final draggedTask = dragState.draggedTask;
+    final draggedTaskId = draggedTask?.id;
     if (draggedTaskId == null) {
       return null;
     }

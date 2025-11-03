@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/theme/app_spacing_tokens.dart';
 import '../../data/models/task_template.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../navigation/navigation_destinations.dart';
@@ -87,7 +88,10 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     elevation: 0,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Theme.of(context).extension<AppSpacingTokens>()?.cardHorizontalPadding ?? 16.0,
+                        vertical: Theme.of(context).extension<AppSpacingTokens>()?.cardVerticalPadding ?? 8.0,
+                      ),
                       child: InboxTaskList(tasks: tasks),
                     ),
                   ),

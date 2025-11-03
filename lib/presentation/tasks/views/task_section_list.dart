@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/repository_providers.dart';
 import '../../../core/providers/service_providers.dart';
+import '../../../core/theme/app_spacing_tokens.dart';
 import '../../../data/models/task.dart';
 import '../utils/hierarchy_utils.dart';
 import '../utils/list_comparison_utils.dart' as task_list_utils;
@@ -250,13 +251,18 @@ class _TaskSectionProjectModePanelState
         final task = _roots[index];
         return Card(
           key: ValueKey('project-${task.id}'),
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.only(
+            bottom: Theme.of(context).extension<AppSpacingTokens>()?.sectionInternalSpacing ?? 8.0,
+          ),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: Theme.of(context).extension<AppSpacingTokens>()?.cardHorizontalPadding ?? 16.0,
+              vertical: Theme.of(context).extension<AppSpacingTokens>()?.cardVerticalPadding ?? 8.0,
+            ),
             child: Column(
               children: [
                 Row(

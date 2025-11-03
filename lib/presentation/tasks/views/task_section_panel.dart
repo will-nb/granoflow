@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/app_providers.dart';
+import '../../../core/theme/app_spacing_tokens.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/task_collection_utils.dart';
@@ -33,13 +34,18 @@ class TaskSectionPanel extends ConsumerWidget {
         : ref.watch(taskSectionsProvider(section));
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final spacingTokens = spacing ?? AppSpacingTokens.light;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: spacingTokens.cardHorizontalPadding,
+          vertical: spacingTokens.cardVerticalPadding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -54,7 +60,7 @@ class TaskSectionPanel extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: spacingTokens.sectionInternalSpacing),
             tasksAsync.when(
               data: (tasks) {
                 if (tasks.isEmpty) {

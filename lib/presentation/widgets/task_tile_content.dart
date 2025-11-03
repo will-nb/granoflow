@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/app_spacing_tokens.dart';
 import '../../data/models/task.dart';
 import 'task_row_content.dart';
 import '../common/drag/standard_draggable.dart';
@@ -71,11 +72,16 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
             ),
           );
 
+    // 从 theme 获取 spacing tokens（测试环境可能没有设置，使用默认值回退）
+    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final defaultPadding = EdgeInsets.symmetric(
+      horizontal: spacing?.taskTileHorizontalPadding ?? 16.0,
+      vertical: spacing?.taskTileVerticalPadding ?? 8.0,
+    );
+
     return Padding(
-      padding:
-          widget.contentPadding ??
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: StandardDraggable<Task>(
+      padding: widget.contentPadding ?? defaultPadding,
+      child: StandardDraggable<Task>(
         data: widget.task,
         handle: handle,
         onDragStarted: widget.onDragStarted,

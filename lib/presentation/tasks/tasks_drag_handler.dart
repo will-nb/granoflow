@@ -26,7 +26,7 @@ class TasksPageDragHandler extends ConsumerWidget {
     return StandardDraggable<Task>(
       data: task,
       enabled: enabled,
-      onDragStarted: () => dragNotifier.startDrag(task),
+      onDragStarted: () => dragNotifier.startDrag(task, Offset.zero),
       onDragEnd: () => dragNotifier.endDrag(),
       child: child,
     );

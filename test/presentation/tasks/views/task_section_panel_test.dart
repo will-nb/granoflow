@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
-import 'package:granoflow/core/providers/tasks_section_drag_provider.dart';
+import 'package:granoflow/core/providers/tasks_drag_provider.dart';
 import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
@@ -59,8 +59,8 @@ void main() {
           tasksSectionExpandedTaskIdProvider.overrideWith(
             (ref, section) => <int>{},
           ),
-          tasksSectionDragProvider.overrideWith(
-            (ref, section) => TasksSectionDragNotifier(),
+          tasksDragProvider.overrideWith(
+            (ref) => TasksDragNotifier(),
           ),
         ],
         child: MaterialApp(

@@ -19,10 +19,9 @@ class DragConstants {
   static const double insertionToleranceZone = 16.0;
   
   // 插入目标标准高度（独立区域，不覆盖任务表面）
-  // 总高度 = 基础高度(2像素) + 上下容错区间(各16像素) = 34像素
-  // 这个高度确保拖拽到任务边缘附近时，移动让位动画能够正确触发
-  static const double insertionTargetHeight = 
-      2.0 + (insertionToleranceZone * 2); // 34.0 像素
+  // 设置为 8 像素，与任务卡片垂直 padding 一致，确保视觉间距协调
+  // 注意：insertionToleranceZone 仍用于逻辑计算（拖拽位置检测），不影响视觉高度
+  static const double insertionTargetHeight = 8.0;
   
   // 任务高度（用于让位动画和动态扩展插入目标）
   static const double taskHeight = 60.0; // 任务卡片高度（包括 padding）
