@@ -1,11 +1,25 @@
 {
   "zh": [
+    "completedDeleteAction",
+    "completedDaysAgo",
+    "completedHoursAgo",
+    "completedJustNow",
+    "completedMinutesAgo",
+    "completedMonthsAgo",
+    "completedQuickPlanAction",
+    "completedWeeksAgo",
+    "completedYesterday",
     "dragToOverdueNotAllowed",
     "datePickerToday",
     "datePickerTomorrow",
     "datePickerThisMonth",
     "datePickerCustom",
-    "taskDragCrossSectionSuccess"
+    "noCompletionTime",
+    "noProject",
+    "taskDragCrossSectionSuccess",
+    "projectFilterLabel",
+    "trashPermanentDeleteAction",
+    "trashRestoreAction"
   ],
 
   "zh_HK": [

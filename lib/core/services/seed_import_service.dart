@@ -51,37 +51,19 @@ class SeedImportService {
   Future<void> importIfNeeded(String localeCode) async {
     // 防止并发导入：在任何 await 之前抢占标志位
     if (_isImporting) {
-      debugPrint('SeedImportService: Import already in progress, skipping');
       return;
     }
     _isImporting = true;
 
-    debugPrint('SeedImportService: Loading payload for locale=$localeCode');
     final payload = await loadSeedPayload(localeCode);
-    debugPrint('SeedImportService: Payload loaded, version=${payload.version}');
-    debugPrint('SeedImportService: Tasks count=${payload.tasks.length}');
-    debugPrint(
-      'SeedImportService: Templates count=${payload.templates.length}',
-    );
-    debugPrint(
-      'SeedImportService: Inbox items count=${payload.inboxItems.length}',
-    );
-
     final alreadyImported = await _seedRepository.wasImported(payload.version);
-    debugPrint('SeedImportService: Already imported=$alreadyImported');
 
     if (alreadyImported) {
-      debugPrint(
-        'SeedImportService: Already imported=true, but reinitializing tags...',
-      );
       // 即使已经导入过，也要重新初始化标签，确保标签分类正确
       try {
         // 先清空所有标签，然后重新创建
         await _clearAllTags();
         await _tags.initializeTags();
-        debugPrint(
-          'SeedImportService: Tags cleared and reinitialized from config',
-        );
       } catch (error) {
         debugPrint('SeedImportService: Error reinitializing tags: $error');
       }
@@ -90,29 +72,19 @@ class SeedImportService {
     }
 
     try {
-      debugPrint('SeedImportService: Starting import...');
-
       // 标签现在通过配置文件初始化，不再从种子数据导入
       // 总是重新初始化标签，确保标签分类正确
       await _tags.initializeTags();
-      debugPrint('SeedImportService: Tags initialized from config');
 
       final slugToId = await _applyTasks(payload.tasks);
-      debugPrint('SeedImportService: Tasks applied');
-
       await _applyInboxItems(payload.inboxItems, slugToId);
-      debugPrint('SeedImportService: Inbox items applied');
-
       await _applyTemplates(payload.templates, slugToId);
-      debugPrint('SeedImportService: Templates applied');
 
       // 重置所有任务的 sortIndex 为默认值
       await _sortIndexResetService.resetAllSortIndexes();
-      debugPrint('SeedImportService: SortIndex reset complete');
 
       await _seedRepository.importSeeds(payload);
       await _seedRepository.recordVersion(payload.version);
-      debugPrint('SeedImportService: Version recorded, import complete!');
 
       await _metricOrchestrator.requestRecompute(
         MetricRecomputeReason.seedImport,
@@ -129,9 +101,7 @@ class SeedImportService {
   // 移除 _applyTags 方法，标签现在通过配置文件初始化
 
   Future<void> _clearAllTags() async {
-    debugPrint('SeedImportService: Clearing all tags...');
     await _tags.clearAll();
-    debugPrint('SeedImportService: All tags cleared');
   }
 
   Future<Map<String, int>> _applyTasks(List<SeedTask> tasks) async {

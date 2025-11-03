@@ -300,6 +300,9 @@ class _TestTaskRepository implements TaskRepository {
     String? priorityTag,
     String? urgencyTag,
     String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
   }) {
     // 返回所有 inbox 任务（测试中不过滤标签）
     return Stream.value(
@@ -379,5 +382,53 @@ class _TestTaskRepository implements TaskRepository {
 
   @override
   Future<List<Task>> listSectionTasks(TaskSection section) async => [];
+
+  @override
+  Future<List<Task>> listCompletedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) async => [];
+
+  @override
+  Future<List<Task>> listArchivedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) async => [];
+
+  @override
+  Future<int> countCompletedTasks() async => 0;
+
+  @override
+  Future<int> countArchivedTasks() async => 0;
+
+  @override
+  Future<List<Task>> listTrashedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) async => [];
+
+  @override
+  Future<int> countTrashedTasks() async => 0;
 }
 

@@ -63,7 +63,7 @@ class InboxCaptureSection extends ConsumerWidget {
             error: (error, stackTrace) => ErrorBanner(message: '$error'),
           ),
           const SizedBox(height: 16),
-          const InboxFilterCollapsible(),
+          InboxFilterCollapsible(),
         ],
       ),
     );

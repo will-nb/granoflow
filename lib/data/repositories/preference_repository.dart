@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
-import '../../core/constants/font_scale_constants.dart';
+import '../../core/constants/font_scale_level.dart';
 import '../isar/preference_entity.dart';
 import '../models/preference.dart';
 
@@ -51,8 +51,8 @@ class IsarPreferenceRepository implements PreferenceRepository {
       if (payload.themeMode != null) {
         entity.themeMode = payload.themeMode!;
       }
-      if (payload.fontScale != null) {
-        entity.fontScale = payload.fontScale!;
+      if (payload.fontScaleLevel != null) {
+        entity.fontScaleLevel = payload.fontScaleLevel!.name;
       }
       entity.updatedAt = DateTime.now();
       await _isar.preferenceEntitys.put(entity);
@@ -81,7 +81,7 @@ class IsarPreferenceRepository implements PreferenceRepository {
       ..id = _singletonId
       ..localeCode = systemLocale
       ..themeMode = ThemeMode.system
-      ..fontScale = FontScaleConstants.defaultFontScale  // 默认字体大小：竖屏的"中" (Default font size: "Medium" for portrait)
+      ..fontScaleLevel = FontScaleLevel.medium.name  // 默认字体大小级别："中" (Default font size level: "Medium")
       ..updatedAt = DateTime.now();
     await _isar.writeTxn(() async {
       await _isar.preferenceEntitys.put(newEntity);
@@ -94,7 +94,7 @@ class IsarPreferenceRepository implements PreferenceRepository {
       id: entity.id,
       localeCode: entity.localeCode,
       themeMode: entity.themeMode,
-      fontScale: entity.fontScale,
+      fontScaleLevel: FontScaleLevel.fromString(entity.fontScaleLevel),
       updatedAt: entity.updatedAt,
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/constants/font_scale_constants.dart';
+import '../../core/constants/font_scale_level.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../completion_management/completed_page.dart';
 import '../completion_management/trash_page.dart';
@@ -20,9 +21,9 @@ class SettingsControlsPage extends ConsumerWidget {
           data: (value) => value,
           orElse: () => const Locale('en'),
         );
-    final fontScale = ref.watch(fontScaleProvider).maybeWhen(
+    final fontScaleLevel = ref.watch(fontScaleLevelProvider).maybeWhen(
           data: (value) => value,
-          orElse: () => FontScaleConstants.defaultFontScale,
+          orElse: () => FontScaleConstants.getDefaultLevel(),
         );
     final themeMode = ref.watch(themeProvider).maybeWhen(
           data: (value) => value,
@@ -40,24 +41,13 @@ class SettingsControlsPage extends ConsumerWidget {
       'zh_HK': l10n.settingsLanguageTraditionalChinese,
     };
 
-    // 根据屏幕方向选择字体选项
-    final orientation = MediaQuery.of(context).orientation;
-    final fontOptions = FontScaleConstants.getScalesForOrientation(orientation);
-    
-    // 字体大小标签映射
-    final fontLabels = orientation == Orientation.portrait
-        ? <double, String>{
-            FontScaleConstants.portraitScales[0]: l10n.settingsFontSizeSmall,
-            FontScaleConstants.portraitScales[1]: l10n.settingsFontSizeMedium,
-            FontScaleConstants.portraitScales[2]: l10n.settingsFontSizeLarge,
-            FontScaleConstants.portraitScales[3]: l10n.settingsFontSizeXLarge,
-          }
-        : <double, String>{
-            FontScaleConstants.landscapeScales[0]: l10n.settingsFontSizeSmall,
-            FontScaleConstants.landscapeScales[1]: l10n.settingsFontSizeMedium,
-            FontScaleConstants.landscapeScales[2]: l10n.settingsFontSizeLarge,
-            FontScaleConstants.landscapeScales[3]: l10n.settingsFontSizeXLarge,
-          };
+    // 字体大小级别标签映射（不受屏幕方向影响）
+    final fontLabels = <FontScaleLevel, String>{
+      FontScaleLevel.small: l10n.settingsFontSizeSmall,
+      FontScaleLevel.medium: l10n.settingsFontSizeMedium,
+      FontScaleLevel.large: l10n.settingsFontSizeLarge,
+      FontScaleLevel.xlarge: l10n.settingsFontSizeXLarge,
+    };
 
     final themeOptions = <ThemeMode, String>{
       ThemeMode.system: l10n.settingsThemeSystem,
@@ -101,28 +91,24 @@ class SettingsControlsPage extends ConsumerWidget {
         const SizedBox(height: 16),
         _SettingCard(
           title: l10n.settingsFontSizeLabel,
-          child: SegmentedButton<double>(
-            segments: fontOptions
+          child: SegmentedButton<FontScaleLevel>(
+            segments: FontScaleLevel.values
                 .map(
-                  (value) => ButtonSegment<double>(
-                    value: value,
-                    label: Text(fontLabels[value] ?? value.toString()),
+                  (level) => ButtonSegment<FontScaleLevel>(
+                    value: level,
+                    label: Text(fontLabels[level] ?? level.name),
                   ),
                 )
                 .toList(),
-            selected: <double>{
-              // 如果当前字体不在选项中，选择最接近的
-              fontOptions.contains(fontScale)
-                  ? fontScale
-                  : fontOptions.reduce((a, b) =>
-                      (a - fontScale).abs() < (b - fontScale).abs() ? a : b)
+            selected: <FontScaleLevel>{
+              fontScaleLevel,
             },
             onSelectionChanged: isLoading
                 ? null
                 : (selection) async {
                     final selected = selection.first;
-                    if (selected != fontScale) {
-                      await actionsNotifier.updateFontScale(selected);
+                    if (selected != fontScaleLevel) {
+                      await actionsNotifier.updateFontScaleLevel(selected);
                     }
                   },
           ),

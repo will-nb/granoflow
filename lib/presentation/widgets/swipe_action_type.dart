@@ -16,4 +16,10 @@ enum SwipeActionType {
   
   /// 提升为独立任务（将子任务提升为根任务）
   promoteToIndependent,
+  
+  /// 恢复任务（从回收站恢复到待办状态）
+  restore,
+  
+  /// 永久删除任务（从回收站彻底删除）
+  permanentDelete,
 }

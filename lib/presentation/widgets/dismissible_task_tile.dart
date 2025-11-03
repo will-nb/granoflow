@@ -154,6 +154,14 @@ class DismissibleTaskTile extends StatelessWidget {
         return l10n.taskDeleteAction;
       case 'taskPostponeAction':
         return l10n.taskPostponeAction;
+      case 'completedQuickPlanAction':
+        return l10n.completedQuickPlanAction;
+      case 'completedDeleteAction':
+        return l10n.completedDeleteAction;
+      case 'trashRestoreAction':
+        return l10n.trashRestoreAction;
+      case 'trashPermanentDeleteAction':
+        return l10n.trashPermanentDeleteAction;
       default:
         return key; // 如果找不到对应的本地化字符串，返回key本身
     }

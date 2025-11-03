@@ -1,0 +1,181 @@
+meta:
+  id: "251103-completion-pages-unified-styling"
+  title: "已完成/已归档/回收站页面统一展示和筛选功能"
+  based_on: "temp/design-completion-pages-unified-styling.md"
+  status: draft
+  owner: "开发团队"
+
+scope:
+  includes:
+    - "已完成页面（CompletedPage）UI统一和功能增强"
+    - "已归档页面（ArchivedPage）UI统一和功能增强"
+    - "回收站页面（TrashPage）UI统一和功能增强"
+    - "标签筛选功能通用化并扩展到三个完成页面"
+    - "项目筛选功能新增并扩展到全部页面（包括Inbox）"
+    - "时间显示格式修改为绝对时间格式"
+    - "标签和项目/里程碑只读展示"
+  excludes:
+    - "任务编辑功能（这些页面只读）"
+    - "拖拽功能（已完成/已归档/回收站不支持拖拽）"
+    - "Inbox页面的其他功能（只涉及筛选功能复用）"
+
+changes:
+  code_updates:
+    # UI样式统一和只读展示
+    - file: "lib/presentation/completion_management/widgets/trashed_task_tile.dart"
+      type: modify
+      intent: "移除Card背景色，与已完成和已归档页面保持一致的Padding样式"
+    
+    - file: "lib/presentation/completion_management/widgets/completed_task_tile.dart"
+      type: modify
+      intent: "添加标签和项目/里程碑只读展示，修改时间显示为绝对格式"
+    
+    - file: "lib/presentation/completion_management/widgets/archived_task_tile.dart"
+      type: modify
+      intent: "添加标签和项目/里程碑只读展示，修改时间显示为绝对格式"
+    
+    - file: "lib/presentation/completion_management/widgets/trashed_task_tile.dart"
+      type: modify
+      intent: "添加标签和项目/里程碑只读展示，修改时间显示为绝对格式"
+    
+    # 时间显示组件修改
+    - file: "lib/presentation/completion_management/widgets/completion_time_display.dart"
+      type: modify
+      intent: "增加format参数（relative/absolute），支持绝对时间格式（精确到分钟）"
+    
+    # 项目/里程碑只读展示
+    - file: "lib/presentation/widgets/inline_project_milestone_display.dart"
+      type: modify
+      intent: "增加readOnly参数，支持只读模式（不显示点击交互）"
+    
+    # 筛选功能通用化
+    - file: "lib/core/providers/app_providers.dart"
+      type: modify
+      intent: "重构InboxFilterState/Notifier为TaskFilterState/Notifier，扩展支持项目筛选，创建页面特定的筛选Provider"
+    
+    - file: "lib/presentation/inbox/widgets/inbox_tag_filter_strip.dart"
+      type: modify
+      intent: "重构为通用TaskTagFilterStrip组件，支持在任何页面使用"
+    
+    - file: "lib/presentation/widgets/task_filter_strip.dart"
+      type: create
+      intent: "新建通用筛选UI组件，整合标签筛选和项目筛选"
+    
+    - file: "lib/presentation/widgets/task_filter_collapsible.dart"
+      type: create
+      intent: "新建可折叠筛选区域组件，用于页面顶部展示筛选UI"
+    
+    # Repository层筛选支持
+    - file: "lib/data/repositories/task_repository.dart"
+      type: modify
+      intent: "为listCompletedTasks、listArchivedTasks、listTrashedTasks方法添加筛选参数（标签和项目筛选）"
+    
+    # 分页Provider更新
+    - file: "lib/core/providers/app_providers.dart"
+      type: modify
+      intent: "更新CompletedTasksPaginationNotifier、ArchivedTasksPaginationNotifier、TrashedTasksPaginationNotifier，使用筛选条件"
+    
+    # 页面集成筛选UI
+    - file: "lib/presentation/completion_management/completed_page.dart"
+      type: modify
+      intent: "集成筛选UI组件，添加筛选功能支持"
+    
+    - file: "lib/presentation/completion_management/archived_page.dart"
+      type: modify
+      intent: "集成筛选UI组件，添加筛选功能支持"
+    
+    - file: "lib/presentation/completion_management/trash_page.dart"
+      type: modify
+      intent: "集成筛选UI组件，添加筛选功能支持"
+    
+    - file: "lib/presentation/inbox/inbox_page.dart"
+      type: modify
+      intent: "迁移到新的通用筛选组件和Provider，确保向后兼容"
+  
+  data_model:
+    - entity: "TaskFilterState"
+      change: "新增通用筛选状态类，包含标签筛选字段（contextTag、priorityTag、urgencyTag、importanceTag）和项目筛选字段（projectId、milestoneId、showNoProject）"
+    
+    - entity: "TaskRepository接口"
+      change: "扩展listCompletedTasks、listArchivedTasks、listTrashedTasks方法签名，添加筛选参数"
+    
+    - entity: "CompletionTimeDisplay组件"
+      change: "新增TimeDisplayFormat枚举和format参数，支持相对时间和绝对时间两种显示格式"
+    
+    - entity: "InlineProjectMilestoneDisplay组件"
+      change: "新增readOnly参数，支持只读模式"
+  
+  tests:
+    - type: unit
+      focus: "TaskFilterState和TaskFilterNotifier的状态管理和方法逻辑"
+    
+    - type: unit
+      focus: "Repository层筛选逻辑（标签筛选和项目筛选）的正确性"
+    
+    - type: unit
+      focus: "CompletionTimeDisplay组件的绝对时间格式输出"
+    
+    - type: widget
+      focus: "三个完成页面Tile组件的标签、项目/里程碑、时间显示"
+    
+    - type: widget
+      focus: "TaskFilterStrip组件的UI交互和状态更新"
+    
+    - type: integration
+      focus: "筛选功能在三个完成页面的端到端流程"
+  
+  documentation:
+    - path: "temp/design-completion-pages-unified-styling.md"
+      update_type: create
+      note: "设计文档已创建"
+    
+    - path: "lib/presentation/widgets/task_filter_strip.dart"
+      update_type: create
+      note: "添加组件文档注释，说明使用方法和参数"
+
+risks:
+  - name: "Inbox页面向后兼容性"
+    mitigation: "在重构Inbox筛选功能时，保持原有API和Provider名称的兼容层，逐步迁移"
+  
+  - name: "筛选性能（大数据量）"
+    mitigation: "项目筛选在数据库层使用索引实现，标签筛选根据数据量选择数据库层或内存层实现，必要时添加性能监控"
+  
+  - name: "国际化时间格式"
+    mitigation: "使用intl包的DateFormat根据系统locale自动适配，测试多种语言环境下的时间格式显示"
+  
+  - name: "筛选状态同步"
+    mitigation: "筛选条件变化时，确保分页状态正确重置（offset=0），避免数据不一致"
+
+verification:
+  checklist:
+    # UI样式验证
+    - "验证三个完成页面列表样式完全一致（无Card背景色差异）"
+    - "验证标签在所有三个页面正确显示且为只读状态（不可点击）"
+    - "验证项目/里程碑在所有三个页面正确显示且为只读状态（不可点击编辑）"
+    - "验证时间显示为绝对格式，精确到分钟，符合当前系统locale格式（中文/英文等）"
+    
+    # 筛选功能验证
+    - "验证已完成页面支持标签筛选（场景、紧急度、重要度）"
+    - "验证已归档页面支持标签筛选（场景、紧急度、重要度）"
+    - "验证回收站页面支持标签筛选（场景、紧急度、重要度）"
+    - "验证已完成页面支持项目筛选（项目、里程碑、无项目）"
+    - "验证已归档页面支持项目筛选（项目、里程碑、无项目）"
+    - "验证回收站页面支持项目筛选（项目、里程碑、无项目）"
+    - "验证Inbox页面筛选功能正常工作（使用新组件）"
+    - "验证筛选条件可以组合使用（标签+项目）"
+    - "验证筛选后分页正确工作（筛选条件变化时重置到第一页）"
+    
+    # 性能验证
+    - "运行性能测试：筛选操作响应时间 < 200ms（数据量 < 1000）"
+    - "运行性能测试：大数据量下（1000+任务）筛选性能可接受（< 500ms）"
+    
+    # 兼容性验证
+    - "验证Inbox页面现有功能不受影响（向后兼容）"
+    - "验证旧数据（无标签、无项目的任务）在所有页面正确显示"
+    - "验证国际化正确工作（时间格式、筛选选项文本）"
+    
+    # 代码质量验证
+    - "运行 flutter analyze，确保无错误和警告"
+    - "运行 flutter test，确保所有测试通过"
+    - "检查代码覆盖率，确保新增代码有足够测试覆盖"
+

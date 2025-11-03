@@ -24,15 +24,8 @@ class IsarTagRepository implements TagRepository {
 
   @override
   Future<void> initializeTags() async {
-    debugPrint('TagRepository.initializeTags: Loading tags from config...');
-    
     // 直接从 AppConstants 读取（同步、零开销）
     final tagConfigs = AppConstants.tags;
-    
-    debugPrint('TagRepository.initializeTags: Found ${tagConfigs.length} tag configs');
-    for (final config in tagConfigs) {
-      debugPrint('TagRepository.initializeTags: Config - slug=${config.slug}, kind=${config.kind}');
-    }
     
     var created = 0;
     var updated = 0;
@@ -46,13 +39,11 @@ class IsarTagRepository implements TagRepository {
             
         if (existing != null) {
           // 更新现有标签
-          debugPrint('TagRepository.initializeTags: Updating existing tag ${config.slug} from ${existing.kind} to ${config.kind}');
           existing.kind = config.kind;
           await _isar.tagEntitys.put(existing);
           updated++;
         } else {
           // 创建新标签
-          debugPrint('TagRepository.initializeTags: Creating new tag ${config.slug} with kind ${config.kind}');
           final entity = TagEntity()
             ..slug = config.slug
             ..kind = config.kind
@@ -64,25 +55,20 @@ class IsarTagRepository implements TagRepository {
     });
     
     final total = await _isar.tagEntitys.count();
-    debugPrint('TagRepository.initializeTags: done (created=$created, updated=$updated, total=$total)');
     
-    // 验证结果
-    for (final kind in TagKind.values) {
-      final entities = await _isar.tagEntitys
-          .filter()
-          .kindEqualTo(kind)
-          .findAll();
-      debugPrint('TagRepository.initializeTags: After init - $kind: count=${entities.length}, slugs=${entities.map((e)=>e.slug).join(', ')}');
+    // 验证结果：只在错误时记录
+    if (created + updated != total) {
+      debugPrint(
+        'TagRepository.initializeTags: Warning - mismatch: created=$created, updated=$updated, total=$total',
+      );
     }
   }
 
   @override
   Future<void> clearAll() async {
-    debugPrint('TagRepository.clearAll: Clearing all tags...');
     await _isar.writeTxn(() async {
       await _isar.tagEntitys.clear();
     });
-    debugPrint('TagRepository.clearAll: All tags cleared');
   }
 
   @override
@@ -91,7 +77,6 @@ class IsarTagRepository implements TagRepository {
         .filter()
         .kindEqualTo(kind)
         .findAll();
-    debugPrint('TagRepository.listByKind($kind): count=${entities.length}, slugs=${entities.map((e)=>e.slug).join(', ')}');
     return entities.map((entity) => _toDomain(entity, null)).toList(growable: false);
   }
 

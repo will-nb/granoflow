@@ -81,6 +81,7 @@ class Task {
     this.dueAt,
     this.startedAt,
     this.endedAt,
+    this.archivedAt,
     this.parentId,
     this.parentTaskId,
     this.projectId,
@@ -101,6 +102,7 @@ class Task {
   final DateTime? dueAt;
   final DateTime? startedAt;
   final DateTime? endedAt;
+  final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   final int? parentId;
@@ -123,6 +125,7 @@ class Task {
     DateTime? dueAt,
     DateTime? startedAt,
     DateTime? endedAt,
+    DateTime? archivedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
     int? parentId,
@@ -145,6 +148,7 @@ class Task {
       dueAt: dueAt ?? this.dueAt,
       startedAt: startedAt ?? this.startedAt,
       endedAt: endedAt ?? this.endedAt,
+      archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       parentId: parentId ?? this.parentId,
@@ -177,6 +181,7 @@ class Task {
     dueAt,
     startedAt,
     endedAt,
+    archivedAt,
     createdAt,
     updatedAt,
     parentId,
@@ -202,6 +207,7 @@ class Task {
         other.dueAt == dueAt &&
         other.startedAt == startedAt &&
         other.endedAt == endedAt &&
+        other.archivedAt == archivedAt &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt &&
         other.parentId == parentId &&
@@ -278,6 +284,7 @@ class TaskUpdate {
     this.dueAt,
     this.startedAt,
     this.endedAt,
+    this.archivedAt,
     this.parentId,
     this.parentTaskId,
     this.projectId,
@@ -298,6 +305,7 @@ class TaskUpdate {
   final DateTime? dueAt;
   final DateTime? startedAt;
   final DateTime? endedAt;
+  final DateTime? archivedAt;
   final int? parentId;
   final int? parentTaskId;
   final String? projectId;

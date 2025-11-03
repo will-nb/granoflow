@@ -22,7 +22,7 @@ class DrawerNavigationList extends StatelessWidget {
             size: 20.0,
           ),
           title: Text(
-            destination.label,
+            destination.label(context),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
               fontSize: 14.0,

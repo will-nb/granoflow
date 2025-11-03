@@ -169,6 +169,9 @@ class _TestTaskRepository extends TaskRepository {
     String? priorityTag,
     String? urgencyTag,
     String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
   }) => throw UnimplementedError();
 
   @override
@@ -223,6 +226,54 @@ class _TestTaskRepository extends TaskRepository {
   @override
   Future<List<Task>> listSectionTasks(TaskSection section) =>
       throw UnimplementedError();
+
+  @override
+  Future<List<Task>> listCompletedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<Task>> listArchivedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<int> countCompletedTasks() => throw UnimplementedError();
+
+  @override
+  Future<int> countArchivedTasks() => throw UnimplementedError();
+
+  @override
+  Future<List<Task>> listTrashedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<int> countTrashedTasks() => throw UnimplementedError();
 }
 
 class _StubMetricRepository implements MetricRepository {

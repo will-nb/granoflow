@@ -40,6 +40,21 @@ class SwipeConfigs {
     rightColor: OceanBreezeColorSchemes.softPink,
   );
 
+  /// 已完成/已归档页面的滑动配置
+  /// 方向规范：与 inboxConfig 保持一致
+  /// - 右滑（startToEnd，常用/安全）= 加入今日任务（quickPlan，绿色）
+  /// - 左滑（endToStart，危险）= 移动到回收站（delete，红色）
+  static const SwipeActionConfig completedArchivedConfig = SwipeActionConfig(
+    leftAction: SwipeActionType.quickPlan,
+    rightAction: SwipeActionType.delete,
+    leftHintKey: 'completedQuickPlanAction',
+    rightHintKey: 'completedDeleteAction',
+    leftIcon: Icons.today,
+    rightIcon: Icons.delete,
+    leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark,
+  );
+
   /// Inbox页面子任务的滑动配置
   /// 方向规范：与 inboxConfig 保持一致
   /// - 右滑（startToEnd，常用/安全）= 提升为独立任务（promoteToIndependent，绿色）
@@ -51,6 +66,21 @@ class SwipeConfigs {
     rightHintKey: 'inboxDeleteAction',
     leftIcon: Icons.arrow_upward,
     rightIcon: Icons.delete,
+    leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark,
+  );
+
+  /// 回收站页面的滑动配置
+  /// 方向规范：与 inboxConfig 保持一致
+  /// - 右滑（startToEnd，常用/安全）= 恢复任务（restore，绿色）
+  /// - 左滑（endToStart，危险）= 永久删除（permanentDelete，红色）
+  static const SwipeActionConfig trashConfig = SwipeActionConfig(
+    leftAction: SwipeActionType.restore,
+    rightAction: SwipeActionType.permanentDelete,
+    leftHintKey: 'trashRestoreAction',
+    rightHintKey: 'trashPermanentDeleteAction',
+    leftIcon: Icons.restore,
+    rightIcon: Icons.delete_forever,
     leftColor: OceanBreezeColorSchemes.softGreen,
     rightColor: OceanBreezeColorSchemes.errorDark,
   );

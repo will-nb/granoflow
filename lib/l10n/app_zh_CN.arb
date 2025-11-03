@@ -205,8 +205,43 @@
   "completed": "已完成",
   "completedArchiveError": "归档失败。",
   "completedArchiveSuccess": "任务已归档。",
+  "completedDeleteAction": "移动到回收站",
+  "completedDaysAgo": "{count} 天前",
+  "@completedDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "completedEmptyMessage": "当前没有任务。",
+  "completedHoursAgo": "{count} 小时前",
+  "@completedHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedJustNow": "刚刚",
+  "completedMinutesAgo": "{count} 分钟前",
+  "@completedMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedMonthsAgo": "{count} 个月前",
+  "@completedMonthsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "completedPageTitle": "已完成与归档",
+  "completedQuickPlanAction": "加入今日任务",
   "completedReactivateError": "激活失败。",
   "completedReactivateSuccess": "任务已重新激活。",
   "completedStatus": "已完成",
@@ -214,6 +249,15 @@
   "completedTabLabel": "已完成",
   "completedTasks": "已完成任务",
   "completedTrashError": "移动到回收站失败。",
+  "completedWeeksAgo": "{count} 周前",
+  "@completedWeeksAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedYesterday": "昨天",
   "completedTrashSuccess": "已移至回收站。",
   "completionTime": "完成时间",
   "createSubtask": "创建子任务",
@@ -322,7 +366,9 @@
   "navSettingsSectionTitle": "偏好设定",
   "navTrashTitle": "回收站",
   "navigationMenu": "导航选单",
+  "noCompletionTime": "无完成时间",
   "noDueDateSet": "未设置截止日期",
+  "noProject": "无项目",
   "pageNavigation": "页面导航",
   "parentTask": "父任务",
   "pendingStatus": "待处理",
@@ -352,6 +398,7 @@
   "projectDescriptionShowMore": "显示完整描述",
   "projectListEmpty": "暂无项目",
   "projectListSubtitle": "跟踪每个项目的里程碑与进度",
+  "projectFilterLabel": "所在项目",
   "projectListTitle": "项目",
   "projectNoMilestonesHint": "为项目添加里程碑以细化阶段。",
   "projectProgressEmpty": "添加里程碑以开始追踪进度。",
@@ -527,6 +574,8 @@
   "trashEmptyError": "清空失败。",
   "trashEmptyMessage": "回收站为空。",
   "trashEmptySuccess": "回收站已清空。",
+  "trashPermanentDeleteAction": "永久删除",
+  "trashRestoreAction": "恢复",
   "trashRestoreError": "恢复失败。",
   "trashRestoreSuccess": "任务已恢复。",
   "trashedStatus": "已删除",

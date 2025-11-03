@@ -378,7 +378,13 @@ class TaskService {
   }
 
   Future<void> archive(int taskId) async {
+    if (kDebugMode) {
+      debugPrint('[ArchiveTask] TaskService.archive: taskId=$taskId');
+    }
     await _tasks.archiveTask(taskId);
+    if (kDebugMode) {
+      debugPrint('[ArchiveTask] TaskService.archive: taskId=$taskId completed');
+    }
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/task.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/providers/repository_providers.dart';
 import '../../generated/l10n/app_localizations.dart';
 import 'swipe_action_type.dart';
+import '../../core/providers/app_providers.dart';
 
 /// 滑动动作处理器
 /// 
@@ -39,6 +41,12 @@ class SwipeActionHandler {
       case SwipeActionType.promoteToIndependent:
         await _handlePromoteToIndependent(context, ref, task, taskLevel: taskLevel);
         break;
+      case SwipeActionType.restore:
+        await _handleRestore(context, ref, task);
+        break;
+      case SwipeActionType.permanentDelete:
+        await _handlePermanentDelete(context, ref, task);
+        break;
     }
   }
 
@@ -48,11 +56,21 @@ class SwipeActionHandler {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
+    // 保存原始状态，用于判断是否需要刷新特定页面
+    final originalStatus = task.status;
+    
     try {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       await taskService.planTask(taskId: task.id, dueDateLocal: today, section: TaskSection.today);
       if (!context.mounted) return;
+      
+      // 如果任务原本是已归档或已完成的，刷新相应的分页页面
+      if (originalStatus == TaskStatus.archived) {
+        ref.read(archivedTasksPaginationProvider.notifier).loadInitial();
+      } else if (originalStatus == TaskStatus.completedActive) {
+        ref.read(completedTasksPaginationProvider.notifier).loadInitial();
+      }
       
       // 显示详细的成功反馈
       messenger.showSnackBar(
@@ -149,9 +167,19 @@ class SwipeActionHandler {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
+    // 保存原始状态，用于判断是否需要刷新特定页面
+    final originalStatus = task.status;
+    
     try {
       await taskService.softDelete(task.id);
       if (!context.mounted) return;
+      
+      // 如果任务原本是已归档或已完成的，刷新相应的分页页面
+      if (originalStatus == TaskStatus.archived) {
+        ref.read(archivedTasksPaginationProvider.notifier).loadInitial();
+      } else if (originalStatus == TaskStatus.completedActive) {
+        ref.read(completedTasksPaginationProvider.notifier).loadInitial();
+      }
       
       // 显示详细的成功反馈
       messenger.showSnackBar(
@@ -288,6 +316,85 @@ class SwipeActionHandler {
       if (!context.mounted) return;
       messenger.showSnackBar(
         SnackBar(content: Text('${l10n.promoteToIndependentError}: $error')),
+      );
+    }
+  }
+
+  /// 处理恢复动作（从回收站恢复到待办状态）
+  static Future<void> _handleRestore(
+    BuildContext context,
+    WidgetRef ref,
+    Task task,
+  ) async {
+    final taskService = ref.read(taskServiceProvider);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    
+    try {
+      // 将任务状态从 trashed 改为 pending
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: const TaskUpdate(status: TaskStatus.pending),
+      );
+      if (!context.mounted) return;
+      
+      // 刷新回收站分页数据
+      ref.read(trashedTasksPaginationProvider.notifier).loadInitial();
+      
+      // 显示成功反馈
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.trashRestoreSuccess),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to restore task: $error\n$stackTrace');
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.trashRestoreError}: $error')),
+      );
+    }
+  }
+
+  /// 处理永久删除动作（从回收站彻底删除）
+  static Future<void> _handlePermanentDelete(
+    BuildContext context,
+    WidgetRef ref,
+    Task task,
+  ) async {
+    final taskService = ref.read(taskServiceProvider);
+    final taskRepository = ref.read(taskRepositoryProvider);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    
+    try {
+      // 先将任务状态改为 pseudoDeleted
+      await taskService.updateDetails(
+        taskId: task.id,
+        payload: const TaskUpdate(status: TaskStatus.pseudoDeleted),
+      );
+      
+      // 然后物理删除（清理过期的伪删除记录）
+      await taskRepository.purgeObsolete(DateTime.now());
+      
+      if (!context.mounted) return;
+      
+      // 刷新回收站分页数据
+      ref.read(trashedTasksPaginationProvider.notifier).loadInitial();
+      
+      // 显示成功反馈
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.trashDeleteSuccess),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to permanently delete task: $error\n$stackTrace');
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.trashDeleteError}: $error')),
       );
     }
   }

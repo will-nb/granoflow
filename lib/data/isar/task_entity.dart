@@ -25,6 +25,8 @@ class TaskEntity {
 
   DateTime? endedAt;
 
+  DateTime? archivedAt;
+
   late DateTime createdAt;
 
   late DateTime updatedAt;

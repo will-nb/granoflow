@@ -47,7 +47,8 @@ void main() {
       
       // 验证所有标签文本都存在
       for (final destination in SidebarDestinations.values) {
-        expect(find.text(destination.label), findsOneWidget);
+        final context = tester.element(find.byType(DrawerNavigationList));
+        expect(find.text(destination.label(context)), findsOneWidget);
       }
     });
 

@@ -31,7 +31,7 @@ void main() {
           theme: AppTheme.light(),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(body: InboxTagFilterStrip()),
+          home: Scaffold(body: InboxTagFilterStrip()),
         ),
       ),
     );

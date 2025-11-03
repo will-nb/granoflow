@@ -4,177 +4,167 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 
 import '../../core/providers/app_providers.dart';
-import '../../core/providers/service_providers.dart';
-import '../../core/services/task_service.dart';
-import '../../data/models/task.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import '../widgets/task_filter_collapsible.dart';
+import 'widgets/archived_task_tile.dart';
 
-class ArchivedPage extends ConsumerWidget {
+class ArchivedPage extends ConsumerStatefulWidget {
   const ArchivedPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ArchivedPage> createState() => _ArchivedPageState();
+}
+
+class _ArchivedPageState extends ConsumerState<ArchivedPage> {
+  final ScrollController _scrollController = ScrollController();
+  static const double _loadMoreThreshold = 200.0;
+  bool _hasLoadedInitial = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    // 加载初始数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('[ArchivedPage] initState: Loading initial data');
+      ref.read(archivedTasksPaginationProvider.notifier).loadInitial();
+      _hasLoadedInitial = true;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 当页面变为可见时，如果已经初始化过，则刷新数据
+    if (_hasLoadedInitial && mounted) {
+      debugPrint('[ArchivedPage] didChangeDependencies: Refreshing data');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(archivedTasksPaginationProvider.notifier).loadInitial();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final paginationState = ref.read(archivedTasksPaginationProvider);
+    if (!paginationState.hasMore || paginationState.isLoading) return;
+
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+
+    // 当接近底部时，触发加载更多
+    if (maxScroll - currentScroll < _loadMoreThreshold) {
+      debugPrint('[ArchivedPage] _onScroll: Triggering loadMore');
+      ref.read(archivedTasksPaginationProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final paginationState = ref.watch(archivedTasksPaginationProvider);
+
+    // 监听筛选条件变化，重置分页（必须在build方法中使用ref.listen）
+    ref.listen<TaskFilterState>(archivedTasksFilterProvider, (previous, next) {
+      if (previous != null && previous != next && _hasLoadedInitial) {
+        // 筛选条件变化，重置分页
+        debugPrint('[ArchivedPage] Filter changed, reloading data');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ref.read(archivedTasksPaginationProvider.notifier).loadInitial();
+          }
+        });
+      }
+    });
+
+    debugPrint(
+      '[ArchivedPage] build: tasks=${paginationState.tasks.length}, isLoading=${paginationState.isLoading}, hasMore=${paginationState.hasMore}, totalCount=${paginationState.totalCount}',
+    );
     
     return GradientPageScaffold(
       appBar: PageAppBar(
         title: l10n.archivedTabLabel,
       ),
       drawer: const MainDrawer(),
-      body: const _ArchivedList(),
-    );
-  }
-}
-
-class _ArchivedList extends ConsumerWidget {
-  const _ArchivedList();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final tasksAsync = ref.watch(taskSectionsProvider(TaskSection.archived));
-    return tasksAsync.when(
-      data: (tasks) {
-        if (tasks.isEmpty) {
-          return _EmptyState(message: l10n.completedEmptyMessage);
-        }
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: tasks.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final task = tasks[index];
-            return _ArchivedTile(task: task);
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => _ErrorState(message: '$error'),
-    );
-  }
-}
-
-class _ArchivedTile extends ConsumerWidget {
-  const _ArchivedTile({required this.task});
-
-  final Task task;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    final subtitle = 'ID: ${task.taskId}';
-    final taskService = ref.read(taskServiceProvider);
-    
-    return ListTile(
-      tileColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      title: Text(task.title, style: theme.textTheme.titleMedium),
-      subtitle: Text(subtitle),
-      trailing: Wrap(
-        spacing: 4,
-        children: [
-          IconButton(
-            tooltip: l10n.actionRestore,
-            icon: const Icon(Icons.unarchive_outlined),
-            onPressed: () => _reactivate(context, ref, task, taskService),
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // 筛选UI
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: TaskFilterCollapsible(
+                filterProvider: archivedTasksFilterProvider,
+              ),
+            ),
           ),
-          IconButton(
-            tooltip: l10n.actionMoveToTrash,
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _moveToTrash(context, ref, task, taskService),
-          ),
+          if (paginationState.tasks.isEmpty && !paginationState.isLoading)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    l10n.completedEmptyMessage,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            )
+          else if (paginationState.tasks.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              sliver: SliverToBoxAdapter(
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ...paginationState.tasks.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final task = entry.value;
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: index < paginationState.tasks.length - 1 ? 12 : 0,
+                            ),
+                            child: ArchivedTaskTile(task: task),
+                          );
+                        }),
+                        if (paginationState.isLoading)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (paginationState.isLoading && paginationState.tasks.isEmpty)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: 80),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ),
+          const SliverToBoxAdapter(child: SizedBox(height: 48)),
         ],
-      ),
-    );
-  }
-
-  Future<void> _reactivate(
-    BuildContext context,
-    WidgetRef ref,
-    Task task,
-    TaskService service,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await service.updateDetails(
-        taskId: task.id,
-        payload: const TaskUpdate(status: TaskStatus.pending),
-      );
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.completedReactivateSuccess)),
-        );
-      }
-    } catch (error, stackTrace) {
-      debugPrint('Failed to reactivate task: $error\n$stackTrace');
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.completedReactivateError)),
-        );
-      }
-    }
-  }
-
-  Future<void> _moveToTrash(
-    BuildContext context,
-    WidgetRef ref,
-    Task task,
-    TaskService service,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await service.softDelete(task.id);
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.completedTrashSuccess)),
-        );
-      }
-    } catch (error, stackTrace) {
-      debugPrint('Failed to move task to trash: $error\n$stackTrace');
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.completedTrashError)),
-        );
-      }
-    }
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        message,
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        message,
-        style: Theme.of(context)
-            .textTheme
-            .bodyLarge
-            ?.copyWith(color: Theme.of(context).colorScheme.error),
       ),
     );
   }

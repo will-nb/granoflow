@@ -45,8 +45,43 @@
   "completed": "Completed",
   "completedArchiveError": "Archive failed.",
   "completedArchiveSuccess": "Task archived.",
+  "completedDeleteAction": "Move to Trash",
+  "completedDaysAgo": "{count} days ago",
+  "@completedDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "completedEmptyMessage": "No tasks at the moment.",
+  "completedHoursAgo": "{count} hours ago",
+  "@completedHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedJustNow": "Just now",
+  "completedMinutesAgo": "{count} minutes ago",
+  "@completedMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedMonthsAgo": "{count} months ago",
+  "@completedMonthsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "completedPageTitle": "Completed & Archived",
+  "completedQuickPlanAction": "Add to Today",
   "completedReactivateError": "Reactivation failed.",
   "completedReactivateSuccess": "Task reactivated.",
   "completedStatus": "Completed",
@@ -55,6 +90,15 @@
   "completedTasks": "Completed Tasks",
   "completedTrashError": "Move to trash failed.",
   "completedTrashSuccess": "Moved to trash.",
+  "completedWeeksAgo": "{count} weeks ago",
+  "@completedWeeksAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedYesterday": "Yesterday",
   "completionTime": "Completion Time",
   "createSubtask": "Create Subtask",
   "dailyAchievements": "Today's Achievements",
@@ -158,7 +202,9 @@
   "navSettingsSectionTitle": "Preferences",
   "navTrashTitle": "Trash",
   "navigationMenu": "Navigation Menu",
+  "noCompletionTime": "No completion time",
   "noDueDateSet": "No due date set",
+  "noProject": "No Project",
   "pageNavigation": "Page Navigation",
   "parentTask": "Parent Task",
   "pendingStatus": "Pending",
@@ -249,6 +295,10 @@
   "projectQuickTasksEmpty": "No quick tasks yet.",
   "@projectQuickTasksEmpty": {
     "description": "Empty state for quick tasks section"
+  },
+  "projectFilterLabel": "Project Location",
+  "@projectFilterLabel": {
+    "description": "Label for project filter (filter by project location)"
   },
   "projectListTitle": "Projects",
   "@projectListTitle": {
@@ -521,6 +571,8 @@
   "trashEmptyError": "Failed to empty trash.",
   "trashEmptyMessage": "Trash is empty.",
   "trashEmptySuccess": "Trash emptied.",
+  "trashPermanentDeleteAction": "Permanently Delete",
+  "trashRestoreAction": "Restore",
   "trashRestoreError": "Restore failed.",
   "trashRestoreSuccess": "Task restored.",
   "trashedStatus": "Deleted",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/font_scale_level.dart';
 import '../../data/models/preference.dart';
 import '../../data/repositories/preference_repository.dart';
 
@@ -21,7 +22,7 @@ class PreferenceService {
     return update(PreferenceUpdate(themeMode: mode));
   }
 
-  Future<void> updateFontScale(double scale) {
-    return update(PreferenceUpdate(fontScale: scale));
+  Future<void> updateFontScaleLevel(FontScaleLevel level) {
+    return update(PreferenceUpdate(fontScaleLevel: level));
   }
 }

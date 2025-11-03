@@ -23,9 +23,10 @@ class GranoFlowApp extends ConsumerWidget {
     final themeMode = ref
         .watch(themeProvider)
         .maybeWhen(data: (value) => value, orElse: () => ThemeMode.system);
-    final fontScale = ref
-        .watch(fontScaleProvider)
-        .maybeWhen(data: (value) => value, orElse: () => FontScaleConstants.defaultFontScale);
+    final fontScaleLevel = ref.watch(fontScaleLevelProvider).maybeWhen(
+          data: (value) => value,
+          orElse: () => FontScaleConstants.getDefaultLevel(),
+        );
     final config = ref.watch(appConfigProvider);
     return MaterialApp.router(
       locale: localeValue,
@@ -43,8 +44,16 @@ class GranoFlowApp extends ConsumerWidget {
             'EffectiveBrightness=${Theme.of(context).brightness}',
           );
         }
+        // 根据字体大小级别和当前屏幕方向动态计算实际的字体缩放值
+        final orientation = MediaQuery.of(context).orientation;
+        final actualFontScale = FontScaleConstants.getScaleForLevel(
+          orientation,
+          fontScaleLevel,
+        );
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(fontScale)),
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(actualFontScale),
+          ),
           child: child!,
         );
       },

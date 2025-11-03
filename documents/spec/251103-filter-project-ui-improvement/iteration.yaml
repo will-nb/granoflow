@@ -1,0 +1,125 @@
+meta:
+  id: "251103-filter-project-ui-improvement"
+  title: "项目筛选UI改进：调整顺序、样式和交互逻辑"
+  based_on: "temp/design-completion-pages-unified-styling.md"
+  status: draft
+  owner: "开发团队"
+
+scope:
+  includes:
+    - "项目筛选UI组件（TaskTagFilterStrip中的_buildProjectFilter方法）"
+    - "筛选UI的显示顺序（项目筛选移到标签筛选前面）"
+    - "项目筛选的交互菜单（类似ProjectMilestonePicker的菜单风格）"
+    - "国际化文案（项目筛选相关的文本）"
+  excludes:
+    - "项目筛选的数据逻辑（已有实现，无需修改）"
+    - "标签筛选功能（不受影响）"
+    - "其他页面的筛选功能（已完成页面不受影响）"
+
+changes:
+  code_updates:
+    - file: "lib/presentation/widgets/task_tag_filter_strip.dart"
+      type: modify
+      intent: |
+        1. 调整build方法中Column的children顺序，将项目筛选移到最前面
+        2. 重写_buildProjectFilter方法：
+           - 将FilterChip改为Minimal风格的InkWell（类似ProjectMilestonePicker）
+           - 显示逻辑：
+             * 未选：显示"项目"（图标：folder_outlined，表示筛选场景）
+             * 已选"无项目"：显示"无项目"（图标：folder_off_outlined）
+             * 已选项目：显示项目名称（图标：folder_outlined）
+             * 已选里程碑：显示里程碑名称（图标：flag_outlined）
+           - 点击弹出菜单（使用showModalBottomSheet），菜单包含：
+             * "无项目"选项（始终显示，可选中/取消，用于筛选无项目的任务）
+             * 所有项目列表（可展开显示里程碑）
+             * 已选中时，显示"移出项目"选项（清空筛选，恢复到未选状态显示所有任务）
+      intent_details:
+        - "参考ProjectMilestonePicker的Minimal风格实现"
+        - "参考ProjectMilestoneMenu的菜单结构和交互"
+        - "菜单中的项目项支持展开/收起里程碑"
+        - "菜单项选中状态通过颜色和字体粗细区分"
+    
+    - file: "lib/presentation/widgets/task_tag_filter_strip.dart"
+      type: add
+      intent: |
+        新增_ProjectFilterTile内部Widget类：
+        - 用于显示项目筛选菜单中的单个项目项
+        - 支持展开/收起显示里程碑
+        - 点击项目直接选择项目（无里程碑时）
+        - 点击里程碑选择该项目+里程碑
+        - 显示选中状态（当前筛选的项目/里程碑）
+  
+    - file: "lib/l10n/app_en.arb"
+      type: modify
+      intent: "添加'项目'筛选相关的国际化文案（筛选场景用，区别于'加入项目'）"
+    
+    - file: "lib/l10n/app_zh_CN.arb"
+      type: modify
+      intent: "添加'项目'筛选相关的中文文案（筛选场景用）"
+
+  data_model:
+    - entity: "TaskFilterState"
+      change: "无需修改，已有projectId、milestoneId、showNoProject字段"
+
+  tests:
+    - type: widget
+      focus: "验证项目筛选UI的显示和交互"
+      files:
+        - "test/presentation/widgets/task_tag_filter_strip_test.dart"
+    - type: integration
+      focus: "验证项目筛选功能在所有页面（Inbox、Completed、Archived、Trash）正常工作"
+      files:
+        - "test/presentation/completion_management/*_test.dart"
+
+  documentation:
+    - path: "documents/spec/251103-filter-project-ui-improvement/iteration.yaml"
+      update_type: create
+
+risks:
+  - name: "菜单中项目较多时，BottomSheet可能过长"
+    mitigation: "使用SingleChildScrollView包裹菜单内容，限制最大高度"
+  
+  - name: "里程碑名称显示需要异步加载，可能影响显示逻辑"
+    mitigation: "先显示项目名称，里程碑名称在菜单中显示，或者使用StreamBuilder实时更新"
+  
+  - name: "国际化文案缺失"
+    mitigation: "检查现有文案，如无则添加'项目'相关的翻译键（用于筛选场景，区别于任务操作场景的'加入项目'）"
+  
+  - name: "未选状态的文案理解"
+    mitigation: "明确未选时显示'项目'，表示筛选入口；未选状态等同于显示所有任务（包括有项目和无项目的）"
+
+verification:
+  checklist:
+    - "在所有页面（Inbox、Completed、Archived、Trash）验证项目筛选UI显示正确"
+    - "验证未选时显示'项目'文案（Minimal风格）"
+    - "验证选中'无项目'时显示'无项目'文案"
+    - "验证选中项目时显示项目名称"
+    - "验证选中里程碑时显示里程碑名称"
+    - "验证点击弹出菜单，菜单包含'无项目'、所有项目、'移出项目'（已选中时）"
+    - "验证菜单中项目可展开显示里程碑"
+    - "验证选择项目/里程碑后筛选功能正常工作"
+    - "验证选择'无项目'后筛选功能正常工作"
+    - "验证选择'移出项目'后清空筛选，显示所有任务"
+    - "验证项目筛选行位于标签筛选行之前"
+    - "运行flutter analyze确保无错误"
+    - "运行widget测试验证UI组件"
+    - "手动测试所有页面的筛选功能"
+
+implementation_notes: |
+  实现步骤：
+  1. 修改TaskTagFilterStrip.build方法，调整children顺序（项目筛选移到最前）
+  2. 创建_showProjectFilterMenu方法（参考ProjectMilestonePicker.showPickerMenu）
+  3. 重写_buildProjectFilter方法：
+     - 改为Minimal风格（InkWell + 图标+文字，无背景）
+     - 未选时显示"项目"（区别于任务操作场景的"加入项目"）
+     - 已选时显示对应的项目/里程碑名称或"无项目"
+  4. 创建_ProjectFilterTile类（参考ProjectMilestoneMenu中的_ProjectSection）
+  5. 添加国际化文案（"项目"用于筛选场景）
+  6. 更新测试文件
+  7. 运行测试和验证
+  
+  关键区别：
+  - 筛选场景：未选时显示"项目"，表示筛选入口
+  - 任务操作场景：未关联项目时显示"加入项目"，表示操作入口
+  - 两者UI风格相同（Minimal风格），但文案和语义不同
+

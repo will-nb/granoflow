@@ -16,12 +16,16 @@ class InlineProjectMilestoneDisplay extends ConsumerWidget {
     this.milestone,
     required this.onSelected,
     this.showIcon = true,
+    this.readOnly = false,
   });
 
   final Project project;
   final Milestone? milestone;
   final ValueChanged<ProjectMilestoneSelection?> onSelected;
   final bool showIcon;
+  
+  /// 是否只读模式（不显示点击交互，但保持视觉样式）
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,16 +37,7 @@ class InlineProjectMilestoneDisplay extends ConsumerWidget {
       milestoneName: milestone?.title,
     );
 
-    return InkWell(
-      onTap: () {
-        ProjectMilestonePicker(
-          onSelected: onSelected,
-          currentProjectId: project.projectId,
-          currentMilestoneId: milestone?.milestoneId,
-        ).showPickerMenu(context, ref);
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
+    final content = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -67,7 +62,24 @@ class InlineProjectMilestoneDisplay extends ConsumerWidget {
             ),
           ],
         ),
-      ),
+    );
+
+    // 只读模式：不包装InkWell，直接返回内容
+    if (readOnly) {
+      return content;
+    }
+
+    // 可编辑模式：包装InkWell，支持点击交互
+    return InkWell(
+      onTap: () {
+        ProjectMilestonePicker(
+          onSelected: onSelected,
+          currentProjectId: project.projectId,
+          currentMilestoneId: milestone?.milestoneId,
+        ).showPickerMenu(context, ref);
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: content,
     );
   }
 }

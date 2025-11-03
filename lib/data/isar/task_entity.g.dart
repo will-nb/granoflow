@@ -22,105 +22,110 @@ const TaskEntitySchema = CollectionSchema(
       name: r'allowInstantComplete',
       type: IsarType.bool,
     ),
-    r'createdAt': PropertySchema(
+    r'archivedAt': PropertySchema(
       id: 1,
+      name: r'archivedAt',
+      type: IsarType.dateTime,
+    ),
+    r'createdAt': PropertySchema(
+      id: 2,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'description': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'description',
       type: IsarType.string,
     ),
     r'dueAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'dueAt',
       type: IsarType.dateTime,
     ),
     r'endedAt': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'endedAt',
       type: IsarType.dateTime,
     ),
     r'logs': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'logs',
       type: IsarType.objectList,
       target: r'TaskLogEntryEntity',
     ),
     r'milestoneId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'milestoneId',
       type: IsarType.string,
     ),
     r'milestoneIsarId': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'milestoneIsarId',
       type: IsarType.long,
     ),
     r'parentId': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'parentId',
       type: IsarType.long,
     ),
     r'parentTaskId': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'parentTaskId',
       type: IsarType.long,
     ),
     r'projectId': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'projectId',
       type: IsarType.string,
     ),
     r'projectIsarId': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'projectIsarId',
       type: IsarType.long,
     ),
     r'seedSlug': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'seedSlug',
       type: IsarType.string,
     ),
     r'sortIndex': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'sortIndex',
       type: IsarType.double,
     ),
     r'startedAt': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'startedAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TaskEntitystatusEnumValueMap,
     ),
     r'tags': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'taskId': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'taskId',
       type: IsarType.string,
     ),
     r'templateLockCount': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'templateLockCount',
       type: IsarType.long,
     ),
     r'title': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -302,31 +307,32 @@ void _taskEntitySerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeBool(offsets[0], object.allowInstantComplete);
-  writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeString(offsets[2], object.description);
-  writer.writeDateTime(offsets[3], object.dueAt);
-  writer.writeDateTime(offsets[4], object.endedAt);
+  writer.writeDateTime(offsets[1], object.archivedAt);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeString(offsets[3], object.description);
+  writer.writeDateTime(offsets[4], object.dueAt);
+  writer.writeDateTime(offsets[5], object.endedAt);
   writer.writeObjectList<TaskLogEntryEntity>(
-    offsets[5],
+    offsets[6],
     allOffsets,
     TaskLogEntryEntitySchema.serialize,
     object.logs,
   );
-  writer.writeString(offsets[6], object.milestoneId);
-  writer.writeLong(offsets[7], object.milestoneIsarId);
-  writer.writeLong(offsets[8], object.parentId);
-  writer.writeLong(offsets[9], object.parentTaskId);
-  writer.writeString(offsets[10], object.projectId);
-  writer.writeLong(offsets[11], object.projectIsarId);
-  writer.writeString(offsets[12], object.seedSlug);
-  writer.writeDouble(offsets[13], object.sortIndex);
-  writer.writeDateTime(offsets[14], object.startedAt);
-  writer.writeByte(offsets[15], object.status.index);
-  writer.writeStringList(offsets[16], object.tags);
-  writer.writeString(offsets[17], object.taskId);
-  writer.writeLong(offsets[18], object.templateLockCount);
-  writer.writeString(offsets[19], object.title);
-  writer.writeDateTime(offsets[20], object.updatedAt);
+  writer.writeString(offsets[7], object.milestoneId);
+  writer.writeLong(offsets[8], object.milestoneIsarId);
+  writer.writeLong(offsets[9], object.parentId);
+  writer.writeLong(offsets[10], object.parentTaskId);
+  writer.writeString(offsets[11], object.projectId);
+  writer.writeLong(offsets[12], object.projectIsarId);
+  writer.writeString(offsets[13], object.seedSlug);
+  writer.writeDouble(offsets[14], object.sortIndex);
+  writer.writeDateTime(offsets[15], object.startedAt);
+  writer.writeByte(offsets[16], object.status.index);
+  writer.writeStringList(offsets[17], object.tags);
+  writer.writeString(offsets[18], object.taskId);
+  writer.writeLong(offsets[19], object.templateLockCount);
+  writer.writeString(offsets[20], object.title);
+  writer.writeDateTime(offsets[21], object.updatedAt);
 }
 
 TaskEntity _taskEntityDeserialize(
@@ -337,35 +343,36 @@ TaskEntity _taskEntityDeserialize(
 ) {
   final object = TaskEntity();
   object.allowInstantComplete = reader.readBool(offsets[0]);
-  object.createdAt = reader.readDateTime(offsets[1]);
-  object.description = reader.readStringOrNull(offsets[2]);
-  object.dueAt = reader.readDateTimeOrNull(offsets[3]);
-  object.endedAt = reader.readDateTimeOrNull(offsets[4]);
+  object.archivedAt = reader.readDateTimeOrNull(offsets[1]);
+  object.createdAt = reader.readDateTime(offsets[2]);
+  object.description = reader.readStringOrNull(offsets[3]);
+  object.dueAt = reader.readDateTimeOrNull(offsets[4]);
+  object.endedAt = reader.readDateTimeOrNull(offsets[5]);
   object.id = id;
   object.logs = reader.readObjectList<TaskLogEntryEntity>(
-        offsets[5],
+        offsets[6],
         TaskLogEntryEntitySchema.deserialize,
         allOffsets,
         TaskLogEntryEntity(),
       ) ??
       [];
-  object.milestoneId = reader.readStringOrNull(offsets[6]);
-  object.milestoneIsarId = reader.readLongOrNull(offsets[7]);
-  object.parentId = reader.readLongOrNull(offsets[8]);
-  object.parentTaskId = reader.readLongOrNull(offsets[9]);
-  object.projectId = reader.readStringOrNull(offsets[10]);
-  object.projectIsarId = reader.readLongOrNull(offsets[11]);
-  object.seedSlug = reader.readStringOrNull(offsets[12]);
-  object.sortIndex = reader.readDouble(offsets[13]);
-  object.startedAt = reader.readDateTimeOrNull(offsets[14]);
+  object.milestoneId = reader.readStringOrNull(offsets[7]);
+  object.milestoneIsarId = reader.readLongOrNull(offsets[8]);
+  object.parentId = reader.readLongOrNull(offsets[9]);
+  object.parentTaskId = reader.readLongOrNull(offsets[10]);
+  object.projectId = reader.readStringOrNull(offsets[11]);
+  object.projectIsarId = reader.readLongOrNull(offsets[12]);
+  object.seedSlug = reader.readStringOrNull(offsets[13]);
+  object.sortIndex = reader.readDouble(offsets[14]);
+  object.startedAt = reader.readDateTimeOrNull(offsets[15]);
   object.status =
-      _TaskEntitystatusValueEnumMap[reader.readByteOrNull(offsets[15])] ??
+      _TaskEntitystatusValueEnumMap[reader.readByteOrNull(offsets[16])] ??
           TaskStatus.inbox;
-  object.tags = reader.readStringList(offsets[16]) ?? [];
-  object.taskId = reader.readString(offsets[17]);
-  object.templateLockCount = reader.readLong(offsets[18]);
-  object.title = reader.readString(offsets[19]);
-  object.updatedAt = reader.readDateTime(offsets[20]);
+  object.tags = reader.readStringList(offsets[17]) ?? [];
+  object.taskId = reader.readString(offsets[18]);
+  object.templateLockCount = reader.readLong(offsets[19]);
+  object.title = reader.readString(offsets[20]);
+  object.updatedAt = reader.readDateTime(offsets[21]);
   return object;
 }
 
@@ -379,14 +386,16 @@ P _taskEntityDeserializeProp<P>(
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
-    case 2:
-      return (reader.readStringOrNull(offset)) as P;
-    case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 2:
+      return (reader.readDateTime(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 6:
       return (reader.readObjectList<TaskLogEntryEntity>(
             offset,
             TaskLogEntryEntitySchema.deserialize,
@@ -394,36 +403,36 @@ P _taskEntityDeserializeProp<P>(
             TaskLogEntryEntity(),
           ) ??
           []) as P;
-    case 6:
-      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
       return (reader.readLongOrNull(offset)) as P;
     case 9:
       return (reader.readLongOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
-    case 11:
       return (reader.readLongOrNull(offset)) as P;
-    case 12:
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readLongOrNull(offset)) as P;
     case 13:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 15:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 16:
       return (_TaskEntitystatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TaskStatus.inbox) as P;
-    case 16:
-      return (reader.readStringList(offset) ?? []) as P;
     case 17:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 18:
-      return (reader.readLong(offset)) as P;
-    case 19:
       return (reader.readString(offset)) as P;
+    case 19:
+      return (reader.readLong(offset)) as P;
     case 20:
+      return (reader.readString(offset)) as P;
+    case 21:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1375,6 +1384,79 @@ extension TaskEntityQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'allowInstantComplete',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      archivedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'archivedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      archivedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'archivedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> archivedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'archivedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      archivedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'archivedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition>
+      archivedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'archivedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> archivedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'archivedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -3428,6 +3510,18 @@ extension TaskEntityQuerySortBy
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByArchivedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByArchivedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -3660,6 +3754,18 @@ extension TaskEntityQuerySortThenBy
       thenByAllowInstantCompleteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'allowInstantComplete', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByArchivedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskEntity, TaskEntity, QAfterSortBy> thenByArchivedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'archivedAt', Sort.desc);
     });
   }
 
@@ -3903,6 +4009,12 @@ extension TaskEntityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByArchivedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'archivedAt');
+    });
+  }
+
   QueryBuilder<TaskEntity, TaskEntity, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -4037,6 +4149,12 @@ extension TaskEntityQueryProperty
       allowInstantCompleteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'allowInstantComplete');
+    });
+  }
+
+  QueryBuilder<TaskEntity, DateTime?, QQueryOperations> archivedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'archivedAt');
     });
   }
 

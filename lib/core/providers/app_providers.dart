@@ -18,6 +18,7 @@ import '../monetization/monetization_service.dart';
 import '../monetization/monetization_state.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../presentation/tasks/utils/hierarchy_utils.dart';
+import '../constants/font_scale_level.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
 
@@ -39,11 +40,11 @@ final themeProvider = StreamProvider<ThemeMode>((ref) {
       .map((pref) => pref.themeMode);
 });
 
-final fontScaleProvider = StreamProvider<double>((ref) {
+final fontScaleLevelProvider = StreamProvider<FontScaleLevel>((ref) {
   return ref
       .watch(preferenceServiceProvider)
       .watch()
-      .map((pref) => pref.fontScale);
+      .map((pref) => pref.fontScaleLevel);
 });
 
 final seedInitializerProvider = FutureProvider<void>((ref) async {
@@ -72,7 +73,6 @@ final seedInitializerProvider = FutureProvider<void>((ref) async {
       ? '${localeValue.languageCode}_${localeValue.countryCode}'
       : localeValue.languageCode;
 
-  debugPrint('SeedInitializer: locale = $locale');
   await service.importIfNeeded(locale);
 });
 
@@ -108,56 +108,105 @@ final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
   return ref.watch(taskRepositoryProvider).watchSection(section);
 });
 
+/// 通用任务筛选状态
+/// 
+/// 包含标签筛选和项目筛选的所有字段
 @immutable
-class InboxFilterState {
-  const InboxFilterState({
+class TaskFilterState {
+  const TaskFilterState({
     this.contextTag,
     this.priorityTag,
     this.urgencyTag,
     this.importanceTag,
+    this.projectId,
+    this.milestoneId,
+    this.showNoProject = false,
   });
 
+  /// 场景标签筛选
   final String? contextTag;
+  
+  /// 优先级标签筛选（保留，用于兼容，实际使用urgencyTag和importanceTag）
+  @Deprecated('使用urgencyTag和importanceTag替代')
   final String? priorityTag;
+  
+  /// 紧急度标签筛选
   final String? urgencyTag;
+  
+  /// 重要度标签筛选
   final String? importanceTag;
+  
+  /// 项目ID筛选
+  final String? projectId;
+  
+  /// 里程碑ID筛选（仅在projectId不为空时有效）
+  final String? milestoneId;
+  
+  /// 是否只显示无项目的任务
+  final bool showNoProject;
 
   bool get hasFilters =>
       (contextTag != null && contextTag!.isNotEmpty) ||
-      (priorityTag != null && priorityTag!.isNotEmpty) ||
+      // priorityTag 已废弃，不再用于筛选检查
       (urgencyTag != null && urgencyTag!.isNotEmpty) ||
-      (importanceTag != null && importanceTag!.isNotEmpty);
+      (importanceTag != null && importanceTag!.isNotEmpty) ||
+      (projectId != null && projectId!.isNotEmpty) ||
+      (milestoneId != null && milestoneId!.isNotEmpty) ||
+      showNoProject;
 
-  InboxFilterState copyWith({
+  TaskFilterState copyWith({
     String? contextTag,
+    @Deprecated('使用urgencyTag和importanceTag替代')
     String? priorityTag,
     String? urgencyTag,
     String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
   }) {
-    return InboxFilterState(
+    // ignore: deprecated_member_use_from_same_package
+    return TaskFilterState(
       contextTag: contextTag ?? this.contextTag,
+      // ignore: deprecated_member_use_from_same_package
       priorityTag: priorityTag ?? this.priorityTag,
       urgencyTag: urgencyTag ?? this.urgencyTag,
       importanceTag: importanceTag ?? this.importanceTag,
+      projectId: projectId ?? this.projectId,
+      milestoneId: milestoneId ?? this.milestoneId,
+      showNoProject: showNoProject ?? this.showNoProject,
     );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is InboxFilterState &&
+    // ignore: deprecated_member_use_from_same_package
+    return other is TaskFilterState &&
         other.contextTag == contextTag &&
+        // ignore: deprecated_member_use_from_same_package
         other.priorityTag == priorityTag &&
         other.urgencyTag == urgencyTag &&
-        other.importanceTag == importanceTag;
+        other.importanceTag == importanceTag &&
+        other.projectId == projectId &&
+        other.milestoneId == milestoneId &&
+        other.showNoProject == showNoProject;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(contextTag, priorityTag, urgencyTag, importanceTag);
+  int get hashCode => Object.hash(
+        contextTag,
+        // ignore: deprecated_member_use_from_same_package
+        priorityTag,
+        urgencyTag,
+        importanceTag,
+        projectId,
+        milestoneId,
+        showNoProject,
+      );
 }
 
-class InboxFilterNotifier extends StateNotifier<InboxFilterState> {
-  InboxFilterNotifier() : super(const InboxFilterState());
+/// 通用任务筛选Notifier
+class TaskFilterNotifier extends StateNotifier<TaskFilterState> {
+  TaskFilterNotifier() : super(const TaskFilterState());
 
   void setContextTag(String? tag) {
     final normalized = (tag != null && tag.isEmpty) ? null : tag;
@@ -167,6 +216,7 @@ class InboxFilterNotifier extends StateNotifier<InboxFilterState> {
     state = state.copyWith(contextTag: normalized);
   }
 
+  @Deprecated('使用urgencyTag和importanceTag替代')
   void setPriorityTag(String? tag) {
     final normalized = (tag != null && tag.isEmpty) ? null : tag;
     if (state.priorityTag == normalized) {
@@ -191,14 +241,75 @@ class InboxFilterNotifier extends StateNotifier<InboxFilterState> {
     state = state.copyWith(importanceTag: normalized);
   }
 
+  void setProjectId(String? projectId) {
+    if (state.projectId == projectId) {
+      return;
+    }
+    // 如果切换项目，清除里程碑筛选
+    state = state.copyWith(
+      projectId: projectId,
+      milestoneId: projectId == null ? null : state.milestoneId,
+      showNoProject: false, // 选择项目时，关闭"无项目"筛选
+    );
+  }
+
+  void setMilestoneId(String? milestoneId) {
+    if (state.milestoneId == milestoneId) {
+      return;
+    }
+    state = state.copyWith(milestoneId: milestoneId);
+  }
+
+  void toggleShowNoProject() {
+    state = state.copyWith(
+      showNoProject: !state.showNoProject,
+      projectId: state.showNoProject ? state.projectId : null, // 开启"无项目"时，清除项目筛选
+      milestoneId: state.showNoProject ? state.milestoneId : null,
+    );
+  }
+
   void reset() {
-    state = const InboxFilterState();
+    state = const TaskFilterState();
   }
 }
 
+/// Inbox筛选状态（向后兼容）
+/// 
+/// 作为TaskFilterState的别名，保持向后兼容
+@Deprecated('使用TaskFilterState替代')
+typedef InboxFilterState = TaskFilterState;
+
+/// Inbox筛选Notifier（向后兼容）
+/// 
+/// 继承TaskFilterNotifier，保持向后兼容
+class InboxFilterNotifier extends TaskFilterNotifier {
+  InboxFilterNotifier() : super();
+}
+
+/// Inbox筛选Provider（向后兼容）
+/// 
+/// 继续使用InboxFilterNotifier和InboxFilterState，但内部实现使用通用类
 final inboxFilterProvider =
-    StateNotifierProvider<InboxFilterNotifier, InboxFilterState>((ref) {
+    StateNotifierProvider<InboxFilterNotifier, TaskFilterState>((ref) {
       return InboxFilterNotifier();
+    });
+
+/// 已完成任务筛选Provider
+final completedTasksFilterProvider =
+    StateNotifierProvider<TaskFilterNotifier, TaskFilterState>((ref) {
+      return TaskFilterNotifier();
+    });
+
+/// 已归档任务筛选Provider
+final archivedTasksFilterProvider =
+    StateNotifierProvider<TaskFilterNotifier, TaskFilterState>((ref) {
+      return TaskFilterNotifier();
+    });
+
+/// 已删除任务筛选Provider
+final trashedTasksFilterProvider =
+    StateNotifierProvider<TaskFilterNotifier, TaskFilterState>((ref) {
+      return TaskFilterNotifier();
     });
 
 final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
@@ -207,9 +318,12 @@ final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
       .watch(taskRepositoryProvider)
       .watchInboxFiltered(
         contextTag: filter.contextTag,
-        priorityTag: filter.priorityTag,
+        priorityTag: null, // priorityTag 已废弃，不再使用
         urgencyTag: filter.urgencyTag,
         importanceTag: filter.importanceTag,
+        projectId: filter.projectId,
+        milestoneId: filter.milestoneId,
+        showNoProject: filter.showNoProject,
       );
 });
 
@@ -773,9 +887,9 @@ class PreferenceActionsNotifier extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() => _service.updateTheme(mode));
   }
 
-  Future<void> updateFontScale(double scale) async {
+  Future<void> updateFontScaleLevel(FontScaleLevel level) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateFontScale(scale));
+    state = await AsyncValue.guard(() => _service.updateFontScaleLevel(level));
   }
 }
 
@@ -783,3 +897,421 @@ final preferenceActionsNotifierProvider =
     AsyncNotifierProvider<PreferenceActionsNotifier, void>(() {
       return PreferenceActionsNotifier();
     });
+
+/// 已完成任务分页状态
+@immutable
+class CompletedTasksPaginationState {
+  const CompletedTasksPaginationState({
+    this.tasks = const <Task>[],
+    this.isLoading = false,
+    this.hasMore = true,
+    this.totalCount = 0,
+  });
+
+  final List<Task> tasks;
+  final bool isLoading;
+  final bool hasMore;
+  final int totalCount;
+
+  CompletedTasksPaginationState copyWith({
+    List<Task>? tasks,
+    bool? isLoading,
+    bool? hasMore,
+    int? totalCount,
+  }) {
+    return CompletedTasksPaginationState(
+      tasks: tasks ?? this.tasks,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      totalCount: totalCount ?? this.totalCount,
+    );
+  }
+}
+
+/// 已完成任务分页 Notifier
+class CompletedTasksPaginationNotifier
+    extends StateNotifier<CompletedTasksPaginationState> {
+  CompletedTasksPaginationNotifier(this.ref)
+      : super(const CompletedTasksPaginationState());
+
+  final Ref ref;
+  static const int _pageSize = 30;
+
+  TaskRepository get _repository => ref.read(taskRepositoryProvider);
+
+  /// 加载初始数据
+  Future<void> loadInitial() async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true);
+
+    try {
+      // 读取筛选条件
+      final filter = ref.read(completedTasksFilterProvider);
+      
+      final tasks = await _repository.listCompletedTasks(
+        limit: _pageSize,
+        offset: 0,
+        contextTag: filter.contextTag,
+        priorityTag: null, // priorityTag 已废弃，不再使用
+        urgencyTag: filter.urgencyTag,
+        importanceTag: filter.importanceTag,
+        projectId: filter.projectId,
+        milestoneId: filter.milestoneId,
+        showNoProject: filter.showNoProject,
+      );
+      final totalCount = await _repository.countCompletedTasks();
+
+      state = state.copyWith(
+        tasks: tasks,
+        isLoading: false,
+        hasMore: tasks.length < totalCount,
+        totalCount: totalCount,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to load completed tasks: $error\n$stackTrace');
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  /// 加载更多数据
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+
+    state = state.copyWith(isLoading: true);
+
+    try {
+      // 读取筛选条件
+      final filter = ref.read(completedTasksFilterProvider);
+      
+      final tasks = await _repository.listCompletedTasks(
+        limit: _pageSize,
+        offset: state.tasks.length,
+        contextTag: filter.contextTag,
+        priorityTag: null, // priorityTag 已废弃，不再使用
+        urgencyTag: filter.urgencyTag,
+        importanceTag: filter.importanceTag,
+        projectId: filter.projectId,
+        milestoneId: filter.milestoneId,
+        showNoProject: filter.showNoProject,
+      );
+
+      state = state.copyWith(
+        tasks: [...state.tasks, ...tasks],
+        isLoading: false,
+        hasMore: tasks.length == _pageSize,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to load more completed tasks: $error\n$stackTrace');
+      state = state.copyWith(isLoading: false);
+    }
+  }
+}
+
+final completedTasksPaginationProvider = StateNotifierProvider<
+    CompletedTasksPaginationNotifier, CompletedTasksPaginationState>((ref) {
+  return CompletedTasksPaginationNotifier(ref);
+});
+
+/// 已归档任务分页状态
+@immutable
+class ArchivedTasksPaginationState {
+  const ArchivedTasksPaginationState({
+    this.tasks = const <Task>[],
+    this.isLoading = false,
+    this.hasMore = true,
+    this.totalCount = 0,
+  });
+
+  final List<Task> tasks;
+  final bool isLoading;
+  final bool hasMore;
+  final int totalCount;
+
+  ArchivedTasksPaginationState copyWith({
+    List<Task>? tasks,
+    bool? isLoading,
+    bool? hasMore,
+    int? totalCount,
+  }) {
+    return ArchivedTasksPaginationState(
+      tasks: tasks ?? this.tasks,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      totalCount: totalCount ?? this.totalCount,
+    );
+  }
+}
+
+/// 已归档任务分页 Notifier
+class ArchivedTasksPaginationNotifier
+    extends StateNotifier<ArchivedTasksPaginationState> {
+  ArchivedTasksPaginationNotifier(this.ref)
+      : super(const ArchivedTasksPaginationState()) {
+    debugPrint('[ArchivedPagination] Notifier created');
+  }
+
+  final Ref ref;
+  static const int _pageSize = 30;
+
+  TaskRepository get _repository => ref.read(taskRepositoryProvider);
+
+  /// 加载初始数据
+  Future<void> loadInitial() async {
+    if (state.isLoading) {
+      debugPrint('[ArchivedPagination] loadInitial: Already loading, skipping');
+      return;
+    }
+
+    debugPrint('[ArchivedPagination] loadInitial: Starting load');
+    state = state.copyWith(isLoading: true);
+
+    try {
+      // 读取筛选条件
+      final filter = ref.read(archivedTasksFilterProvider);
+      
+      final tasks = await _repository.listArchivedTasks(
+        limit: _pageSize,
+        offset: 0,
+        contextTag: filter.contextTag,
+        priorityTag: null, // priorityTag 已废弃，不再使用
+        urgencyTag: filter.urgencyTag,
+        importanceTag: filter.importanceTag,
+        projectId: filter.projectId,
+        milestoneId: filter.milestoneId,
+        showNoProject: filter.showNoProject,
+      );
+      final totalCount = await _repository.countArchivedTasks();
+
+      debugPrint(
+        '[ArchivedPagination] loadInitial: Loaded ${tasks.length} tasks, totalCount=$totalCount',
+      );
+
+      state = state.copyWith(
+        tasks: tasks,
+        isLoading: false,
+        hasMore: tasks.length < totalCount,
+        totalCount: totalCount,
+      );
+
+      debugPrint(
+        '[ArchivedPagination] loadInitial: State updated - tasks=${state.tasks.length}, hasMore=${state.hasMore}',
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        '[ArchivedPagination] loadInitial: Failed - $error\n$stackTrace',
+      );
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  /// 加载更多数据
+  Future<void> loadMore() async {
+    if (state.isLoading) {
+      debugPrint('[ArchivedPagination] loadMore: Already loading, skipping');
+      return;
+    }
+    if (!state.hasMore) {
+      debugPrint('[ArchivedPagination] loadMore: No more data, skipping');
+      return;
+    }
+
+    debugPrint(
+      '[ArchivedPagination] loadMore: Loading more, currentCount=${state.tasks.length}',
+    );
+    state = state.copyWith(isLoading: true);
+
+    try {
+      // 读取筛选条件
+      final filter = ref.read(archivedTasksFilterProvider);
+      
+      final tasks = await _repository.listArchivedTasks(
+        limit: _pageSize,
+        offset: state.tasks.length,
+        contextTag: filter.contextTag,
+        priorityTag: null, // priorityTag 已废弃，不再使用
+        urgencyTag: filter.urgencyTag,
+        importanceTag: filter.importanceTag,
+        projectId: filter.projectId,
+        milestoneId: filter.milestoneId,
+        showNoProject: filter.showNoProject,
+      );
+
+      debugPrint(
+        '[ArchivedPagination] loadMore: Loaded ${tasks.length} more tasks',
+      );
+
+      state = state.copyWith(
+        tasks: [...state.tasks, ...tasks],
+        isLoading: false,
+        hasMore: tasks.length == _pageSize,
+      );
+
+      debugPrint(
+        '[ArchivedPagination] loadMore: State updated - tasks=${state.tasks.length}, hasMore=${state.hasMore}',
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        '[ArchivedPagination] loadMore: Failed - $error\n$stackTrace',
+      );
+      state = state.copyWith(isLoading: false);
+    }
+  }
+}
+
+final archivedTasksPaginationProvider = StateNotifierProvider<
+    ArchivedTasksPaginationNotifier, ArchivedTasksPaginationState>((ref) {
+  return ArchivedTasksPaginationNotifier(ref);
+});
+
+/// 已删除任务分页状态
+@immutable
+class TrashedTasksPaginationState {
+  const TrashedTasksPaginationState({
+    this.tasks = const <Task>[],
+    this.isLoading = false,
+    this.hasMore = true,
+    this.totalCount = 0,
+  });
+
+  final List<Task> tasks;
+  final bool isLoading;
+  final bool hasMore;
+  final int totalCount;
+
+  TrashedTasksPaginationState copyWith({
+    List<Task>? tasks,
+    bool? isLoading,
+    bool? hasMore,
+    int? totalCount,
+  }) {
+    return TrashedTasksPaginationState(
+      tasks: tasks ?? this.tasks,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      totalCount: totalCount ?? this.totalCount,
+    );
+  }
+}
+
+/// 已删除任务分页 Notifier
+class TrashedTasksPaginationNotifier
+    extends StateNotifier<TrashedTasksPaginationState> {
+  TrashedTasksPaginationNotifier(this.ref)
+      : super(const TrashedTasksPaginationState()) {
+    debugPrint('[TrashedPagination] Notifier created');
+  }
+
+  final Ref ref;
+  static const int _pageSize = 30;
+
+  TaskRepository get _repository => ref.read(taskRepositoryProvider);
+
+  /// 加载初始数据
+  Future<void> loadInitial() async {
+    if (state.isLoading) {
+      debugPrint('[TrashedPagination] loadInitial: Already loading, skipping');
+      return;
+    }
+
+    debugPrint('[TrashedPagination] loadInitial: Starting load');
+    state = state.copyWith(isLoading: true);
+
+    try {
+      // 读取筛选条件
+      final filter = ref.read(trashedTasksFilterProvider);
+      
+      final tasks = await _repository.listTrashedTasks(
+        limit: _pageSize,
+        offset: 0,
+        contextTag: filter.contextTag,
+        priorityTag: null, // priorityTag 已废弃，不再使用
+        urgencyTag: filter.urgencyTag,
+        importanceTag: filter.importanceTag,
+        projectId: filter.projectId,
+        milestoneId: filter.milestoneId,
+        showNoProject: filter.showNoProject,
+      );
+      final totalCount = await _repository.countTrashedTasks();
+
+      debugPrint(
+        '[TrashedPagination] loadInitial: Loaded ${tasks.length} tasks, totalCount=$totalCount',
+      );
+
+      state = state.copyWith(
+        tasks: tasks,
+        isLoading: false,
+        hasMore: tasks.length < totalCount,
+        totalCount: totalCount,
+      );
+
+      debugPrint(
+        '[TrashedPagination] loadInitial: State updated - tasks=${state.tasks.length}, hasMore=${state.hasMore}',
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        '[TrashedPagination] loadInitial: Failed - $error\n$stackTrace',
+      );
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  /// 加载更多数据
+  Future<void> loadMore() async {
+    if (state.isLoading) {
+      debugPrint('[TrashedPagination] loadMore: Already loading, skipping');
+      return;
+    }
+    if (!state.hasMore) {
+      debugPrint('[TrashedPagination] loadMore: No more data, skipping');
+      return;
+    }
+
+    debugPrint(
+      '[TrashedPagination] loadMore: Loading more, currentCount=${state.tasks.length}',
+    );
+    state = state.copyWith(isLoading: true);
+
+    try {
+      // 读取筛选条件
+      final filter = ref.read(trashedTasksFilterProvider);
+      
+      final tasks = await _repository.listTrashedTasks(
+        limit: _pageSize,
+        offset: state.tasks.length,
+        contextTag: filter.contextTag,
+        priorityTag: null, // priorityTag 已废弃，不再使用
+        urgencyTag: filter.urgencyTag,
+        importanceTag: filter.importanceTag,
+        projectId: filter.projectId,
+        milestoneId: filter.milestoneId,
+        showNoProject: filter.showNoProject,
+      );
+
+      debugPrint(
+        '[TrashedPagination] loadMore: Loaded ${tasks.length} more tasks',
+      );
+
+      state = state.copyWith(
+        tasks: [...state.tasks, ...tasks],
+        isLoading: false,
+        hasMore: tasks.length == _pageSize,
+      );
+
+      debugPrint(
+        '[TrashedPagination] loadMore: State updated - tasks=${state.tasks.length}, hasMore=${state.hasMore}',
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        '[TrashedPagination] loadMore: Failed - $error\n$stackTrace',
+      );
+      state = state.copyWith(isLoading: false);
+    }
+  }
+}
+
+final trashedTasksPaginationProvider = StateNotifierProvider<
+    TrashedTasksPaginationNotifier, TrashedTasksPaginationState>((ref) {
+  return TrashedTasksPaginationNotifier(ref);
+});
+

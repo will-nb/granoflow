@@ -17,10 +17,10 @@ const PreferenceEntitySchema = CollectionSchema(
   name: r'PreferenceEntity',
   id: -1589632799977450870,
   properties: {
-    r'fontScale': PropertySchema(
+    r'fontScaleLevel': PropertySchema(
       id: 0,
-      name: r'fontScale',
-      type: IsarType.double,
+      name: r'fontScaleLevel',
+      type: IsarType.string,
     ),
     r'localeCode': PropertySchema(
       id: 1,
@@ -59,6 +59,7 @@ int _preferenceEntityEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.fontScaleLevel.length * 3;
   bytesCount += 3 + object.localeCode.length * 3;
   return bytesCount;
 }
@@ -69,7 +70,7 @@ void _preferenceEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDouble(offsets[0], object.fontScale);
+  writer.writeString(offsets[0], object.fontScaleLevel);
   writer.writeString(offsets[1], object.localeCode);
   writer.writeByte(offsets[2], object.themeMode.index);
   writer.writeDateTime(offsets[3], object.updatedAt);
@@ -82,7 +83,7 @@ PreferenceEntity _preferenceEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = PreferenceEntity();
-  object.fontScale = reader.readDouble(offsets[0]);
+  object.fontScaleLevel = reader.readString(offsets[0]);
   object.id = id;
   object.localeCode = reader.readString(offsets[1]);
   object.themeMode = _PreferenceEntitythemeModeValueEnumMap[
@@ -100,7 +101,7 @@ P _preferenceEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
@@ -220,67 +221,137 @@ extension PreferenceEntityQueryWhere
 extension PreferenceEntityQueryFilter
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QFilterCondition> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-      fontScaleEqualTo(
-    double value, {
-    double epsilon = Query.epsilon,
+      fontScaleLevelEqualTo(
+    String value, {
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'fontScale',
+        property: r'fontScaleLevel',
         value: value,
-        epsilon: epsilon,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-      fontScaleGreaterThan(
-    double value, {
+      fontScaleLevelGreaterThan(
+    String value, {
     bool include = false,
-    double epsilon = Query.epsilon,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'fontScale',
+        property: r'fontScaleLevel',
         value: value,
-        epsilon: epsilon,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-      fontScaleLessThan(
-    double value, {
+      fontScaleLevelLessThan(
+    String value, {
     bool include = false,
-    double epsilon = Query.epsilon,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'fontScale',
+        property: r'fontScaleLevel',
         value: value,
-        epsilon: epsilon,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-      fontScaleBetween(
-    double lower,
-    double upper, {
+      fontScaleLevelBetween(
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    double epsilon = Query.epsilon,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'fontScale',
+        property: r'fontScaleLevel',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        epsilon: epsilon,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      fontScaleLevelStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'fontScaleLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      fontScaleLevelEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'fontScaleLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      fontScaleLevelContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'fontScaleLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      fontScaleLevelMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'fontScaleLevel',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      fontScaleLevelIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fontScaleLevel',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      fontScaleLevelIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'fontScaleLevel',
+        value: '',
       ));
     });
   }
@@ -599,16 +670,16 @@ extension PreferenceEntityQueryLinks
 extension PreferenceEntityQuerySortBy
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QSortBy> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      sortByFontScale() {
+      sortByFontScaleLevel() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fontScale', Sort.asc);
+      return query.addSortBy(r'fontScaleLevel', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      sortByFontScaleDesc() {
+      sortByFontScaleLevelDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fontScale', Sort.desc);
+      return query.addSortBy(r'fontScaleLevel', Sort.desc);
     });
   }
 
@@ -658,16 +729,16 @@ extension PreferenceEntityQuerySortBy
 extension PreferenceEntityQuerySortThenBy
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QSortThenBy> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      thenByFontScale() {
+      thenByFontScaleLevel() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fontScale', Sort.asc);
+      return query.addSortBy(r'fontScaleLevel', Sort.asc);
     });
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      thenByFontScaleDesc() {
+      thenByFontScaleLevelDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'fontScale', Sort.desc);
+      return query.addSortBy(r'fontScaleLevel', Sort.desc);
     });
   }
 
@@ -730,9 +801,10 @@ extension PreferenceEntityQuerySortThenBy
 extension PreferenceEntityQueryWhereDistinct
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
-      distinctByFontScale() {
+      distinctByFontScaleLevel({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'fontScale');
+      return query.addDistinctBy(r'fontScaleLevel',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -766,9 +838,10 @@ extension PreferenceEntityQueryProperty
     });
   }
 
-  QueryBuilder<PreferenceEntity, double, QQueryOperations> fontScaleProperty() {
+  QueryBuilder<PreferenceEntity, String, QQueryOperations>
+      fontScaleLevelProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'fontScale');
+      return query.addPropertyName(r'fontScaleLevel');
     });
   }
 

@@ -15,6 +15,7 @@ import 'package:granoflow/data/repositories/seed_repository.dart';
 import 'package:granoflow/data/repositories/tag_repository.dart';
 import 'package:granoflow/data/repositories/task_repository.dart';
 import 'package:granoflow/data/repositories/task_template_repository.dart';
+import 'package:granoflow/core/constants/font_scale_level.dart';
 
 class StubTaskRepository implements TaskRepository {
   final Map<int, Task> _tasks = <int, Task>{};
@@ -91,6 +92,9 @@ class StubTaskRepository implements TaskRepository {
     String? priorityTag,
     String? urgencyTag,
     String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
   }) {
     final filtered = _tasks.values
         .where((task) {
@@ -117,6 +121,9 @@ class StubTaskRepository implements TaskRepository {
               return false;
             }
           }
+          
+          // TODO: 项目筛选（暂时忽略筛选参数）
+          
           return true;
         })
         .toList(growable: false);
@@ -312,6 +319,106 @@ class StubTaskRepository implements TaskRepository {
   @override
   Future<List<Task>> listSectionTasks(TaskSection section) async {
     return _filterSection(section);
+  }
+
+  @override
+  Future<List<Task>> listCompletedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) async {
+    var completed = _tasks.values
+        .where((task) => task.status == TaskStatus.completedActive)
+        .toList(growable: false);
+    
+    // TODO: 实现标签和项目筛选（暂时忽略筛选参数）
+    
+    completed.sort((a, b) {
+      if (a.endedAt == null && b.endedAt == null) return 0;
+      if (a.endedAt == null) return 1;
+      if (b.endedAt == null) return -1;
+      return b.endedAt!.compareTo(a.endedAt!);
+    });
+    final endIndex = (offset + limit).clamp(0, completed.length);
+    return completed.sublist(offset.clamp(0, completed.length), endIndex);
+  }
+
+  @override
+  Future<List<Task>> listArchivedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) async {
+    var archived = _tasks.values
+        .where((task) => task.status == TaskStatus.archived)
+        .toList(growable: false);
+    
+    // TODO: 实现标签和项目筛选（暂时忽略筛选参数）
+    
+    archived.sort((a, b) {
+      if (a.archivedAt == null && b.archivedAt == null) return 0;
+      if (a.archivedAt == null) return 1;
+      if (b.archivedAt == null) return -1;
+      return b.archivedAt!.compareTo(a.archivedAt!);
+    });
+    final endIndex = (offset + limit).clamp(0, archived.length);
+    return archived.sublist(offset.clamp(0, archived.length), endIndex);
+  }
+
+  @override
+  Future<int> countCompletedTasks() async {
+    return _tasks.values
+        .where((task) => task.status == TaskStatus.completedActive)
+        .length;
+  }
+
+  @override
+  Future<int> countArchivedTasks() async {
+    return _tasks.values
+        .where((task) => task.status == TaskStatus.archived)
+        .length;
+  }
+
+  @override
+  Future<List<Task>> listTrashedTasks({
+    required int limit,
+    required int offset,
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+    String? projectId,
+    String? milestoneId,
+    bool? showNoProject,
+  }) async {
+    var trashed = _tasks.values
+        .where((task) => task.status == TaskStatus.trashed)
+        .toList(growable: false);
+    
+    // TODO: 实现标签和项目筛选（暂时忽略筛选参数）
+    
+    trashed.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final endIndex = (offset + limit).clamp(0, trashed.length);
+    return trashed.sublist(offset.clamp(0, trashed.length), endIndex);
+  }
+
+  @override
+  Future<int> countTrashedTasks() async {
+    return _tasks.values
+        .where((task) => task.status == TaskStatus.trashed)
+        .length;
   }
 
   List<Task> _filterSection(TaskSection section) {
@@ -544,7 +651,7 @@ class StubPreferenceRepository implements PreferenceRepository {
     id: 1,
     localeCode: 'en',
     themeMode: ThemeMode.system,
-    fontScale: 1.0,
+    fontScaleLevel: FontScaleLevel.medium,
     updatedAt: DateTime.now(),
   );
 
@@ -559,7 +666,7 @@ class StubPreferenceRepository implements PreferenceRepository {
     _preference = _preference.copyWith(
       localeCode: payload.localeCode,
       themeMode: payload.themeMode,
-      fontScale: payload.fontScale,
+      fontScaleLevel: payload.fontScaleLevel,
       updatedAt: DateTime.now(),
     );
     _controller.add(_preference);

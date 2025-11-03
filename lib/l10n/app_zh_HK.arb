@@ -43,8 +43,43 @@
   "completed": "已完成",
   "completedArchiveError": "封存失敗。",
   "completedArchiveSuccess": "任務已封存。",
+  "completedDeleteAction": "移動到回收站",
+  "completedDaysAgo": "{count} 天前",
+  "@completedDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "completedEmptyMessage": "目前沒有任務。",
+  "completedHoursAgo": "{count} 小時前",
+  "@completedHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedJustNow": "剛剛",
+  "completedMinutesAgo": "{count} 分鐘前",
+  "@completedMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedMonthsAgo": "{count} 個月前",
+  "@completedMonthsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "completedPageTitle": "已完成與封存",
+  "completedQuickPlanAction": "加入今日任務",
   "completedReactivateError": "啟用失敗。",
   "completedReactivateSuccess": "任務已重新啟用。",
   "completedStatus": "已完成",
@@ -52,6 +87,15 @@
   "completedTabLabel": "已完成",
   "completedTasks": "已完成任務",
   "completedTrashError": "移至垃圾桶失敗。",
+  "completedWeeksAgo": "{count} 週前",
+  "@completedWeeksAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "completedYesterday": "昨天",
   "completedTrashSuccess": "已移至垃圾桶。",
   "completionTime": "完成時間",
   "createSubtask": "建立子任務",
@@ -143,7 +187,9 @@
   "navSettingsSectionTitle": "偏好設定",
   "navTrashTitle": "垃圾桶",
   "navigationMenu": "導航選單",
+  "noCompletionTime": "無完成時間",
   "noDueDateSet": "未設置截止日期",
+  "noProject": "無項目",
   "pageNavigation": "頁面導航",
   "parentTask": "父任務",
   "pendingStatus": "待處理",
@@ -235,6 +281,7 @@
   "@projectQuickTasksEmpty": {
     "description": "輕量任務為空提示"
   },
+  "projectFilterLabel": "所在項目",
   "projectListTitle": "項目",
   "@projectListTitle": {
     "description": "項目列表標題"
@@ -494,6 +541,8 @@
   "trashEmptyError": "清空失敗。",
   "trashEmptyMessage": "回收站為空。",
   "trashEmptySuccess": "回收站已清空。",
+  "trashPermanentDeleteAction": "永久刪除",
+  "trashRestoreAction": "復原",
   "trashRestoreError": "復原失敗。",
   "trashRestoreSuccess": "任務已復原。",
   "trashedStatus": "已刪除",
