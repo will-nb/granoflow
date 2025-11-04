@@ -59,6 +59,10 @@ abstract class TaskRepository {
 
   Future<int> purgeObsolete(DateTime olderThan);
 
+  /// 清空回收站：批量永久删除所有回收站任务
+  /// 返回删除的任务数量
+  Future<int> clearAllTrashedTasks();
+
   Future<void> adjustTemplateLock({required int taskId, required int delta});
 
   Future<Task?> findById(int id);
@@ -644,6 +648,43 @@ class IsarTaskRepository implements TaskRepository {
           .findAll();
       await _isar.taskEntitys.deleteAll(obsolete.map((e) => e.id).toList());
       return obsolete.length;
+    });
+  }
+
+  @override
+  Future<int> clearAllTrashedTasks() async {
+    return _isar.writeTxn<int>(() async {
+      // 查询所有回收站任务
+      final trashedTasks = await _isar.taskEntitys
+          .filter()
+          .statusEqualTo(TaskStatus.trashed)
+          .findAll();
+      
+      if (trashedTasks.isEmpty) {
+        return 0;
+      }
+      
+      final now = DateTime.now();
+      final taskIds = <int>[];
+      
+      // 批量更新状态为 pseudoDeleted
+      for (final task in trashedTasks) {
+        task.status = TaskStatus.pseudoDeleted;
+        task.updatedAt = now;
+        taskIds.add(task.id);
+      }
+      
+      // 保存更新
+      await _isar.taskEntitys.putAll(trashedTasks);
+      
+      // 物理删除（清理伪删除记录）
+      await _isar.taskEntitys.deleteAll(taskIds);
+      
+      if (kDebugMode) {
+        debugPrint('[TaskRepository] clearAllTrashedTasks: Deleted ${taskIds.length} tasks');
+      }
+      
+      return taskIds.length;
     });
   }
 

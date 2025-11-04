@@ -507,6 +507,7 @@
   "taskClearDeadlineTitle": "Clear Deadline",
   "taskDeadlineOverdue": "Overdue",
   "taskDeadlineSoon": "Due Soon",
+  "taskCompleteAction": "Complete",
   "taskDeleteAction": "Delete",
   "taskEditDeadline": "Edit Deadline",
   "taskEditTitle": "Edit Title",

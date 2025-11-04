@@ -9,6 +9,7 @@ import '../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
+import '../widgets/task_filter_collapsible.dart';
 import 'quick_tasks/quick_add_sheet.dart';
 import 'views/task_section_panel.dart';
 
@@ -168,6 +169,15 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
           // 添加这个参数，确保在数据更新时保持滚动位置
           key: const PageStorageKey<String>('tasks_page_scroll'),
           slivers: [
+            // 筛选UI
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TaskFilterCollapsible(
+                  filterProvider: tasksFilterProvider,
+                ),
+              ),
+            ),
             // 如果正在执行任务操作，在顶部显示进度条
             if (showLinearProgress)
               const SliverToBoxAdapter(

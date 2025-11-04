@@ -233,6 +233,18 @@ class StubTaskRepository implements TaskRepository {
   }
 
   @override
+  Future<int> clearAllTrashedTasks() async {
+    final trashedTasks = _tasks.values
+        .where((task) => task.status == TaskStatus.trashed)
+        .toList();
+    final count = trashedTasks.length;
+    for (final task in trashedTasks) {
+      _tasks.remove(task.id);
+    }
+    return count;
+  }
+
+  @override
   Future<int> purgeObsolete(DateTime olderThan) async {
     final idsToRemove = _tasks.values
         .where(
@@ -453,13 +465,22 @@ class StubTaskRepository implements TaskRepository {
                   task.dueAt != null &&
                   !task.dueAt!.isBefore(dayAfterTomorrow);
             case TaskSection.thisMonth:
+              final nextMonthStart = DateTime(todayStart.year, todayStart.month + 1, 1);
               return task.status == TaskStatus.pending &&
                   task.dueAt != null &&
-                  task.dueAt!.isAfter(laterStart);
+                  task.dueAt!.isAfter(laterStart) &&
+                  task.dueAt!.isBefore(nextMonthStart);
+            case TaskSection.nextMonth:
+              final nextMonthStart = DateTime(todayStart.year, todayStart.month + 1, 1);
+              final nextNextMonthStart = DateTime(todayStart.year, todayStart.month + 2, 1);
+              return task.status == TaskStatus.pending &&
+                  task.dueAt != null &&
+                  !task.dueAt!.isBefore(nextMonthStart) &&
+                  task.dueAt!.isBefore(nextNextMonthStart);
             case TaskSection.later:
+              final nextNextMonthStart = DateTime(todayStart.year, todayStart.month + 2, 1);
               return task.status == TaskStatus.pending &&
-                  task.dueAt != null &&
-                  task.dueAt!.isAfter(laterStart);
+                  (task.dueAt == null || task.dueAt!.isAfter(nextNextMonthStart));
             case TaskSection.completed:
               return task.status == TaskStatus.completedActive;
             case TaskSection.archived:
@@ -519,6 +540,7 @@ class StubTaskRepository implements TaskRepository {
       case TaskSection.tomorrow:
       case TaskSection.thisWeek:
       case TaskSection.thisMonth:
+      case TaskSection.nextMonth:
       case TaskSection.later:
         return TaskStatus.pending;
       case TaskSection.completed:

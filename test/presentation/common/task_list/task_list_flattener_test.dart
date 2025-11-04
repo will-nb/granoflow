@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/presentation/common/task_list/task_list_flattener.dart';
-import 'package:granoflow/presentation/tasks/utils/tree_flattening_utils.dart';
 
 /// 创建测试任务辅助函数
 Task _createTask({

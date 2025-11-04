@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/data/models/task.dart';
@@ -82,7 +83,7 @@ class TaskSectionTestHelper {
   /// 获取 section 内的任务列表
   Future<List<Task>> getSectionTasks(TaskSection section) async {
     final taskRepository = container.read(taskRepositoryProvider);
-    return await taskRepository.fetchSection(section);
+    return await taskRepository.listSectionTasks(section);
   }
 
   /// 查找包含指定文本的 section panel

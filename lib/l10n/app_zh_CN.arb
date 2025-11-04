@@ -521,6 +521,7 @@
   "taskMoveBlockedSourceLocked": "无法创建子任务：该任务不允许移动。",
   "taskMoveBlockedTargetLocked": "无法创建子任务：目标任务不允许添加子任务。",
   "taskMoveBlockedUnknown": "无法创建子任务：发生未知错误。",
+  "taskCompleteAction": "完成",
   "taskPostponeAction": "推迟",
   "taskPostponeError": "推迟任务失败",
   "taskPostponeSuccess": "任务推迟成功",

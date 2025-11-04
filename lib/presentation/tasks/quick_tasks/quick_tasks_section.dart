@@ -196,7 +196,7 @@ class QuickTaskItem extends ConsumerWidget {
       onLeftAction: (task) => SwipeActionHandler.handleAction(
         context,
         ref,
-        SwipeActionType.postpone,
+        SwipeActionType.complete,
         task,
       ),
       onRightAction: (task) => SwipeActionHandler.handleAction(

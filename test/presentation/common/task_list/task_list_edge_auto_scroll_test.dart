@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:granoflow/core/providers/inbox_drag_provider.dart';
-import 'package:granoflow/core/providers/tasks_drag_provider.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/presentation/common/task_list/inbox_task_list_config.dart';
 import 'package:granoflow/presentation/common/task_list/task_list_edge_auto_scroll.dart';
@@ -54,7 +52,6 @@ void main() {
         await tester.pump();
 
         // 验证自动滚动已启动
-        final dragNotifier = config.getDragNotifier(testRef!) as InboxDragNotifier;
         // 注意：由于 auto-scroll 是异步的，我们只能验证方法被调用
       });
 

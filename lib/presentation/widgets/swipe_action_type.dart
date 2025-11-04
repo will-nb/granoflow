@@ -8,6 +8,9 @@ enum SwipeActionType {
   /// 智能推迟任务
   postpone,
   
+  /// 完成任务
+  complete,
+  
   /// 归档任务
   archive,
   

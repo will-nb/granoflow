@@ -150,6 +150,8 @@ class DismissibleTaskTile extends StatelessWidget {
         return l10n.inboxQuickPlanAction;
       case 'taskArchiveAction':
         return l10n.taskArchiveAction;
+      case 'taskCompleteAction':
+        return l10n.taskCompleteAction;
       case 'taskDeleteAction':
         return l10n.taskDeleteAction;
       case 'taskPostponeAction':

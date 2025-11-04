@@ -4,12 +4,9 @@ import 'package:integration_test/integration_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/main.dart' as app;
 import 'package:granoflow/data/models/task.dart';
-import 'package:granoflow/core/providers/repository_providers.dart';
-import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/presentation/common/drag/standard_draggable.dart';
 import 'helpers/task_drag_test_helper.dart';
 import 'helpers/task_section_test_helper.dart';
-import 'fixtures/task_test_data.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

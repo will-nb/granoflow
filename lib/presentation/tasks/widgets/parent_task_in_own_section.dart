@@ -56,7 +56,7 @@ class _ParentTaskInOwnSectionState extends ConsumerState<ParentTaskInOwnSection>
             onLeftAction: (task) => SwipeActionHandler.handleAction(
               context,
               ref,
-              SwipeActionType.postpone,
+              SwipeActionType.complete,
               task,
             ),
             onRightAction: (task) => SwipeActionHandler.handleAction(

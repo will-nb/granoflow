@@ -901,4 +901,12 @@ class TaskService {
       return false;
     }
   }
+
+  /// 清空回收站：批量永久删除所有回收站任务
+  /// 返回删除的任务数量
+  Future<int> clearTrash() async {
+    final count = await _tasks.clearAllTrashedTasks();
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+    return count;
+  }
 }

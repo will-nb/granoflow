@@ -28,13 +28,13 @@ class SwipeConfigs {
   );
 
   /// Tasks页面的滑动配置
-  /// 左滑：智能推迟（安全操作），右滑：归档任务（警告操作）
+  /// 左滑：完成任务（安全操作），右滑：归档任务（警告操作）
   static const SwipeActionConfig tasksConfig = SwipeActionConfig(
-    leftAction: SwipeActionType.postpone,
+    leftAction: SwipeActionType.complete,
     rightAction: SwipeActionType.archive,
-    leftHintKey: 'taskPostponeAction',
+    leftHintKey: 'taskCompleteAction',
     rightHintKey: 'taskArchiveAction',
-    leftIcon: Icons.schedule,
+    leftIcon: Icons.check_circle,
     rightIcon: Icons.archive,
     leftColor: OceanBreezeColorSchemes.softGreen,
     rightColor: OceanBreezeColorSchemes.softPink,

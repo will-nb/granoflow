@@ -32,6 +32,9 @@ class SwipeActionHandler {
       case SwipeActionType.postpone:
         await _handlePostpone(context, ref, task);
         break;
+      case SwipeActionType.complete:
+        await _handleComplete(context, ref, task);
+        break;
       case SwipeActionType.archive:
         await _handleArchive(context, ref, task);
         break;
@@ -127,6 +130,30 @@ class SwipeActionHandler {
       debugPrint('Failed to postpone task: $error\n$stackTrace');
       if (!context.mounted) return;
       messenger.showSnackBar(SnackBar(content: Text('${l10n.taskPostponeError}: $error')));
+    }
+  }
+
+  /// 处理完成任务动作
+  static Future<void> _handleComplete(BuildContext context, WidgetRef ref, Task task) async {
+    final taskService = ref.read(taskServiceProvider);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    
+    try {
+      await taskService.markCompleted(taskId: task.id);
+      if (!context.mounted) return;
+      
+      // 显示成功提示
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.taskListTaskCompletedToast),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to complete task: $error\n$stackTrace');
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('${l10n.taskListTaskCompletedError}: $error')));
     }
   }
 

@@ -6,7 +6,6 @@ import 'package:granoflow/core/providers/repository_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/core/utils/task_section_utils.dart';
 import 'package:granoflow/presentation/common/drag/standard_draggable.dart';
-import '../fixtures/task_test_data.dart';
 
 /// 拖拽测试辅助工具类
 ///
@@ -39,16 +38,20 @@ class TaskDragTestHelper {
   Finder findInboxTaskById(int taskId) {
     // Inbox 任务的 Key 格式：ValueKey('inbox-${task.id}-${task.updatedAt.millisecondsSinceEpoch}')
     // 这里我们使用部分匹配，因为 updatedAt 可能不同
-    return find.byKeyPredicate(
-      (key) => key is ValueKey && key.value.toString().startsWith('inbox-$taskId'),
+    return find.byWidgetPredicate(
+      (widget) => widget.key is ValueKey &&
+          widget.key != null &&
+          widget.key.toString().startsWith('ValueKey<String>(\'inbox-$taskId'),
     );
   }
 
   /// 查找任务 Widget（通过任务 ID，Tasks）
   Finder findTasksTaskById(int taskId) {
     // Tasks 任务的 Key 格式：ValueKey('tasks-section-${task.id}-${task.updatedAt.millisecondsSinceEpoch}')
-    return find.byKeyPredicate(
-      (key) => key is ValueKey && key.value.toString().startsWith('tasks-section-$taskId'),
+    return find.byWidgetPredicate(
+      (widget) => widget.key is ValueKey &&
+          widget.key != null &&
+          widget.key.toString().startsWith('ValueKey<String>(\'tasks-section-$taskId'),
     );
   }
 
@@ -99,7 +102,8 @@ class TaskDragTestHelper {
   /// [startFinder] 拖拽起始位置的 Finder
   /// [endOffset] 拖拽结束位置的 Offset（相对于屏幕）
   /// [holdDuration] 长按持续时间（默认 350ms，适配 StandardDraggable 的 300ms 延迟）
-  Future<GestureBinding?> performLongPressDrag({
+  /// 返回 TestGesture，调用者需要负责调用 up() 来释放手势
+  Future<TestGesture?> performLongPressDrag({
     required Finder startFinder,
     required Offset endOffset,
     Duration? holdDuration,
@@ -186,7 +190,7 @@ class TaskDragTestHelper {
     // 插入间隔线是一个 Container，高度为 3px，包含特定样式的 BoxDecoration
     final containers = find.byType(Container);
     for (final containerElement in containers.evaluate()) {
-      final container = tester.widget<Container>(containerElement);
+      final container = containerElement.widget as Container;
       if (container.decoration is BoxDecoration) {
         final decoration = container.decoration as BoxDecoration;
         // 检查是否有阴影（插入间隔线的特征）
@@ -281,7 +285,6 @@ class TaskDragTestHelper {
       // 计算需要滚动的距离
       final screenHeight = tester.getSize(find.byType(MaterialApp).first).height;
       final targetY = position.dy;
-      final currentScrollOffset = tester.getTopLeft(scrollable.first).dy;
 
       if (targetY < 0 || targetY > screenHeight) {
         // 需要滚动
@@ -383,9 +386,13 @@ class TaskDragTestHelper {
         );
         dueAt = DateTime(monthEnd.year, monthEnd.month, 15, 12, 0, 0);
         break;
-      case TaskSection.later:
+      case TaskSection.nextMonth:
         final nextMonth = DateTime(now.year, now.month + 1, 1);
         dueAt = DateTime(nextMonth.year, nextMonth.month, 15, 12, 0, 0);
+        break;
+      case TaskSection.later:
+        final nextNextMonth = DateTime(now.year, now.month + 2, 1);
+        dueAt = DateTime(nextNextMonth.year, nextNextMonth.month, 15, 12, 0, 0);
         break;
       case TaskSection.completed:
       case TaskSection.archived:

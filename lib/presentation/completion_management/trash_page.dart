@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/service_providers.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
@@ -106,6 +107,9 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: TaskFilterCollapsible(
                 filterProvider: trashedTasksFilterProvider,
+                trailing: paginationState.tasks.isNotEmpty
+                    ? _buildClearTrashButton(context)
+                    : null,
               ),
             ),
           ),
@@ -167,5 +171,99 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         ],
       ),
     );
+  }
+
+  /// 构建清空回收站按钮
+  Widget _buildClearTrashButton(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final errorColor = theme.colorScheme.error;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _confirmClearTrash(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.delete_sweep_outlined,
+                size: 20,
+                color: errorColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.actionEmptyTrash,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: errorColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 确认清空回收站
+  Future<void> _confirmClearTrash(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.trashConfirmTitle),
+        content: Text(l10n.trashConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.trashConfirmCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(l10n.actionEmptyTrash),
+          ),
+        ],
+      ),
+    );
+    
+    if (result == true) {
+      await _handleClearTrash(context);
+    }
+  }
+
+  /// 处理清空回收站
+  Future<void> _handleClearTrash(BuildContext context) async {
+    final taskService = ref.read(taskServiceProvider);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    
+    try {
+      await taskService.clearTrash();
+      if (!context.mounted) return;
+      
+      // 刷新分页数据
+      ref.read(trashedTasksPaginationProvider.notifier).loadInitial();
+      
+      // 显示成功提示
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.trashEmptySuccess),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to clear trash: $error\n$stackTrace');
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.trashEmptyError}: $error')),
+      );
+    }
   }
 }

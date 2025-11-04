@@ -293,6 +293,9 @@ class _TestTaskRepository implements TaskRepository {
   Future<void> softDelete(int taskId) => throw UnimplementedError();
 
   @override
+  Future<int> clearAllTrashedTasks() async => 0;
+
+  @override
   Future<int> purgeObsolete(DateTime olderThan) async => 0;
 
   @override

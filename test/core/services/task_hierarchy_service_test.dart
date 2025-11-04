@@ -197,6 +197,9 @@ class _TestTaskRepository extends TaskRepository {
   Future<void> softDelete(int taskId) => throw UnimplementedError();
 
   @override
+  Future<int> clearAllTrashedTasks() => throw UnimplementedError();
+
+  @override
   Future<int> purgeObsolete(DateTime olderThan) => throw UnimplementedError();
 
   @override

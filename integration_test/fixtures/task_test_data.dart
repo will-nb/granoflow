@@ -77,10 +77,15 @@ class TaskTestData {
         );
         dueAt = DateTime(monthEnd.year, monthEnd.month, 15, 12, 0, 0);
         break;
-      case TaskSection.later:
-        // 以后：下个月第一天
+      case TaskSection.nextMonth:
+        // 次月：下个月某一天（比如15号）
         final nextMonth = DateTime(now.year, now.month + 1, 1);
         dueAt = DateTime(nextMonth.year, nextMonth.month, 15, 12, 0, 0);
+        break;
+      case TaskSection.later:
+        // 以后：下下个月第一天
+        final nextNextMonth = DateTime(now.year, now.month + 2, 1);
+        dueAt = DateTime(nextNextMonth.year, nextNextMonth.month, 15, 12, 0, 0);
         break;
       case TaskSection.completed:
       case TaskSection.archived:
@@ -145,9 +150,13 @@ class TaskTestData {
         );
         dueAt = DateTime(monthEnd.year, monthEnd.month, 15, 12, 0, 0);
         break;
-      case TaskSection.later:
+      case TaskSection.nextMonth:
         final nextMonth = DateTime(now.year, now.month + 1, 1);
         dueAt = DateTime(nextMonth.year, nextMonth.month, 15, 12, 0, 0);
+        break;
+      case TaskSection.later:
+        final nextNextMonth = DateTime(now.year, now.month + 2, 1);
+        dueAt = DateTime(nextNextMonth.year, nextNextMonth.month, 15, 12, 0, 0);
         break;
       case TaskSection.completed:
       case TaskSection.archived:

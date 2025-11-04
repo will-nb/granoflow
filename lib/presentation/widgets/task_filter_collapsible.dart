@@ -17,6 +17,7 @@ class TaskFilterCollapsible extends ConsumerStatefulWidget {
     super.key,
     required this.filterProvider,
     this.label,
+    this.trailing,
   });
 
   /// 筛选Provider（StateNotifierProvider<TaskFilterNotifier, TaskFilterState>）
@@ -25,6 +26,9 @@ class TaskFilterCollapsible extends ConsumerStatefulWidget {
 
   /// 自定义标签文本（如果为空，使用默认的"筛选"文本）
   final String? label;
+
+  /// 可选的尾部 widget，显示在筛选行右侧
+  final Widget? trailing;
 
   @override
   ConsumerState<TaskFilterCollapsible> createState() =>
@@ -80,35 +84,42 @@ class _TaskFilterCollapsibleState
         // 折叠头
         Material(
           color: Colors.transparent,
-          child: InkWell(
-            onTap: _toggle,
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.filter_alt_outlined, size: 20, color: color),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w600,
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: _toggle,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.filter_alt_outlined, size: 20, color: color),
+                        const SizedBox(width: 8),
+                        Text(
+                          label,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        RotationTransition(
+                          turns: _arrowTurns,
+                          child: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 20,
+                            color: color,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  RotationTransition(
-                    turns: _arrowTurns,
-                    child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 20,
-                      color: color,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              if (widget.trailing != null) widget.trailing!,
+            ],
           ),
         ),
 

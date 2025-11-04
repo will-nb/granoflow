@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/inbox_drag_provider.dart';
 import 'package:granoflow/core/providers/tasks_drag_provider.dart';
-import 'package:granoflow/core/utils/task_section_utils.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/presentation/common/task_list/inbox_task_list_config.dart';
 import 'package:granoflow/presentation/common/task_list/task_list_insertion_target_builder.dart';
@@ -358,26 +356,19 @@ void main() {
     group('_updateInsertionHover compatibility', () {
       testWidgets('should handle InboxDragNotifier.updateInsertionHover (no section)', (tester) async {
         final config = InboxTaskListConfig();
-        InboxDragNotifier? dragNotifier;
         InboxDragState? dragState;
         WidgetRef? testRef;
-        bool updateCalled = false;
-        int? calledIndex;
 
         await tester.pumpWidget(
           ProviderScope(
             child: Consumer(
               builder: (context, ref, child) {
                 testRef = ref;
-                dragNotifier = ref.read(inboxDragProvider.notifier);
                 dragState = ref.read(inboxDragProvider);
 
-                // 创建一个 Fake dragNotifier 来捕获调用
+                // 创建一个 Fake dragNotifier
                 final fakeNotifier = _FakeInboxDragNotifier(
-                  onUpdateInsertionHover: (index) {
-                    updateCalled = true;
-                    calledIndex = index;
-                  },
+                  onUpdateInsertionHover: (_) {},
                 );
 
                 // 通过 buildTopInsertionTarget 的 onHover 来测试 _updateInsertionHover
@@ -411,28 +402,19 @@ void main() {
 
       testWidgets('should handle TasksDragNotifier.updateInsertionHover (with section)', (tester) async {
         final config = TasksSectionTaskListConfig(TaskSection.today);
-        TasksDragNotifier? dragNotifier;
         TasksDragState? dragState;
         WidgetRef? testRef;
-        bool updateCalled = false;
-        int? calledIndex;
-        TaskSection? calledSection;
 
         await tester.pumpWidget(
           ProviderScope(
             child: Consumer(
               builder: (context, ref, child) {
                 testRef = ref;
-                dragNotifier = ref.read(tasksDragProvider.notifier);
                 dragState = ref.read(tasksDragProvider);
 
-                // 创建一个 Fake dragNotifier 来捕获调用
+                // 创建一个 Fake dragNotifier
                 final fakeNotifier = _FakeTasksDragNotifier(
-                  onUpdateInsertionHover: (index, section) {
-                    updateCalled = true;
-                    calledIndex = index;
-                    calledSection = section;
-                  },
+                  onUpdateInsertionHover: (_, __) {},
                 );
 
                 // 通过 buildTopInsertionTarget 的 onHover 来测试 _updateInsertionHover
@@ -587,11 +569,9 @@ void main() {
 /// It only implements the methods we actually use in the tests.
 class _FakeInboxDragNotifier {
   final void Function(int?)? onUpdateInsertionHover;
-  final void Function(bool?)? onSetDraggedTaskHidden;
 
   _FakeInboxDragNotifier({
     this.onUpdateInsertionHover,
-    this.onSetDraggedTaskHidden,
   });
 
   void updateInsertionHover(int? insertionIndex) {
@@ -599,7 +579,7 @@ class _FakeInboxDragNotifier {
   }
 
   void setDraggedTaskHidden(bool? hidden) {
-    onSetDraggedTaskHidden?.call(hidden);
+    // 未使用的参数，保留方法签名以匹配接口
   }
 
   void startDrag(Task task, Offset position) {}
@@ -615,11 +595,9 @@ class _FakeInboxDragNotifier {
 /// It only implements the methods we actually use in the tests.
 class _FakeTasksDragNotifier {
   final void Function(int?, TaskSection?)? onUpdateInsertionHover;
-  final void Function(bool?)? onSetDraggedTaskHidden;
 
   _FakeTasksDragNotifier({
     this.onUpdateInsertionHover,
-    this.onSetDraggedTaskHidden,
   });
 
   void updateInsertionHover(int? insertionIndex, TaskSection? section) {
@@ -627,7 +605,7 @@ class _FakeTasksDragNotifier {
   }
 
   void setDraggedTaskHidden(bool? hidden) {
-    onSetDraggedTaskHidden?.call(hidden);
+    // 未使用的参数，保留方法签名以匹配接口
   }
 
   void startDrag(Task task, Offset position) {}

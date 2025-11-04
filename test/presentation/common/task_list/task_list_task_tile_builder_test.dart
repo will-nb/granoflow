@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/inbox_drag_provider.dart';
 import 'package:granoflow/core/providers/tasks_drag_provider.dart';
-import 'package:granoflow/core/utils/task_section_utils.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/presentation/common/task_list/inbox_task_list_config.dart';
 import 'package:granoflow/presentation/common/task_list/task_list_task_tile_builder.dart';
@@ -43,8 +42,6 @@ void main() {
         InboxDragState? dragState;
         WidgetRef? testRef;
         Set<int> expandedTaskIds = {};
-        bool expandedChangedCalled = false;
-        Set<int>? lastExpandedIds;
 
         await tester.pumpWidget(
           ProviderScope(
@@ -75,10 +72,7 @@ void main() {
                   config: config,
                   ref: testRef!,
                   expandedTaskIds: expandedTaskIds,
-                  onExpandedChanged: (ids) {
-                    expandedChangedCalled = true;
-                    lastExpandedIds = ids;
-                  },
+                  onExpandedChanged: (_) {},
                   onDragStarted: (_) {},
                   onDragUpdate: (_) {},
                 );
@@ -108,7 +102,6 @@ void main() {
         InboxDragState? dragState;
         WidgetRef? testRef;
         Set<int> expandedTaskIds = {};
-        bool expandedChangedCalled = false;
 
         await tester.pumpWidget(
           ProviderScope(
@@ -139,9 +132,7 @@ void main() {
                   config: config,
                   ref: testRef!,
                   expandedTaskIds: expandedTaskIds,
-                  onExpandedChanged: (ids) {
-                    expandedChangedCalled = true;
-                  },
+                  onExpandedChanged: (_) {},
                   onDragStarted: (_) {},
                   onDragUpdate: (_) {},
                 );
@@ -614,7 +605,7 @@ void main() {
                 // 开始拖拽任务
                 dragNotifier!.startDrag(task, const Offset(0, 0));
                 // 更新拖拽位置到顶部边缘
-                dragNotifier.updateDragPosition(const Offset(200, 10));
+                dragNotifier?.updateDragPosition(const Offset(200, 10));
                 dragState = ref.read(inboxDragProvider);
 
                 final widget = TaskListTaskTileBuilder.buildTaskTile(

@@ -19,6 +19,7 @@ import '../monetization/monetization_state.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../presentation/tasks/utils/hierarchy_utils.dart';
 import '../constants/font_scale_level.dart';
+import '../services/tag_service.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
 
@@ -104,8 +105,70 @@ final metricRefreshNotifierProvider =
 final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
   ref,
   section,
-) {
-  return ref.watch(taskRepositoryProvider).watchSection(section);
+) async* {
+  final filter = ref.watch(tasksFilterProvider);
+  final repository = ref.watch(taskRepositoryProvider);
+  
+  await for (final tasks in repository.watchSection(section)) {
+    // 应用筛选逻辑（内存筛选，参考 watchInboxFiltered 的实现）
+    final filtered = tasks.where((task) {
+      final tags = task.tags;
+      
+      // 场景标签筛选
+      if (filter.contextTag != null && filter.contextTag!.isNotEmpty) {
+        final normalizedContextTag = TagService.normalizeSlug(filter.contextTag!);
+        if (!tags.any((tag) => TagService.normalizeSlug(tag) == normalizedContextTag)) {
+          return false;
+        }
+      }
+      
+      // 紧急度标签筛选
+      if (filter.urgencyTag != null && filter.urgencyTag!.isNotEmpty) {
+        final normalizedUrgencyTag = TagService.normalizeSlug(filter.urgencyTag!);
+        if (!tags.any((tag) => TagService.normalizeSlug(tag) == normalizedUrgencyTag)) {
+          return false;
+        }
+      }
+      
+      // 重要度标签筛选
+      if (filter.importanceTag != null && filter.importanceTag!.isNotEmpty) {
+        final normalizedImportanceTag = TagService.normalizeSlug(filter.importanceTag!);
+        if (!tags.any((tag) => TagService.normalizeSlug(tag) == normalizedImportanceTag)) {
+          return false;
+        }
+      }
+      
+      // 项目筛选
+      if (filter.showNoProject == true) {
+        if (task.projectId != null && task.projectId!.isNotEmpty) {
+          return false;
+        }
+      } else {
+        // 项目ID筛选
+        if (filter.projectId != null && filter.projectId!.isNotEmpty) {
+          if (task.projectId != filter.projectId) {
+            return false;
+          }
+          
+          // 里程碑ID筛选（仅在指定项目时有效）
+          if (filter.milestoneId != null && filter.milestoneId!.isNotEmpty) {
+            if (task.milestoneId != filter.milestoneId) {
+              return false;
+            }
+          }
+        } else {
+          // 如果没有指定项目，但有指定里程碑ID，应该过滤掉所有任务
+          if (filter.milestoneId != null && filter.milestoneId!.isNotEmpty) {
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    }).toList();
+    
+    yield filtered;
+  }
 });
 
 /// 通用任务筛选状态
@@ -308,6 +371,12 @@ final archivedTasksFilterProvider =
 
 /// 已删除任务筛选Provider
 final trashedTasksFilterProvider =
+    StateNotifierProvider<TaskFilterNotifier, TaskFilterState>((ref) {
+      return TaskFilterNotifier();
+    });
+
+/// 任务页面筛选Provider
+final tasksFilterProvider =
     StateNotifierProvider<TaskFilterNotifier, TaskFilterState>((ref) {
       return TaskFilterNotifier();
     });

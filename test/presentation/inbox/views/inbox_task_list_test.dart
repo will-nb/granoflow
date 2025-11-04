@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
-import 'package:granoflow/core/providers/inbox_drag_provider.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
-import 'package:granoflow/core/services/sort_index_service.dart';
-import 'package:granoflow/core/services/task_hierarchy_service.dart';
 import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/data/models/tag.dart';
-import 'package:granoflow/data/repositories/task_repository.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/inbox/views/inbox_task_list.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
@@ -20,56 +16,6 @@ class _StubTag extends Tag {
 }
 
 class _FakeTaskService extends Fake implements TaskService {}
-
-class _FakeTaskHierarchyService extends Fake implements TaskHierarchyService {
-  bool moveToParentCalled = false;
-  int? moveToParentTaskId;
-  int? moveToParentParentId;
-  double? moveToParentSortIndex;
-
-  @override
-  Future<void> moveToParent({
-    required int taskId,
-    required int? parentId,
-    required double sortIndex,
-    DateTime? dueDate,
-    bool clearParent = false,
-  }) async {
-    moveToParentCalled = true;
-    moveToParentTaskId = taskId;
-    moveToParentParentId = parentId;
-    moveToParentSortIndex = sortIndex;
-  }
-}
-
-class _FakeTaskRepository extends Fake implements TaskRepository {
-  final List<Task> inboxTasks;
-
-  _FakeTaskRepository(this.inboxTasks);
-
-  @override
-  Stream<List<Task>> watchInbox() => Stream.value(inboxTasks);
-
-  @override
-  Future<Task?> findById(int id) async {
-    return inboxTasks.firstWhere((t) => t.id == id, orElse: () => inboxTasks.first);
-  }
-}
-
-class _FakeSortIndexService extends Fake implements SortIndexService {
-  bool reorderTasksForInboxCalled = false;
-  List<Task>? reorderTasksForInboxTasks;
-
-  @override
-  Future<void> reorderTasksForInbox({
-    required List<Task> tasks,
-    double start = 1024,
-    double step = 1024,
-  }) async {
-    reorderTasksForInboxCalled = true;
-    reorderTasksForInboxTasks = tasks;
-  }
-}
 
 void main() {
   group('InboxTaskList', () {

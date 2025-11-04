@@ -10,6 +10,7 @@ import '../widgets/error_banner.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
+import '../widgets/task_filter_collapsible.dart';
 import 'views/inbox_task_list.dart';
 import 'widgets/inbox_empty_state_card.dart';
 import 'widgets/inbox_quick_add_sheet.dart';
@@ -35,6 +36,15 @@ class _InboxPageState extends ConsumerState<InboxPage> {
         behavior: HitTestBehavior.translucent,
         child: CustomScrollView(
           slivers: [
+            // 筛选UI
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TaskFilterCollapsible(
+                  filterProvider: inboxFilterProvider,
+                ),
+              ),
+            ),
             tasksAsync.when(
               data: (tasks) {
                 if (tasks.isEmpty) {

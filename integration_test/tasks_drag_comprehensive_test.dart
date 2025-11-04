@@ -1,11 +1,11 @@
 import 'dart:math' as math;
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/main.dart' as app;
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/core/providers/repository_providers.dart';
-import 'package:granoflow/core/utils/task_section_utils.dart';
 import 'helpers/task_drag_test_helper.dart';
 import 'helpers/task_section_test_helper.dart';
 
@@ -51,7 +51,6 @@ void main() {
         }
 
         final firstPosition = tester.getCenter(firstFinder.first);
-        if (firstPosition == null) return;
 
         // 拖拽到列表开头（随机坐标：任务中心 ± 100px）
         final random = math.Random();
@@ -117,7 +116,6 @@ void main() {
         }
 
         final afterPosition = tester.getCenter(afterFinder.first);
-        if (afterPosition == null) return;
 
         // 拖拽到两个任务之间（随机坐标：任务中心 ± 100px）
         final random = math.Random();
@@ -181,7 +179,6 @@ void main() {
         }
 
         final lastPosition = tester.getCenter(lastFinder.first);
-        if (lastPosition == null) return;
 
         // 拖拽到列表末尾（随机坐标：任务中心 ± 100px）
         final random = math.Random();
@@ -241,7 +238,6 @@ void main() {
         }
 
         final targetPosition = tester.getCenter(targetFinder.first);
-        if (targetPosition == null) return;
 
         // 拖拽到目标位置（随机坐标：任务中心 ± 100px）
         final random = math.Random();
@@ -301,7 +297,6 @@ void main() {
         }
 
         final targetPosition = tester.getCenter(targetFinder.first);
-        if (targetPosition == null) return;
 
         // 拖拽到目标任务上（移入任务）（随机坐标：任务中心 ± 100px）
         final random = math.Random();
@@ -399,9 +394,6 @@ void main() {
 
         if (draggedFinder.evaluate().isEmpty) return;
 
-        final startPosition = tester.getCenter(draggedFinder.first);
-        if (startPosition == null) return;
-
         // 拖拽到无效位置（随机坐标：屏幕外或远离任务的位置）
         final random = math.Random();
         // 随机选择屏幕外位置（负坐标或超出屏幕的坐标）
@@ -465,7 +457,6 @@ void main() {
         }
 
         final targetPosition = tester.getCenter(targetFinder.first);
-        if (targetPosition == null) return;
 
         // 记录拖拽前的状态
         final taskRepository = container.read(taskRepositoryProvider);
