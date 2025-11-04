@@ -125,6 +125,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isTrashed = widget.task.status == TaskStatus.trashed;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +135,9 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         _buildTitleRow(context, theme),
 
         // 第二行：标签 + 截止日期（可内联编辑）
-        _buildTagsAndDeadlineRow(context, ref, theme),
+        // trashed 状态不显示标签和截止日期
+        if (!isTrashed)
+          _buildTagsAndDeadlineRow(context, ref, theme),
       ],
     );
   }
@@ -142,6 +145,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   Widget _buildTitleRow(BuildContext context, ThemeData theme) {
     final l10n = AppLocalizations.of(context);
     final isCompleted = widget.task.status == TaskStatus.completedActive;
+    final isTrashed = widget.task.status == TaskStatus.trashed;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +173,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
                   onSubmitted: (_) => _saveTitle(),
                 )
               : GestureDetector(
-                  onTap: () {
+                  onTap: isTrashed ? null : () {
                     setState(() {
                       _isEditingTitle = true;
                     });
@@ -187,8 +191,11 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
                                   ? theme.textTheme.bodyLarge
                                   : theme.textTheme.titleMedium)
                               ?.copyWith(
-                                decoration: isCompleted
+                                decoration: (isCompleted || isTrashed)
                                     ? TextDecoration.lineThrough
+                                    : null,
+                                color: isTrashed
+                                    ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
                                     : null,
                               ),
                     ),

@@ -103,6 +103,14 @@
   "createSubtask": "Create Subtask",
   "dailyAchievements": "Today's Achievements",
   "dragToOverdueNotAllowed": "Cannot drag to overdue section",
+  "drawerManageProjects": "Manage Projects",
+  "@drawerManageProjects": {
+    "description": "Button label to manage projects in drawer"
+  },
+  "drawerRecentProjects": "Recent Projects",
+  "@drawerRecentProjects": {
+    "description": "Section title for recent projects in drawer"
+  },
   "datePickerOptionThisMonth": "End of This Month",
   "datePickerOptionThisWeek": "End of This Week",
   "datePickerOptionToday": "Today",

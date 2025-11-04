@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../../core/utils/task_section_utils.dart';
 import '../../../core/utils/task_status_utils.dart';
@@ -13,9 +14,10 @@ import 'package:go_router/go_router.dart';
 /// - 标题
 /// - 截止日期（如果有）
 /// - 任务状态
+/// - 删除时间（如果是 trashed 状态）
 /// 
 /// 只显示一级，不递归
-/// 过滤 trashed 状态（双重保障）
+/// 包含 trashed 状态的子任务（用于显示已删除的子任务）
 class AllChildrenList extends ConsumerWidget {
   const AllChildrenList({
     super.key,
@@ -28,7 +30,9 @@ class AllChildrenList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final childrenAsync = ref.watch(parentTaskChildrenProvider(parentTaskId));
+    final childrenAsync = ref.watch(
+      parentTaskChildrenIncludingTrashedProvider(parentTaskId),
+    );
     final theme = Theme.of(context);
 
     return childrenAsync.when(
@@ -78,46 +82,71 @@ class _ChildTaskItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final statusText = getTaskStatusDisplayText(task.status, l10n);
+    final isTrashed = task.status == TaskStatus.trashed;
+    final statusText = isTrashed ? null : getTaskStatusDisplayText(task.status, l10n);
 
     return InkWell(
       onTap: () => _handleTap(context),
       child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 任务标题
-          Expanded(
-            child: Text(
-              task.title,
-              style: theme.textTheme.bodyMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 任务标题
+                Expanded(
+                  child: Text(
+                    task.title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isTrashed
+                          ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
+                          : null,
+                      decoration: isTrashed
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // 截止日期（如果有且不是 trashed 状态）
+                if (task.dueAt != null && !isTrashed)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      _formatDueDate(task.dueAt!, l10n),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                // 任务状态（非 trashed 状态）
+                if (statusText != null && statusText.isNotEmpty)
+                  Text(
+                    statusText,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(width: 8),
-          // 截止日期（如果有）
-          if (task.dueAt != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Text(
-                _formatDueDate(task.dueAt!, l10n),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            // 删除时间（如果是 trashed 状态）
+            if (isTrashed)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  _formatDeletedTime(task.updatedAt, l10n, context),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    fontSize: 12,
+                  ),
                 ),
               ),
-            ),
-          // 任务状态
-          if (statusText.isNotEmpty)
-            Text(
-              statusText,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -134,6 +163,20 @@ class _ChildTaskItem extends ConsumerWidget {
     } else {
       return '${dueDate.year}/${dueDate.month}/${dueDate.day}';
     }
+  }
+
+  /// 格式化删除时间（年月日时分，不显示秒）
+  String _formatDeletedTime(
+    DateTime deletedAt,
+    AppLocalizations l10n,
+    BuildContext context,
+  ) {
+    final locale = Localizations.localeOf(context);
+    // 格式：年月日 时分（不显示秒）
+    // 中文格式：2025年11月3日 14:30
+    // 英文格式：Nov 3, 2025 14:30
+    final dateFormat = DateFormat.yMMMd(locale.toString()).add_Hm();
+    return dateFormat.format(deletedAt);
   }
 
   void _handleTap(BuildContext context) {
@@ -192,5 +235,13 @@ final parentTaskChildrenProvider =
     FutureProvider.family<List<Task>, int>((ref, parentId) async {
   final taskRepository = ref.read(taskRepositoryProvider);
   return taskRepository.listChildren(parentId);
+});
+
+/// Provider: 获取父任务的所有子任务（包括 trashed 状态）
+/// 用于在父任务展开时显示已删除的子任务
+final parentTaskChildrenIncludingTrashedProvider =
+    FutureProvider.family<List<Task>, int>((ref, parentId) async {
+  final taskRepository = ref.read(taskRepositoryProvider);
+  return taskRepository.listChildrenIncludingTrashed(parentId);
 });
 

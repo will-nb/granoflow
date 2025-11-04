@@ -293,6 +293,13 @@ class StubTaskRepository implements TaskRepository {
       .toList(growable: false);
 
   @override
+  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async =>
+      _tasks.values
+          .where((task) => task.parentId == parentId)
+          .sortedBy((task) => task.sortIndex)
+          .toList(growable: false);
+
+  @override
   Future<void> upsertTasks(List<Task> tasks) async {
     for (final task in tasks) {
       _tasks[task.id] = task;

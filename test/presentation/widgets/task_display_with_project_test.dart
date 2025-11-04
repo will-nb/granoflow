@@ -320,6 +320,9 @@ class _TestTaskRepository implements TaskRepository {
   Future<List<Task>> listChildren(int parentId) async => [];
 
   @override
+  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async => [];
+
+  @override
   Future<void> upsertTasks(List<Task> tasks) => throw UnimplementedError();
 
   @override

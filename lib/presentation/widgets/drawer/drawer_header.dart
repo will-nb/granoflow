@@ -64,11 +64,9 @@ class DrawerHeader extends StatelessWidget {
                         Flexible(
                           child: Text(
                             l10n.homeGreeting,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 0.3,
-                              height: 1.1, // 减少行高以节省空间
                               shadows: [
                                 Shadow(
                                   offset: const Offset(0, 1),
@@ -81,15 +79,13 @@ class DrawerHeader extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 0.5), // 进一步减少间距
+                        const SizedBox(height: 4),
                         Flexible(
                           child: Text(
                             l10n.homeTagline,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.w400,
-                              letterSpacing: 0.2,
-                              height: 1.1, // 减少行高以节省空间
                               shadows: [
                                 Shadow(
                                   offset: const Offset(0, 1),

@@ -40,6 +40,20 @@ class SwipeConfigs {
     rightColor: OceanBreezeColorSchemes.softPink,
   );
 
+  /// Tasks页面子任务的滑动配置
+  /// 左滑：完成任务（安全操作），右滑：移动到回收站（删除操作）
+  /// 用于 level > 1 的子任务
+  static const SwipeActionConfig tasksSubtaskConfig = SwipeActionConfig(
+    leftAction: SwipeActionType.complete,
+    rightAction: SwipeActionType.delete,
+    leftHintKey: 'taskCompleteAction',
+    rightHintKey: 'inboxDeleteAction',
+    leftIcon: Icons.check_circle,
+    rightIcon: Icons.delete,
+    leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark,
+  );
+
   /// 已完成/已归档页面的滑动配置
   /// 方向规范：与 inboxConfig 保持一致
   /// - 右滑（startToEnd，常用/安全）= 加入今日任务（quickPlan，绿色）

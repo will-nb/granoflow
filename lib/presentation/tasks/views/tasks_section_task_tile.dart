@@ -36,8 +36,10 @@ class TasksSectionTaskTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Tasks 页面统一使用 tasksConfig（推迟 + 归档）
-    final config = SwipeConfigs.tasksConfig;
+    // 根据任务层级选择配置：level > 1 的子任务使用删除，否则使用归档
+    final config = (taskLevel != null && taskLevel! > 1)
+        ? SwipeConfigs.tasksSubtaskConfig
+        : SwipeConfigs.tasksConfig;
 
     final tileContent = DismissibleTaskTile(
       key: ValueKey('tasks-section-${task.id}-${task.updatedAt.millisecondsSinceEpoch}'),

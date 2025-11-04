@@ -16,28 +16,42 @@ import 'completion_time_display.dart';
 /// - 不显示拖拽手柄（无拖拽功能）
 /// - 显示完成时间（endedAt）而不是截止日期（dueAt）
 /// - 支持滑动操作：右滑加入今日，左滑移动到回收站
+/// - 支持展开/收缩显示子任务
 class CompletedTaskTile extends ConsumerWidget {
   const CompletedTaskTile({
     super.key,
     required this.task,
+    this.depth = 0,
   });
 
   final Task task;
+  final int depth; // 任务层级深度（用于缩进显示）
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isCompleted = task.status == TaskStatus.completedActive;
+    
+    // 获取子任务列表
+    final childrenAsync = ref.watch(completedTaskChildrenProvider(task.id));
+    final hasChildren = childrenAsync.hasValue && childrenAsync.value!.isNotEmpty;
+    
+    // 获取展开状态
+    final expandedTaskIds = ref.watch(completedTasksExpandedProvider);
+    final isExpanded = expandedTaskIds.contains(task.id);
 
     // 构建任务内容，使用简化的 TaskRowContent，但替换完成时间显示
     final taskContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 第一行：标题
+        // 第一行：标题 + 展开/收缩按钮
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 缩进（子任务有缩进）
+            if (depth > 0)
+              SizedBox(width: depth * 16.0),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
@@ -51,11 +65,34 @@ class CompletedTaskTile extends ConsumerWidget {
                 ),
               ),
             ),
+            // 展开/收缩按钮（如果有子任务）
+            if (hasChildren)
+              IconButton(
+                icon: Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+                onPressed: () {
+                  final notifier = ref.read(completedTasksExpandedProvider.notifier);
+                  final currentExpanded = Set<int>.from(expandedTaskIds);
+                  if (isExpanded) {
+                    currentExpanded.remove(task.id);
+                  } else {
+                    currentExpanded.add(task.id);
+                  }
+                  notifier.state = currentExpanded;
+                },
+              ),
           ],
         ),
         // 第二行：标签 + 项目/里程碑 + 完成时间
         Padding(
-          padding: const EdgeInsets.only(top: 8),
+          padding: EdgeInsets.only(top: 8, left: depth * 16.0),
           child: Wrap(
             spacing: 8,
             runSpacing: 6,
@@ -75,6 +112,37 @@ class CompletedTaskTile extends ConsumerWidget {
             ],
           ),
         ),
+        // 子任务列表（展开时显示）
+        if (isExpanded && hasChildren)
+          Padding(
+            padding: EdgeInsets.only(top: 8, left: depth * 16.0),
+            child: childrenAsync.when(
+              data: (children) {
+                if (children.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: children.map((child) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: CompletedTaskTile(
+                        task: child,
+                        depth: depth + 1,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.all(8),
+                child: Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+          ),
       ],
     );
 

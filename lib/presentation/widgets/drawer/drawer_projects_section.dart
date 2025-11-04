@@ -3,15 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/app_providers.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 /// 抽屉项目区域组件
-/// 显示最近项目列表，处理项目点击和"添加项目"按钮
+/// 显示最近项目列表，处理项目点击和"管理项目"按钮
 class DrawerProjectsSection extends ConsumerWidget {
   const DrawerProjectsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectsAsync = ref.watch(projectsDomainProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -22,11 +24,10 @@ class DrawerProjectsSection extends ConsumerWidget {
           Row(
             children: [
               Text(
-                '最近项目',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                l10n.drawerRecentProjects,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
                 ),
               ),
               const Spacer(),
@@ -44,8 +45,8 @@ class DrawerProjectsSection extends ConsumerWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  '添加项目',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  l10n.drawerManageProjects,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -63,7 +64,7 @@ class DrawerProjectsSection extends ConsumerWidget {
                   padding: const EdgeInsets.only(left: 4),
                   child: Text(
                     '暂无项目',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(
                         context,
                       ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
@@ -101,7 +102,7 @@ class DrawerProjectsSection extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 project.title,
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: Theme.of(
                                         context,
@@ -120,7 +121,6 @@ class DrawerProjectsSection extends ConsumerWidget {
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.onSurfaceVariant,
-                                      fontSize: 11,
                                     ),
                               ),
                           ],
@@ -143,7 +143,7 @@ class DrawerProjectsSection extends ConsumerWidget {
               padding: const EdgeInsets.only(left: 4),
               child: Text(
                 '加载失败',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.error,
                 ),
               ),

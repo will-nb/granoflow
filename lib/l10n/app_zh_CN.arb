@@ -263,6 +263,14 @@
   "createSubtask": "创建子任务",
   "dailyAchievements": "今日成就",
   "dragToOverdueNotAllowed": "无法拖拽到已逾期区域",
+  "drawerManageProjects": "管理项目",
+  "@drawerManageProjects": {
+    "description": "抽屉中管理项目按钮文字"
+  },
+  "drawerRecentProjects": "最近项目",
+  "@drawerRecentProjects": {
+    "description": "抽屉中最近项目区域标题"
+  },
   "datePickerCustom": "选择其他日期",
   "datePickerMonthEnd": "月底",
   "datePickerOptionThisMonth": "本月月底",

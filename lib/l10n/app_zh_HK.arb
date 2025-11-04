@@ -101,6 +101,14 @@
   "createSubtask": "建立子任務",
   "dailyAchievements": "今日成就",
   "dragToOverdueNotAllowed": "無法拖曳到已逾期區域",
+  "drawerManageProjects": "管理項目",
+  "@drawerManageProjects": {
+    "description": "抽屜中管理項目按鈕文字"
+  },
+  "drawerRecentProjects": "最近項目",
+  "@drawerRecentProjects": {
+    "description": "抽屜中最近項目區域標題"
+  },
   "datePickerOptionThisMonth": "本月底",
   "datePickerOptionThisWeek": "本週結束",
   "datePickerOptionToday": "今天",

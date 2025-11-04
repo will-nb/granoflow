@@ -76,6 +76,10 @@ abstract class TaskRepository {
 
   Future<List<Task>> listChildren(int parentId);
 
+  /// 列出父任务的所有子任务（包括 trashed 状态）
+  /// 用于在父任务展开时显示已删除的子任务
+  Future<List<Task>> listChildrenIncludingTrashed(int parentId);
+
   Future<void> upsertTasks(List<Task> tasks);
 
   Future<List<Task>> listAll();
@@ -497,6 +501,16 @@ class IsarTaskRepository implements TaskRepository {
 
   @override
   Future<void> updateTask(int taskId, TaskUpdate payload) async {
+    // 如果状态可能发生变化，在事务外先获取所有后代任务
+    final oldEntity = await _isar.taskEntitys.get(taskId);
+    final oldStatus = oldEntity?.status;
+    final statusChanged = payload.status != null && oldStatus != payload.status;
+    List<Task> descendants = [];
+    
+    if (statusChanged) {
+      descendants = await _getAllDescendantsIncludingTrashed(taskId);
+    }
+    
     await _isar.writeTxn(() async {
       final entity = await _isar.taskEntitys.get(taskId);
       if (entity == null) {
@@ -507,11 +521,39 @@ class IsarTaskRepository implements TaskRepository {
       // 应用更新逻辑
       _applyTaskUpdate(entity, payload, taskId: taskId);
 
+      final newStatus = entity.status;
+      final operationTime = entity.updatedAt; // 使用 _applyTaskUpdate 中设置的时间
+
       await _isar.taskEntitys.put(entity);
       if (kDebugMode) {
         debugPrint(
           '[DnD] {event: repo:updateTask, id: $taskId, clearParent: ${payload.clearParent == true}, oldParentId: $oldParentId, newParentId: ${entity.parentId}, dueAt: ${entity.dueAt}, sortIndex: ${entity.sortIndex}, status: ${entity.status}}',
         );
+      }
+
+      // 如果状态发生变化，同步所有子任务的状态和时间字段
+      if (statusChanged) {
+        DateTime? endedAt;
+        DateTime? archivedAt;
+
+        if (newStatus == TaskStatus.completedActive) {
+          endedAt = entity.endedAt ?? operationTime;
+        }
+
+        if (newStatus == TaskStatus.archived) {
+          archivedAt = entity.archivedAt ?? operationTime;
+        }
+
+        // 在事务中同步所有子任务的状态和时间字段
+        if (descendants.isNotEmpty) {
+          _syncDescendantsStatusInTransaction(
+            descendants,
+            newStatus,
+            operationTime,
+            endedAt: endedAt,
+            archivedAt: archivedAt,
+          );
+        }
       }
     });
   }
@@ -546,6 +588,9 @@ class IsarTaskRepository implements TaskRepository {
     required int taskId,
     required TaskStatus status,
   }) async {
+    // 在事务外获取所有后代任务（避免在事务中异步查询）
+    final descendants = await _getAllDescendantsIncludingTrashed(taskId);
+    
     await _isar.writeTxn(() async {
       final entity = await _isar.taskEntitys.get(taskId);
       if (entity == null) {
@@ -564,31 +609,41 @@ class IsarTaskRepository implements TaskRepository {
         );
       }
       
+      // 获取统一的操作时间
+      final operationTime = _clock();
+      
       entity
         ..status = status
-        ..updatedAt = _clock();
+        ..updatedAt = operationTime;
       
       // 触发器逻辑：如果状态从非完成状态变为 completedActive，自动记录完成时间
       final wasNotCompleted = oldStatus != TaskStatus.completedActive;
       final isNowCompleted = status == TaskStatus.completedActive;
+      DateTime? endedAt;
       
       if (wasNotCompleted && isNowCompleted && entity.endedAt == null) {
-        entity.endedAt = _clock();
+        entity.endedAt = operationTime;
+        endedAt = operationTime;
+      } else if (wasNotCompleted && isNowCompleted) {
+        endedAt = entity.endedAt;
       }
       
       // 触发器逻辑：如果状态从非归档状态变为 archived，自动记录归档时间
       final wasNotArchived = oldStatus != TaskStatus.archived;
       final isNowArchived = status == TaskStatus.archived;
+      DateTime? archivedAt;
       
       if (wasNotArchived && isNowArchived) {
         if (entity.archivedAt == null) {
-          entity.archivedAt = _clock();
+          entity.archivedAt = operationTime;
+          archivedAt = operationTime;
           if (kDebugMode) {
             debugPrint(
               '[ArchiveTask] markStatus: ArchivedAt trigger fired, set to ${entity.archivedAt}',
             );
           }
         } else {
+          archivedAt = entity.archivedAt;
           if (kDebugMode) {
             debugPrint(
               '[ArchiveTask] markStatus: ArchivedAt already set to ${entity.archivedAt}, not updating',
@@ -602,6 +657,17 @@ class IsarTaskRepository implements TaskRepository {
       if (kDebugMode && status == TaskStatus.archived) {
         debugPrint(
           '[ArchiveTask] markStatus: taskId=$taskId saved, finalArchivedAt=${entity.archivedAt}',
+        );
+      }
+      
+      // 在事务中同步所有子任务的状态和时间字段
+      if (descendants.isNotEmpty) {
+        _syncDescendantsStatusInTransaction(
+          descendants,
+          status,
+          operationTime,
+          endedAt: endedAt,
+          archivedAt: archivedAt,
         );
       }
     });
@@ -626,15 +692,31 @@ class IsarTaskRepository implements TaskRepository {
 
   @override
   Future<void> softDelete(int taskId) async {
+    // 在事务外获取所有后代任务（避免在事务中异步查询）
+    final descendants = await _getAllDescendantsIncludingTrashed(taskId);
+    
     await _isar.writeTxn(() async {
       final entity = await _isar.taskEntitys.get(taskId);
       if (entity == null || entity.templateLockCount > 0) {
         return;
       }
+      
+      // 获取统一的操作时间
+      final operationTime = _clock();
+      
       entity
         ..status = TaskStatus.trashed
-        ..updatedAt = _clock();
+        ..updatedAt = operationTime;
       await _isar.taskEntitys.put(entity);
+      
+      // 在事务中同步所有子任务为 trashed 状态
+      if (descendants.isNotEmpty) {
+        _syncDescendantsStatusInTransaction(
+          descendants,
+          TaskStatus.trashed,
+          operationTime,
+        );
+      }
     });
   }
 
@@ -766,6 +848,37 @@ class IsarTaskRepository implements TaskRepository {
   }
 
   @override
+  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async {
+    final children = await _isar.taskEntitys
+        .filter()
+        .parentIdEqualTo(parentId)
+        .sortBySortIndex()
+        .thenByCreatedAtDesc()
+        .findAll();
+    // 只排除里程碑（里程碑只能在项目详情页显示），包含 trashed 状态的任务
+    return children
+        .where(
+          (entity) => entity.milestoneId == null, // 排除里程碑
+        )
+        .map(_toDomain)
+        .toList(growable: false);
+  }
+
+  /// 递归获取所有后代任务（包括 trashed 状态）
+  /// 
+  /// [parentId] 父任务 ID
+  /// 返回所有后代任务的列表（包括 trashed 状态，排除里程碑）
+  Future<List<Task>> _getAllDescendantsIncludingTrashed(int parentId) async {
+    final result = <Task>[];
+    final children = await listChildrenIncludingTrashed(parentId);
+    for (final child in children) {
+      result.add(child);
+      result.addAll(await _getAllDescendantsIncludingTrashed(child.id));
+    }
+    return result;
+  }
+
+  @override
   Future<void> upsertTasks(List<Task> tasks) async {
     await _isar.writeTxn(() async {
       for (final task in tasks) {
@@ -848,10 +961,11 @@ class IsarTaskRepository implements TaskRepository {
     String? milestoneId,
     bool? showNoProject,
   }) async {
-    // 查询所有已完成任务
+    // 查询所有已完成任务（只查询根任务，parentId == null）
     final allTasks = await _isar.taskEntitys
         .filter()
         .statusEqualTo(TaskStatus.completedActive)
+        .parentIdIsNull()
         .findAll();
 
     // 转换为 Domain 模型
@@ -963,10 +1077,11 @@ class IsarTaskRepository implements TaskRepository {
       );
     }
     
-    // 查询所有已归档任务
+    // 查询所有已归档任务（只查询根任务，parentId == null）
     final allTasks = await _isar.taskEntitys
         .filter()
         .statusEqualTo(TaskStatus.archived)
+        .parentIdIsNull()
         .findAll();
 
     if (kDebugMode) {
@@ -1082,17 +1197,21 @@ class IsarTaskRepository implements TaskRepository {
 
   @override
   Future<int> countCompletedTasks() async {
+    // 只统计根任务（parentId == null）
     return await _isar.taskEntitys
         .filter()
         .statusEqualTo(TaskStatus.completedActive)
+        .parentIdIsNull()
         .count();
   }
 
   @override
   Future<int> countArchivedTasks() async {
+    // 只统计根任务（parentId == null）
     final count = await _isar.taskEntitys
         .filter()
         .statusEqualTo(TaskStatus.archived)
+        .parentIdIsNull()
         .count();
     
     if (kDebugMode) {
@@ -1247,6 +1366,60 @@ class IsarTaskRepository implements TaskRepository {
   }
 
   /// 判断是否为普通任务（没有关联项目或里程碑）
+  /// 同步所有子任务的状态和时间字段（在事务中执行）
+  /// 
+  /// [parentTaskId] 父任务 ID
+  /// [status] 要设置的状态
+  /// [operationTime] 操作时间（用于 updatedAt）
+  /// [endedAt] 完成时间（如果状态是 completedActive）
+  /// [archivedAt] 归档时间（如果状态是 archived）
+  /// 
+  /// 注意：此方法必须在事务中调用，且需要先获取后代任务列表
+  void _syncDescendantsStatusInTransaction(
+    List<Task> descendants,
+    TaskStatus status,
+    DateTime operationTime, {
+    DateTime? endedAt,
+    DateTime? archivedAt,
+  }) {
+    for (final descendant in descendants) {
+      // 在事务中获取实体（已在事务中）
+      final entity = _isar.taskEntitys.getSync(descendant.id);
+      if (entity == null) continue;
+
+      // 保存旧状态，用于触发器逻辑判断
+      final oldStatus = entity.status;
+
+      // 设置状态和更新时间
+      entity.status = status;
+      entity.updatedAt = operationTime;
+
+      // 触发器逻辑：如果状态从非完成状态变为 completedActive，设置 endedAt
+      final wasNotCompleted = oldStatus != TaskStatus.completedActive;
+      final isNowCompleted = status == TaskStatus.completedActive;
+      if (wasNotCompleted && isNowCompleted) {
+        if (endedAt != null) {
+          entity.endedAt = endedAt;
+        } else if (entity.endedAt == null) {
+          entity.endedAt = operationTime;
+        }
+      }
+
+      // 触发器逻辑：如果状态从非归档状态变为 archived，设置 archivedAt
+      final wasNotArchived = oldStatus != TaskStatus.archived;
+      final isNowArchived = status == TaskStatus.archived;
+      if (wasNotArchived && isNowArchived) {
+        if (archivedAt != null) {
+          entity.archivedAt = archivedAt;
+        } else if (entity.archivedAt == null) {
+          entity.archivedAt = operationTime;
+        }
+      }
+
+      _isar.taskEntitys.putSync(entity);
+    }
+  }
+
   bool _isRegularTask(TaskEntity entity) {
     return entity.projectId == null && entity.milestoneId == null;
   }

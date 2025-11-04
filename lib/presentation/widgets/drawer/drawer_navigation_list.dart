@@ -13,22 +13,14 @@ class DrawerNavigationList extends StatelessWidget {
     return Column(
       children: SidebarDestinations.values.map((destination) {
         return ListTile(
-          dense: true,
-          visualDensity: VisualDensity.compact,
-          minVerticalPadding: 8.0,
           leading: Icon(
             destination.icon,
             color: Theme.of(context).colorScheme.onSurface,
-            size: 20.0,
           ),
           title: Text(
             destination.label(context),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 14.0,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 0.1,
-              height: 1.3,
             ),
           ),
           onTap: () {

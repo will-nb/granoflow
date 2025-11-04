@@ -127,6 +127,12 @@ class _TestTaskRepository extends TaskRepository {
       .toList(growable: false);
 
   @override
+  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async =>
+      tasks.values
+          .where((task) => task.parentId == parentId)
+          .toList(growable: false);
+
+  @override
   Future<List<Task>> listAll() async => tasks.values.toList(growable: false);
 
   // ===== Unused methods throw to surface accidental calls =====

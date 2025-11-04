@@ -21,12 +21,17 @@ class TaskLeafTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final indentation = depth * 16.0;
+    
+    // 根据深度选择配置：depth > 0 的子任务使用删除，否则使用归档
+    final config = depth > 0
+        ? SwipeConfigs.tasksSubtaskConfig
+        : SwipeConfigs.tasksConfig;
 
     return Padding(
       padding: EdgeInsets.only(left: indentation),
       child: DismissibleTaskTile(
         task: task,
-        config: SwipeConfigs.tasksConfig,
+        config: config,
         direction: DismissDirection.horizontal,
         onLeftAction: (task) => SwipeActionHandler.handleAction(
           context,
@@ -37,7 +42,7 @@ class TaskLeafTile extends ConsumerWidget {
         onRightAction: (task) => SwipeActionHandler.handleAction(
           context,
           ref,
-          SwipeActionType.archive,
+          config.rightAction,
           task,
         ),
         child: TaskTileContent(task: task),
