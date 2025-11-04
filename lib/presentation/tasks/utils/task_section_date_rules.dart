@@ -27,8 +27,8 @@ class TaskSectionDateRules {
         final nextMonth = DateTime(today.year, today.month + 1, 1);
         return DateTime(nextMonth.year, nextMonth.month, nextMonth.day);
       case TaskSection.later:
-        final nextNextMonth = DateTime(today.year, today.month + 2, 1);
-        return DateTime(nextNextMonth.year, nextNextMonth.month, nextNextMonth.day);
+        final nextMonth = DateTime(today.year, today.month + 1, 1);
+        return DateTime(nextMonth.year, nextMonth.month, nextMonth.day);
       case TaskSection.completed:
       case TaskSection.archived:
       case TaskSection.trash:

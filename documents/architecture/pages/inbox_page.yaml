@@ -195,13 +195,13 @@ calls:
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
 - lib/core/theme/app_spacing_tokens.dart
-- lib/data/models/task_template.dart
 - lib/generated/l10n/app_localizations.dart
 - lib/presentation/navigation/navigation_destinations.dart
 - lib/presentation/widgets/error_banner.dart
 - lib/presentation/widgets/gradient_page_scaffold.dart
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/page_app_bar.dart
+- lib/presentation/widgets/task_filter_collapsible.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

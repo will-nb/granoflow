@@ -200,6 +200,7 @@ calls:
 - lib/presentation/widgets/gradient_page_scaffold.dart
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/page_app_bar.dart
+- lib/presentation/widgets/task_filter_collapsible.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

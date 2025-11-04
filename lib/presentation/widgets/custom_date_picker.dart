@@ -22,6 +22,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../generated/l10n/app_localizations.dart';
+import 'custom_date_picker/custom_date_picker_actions.dart';
+import 'custom_date_picker/custom_date_picker_calendar.dart';
 
 /// 自定义日期选择对话框，支持在特殊日期下方显示标签
 /// 从底部弹出的 BottomSheet 形式
@@ -253,7 +255,7 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
             // 快捷选项按钮
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: _QuickDateOptions(
+              child: QuickDateOptions(
                 onDateSelected: (date) {
                   Navigator.pop(context, date);
                 },
@@ -263,7 +265,7 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
             const Divider(height: 1),
 
             // 日历网格（根据内容自适应高度）
-            _CalendarGrid(
+            CalendarGrid(
               displayedMonth: _displayedMonth,
               selectedDate: _selectedDate,
               firstDate: widget.firstDate,
@@ -307,264 +309,4 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
   }
 }
 
-/// 快捷日期选项按钮组
-class _QuickDateOptions extends StatelessWidget {
-  const _QuickDateOptions({
-    required this.onDateSelected,
-  });
-
-  final ValueChanged<DateTime> onDateSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    final tomorrow = today.add(const Duration(days: 1));
-    
-    // 本周六
-    final daysUntilSaturday = (DateTime.saturday - now.weekday) % 7;
-    final thisSaturday = today.add(
-      Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday),
-    );
-    
-    // 当月最后一天
-    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-    final monthEnd = DateTime(
-      lastDayOfMonth.year,
-      lastDayOfMonth.month,
-      lastDayOfMonth.day,
-      23,
-      59,
-      59,
-    );
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      children: [
-        _QuickOptionChip(
-          label: l10n.dateToday,
-          icon: Icons.today,
-          onTap: () => onDateSelected(today),
-          color: theme.colorScheme.primary,
-        ),
-        _QuickOptionChip(
-          label: l10n.dateTomorrow,
-          icon: Icons.wb_sunny_outlined,
-          onTap: () => onDateSelected(tomorrow),
-          color: theme.colorScheme.secondary,
-        ),
-        _QuickOptionChip(
-          label: l10n.datePickerThisWeek,
-          icon: Icons.event_note,
-          onTap: () => onDateSelected(thisSaturday),
-          color: theme.colorScheme.tertiary,
-        ),
-        _QuickOptionChip(
-          label: l10n.datePickerMonthEnd,
-          icon: Icons.calendar_month,
-          onTap: () => onDateSelected(monthEnd),
-          color: theme.colorScheme.error,
-        ),
-      ],
-    );
-  }
-}
-
-/// 快捷选项芯片
-class _QuickOptionChip extends StatelessWidget {
-  const _QuickOptionChip({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-    required this.color,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: color,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CalendarGrid extends StatelessWidget {
-  const _CalendarGrid({
-    required this.displayedMonth,
-    required this.selectedDate,
-    required this.firstDate,
-    required this.lastDate,
-    required this.onDateSelected,
-    required this.getSpecialLabel,
-  });
-
-  final DateTime displayedMonth;
-  final DateTime selectedDate;
-  final DateTime firstDate;
-  final DateTime lastDate;
-  final ValueChanged<DateTime> onDateSelected;
-  final String? Function(DateTime) getSpecialLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final daysInMonth = DateTime(displayedMonth.year, displayedMonth.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(displayedMonth.year, displayedMonth.month, 1);
-    final weekdayOfFirstDay = firstDayOfMonth.weekday % 7; // 0=Sunday, 1=Monday, ...
-
-    final days = <Widget>[];
-
-    // 添加空白占位符
-    for (int i = 0; i < weekdayOfFirstDay; i++) {
-      days.add(const SizedBox());
-    }
-
-    // 添加日期
-    for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(displayedMonth.year, displayedMonth.month, day);
-      final isSelected = date.year == selectedDate.year &&
-          date.month == selectedDate.month &&
-          date.day == selectedDate.day;
-      final isEnabled = !date.isBefore(firstDate) && !date.isAfter(lastDate);
-      final specialLabel = getSpecialLabel(date);
-      final today = DateTime.now();
-      final isToday = date.year == today.year &&
-          date.month == today.month &&
-          date.day == today.day;
-
-      days.add(_DayCell(
-        day: day,
-        isSelected: isSelected,
-        isEnabled: isEnabled,
-        isToday: isToday,
-        specialLabel: specialLabel,
-        onTap: isEnabled ? () => onDateSelected(date) : null,
-      ));
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: GridView.count(
-        crossAxisCount: 7,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: 2,
-        crossAxisSpacing: 2,
-        childAspectRatio: 0.85,
-        children: days,
-      ),
-    );
-  }
-}
-
-class _DayCell extends StatelessWidget {
-  const _DayCell({
-    required this.day,
-    required this.isSelected,
-    required this.isEnabled,
-    required this.isToday,
-    this.specialLabel,
-    this.onTap,
-  });
-
-  final int day;
-  final bool isSelected;
-  final bool isEnabled;
-  final bool isToday;
-  final String? specialLabel;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        margin: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary
-              : isToday
-                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-                  : null,
-          borderRadius: BorderRadius.circular(20),
-          border: isToday && !isSelected
-              ? Border.all(color: theme.colorScheme.primary, width: 1)
-              : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '$day',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: isSelected
-                    ? theme.colorScheme.onPrimary
-                    : isEnabled
-                        ? theme.colorScheme.onSurface
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.38),
-                fontWeight: isSelected || isToday ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-            if (specialLabel != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                specialLabel!,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: isSelected
-                      ? theme.colorScheme.onPrimary.withValues(alpha: 0.9)
-                      : theme.colorScheme.primary,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
+// _QuickDateOptions, _QuickOptionChip, _CalendarGrid, _DayCell 已移至独立文件

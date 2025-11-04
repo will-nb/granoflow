@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/core/services/task_service.dart';
-import 'package:granoflow/data/models/tag.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/projects/project_creation_sheet.dart';
 
@@ -16,9 +14,6 @@ void main() {
       ProviderScope(
         overrides: [
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-          urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

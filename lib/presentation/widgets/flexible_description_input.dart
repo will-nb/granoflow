@@ -44,6 +44,9 @@ class FlexibleDescriptionInput extends StatefulWidget {
   /// 最大行数 (Maximum lines)
   final int maxLines;
 
+  /// 是否显示字符计数器 (Whether to show character counter)
+  final bool showCounter;
+
   const FlexibleDescriptionInput({
     super.key,
     required this.controller,
@@ -55,6 +58,7 @@ class FlexibleDescriptionInput extends StatefulWidget {
     this.enabled = true,
     this.minLines = 3,
     this.maxLines = 8,
+    this.showCounter = true,
   }) : assert(softLimit <= hardLimit, '软限制不能大于硬限制 (Soft limit must not exceed hard limit)');
 
   @override
@@ -232,15 +236,17 @@ class _FlexibleDescriptionInputState extends State<FlexibleDescriptionInput>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // 字符计数器 Chip（右上）(Character counter chip at top)
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: CharacterCounterChip(
-                                    currentCount: _controller.text.length,
-                                    softLimit: widget.softLimit,
-                                    hardLimit: widget.hardLimit,
+                                if (widget.showCounter) ...[
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: CharacterCounterChip(
+                                      currentCount: _controller.text.length,
+                                      softLimit: widget.softLimit,
+                                      hardLimit: widget.hardLimit,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
+                                  const SizedBox(height: 8),
+                                ],
                                 
                                 // 文本输入框 (Text input field)
                                 TextField(

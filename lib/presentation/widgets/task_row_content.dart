@@ -15,6 +15,7 @@ import 'tag_data.dart';
 import '../../data/models/tag.dart';
 import 'project_milestone_picker.dart';
 import 'inline_project_milestone_display.dart';
+import 'task_row_content/task_row_title_editor.dart';
 
 /// 通用的任务行内容组件，支持内联编辑标签和截止日期
 /// 可在Tasks、Inbox、Projects子任务、轻量任务等多个场景复用
@@ -47,78 +48,25 @@ class TaskRowContent extends ConsumerStatefulWidget {
 }
 
 class _TaskRowContentState extends ConsumerState<TaskRowContent> {
-  late TextEditingController _titleController;
-  late FocusNode _titleFocusNode;
-  bool _isEditingTitle = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.task.title);
-    _titleFocusNode = FocusNode();
-    _titleFocusNode.addListener(_onFocusChange);
-  }
 
-  @override
-  void dispose() {
-    _titleFocusNode.removeListener(_onFocusChange);
-    _titleController.dispose();
-    _titleFocusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(TaskRowContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // 如果任务标题从外部更新，同步到控制器
-    if (widget.task.title != oldWidget.task.title && !_isEditingTitle) {
-      _titleController.text = widget.task.title;
-    }
-  }
-
-  void _onFocusChange() {
-    if (!_titleFocusNode.hasFocus && _isEditingTitle) {
-      _saveTitle();
-    }
-  }
-
-  Future<void> _saveTitle() async {
-    final newTitle = _titleController.text.trim();
-    if (newTitle.isEmpty) {
-      // 如果为空，恢复原标题
-      _titleController.text = widget.task.title;
-      setState(() {
-        _isEditingTitle = false;
-      });
-      return;
-    }
-
-    if (newTitle != widget.task.title) {
-      try {
-        final taskService = ref.read(taskServiceProvider);
-        await taskService.updateDetails(
-          taskId: widget.task.id,
-          payload: TaskUpdate(title: newTitle),
+  Future<void> _saveTitle(String newTitle) async {
+    try {
+      final taskService = ref.read(taskServiceProvider);
+      await taskService.updateDetails(
+        taskId: widget.task.id,
+        payload: TaskUpdate(title: newTitle),
+      );
+    } catch (error) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.taskUpdateError}: $error'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
-      } catch (error) {
-        // 如果保存失败，恢复原标题
-        _titleController.text = widget.task.title;
-        if (mounted) {
-          final l10n = AppLocalizations.of(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${l10n.taskUpdateError}: $error'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
       }
-    }
-
-    if (mounted) {
-      setState(() {
-        _isEditingTitle = false;
-      });
     }
   }
 
@@ -132,89 +80,20 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
       mainAxisSize: MainAxisSize.min,
       children: [
         // 第一行：执行图标 + 标题 + 转换按钮
-        _buildTitleRow(context, theme),
+        TaskRowTitleEditor(
+          task: widget.task,
+          leading: widget.leading,
+          trailing: widget.trailing,
+          showConvertAction: widget.showConvertAction,
+          onConvertToProject: widget.onConvertToProject,
+          useBodyText: widget.useBodyText,
+          onTitleChanged: _saveTitle,
+        ),
 
         // 第二行：标签 + 截止日期（可内联编辑）
         // trashed 状态不显示标签和截止日期
         if (!isTrashed)
           _buildTagsAndDeadlineRow(context, ref, theme),
-      ],
-    );
-  }
-
-  Widget _buildTitleRow(BuildContext context, ThemeData theme) {
-    final l10n = AppLocalizations.of(context);
-    final isCompleted = widget.task.status == TaskStatus.completedActive;
-    final isTrashed = widget.task.status == TaskStatus.trashed;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.leading != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 12, top: 4),
-            child: widget.leading!,
-          ),
-        Expanded(
-          child: _isEditingTitle
-              ? TextField(
-                  controller: _titleController,
-                  focusNode: _titleFocusNode,
-                  style: (widget.useBodyText
-                      ? theme.textTheme.bodyLarge
-                      : theme.textTheme.titleMedium),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 4),
-                    isDense: true,
-                  ),
-                  maxLines: null,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _saveTitle(),
-                )
-              : GestureDetector(
-                  onTap: isTrashed ? null : () {
-                    setState(() {
-                      _isEditingTitle = true;
-                    });
-                    // 延迟聚焦，确保TextField已经构建
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _titleFocusNode.requestFocus();
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      widget.task.title,
-                      style:
-                          (widget.useBodyText
-                                  ? theme.textTheme.bodyLarge
-                                  : theme.textTheme.titleMedium)
-                              ?.copyWith(
-                                decoration: (isCompleted || isTrashed)
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: isTrashed
-                                    ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
-                                    : null,
-                              ),
-                    ),
-                  ),
-                ),
-        ),
-        if (widget.trailing != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 8, top: 4),
-            child: widget.trailing!,
-          ),
-        if (widget.showConvertAction)
-          IconButton(
-            onPressed: widget.onConvertToProject,
-            tooltip: l10n.projectConvertTooltip,
-            icon: Icon(Icons.autorenew, color: theme.colorScheme.primary),
-            padding: const EdgeInsets.all(4),
-            constraints: const BoxConstraints(),
-          ),
       ],
     );
   }

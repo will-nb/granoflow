@@ -38,6 +38,11 @@ class ProjectService {
   Future<Project?> findByProjectId(String projectId) =>
       _projects.findByProjectId(projectId);
 
+  Future<void> updateProject(int isarId, ProjectUpdate update) async {
+    await _projects.update(isarId, update);
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
   Future<Milestone?> findMilestoneById(String milestoneId) =>
       _milestones.findByMilestoneId(milestoneId);
 
@@ -182,10 +187,15 @@ class ProjectService {
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
-  Future<void> archiveProject(int isarId) async {
+  Future<void> archiveProject(int isarId, {bool archiveActiveTasks = false}) async {
     final project = await _projects.findByIsarId(isarId);
     if (project == null) {
       throw StateError('Project not found: $isarId');
+    }
+
+    // 如果选择归档活跃任务，则归档所有活跃任务及其子任务
+    if (archiveActiveTasks) {
+      await _archiveActiveTasksForProject(project.projectId);
     }
 
     final logs = project.logs.toList(growable: true)
@@ -199,8 +209,126 @@ class ProjectService {
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
-  Future<void> deleteProject(int isarId) {
-    return _projects.delete(isarId);
+  Future<void> deleteProject(int isarId) async {
+    final project = await _projects.findByIsarId(isarId);
+    if (project == null) {
+      throw StateError('Project not found: $isarId');
+    }
+
+    // 删除项目下所有任务（包括子任务）
+    await _deleteAllTasksForProject(project.projectId);
+
+    await _projects.delete(isarId);
+  }
+
+  Future<void> completeProject(int isarId, {bool archiveActiveTasks = false}) async {
+    final project = await _projects.findByIsarId(isarId);
+    if (project == null) {
+      throw StateError('Project not found: $isarId');
+    }
+
+    // 如果选择归档活跃任务，则归档所有活跃任务及其子任务
+    if (archiveActiveTasks) {
+      await _archiveActiveTasksForProject(project.projectId);
+    }
+
+    final logs = project.logs.toList(growable: true)
+      ..add(ProjectLogEntry(
+        timestamp: _clock(),
+        action: 'completed',
+        previous: project.status.name,
+        next: TaskStatus.completedActive.name,
+      ));
+
+    await _projects.update(
+      isarId,
+      ProjectUpdate(status: TaskStatus.completedActive, logs: logs),
+    );
+
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  Future<void> trashProject(int isarId) async {
+    final project = await _projects.findByIsarId(isarId);
+    if (project == null) {
+      throw StateError('Project not found: $isarId');
+    }
+
+    // 将项目下所有任务移入回收站（包括子任务）
+    await _trashAllTasksForProject(project.projectId);
+
+    final logs = project.logs.toList(growable: true)
+      ..add(ProjectLogEntry(
+        timestamp: _clock(),
+        action: 'trashed',
+        previous: project.status.name,
+        next: TaskStatus.trashed.name,
+      ));
+
+    await _projects.update(
+      isarId,
+      ProjectUpdate(status: TaskStatus.trashed, logs: logs),
+    );
+
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  Future<void> restoreProject(int isarId) async {
+    final project = await _projects.findByIsarId(isarId);
+    if (project == null) {
+      throw StateError('Project not found: $isarId');
+    }
+
+    if (project.status != TaskStatus.trashed) {
+      throw StateError(
+        'Project is not in trash: current status is ${project.status.name}',
+      );
+    }
+
+    final logs = project.logs.toList(growable: true)
+      ..add(ProjectLogEntry(
+        timestamp: _clock(),
+        action: 'restored',
+        previous: project.status.name,
+        next: TaskStatus.pending.name,
+      ));
+
+    await _projects.update(
+      isarId,
+      ProjectUpdate(status: TaskStatus.pending, logs: logs),
+    );
+
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
+  }
+
+  /// 重新激活项目（将已完成或归档的项目恢复到 pending 状态）
+  Future<void> reactivateProject(int isarId) async {
+    final project = await _projects.findByIsarId(isarId);
+    if (project == null) {
+      throw StateError('Project not found: $isarId');
+    }
+
+    if (project.status != TaskStatus.completedActive &&
+        project.status != TaskStatus.archived) {
+      throw StateError(
+        'Project cannot be reactivated: current status is ${project.status.name}',
+      );
+    }
+
+    final logs = project.logs.toList(growable: true)
+      ..add(ProjectLogEntry(
+        timestamp: _clock(),
+        action: 'reactivated',
+        previous: project.status.name,
+        next: TaskStatus.pending.name,
+      ));
+
+    await _projects.update(
+      isarId,
+      ProjectUpdate(status: TaskStatus.pending, logs: logs),
+    );
+
+    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
   Future<List<Task>> listTasksForProject(String projectId) async {
@@ -208,6 +336,67 @@ class ProjectService {
     return allTasks
         .where((task) => task.projectId == projectId)
         .toList(growable: false);
+  }
+
+  /// 检查项目下是否有活跃任务
+  Future<bool> hasActiveTasks(String projectId) async {
+    final tasks = await listTasksForProject(projectId);
+    return tasks.any((task) =>
+        task.status == TaskStatus.pending || task.status == TaskStatus.doing);
+  }
+
+  /// 递归获取任务的所有后代任务（包括子任务的子任务）
+  Future<List<Task>> _getAllDescendants(int taskId) async {
+    final result = <Task>[];
+    final children = await _tasks.listChildren(taskId);
+    for (final child in children) {
+      result.add(child);
+      result.addAll(await _getAllDescendants(child.id));
+    }
+    return result;
+  }
+
+  /// 归档项目下所有活跃任务及其子任务
+  Future<void> _archiveActiveTasksForProject(String projectId) async {
+    final tasks = await listTasksForProject(projectId);
+    final activeTasks = tasks.where((task) =>
+        task.status == TaskStatus.pending || task.status == TaskStatus.doing);
+    
+    for (final task in activeTasks) {
+      // archiveTask会自动归档所有子任务
+      await _tasks.archiveTask(task.id);
+    }
+  }
+
+  /// 将项目下所有任务移入回收站（包括子任务）
+  Future<void> _trashAllTasksForProject(String projectId) async {
+    final tasks = await listTasksForProject(projectId);
+    
+    for (final task in tasks) {
+      // softDelete会自动将子任务移入回收站
+      await _tasks.softDelete(task.id);
+    }
+  }
+
+  /// 删除项目下所有任务（包括子任务）
+  Future<void> _deleteAllTasksForProject(String projectId) async {
+    final tasks = await listTasksForProject(projectId);
+    
+    // 收集所有需要删除的任务ID（包括子任务）
+    final taskIdsToDelete = <int>{};
+    for (final task in tasks) {
+      taskIdsToDelete.add(task.id);
+      final descendants = await _getAllDescendants(task.id);
+      taskIdsToDelete.addAll(descendants.map((t) => t.id));
+    }
+    
+    // 将所有任务标记为 pseudoDeleted
+    for (final taskId in taskIdsToDelete) {
+      await _tasks.markStatus(taskId: taskId, status: TaskStatus.pseudoDeleted);
+    }
+    
+    // 立即清理标记为 pseudoDeleted 的任务
+    await _tasks.purgeObsolete(DateTime.now());
   }
 
   Future<void> _assignProjectToDescendants(int taskId, String projectId) async {

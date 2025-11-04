@@ -15,6 +15,7 @@ import '../../widgets/reorderable_proxy_decorator.dart';
 import '../../widgets/task_drag_intent_helper.dart';
 import '../../common/drag/task_drag_intent_target.dart';
 import 'task_tree_tile.dart';
+import 'task_tree_tile/task_tree_tile_header.dart';
 
 class TaskSectionTaskModeList extends ConsumerStatefulWidget {
   const TaskSectionTaskModeList({

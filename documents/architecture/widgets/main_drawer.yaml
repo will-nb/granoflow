@@ -130,7 +130,6 @@ widget_imports:
 - drawer/drawer_header.dart
 - drawer/drawer_navigation_list.dart
 - drawer/drawer_projects_section.dart
-- drawer/drawer_tags_section.dart
 widget_categories:
   ui_components:
   - name: componentName

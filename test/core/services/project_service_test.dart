@@ -13,6 +13,7 @@ import 'package:granoflow/data/repositories/milestone_repository.dart';
 import 'package:granoflow/data/repositories/project_repository.dart';
 import 'package:granoflow/data/repositories/metric_repository.dart';
 import 'package:granoflow/data/repositories/focus_session_repository.dart';
+import 'package:granoflow/core/providers/project_filter_providers.dart';
 
 import '../../presentation/test_support/fakes.dart';
 
@@ -131,6 +132,107 @@ void main() {
         expect(reassignedChild?.parentId, root.id);
       },
     );
+
+    test('completeProject updates status to completedActive', () async {
+      final project = await service.createProject(
+        ProjectBlueprint(
+          title: 'Test Project',
+          dueDate: DateTime(2024, 3, 1),
+          milestones: <ProjectMilestoneBlueprint>[],
+        ),
+      );
+
+      await service.completeProject(project.id);
+
+      final updated = await projectRepository.findByIsarId(project.id);
+      expect(updated, isNotNull);
+      expect(updated!.status, TaskStatus.completedActive);
+      expect(updated.logs.last.action, 'completed');
+      expect(updated.logs.last.previous, TaskStatus.pending.name);
+      expect(updated.logs.last.next, TaskStatus.completedActive.name);
+    });
+
+    test('trashProject updates status to trashed', () async {
+      final project = await service.createProject(
+        ProjectBlueprint(
+          title: 'Test Project',
+          dueDate: DateTime(2024, 3, 1),
+          milestones: <ProjectMilestoneBlueprint>[],
+        ),
+      );
+
+      await service.trashProject(project.id);
+
+      final updated = await projectRepository.findByIsarId(project.id);
+      expect(updated, isNotNull);
+      expect(updated!.status, TaskStatus.trashed);
+      expect(updated.logs.last.action, 'trashed');
+    });
+
+    test('restoreProject updates status from trashed to pending', () async {
+      final project = await service.createProject(
+        ProjectBlueprint(
+          title: 'Test Project',
+          dueDate: DateTime(2024, 3, 1),
+          milestones: <ProjectMilestoneBlueprint>[],
+        ),
+      );
+
+      // 先移到回收站
+      await service.trashProject(project.id);
+
+      // 然后恢复
+      await service.restoreProject(project.id);
+
+      final updated = await projectRepository.findByIsarId(project.id);
+      expect(updated, isNotNull);
+      expect(updated!.status, TaskStatus.pending);
+      expect(updated.logs.last.action, 'restored');
+      expect(updated.logs.last.previous, TaskStatus.trashed.name);
+      expect(updated.logs.last.next, TaskStatus.pending.name);
+    });
+
+    test('restoreProject throws when project is not trashed', () async {
+      final project = await service.createProject(
+        ProjectBlueprint(
+          title: 'Test Project',
+          dueDate: DateTime(2024, 3, 1),
+          milestones: <ProjectMilestoneBlueprint>[],
+        ),
+      );
+
+      expect(
+        () => service.restoreProject(project.id),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('updateProject updates project fields', () async {
+      final project = await service.createProject(
+        ProjectBlueprint(
+          title: 'Original Title',
+          dueDate: DateTime(2024, 3, 1),
+          description: 'Original description',
+          milestones: <ProjectMilestoneBlueprint>[],
+        ),
+      );
+
+      final newDeadline = DateTime(2024, 4, 1);
+      await service.updateProject(
+        project.id,
+        ProjectUpdate(
+          title: 'Updated Title',
+          dueAt: newDeadline,
+          description: 'Updated description',
+        ),
+      );
+
+      final updated = await projectRepository.findByIsarId(project.id);
+      expect(updated, isNotNull);
+      expect(updated!.title, 'Updated Title');
+      expect(updated.description, 'Updated description');
+      expect(updated.dueAt, newDeadline);
+    });
   });
 }
 
@@ -212,7 +314,30 @@ class _InMemoryProjectRepository implements ProjectRepository {
       _projects.values.toList(growable: false);
 
   @override
-  Stream<List<Project>> watchActiveProjects() => _controller.stream;
+  Stream<List<Project>> watchActiveProjects() => watchProjectsByStatus(
+        ProjectFilterStatus.active,
+      );
+
+  @override
+  Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status) {
+    return _controller.stream.map((allProjects) {
+      return allProjects.where((project) {
+        switch (status) {
+          case ProjectFilterStatus.all:
+            return project.status != TaskStatus.pseudoDeleted;
+          case ProjectFilterStatus.active:
+            return project.status == TaskStatus.pending ||
+                project.status == TaskStatus.doing;
+          case ProjectFilterStatus.completed:
+            return project.status == TaskStatus.completedActive;
+          case ProjectFilterStatus.archived:
+            return project.status == TaskStatus.archived;
+          case ProjectFilterStatus.trash:
+            return project.status == TaskStatus.trashed;
+        }
+      }).toList(growable: false);
+    });
+  }
 
   void _emit() {
     final snapshot = _projects.values.toList(growable: false);

@@ -21,6 +21,12 @@ class StubTaskRepository implements TaskRepository {
   final Map<int, Task> _tasks = <int, Task>{};
   int _nextId = 1;
   final Random _random = Random();
+  DateTime Function() _clock = DateTime.now;
+
+  /// 设置时钟函数，用于测试时控制时间
+  void setClock(DateTime Function() clock) {
+    _clock = clock;
+  }
 
   @override
   Stream<List<Task>> watchSection(TaskSection section) =>
@@ -163,7 +169,12 @@ class StubTaskRepository implements TaskRepository {
   Future<void> updateTask(int taskId, TaskUpdate payload) async {
     final existing = _tasks[taskId];
     if (existing == null) return;
-    final updated = existing.copyWith(
+    
+    // 保存旧状态，用于触发器逻辑判断
+    final oldStatus = existing.status;
+    
+    // 先应用 payload 中的更新
+    var updated = existing.copyWith(
       title: payload.title,
       status: payload.status,
       dueAt: payload.dueAt,
@@ -188,8 +199,24 @@ class StubTaskRepository implements TaskRepository {
           payload.allowInstantComplete ?? existing.allowInstantComplete,
       description: payload.description ?? existing.description,
       logs: payload.logs ?? existing.logs,
-      updatedAt: DateTime.now(),
+      updatedAt: _clock(),
     );
+    
+    // 触发器逻辑：如果状态从非完成变为完成，自动设置 endedAt
+    final newStatus = updated.status;
+    final wasNotCompleted = oldStatus != TaskStatus.completedActive;
+    final isNowCompleted = newStatus == TaskStatus.completedActive;
+    
+    if (wasNotCompleted && isNowCompleted) {
+      // 如果 payload 没有指定 endedAt，且原来的 endedAt 也是 null，自动设置
+      if (payload.endedAt == null && updated.endedAt == null) {
+        updated = updated.copyWith(endedAt: _clock());
+      }
+      // 其他情况：
+      // - payload.endedAt 有值：使用指定的值（已在上面应用）
+      // - updated.endedAt 有值但 payload.endedAt 为 null：保持原值（已在上面应用）
+    }
+    
     _tasks[taskId] = updated;
   }
 
@@ -218,7 +245,31 @@ class StubTaskRepository implements TaskRepository {
     required int taskId,
     required TaskStatus status,
   }) async {
-    await updateTask(taskId, TaskUpdate(status: status));
+    final existing = _tasks[taskId];
+    if (existing == null) return;
+    
+    // 保存旧状态，用于触发器逻辑判断
+    final oldStatus = existing.status;
+    final operationTime = _clock();
+    
+    // 触发器逻辑：如果状态从非完成状态变为 completedActive，自动记录完成时间
+    final wasNotCompleted = oldStatus != TaskStatus.completedActive;
+    final isNowCompleted = status == TaskStatus.completedActive;
+    DateTime? endedAt;
+    
+    if (wasNotCompleted && isNowCompleted && existing.endedAt == null) {
+      endedAt = operationTime;
+    } else if (wasNotCompleted && isNowCompleted) {
+      endedAt = existing.endedAt;
+    }
+    
+    await updateTask(
+      taskId,
+      TaskUpdate(
+        status: status,
+        endedAt: endedAt,
+      ),
+    );
   }
 
   @override

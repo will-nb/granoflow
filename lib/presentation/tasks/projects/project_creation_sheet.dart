@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/service_providers.dart';
-import '../../../core/services/tag_service.dart';
 import '../../../core/services/project_models.dart';
-import '../../../data/models/tag.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/date_utils.dart';
-import '../utils/tag_utils.dart';
-import '../../widgets/tag_data.dart';
 import '../../widgets/flexible_description_input.dart';
 import '../../widgets/flexible_text_input.dart';
-import '../../widgets/modern_tag.dart';
-import '../../widgets/modern_tag_group.dart';
+import 'models/milestone_draft.dart';
+import 'widgets/milestone_draft_tile.dart';
 
 class ProjectCreationSheet extends ConsumerStatefulWidget {
   const ProjectCreationSheet({super.key});
@@ -29,24 +24,11 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
   final _descriptionController = TextEditingController();
   final List<MilestoneDraft> _milestones = <MilestoneDraft>[];
   bool _submitting = false;
-  String? _selectedUrgencyTag;
-  String? _selectedImportanceTag;
   DateTime? _projectDeadline;
-  String? _executionTag;
   String? _deadlineError;
-  bool _suppressProjectShortcut = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController.addListener(_onProjectTitleChanged);
-    _descriptionController.addListener(_onProjectDescriptionChanged);
-  }
 
   @override
   void dispose() {
-    _titleController.removeListener(_onProjectTitleChanged);
-    _descriptionController.removeListener(_onProjectDescriptionChanged);
     _titleController.dispose();
     _descriptionController.dispose();
     for (final milestone in _milestones) {
@@ -92,6 +74,7 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
                   hintText: l10n.projectSheetTitleHint,
                   labelText: l10n.taskListInputLabel,
                   onChanged: (_) => setState(() {}),
+                  showCounter: false,
                 ),
                 const SizedBox(height: 12),
                 TextButton.icon(
@@ -113,8 +96,6 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
                       ),
                     ),
                   ),
-                const SizedBox(height: 12),
-                _buildProjectTagsSection(context),
                 const SizedBox(height: 16),
                 FlexibleDescriptionInput(
                   controller: _descriptionController,
@@ -123,6 +104,7 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
                   hintText: l10n.projectSheetDescriptionHint,
                   labelText: l10n.flexibleDescriptionLabel,
                   onChanged: (_) => setState(() {}),
+                  showCounter: false,
                 ),
                 const SizedBox(height: 24),
                 _buildMilestoneSection(context),
@@ -145,71 +127,6 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildProjectTagsSection(BuildContext context) {
-    final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
-    final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
-    final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-
-    return urgencyTagsAsync.when(
-      data: (urgencyTags) => importanceTagsAsync.when(
-        data: (importanceTags) => executionTagsAsync.when(
-          data: (executionTags) {
-            final allTags = [
-              ...urgencyTags,
-              ...importanceTags,
-              ...executionTags,
-            ];
-            final tagData = allTags
-                .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                .toList(growable: false);
-            final selectedTags = <String>{
-              if (_selectedUrgencyTag != null) _selectedUrgencyTag!,
-              if (_selectedImportanceTag != null) _selectedImportanceTag!,
-              if (_executionTag != null) _executionTag!,
-            };
-
-            return ModernTagGroup(
-              tags: tagData,
-              selectedTags: selectedTags,
-              multiSelect: false,
-              variant: TagVariant.pill,
-              size: TagSize.medium,
-              onSelectionChanged: (selected) {
-                if (selected.isEmpty) {
-                  _selectedUrgencyTag = null;
-                  _selectedImportanceTag = null;
-                  _executionTag = null;
-                } else {
-                  final slug = selected.first;
-                  if (urgencyTags.any((tag) => tag.slug == slug)) {
-                    _selectedUrgencyTag = slug;
-                    _selectedImportanceTag = null;
-                    _executionTag = null;
-                  } else if (importanceTags.any((tag) => tag.slug == slug)) {
-                    _selectedImportanceTag = slug;
-                    _selectedUrgencyTag = null;
-                    _executionTag = null;
-                  } else if (executionTags.any((tag) => tag.slug == slug)) {
-                    _executionTag = slug;
-                    _selectedUrgencyTag = null;
-                    _selectedImportanceTag = null;
-                  }
-                }
-                setState(() {});
-              },
-            );
-          },
-          loading: () => const CircularProgressIndicator(),
-          error: (_, __) => const Text('加载标签失败'),
-        ),
-        loading: () => const CircularProgressIndicator(),
-        error: (_, __) => const Text('加载标签失败'),
-      ),
-      loading: () => const CircularProgressIndicator(),
-      error: (_, __) => const Text('加载标签失败'),
     );
   }
 
@@ -254,105 +171,6 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
           ),
       ],
     );
-  }
-
-  void _onProjectTitleChanged() {
-    if (_suppressProjectShortcut) {
-      return;
-    }
-    _handleShortcutInController(
-      _titleController,
-      includeExecution: true,
-      onHashtagSelected: (slug) {
-        setState(() {
-          _assignProjectTag(slug);
-        });
-      },
-    );
-  }
-
-  void _onProjectDescriptionChanged() {
-    if (_suppressProjectShortcut) {
-      return;
-    }
-    _handleShortcutInController(
-      _descriptionController,
-      includeExecution: true,
-      onHashtagSelected: (slug) {
-        setState(() {
-          _assignProjectTag(slug);
-        });
-      },
-    );
-  }
-
-  void _assignProjectTag(String slug) {
-    // 使用 TagService 判断标签类型（兼容旧数据，自动规范化）
-    final kind = TagService.getKind(slug);
-    final normalizedSlug = TagService.normalizeSlug(slug);
-
-    switch (kind) {
-      case TagKind.urgency:
-        _selectedUrgencyTag = normalizedSlug;
-        _selectedImportanceTag = null;
-        _executionTag = null;
-        break;
-      case TagKind.importance:
-        _selectedImportanceTag = normalizedSlug;
-        _selectedUrgencyTag = null;
-        _executionTag = null;
-        break;
-      case TagKind.execution:
-        _executionTag = normalizedSlug;
-        _selectedUrgencyTag = null;
-        _selectedImportanceTag = null;
-        break;
-      default:
-        // 其他类型的标签不做处理
-        break;
-    }
-  }
-
-  void _handleShortcutInController(
-    TextEditingController controller, {
-    required bool includeExecution,
-    required void Function(String slug) onHashtagSelected,
-  }) {
-    final text = controller.text;
-    final hashIndex = text.lastIndexOf('#');
-    if (hashIndex == -1) {
-      return;
-    }
-    final keyword = text.substring(hashIndex + 1).trim().toLowerCase();
-    if (keyword.isEmpty) {
-      return;
-    }
-
-    String? resolved;
-
-    // 使用 TagService 查找标签类型（兼容旧数据）
-    final definition = TagService.findDefinition(keyword);
-    if (definition != null) {
-      resolved = keyword;
-    }
-
-    if (resolved == null) {
-      return;
-    }
-
-    _suppressProjectShortcut = true;
-    // 不再添加前缀到文本（前缀已废弃）
-    final replacement = resolved;
-    controller.text = controller.text.replaceRange(
-      hashIndex,
-      controller.text.length,
-      replacement,
-    );
-    controller.selection = TextSelection.collapsed(
-      offset: controller.text.length,
-    );
-    _suppressProjectShortcut = false;
-    onHashtagSelected(resolved);
   }
 
   void _addMilestone() {
@@ -400,17 +218,7 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
   }
 
   List<String> _collectProjectTags() {
-    final tags = <String>[];
-    if (_selectedUrgencyTag != null) {
-      tags.add(_selectedUrgencyTag!);
-    }
-    if (_selectedImportanceTag != null) {
-      tags.add(_selectedImportanceTag!);
-    }
-    if (_executionTag != null) {
-      tags.add(_executionTag!);
-    }
-    return tags;
+    return <String>[];
   }
 
   List<ProjectMilestoneBlueprint> _collectMilestones() {
@@ -480,204 +288,4 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
   }
 }
 
-class MilestoneDraft {
-  MilestoneDraft()
-    : titleController = TextEditingController(),
-      descriptionController = TextEditingController();
-
-  final TextEditingController titleController;
-  final TextEditingController descriptionController;
-  DateTime? deadline;
-  String? urgencyTag;
-  String? importanceTag;
-  String? executionTag;
-  VoidCallback? titleListener;
-  bool suppressShortcut = false;
-
-  void applyTag(String slug) {
-    if (executionTags.contains(slug)) {
-      executionTag = slug;
-    } else if (urgencyTags.contains(slug)) {
-      urgencyTag = slug;
-    } else if (importanceTags.contains(slug)) {
-      importanceTag = slug;
-    }
-  }
-
-  List<String> buildTags() {
-    final tags = <String>[];
-    if (urgencyTag != null) tags.add(urgencyTag!);
-    if (importanceTag != null) tags.add(importanceTag!);
-    if (executionTag != null) tags.add(executionTag!);
-    return tags;
-  }
-
-  void dispose() {
-    if (titleListener != null) {
-      titleController.removeListener(titleListener!);
-    }
-    titleController.dispose();
-    descriptionController.dispose();
-  }
-}
-
-class MilestoneDraftTile extends ConsumerStatefulWidget {
-  const MilestoneDraftTile({
-    super.key,
-    required this.draft,
-    required this.onRemove,
-    required this.onPickDeadline,
-    required this.onChanged,
-  });
-
-  final MilestoneDraft draft;
-  final VoidCallback onRemove;
-  final Future<void> Function() onPickDeadline;
-  final VoidCallback onChanged;
-
-  @override
-  ConsumerState<MilestoneDraftTile> createState() => _MilestoneDraftTileState();
-}
-
-class _MilestoneDraftTileState extends ConsumerState<MilestoneDraftTile> {
-  List<TagData> _tagsToTagData(BuildContext context, List<Tag> tags) {
-    return tags
-        .map((tag) => TagData.fromTagWithLocalization(tag, context))
-        .toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: FlexibleTextInput(
-                    controller: widget.draft.titleController,
-                    softLimit: 50,
-                    hardLimit: 255,
-                    hintText: l10n.projectSheetMilestoneTitleHint,
-                    labelText: l10n.taskListInputLabel,
-                    onChanged: (_) => widget.onChanged(),
-                  ),
-                ),
-                IconButton(
-                  onPressed: widget.onRemove,
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: l10n.commonDelete,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.draft.deadline != null
-                        ? formatDeadline(context, widget.draft.deadline) ?? ''
-                        : l10n.projectSheetSelectDeadlineHint,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: widget.onPickDeadline,
-                  icon: const Icon(Icons.calendar_month_outlined),
-                  label: Text(l10n.projectSheetSelectDeadline),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Consumer(
-              builder: (context, ref, child) {
-                final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
-                final importanceTagsAsync = ref.watch(
-                  importanceTagOptionsProvider,
-                );
-                final executionTagsAsync = ref.watch(
-                  executionTagOptionsProvider,
-                );
-
-                return urgencyTagsAsync.when(
-                  data: (urgencyTags) => importanceTagsAsync.when(
-                    data: (importanceTags) => executionTagsAsync.when(
-                      data: (executionTags) {
-                        final allTags = [
-                          ...urgencyTags,
-                          ...importanceTags,
-                          ...executionTags,
-                        ];
-                        final tagData = _tagsToTagData(context, allTags);
-                        final selectedTags = <String>{
-                          if (widget.draft.urgencyTag != null)
-                            widget.draft.urgencyTag!,
-                          if (widget.draft.importanceTag != null)
-                            widget.draft.importanceTag!,
-                          if (widget.draft.executionTag != null)
-                            widget.draft.executionTag!,
-                        };
-
-                        return ModernTagGroup(
-                          tags: tagData,
-                          selectedTags: selectedTags,
-                          multiSelect: false,
-                          variant: TagVariant.pill,
-                          size: TagSize.medium,
-                          onSelectionChanged: (selected) {
-                            if (selected.isEmpty) {
-                              widget.draft.urgencyTag = null;
-                              widget.draft.importanceTag = null;
-                              widget.draft.executionTag = null;
-                            } else {
-                              final slug = selected.first;
-                              if (urgencyTags.contains(slug)) {
-                                widget.draft.urgencyTag = slug;
-                                widget.draft.importanceTag = null;
-                                widget.draft.executionTag = null;
-                              } else if (importanceTags.contains(slug)) {
-                                widget.draft.importanceTag = slug;
-                                widget.draft.urgencyTag = null;
-                                widget.draft.executionTag = null;
-                              } else if (executionTags.contains(slug)) {
-                                widget.draft.executionTag = slug;
-                                widget.draft.urgencyTag = null;
-                                widget.draft.importanceTag = null;
-                              }
-                            }
-                            widget.onChanged();
-                          },
-                        );
-                      },
-                      loading: () => const CircularProgressIndicator(),
-                      error: (_, __) => const Text('加载标签失败'),
-                    ),
-                    loading: () => const CircularProgressIndicator(),
-                    error: (_, __) => const Text('加载标签失败'),
-                  ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const Text('加载标签失败'),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            FlexibleDescriptionInput(
-              controller: widget.draft.descriptionController,
-              softLimit: 200,
-              hardLimit: 60000,
-              hintText: l10n.projectSheetDescriptionHint,
-              labelText: l10n.flexibleDescriptionLabel,
-              onChanged: (_) => widget.onChanged(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// MilestoneDraft 和 MilestoneDraftTile 已移至独立文件

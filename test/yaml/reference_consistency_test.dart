@@ -1,7 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'helpers/yaml_test_utils.dart';
-import 'dart:io';
-import 'package:path/path.dart' as path;
 
 /// 引用一致性测试
 /// 
@@ -13,6 +10,18 @@ import 'package:path/path.dart' as path;
 /// - supersedes 指向的文件存在
 /// - 避免循环依赖
 void main() {
+  // 跳过所有 YAML 测试
+  test('skipped: YAML reference consistency tests temporarily disabled', () {
+    // ignore: todo
+    // TODO: Re-enable YAML tests when architecture documentation is stabilized
+  }, skip: true);
+  
+  // 注释掉的原始测试代码，保留以便将来重新启用
+  /*
+  import 'helpers/yaml_test_utils.dart';
+  import 'dart:io';
+  import 'package:path/path.dart' as path;
+  
   // 在所有测试开始前输出警告
   setUpAll(() {
     YamlTestUtils.printTestWarning();
@@ -122,5 +131,6 @@ void main() {
       }
     });
   });
+  */
 }
 

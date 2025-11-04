@@ -43,6 +43,9 @@ class FlexibleTextInput extends StatefulWidget {
   /// 最大行数（用于多行显示）(Maximum lines for multi-line display)
   final int? maxLines;
 
+  /// 是否显示字符计数器 (Whether to show character counter)
+  final bool showCounter;
+
   const FlexibleTextInput({
     super.key,
     required this.controller,
@@ -53,6 +56,7 @@ class FlexibleTextInput extends StatefulWidget {
     this.labelText,
     this.enabled = true,
     this.maxLines,
+    this.showCounter = true,
   }) : assert(softLimit <= hardLimit, '软限制不能大于硬限制 (Soft limit must not exceed hard limit)');
 
   @override
@@ -158,21 +162,23 @@ class _FlexibleTextInputState extends State<FlexibleTextInput> {
                   ),
                 ],
               ),
-              child: Padding(
+                child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 字符计数器 Chip（右上角）(Character counter chip at top)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: CharacterCounterChip(
-                        currentCount: _controller.text.length,
-                        softLimit: widget.softLimit,
-                        hardLimit: widget.hardLimit,
+                    if (widget.showCounter) ...[
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: CharacterCounterChip(
+                          currentCount: _controller.text.length,
+                          softLimit: widget.softLimit,
+                          hardLimit: widget.hardLimit,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
+                    ],
                     
                     // 文本输入框 (Text input field)
                     TextField(

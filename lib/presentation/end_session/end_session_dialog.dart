@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
-import '../../core/services/focus_flow_service.dart';
 import '../../data/models/focus_session.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';

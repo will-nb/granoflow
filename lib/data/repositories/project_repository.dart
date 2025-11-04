@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:isar/isar.dart';
 
+import '../../core/providers/project_filter_providers.dart';
 import '../../core/services/tag_service.dart';
 import '../isar/project_entity.dart';
 import '../models/project.dart';
@@ -9,6 +10,8 @@ import '../models/task.dart';
 
 abstract class ProjectRepository {
   Stream<List<Project>> watchActiveProjects();
+
+  Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status);
 
   Future<Project?> findByIsarId(int id);
 
@@ -32,13 +35,18 @@ class IsarProjectRepository implements ProjectRepository {
 
   @override
   Stream<List<Project>> watchActiveProjects() {
+    return watchProjectsByStatus(ProjectFilterStatus.active);
+  }
+
+  @override
+  Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status) {
     return _watchQuery(() async {
       final entities = await _isar.projectEntitys.where().findAll();
-      final active = entities
-          .where((entity) => _isActiveProjectStatus(entity.status))
+      final filtered = entities
+          .where((entity) => _matchesFilterStatus(entity.status, status))
           .toList(growable: false);
-      active.sort(_compareByDueThenCreated);
-      return active.map(_toDomain).toList(growable: false);
+      filtered.sort(_compareByDueThenCreated);
+      return filtered.map(_toDomain).toList(growable: false);
     });
   }
 
@@ -140,10 +148,24 @@ class IsarProjectRepository implements ProjectRepository {
     return a.createdAt.compareTo(b.createdAt);
   }
 
-  bool _isActiveProjectStatus(TaskStatus status) {
-    return status != TaskStatus.archived &&
-        status != TaskStatus.trashed &&
-        status != TaskStatus.pseudoDeleted;
+  bool _matchesFilterStatus(TaskStatus status, ProjectFilterStatus filter) {
+    switch (filter) {
+      case ProjectFilterStatus.all:
+        // 排除伪删除状态
+        return status != TaskStatus.pseudoDeleted;
+      case ProjectFilterStatus.active:
+        // 活跃状态：pending 或 doing
+        return status == TaskStatus.pending || status == TaskStatus.doing;
+      case ProjectFilterStatus.completed:
+        // 已完成状态
+        return status == TaskStatus.completedActive;
+      case ProjectFilterStatus.archived:
+        // 已归档状态
+        return status == TaskStatus.archived;
+      case ProjectFilterStatus.trash:
+        // 回收站状态
+        return status == TaskStatus.trashed;
+    }
   }
 
   Project _toDomain(ProjectEntity entity) {

@@ -194,6 +194,7 @@ called_by: []
 calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/core/providers/app_providers.dart
+- lib/core/providers/service_providers.dart
 - lib/presentation/widgets/page_app_bar.dart
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/gradient_page_scaffold.dart

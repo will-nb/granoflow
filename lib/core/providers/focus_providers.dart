@@ -1,0 +1,50 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../data/models/focus_session.dart';
+import '../services/focus_flow_service.dart';
+import 'service_providers.dart';
+
+// FocusOutcome 定义在 focus_flow_service.dart 中
+export '../services/focus_flow_service.dart' show FocusOutcome;
+
+class FocusActionsNotifier extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  FocusFlowService get _focusFlowService => ref.read(focusFlowServiceProvider);
+
+  Future<void> start(int taskId) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await _focusFlowService.startFocus(taskId: taskId);
+    });
+  }
+
+  Future<void> end({
+    required int sessionId,
+    required FocusOutcome outcome,
+    String? reflection,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await _focusFlowService.endFocus(
+        sessionId: sessionId,
+        outcome: outcome,
+        reflectionNote: reflection,
+      );
+    });
+  }
+}
+
+final focusActionsNotifierProvider =
+    AsyncNotifierProvider<FocusActionsNotifier, void>(() {
+      return FocusActionsNotifier();
+    });
+
+final focusSessionProvider = StreamProvider.family<FocusSession?, int>((
+  ref,
+  taskId,
+) {
+  return ref.watch(focusFlowServiceProvider).watchActive(taskId);
+});
+

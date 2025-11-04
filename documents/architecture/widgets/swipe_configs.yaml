@@ -43,11 +43,19 @@ widget_properties:
 - name: tasksConfig
   type: SwipeActionConfig
   required: false
-  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.postpone, rightAction:
-    SwipeActionType.archive, leftHintKey: ''taskPostponeAction'', rightHintKey: ''taskArchiveAction'',
-    leftIcon: Icons.schedule, rightIcon: Icons.archive, leftColor: OceanBreezeColorSchemes.softGreen,
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.complete, rightAction:
+    SwipeActionType.archive, leftHintKey: ''taskCompleteAction'', rightHintKey: ''taskArchiveAction'',
+    leftIcon: Icons.check_circle, rightIcon: Icons.archive, leftColor: OceanBreezeColorSchemes.softGreen,
     rightColor: OceanBreezeColorSchemes.softPink)'
-  description: Tasks页面的滑动配置 左滑：智能推迟（安全操作），右滑：归档任务（警告操作）
+  description: Tasks页面的滑动配置 左滑：完成任务（安全操作），右滑：归档任务（警告操作）
+- name: tasksSubtaskConfig
+  type: SwipeActionConfig
+  required: false
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.complete, rightAction:
+    SwipeActionType.delete, leftHintKey: ''taskCompleteAction'', rightHintKey: ''inboxDeleteAction'',
+    leftIcon: Icons.check_circle, rightIcon: Icons.delete, leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark)'
+  description: Tasks页面子任务的滑动配置 左滑：完成任务（安全操作），右滑：移动到回收站（删除操作） 用于 level > 1 的子任务
 - name: completedArchivedConfig
   type: SwipeActionConfig
   required: false

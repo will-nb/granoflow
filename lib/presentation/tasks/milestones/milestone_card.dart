@@ -12,6 +12,8 @@ import '../widgets/task_hierarchy_list.dart';
 import '../utils/date_utils.dart';
 import '../utils/tag_utils.dart';
 import '../widgets/status_chip.dart';
+import '../projects/widgets/milestone_edit_sheet.dart';
+import '../../../core/providers/service_providers.dart';
 
 class MilestoneCard extends ConsumerWidget {
   const MilestoneCard({super.key, required this.milestone});
@@ -28,12 +30,52 @@ class MilestoneCard extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 0,
       color: theme.colorScheme.surfaceContainerHigh,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            MilestoneHeaderRow(milestone: milestone),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onLongPress: () => _showMilestoneMenu(context, ref),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: MilestoneHeaderRow(milestone: milestone),
+                  ),
+                  Builder(
+                    builder: (menuContext) {
+                      final menuL10n = AppLocalizations.of(menuContext);
+                      return PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, size: 20),
+                        onSelected: (value) => _handleMenuAction(context, ref, value),
+                        itemBuilder: (context) => [
+                          PopupMenuItem<String>(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit_outlined, size: 20),
+                                const SizedBox(width: 12),
+                                const Text('编辑'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete_outline, size: 20),
+                                const SizedBox(width: 12),
+                                Text(menuL10n.commonDelete),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             if (milestone.description != null &&
                 milestone.description!.isNotEmpty)
               Padding(
@@ -69,8 +111,122 @@ class MilestoneCard extends ConsumerWidget {
             ),
           ],
         ),
+        ),
       ),
     );
+  }
+
+  Future<void> _showMilestoneMenu(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final result = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        MediaQuery.of(context).size.width / 2,
+        MediaQuery.of(context).size.height / 2,
+        MediaQuery.of(context).size.width / 2,
+        MediaQuery.of(context).size.height / 2,
+      ),
+      items: [
+        PopupMenuItem<String>(
+          value: 'edit',
+          child: Row(
+            children: [
+              const Icon(Icons.edit_outlined, size: 20),
+              const SizedBox(width: 12),
+              const Text('编辑'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'delete',
+          child: Row(
+            children: [
+              const Icon(Icons.delete_outline, size: 20),
+              const SizedBox(width: 12),
+              Text(l10n.commonDelete),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (result != null) {
+      _handleMenuAction(context, ref, result);
+    }
+  }
+
+  Future<void> _handleMenuAction(
+    BuildContext context,
+    WidgetRef ref,
+    String action,
+  ) async {
+    switch (action) {
+      case 'edit':
+        await _editMilestone(context, ref);
+        break;
+      case 'delete':
+        await _deleteMilestone(context, ref);
+        break;
+    }
+  }
+
+  Future<void> _editMilestone(BuildContext context, WidgetRef ref) async {
+    final updated = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => MilestoneEditSheet(
+        projectId: milestone.projectId,
+        milestone: milestone,
+      ),
+    );
+    if (updated == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('里程碑已更新')),
+      );
+    }
+  }
+
+  Future<void> _deleteMilestone(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('删除里程碑'),
+        content: const Text('确定要删除这个里程碑吗？此操作无法撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    try {
+      await ref.read(milestoneServiceProvider).delete(milestone.id);
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('里程碑已删除')),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Failed to delete milestone: $error\n$stackTrace');
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('操作失败')),
+      );
+    }
   }
 
   List<TaskTreeNode> _buildTaskForest(List<Task> tasks) {

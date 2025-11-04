@@ -1,38 +1,16 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isar/isar.dart';
-import 'package:granoflow/data/repositories/task_repository.dart';
 import 'package:granoflow/data/models/task.dart';
-import 'package:granoflow/data/isar/task_entity.dart';
+import '../../presentation/test_support/fakes.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  
   group('TaskRepository Completion Time Trigger Tests', () {
-    late Isar isar;
-    late TaskRepository repository;
+    late StubTaskRepository repository;
     late DateTime fixedNow;
-    late Directory tempDir;
 
-    setUp(() async {
-      // 使用临时目录创建测试数据库
-      tempDir = await Directory.systemTemp.createTemp('test_isar_${DateTime.now().millisecondsSinceEpoch}');
+    setUp(() {
       fixedNow = DateTime(2025, 1, 1, 12, 0, 0);
-      
-      isar = await Isar.open(
-        [TaskEntitySchema],
-        directory: tempDir.path,
-        inspector: false,
-      );
-      
-      repository = IsarTaskRepository(isar, clock: () => fixedNow);
-    });
-
-    tearDown(() async {
-      await isar.close(deleteFromDisk: true);
-      if (await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
+      repository = StubTaskRepository();
+      repository.setClock(() => fixedNow);
     });
 
     test('updateTask should automatically set endedAt when status changes to completedActive', () async {

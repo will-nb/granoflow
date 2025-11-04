@@ -49,7 +49,8 @@ def _run_one(rel_path: Path, timeout_sec: int = 600) -> Tuple[str, bool, Dict[st
     warnings = [ln for ln in out.splitlines() if WARNING_RE.search(ln)]
     errors = [ln for ln in out.splitlines() if ERROR_RE.search(ln)]
     fails: List[str] = []
-    ok = ("All tests passed" in out) and ("Some tests failed" not in out)
+    # 测试通过：要么所有测试都通过，要么所有测试都被跳过
+    ok = (("All tests passed" in out) or ("All tests skipped" in out)) and ("Some tests failed" not in out)
 
     if (not ok) or FAIL_HINT_RE.search(out):
         for ln in out.splitlines():

@@ -7,8 +7,8 @@ import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/views/task_tree_tile.dart';
-import 'package:granoflow/presentation/tasks/widgets/parent_task_header.dart';
-import 'package:granoflow/presentation/tasks/widgets/all_children_list.dart';
+import 'package:granoflow/presentation/tasks/widgets/parent_task_header.dart' show parentTaskChildrenCountProvider;
+import 'package:granoflow/presentation/tasks/widgets/all_children_list.dart' show parentTaskChildrenProvider, parentTaskChildrenIncludingTrashedProvider;
 import 'package:granoflow/presentation/tasks/views/task_section_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
@@ -48,6 +48,7 @@ void main() {
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
           parentTaskChildrenCountProvider.overrideWith((ref, parentId) async => 1),
           parentTaskChildrenProvider.overrideWith((ref, parentId) async => [child]),
+          parentTaskChildrenIncludingTrashedProvider.overrideWith((ref, parentId) async => [child]),
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
               if (taskId == root.id) {
@@ -68,10 +69,11 @@ void main() {
               );
             });
           }),
+          contextTagOptionsProvider.overrideWith((ref) async => const []),
+          priorityTagOptionsProvider.overrideWith((ref) async => const []),
           urgencyTagOptionsProvider.overrideWith((ref) async => const []),
           importanceTagOptionsProvider.overrideWith((ref) async => const []),
           executionTagOptionsProvider.overrideWith((ref) async => const []),
-          contextTagOptionsProvider.overrideWith((ref) async => const []),
           taskProjectHierarchyProvider.overrideWith((ref, taskId) => Stream.value(null)),
           parentTaskProvider.overrideWith((ref, parentId) async {
             if (parentId == root.id) return null;

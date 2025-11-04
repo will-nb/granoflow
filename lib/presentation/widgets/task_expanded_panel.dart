@@ -4,11 +4,14 @@ import 'package:intl/intl.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/services/tag_service.dart';
+import '../../core/utils/task_section_utils.dart';
 import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
-import 'tag_panel.dart';
 import 'error_banner.dart';
+import 'tag_panel.dart';
+import 'task_expanded_panel/task_expanded_panel_date_section.dart';
+import 'task_expanded_panel/task_expanded_panel_quick_date_picker.dart';
 
 class TaskExpandedPanel extends ConsumerStatefulWidget {
   const TaskExpandedPanel({
@@ -123,7 +126,12 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
         
         if (widget.showDateSection) ...[
           const SizedBox(height: 16),
-          _buildDateSection(context),
+          TaskExpandedPanelDateSection(
+            task: task,
+            localeName: widget.localeName,
+            taskLevel: widget.taskLevel,
+            onDateChanged: widget.onDateChanged,
+          ),
         ],
         
         if (_isPlanning || _isDeleting)
@@ -169,36 +177,6 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     }
   }
 
-  Widget _buildDateSection(BuildContext context) {
-    // 如果是子任务（level > 1），不显示日期部分
-    if (widget.taskLevel != null && widget.taskLevel! > 1) {
-      return const SizedBox.shrink();
-    }
-    
-    final l10n = AppLocalizations.of(context);
-    
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            widget.task.dueAt == null
-                ? l10n.noDueDateSet
-                : DateFormat.yMMMd(widget.localeName).format(widget.task.dueAt!),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
-        OutlinedButton.icon(
-          onPressed: () => _selectDate(context),
-          icon: const Icon(Icons.calendar_today, size: 16),
-          label: Text(l10n.inboxPlanButtonLabel),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-        ),
-      ],
-    );
-  }
-
   Future<void> _planTask(BuildContext context, Task task) async {
     final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
@@ -212,7 +190,7 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     // 显示快速选择对话框
     final quickChoice = await showModalBottomSheet<DateTime>(
       context: context,
-      builder: (context) => _QuickDatePicker(
+      builder: (context) => QuickDatePicker(
         today: today,
         tomorrow: tomorrow,
         thisWeek: thisWeek,
@@ -265,77 +243,7 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // 显示快速选择对话框
-    final quickSelection = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.today),
-            title: Text(l10n.datePickerToday),
-            onTap: () => Navigator.pop(context, 'today'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_today),
-            title: Text(l10n.datePickerTomorrow),
-            onTap: () => Navigator.pop(context, 'tomorrow'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_view_week),
-            title: Text(l10n.datePickerThisWeek),
-            onTap: () => Navigator.pop(context, 'thisWeek'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_month),
-            title: Text(l10n.datePickerThisMonth),
-            onTap: () => Navigator.pop(context, 'thisMonth'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.event),
-            title: Text(l10n.datePickerCustom),
-            onTap: () => Navigator.pop(context, 'custom'),
-          ),
-        ],
-      ),
-    );
-
-    if (quickSelection == null || !context.mounted) return;
-
-    DateTime? selectedDate;
-
-    switch (quickSelection) {
-      case 'today':
-        selectedDate = today;
-        break;
-      case 'tomorrow':
-        selectedDate = today.add(const Duration(days: 1));
-        break;
-      case 'thisWeek':
-        selectedDate = _getThisWeekSaturday(today);
-        break;
-      case 'thisMonth':
-        selectedDate = _getEndOfMonth(today);
-        break;
-      case 'custom':
-        selectedDate = await showDatePicker(
-          context: context,
-          initialDate: widget.task.dueAt ?? today,
-          firstDate: today,
-          lastDate: today.add(const Duration(days: 365 * 2)),
-        );
-        break;
-    }
-
-    if (selectedDate != null && context.mounted) {
-      widget.onDateChanged?.call(selectedDate);
-    }
-  }
+  // _selectDate 已移至 task_expanded_panel_date_actions.dart
 
   Future<void> _updateTags(
     BuildContext context,
@@ -360,17 +268,7 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
 
 
   TaskSection _sectionForDate(DateTime date) {
-    final now = DateTime.now();
-    final normalizedNow = DateTime(now.year, now.month, now.day);
-    final normalizedDate = DateTime(date.year, date.month, date.day);
-    final difference = normalizedDate.difference(normalizedNow).inDays;
-    if (difference <= 0) {
-      return TaskSection.today;
-    }
-    if (difference == 1) {
-      return TaskSection.tomorrow;
-    }
-    return TaskSection.later;
+    return TaskSectionUtils.getSectionForDate(date);
   }
 
   /// 计算本周六的日期
@@ -386,93 +284,4 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
   }
 }
 
-/// 快速日期选择对话框
-class _QuickDatePicker extends StatelessWidget {
-  const _QuickDatePicker({
-    required this.today,
-    required this.tomorrow,
-    required this.thisWeek,
-    required this.thisMonth,
-  });
-
-  final DateTime today;
-  final DateTime tomorrow;
-  final DateTime thisWeek;
-  final DateTime thisMonth;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.datePickerTitle,
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          _QuickDateOption(
-            icon: Icons.today,
-            label: l10n.datePickerToday,
-            date: today,
-            onTap: () => Navigator.pop(context, today),
-          ),
-          _QuickDateOption(
-            icon: Icons.calendar_today,
-            label: l10n.datePickerTomorrow,
-            date: tomorrow,
-            onTap: () => Navigator.pop(context, tomorrow),
-          ),
-          _QuickDateOption(
-            icon: Icons.calendar_view_week,
-            label: l10n.datePickerThisWeek,
-            date: thisWeek,
-            onTap: () => Navigator.pop(context, thisWeek),
-          ),
-          _QuickDateOption(
-            icon: Icons.calendar_month,
-            label: l10n.datePickerThisMonth,
-            date: thisMonth,
-            onTap: () => Navigator.pop(context, thisMonth),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.commonCancel),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickDateOption extends StatelessWidget {
-  const _QuickDateOption({
-    required this.icon,
-    required this.label,
-    required this.date,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final DateTime date;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(label),
-        subtitle: Text(DateFormat.yMMMd().format(date)),
-        onTap: onTap,
-      ),
-    );
-  }
-}
+// _QuickDatePicker 和 _QuickDateOption 已移至 task_expanded_panel_quick_date_picker.dart
