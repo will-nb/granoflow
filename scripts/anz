@@ -242,6 +242,10 @@ GranoFlow 项目管理脚本
   yaml:create:all    批量重新生成所有六大核心类型的 YAML 文档
   yaml:test          运行 YAML 一致性测试（支持 schema/fields/refs/sync 细粒度选项）
 
+测试命令：
+  test               并行执行 test/ 下所有 *_test.dart 测试
+  test:drag          运行拖拽集成测试 100 次（随机坐标测试）
+
 使用 '$(basename "$0") <命令> --help' 查看具体命令的详细用法
 EOF
 }
@@ -555,6 +559,14 @@ main() {
         exit 1
       fi
       python3 "$ROOT_DIR/scripts/anz_modules/test/unit_test.py" ;;
+    
+    test:drag)
+      # 运行拖拽集成测试 100 次（随机坐标测试）
+      if ! has_cmd python3; then
+        echo -e "${RED}需要 Python 3 环境${NC}"
+        exit 1
+      fi
+      python3 "$ROOT_DIR/scripts/anz_modules/test/drag_test.py" ;;
       
     *)
       echo "未知命令: $1"
