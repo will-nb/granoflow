@@ -106,6 +106,7 @@ class _CompletedPageState extends ConsumerState<CompletedPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: TaskFilterCollapsible(
                 filterProvider: completedTasksFilterProvider,
+                projectsProvider: projectsForCompletedArchivedFilterProvider,
               ),
             ),
           ),

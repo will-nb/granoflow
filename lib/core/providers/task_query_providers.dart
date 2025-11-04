@@ -109,6 +109,33 @@ final projectsByStatusProvider = StreamProvider<List<Project>>((ref) {
   return repository.watchProjectsByStatus(filterStatus);
 });
 
+/// 用于已完成/已归档页面的项目筛选
+/// 显示活跃、已完成、已归档项目（排除伪删除和回收站）
+final projectsForCompletedArchivedFilterProvider =
+    StreamProvider<List<Project>>((ref) {
+  final repository = ref.watch(projectRepositoryProvider);
+  return repository.watchProjectsByStatuses({
+    TaskStatus.pending,
+    TaskStatus.doing,
+    TaskStatus.completedActive,
+    TaskStatus.archived,
+  });
+});
+
+/// 用于回收站页面的项目筛选
+/// 显示所有项目（排除伪删除）
+final projectsForTrashFilterProvider = StreamProvider<List<Project>>((ref) {
+  final repository = ref.watch(projectRepositoryProvider);
+  return repository.watchProjectsByStatuses({
+    TaskStatus.inbox,
+    TaskStatus.pending,
+    TaskStatus.doing,
+    TaskStatus.completedActive,
+    TaskStatus.archived,
+    TaskStatus.trashed,
+  });
+});
+
 final projectMilestonesDomainProvider =
     StreamProvider.family<List<Milestone>, String>((ref, projectId) {
       return ref.watch(projectServiceProvider).watchMilestones(projectId);

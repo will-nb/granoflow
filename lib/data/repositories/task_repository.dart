@@ -13,7 +13,10 @@ part 'task_repository_helpers.dart';
 part 'task_repository_streams.dart';
 part 'task_repository_queries.dart';
 part 'task_repository_paged_queries.dart';
-part 'task_repository_mutations.dart';
+part 'task_repository_mutations_core.dart';
+part 'task_repository_mutations_status.dart';
+part 'task_repository_mutations_move.dart';
+part 'task_repository_mutations_batch.dart';
 part 'task_repository_section_queries.dart';
 part 'task_repository_task_hierarchy.dart';
 
@@ -164,15 +167,21 @@ abstract class TaskRepository {
 /// 3. TaskRepositoryQueries - 基础查询方法（依赖 Helpers, SectionQueries）
 /// 4. TaskRepositoryPagedQueries - 分页查询方法（依赖 Helpers）
 /// 5. TaskRepositoryTaskHierarchy - 任务层级（依赖 Helpers）
-/// 6. TaskRepositoryMutations - 变更方法（依赖 Helpers, SectionQueries, TaskHierarchy）
-/// 7. TaskRepositoryStreams - Stream 方法（依赖 Helpers, SectionQueries, TaskHierarchy）
+/// 6. TaskRepositoryMutationsCore - 变更方法核心（依赖 Helpers, SectionQueries, TaskHierarchy）
+/// 7. TaskRepositoryMutationsStatus - 状态相关操作（依赖 Core）
+/// 8. TaskRepositoryMutationsMove - 移动操作（依赖 Status）
+/// 9. TaskRepositoryMutationsBatch - 批量操作（依赖 Core）
+/// 10. TaskRepositoryStreams - Stream 方法（依赖 Helpers, SectionQueries, TaskHierarchy）
 class IsarTaskRepository
     with TaskRepositoryHelpers,
          TaskRepositorySectionQueries,
          TaskRepositoryQueries,
          TaskRepositoryPagedQueries,
          TaskRepositoryTaskHierarchy,
-         TaskRepositoryMutations,
+         TaskRepositoryMutationsCore,
+         TaskRepositoryMutationsStatus,
+         TaskRepositoryMutationsMove,
+         TaskRepositoryMutationsBatch,
          TaskRepositoryStreams
     implements TaskRepository {
   IsarTaskRepository(this._isar, {DateTime Function()? clock})

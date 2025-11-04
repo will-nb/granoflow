@@ -339,6 +339,20 @@ class _InMemoryProjectRepository implements ProjectRepository {
     });
   }
 
+  @override
+  Stream<List<Project>> watchProjectsByStatuses(Set<TaskStatus> allowedStatuses) {
+    return _controller.stream.map((allProjects) {
+      return allProjects.where((project) {
+        // 排除伪删除状态
+        if (project.status == TaskStatus.pseudoDeleted) {
+          return false;
+        }
+        // 只返回状态在允许集合中的项目
+        return allowedStatuses.contains(project.status);
+      }).toList(growable: false);
+    });
+  }
+
   void _emit() {
     final snapshot = _projects.values.toList(growable: false);
     if (_controller.hasListener) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../data/models/milestone.dart';
+import '../../../data/models/project.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import 'project_filter_tile.dart';
 
@@ -11,15 +12,22 @@ class ProjectFilterSection extends ConsumerWidget {
   const ProjectFilterSection({
     super.key,
     required this.filterProvider,
+    this.projectsProvider,
   });
 
   final StateNotifierProvider<TaskFilterNotifier, TaskFilterState>
       filterProvider;
 
+  /// 可选的 projectsProvider，用于自定义项目列表来源
+  /// 如果不提供，则使用默认的 projectsDomainProvider（只显示活跃项目）
+  final StreamProvider<List<Project>>? projectsProvider;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(filterProvider);
-    final projectsAsync = ref.watch(projectsDomainProvider);
+    final projectsAsync = ref.watch(
+      projectsProvider ?? projectsDomainProvider,
+    );
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -62,6 +70,7 @@ class ProjectFilterSection extends ConsumerWidget {
                 displayIcon = Icons.flag_outlined;
                 return _ProjectFilterButton(
                   filterProvider: filterProvider,
+                  projectsProvider: projectsProvider,
                   text: displayText,
                   icon: displayIcon,
                   theme: theme,
@@ -70,6 +79,7 @@ class ProjectFilterSection extends ConsumerWidget {
               },
               loading: () => _ProjectFilterButton(
                 filterProvider: filterProvider,
+                projectsProvider: projectsProvider,
                 text: project.title,
                 icon: Icons.folder_outlined,
                 theme: theme,
@@ -77,6 +87,7 @@ class ProjectFilterSection extends ConsumerWidget {
               ),
               error: (_, __) => _ProjectFilterButton(
                 filterProvider: filterProvider,
+                projectsProvider: projectsProvider,
                 text: project.title,
                 icon: Icons.folder_outlined,
                 theme: theme,
@@ -98,6 +109,7 @@ class ProjectFilterSection extends ConsumerWidget {
 
         return _ProjectFilterButton(
           filterProvider: filterProvider,
+          projectsProvider: projectsProvider,
           text: displayText,
           icon: displayIcon,
           theme: theme,
@@ -114,6 +126,7 @@ class ProjectFilterSection extends ConsumerWidget {
 class _ProjectFilterButton extends ConsumerWidget {
   const _ProjectFilterButton({
     required this.filterProvider,
+    this.projectsProvider,
     required this.text,
     required this.icon,
     required this.theme,
@@ -122,6 +135,7 @@ class _ProjectFilterButton extends ConsumerWidget {
 
   final StateNotifierProvider<TaskFilterNotifier, TaskFilterState>
       filterProvider;
+  final StreamProvider<List<Project>>? projectsProvider;
   final String text;
   final IconData icon;
   final ThemeData theme;
@@ -167,7 +181,9 @@ class _ProjectFilterButton extends ConsumerWidget {
     final notifier = ref.read(filterProvider.notifier);
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final projectsAsync = ref.watch(projectsDomainProvider);
+    final projectsAsync = ref.watch(
+      projectsProvider ?? projectsDomainProvider,
+    );
 
     Future<void> handleSelection({
       String? projectId,

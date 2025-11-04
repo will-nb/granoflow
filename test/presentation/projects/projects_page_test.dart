@@ -4,10 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:granoflow/core/providers/app_providers.dart';
-import 'package:granoflow/core/providers/project_filter_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/core/providers/tag_providers.dart';
-import 'package:granoflow/core/providers/task_query_providers.dart';
 import 'package:granoflow/core/services/project_service.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
 import 'package:granoflow/data/models/milestone.dart';

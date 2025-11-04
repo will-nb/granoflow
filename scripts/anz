@@ -234,6 +234,9 @@ GranoFlow 项目管理脚本
   build:aab       构建 Android App Bundle (AAB) 文件
   hooks:install   配置/更新 Git hooks（pre-commit / pre-push）
 
+代码质量命令：
+  refactor        检查哪些文件和方法需要重构（根据文件大小和方法长度阈值）
+
 图标生成命令：
   icons:generate       生成所有平台的应用图标
 
@@ -567,6 +570,14 @@ main() {
         exit 1
       fi
       python3 "$ROOT_DIR/scripts/anz_modules/test/drag_test.py" ;;
+    
+    refactor)
+      # 检查哪些文件和方法需要重构
+      if ! has_cmd python3; then
+        echo -e "${RED}需要 Python 3 环境${NC}"
+        exit 1
+      fi
+      python3 "$ROOT_DIR/scripts/anz_modules/refactor/check.py" ;;
       
     *)
       echo "未知命令: $1"

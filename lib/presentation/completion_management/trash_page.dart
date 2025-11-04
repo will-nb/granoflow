@@ -107,6 +107,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: TaskFilterCollapsible(
                 filterProvider: trashedTasksFilterProvider,
+                projectsProvider: projectsForTrashFilterProvider,
                 trailing: paginationState.tasks.isNotEmpty
                     ? _buildClearTrashButton(context)
                     : null,

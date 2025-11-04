@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
+import '../../data/models/project.dart';
 import '../../generated/l10n/app_localizations.dart';
 import 'task_tag_filter_strip.dart';
 
@@ -16,6 +17,7 @@ class TaskFilterCollapsible extends ConsumerStatefulWidget {
   const TaskFilterCollapsible({
     super.key,
     required this.filterProvider,
+    this.projectsProvider,
     this.label,
     this.trailing,
   });
@@ -23,6 +25,10 @@ class TaskFilterCollapsible extends ConsumerStatefulWidget {
   /// 筛选Provider（StateNotifierProvider<TaskFilterNotifier, TaskFilterState>）
   final StateNotifierProvider<TaskFilterNotifier, TaskFilterState>
       filterProvider;
+
+  /// 可选的 projectsProvider，用于自定义项目列表来源
+  /// 如果不提供，则使用默认的 projectsDomainProvider（只显示活跃项目）
+  final StreamProvider<List<Project>>? projectsProvider;
 
   /// 自定义标签文本（如果为空，使用默认的"筛选"文本）
   final String? label;
@@ -132,6 +138,7 @@ class _TaskFilterCollapsibleState
                   padding: const EdgeInsets.only(top: 8),
                   child: TaskTagFilterStrip(
                     filterProvider: widget.filterProvider,
+                    projectsProvider: widget.projectsProvider,
                   ),
                 )
               : const SizedBox.shrink(),

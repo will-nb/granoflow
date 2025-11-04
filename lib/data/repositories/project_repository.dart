@@ -13,6 +13,8 @@ abstract class ProjectRepository {
 
   Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status);
 
+  Stream<List<Project>> watchProjectsByStatuses(Set<TaskStatus> allowedStatuses);
+
   Future<Project?> findByIsarId(int id);
 
   Future<Project?> findByProjectId(String projectId);
@@ -44,6 +46,25 @@ class IsarProjectRepository implements ProjectRepository {
       final entities = await _isar.projectEntitys.where().findAll();
       final filtered = entities
           .where((entity) => _matchesFilterStatus(entity.status, status))
+          .toList(growable: false);
+      filtered.sort(_compareByDueThenCreated);
+      return filtered.map(_toDomain).toList(growable: false);
+    });
+  }
+
+  @override
+  Stream<List<Project>> watchProjectsByStatuses(Set<TaskStatus> allowedStatuses) {
+    return _watchQuery(() async {
+      final entities = await _isar.projectEntitys.where().findAll();
+      final filtered = entities
+          .where((entity) {
+            // 排除伪删除状态
+            if (entity.status == TaskStatus.pseudoDeleted) {
+              return false;
+            }
+            // 只返回状态在允许集合中的项目
+            return allowedStatuses.contains(entity.status);
+          })
           .toList(growable: false);
       filtered.sort(_compareByDueThenCreated);
       return filtered.map(_toDomain).toList(growable: false);

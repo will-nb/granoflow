@@ -5,6 +5,103 @@ set -e
 # 收集变更文件（staged）
 CHANGED=$(git diff --cached --name-only)
 
+# 计算有效代码行数（排除注释和空行）的 Python 函数
+count_code_lines() {
+  local file="$1"
+  python3 - "$file" << 'PYTHON_EOF'
+import sys
+import re
+
+def remove_comments(content):
+    """移除 Dart 代码中的注释"""
+    result = []
+    lines = content.split('\n')
+    in_multiline_comment = False
+    in_multiline_doc_comment = False
+    
+    for line in lines:
+        i = 0
+        in_string = False
+        string_char = None
+        new_line = []
+        
+        while i < len(line):
+            char = line[i]
+            peek = line[i:i+2] if i+2 <= len(line) else ""
+            
+            # 处理字符串
+            if char in ('"', "'") and (i == 0 or line[i-1] != '\\'):
+                if not in_string:
+                    in_string = True
+                    string_char = char
+                elif char == string_char:
+                    in_string = False
+                    string_char = None
+                new_line.append(char)
+                i += 1
+                continue
+            
+            # 在字符串内，直接添加字符
+            if in_string:
+                new_line.append(char)
+                i += 1
+                continue
+            
+            # 处理多行注释结束
+            if in_multiline_comment or in_multiline_doc_comment:
+                if peek == '*/':
+                    in_multiline_comment = False
+                    in_multiline_doc_comment = False
+                    i += 2
+                    continue
+                i += 1
+                continue
+            
+            # 处理单行注释 //
+            if peek == '//' and (i + 2 >= len(line) or line[i+2] != '/'):
+                break
+            
+            # 处理文档注释 ///
+            if i + 3 <= len(line) and line[i:i+3] == '///':
+                break
+            
+            # 处理多行注释开始 /* 或 /**
+            if peek == '/*':
+                if i + 2 < len(line) and line[i+2] == '*':
+                    in_multiline_doc_comment = True
+                    i += 3
+                else:
+                    in_multiline_comment = True
+                    i += 2
+                continue
+            
+            new_line.append(char)
+            i += 1
+        
+        cleaned = ''.join(new_line).strip()
+        if cleaned or in_multiline_comment or in_multiline_doc_comment:
+            result.append(''.join(new_line))
+    
+    return '\n'.join(result)
+
+def count_code_lines(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        cleaned_content = remove_comments(content)
+        lines = cleaned_content.split('\n')
+        code_lines = [line for line in lines if line.strip()]
+        return len(code_lines)
+    except Exception:
+        return 0
+
+if __name__ == '__main__':
+    file_path = sys.argv[1]
+    print(count_code_lines(file_path))
+PYTHON_EOF
+}
+
 # 文件大小检查函数
 check_file_size() {
   local file="$1"
@@ -19,7 +116,8 @@ check_file_size() {
     return 0
   fi
   
-  local lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+  # 使用 Python 计算有效代码行数（排除注释和空行）
+  local lines=$(count_code_lines "$file")
   local max_lines=0
   local warning_lines=0
   local file_type=""
@@ -55,7 +153,7 @@ check_file_size() {
   # 检查是否超过硬性阈值
   if [ "$lines" -gt "$max_lines" ]; then
     echo "❌ 错误: $file 超过文件大小限制！"
-    echo "   当前行数: $lines 行"
+    echo "   当前代码行数: $lines 行（已排除注释和空行）"
     echo "   最大允许: $max_lines 行 ($file_type)"
     echo "   超出: $((lines - max_lines)) 行"
     echo ""
@@ -67,7 +165,7 @@ check_file_size() {
   # 检查是否超过警告阈值（只警告，不阻止）
   if [ "$lines" -gt "$warning_lines" ]; then
     echo "⚠️  警告: $file 接近文件大小限制"
-    echo "   当前行数: $lines 行 (警告阈值: $warning_lines, 最大: $max_lines)"
+    echo "   当前代码行数: $lines 行（已排除注释和空行）(警告阈值: $warning_lines, 最大: $max_lines)"
     echo ""
   fi
   

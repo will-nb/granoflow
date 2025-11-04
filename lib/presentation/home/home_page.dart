@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 
 import '../../core/providers/app_providers.dart';
-import '../navigation/navigation_destinations.dart';
-import '../timer/timer_page.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/main_drawer.dart';
@@ -159,41 +157,6 @@ class HomePage extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       heroBlock,
-                      const SizedBox(height: 24), // 放在按钮上方
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          FilledButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (context) => const TimerPage(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.play_arrow_rounded),
-                            label: Text(l10n.actionStartTimer),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              ref.read(navigationIndexProvider.notifier).state =
-                                  NavigationDestinations.tasks.index;
-                            },
-                            icon: const Icon(Icons.fact_check_outlined),
-                            label: Text(l10n.navPlannedTitle),
-                          ),
-                          TextButton.icon(
-                            onPressed: () {
-                              ref.read(navigationIndexProvider.notifier).state =
-                                  NavigationDestinations.tasks.index;
-                            },
-                            icon: const Icon(Icons.inbox_outlined),
-                            label: Text(l10n.navInboxTitle),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),

@@ -171,28 +171,56 @@ class DrawerMenu extends StatelessWidget {
 
   /// 显示创建任务弹窗
   void _showCreateTaskDialog(BuildContext context) {
-    // 横屏模式：从左往右滑出
-    showGeneralDialog(
+    // 使用底部弹窗（与 ResponsiveNavigation 保持一致）
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final maxHeight = isLandscape 
+        ? mediaQuery.size.height * 0.5
+        : double.infinity;
+
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: '',
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return const CreateTaskDialog();
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(-1.0, 0.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOut,
-          )),
-          child: child,
-        );
-      },
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖拽指示器
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // 表单内容（可滚动）
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: const CreateTaskDialog(),
+                  ),
+                ),
+              ),
+              // 底部安全区域
+              SizedBox(height: mediaQuery.viewPadding.bottom + 20),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -106,6 +106,7 @@ class _ArchivedPageState extends ConsumerState<ArchivedPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: TaskFilterCollapsible(
                 filterProvider: archivedTasksFilterProvider,
+                projectsProvider: projectsForCompletedArchivedFilterProvider,
               ),
             ),
           ),

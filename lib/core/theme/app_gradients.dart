@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'ocean_breeze_color_schemes.dart';
+import 'app_gradients_definitions.dart';
+import 'app_gradients_extension_lerp.dart';
 
 /// 渐变方向枚举
 enum GradientDirection {
@@ -27,136 +28,19 @@ enum GradientType {
 class AppGradients {
   const AppGradients._();
 
-  /// 海盐蓝天际渐变 - 主页面背景
-  static const LinearGradient seaSaltSky = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      OceanBreezeColorSchemes.seaSaltBlue,
-      OceanBreezeColorSchemes.skyWhite,
-    ],
-  );
-
-  /// 薄荷青湖光渐变 - 按钮和强调区域
-  static const LinearGradient mintLake = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      OceanBreezeColorSchemes.mintCyan,
-      OceanBreezeColorSchemes.lakeCyan,
-    ],
-  );
-
-  /// 天际白海军渐变 - 内容区域背景
-  static const LinearGradient skyNavy = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      OceanBreezeColorSchemes.skyWhite,
-      OceanBreezeColorSchemes.navyBlue,
-    ],
-  );
-
-  /// 水波涟漪渐变 - 特殊页面背景
-  static const RadialGradient waterRipple = RadialGradient(
-    center: Alignment.center,
-    radius: 1.0,
-    colors: [
-      OceanBreezeColorSchemes.seaSaltBlue,
-      OceanBreezeColorSchemes.mintCyan,
-      OceanBreezeColorSchemes.skyWhite,
-    ],
-    stops: [0.0, 0.6, 1.0],
-  );
-
-  /// 海洋深度渐变 - 深色主题背景
-  static const LinearGradient oceanDepth = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      OceanBreezeColorSchemes.mintCyan,
-      OceanBreezeColorSchemes.seaSaltBlue,
-      OceanBreezeColorSchemes.lakeCyan,
-      OceanBreezeColorSchemes.navyBlue,
-    ],
-    stops: [0.0, 0.3, 0.7, 1.0],
-  );
-
-  /// 天际拥抱渐变 - 两端浅色中间深色，自然衔接导航栏
-  static const LinearGradient skyEmbrace = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      OceanBreezeColorSchemes.skyWhite,
-      OceanBreezeColorSchemes.seaSaltBlue,
-      OceanBreezeColorSchemes.skyWhite,
-    ],
-    stops: [0.0, 0.5, 1.0],
-  );
-
-  /// 轻盈天际渐变 - 浅色柔和版，为按钮留出视觉空间
-  static const LinearGradient skyLight = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      OceanBreezeColorSchemes.veryLightSky,
-      OceanBreezeColorSchemes.lightSeaSalt,
-      OceanBreezeColorSchemes.veryLightSky,
-    ],
-    stops: [0.0, 0.5, 1.0],
-  );
-
-  /// 深海流光渐变 - 深色主题背景光晕
-  static const LinearGradient deepSeaGlow = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      OceanBreezeColorSchemes.navyBlue,      // 顶部：海军蓝（与 AppBar 完美衔接）
-      OceanBreezeColorSchemes.floatingWater, // 中间：浮层水色（视觉焦点）
-      OceanBreezeColorSchemes.navyBlue,      // 底部：海军蓝（与 BottomNavigationBar 完美衔接）
-    ],
-    stops: [0.0, 0.5, 1.0],
-  );
-
-  /// 成功状态渐变
-  static const LinearGradient success = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [
-      OceanBreezeColorSchemes.softGreen,
-      OceanBreezeColorSchemes.mintCyan,
-    ],
-  );
-
-  /// 警告状态渐变
-  static const LinearGradient warning = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      OceanBreezeColorSchemes.warmYellow,
-      OceanBreezeColorSchemes.skyWhite,
-    ],
-  );
-
-  /// 错误状态渐变
-  static const LinearGradient error = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      OceanBreezeColorSchemes.softPink,
-      OceanBreezeColorSchemes.skyWhite,
-    ],
-  );
-
-  /// 信息状态渐变
-  static const LinearGradient info = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [
-      OceanBreezeColorSchemes.lightBlueGray,
-      OceanBreezeColorSchemes.mintCyan,
-    ],
-  );
+  // 渐变定义委托给 AppGradientsDefinitions
+  static const LinearGradient seaSaltSky = AppGradientsDefinitions.seaSaltSky;
+  static const LinearGradient mintLake = AppGradientsDefinitions.mintLake;
+  static const LinearGradient skyNavy = AppGradientsDefinitions.skyNavy;
+  static const RadialGradient waterRipple = AppGradientsDefinitions.waterRipple;
+  static const LinearGradient oceanDepth = AppGradientsDefinitions.oceanDepth;
+  static const LinearGradient skyEmbrace = AppGradientsDefinitions.skyEmbrace;
+  static const LinearGradient skyLight = AppGradientsDefinitions.skyLight;
+  static const LinearGradient deepSeaGlow = AppGradientsDefinitions.deepSeaGlow;
+  static const LinearGradient success = AppGradientsDefinitions.success;
+  static const LinearGradient warning = AppGradientsDefinitions.warning;
+  static const LinearGradient error = AppGradientsDefinitions.error;
+  static const LinearGradient info = AppGradientsDefinitions.info;
 
   /// 根据类型获取渐变
   static Gradient getGradient(GradientType type) {
@@ -362,17 +246,7 @@ class AppGradientsExtension extends ThemeExtension<AppGradientsExtension> {
     if (other is! AppGradientsExtension) {
       return this;
     }
-    return AppGradientsExtension(
-      primary: LinearGradient.lerp(primary as LinearGradient, other.primary as LinearGradient, t) ?? primary,
-      secondary: LinearGradient.lerp(secondary as LinearGradient, other.secondary as LinearGradient, t) ?? secondary,
-      accent: LinearGradient.lerp(accent as LinearGradient, other.accent as LinearGradient, t) ?? accent,
-      success: LinearGradient.lerp(success as LinearGradient, other.success as LinearGradient, t) ?? success,
-      warning: LinearGradient.lerp(warning as LinearGradient, other.warning as LinearGradient, t) ?? warning,
-      error: LinearGradient.lerp(error as LinearGradient, other.error as LinearGradient, t) ?? error,
-      info: LinearGradient.lerp(info as LinearGradient, other.info as LinearGradient, t) ?? info,
-      pageBackground: LinearGradient.lerp(pageBackground as LinearGradient, other.pageBackground as LinearGradient, t) ?? pageBackground,
-      cardBackground: LinearGradient.lerp(cardBackground as LinearGradient, other.cardBackground as LinearGradient, t) ?? cardBackground,
-    );
+    return AppGradientsExtensionLerp.lerp(this, other, t);
   }
 }
 
