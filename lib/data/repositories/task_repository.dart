@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
 import '../../core/services/tag_service.dart';
+import '../../core/utils/task_section_utils.dart';
 import '../isar/task_entity.dart';
 import '../models/task.dart';
 
@@ -1218,71 +1219,54 @@ class IsarTaskRepository implements TaskRepository {
 
   Future<List<Task>> _fetchSection(TaskSection section) async {
     final now = _clock();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final tomorrowStart = todayStart.add(const Duration(days: 1));
-    final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
-    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
 
-    // 使用与 TaskSectionUtils.getSectionForDate 相同的逻辑计算本周边界
-    // 本周一（weekStart）
-    final daysFromMonday = (now.weekday - DateTime.monday) % 7;
-    final weekStart = DateTime(now.year, now.month, now.day - daysFromMonday);
-    // 下周一（nextWeekStart = weekStart + 7天）
-    final nextWeekStart = DateTime(
-      weekStart.year,
-      weekStart.month,
-      weekStart.day + 7,
-    );
-    // 本周结束（本周日 23:59:59 = 下周一 00:00:00 - 1 秒）
-    final thisWeekEnd = nextWeekStart.subtract(const Duration(milliseconds: 1));
+    // 使用 TaskSectionUtils 统一边界定义（严禁修改）
+    // 边界定义见 TaskSectionUtils 文件顶部的注释
+    final sectionStart = TaskSectionUtils.getSectionStartTime(section, now: now);
+    final sectionEnd = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
 
-    // "以后"下界为下周一开始与下月1日的最大者
-    final laterStart = nextMonthStart.isAfter(nextWeekStart)
-        ? nextMonthStart
-        : nextWeekStart;
-
-    QueryBuilder<TaskEntity, TaskEntity, QAfterFilterCondition> builder;
+    List<TaskEntity> results;
+    
     switch (section) {
       case TaskSection.overdue:
         // 已逾期：[~, <今天00:00:00)
-        builder = _isar.taskEntitys
+        // 使用 dueAtLessThan 而不是 dueAtBetween，因为 overdue 没有明确的开始时间
+        final todayStart = DateTime(now.year, now.month, now.day);
+        results = await _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtLessThan(todayStart, include: false);
+            .dueAtLessThan(todayStart, include: false)
+            .findAll();
         break;
       case TaskSection.today:
         // 今天：[>=今天00:00:00, <明天00:00:00)
-        builder = _isar.taskEntitys
+        results = await _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(todayStart, tomorrowStart, includeUpper: false);
+            .dueAtBetween(sectionStart, sectionEnd, includeUpper: false)
+            .findAll();
         break;
       case TaskSection.tomorrow:
         // 明天：[>=明天00:00:00, <后天00:00:00)
-        builder = _isar.taskEntitys
+        results = await _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .dueAtBetween(
-              tomorrowStart,
-              dayAfterTomorrowStart,
-              includeUpper: false,
-            );
+            .dueAtBetween(sectionStart, sectionEnd, includeUpper: false)
+            .findAll();
         break;
       case TaskSection.thisWeek:
-        // 本周：[>=后天00:00:00, <下周一00:00:00) - 与 TaskSectionUtils.getSectionForDate 保持一致
-        // 如果 dayAfterTomorrowStart >= nextWeekStart（例如今天是周六），则 thisWeek 为空范围
-        if (dayAfterTomorrowStart.isBefore(nextWeekStart)) {
-          builder = _isar.taskEntitys
+        // 本周：[>=后天00:00:00, <下周日00:00:00) （如果今天是周六，则为空范围）
+        // 检查是否为空范围：如果开始时间 >= 结束时间，则为空范围
+        if (sectionStart.isBefore(sectionEnd)) {
+          results = await _isar.taskEntitys
               .filter()
               .statusEqualTo(TaskStatus.pending)
-              .dueAtBetween(
-                dayAfterTomorrowStart,
-                nextWeekStart,
-                includeUpper: false,
-              );
+              .dueAtBetween(sectionStart, sectionEnd, includeUpper: false)
+              .findAll();
         } else {
           // 空范围：使用一个永远为 false 的条件（dueAt 必须同时 < today 和 > today+365）
-          builder = _isar.taskEntitys
+          final todayStart = DateTime(now.year, now.month, now.day);
+          results = await _isar.taskEntitys
               .filter()
               .statusEqualTo(TaskStatus.pending)
               .dueAtLessThan(todayStart, include: false)
@@ -1290,20 +1274,23 @@ class IsarTaskRepository implements TaskRepository {
               .dueAtGreaterThan(
                 todayStart.add(const Duration(days: 365)),
                 include: false,
-              );
+              )
+              .findAll();
         }
         break;
       case TaskSection.thisMonth:
-        // 当月：[>=下周一00:00:00, <下月1日00:00:00) - 与 TaskSectionUtils.getSectionForDate 保持一致
-        // 如果 thisWeekEnd >= nextMonthStart（本周跨月），则 thisMonth 为空范围
-        if (thisWeekEnd.isBefore(nextMonthStart)) {
-          builder = _isar.taskEntitys
+        // 当月：[>=下周日00:00:00, <下月1日00:00:00) （如果本周跨月，则为空范围）
+        // 检查是否为空范围：如果开始时间 >= 结束时间，则为空范围
+        if (sectionStart.isBefore(sectionEnd)) {
+          results = await _isar.taskEntitys
               .filter()
               .statusEqualTo(TaskStatus.pending)
-              .dueAtBetween(nextWeekStart, nextMonthStart, includeUpper: false);
+              .dueAtBetween(sectionStart, sectionEnd, includeUpper: false)
+              .findAll();
         } else {
           // 空范围：使用一个永远为 false 的条件（dueAt 必须同时 < today 和 > today+365）
-          builder = _isar.taskEntitys
+          final todayStart = DateTime(now.year, now.month, now.day);
+          results = await _isar.taskEntitys
               .filter()
               .statusEqualTo(TaskStatus.pending)
               .dueAtLessThan(todayStart, include: false)
@@ -1311,37 +1298,62 @@ class IsarTaskRepository implements TaskRepository {
               .dueAtGreaterThan(
                 todayStart.add(const Duration(days: 365)),
                 include: false,
-              );
+              )
+              .findAll();
         }
         break;
-      case TaskSection.later:
-        // 以后：dueAt == null OR dueAt >= max(下周一00:00:00, 下月1日00:00:00)
-        builder = _isar.taskEntitys
+      case TaskSection.nextMonth:
+        // 下月：[>=下月1日00:00:00, <下下月1日00:00:00)
+        results = await _isar.taskEntitys
             .filter()
             .statusEqualTo(TaskStatus.pending)
-            .or()
+            .dueAtBetween(sectionStart, sectionEnd, includeUpper: false)
+            .findAll();
+        break;
+      case TaskSection.later:
+        // 以后：[>=下下月1日00:00:00, ~) 或 dueAt == null
+        // 由于 Isar 的 OR 查询语法限制，需要分别查询并合并结果
+        // 查询1: dueAt == null 的任务
+        final nullTasks = await _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.pending)
             .dueAtIsNull()
-            .dueAtGreaterThan(laterStart, include: true);
+            .findAll();
+        // 查询2: dueAt >= sectionStart 的任务
+        final dateTasks = await _isar.taskEntitys
+            .filter()
+            .statusEqualTo(TaskStatus.pending)
+            .dueAtGreaterThan(sectionStart, include: true)
+            .findAll();
+        // 合并结果并去重（按 id）
+        final allTasks = <int, TaskEntity>{};
+        for (final task in nullTasks) {
+          allTasks[task.id] = task;
+        }
+        for (final task in dateTasks) {
+          allTasks[task.id] = task;
+        }
+        results = allTasks.values.toList();
         break;
       case TaskSection.completed:
-        builder = _isar.taskEntitys
+        results = await _isar.taskEntitys
             .filter()
-            .statusEqualTo(TaskStatus.completedActive);
+            .statusEqualTo(TaskStatus.completedActive)
+            .findAll();
         break;
       case TaskSection.archived:
-        builder = _isar.taskEntitys
+        results = await _isar.taskEntitys
             .filter()
-            .statusEqualTo(TaskStatus.archived);
+            .statusEqualTo(TaskStatus.archived)
+            .findAll();
         break;
       case TaskSection.trash:
-        builder = _isar.taskEntitys
+        results = await _isar.taskEntitys
             .filter()
-            .statusEqualTo(TaskStatus.trashed);
+            .statusEqualTo(TaskStatus.trashed)
+            .findAll();
         break;
     }
-
-    // Query database for tasks matching date criteria
-    final results = await builder.findAll();
 
     // CRITICAL FIX: Removed _filterLeafTasks() call to support parent task display
     //
@@ -1545,6 +1557,7 @@ class IsarTaskRepository implements TaskRepository {
       case TaskSection.tomorrow:
       case TaskSection.thisWeek:
       case TaskSection.thisMonth:
+      case TaskSection.nextMonth:
       case TaskSection.later:
         return TaskStatus.pending;
       case TaskSection.completed:

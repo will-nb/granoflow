@@ -1,0 +1,450 @@
+meta:
+  id: "251103-tasks-inbox-drag-insertion-line"
+  title: "拖拽插入间隔线实现：用间隔线替代让位动画"
+  based_on: "documents/spec/tasks/inbox/251103-drag-insertion-line-design.md"
+  status: draft
+  owner: "开发团队"
+
+scope:
+  includes:
+    - "Tasks 页面拖拽交互（间隔线替代让位动画）"
+    - "Inbox 页面拖拽交互（间隔线替代让位动画）"
+    - "任务层级管理规则实现（根任务收缩、三级限制）"
+    - "边缘自动滚动功能"
+    - "所有相关的单元测试和集成测试更新"
+  excludes:
+    - "已完成页面（Completed/Archived/Trash）的拖拽功能（这些页面不使用拖拽）"
+    - "项目模式和里程碑相关的拖拽逻辑（独立实现）"
+
+changes:
+  code_updates:
+    # ============ 核心组件改造 ============
+    - file: "lib/presentation/common/drag/standard_drag_target.dart"
+      type: rewrite
+      intent: "重写 _buildDefaultInsertionZone，实现间隔线渲染（带阴影），删除 expandedHeight 相关逻辑"
+      note: "完全重写而不是修改，确保实现简洁"
+    
+    - file: "lib/core/constants/drag_constants.dart"
+      type: modify
+      intent: "添加间隔线常量（insertionLineHitArea, insertionLineHeight, insertionLineMargin），调整 taskHeight 从 60 到 59"
+    
+    - file: "lib/core/theme/app_spacing_tokens.dart"
+      type: modify
+      intent: "调整 taskTileVerticalPadding 从 8.0 到 7.0"
+    
+    - file: "lib/core/theme/drag_theme.dart"
+      type: modify
+      intent: "添加间隔线相关属性（insertionLineColor, insertionLineShadowAlpha），更新注释"
+    
+    # ============ Tasks 页面改造 ============
+    - file: "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      type: rewrite
+      intent: "删除所有让位动画代码，重写任务渲染和拖拽逻辑，实现层级管理规则"
+      deletions:
+        - "_calculateYieldingTransform 方法（约 60 行）"
+        - "_calculateInsertionTargetHeight 方法（约 50 行）"
+        - "所有 AnimatedContainer 的 transform 计算逻辑（约 80 行）"
+        - "expandedHeight 参数的所有调用"
+      additions:
+        - "拖拽根任务时收缩所有根任务的逻辑"
+        - "展开一个根任务时其他根任务收缩的逻辑"
+        - "边缘自动滚动检测和实现"
+      note: "核心文件，建议删除相关代码块后重写，而不是修改"
+    
+    # ============ Inbox 页面改造 ============
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      type: rewrite
+      intent: "删除所有让位动画代码，重写任务渲染和拖拽逻辑，实现层级管理规则"
+      deletions:
+        - "_calculateYieldingTransform 方法（约 60 行）"
+        - "_calculateInsertionTargetHeight 方法（约 50 行）"
+        - "所有 AnimatedContainer 的 transform 计算逻辑（约 80 行）"
+        - "expandedHeight 参数的所有调用"
+      additions:
+        - "拖拽根任务时收缩所有根任务的逻辑"
+        - "展开一个根任务时其他根任务收缩的逻辑（如果 Inbox 需要此规则）"
+        - "边缘自动滚动检测和实现"
+      note: "与 Tasks 页面保持一致，建议删除相关代码块后重写"
+    
+    # ============ 拖拽意图处理 ============
+    - file: "lib/presentation/widgets/task_drag_intent_target.dart"
+      type: modify
+      intent: "移除 expandedHeight 参数，简化插入目标调用"
+    
+    - file: "lib/presentation/tasks/tasks_drag_target.dart"
+      type: review
+      intent: "检查是否还有 expandedHeight 相关的调用需要移除"
+    
+    - file: "lib/presentation/inbox/inbox_drag_target.dart"
+      type: review
+      intent: "检查是否还有 expandedHeight 相关的调用需要移除"
+    
+    # ============ 层级管理增强 ============
+    - file: "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      type: modify
+      intent: "在展开/收缩按钮 onPressed 中添加'展开一个根任务时其他根任务收缩'的逻辑"
+      location: "expandCollapseButton 的 onPressed 回调"
+    
+    - file: "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      type: modify
+      intent: "在 onDragStarted 中增强根任务拖拽逻辑：收缩所有根任务（不只是自己的子任务）"
+      location: "onDragStarted 回调中 taskLevelForDrag == 1 的分支"
+    
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      type: modify
+      intent: "类似的层级管理规则增强（如果 Inbox 需要）"
+    
+    # ============ 三级限制检查增强 ============
+    - file: "lib/presentation/widgets/task_drag_intent_helper.dart"
+      type: review
+      intent: "确认三级限制检查逻辑完整（已有 calculateHierarchyDepth 和 calculateSubtreeDepth 检查）"
+      note: "已有检查逻辑，只需确认完整性"
+    
+    - file: "lib/core/services/task_hierarchy_service.dart"
+      type: review
+      intent: "确认三级限制检查逻辑完整（已有 parentDepth + draggedSubtreeDepth > 2 检查）"
+      note: "已有检查逻辑，只需确认完整性"
+  
+  data_model:
+    - entity: "TasksDragState"
+      change: "保持不变，已有所需字段（hoveredInsertionSection, committedInsertionSection 等）"
+      note: "状态管理已完善，无需修改"
+    
+    - entity: "InboxDragState"
+      change: "保持不变，已有所需字段"
+      note: "状态管理已完善，无需修改"
+    
+    - entity: "tasksSectionExpandedTaskIdProvider"
+      change: "保持不变，已有按 section 管理的展开状态"
+      note: "只需修改使用逻辑，不需要修改 Provider 定义"
+    
+    - entity: "inboxExpandedTaskIdProvider"
+      change: "保持不变"
+      note: "只需修改使用逻辑，不需要修改 Provider 定义"
+  
+  tests:
+    # ============ 删除让位动画相关测试 ============
+    - type: unit
+      file: "test/presentation/tasks/views/task_section_drag_test.dart"
+      action: delete_or_rewrite
+      focus: "删除让位动画相关测试，重写为间隔线测试"
+      note: "如果测试主要测试让位动画，建议删除整个文件重写"
+    
+    - type: unit
+      file: "test/presentation/tasks/tasks_drag_target_test.dart"
+      action: review_and_modify
+      focus: "检查并更新测试，移除让位动画相关断言，验证间隔线显示逻辑"
+    
+    - type: unit
+      file: "test/presentation/tasks/views/task_section_panel_test.dart"
+      action: review_and_modify
+      focus: "检查测试是否需要更新（如果测试了让位动画相关功能）"
+    
+    - type: unit
+      file: "test/presentation/tasks/tasks_drag_handler_test.dart"
+      action: review_and_modify
+      focus: "检查并更新测试，确保与新的拖拽逻辑一致"
+    
+    # ============ 更新集成测试 ============
+    - type: integration
+      file: "integration_test/cross_section_drag_comprehensive_test.dart"
+      action: rewrite
+      focus: "重写测试以验证间隔线方案，删除让位动画相关断言"
+      note: "完全重写测试用例，验证间隔线显示和跨区域拖拽"
+    
+    - type: integration
+      file: "integration_test/cross_section_drag_test.dart"
+      action: delete_or_rewrite
+      focus: "删除或重写，确保测试间隔线方案"
+      note: "检查测试内容，如果主要测试让位动画，建议删除"
+    
+    - type: integration
+      file: "integration_test/comprehensive_drag_test.dart"
+      action: review_and_modify
+      focus: "检查并更新，移除让位动画相关测试"
+    
+    - type: integration
+      file: "integration_test/tasks_drag_test.dart"
+      action: review_and_modify
+      focus: "检查并更新，确保测试间隔线方案和层级管理规则"
+    
+    # ============ 新增测试 ============
+    - type: unit
+      file: "test/presentation/common/drag/standard_drag_target_test.dart"
+      action: create
+      focus: "测试间隔线显示逻辑（悬停/未悬停状态）"
+    
+    - type: unit
+      file: "test/presentation/tasks/views/task_hierarchy_management_test.dart"
+      action: create
+      focus: "测试层级管理规则：拖拽根任务收缩、展开一个根任务时其他收缩、三级限制"
+    
+    - type: integration
+      file: "integration_test/insertion_line_drag_test.dart"
+      action: create
+      focus: "测试间隔线方案的完整拖拽流程（同区域、跨区域、边界情况）"
+  
+  documentation:
+    - path: "documents/spec/tasks/inbox/251103-drag-insertion-line-design.md"
+      update_type: complete
+      note: "设计文档已完成"
+    
+    - path: "documents/spec/tasks/inbox/251103-drag-insertion-line-iteration.yaml"
+      update_type: create
+      note: "当前迭代蓝图"
+
+existing_logic:
+  # ============ 已存在且需要保留的逻辑 ============
+  keep:
+    - name: "三级任务限制检查"
+      location: 
+        - "lib/core/services/task_hierarchy_service.dart (line 79-91)"
+        - "lib/presentation/widgets/task_drag_intent_helper.dart (line 149-177)"
+      note: "已有完整的层级深度检查，使用 calculateHierarchyDepth 和 calculateSubtreeDepth"
+    
+    - name: "展开状态管理 Provider"
+      location:
+        - "lib/core/providers/app_providers.dart (tasksSectionExpandedTaskIdProvider, inboxExpandedTaskIdProvider)"
+      note: "Provider 定义完整，只需修改使用逻辑"
+    
+    - name: "拖拽状态管理"
+      location:
+        - "lib/core/providers/tasks_drag_provider.dart"
+        - "lib/core/providers/inbox_drag_provider.dart"
+      note: "状态字段完整（hoveredInsertionSection, committedInsertionSection 等），无需修改"
+    
+    - name: "任务层级计算工具"
+      location:
+        - "lib/presentation/tasks/utils/hierarchy_utils.dart"
+        - "lib/core/services/task_service.dart (getTaskLevel 等)"
+      note: "层级计算逻辑完整，直接使用"
+    
+    - name: "循环引用检查"
+      location:
+        - "lib/presentation/tasks/utils/hierarchy_utils.dart (hasCircularReference)"
+        - "lib/core/services/task_hierarchy_service.dart"
+      note: "已有完整实现，无需修改"
+    
+    - name: "任务移动服务方法"
+      location:
+        - "lib/core/services/task_hierarchy_service.dart (moveToParent)"
+        - "lib/core/services/task_service.dart (handleDragBetweenTasks)"
+      note: "核心业务逻辑完整，无需修改"
+
+  enhance:
+    - name: "拖拽根任务时的收缩逻辑"
+      location: "lib/presentation/tasks/views/tasks_section_task_list.dart (line 953-960)"
+      current: "只收缩自己的子任务"
+      target: "收缩所有根任务（清空 expandedTaskIds）"
+      note: "需要增强现有逻辑"
+    
+    - name: "展开按钮点击逻辑"
+      location: "lib/presentation/tasks/views/tasks_section_task_list.dart (line 909-924)"
+      current: "简单的展开/收缩切换"
+      target: "展开根任务时，先收缩所有其他根任务，再展开当前根任务"
+      note: "需要增强现有逻辑"
+    
+    - name: "Inbox 页面展开逻辑"
+      location: "lib/presentation/inbox/views/inbox_task_list.dart (line 810-823)"
+      current: "简单的展开/收缩切换"
+      target: "根据需求决定是否也需要'展开一个根任务时其他根任务收缩'的规则"
+      note: "需要确认需求后增强"
+
+code_to_delete:
+  # ============ 必须删除的让位动画代码 ============
+  files:
+    # Tasks 页面
+    - file: "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      methods:
+        - name: "_calculateYieldingTransform"
+          lines: "约 1485-1549"
+          reason: "让位动画计算逻辑，间隔线方案不再需要"
+        - name: "_calculateInsertionTargetHeight"
+          lines: "约 1403-1462"
+          reason: "让位动画高度计算，间隔线方案不再需要"
+      code_blocks:
+        - location: "AnimatedContainer transform 计算"
+          lines: "约 721-803"
+          reason: "让位动画的 Transform 计算，间隔线方案不再需要"
+        - location: "expandedHeight 参数调用"
+          lines: "604, 1255"
+          reason: "让位动画相关参数，间隔线方案不再需要"
+    
+    # Inbox 页面
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      methods:
+        - name: "_calculateYieldingTransform"
+          lines: "约 1262-1322"
+          reason: "让位动画计算逻辑，间隔线方案不再需要"
+        - name: "_calculateInsertionTargetHeight"
+          lines: "约 1187-1239"
+          reason: "让位动画高度计算，间隔线方案不再需要"
+      code_blocks:
+        - location: "AnimatedContainer transform 计算"
+          lines: "约 650-730"
+          reason: "让位动画的 Transform 计算，间隔线方案不再需要"
+        - location: "expandedHeight 参数调用"
+          lines: "535, 1066"
+          reason: "让位动画相关参数，间隔线方案不再需要"
+    
+    # 共同组件
+    - file: "lib/presentation/common/drag/standard_drag_target.dart"
+      code_blocks:
+        - location: "_buildDefaultInsertionZone 方法"
+          lines: "110-128"
+          reason: "需要重写为间隔线实现"
+        - location: "expandedHeight 参数和注释"
+          lines: "24, 38-39, 115-118"
+          reason: "让位动画相关，间隔线方案不再需要"
+  
+  # ============ 需要删除或重写的测试 ============
+  test_files:
+    - file: "integration_test/cross_section_drag_comprehensive_test.dart"
+      action: "rewrite"
+      reason: "测试让位动画相关功能，需要重写为间隔线测试"
+      note: "保留测试框架和辅助函数，重写测试用例"
+    
+    - file: "test/presentation/tasks/views/task_section_drag_test.dart"
+      action: "review_and_delete_if_needed"
+      reason: "如果主要测试让位动画，需要删除或重写"
+      note: "检查测试内容后决定"
+
+code_to_add:
+  # ============ 需要新增的代码 ============
+  files:
+    - file: "lib/presentation/common/drag/standard_drag_target.dart"
+      additions:
+        - name: "间隔线渲染逻辑"
+          location: "_buildDefaultInsertionZone 方法"
+          description: "实现带阴影的间隔线，悬停时显示，未悬停时隐藏"
+          key_points:
+            - "命中区域：10px 透明区域（用于容错）"
+            - "视觉线：3px 带阴影的线（悬停时显示）"
+            - "使用 DragTheme 获取颜色"
+            - "使用 AnimatedContainer 实现过渡动画"
+    
+    - file: "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      additions:
+        - name: "拖拽根任务时收缩所有根任务"
+          location: "onDragStarted 回调"
+          description: "检测到根任务拖拽时，清空所有展开状态"
+          code_logic: |
+            if (taskLevelForDrag == 1) {
+              // 清空所有展开状态（收缩所有根任务）
+              expandedNotifier.state = <int>{};
+            }
+        
+        - name: "展开一个根任务时其他根任务收缩"
+          location: "expandCollapseButton onPressed"
+          description: "展开根任务前，先收缩所有其他根任务"
+          code_logic: |
+            if (!isExpanded && taskLevel == 1) {
+              // 收缩所有根任务
+              final rootTaskIds = rootTasks.map((t) => t.id).toSet();
+              currentExpanded.removeAll(rootTaskIds);
+              // 再展开当前根任务
+              currentExpanded.add(task.id);
+            } else {
+              // 其他情况：简单的展开/收缩切换
+              if (isExpanded) {
+                currentExpanded.remove(task.id);
+              } else {
+                currentExpanded.add(task.id);
+              }
+            }
+        
+        - name: "边缘自动滚动"
+          location: "onDragUpdate 回调"
+          description: "检测拖拽接近屏幕边缘时自动滚动"
+          key_points:
+            - "检测拖拽位置是否接近顶部（< 120px）或底部（> screenHeight - 120px）"
+            - "计算滚动速度和方向"
+            - "使用 ScrollController.jumpTo 实现实时滚动"
+            - "在 onDragEnd 时停止滚动"
+    
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      additions:
+        - name: "类似的层级管理规则（如需要）"
+          description: "与 Tasks 页面保持一致的实现"
+        - name: "边缘自动滚动"
+          description: "与 Tasks 页面保持一致的实现"
+
+risks:
+  - name: "代码删除不完整"
+    mitigation: "使用 grep 搜索所有 _calculateYieldingTransform、_calculateInsertionTargetHeight、expandedHeight 引用，确保全部删除"
+  
+  - name: "展开状态管理逻辑错误"
+    mitigation: "仔细测试展开/收缩交互，确保'展开一个根任务时其他根任务收缩'逻辑正确"
+  
+  - name: "间隔线视觉效果不佳"
+    mitigation: "参考主流应用（Trello、Notion）的间隔线样式，进行视觉对比测试"
+  
+  - name: "边缘自动滚动过于敏感"
+    mitigation: "调整触发阈值（120px）和滚动速度参数，进行用户体验测试"
+  
+  - name: "三级限制检查遗漏"
+    mitigation: "在所有拖拽接受逻辑中确认三级限制检查（已有逻辑，只需验证完整性）"
+  
+  - name: "测试覆盖不完整"
+    mitigation: "根据设计文档的测试用例章节，确保所有场景都有测试覆盖"
+
+verification:
+  checklist:
+    # ============ 代码检查 ============
+    - "运行 flutter analyze，确保没有编译错误和 lint 警告"
+    - "使用 grep 搜索 _calculateYieldingTransform，确认已完全删除"
+    - "使用 grep 搜索 _calculateInsertionTargetHeight，确认已完全删除"
+    - "使用 grep 搜索 expandedHeight，确认已完全删除或仅保留向后兼容注释"
+    - "使用 grep 搜索 Matrix4.translationValues，确认已完全删除（让位动画相关）"
+    
+    # ============ 功能验证 ============
+    - "Tasks 页面：同区域拖拽排序，间隔线正确显示"
+    - "Tasks 页面：跨区域拖拽，间隔线在目标区域显示"
+    - "Tasks 页面：拖拽根任务时，所有根任务自动收缩"
+    - "Tasks 页面：展开一个根任务时，其他根任务自动收缩"
+    - "Tasks 页面：子任务可以在同一父任务下调整排序"
+    - "Tasks 页面：子任务可以拖动到另一个子任务下成为三级任务"
+    - "Tasks 页面：三级任务不能再成为其他任务的子任务（三级限制）"
+    - "Tasks 页面：边缘自动滚动功能正常（接近顶部/底部时自动滚动）"
+    - "Inbox 页面：所有拖拽功能与 Tasks 页面一致"
+    - "空区域拖拽：拖到空区域时能正确显示间隔线或区域标题"
+    - "边界拖拽：拖到区域边界时能正确判断插入位置"
+    
+    # ============ 视觉验证 ============
+    - "间隔线在悬停时正确显示（3px 带阴影）"
+    - "间隔线未悬停时不可见"
+    - "间隔线颜色符合主题（浅色/深色）"
+    - "间隔线阴影效果正确"
+    - "动画过渡流畅（120ms）"
+    - "任务间距保持 24px（7px padding + 10px 插入区域 + 7px padding）"
+    
+    # ============ 测试验证 ============
+    - "运行 flutter test，所有单元测试通过"
+    - "运行 flutter test integration_test，所有集成测试通过"
+    - "测试覆盖率：检查拖拽相关代码的覆盖率"
+    
+    # ============ 性能验证 ============
+    - "大量任务（100+）拖拽流畅，无明显卡顿"
+    - "内存占用正常，无内存泄漏"
+    - "边缘自动滚动不影响性能"
+
+implementation_notes:
+  deletion_strategy:
+    - "建议：对于包含让位动画逻辑的代码块，直接删除整个方法或代码块，而不是注释或修改"
+    - "原因：避免 AI 将简单逻辑改复杂，删除后重写更清晰"
+    - "例外：如果是部分可用的逻辑（如展开状态管理的基础逻辑），可以修改而不是删除"
+  
+  rewrite_priority:
+    - "高优先级：StandardDragTarget（核心组件，影响所有拖拽）"
+    - "高优先级：tasks_section_task_list.dart（Tasks 页面核心逻辑）"
+    - "高优先级：inbox_task_list.dart（Inbox 页面核心逻辑）"
+    - "中优先级：集成测试（确保功能正确）"
+    - "低优先级：单元测试（可以逐步补充）"
+  
+  incremental_approach:
+    - "第一阶段：实现 StandardDragTarget 间隔线，验证视觉效果"
+    - "第二阶段：删除 Tasks 页面让位动画，实现间隔线方案"
+    - "第三阶段：删除 Inbox 页面让位动画，实现间隔线方案"
+    - "第四阶段：实现层级管理规则增强"
+    - "第五阶段：实现边缘自动滚动"
+    - "第六阶段：更新和补充测试"

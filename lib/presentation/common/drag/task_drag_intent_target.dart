@@ -119,8 +119,7 @@ class TaskDragIntentTarget extends ConsumerStatefulWidget {
        insertionType = null,
        showWhenIdle = false,
        insertionChild = null,
-       useMargin = true,
-       expandedHeight = null;
+       useMargin = true;
 
   const TaskDragIntentTarget.insertion({
     super.key,
@@ -133,7 +132,6 @@ class TaskDragIntentTarget extends ConsumerStatefulWidget {
     this.insertionChild,
     this.showWhenIdle = false,
     this.useMargin = true,
-    this.expandedHeight,
   }) : style = TaskDragTargetStyle.insertion,
        hoverColor = null,
        borderRadius = null,
@@ -156,8 +154,6 @@ class TaskDragIntentTarget extends ConsumerStatefulWidget {
   final Widget? insertionChild;
   final bool showWhenIdle;
   final bool useMargin;
-  // 动态扩展高度（用于让位动画时扩展插入目标覆盖整个让出的空间）
-  final double? expandedHeight;
 
   @override
   ConsumerState<TaskDragIntentTarget> createState() =>
@@ -215,7 +211,6 @@ class _TaskDragIntentTargetState extends ConsumerState<TaskDragIntentTarget> {
       type: widget.insertionType ?? InsertionType.between,
       showWhenIdle: widget.showWhenIdle,
       useMargin: widget.useMargin,
-      expandedHeight: widget.expandedHeight,
       child: widget.insertionChild,
       onHoverChanged: (isHovering) {
         _handleHover(isHovering);

@@ -1,5 +1,6 @@
 import '../../data/models/task.dart';
 import '../../data/repositories/task_repository.dart';
+import '../utils/task_section_utils.dart';
 
 /// 稀疏整数排序（gap-based ranking）服务
 /// - 取中值插入；
@@ -243,7 +244,8 @@ class SortIndexService {
       throw StateError('Task not found');
     }
 
-    final section = _sectionOf(before);
+    // 使用 TaskSectionUtils 统一边界定义（严禁修改）
+    final section = TaskSectionUtils.getSectionForDate(before.dueAt, now: _clock());
     double left = before.sortIndex;
     double right = after.sortIndex;
 
@@ -368,29 +370,6 @@ class SortIndexService {
   }
 
   // 已不再使用的方法移除，避免未引用告警
-
-  TaskSection _sectionOf(Task task) {
-    final now = _clock();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final tomorrowStart = todayStart.add(const Duration(days: 1));
-    final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
-    final nextMondayStart = _getNextMonday(todayStart);
-    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
-
-    final due = task.dueAt;
-    if (due == null) return TaskSection.later; // 兜底
-    if (due.isBefore(todayStart)) return TaskSection.overdue;
-    if (due.isBefore(tomorrowStart)) return TaskSection.today;
-    if (due.isBefore(dayAfterTomorrowStart)) return TaskSection.tomorrow;
-    if (due.isBefore(nextMondayStart)) return TaskSection.thisWeek;
-    if (due.isBefore(nextMonthStart)) return TaskSection.thisMonth;
-    return TaskSection.later;
-  }
-
-  DateTime _getNextMonday(DateTime today) {
-    final daysUntilNextMonday = (DateTime.monday - today.weekday + 7) % 7;
-    return today.add(Duration(days: daysUntilNextMonday == 0 ? 7 : daysUntilNextMonday));
-  }
 }
 
 

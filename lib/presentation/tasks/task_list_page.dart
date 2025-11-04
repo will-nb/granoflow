@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/providers/tasks_drag_provider.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
@@ -63,6 +64,7 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     TaskSection.tomorrow: GlobalKey(),
     TaskSection.thisWeek: GlobalKey(),
     TaskSection.thisMonth: GlobalKey(),
+    TaskSection.nextMonth: GlobalKey(),
     TaskSection.later: GlobalKey(),
   };
 
@@ -71,8 +73,31 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   /// 用来确保自动滚动只执行一次，避免重复滚动。
   bool _didAutoScroll = false;
 
+  /// 是否已经完成初始构建
+  ///
+  /// 用来区分是首次加载还是数据更新后的重建
+  bool _hasCompletedInitialBuild = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 在下一帧标记初始构建完成，确保只在首次加载时设置
+    // 这样在数据更新导致重建时，不会重置滚动位置
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _hasCompletedInitialBuild = true;
+        // 设置 ScrollController 到 TasksDragNotifier，用于边缘自动滚动
+        final dragNotifier = ref.read(tasksDragProvider.notifier);
+        dragNotifier.setScrollController(_scrollController);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    // 清除 ScrollController 的引用，避免内存泄漏
+    final dragNotifier = ref.read(tasksDragProvider.notifier);
+    dragNotifier.setScrollController(null);
     // 页面销毁时，释放滚动控制器，避免内存泄漏
     _scrollController.dispose();
     super.dispose();
@@ -87,6 +112,10 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   /// 4. 如果设置了初始分区，会自动滚动到那个分区
   @override
   Widget build(BuildContext context) {
+    // 确保 ScrollController 已设置到 TasksDragNotifier（用于边缘自动滚动）
+    final dragNotifier = ref.read(tasksDragProvider.notifier);
+    dragNotifier.setScrollController(_scrollController);
+    
     final l10n = AppLocalizations.of(context);
     final editActions = ref.watch(taskEditActionsNotifierProvider);
     // 如果正在执行任务操作（比如删除、移动任务），显示顶部的进度条
@@ -116,6 +145,10 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         title: l10n.plannerSectionThisMonthTitle,
       ),
       _SectionMeta(
+        section: TaskSection.nextMonth,
+        title: l10n.plannerSectionNextMonthTitle,
+      ),
+      _SectionMeta(
         section: TaskSection.later,
         title: l10n.plannerSectionLaterTitle,
       ),
@@ -132,6 +165,8 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         behavior: HitTestBehavior.translucent,
         child: CustomScrollView(
           controller: _scrollController,
+          // 添加这个参数，确保在数据更新时保持滚动位置
+          key: const PageStorageKey<String>('tasks_page_scroll'),
           slivers: [
             // 如果正在执行任务操作，在顶部显示进度条
             if (showLinearProgress)
@@ -173,8 +208,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                                           _handleQuickAdd(context, meta.section),
                                       tasks: tasks,
                                     );
-                                    // 检查是否需要自动滚动到这个分区
-                                    _maybeAutoScroll(meta.section);
+                                    // 只在首次构建时检查是否需要自动滚动
+                                    // 数据更新后的重建不应该触发自动滚动
+                                    if (!_hasCompletedInitialBuild) {
+                                      _maybeAutoScroll(meta.section);
+                                    }
                                     return panel;
                                   },
                                   // 加载中时，不显示任何内容（避免闪烁）
@@ -205,6 +243,8 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   void _maybeAutoScroll(TaskSection builtSection) {
     // 如果已经滚动过了，就不再滚动
     if (_didAutoScroll) return;
+    // 如果已经完成了初始构建，说明这是数据更新后的重建，不应该触发自动滚动
+    if (_hasCompletedInitialBuild) return;
     // 解析用户指定的初始分区
     final target = _parseSection(widget.initialSection);
     // 如果用户没有指定，就不滚动
@@ -214,9 +254,13 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     // 在当前这一帧渲染完成后，执行滚动
     // 这样可以确保分区已经完全渲染到页面上，才能正确滚动
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 再次检查，确保在回调执行时仍然需要滚动
+      // 只有在初始构建阶段且尚未滚动过时才执行自动滚动
+      // 如果已经完成了初始构建（数据更新后的重建），则不执行滚动
+      if (_didAutoScroll || _hasCompletedInitialBuild) return;
       final key = _sectionKeys[target];
       final ctx = key?.currentContext;
-      if (ctx != null) {
+      if (ctx != null && mounted) {
         _didAutoScroll = true;
         // 平滑滚动到目标分区，滚动时间 350 毫秒
         await Scrollable.ensureVisible(
@@ -249,6 +293,8 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         return TaskSection.thisWeek;
       case 'thisMonth':
         return TaskSection.thisMonth;
+      case 'nextMonth':
+        return TaskSection.nextMonth;
       case 'later':
         return TaskSection.later;
       default:

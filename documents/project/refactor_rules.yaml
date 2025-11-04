@@ -28,14 +28,14 @@ rules:
   - smell: Long Method
     alias: [long function, lengthy build]
     detect:
-      - "function >40 lines"
+      - "function >60 lines (警告阈值: >50 lines)"
       - "build() contains 3+ responsibilities"
     refactorings:
       - name: "Extract Function"
       - name: "Extract Widget (compose UI)"
       - name: "Introduce Explaining Variable"
       - name: "Guard Clauses (early return)"
-    notes.flutter: "将子树拆成小部件可减少不必要重建。"
+    notes.flutter: "将子树拆成小部件可减少不必要重建。超过 60 行必须重构，超过 50 行应在下次修改时重构。"
 
   - smell: Long Class (God Object)
     alias: [god object, too many fields]
@@ -47,6 +47,30 @@ rules:
       - name: "Move Method/Field to proper layer"
       - name: "Introduce Interface (narrow)"
     notes.flutter: "页面Widget只负责展示；业务放Service/Notifier。"
+    
+  - smell: Large File (File Size Limit)
+    alias: [file too large, oversized file]
+    detect:
+      - "lib/presentation/*.dart >500 lines (警告阈值: >400 lines)"
+      - "lib/core/utils/*.dart, lib/core/providers/*.dart, lib/core/services/*.dart, lib/core/monetization/*.dart >400 lines (警告阈值: >300 lines)"
+      - "lib/data/repositories/*.dart >500 lines (警告阈值: >400 lines)"
+      - "lib/main.dart >100 lines (警告阈值: >80 lines)"
+      - "lib/data/models/*.dart >300 lines (警告阈值: >250 lines)"
+    refactorings:
+      - name: "Split by Responsibility (按职责拆分)"
+      - name: "Split by Layer (按层次拆分)"
+      - name: "Split by Feature (按功能拆分)"
+    notes.dart: |
+      Repository 拆分策略：
+      - 查询方法 → *_queries.dart
+      - 变更方法 → *_mutations.dart
+      - Stream 方法 → *_streams.dart
+    notes.flutter: |
+      Widget 拆分策略：
+      - 子组件 → 独立的 *_widget.dart 文件
+      - Provider 按功能模块拆分到独立的 *_provider.dart 文件
+      - Service 按业务领域拆分到独立的 *_service.dart 文件
+    safety: ["require-tests-or-snapshot-golden"]
 
   - smell: Feature Envy
     detect:

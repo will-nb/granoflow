@@ -23,8 +23,13 @@ class DragConstants {
   // 注意：insertionToleranceZone 仍用于逻辑计算（拖拽位置检测），不影响视觉高度
   static const double insertionTargetHeight = 8.0;
   
-  // 任务高度（用于让位动画和动态扩展插入目标）
-  static const double taskHeight = 60.0; // 任务卡片高度（包括 padding）
+  // 间隔线相关常量（用于间隔线方案）
+  static const double insertionLineHitArea = 10.0; // 命中区域高度（容错空间）
+  static const double insertionLineHeight = 3.0; // 视觉线高度
+  static const double insertionLineMargin = 16.0; // 左右边距（与任务卡片水平 padding 对齐）
+  
+  // 任务高度（用于计算和布局）
+  static const double taskHeight = 59.0; // 任务卡片高度（包括 padding），从 60.0 调整为 59.0
   
   // 任务表面排除区（用于位置检测，上下各 16 像素）
   // 在任务边缘的16像素区域内，判定为插入排序而非移入任务

@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/services/sort_index_service.dart
   description: Service 描述
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 service_definition:
@@ -195,6 +195,7 @@ called_by: []
 calls:
 - lib/data/models/task.dart
 - lib/data/repositories/task_repository.dart
+- lib/core/utils/task_section_utils.dart
 test_mapping:
   unit: []
   integration: []

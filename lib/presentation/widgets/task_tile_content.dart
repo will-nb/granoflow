@@ -77,11 +77,11 @@ class _TaskTileContentState extends ConsumerState<TaskTileContent> {
     final defaultPadding = EdgeInsets.symmetric(
       horizontal: spacing?.taskTileHorizontalPadding ?? 16.0,
       vertical: spacing?.taskTileVerticalPadding ?? 8.0,
-    );
+          );
 
     return Padding(
       padding: widget.contentPadding ?? defaultPadding,
-      child: StandardDraggable<Task>(
+        child: StandardDraggable<Task>(
         data: widget.task,
         handle: handle,
         onDragStarted: widget.onDragStarted,

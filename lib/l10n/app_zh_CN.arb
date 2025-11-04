@@ -373,6 +373,7 @@
   "parentTask": "父任务",
   "pendingStatus": "待处理",
   "plannerSectionLaterTitle": "以后",
+  "plannerSectionNextMonthTitle": "下月",
   "plannerSectionOverdueTitle": "已逾期",
   "plannerSectionThisMonthTitle": "当月",
   "plannerSectionThisWeekTitle": "本周",

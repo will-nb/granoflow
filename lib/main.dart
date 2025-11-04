@@ -36,21 +36,21 @@ Future<Isar> _openIsar() async {
   }
 
   try {
-    final dir = await getApplicationSupportDirectory();
+  final dir = await getApplicationSupportDirectory();
     final isar = await Isar.open(
-      [
-        TaskEntitySchema,
-        TaskTemplateEntitySchema,
-        FocusSessionEntitySchema,
-        TagEntitySchema,
-        PreferenceEntitySchema,
-        SeedImportLogEntitySchema,
-        ProjectEntitySchema,
-        MilestoneEntitySchema,
-      ],
-      directory: dir.path,
-      inspector: false,
-    );
+    [
+      TaskEntitySchema,
+      TaskTemplateEntitySchema,
+      FocusSessionEntitySchema,
+      TagEntitySchema,
+      PreferenceEntitySchema,
+      SeedImportLogEntitySchema,
+      ProjectEntitySchema,
+      MilestoneEntitySchema,
+    ],
+    directory: dir.path,
+    inspector: false,
+  );
     _isarInstance = isar;
     return isar;
   } catch (e) {

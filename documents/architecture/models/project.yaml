@@ -4,8 +4,8 @@ meta:
   file_path: lib/data/models/project.dart
   description: 模型描述
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 model_definition:

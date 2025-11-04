@@ -18,6 +18,8 @@ DateTime defaultDueDate(TaskSection section) {
       return base.add(const Duration(days: 2));
     case TaskSection.thisMonth:
       return base.add(const Duration(days: 7));
+    case TaskSection.nextMonth:
+      return DateTime(now.year, now.month + 1, 1);
     case TaskSection.later:
       return base.add(const Duration(days: 30));
     case TaskSection.completed:

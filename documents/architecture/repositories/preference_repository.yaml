@@ -4,8 +4,8 @@ meta:
   file_path: lib/data/repositories/preference_repository.dart
   description: Repository 描述
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 repository_definition:
@@ -144,7 +144,7 @@ testing_strategy:
 source_of_truth: lib/data/repositories/preference_repository.dart
 called_by: []
 calls:
-- lib/core/constants/font_scale_constants.dart
+- lib/core/constants/font_scale_level.dart
 - lib/data/isar/preference_entity.dart
 - lib/data/models/preference.dart
 test_mapping:

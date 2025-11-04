@@ -5,6 +5,102 @@ set -e
 # 收集变更文件（staged）
 CHANGED=$(git diff --cached --name-only)
 
+# 文件大小检查函数
+check_file_size() {
+  local file="$1"
+  
+  # 跳过生成的文件
+  if echo "$file" | grep -q '\.g\.dart$'; then
+    return 0
+  fi
+  
+  # 只检查 lib 下的 dart 文件
+  if ! echo "$file" | grep -q '^lib/.*\.dart$'; then
+    return 0
+  fi
+  
+  local lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+  local max_lines=0
+  local warning_lines=0
+  local file_type=""
+  
+  # 根据文件路径判断阈值
+  if echo "$file" | grep -q "^lib/presentation/.*\.dart$"; then
+    max_lines=500
+    warning_lines=400
+    file_type="presentation"
+  elif echo "$file" | grep -q "^lib/core/\(utils\|providers\|services\|monetization\)/.*\.dart$"; then
+    max_lines=400
+    warning_lines=300
+    file_type="core"
+  elif echo "$file" | grep -q "^lib/data/repositories/.*\.dart$"; then
+    max_lines=500
+    warning_lines=400
+    file_type="repository"
+  elif [ "$file" = "lib/main.dart" ]; then
+    max_lines=100
+    warning_lines=80
+    file_type="main"
+  elif echo "$file" | grep -q "^lib/data/models/.*\.dart$"; then
+    max_lines=300
+    warning_lines=250
+    file_type="model"
+  else
+    # 其他 lib 下的 dart 文件，使用默认阈值
+    max_lines=400
+    warning_lines=300
+    file_type="default"
+  fi
+  
+  # 检查是否超过硬性阈值
+  if [ "$lines" -gt "$max_lines" ]; then
+    echo "❌ 错误: $file 超过文件大小限制！"
+    echo "   当前行数: $lines 行"
+    echo "   最大允许: $max_lines 行 ($file_type)"
+    echo "   超出: $((lines - max_lines)) 行"
+    echo ""
+    echo "   请先重构此文件，拆分后再提交。"
+    echo "   拆分策略参考: documents/project/refactor_rules.yaml"
+    return 1
+  fi
+  
+  # 检查是否超过警告阈值（只警告，不阻止）
+  if [ "$lines" -gt "$warning_lines" ]; then
+    echo "⚠️  警告: $file 接近文件大小限制"
+    echo "   当前行数: $lines 行 (警告阈值: $warning_lines, 最大: $max_lines)"
+    echo ""
+  fi
+  
+  return 0
+}
+
+# 0) 文件大小检查（在格式化之前）
+DART_CHANGED=$(echo "$CHANGED" | grep -E '^lib/.*\.dart$' || true)
+if [ -n "$DART_CHANGED" ]; then
+  echo "[pre-commit] Checking file size limits ..."
+  HAS_ERROR=0
+  for file in $DART_CHANGED; do
+    if [ -f "$file" ]; then
+      if ! check_file_size "$file"; then
+        HAS_ERROR=1
+      fi
+    fi
+  done
+  
+  if [ $HAS_ERROR -eq 1 ]; then
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════════════════════"
+    echo "📋 文件大小检查失败"
+    echo "═══════════════════════════════════════════════════════════════════════════════"
+    echo ""
+    echo "请先重构超过限制的文件，然后重新提交。"
+    echo "详细规则请参考: .cursor/rules/00-global.mdc 和 documents/project/refactor_rules.yaml"
+    echo ""
+    exit 1
+  fi
+  echo "[pre-commit] ✓ File size check passed"
+fi
+
 # 1) Dart 格式/分析（仅受影响目录）
 if echo "$CHANGED" | grep -E '^lib/|^test/|^integration_test/' >/dev/null 2>&1; then
   echo "[pre-commit] Running dart format (changed only) ..."

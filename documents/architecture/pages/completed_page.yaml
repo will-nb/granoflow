@@ -1,11 +1,11 @@
 meta:
-  name: _ErrorState
+  name: _CompletedPageState
   type: page
   file_path: lib/presentation/completion_management/completed_page.dart
-  description: _ErrorState 页面
+  description: _CompletedPageState 页面
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -194,12 +194,10 @@ called_by: []
 calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/core/providers/app_providers.dart
-- lib/core/providers/service_providers.dart
-- lib/core/services/task_service.dart
-- lib/data/models/task.dart
 - lib/presentation/widgets/page_app_bar.dart
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/gradient_page_scaffold.dart
+- lib/presentation/widgets/task_filter_collapsible.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

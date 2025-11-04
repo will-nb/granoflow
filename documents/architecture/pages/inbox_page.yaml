@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/inbox/inbox_page.dart
   description: _InboxPageState 页面
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -194,6 +194,7 @@ called_by: []
 calls:
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
+- lib/core/theme/app_spacing_tokens.dart
 - lib/data/models/task_template.dart
 - lib/generated/l10n/app_localizations.dart
 - lib/presentation/navigation/navigation_destinations.dart

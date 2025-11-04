@@ -209,6 +209,7 @@
   "parentTask": "Parent Task",
   "pendingStatus": "Pending",
   "plannerSectionLaterTitle": "Later",
+  "plannerSectionNextMonthTitle": "Next Month",
   "plannerSectionOverdueTitle": "Overdue",
   "plannerSectionTodayTitle": "Today",
   "plannerSectionTomorrowTitle": "Tomorrow",

@@ -17,6 +17,7 @@ enum TaskSection {
   tomorrow,
   thisWeek,
   thisMonth,
+  nextMonth,
   later,
   completed,
   archived,

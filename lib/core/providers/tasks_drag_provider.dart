@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/task.dart';
 import '../../presentation/tasks/tasks_drag_target_type.dart';
+import '../../presentation/common/task_list/task_list_edge_auto_scroll.dart';
 
 /// Tasks页面拖拽状态
 class TasksDragState {
@@ -122,7 +124,8 @@ class TasksDragState {
 }
 
 /// Tasks页面拖拽状态管理器
-class TasksDragNotifier extends StateNotifier<TasksDragState> {
+class TasksDragNotifier extends StateNotifier<TasksDragState>
+    implements DragNotifierWithAutoScroll {
   TasksDragNotifier() : super(const TasksDragState());
   
   /// 开始拖拽
@@ -130,6 +133,11 @@ class TasksDragNotifier extends StateNotifier<TasksDragState> {
   /// [task] 被拖拽的任务
   /// [startPosition] 拖拽起始位置（全局坐标）
   void startDrag(Task task, Offset startPosition) {
+    // 保存当前滚动位置（用于拖拽结束后恢复）
+    if (_scrollController != null && _scrollController!.hasClients) {
+      _scrollPositionBeforeDrag = _scrollController!.position.pixels;
+    }
+    
     state = TasksDragState(
       draggedTask: task,
       isDragging: true,
@@ -235,11 +243,109 @@ class TasksDragNotifier extends StateNotifier<TasksDragState> {
     );
   }
   
+  /// 是否正在自动滚动
+  bool _isAutoScrolling = false;
+  
+  /// 自动滚动定时器（用于持续滚动）
+  Timer? _autoScrollTimer;
+  
+  /// 当前滚动控制器（需要在外部设置）
+  ScrollController? _scrollController;
+  
+  /// 拖拽开始时的滚动位置（用于拖拽结束后恢复）
+  double? _scrollPositionBeforeDrag;
+  
+  /// 设置滚动控制器
+  void setScrollController(ScrollController? controller) {
+    _scrollController = controller;
+  }
+  
+  /// 开始边缘自动滚动
+  /// 
+  /// [direction] 滚动方向：正数向下，负数向上
+  /// [speed] 滚动速度（像素/次），默认 30px
+  void startAutoScroll(double direction, {double speed = 30.0}) {
+    if (_isAutoScrolling && _scrollController != null && _scrollController!.hasClients) {
+      // 已经在滚动，更新方向
+      _updateAutoScroll(direction, speed);
+      return;
+    }
+    
+    if (_scrollController == null || !_scrollController!.hasClients) {
+      return; // 没有有效的滚动控制器
+    }
+    
+    _isAutoScrolling = true;
+    _updateAutoScroll(direction, speed);
+  }
+  
+  /// 更新自动滚动
+  void _updateAutoScroll(double direction, double speed) {
+    _autoScrollTimer?.cancel();
+    
+    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (_scrollController == null || !_scrollController!.hasClients) {
+        stopAutoScroll();
+        return;
+      }
+      
+      final scrollPosition = _scrollController!.position;
+      final currentOffset = scrollPosition.pixels;
+      final maxScroll = scrollPosition.maxScrollExtent;
+      final minScroll = scrollPosition.minScrollExtent;
+      
+      // 计算新位置
+      double newOffset = currentOffset + (direction * speed);
+      
+      // 限制在边界内（但不停止滚动，由检测逻辑统一决定停止）
+      if (newOffset < minScroll) {
+        newOffset = minScroll;
+      } else if (newOffset > maxScroll) {
+        newOffset = maxScroll;
+      }
+      
+      // 执行滚动（即使到达边界也执行，确保位置被正确限制）
+      // 只在位置变化时执行，避免无效调用
+      if (currentOffset != newOffset) {
+        _scrollController!.jumpTo(newOffset);
+      }
+      // 定时器继续运行，等待下一次检测逻辑的决策
+    });
+  }
+  
+  /// 停止边缘自动滚动
+  void stopAutoScroll() {
+    _isAutoScrolling = false;
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = null;
+  }
+  
   /// 结束拖拽
   void endDrag() {
+    // 拖拽结束时停止自动滚动
+    stopAutoScroll();
+    
+    // 保存滚动位置（将在下一个 frame 恢复）
+    final savedScrollPosition = _scrollPositionBeforeDrag;
+    _scrollPositionBeforeDrag = null;
+    
     // 拖拽结束时清除所有状态，包括已提交的插入位置
     state = const TasksDragState();
+    
+    // 在下一个 frame 恢复滚动位置（确保在数据更新重建之后）
+    if (savedScrollPosition != null && _scrollController != null && _scrollController!.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController != null && _scrollController!.hasClients) {
+          // 使用 jumpTo 而不是 animateTo，避免动画干扰用户
+          final maxScroll = _scrollController!.position.maxScrollExtent;
+          final minScroll = _scrollController!.position.minScrollExtent;
+          final targetPosition = savedScrollPosition.clamp(minScroll, maxScroll);
+          _scrollController!.jumpTo(targetPosition);
+        }
+      });
+    }
   }
+  
 }
 
 /// Tasks页面拖拽状态Provider

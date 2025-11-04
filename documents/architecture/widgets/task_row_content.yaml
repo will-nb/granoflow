@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_row_content.dart
   description: _TaskRowContentState 组件
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -175,6 +175,7 @@ widget_imports:
 - ../../core/providers/service_providers.dart
 - ../../core/services/project_models.dart
 - ../../core/services/tag_service.dart
+- ../../core/utils/task_section_utils.dart
 - ../../data/models/task.dart
 - ../../generated/l10n/app_localizations.dart
 - inline_editable_tag.dart
@@ -282,6 +283,7 @@ calls:
 - lib/core/providers/service_providers.dart
 - lib/core/services/project_models.dart
 - lib/core/services/tag_service.dart
+- lib/core/utils/task_section_utils.dart
 - lib/data/models/task.dart
 - lib/generated/l10n/app_localizations.dart
 - lib/data/models/tag.dart

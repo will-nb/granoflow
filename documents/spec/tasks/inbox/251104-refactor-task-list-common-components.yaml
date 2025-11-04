@@ -1,0 +1,422 @@
+meta:
+  id: "251104-refactor-task-list-common-components"
+  title: "重构任务列表：抽取公共组件，复用间隔线方案"
+  based_on: "documents/spec/tasks/inbox/251103-drag-insertion-line-design.md"
+  status: draft
+  owner: "开发团队"
+  created_at: "2025-11-04"
+
+scope:
+  includes:
+    - "Inbox 和 Tasks 页面的任务列表组件重构"
+    - "抽取公共组件（TaskListBase、TaskListConfig、TaskListDragBuilder）"
+    - "Inbox 页面复用 Tasks 页面的间隔线方案"
+    - "删除 Inbox 页面的让位动画代码"
+    - "统一拖拽逻辑和层级管理规则"
+    - "边缘自动滚动功能复用"
+  excludes:
+    - "已完成页面（Completed/Archived/Trash）的拖拽功能"
+    - "项目模式和里程碑相关的拖拽逻辑"
+    - "StandardDragTarget 和 StandardDraggable 的修改（已完成）"
+
+changes:
+  code_updates:
+    # ============ 公共组件抽取 ============
+    - file: "lib/presentation/common/task_list/task_list_config.dart"
+      type: create
+      intent: "创建任务列表配置抽象接口，定义不同页面的配置差异（Provider、TaskTile、Reorder 方法等）"
+      note: "通过策略模式统一 Inbox 和 Tasks 的差异"
+    
+    - file: "lib/presentation/common/task_list/task_list_base.dart"
+      type: create
+      intent: "抽取所有共同的任务列表逻辑（树构建、扁平化、索引转换、扩展区检测等）"
+      note: "预计 800-900 行，包含所有可复用的方法"
+    
+    - file: "lib/presentation/common/task_list/task_list_insertion_handler.dart"
+      type: create
+      intent: "统一的插入拖拽处理逻辑，通过 TaskListConfig 处理 section 和 dueDate 的差异"
+      note: "预计 150 行，处理插入拖拽的 drop 逻辑"
+    
+    - file: "lib/presentation/common/task_list/task_list_drag_builder.dart"
+      type: create
+      intent: "统一的拖拽 UI 构建逻辑，包括插入目标和任务卡片的渲染"
+      note: "预计 200 行，构建拖拽相关的 UI 组件"
+    
+    - file: "lib/presentation/common/task_list/inbox_task_list_config.dart"
+      type: create
+      intent: "Inbox 页面的配置实现（约 50 行）"
+    
+    - file: "lib/presentation/common/task_list/tasks_section_task_list_config.dart"
+      type: create
+      intent: "Tasks Section 页面的配置实现（约 80 行，包含 section 处理）"
+    
+    # ============ Inbox 页面重构 ============
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      type: rewrite
+      intent: "重构为使用公共组件，删除所有让位动画代码，复用间隔线方案"
+      deletions:
+        - "_buildTaskTree 方法（移至 TaskListBase）"
+        - "_buildSubtree 方法（移至 TaskListBase）"
+        - "_flattenTreeWithExpansion 方法（移至 TaskListBase）"
+        - "_convertFlattenedIndexToRootInsertionIndex 方法（移至 TaskListBase）"
+        - "_findTasksForInsertionIndex 方法（移至 TaskListBase）"
+        - "_isMovedOutOfExpandedArea 方法（移至 TaskListBase）"
+        - "_populateHasChildrenMap 方法（移至 TaskListBase）"
+        - "_handleInsertionDrop 方法（移至 TaskListInsertionHandler）"
+        - "_calculateYieldingTransform 方法（约 60 行，删除让位动画）"
+        - "_calculateInsertionTargetHeight 方法（约 50 行，删除让位动画）"
+        - "所有 AnimatedContainer 的 transform 计算逻辑（约 80 行）"
+        - "所有拖拽 UI 构建逻辑（移至 TaskListDragBuilder）"
+      additions:
+        - "使用 TaskListBase 和 TaskListConfig"
+        - "使用 TaskListDragBuilder 构建拖拽 UI"
+        - "使用 TaskListInsertionHandler 处理插入拖拽"
+        - "实现层级管理规则（拖拽根任务收缩所有、展开一个根任务时其他收缩）"
+        - "实现边缘自动滚动功能"
+      note: "预计从 1238 行减少到 200-250 行"
+    
+    # ============ Tasks 页面重构 ============
+    - file: "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      type: rewrite
+      intent: "重构为使用公共组件，保持现有功能，简化代码结构"
+      deletions:
+        - "_buildTaskTree 方法（移至 TaskListBase）"
+        - "_buildSubtree 方法（移至 TaskListBase）"
+        - "_flattenTreeWithExpansion 方法（移至 TaskListBase）"
+        - "_convertFlattenedIndexToRootInsertionIndex 方法（移至 TaskListBase）"
+        - "_findTasksForInsertionIndex 方法（移至 TaskListBase）"
+        - "_isMovedOutOfExpandedArea 方法（移至 TaskListBase）"
+        - "_populateHasChildrenMap 方法（移至 TaskListBase）"
+        - "_handleInsertionDrop 方法（移至 TaskListInsertionHandler）"
+        - "所有拖拽 UI 构建逻辑（移至 TaskListDragBuilder）"
+      additions:
+        - "使用 TaskListBase 和 TaskListConfig"
+        - "使用 TaskListDragBuilder 构建拖拽 UI"
+        - "使用 TaskListInsertionHandler 处理插入拖拽（包含 section 处理）"
+      note: "预计从 1451 行减少到 250-300 行，保留 section 相关的特殊逻辑"
+    
+    # ============ 边缘自动滚动 ============
+    - file: "lib/presentation/common/task_list/task_list_edge_auto_scroll.dart"
+      type: create
+      intent: "抽取边缘自动滚动逻辑为公共组件"
+      note: "Tasks 页面已实现，抽取后供 Inbox 复用"
+  
+  data_model:
+    - entity: "TaskListConfig"
+      change: "新增抽象接口，定义配置差异"
+      note: "通过接口统一 Inbox 和 Tasks 的差异"
+    
+    - entity: "InboxDragState"
+      change: "保持不变，已有所需字段"
+      note: "状态管理已完善，无需修改"
+    
+    - entity: "TasksDragState"
+      change: "保持不变，已有所需字段"
+      note: "状态管理已完善，无需修改"
+    
+    - entity: "inboxExpandedTaskIdProvider"
+      change: "保持不变，已有展开状态管理"
+      note: "只需修改使用逻辑，不需要修改 Provider 定义"
+    
+    - entity: "tasksSectionExpandedTaskIdProvider"
+      change: "保持不变，已有按 section 管理的展开状态"
+      note: "只需修改使用逻辑，不需要修改 Provider 定义"
+  
+  tests:
+    # ============ 公共组件测试 ============
+    - type: unit
+      file: "test/presentation/common/task_list/task_list_base_test.dart"
+      action: create
+      focus: "测试树构建、扁平化、索引转换等公共逻辑"
+    
+    - type: unit
+      file: "test/presentation/common/task_list/task_list_config_test.dart"
+      action: create
+      focus: "测试配置接口的正确实现"
+    
+    - type: unit
+      file: "test/presentation/common/task_list/task_list_insertion_handler_test.dart"
+      action: create
+      focus: "测试插入拖拽处理逻辑（Inbox 和 Tasks 两种场景）"
+    
+    - type: unit
+      file: "test/presentation/common/task_list/task_list_drag_builder_test.dart"
+      action: create
+      focus: "测试拖拽 UI 构建逻辑"
+    
+    # ============ Inbox 页面测试更新 ============
+    - type: unit
+      file: "test/presentation/inbox/views/inbox_task_list_test.dart"
+      action: rewrite
+      focus: "更新测试以使用公共组件，验证间隔线方案和层级管理规则"
+    
+    - type: integration
+      file: "integration_test/inbox_drag_test.dart"
+      action: review_and_modify
+      focus: "更新集成测试，验证间隔线方案和边缘自动滚动"
+    
+    # ============ Tasks 页面测试更新 ============
+    - type: unit
+      file: "test/presentation/tasks/views/tasks_section_task_list_test.dart"
+      action: review_and_modify
+      focus: "更新测试以使用公共组件，确保功能保持一致"
+  
+  documentation:
+    - path: "documents/spec/tasks/inbox/251104-refactor-task-list-common-components.yaml"
+      update_type: create
+      note: "当前迭代蓝图"
+    
+    - path: "documents/spec/tasks/inbox/251103-drag-insertion-line-design.md"
+      update_type: update
+      note: "更新设计文档，标注已完成 Tasks 页面，Inbox 页面通过重构复用"
+
+existing_logic:
+  # ============ 已存在且需要保留的逻辑 ============
+  keep:
+    - name: "任务层级树构建逻辑"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart (_buildTaskTree, _buildSubtree)"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (_buildTaskTree, _buildSubtree)"
+      note: "两个文件中的逻辑完全相同，抽取到 TaskListBase"
+    
+    - name: "扁平化和展开状态管理"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart (_flattenTreeWithExpansion)"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (_flattenTreeWithExpansion)"
+      note: "两个文件中的逻辑完全相同，抽取到 TaskListBase"
+    
+    - name: "索引转换逻辑"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart (_convertFlattenedIndexToRootInsertionIndex, _findTasksForInsertionIndex)"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (_convertFlattenedIndexToRootInsertionIndex, _findTasksForInsertionIndex)"
+      note: "两个文件中的逻辑完全相同，抽取到 TaskListBase"
+    
+    - name: "扩展区检测逻辑"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart (_isMovedOutOfExpandedArea)"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (_isMovedOutOfExpandedArea)"
+      note: "两个文件中的逻辑完全相同，抽取到 TaskListBase"
+    
+    - name: "插入拖拽处理逻辑"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart (_handleInsertionDrop)"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (_handleInsertionDrop)"
+      note: "逻辑几乎相同，只有 section 和 dueDate 处理差异，抽取到 TaskListInsertionHandler"
+    
+    - name: "边缘自动滚动逻辑"
+      location:
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (_handleEdgeAutoScroll)"
+      note: "Tasks 页面已实现，抽取为公共组件供 Inbox 复用"
+    
+    - name: "层级管理规则"
+      location:
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (onDragStarted, expandCollapseButton)"
+      note: "Tasks 页面已实现，抽取到公共组件供 Inbox 复用"
+    
+    - name: "三级限制检查"
+      location:
+        - "lib/core/services/task_hierarchy_service.dart"
+        - "lib/presentation/widgets/task_drag_intent_helper.dart"
+      note: "已有完整实现，无需修改"
+
+code_to_delete:
+  # ============ Inbox 页面删除的让位动画代码 ============
+  files:
+    - file: "lib/presentation/inbox/views/inbox_task_list.dart"
+      methods:
+        - name: "_calculateYieldingTransform"
+          lines: "约 1173-1238"
+          reason: "让位动画计算逻辑，间隔线方案不再需要"
+        - name: "_calculateInsertionTargetHeight"
+          lines: "约 1100-1172"
+          reason: "让位动画高度计算，间隔线方案不再需要"
+      code_blocks:
+        - location: "AnimatedContainer transform 计算"
+          lines: "约 622-699"
+          reason: "让位动画的 Transform 计算，间隔线方案不再需要"
+        - location: "expandedHeight 参数调用"
+          lines: "约 535, 1066"
+          reason: "让位动画相关参数，间隔线方案不再需要"
+  
+  # ============ 公共逻辑抽取后删除 ============
+  duplicate_code:
+    - name: "_buildTaskTree 和 _buildSubtree"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      reason: "抽取到 TaskListBase，删除重复代码"
+    
+    - name: "_flattenTreeWithExpansion"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      reason: "抽取到 TaskListBase，删除重复代码"
+    
+    - name: "_convertFlattenedIndexToRootInsertionIndex 和 _findTasksForInsertionIndex"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      reason: "抽取到 TaskListBase，删除重复代码"
+    
+    - name: "_isMovedOutOfExpandedArea"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      reason: "抽取到 TaskListBase，删除重复代码"
+    
+    - name: "_handleInsertionDrop"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart"
+      reason: "抽取到 TaskListInsertionHandler，删除重复代码"
+    
+    - name: "拖拽 UI 构建逻辑"
+      location:
+        - "lib/presentation/inbox/views/inbox_task_list.dart (build 方法中的插入目标和任务卡片构建)"
+        - "lib/presentation/tasks/views/tasks_section_task_list.dart (build 方法中的插入目标和任务卡片构建)"
+      reason: "抽取到 TaskListDragBuilder，删除重复代码"
+
+code_to_add:
+  # ============ 公共组件 ============
+  files:
+    - file: "lib/presentation/common/task_list/task_list_config.dart"
+      additions:
+        - name: "TaskListConfig 抽象接口"
+          description: "定义配置差异的接口（Provider、TaskTile、Reorder 方法、Section 处理等）"
+          key_points:
+            - "抽象方法：dragProvider, expandedProvider, levelMapProvider, childrenMapProvider"
+            - "抽象方法：taskTileBuilder, reorderMethod"
+            - "抽象方法：dueDateHandler (处理 section 和 dueDate 的差异)"
+            - "可选方法：section (Tasks 页面需要，Inbox 不需要)"
+    
+    - file: "lib/presentation/common/task_list/task_list_base.dart"
+      additions:
+        - name: "TaskListBase mixin 或基类"
+          description: "包含所有共同的任务列表逻辑"
+          key_points:
+            - "_buildTaskTree 和 _buildSubtree 方法"
+            - "_flattenTreeWithExpansion 方法"
+            - "_convertFlattenedIndexToRootInsertionIndex 和 _findTasksForInsertionIndex 方法"
+            - "_isMovedOutOfExpandedArea 方法"
+            - "_populateHasChildrenMap 方法"
+            - "所有辅助方法"
+    
+    - file: "lib/presentation/common/task_list/task_list_insertion_handler.dart"
+      additions:
+        - name: "TaskListInsertionHandler"
+          description: "统一的插入拖拽处理逻辑"
+          key_points:
+            - "handleInsertionDrop 方法（通过 TaskListConfig 处理 section 和 dueDate）"
+            - "支持 Inbox 场景（无 section，使用 reorderTasksForInbox）"
+            - "支持 Tasks 场景（有 section，使用 reorderTasksForSameDate，处理跨区域拖拽）"
+    
+    - file: "lib/presentation/common/task_list/task_list_drag_builder.dart"
+      additions:
+        - name: "TaskListDragBuilder"
+          description: "统一的拖拽 UI 构建逻辑"
+          key_points:
+            - "buildInsertionTargets 方法（构建插入目标）"
+            - "buildTaskTiles 方法（构建任务卡片）"
+            - "支持通过 TaskListConfig 获取 TaskTile 和 Provider"
+            - "处理层级管理规则（拖拽根任务收缩所有、展开一个根任务时其他收缩）"
+    
+    - file: "lib/presentation/common/task_list/task_list_edge_auto_scroll.dart"
+      additions:
+        - name: "TaskListEdgeAutoScroll"
+          description: "边缘自动滚动逻辑"
+          key_points:
+            - "handleEdgeAutoScroll 方法（检测拖拽位置，自动滚动）"
+            - "支持通过 TaskListConfig 获取 dragNotifier"
+            - "适用于 Inbox 和 Tasks 页面"
+
+risks:
+  - name: "重构过程中功能回归"
+    mitigation: "分阶段重构，每个阶段完成后运行完整测试，确保功能正常"
+  
+  - name: "配置接口设计不当导致扩展困难"
+    mitigation: "仔细设计 TaskListConfig 接口，确保覆盖所有差异点，预留扩展空间"
+  
+  - name: "公共组件过于复杂，难以维护"
+    mitigation: "保持公共组件职责单一，清晰的文档注释，充分的单元测试"
+  
+  - name: "Inbox 和 Tasks 的特殊逻辑处理不当"
+    mitigation: "通过 TaskListConfig 策略模式处理差异，保持公共组件通用性"
+  
+  - name: "代码行数减少但复杂度增加"
+    mitigation: "通过清晰的接口设计和充分的文档注释，确保代码可读性和可维护性"
+  
+  - name: "测试覆盖不完整"
+    mitigation: "为所有公共组件编写单元测试，更新集成测试，确保覆盖率"
+
+verification:
+  checklist:
+    # ============ 代码检查 ============
+    - "运行 flutter analyze，确保没有编译错误和 lint 警告"
+    - "使用 grep 搜索 _calculateYieldingTransform，确认 Inbox 页面已完全删除"
+    - "使用 grep 搜索 _calculateInsertionTargetHeight，确认 Inbox 页面已完全删除"
+    - "使用 grep 搜索 expandedHeight，确认已完全删除或仅保留向后兼容注释"
+    - "使用 grep 搜索 _buildTaskTree，确认仅存在于 TaskListBase"
+    - "使用 grep 搜索 _handleInsertionDrop，确认仅存在于 TaskListInsertionHandler"
+    
+    # ============ 功能验证 ============
+    - "Inbox 页面：同区域拖拽排序，间隔线正确显示"
+    - "Inbox 页面：拖拽根任务时，所有根任务自动收缩"
+    - "Inbox 页面：展开一个根任务时，其他根任务自动收缩"
+    - "Inbox 页面：子任务可以在同一父任务下调整排序"
+    - "Inbox 页面：子任务可以拖动到另一个子任务下成为三级任务"
+    - "Inbox 页面：三级任务不能再成为其他任务的子任务（三级限制）"
+    - "Inbox 页面：边缘自动滚动功能正常（接近顶部/底部时自动滚动）"
+    - "Tasks 页面：所有拖拽功能与重构前保持一致"
+    - "Tasks 页面：跨区域拖拽功能正常"
+    - "Tasks 页面：层级管理规则正常"
+    
+    # ============ 视觉验证 ============
+    - "Inbox 页面：间隔线在悬停时正确显示（3px 带阴影）"
+    - "Inbox 页面：间隔线未悬停时不可见"
+    - "Inbox 页面：间隔线颜色符合主题（浅色/深色）"
+    - "Inbox 页面：无让位动画效果（任务不移动）"
+    - "Inbox 和 Tasks 页面：视觉体验一致"
+    
+    # ============ 测试验证 ============
+    - "运行 flutter test，所有单元测试通过"
+    - "运行 flutter test integration_test，所有集成测试通过"
+    - "测试覆盖率：检查公共组件和页面组件的覆盖率"
+    - "验证公共组件的单元测试覆盖所有关键逻辑"
+    
+    # ============ 性能验证 ============
+    - "大量任务（100+）拖拽流畅，无明显卡顿"
+    - "内存占用正常，无内存泄漏"
+    - "边缘自动滚动不影响性能"
+    
+    # ============ 代码质量验证 ============
+    - "Inbox 页面代码行数减少到 200-250 行（从 1238 行）"
+    - "Tasks 页面代码行数减少到 250-300 行（从 1451 行）"
+    - "公共组件代码行数合理（TaskListBase ~800 行，其他组件 ~150-200 行）"
+    - "代码复用率：Inbox 和 Tasks 通过调用公共组件，无重复代码"
+
+implementation_notes:
+  refactoring_strategy:
+    - "阶段一：创建 TaskListConfig 接口和配置实现（InboxTaskListConfig, TasksSectionTaskListConfig）"
+    - "阶段二：创建 TaskListBase，抽取所有共同逻辑，两个页面先并行使用（临时）"
+    - "阶段三：创建 TaskListInsertionHandler，抽取插入拖拽处理逻辑"
+    - "阶段四：创建 TaskListDragBuilder，抽取拖拽 UI 构建逻辑"
+    - "阶段五：创建 TaskListEdgeAutoScroll，抽取边缘自动滚动逻辑"
+    - "阶段六：重构 Inbox 页面使用公共组件，删除让位动画代码"
+    - "阶段七：重构 Tasks 页面使用公共组件"
+    - "阶段八：删除重复代码，运行完整测试"
+  
+  incremental_approach:
+    - "每个阶段完成后运行测试，确保功能正常"
+    - "使用 feature flag 或分支切换，确保可以回滚"
+    - "保持代码可编译，避免大块删除导致无法测试"
+  
+  code_organization:
+    - "公共组件放在 lib/presentation/common/task_list/ 目录下"
+    - "配置实现放在同一目录下"
+    - "保持清晰的目录结构和命名规范"
+  
+  testing_strategy:
+    - "为每个公共组件编写独立的单元测试"
+    - "更新现有页面的测试，使用 mock 或 fake 的 TaskListConfig"
+    - "保持集成测试覆盖完整功能流程"
+

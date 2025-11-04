@@ -23,9 +23,12 @@ class TaskSectionDateRules {
       case TaskSection.thisMonth:
         final firstDay = DateTime(today.year, today.month, 1);
         return firstDay.isBefore(today) ? today : firstDay;
-      case TaskSection.later:
+      case TaskSection.nextMonth:
         final nextMonth = DateTime(today.year, today.month + 1, 1);
         return DateTime(nextMonth.year, nextMonth.month, nextMonth.day);
+      case TaskSection.later:
+        final nextNextMonth = DateTime(today.year, today.month + 2, 1);
+        return DateTime(nextNextMonth.year, nextNextMonth.month, nextNextMonth.day);
       case TaskSection.completed:
       case TaskSection.archived:
       case TaskSection.trash:

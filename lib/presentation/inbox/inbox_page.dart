@@ -1,21 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/theme/app_spacing_tokens.dart';
-import '../../data/models/task_template.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../navigation/navigation_destinations.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
-import 'sections/inbox_capture_section.dart';
 import 'views/inbox_task_list.dart';
 import 'widgets/inbox_empty_state_card.dart';
+import 'widgets/inbox_quick_add_sheet.dart';
 
 class InboxPage extends ConsumerStatefulWidget {
   const InboxPage({super.key});
@@ -25,18 +22,6 @@ class InboxPage extends ConsumerStatefulWidget {
 }
 
 class _InboxPageState extends ConsumerState<InboxPage> {
-  final TextEditingController _inputController = TextEditingController();
-  final FocusNode _inputFocusNode = FocusNode();
-  bool _isSubmitting = false;
-  String _currentQuery = '';
-
-  @override
-  void dispose() {
-    _inputController.dispose();
-    _inputFocusNode.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -50,17 +35,6 @@ class _InboxPageState extends ConsumerState<InboxPage> {
         behavior: HitTestBehavior.translucent,
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
-              child: InboxCaptureSection(
-                controller: _inputController,
-                focusNode: _inputFocusNode,
-                isSubmitting: _isSubmitting,
-                currentQuery: _currentQuery,
-                onChanged: (value) => setState(() => _currentQuery = value),
-                onSubmit: (value) => _handleSubmit(context, value),
-                onTemplateApply: (template) => _applyTemplate(context, template),
-              ),
-            ),
             tasksAsync.when(
               data: (tasks) {
                 if (tasks.isEmpty) {
@@ -82,6 +56,8 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                   );
                 }
 
+                final spacingTokens = Theme.of(context).extension<AppSpacingTokens>() ?? AppSpacingTokens.light;
+
                 return SliverToBoxAdapter(
                   child: Card(
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -89,10 +65,30 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                     elevation: 0,
                     child: Padding(
                       padding: EdgeInsets.symmetric(
-                        horizontal: Theme.of(context).extension<AppSpacingTokens>()?.cardHorizontalPadding ?? 16.0,
-                        vertical: Theme.of(context).extension<AppSpacingTokens>()?.cardVerticalPadding ?? 8.0,
+                        horizontal: spacingTokens.cardHorizontalPadding,
+                        vertical: spacingTokens.cardVerticalPadding,
                       ),
-                      child: InboxTaskList(tasks: tasks),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                l10n.inbox,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                onPressed: () => _handleQuickAdd(context),
+                                icon: const Icon(Icons.add_task_outlined),
+                                tooltip: l10n.taskListQuickAddTooltip,
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: spacingTokens.sectionInternalSpacing),
+                          InboxTaskList(tasks: tasks),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -117,61 +113,43 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     );
   }
 
-  Future<void> _handleSubmit(BuildContext context, String value) async {
+  /// 处理快速添加任务
+  ///
+  /// 弹出底部弹窗让用户输入任务标题，然后创建 status=inbox, dueDate=null 的任务
+  Future<void> _handleQuickAdd(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final title = value.trim();
-    if (title.isEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxInputEmpty)));
+    // 弹出底部弹窗，让用户输入任务标题
+    final title = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => const InboxQuickAddSheet(),
+    );
+    // 如果用户取消输入（点击取消或点击空白处），就不做任何操作
+    if (title == null || title.isEmpty) {
       return;
     }
-    setState(() => _isSubmitting = true);
+
     final taskService = ref.read(taskServiceProvider);
     try {
+      // 创建 inbox 任务，status=inbox, dueDate=null
       await taskService.captureInboxTask(title: title);
+      // 检查页面是否还存在（用户可能已经关闭了页面）
       if (!context.mounted) {
         return;
       }
-      _inputController.clear();
-      _focusNodeRequest();
-      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxAddedToast)));
+      // 显示成功提示消息
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.inboxAddedToast)));
     } catch (error, stackTrace) {
       debugPrint('Failed to add inbox task: $error\n$stackTrace');
       if (!context.mounted) {
         return;
       }
-      messenger.showSnackBar(SnackBar(content: Text('${l10n.inboxAddError}: $error')));
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      // 显示失败提示消息
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${l10n.inboxAddError}: $error')));
     }
-  }
-
-  Future<void> _applyTemplate(BuildContext context, TaskTemplate template) async {
-    final templateService = ref.read(taskTemplateServiceProvider);
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await templateService.applyTemplate(templateId: template.id);
-      if (!context.mounted) {
-        return;
-      }
-      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxTemplateApplied)));
-    } catch (error, stackTrace) {
-      debugPrint('Failed to apply template in inbox: $error\n$stackTrace');
-      if (!context.mounted) {
-        return;
-      }
-      messenger.showSnackBar(SnackBar(content: Text('${l10n.inboxTemplateError}: $error')));
-    }
-  }
-
-  void _focusNodeRequest() {
-    Future.microtask(() {
-      if (_inputFocusNode.canRequestFocus) {
-        _inputFocusNode.requestFocus();
-      }
-    });
   }
 }

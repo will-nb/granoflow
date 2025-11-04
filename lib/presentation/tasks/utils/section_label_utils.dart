@@ -14,6 +14,8 @@ String labelForSection(AppLocalizations l10n, TaskSection section) {
       return l10n.plannerSectionThisWeekTitle;
     case TaskSection.thisMonth:
       return l10n.plannerSectionThisMonthTitle;
+    case TaskSection.nextMonth:
+      return l10n.plannerSectionNextMonthTitle;
     case TaskSection.later:
       return l10n.plannerSectionLaterTitle;
     case TaskSection.completed:

@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_tile_content.dart
   description: _TaskTileContentState 组件
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -166,6 +166,7 @@ widget_dependencies:
 widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
+- ../../core/theme/app_spacing_tokens.dart
 - ../../data/models/task.dart
 - task_row_content.dart
 - ../common/drag/standard_draggable.dart
@@ -262,6 +263,7 @@ widget_state_management:
 source_of_truth: lib/presentation/widgets/task_tile_content.dart
 called_by: []
 calls:
+- lib/core/theme/app_spacing_tokens.dart
 - lib/data/models/task.dart
 - lib/presentation/common/drag/standard_draggable.dart
 i18n_keys: []

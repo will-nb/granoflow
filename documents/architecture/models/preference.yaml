@@ -4,8 +4,8 @@ meta:
   file_path: lib/data/models/preference.dart
   description: 模型描述
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 model_definition:
@@ -92,7 +92,8 @@ storage_config:
     - 重建索引 zzz
 source_of_truth: lib/data/models/preference.dart
 called_by: []
-calls: []
+calls:
+- lib/core/constants/font_scale_level.dart
 test_mapping:
   unit: []
   integration: []

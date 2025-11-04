@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/repository_providers.dart';
+import '../../../core/utils/task_section_utils.dart';
 import '../../../core/utils/task_status_utils.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
@@ -157,32 +158,32 @@ class _ChildTaskItem extends ConsumerWidget {
     }
   }
 
+  /// 基于任务状态与截止日期，推断其所在的任务分区（用于跳转定位）
+  /// 返回的字符串需与 TaskListPage._parseSection 对应
+  /// 使用 TaskSectionUtils 统一边界定义（严禁修改）
   String? _locateSectionForTask(Task task) {
-    final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final tomorrowStart = todayStart.add(const Duration(days: 1));
-    final dayAfterTomorrowStart = tomorrowStart.add(const Duration(days: 1));
-    final nextMonthStart = DateTime(now.year, now.month + 1, 1);
-    final sundayStart = _getThisSundayStart(todayStart);
-    final laterStart = nextMonthStart.isAfter(sundayStart) ? nextMonthStart : sundayStart;
-
-    final due = task.dueAt;
-    if (due == null) return 'later';
-    final dueDay = DateTime(due.year, due.month, due.day);
-
-    if (dueDay.isBefore(todayStart)) return 'overdue';
-    if (dueDay.isAtSameMomentAs(todayStart)) return 'today';
-    if (!dueDay.isBefore(tomorrowStart) && dueDay.isBefore(dayAfterTomorrowStart)) return 'tomorrow';
-    if (!dueDay.isBefore(dayAfterTomorrowStart) && dueDay.isBefore(sundayStart)) return 'thisWeek';
-    if (!dueDay.isBefore(sundayStart) && dueDay.isBefore(nextMonthStart)) return 'thisMonth';
-    if (!dueDay.isBefore(laterStart)) return 'later';
-    return 'later';
-  }
-
-  DateTime _getThisSundayStart(DateTime todayStart) {
-    final daysUntilSunday = (DateTime.sunday - todayStart.weekday + 7) % 7;
-    final sunday = todayStart.add(Duration(days: daysUntilSunday));
-    return DateTime(sunday.year, sunday.month, sunday.day);
+    // 使用 TaskSectionUtils 统一边界定义
+    final section = TaskSectionUtils.getSectionForDate(task.dueAt);
+    
+    // 转换为字符串（TaskSection enum 的 name 属性）
+    switch (section) {
+      case TaskSection.overdue:
+        return 'overdue';
+      case TaskSection.today:
+        return 'today';
+      case TaskSection.tomorrow:
+        return 'tomorrow';
+      case TaskSection.thisWeek:
+        return 'thisWeek';
+      case TaskSection.thisMonth:
+        return 'thisMonth';
+      case TaskSection.nextMonth:
+        return 'nextMonth';
+      case TaskSection.later:
+        return 'later';
+      default:
+        return null;
+    }
   }
 }
 

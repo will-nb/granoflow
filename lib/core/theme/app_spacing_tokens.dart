@@ -31,7 +31,7 @@ class AppSpacingTokens extends ThemeExtension<AppSpacingTokens> {
 
   /// 浅色主题间距令牌（与深色主题值相同）
   static const AppSpacingTokens light = AppSpacingTokens(
-    taskTileVerticalPadding: 8.0,
+    taskTileVerticalPadding: 7.0, // 从 8.0 调整为 7.0，配合间隔线方案
     taskTileHorizontalPadding: 16.0,
     cardVerticalPadding: 8.0,
     cardHorizontalPadding: 16.0,
@@ -40,7 +40,7 @@ class AppSpacingTokens extends ThemeExtension<AppSpacingTokens> {
 
   /// 深色主题间距令牌（与浅色主题值相同）
   static const AppSpacingTokens dark = AppSpacingTokens(
-    taskTileVerticalPadding: 8.0,
+    taskTileVerticalPadding: 7.0, // 从 8.0 调整为 7.0，配合间隔线方案
     taskTileHorizontalPadding: 16.0,
     cardVerticalPadding: 8.0,
     cardHorizontalPadding: 16.0,

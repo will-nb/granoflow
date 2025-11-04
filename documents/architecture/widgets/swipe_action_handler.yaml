@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/swipe_action_handler.dart
   description: SwipeActionHandler 组件
   version: '1.0'
-  created_date: '251102'
-  last_updated: '251102'
+  created_date: '251104'
+  last_updated: '251104'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -129,8 +129,10 @@ widget_imports:
 - package:flutter_riverpod/flutter_riverpod.dart
 - ../../data/models/task.dart
 - ../../core/providers/service_providers.dart
+- ../../core/providers/repository_providers.dart
 - ../../generated/l10n/app_localizations.dart
 - swipe_action_type.dart
+- ../../core/providers/app_providers.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -226,7 +228,9 @@ called_by: []
 calls:
 - lib/data/models/task.dart
 - lib/core/providers/service_providers.dart
+- lib/core/providers/repository_providers.dart
 - lib/generated/l10n/app_localizations.dart
+- lib/core/providers/app_providers.dart
 i18n_keys:
 - taskPostponeSuccessDetailed
 design_tokens: []
