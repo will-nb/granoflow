@@ -30,6 +30,7 @@ class TaskRowContent extends ConsumerStatefulWidget {
     this.compact = false,
     this.useBodyText = false, // 是否使用普通文字大小（用于零散任务和子任务）
     this.taskLevel, // 任务的层级（level），用于判断是否是子任务，level > 1 表示是子任务
+    this.isEditingNotifier, // 编辑状态通知器，用于控制拖拽和滑动
   });
 
   final Task task;
@@ -42,6 +43,8 @@ class TaskRowContent extends ConsumerStatefulWidget {
   /// 任务的层级（level），用于判断是否是子任务
   /// level > 1 表示是子任务，子任务不显示截止日期
   final int? taskLevel;
+  /// 编辑状态通知器，用于控制拖拽和滑动的启用/禁用
+  final ValueNotifier<bool>? isEditingNotifier;
 
   @override
   ConsumerState<TaskRowContent> createState() => _TaskRowContentState();
@@ -88,6 +91,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
           onConvertToProject: widget.onConvertToProject,
           useBodyText: widget.useBodyText,
           onTitleChanged: _saveTitle,
+          isEditingNotifier: widget.isEditingNotifier,
         ),
 
         // 第二行：标签 + 截止日期（可内联编辑）

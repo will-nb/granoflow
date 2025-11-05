@@ -10,7 +10,7 @@ import '../../widgets/task_tile_content.dart';
 /// Tasks Section 页面的任务卡片组件
 ///
 /// 适配 tasks 页面的任务卡片，使用 tasksConfig 滑动配置（推迟 + 归档）
-class TasksSectionTaskTile extends ConsumerWidget {
+class TasksSectionTaskTile extends ConsumerStatefulWidget {
   const TasksSectionTaskTile({
     super.key,
     required this.task,
@@ -35,23 +35,43 @@ class TasksSectionTaskTile extends ConsumerWidget {
   final int? taskLevel;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TasksSectionTaskTile> createState() => _TasksSectionTaskTileState();
+}
+
+class _TasksSectionTaskTileState extends ConsumerState<TasksSectionTaskTile> {
+  late final ValueNotifier<bool> _isEditingNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditingNotifier = ValueNotifier<bool>(false);
+  }
+
+  @override
+  void dispose() {
+    _isEditingNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // 根据任务层级选择配置：level > 1 的子任务使用删除，否则使用归档
-    final config = (taskLevel != null && taskLevel! > 1)
+    final config = (widget.taskLevel != null && widget.taskLevel! > 1)
         ? SwipeConfigs.tasksSubtaskConfig
         : SwipeConfigs.tasksConfig;
 
     final tileContent = DismissibleTaskTile(
-      key: ValueKey('tasks-section-${task.id}-${task.updatedAt.millisecondsSinceEpoch}'),
-      task: task,
+      key: ValueKey('tasks-section-${widget.task.id}-${widget.task.updatedAt.millisecondsSinceEpoch}'),
+      task: widget.task,
       config: config,
+      isEditingNotifier: _isEditingNotifier,
       onLeftAction: (task) {
         SwipeActionHandler.handleAction(
           context,
           ref,
           config.leftAction,
           task,
-          taskLevel: taskLevel,
+          taskLevel: widget.taskLevel,
         );
       },
       onRightAction: (task) {
@@ -63,15 +83,16 @@ class TasksSectionTaskTile extends ConsumerWidget {
         );
       },
       child: TaskTileContent(
-        task: task,
+        task: widget.task,
         leading: const Icon(Icons.drag_indicator_rounded, size: 20),
-        trailing: trailing,
-        contentPadding: contentPadding,
-        onDragStarted: onDragStarted,
-        onDragUpdate: onDragUpdate,
-        onDragEnd: onDragEnd,
-        childWhenDraggingOpacity: childWhenDraggingOpacity,
-        taskLevel: taskLevel,
+        trailing: widget.trailing,
+        contentPadding: widget.contentPadding,
+        onDragStarted: widget.onDragStarted,
+        onDragUpdate: widget.onDragUpdate,
+        onDragEnd: widget.onDragEnd,
+        childWhenDraggingOpacity: widget.childWhenDraggingOpacity,
+        taskLevel: widget.taskLevel,
+        isEditingNotifier: _isEditingNotifier,
       ),
     );
     return tileContent;

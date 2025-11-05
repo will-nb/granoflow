@@ -32,6 +32,9 @@ class DismissibleTaskTile extends StatelessWidget {
   
   /// 滑动方向，默认为水平滑动
   final DismissDirection direction;
+  
+  /// 编辑状态通知器，用于控制滑动的启用/禁用
+  final ValueNotifier<bool>? isEditingNotifier;
 
   const DismissibleTaskTile({
     super.key,
@@ -41,15 +44,33 @@ class DismissibleTaskTile extends StatelessWidget {
     required this.onRightAction,
     required this.child,
     this.direction = DismissDirection.horizontal,
+    this.isEditingNotifier,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     
+    // 如果没有编辑状态通知器，直接使用原始方向
+    if (isEditingNotifier == null) {
+      return _buildDismissible(context, l10n, direction);
+    }
+    
+    // 使用 ValueListenableBuilder 监听编辑状态
+    return ValueListenableBuilder<bool>(
+      valueListenable: isEditingNotifier!,
+      builder: (context, isEditing, child) {
+        // 编辑状态时禁用滑动，否则使用原始方向
+        final currentDirection = isEditing ? DismissDirection.none : direction;
+        return _buildDismissible(context, l10n, currentDirection);
+      },
+    );
+  }
+  
+  Widget _buildDismissible(BuildContext context, AppLocalizations l10n, DismissDirection currentDirection) {
     return Dismissible(
       key: Key('dismissible_${task.id}'),
-      direction: direction,
+      direction: currentDirection,
       // 左侧背景：在 LTR 下“右滑”（startToEnd）时显示。
       background: _buildLeftBackground(
         context, 
@@ -80,8 +101,7 @@ class DismissibleTaskTile extends StatelessWidget {
     );
   }
 
-
-  /// 左侧背景（在 LTR 下“右滑”时展示，文字靠左）
+  /// 左侧背景（在 LTR 下"右滑"时展示，文字靠左）
   Widget _buildLeftBackground(BuildContext context, IconData icon, Color color, String hint) {
     return Container(
       color: color,

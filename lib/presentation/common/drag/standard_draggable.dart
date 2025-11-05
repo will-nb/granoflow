@@ -32,10 +32,14 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!enabled) return child;
-
     final dragTheme = DragTheme.of(context);
+    // 即使禁用时也构建包含 handle 的 content，保持 UI 结构完整
     final content = handle != null ? _withHandle(child, handle!) : child;
+    
+    // 如果禁用，直接返回 content（包含 handle），不包装拖拽功能
+    if (!enabled) {
+      return content;
+    }
     
     final feedback = _buildFeedback(context, dragTheme, content);
     final childWhenDragging = Opacity(
