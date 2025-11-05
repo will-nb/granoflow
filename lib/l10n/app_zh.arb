@@ -239,6 +239,8 @@
   "taskListNoSubtasks": "暫無子任務。",
   "taskListQuickAddTitle": "新增到{section}",
   "taskListQuickAddTooltip": "快速新增任務",
+  "quickAddToInbox": "新增到收集箱",
+  "quickAddToTaskList": "新增到任務清單",
   "taskListRenameDialogTitle": "重新命名任務",
   "taskListRenameError": "更新名稱失敗。",
   "taskListRenameSuccess": "任務名稱已更新。",

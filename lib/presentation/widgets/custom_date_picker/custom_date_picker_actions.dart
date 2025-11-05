@@ -34,6 +34,17 @@ class QuickDateOptions extends StatelessWidget {
       59,
       59,
     );
+    
+    // 下个月最后一天
+    final nextMonthLastDay = DateTime(now.year, now.month + 2, 0);
+    final nextMonthEnd = DateTime(
+      nextMonthLastDay.year,
+      nextMonthLastDay.month,
+      nextMonthLastDay.day,
+      23,
+      59,
+      59,
+    );
 
     return Wrap(
       spacing: 8,
@@ -50,19 +61,25 @@ class QuickDateOptions extends StatelessWidget {
           label: l10n.dateTomorrow,
           icon: Icons.wb_sunny_outlined,
           onTap: () => onDateSelected(tomorrow),
-          color: theme.colorScheme.secondary,
+          color: theme.colorScheme.primary,
         ),
         QuickOptionChip(
           label: l10n.datePickerThisWeek,
           icon: Icons.event_note,
           onTap: () => onDateSelected(thisSaturday),
-          color: theme.colorScheme.tertiary,
+          color: theme.colorScheme.primary,
         ),
         QuickOptionChip(
           label: l10n.datePickerMonthEnd,
           icon: Icons.calendar_month,
           onTap: () => onDateSelected(monthEnd),
-          color: theme.colorScheme.error,
+          color: theme.colorScheme.primary,
+        ),
+        QuickOptionChip(
+          label: l10n.plannerSectionNextMonthTitle,
+          icon: Icons.calendar_today,
+          onTap: () => onDateSelected(nextMonthEnd),
+          color: theme.colorScheme.primary,
         ),
       ],
     );
@@ -90,29 +107,22 @@ class QuickOptionChip extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 14,
               color: color,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
                 color: color,
                 fontWeight: FontWeight.w600,
               ),

@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/providers/service_providers.dart';
+import '../../core/utils/task_section_utils.dart';
+import '../../generated/l10n/app_localizations.dart';
+import '../tasks/quick_tasks/quick_add_sheet.dart';
 import 'drawer_menu.dart';
 import 'navigation_bar.dart';
 import 'navigation_destinations.dart';
-import '../widgets/create_task_dialog.dart';
 
 /// 响应式导航组件
 /// 根据屏幕方向自动切换导航方式：
 /// - 横屏：显示 DrawerMenu
 /// - 竖屏：显示 AppNavigationBar
-class ResponsiveNavigation extends StatefulWidget {
+class ResponsiveNavigation extends ConsumerStatefulWidget {
   const ResponsiveNavigation({
     super.key,
     required this.selectedIndex,
@@ -31,10 +35,10 @@ class ResponsiveNavigation extends StatefulWidget {
   final DrawerDisplayMode? drawerMode;
 
   @override
-  State<ResponsiveNavigation> createState() => _ResponsiveNavigationState();
+  ConsumerState<ResponsiveNavigation> createState() => _ResponsiveNavigationState();
 }
 
-class _ResponsiveNavigationState extends State<ResponsiveNavigation> {
+class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
   bool _isLandscape = false;
   DrawerDisplayMode _currentDrawerMode = DrawerDisplayMode.hidden;
 
@@ -139,63 +143,90 @@ class _ResponsiveNavigationState extends State<ResponsiveNavigation> {
 
   /// 显示创建任务弹窗
   void _showCreateTaskDialog(BuildContext context) {
-    // 横屏和竖屏都使用底部弹窗
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildBottomSheet(context),
-    );
-  }
-
-  /// 构建底部弹窗，根据表单内容自动调整高度
-  Widget _buildBottomSheet(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final isLandscape = mediaQuery.orientation == Orientation.landscape;
     final maxHeight = isLandscape 
         ? mediaQuery.size.height * 0.5  // 横屏时限制最大高度为屏幕高度的 50%
         : double.infinity;  // 竖屏时自适应内容高度
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: maxHeight,
-      ),
-      child: Container(
-        width: double.infinity, // 100% 屏幕宽度，符合主流设计
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
+    // 使用 QuickAddSheet（不传 section，让用户选择日期）
+    showModalBottomSheet<QuickAddResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: maxHeight,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 拖拽指示器
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
             ),
-            // 表单内容（可滚动）
-            Flexible(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: const CreateTaskDialog(),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖拽指示器
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-            // 底部安全区域
-            SizedBox(height: mediaQuery.viewPadding.bottom + 20),
-          ],
+              // QuickAddSheet（不传 section）
+              const QuickAddSheet(),
+              // 底部安全区域
+              SizedBox(height: mediaQuery.viewPadding.bottom + 20),
+            ],
+          ),
         ),
       ),
-    );
+    ).then((result) {
+      if (result == null || !context.mounted) return;
+      _handleQuickAddResult(context, result);
+    });
+  }
+
+  /// 处理快速添加任务的结果
+  Future<void> _handleQuickAddResult(BuildContext context, QuickAddResult result) async {
+    final taskService = ref.read(taskServiceProvider);
+    final l10n = AppLocalizations.of(context);
+
+    try {
+      if (result.dueDate == null) {
+        // 未选择日期：放入收集箱（status 自动为 inbox）
+        await taskService.captureInboxTask(title: result.title);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.inboxAddedToast)),
+        );
+      } else {
+        // 选择日期：创建任务并规划到对应 section（status 自动为 pending）
+        final newTask = await taskService.captureInboxTask(title: result.title);
+        final section = TaskSectionUtils.getSectionForDate(result.dueDate!);
+        await taskService.planTask(
+          taskId: newTask.id,
+          dueDateLocal: result.dueDate!,
+          section: section,
+        );
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.taskListAddedToast)),
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Failed to create task: $error\n$stackTrace');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.inboxAddError}: $error')),
+      );
+    }
   }
 }

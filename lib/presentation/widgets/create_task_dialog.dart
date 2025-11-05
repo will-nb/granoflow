@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/providers/service_providers.dart';
 import '../../core/utils/task_section_utils.dart';
@@ -28,9 +27,8 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final dateLabel = _selectedDate != null
-        ? DateFormat.yMMMd().format(_selectedDate!)
-        : l10n.datePickerTitle;
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
 
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -55,16 +53,17 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
           ),
           const SizedBox(height: 16),
 
-          // 日期选择按钮
-          OutlinedButton.icon(
-            onPressed: _isSubmitting ? null : _pickDate,
-            icon: Icon(
-              _selectedDate != null ? Icons.calendar_today : Icons.calendar_month_outlined,
-            ),
-            label: Text(dateLabel),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              alignment: Alignment.centerLeft,
+          // 日期选择图标（只显示图标，点击直接弹出日历）
+          InkWell(
+            onTap: _isSubmitting ? null : _pickDate,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Icon(
+                Icons.calendar_today_outlined,
+                size: 14,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -111,97 +110,33 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
   }
 
   Future<void> _pickDate() async {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final l10n = AppLocalizations.of(context);
+    final initialDate = _selectedDate != null
+        ? DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day)
+        : today;
 
-    // 显示快速日期选择菜单
-    final quickSelection = await showModalBottomSheet<String>(
+    // 直接弹出日历，与任务列表中的日期设置行为一致
+    final pickedDate = await showCustomDatePicker(
       context: context,
-      builder: (context) {
-        final l10n = AppLocalizations.of(context);
-        final tomorrow = today.add(const Duration(days: 1));
-        final thisWeek = _getThisWeekSaturday(today);
-        final thisMonth = _getEndOfMonth(today);
-        
-        return ListView(
-          shrinkWrap: true,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.today),
-              title: Text(l10n.datePickerToday),
-              subtitle: Text(DateFormat.yMMMd().format(today)),
-              onTap: () => Navigator.pop(context, 'today'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: Text(l10n.datePickerTomorrow),
-              subtitle: Text(DateFormat.yMMMd().format(tomorrow)),
-              onTap: () => Navigator.pop(context, 'tomorrow'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.calendar_view_week),
-              title: Text(l10n.datePickerThisWeek),
-              subtitle: Text(DateFormat.yMMMd().format(thisWeek)),
-              onTap: () => Navigator.pop(context, 'thisWeek'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.calendar_month),
-              title: Text(l10n.datePickerThisMonth),
-              subtitle: Text(DateFormat.yMMMd().format(thisMonth)),
-              onTap: () => Navigator.pop(context, 'thisMonth'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.event),
-              title: Text(l10n.datePickerCustom),
-              onTap: () => Navigator.pop(context, 'custom'),
-            ),
-            if (_selectedDate != null)
-              ListTile(
-                leading: const Icon(Icons.clear),
-                title: const Text('清除日期'),
-                onTap: () => Navigator.pop(context, 'clear'),
-              ),
-          ],
-        );
-      },
+      initialDate: initialDate.isBefore(today) ? today : initialDate,
+      firstDate: today, // 不能选择今天之前的日期
+      lastDate: now.add(const Duration(days: 365 * 2)),
+      helpText: l10n.datePickerTitle,
     );
 
-    if (quickSelection == null || !context.mounted) return;
-
-    DateTime? selectedDate;
-
-    switch (quickSelection) {
-      case 'today':
-        selectedDate = today;
-        break;
-      case 'tomorrow':
-        selectedDate = today.add(const Duration(days: 1));
-        break;
-      case 'thisWeek':
-        selectedDate = _getThisWeekSaturday(today);
-        break;
-      case 'thisMonth':
-        selectedDate = _getEndOfMonth(today);
-        break;
-      case 'custom':
-        // 使用自定义日期选择器替代系统默认的
-        selectedDate = await showCustomDatePicker(
-          context: context,
-          initialDate: _selectedDate ?? now,
-          firstDate: today, // 不能选择今天之前的日期
-          lastDate: now.add(const Duration(days: 365 * 2)),
-          helpText: l10n.datePickerTitle,
-        );
-        break;
-      case 'clear':
-        selectedDate = null;
-        break;
-    }
-
-    if (context.mounted) {
+    if (pickedDate != null && context.mounted) {
       setState(() {
-        _selectedDate = selectedDate;
+        // 统一设置为当天的 23:59:59
+        _selectedDate = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          23,
+          59,
+          59,
+        );
       });
     }
   }
@@ -264,15 +199,4 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
     }
   }
 
-  /// 计算本周六的日期
-  /// 如果今天是周六，则返回下周六
-  DateTime _getThisWeekSaturday(DateTime now) {
-    final daysUntilSaturday = (DateTime.saturday - now.weekday) % 7;
-    return now.add(Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday));
-  }
-
-  /// 计算本月最后一天的日期
-  DateTime _getEndOfMonth(DateTime now) {
-    return DateTime(now.year, now.month + 1, 0);
-  }
 }

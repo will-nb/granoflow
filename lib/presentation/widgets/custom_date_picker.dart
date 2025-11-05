@@ -113,6 +113,17 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
       return l10n.datePickerMonthEnd;
     }
 
+    // 次月（下个月最后一天）
+    final nextMonthLastDay = DateTime(now.year, now.month + 2, 0);
+    final nextMonthEnd = DateTime(
+      nextMonthLastDay.year,
+      nextMonthLastDay.month,
+      nextMonthLastDay.day,
+    );
+    if (targetDate == nextMonthEnd) {
+      return l10n.plannerSectionNextMonthTitle;
+    }
+
     return null;
   }
 
@@ -159,8 +170,7 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
     final locale = Localizations.localeOf(context);
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // 使用用户区域格式显示日期
-    final selectedDateFormat = DateFormat.yMMMd(locale.toString());
+    // 使用用户区域格式显示月份
     final monthYearFormat = DateFormat.yMMMM(locale.toString());
 
     return SafeArea(
@@ -179,127 +189,115 @@ class _CustomDatePickerDialogState extends State<_CustomDatePickerDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-            // 顶部拖拽指示器
-            Container(
-              margin: const EdgeInsets.only(top: 8, bottom: 4),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // 内容区域（可滚动）
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
+                // 顶部拖拽指示器
+                Container(
+                  margin: const EdgeInsets.only(top: 8, bottom: 4),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                
+                // 固定顶部区域（月份导航、星期标题、快捷选项）
+                Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-              // 标题栏
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (widget.helpText != null)
-                    Text(
-                      widget.helpText!,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    // 月份导航
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: _previousMonth,
+                            icon: const Icon(Icons.chevron_left),
+                          ),
+                          Text(
+                            monthYearFormat.format(_displayedMonth),
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          IconButton(
+                            onPressed: _nextMonth,
+                            icon: const Icon(Icons.chevron_right),
+                          ),
+                        ],
                       ),
                     ),
-                  const SizedBox(height: 8),
-                  Text(
-                    selectedDateFormat.format(_selectedDate),
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
+
+                    // 星期标题
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: _buildWeekdayHeaders(locale),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
 
-            // 月份导航
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: _previousMonth,
-                    icon: const Icon(Icons.chevron_left),
-                  ),
-                  Text(
-                    monthYearFormat.format(_displayedMonth),
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  IconButton(
-                    onPressed: _nextMonth,
-                    icon: const Icon(Icons.chevron_right),
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(height: 8),
 
-            // 星期标题
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: _buildWeekdayHeaders(locale),
-              ),
-            ),
+                    // 快捷选项按钮
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      child: QuickDateOptions(
+                        onDateSelected: (date) {
+                          Navigator.pop(context, date);
+                        },
+                      ),
+                    ),
 
-            const SizedBox(height: 8),
-
-            // 快捷选项按钮
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: QuickDateOptions(
-                onDateSelected: (date) {
-                  Navigator.pop(context, date);
-                },
-              ),
-            ),
-
-            const Divider(height: 1),
-
-            // 日历网格（根据内容自适应高度）
-            CalendarGrid(
-              displayedMonth: _displayedMonth,
-              selectedDate: _selectedDate,
-              firstDate: widget.firstDate,
-              lastDate: widget.lastDate,
-              onDateSelected: (date) {
-                setState(() {
-                  _selectedDate = date;
-                });
-              },
-              getSpecialLabel: _getSpecialLabel,
-            ),
-
-            // 操作按钮
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l10n.commonCancel),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(context, _selectedDate),
-                    child: Text(l10n.commonConfirm),
-                  ),
-                ],
-              ),
-            ),
+                    const Divider(height: 1),
                   ],
                 ),
-              ),
-            ),
+
+                // 日历网格（可滚动，占用剩余空间）
+                Flexible(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: CalendarGrid(
+                            displayedMonth: _displayedMonth,
+                            selectedDate: _selectedDate,
+                            firstDate: widget.firstDate,
+                            lastDate: widget.lastDate,
+                            onDateSelected: (date) {
+                              setState(() {
+                                _selectedDate = date;
+                              });
+                            },
+                            getSpecialLabel: _getSpecialLabel,
+                            availableHeight: constraints.maxHeight.isFinite 
+                                ? constraints.maxHeight 
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // 底部固定操作按钮
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(l10n.commonCancel),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(context, _selectedDate),
+                        child: Text(l10n.commonConfirm),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

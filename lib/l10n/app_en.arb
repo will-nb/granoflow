@@ -287,6 +287,8 @@
   "taskListNoSubtasks": "No subtasks.",
   "taskListQuickAddTitle": "Add to {section}",
   "taskListQuickAddTooltip": "Quick Add Task",
+  "quickAddToInbox": "Add to Inbox",
+  "quickAddToTaskList": "Add to Task List",
   "taskListRenameDialogTitle": "Rename Task",
   "taskListRenameError": "Update name failed.",
   "taskListRenameSuccess": "Task name updated.",

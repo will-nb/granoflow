@@ -8,10 +8,10 @@ import '../../core/utils/task_section_utils.dart';
 import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
+import 'custom_date_picker.dart';
 import 'error_banner.dart';
 import 'tag_panel.dart';
 import 'task_expanded_panel/task_expanded_panel_date_section.dart';
-import 'task_expanded_panel/task_expanded_panel_quick_date_picker.dart';
 
 class TaskExpandedPanel extends ConsumerStatefulWidget {
   const TaskExpandedPanel({
@@ -180,39 +180,34 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
   Future<void> _planTask(BuildContext context, Task task) async {
     final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     
-    // 计算特殊日期
-    final today = now;
-    final tomorrow = now.add(const Duration(days: 1));
-    final thisWeek = _getThisWeekSaturday(now);
-    final thisMonth = _getEndOfMonth(now);
+    // 使用统一的日历弹窗，包含快速选择功能
+    final initialDate = task.dueAt != null
+        ? DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day)
+        : today;
     
-    // 显示快速选择对话框
-    final quickChoice = await showModalBottomSheet<DateTime>(
+    final pickedDate = await showCustomDatePicker(
       context: context,
-      builder: (context) => QuickDatePicker(
-        today: today,
-        tomorrow: tomorrow,
-        thisWeek: thisWeek,
-        thisMonth: thisMonth,
-      ),
+      initialDate: initialDate.isBefore(today) ? today : initialDate,
+      firstDate: today, // 不能选择今天之前的日期
+      lastDate: now.add(const Duration(days: 365 * 2)),
+      helpText: l10n.datePickerTitle,
     );
     
-    DateTime? selectedDate = quickChoice;
-    
-    // 如果没有选择快速选项，显示标准日期选择器
-    if (selectedDate == null) {
-      selectedDate = await showDatePicker(
-        context: context,
-        initialDate: now,
-        firstDate: now, // 今天以前不可选择
-        lastDate: now.add(const Duration(days: 365)),
-      );
-    }
-    
-    if (selectedDate == null) {
+    if (pickedDate == null || !context.mounted) {
       return;
     }
+    
+    // 统一设置为当天的 23:59:59
+    final selectedDate = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      23,
+      59,
+      59,
+    );
     
     setState(() {
       _isPlanning = true;
@@ -271,17 +266,6 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     return TaskSectionUtils.getSectionForDate(date);
   }
 
-  /// 计算本周六的日期
-  /// 如果今天是周六，则返回下周六
-  DateTime _getThisWeekSaturday(DateTime now) {
-    final daysUntilSaturday = (DateTime.saturday - now.weekday) % 7;
-    return now.add(Duration(days: daysUntilSaturday == 0 ? 7 : daysUntilSaturday));
-  }
-
-  /// 计算本月最后一天的日期
-  DateTime _getEndOfMonth(DateTime now) {
-    return DateTime(now.year, now.month + 1, 0);
-  }
 }
 
 // _QuickDatePicker 和 _QuickDateOption 已移至 task_expanded_panel_quick_date_picker.dart

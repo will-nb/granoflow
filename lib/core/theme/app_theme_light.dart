@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_calendar_tokens.dart';
 import 'app_color_schemes.dart';
 import 'app_color_tokens.dart';
 import 'app_gradients.dart';
@@ -115,6 +116,7 @@ class AppThemeLight {
         AppColorTokens.light,
         AppGradientsExtension.light,
         AppSpacingTokens.light,
+        AppCalendarTokens.light,
         DragTheme.fromScheme(colorScheme, Brightness.light),
       ],
     );

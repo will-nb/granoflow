@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_spacing_tokens.dart';
 import '../../../generated/l10n/app_localizations.dart';
 
 /// Inbox 快速添加任务弹窗
@@ -27,23 +28,19 @@ class _InboxQuickAddSheetState extends State<InboxQuickAddSheet> {
     final mediaQuery = MediaQuery.of(context);
     final viewInsets = mediaQuery.viewInsets.bottom;
     final l10n = AppLocalizations.of(context);
+    final spacing = context.spacingTokens;
 
     return Padding(
       padding: EdgeInsets.only(
         bottom: viewInsets,
-        left: 20,
-        right: 20,
+        left: spacing.cardHorizontalPadding,
+        right: spacing.cardHorizontalPadding,
         top: 20,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.taskListQuickAddTitle(l10n.inbox),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 16),
           TextField(
             controller: _titleController,
             autofocus: true,
@@ -54,7 +51,7 @@ class _InboxQuickAddSheetState extends State<InboxQuickAddSheet> {
               labelText: l10n.taskListInputLabel,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               const Spacer(),

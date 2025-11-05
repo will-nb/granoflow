@@ -128,11 +128,49 @@ class _InboxPageState extends ConsumerState<InboxPage> {
   /// 弹出底部弹窗让用户输入任务标题，然后创建 status=inbox, dueDate=null 的任务
   Future<void> _handleQuickAdd(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
-    // 弹出底部弹窗，让用户输入任务标题
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final maxHeight = isLandscape 
+        ? mediaQuery.size.height * 0.5
+        : double.infinity;
+
+    // 弹出底部弹窗，让用户输入任务标题（与任务列表样式保持一致）
     final title = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => const InboxQuickAddSheet(),
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖拽指示器
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // InboxQuickAddSheet
+              const InboxQuickAddSheet(),
+              // 底部安全区域
+              SizedBox(height: mediaQuery.viewPadding.bottom + 20),
+            ],
+          ),
+        ),
+      ),
     );
     // 如果用户取消输入（点击取消或点击空白处），就不做任何操作
     if (title == null || title.isEmpty) {

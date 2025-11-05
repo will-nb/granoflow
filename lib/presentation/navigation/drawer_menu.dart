@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'navigation_destinations.dart';
-import '../widgets/create_task_dialog.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/service_providers.dart';
+import '../../core/utils/task_section_utils.dart';
+import '../../generated/l10n/app_localizations.dart';
+import '../tasks/quick_tasks/quick_add_sheet.dart';
 import '../widgets/app_logo.dart';
+import 'navigation_destinations.dart';
 
 /// 抽屉菜单显示模式
 enum DrawerDisplayMode {
@@ -15,7 +19,7 @@ enum DrawerDisplayMode {
 
 /// 抽屉菜单组件
 /// 支持三种显示模式：隐藏、仅图标、完整
-class DrawerMenu extends StatelessWidget {
+class DrawerMenu extends ConsumerWidget {
   const DrawerMenu({
     super.key,
     required this.displayMode,
@@ -37,7 +41,7 @@ class DrawerMenu extends StatelessWidget {
   final VoidCallback? onClose;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Material(
       child: Container(
         width: _getDrawerWidth(),
@@ -142,7 +146,7 @@ class DrawerMenu extends StatelessWidget {
                     width: 48,
                     height: 48,
                     child: FloatingActionButton(
-                      onPressed: () => _showCreateTaskDialog(context),
+                      onPressed: () => _showCreateTaskDialog(context, ref),
                       child: const Icon(Icons.add, size: 24),
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -170,7 +174,7 @@ class DrawerMenu extends StatelessWidget {
   }
 
   /// 显示创建任务弹窗
-  void _showCreateTaskDialog(BuildContext context) {
+  void _showCreateTaskDialog(BuildContext context, WidgetRef ref) {
     // 使用底部弹窗（与 ResponsiveNavigation 保持一致）
     final mediaQuery = MediaQuery.of(context);
     final isLandscape = mediaQuery.orientation == Orientation.landscape;
@@ -178,7 +182,8 @@ class DrawerMenu extends StatelessWidget {
         ? mediaQuery.size.height * 0.5
         : double.infinity;
 
-    showModalBottomSheet(
+    // 使用 QuickAddSheet（不传 section，让用户选择日期）
+    showModalBottomSheet<QuickAddResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -206,21 +211,57 @@ class DrawerMenu extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // 表单内容（可滚动）
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: const CreateTaskDialog(),
-                  ),
-                ),
-              ),
+              // QuickAddSheet（不传 section）
+              const QuickAddSheet(),
               // 底部安全区域
               SizedBox(height: mediaQuery.viewPadding.bottom + 20),
             ],
           ),
         ),
       ),
-    );
+    ).then((result) {
+      if (result == null || !context.mounted) return;
+      _handleQuickAddResult(context, ref, result);
+    });
+  }
+
+  /// 处理快速添加任务的结果
+  Future<void> _handleQuickAddResult(
+    BuildContext context,
+    WidgetRef ref,
+    QuickAddResult result,
+  ) async {
+    final taskService = ref.read(taskServiceProvider);
+    final l10n = AppLocalizations.of(context);
+
+    try {
+      if (result.dueDate == null) {
+        // 未选择日期：放入收集箱（status 自动为 inbox）
+        await taskService.captureInboxTask(title: result.title);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.inboxAddedToast)),
+        );
+      } else {
+        // 选择日期：创建任务并规划到对应 section（status 自动为 pending）
+        final newTask = await taskService.captureInboxTask(title: result.title);
+        final section = TaskSectionUtils.getSectionForDate(result.dueDate!);
+        await taskService.planTask(
+          taskId: newTask.id,
+          dueDateLocal: result.dueDate!,
+          section: section,
+        );
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.taskListAddedToast)),
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Failed to create task: $error\n$stackTrace');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.inboxAddError}: $error')),
+      );
+    }
   }
 }

@@ -11,6 +11,7 @@ import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/task_filter_collapsible.dart';
 import 'quick_tasks/quick_add_sheet.dart';
+import 'utils/date_utils.dart';
 import 'views/task_section_panel.dart';
 
 /// Tasks 页面主组件
@@ -328,11 +329,49 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     TaskSection section,
   ) async {
     final l10n = AppLocalizations.of(context);
-    // 弹出底部弹窗，让用户输入任务信息
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final maxHeight = isLandscape 
+        ? mediaQuery.size.height * 0.5
+        : double.infinity;
+
+    // 弹出底部弹窗，让用户输入任务信息（与导航栏样式保持一致）
     final result = await showModalBottomSheet<QuickAddResult>(
       context: context,
-      isScrollControlled: true, // 允许弹窗占据大部分屏幕高度
-      builder: (sheetContext) => QuickAddSheet(section: section),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖拽指示器
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // QuickAddSheet
+              QuickAddSheet(section: section),
+              // 底部安全区域
+              SizedBox(height: mediaQuery.viewPadding.bottom + 20),
+            ],
+          ),
+        ),
+      ),
     );
     // 如果用户取消输入（点击取消或点击空白处），就不做任何操作
     if (result == null) {
@@ -344,9 +383,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
       // 先创建一个新任务，保存到收件箱
       final newTask = await taskService.captureInboxTask(title: result.title);
       // 然后把任务规划到指定的分区（设置截止日期）
+      // 因为有 section，所以 dueDate 应该总是有值
+      final dueDate = result.dueDate ?? defaultDueDate(section);
       await taskService.planTask(
         taskId: newTask.id,
-        dueDateLocal: result.dueDate,
+        dueDateLocal: dueDate,
         section: section,
       );
       // 检查页面是否还存在（用户可能已经关闭了页面）
