@@ -18,6 +18,10 @@
     "noProject",
     "taskDragCrossSectionSuccess",
     "projectFilterLabel",
+    "taskCopySuccess",
+    "taskCopyTitle",
+    "taskStartTimerError",
+    "taskStartTimerTitle",
     "trashPermanentDeleteAction",
     "trashRestoreAction"
   ],
@@ -38,6 +42,10 @@
     "promoteToIndependentError",
     "promoteToIndependentSuccess",
     "datePickerMonthEnd",
+    "taskCopySuccess",
+    "taskCopyTitle",
+    "taskStartTimerError",
+    "taskStartTimerTitle",
     "taskAddToProject",
     "taskRemoveFromProject",
     "taskNoProjects"

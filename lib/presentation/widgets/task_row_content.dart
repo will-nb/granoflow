@@ -16,6 +16,8 @@ import '../../data/models/tag.dart';
 import 'project_milestone_picker.dart';
 import 'inline_project_milestone_display.dart';
 import 'task_row_content/task_row_title_editor.dart';
+import 'task_copy_button.dart';
+import 'task_start_timer_button.dart';
 
 /// 通用的任务行内容组件，支持内联编辑标签和截止日期
 /// 可在Tasks、Inbox、Projects子任务、轻量任务等多个场景复用
@@ -164,6 +166,16 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
                   _handleDeadlineChanged(ref, newDeadline),
               showIcon: true,
               taskLevel: widget.taskLevel,
+            ),
+          // 复制按钮（放在截止日期后面）
+          if (widget.taskLevel == null || widget.taskLevel! <= 1)
+            TaskCopyButton(
+              taskTitle: widget.task.title,
+            ),
+          // 开始计时按钮（放在复制按钮后面）
+          if (widget.taskLevel == null || widget.taskLevel! <= 1)
+            TaskStartTimerButton(
+              task: widget.task,
             ),
         ],
       ),
