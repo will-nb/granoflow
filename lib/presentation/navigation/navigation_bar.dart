@@ -30,12 +30,21 @@ class AppNavigationBar extends StatelessWidget {
   }
 
   /// 获取默认的导航目标列表
+  /// 包含 5 个目标：[Home, Tasks, Add (FAB), Achievements, Settings]
   List<NavigationDestination> _getDefaultDestinations(BuildContext context) {
     return NavigationDestinations.values.map((destination) {
+      final isFabDestination = destination == NavigationDestinations.add;
+
       return NavigationDestination(
-        icon: Icon(destination.icon),
-        selectedIcon: Icon(destination.selectedIcon),
+        icon: isFabDestination
+            ? const SizedBox.shrink()
+            : Icon(destination.icon),
+        selectedIcon: isFabDestination
+            ? const SizedBox.shrink()
+            : Icon(destination.selectedIcon),
         label: destination.label(context),
+        tooltip: isFabDestination ? '' : null,
+        enabled: !isFabDestination,
       );
     }).toList();
   }

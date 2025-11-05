@@ -41,6 +41,9 @@ class ResponsiveNavigation extends ConsumerStatefulWidget {
 class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
   bool _isLandscape = false;
   DrawerDisplayMode _currentDrawerMode = DrawerDisplayMode.hidden;
+  final GlobalKey _navBarKey = GlobalKey();
+  double? _navBarWidth;
+  bool _fabHovered = false;
 
   @override
   void initState() {
@@ -52,6 +55,10 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _checkOrientation();
+    // 在布局完成后获取 NavigationBar 的实际宽度
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateNavBarWidth();
+    });
   }
 
   /// 检查屏幕方向
@@ -94,8 +101,37 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
     });
   }
 
+  /// 更新 NavigationBar 宽度
+  void _updateNavBarWidth() {
+    if (_navBarKey.currentContext != null && mounted) {
+      final RenderBox? navBarBox =
+          _navBarKey.currentContext?.findRenderObject() as RenderBox?;
+      if (navBarBox != null) {
+        final newWidth = navBarBox.size.width;
+        if (_navBarWidth != newWidth) {
+          setState(() {
+            _navBarWidth = newWidth;
+          });
+        }
+      }
+    }
+  }
+
+  void _setFabHovered(bool hovered) {
+    if (_fabHovered != hovered) {
+      setState(() {
+        _fabHovered = hovered;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 在 build 方法中也尝试更新 NavigationBar 宽度，以响应窗口大小变化
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateNavBarWidth();
+    });
+    
     return LayoutBuilder(
       builder: (context, constraints) {
         if (_isLandscape) {
@@ -118,23 +154,106 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
             ],
           );
         } else {
+          // 使用 Stack 将 NavigationBar 和 FAB 组合
+          // FAB 叠加在 NavigationBar 中间按钮位置，保持其独立的外观
           return Scaffold(
             body: widget.child,
-            bottomNavigationBar: AppNavigationBar(
-              selectedIndex: widget.selectedIndex,
-              onDestinationSelected: widget.onDestinationSelected,
+            bottomNavigationBar: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // NavigationBar 包含 5 个目标，其中中间（索引 2）是 FAB 的占位
+                AppNavigationBar(
+                  key: _navBarKey,
+                  selectedIndex: widget.selectedIndex,
+                  onDestinationSelected: widget.onDestinationSelected,
+                ),
+                // FAB 叠加在中间按钮位置
+                Positioned.fill(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final screenWidth = MediaQuery.of(context).size.width;
+                      final navBarWidth = _navBarWidth ?? screenWidth;
+
+                      const double fabDiameter = 60.0; // FAB 直径 = 图标+文字总高度
+                      const int fabSlotIndex = 2; // FAB 在第三个槽位（索引 2）
+                      const int totalSlots = 5; // 总共 5 个槽位
+                      final double slotWidth = navBarWidth / totalSlots;
+
+                      // 计算 FAB 的水平位置（中间槽位的中心）
+                      final double fabX =
+                          slotWidth * fabSlotIndex + slotWidth / 2 - fabDiameter / 2;
+
+                      // FAB 顶部与图标顶部对齐（根据之前的测试结果，图标顶部在导航栏顶部 + 17dp）
+                      const double iconTopPadding = 10.0;
+                      final double fabY = iconTopPadding;
+
+                      const double fabPadding = 3; // 增加 padding，让按钮视觉上更轻盈
+                      final colorScheme = Theme.of(context).colorScheme;
+
+                      return Stack(
+                        children: [
+                          Positioned(
+                            left: fabX,
+                            top: fabY,
+                            child: SizedBox(
+                              width: fabDiameter,
+                              height: fabDiameter,
+                              child: MouseRegion(
+                                onEnter: (_) => _setFabHovered(true),
+                                onExit: (_) => _setFabHovered(false),
+                                cursor: SystemMouseCursors.click,
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween<double>(
+                                    begin: 0,
+                                    end: _fabHovered ? 12 : 6,
+                                  ),
+                                  duration: const Duration(milliseconds: 160),
+                                  curve: Curves.easeOutCubic,
+                                  builder: (context, elevation, _) {
+                                    final baseShadow =
+                                        colorScheme.primary.withValues(alpha: 0.35);
+                                    final hoverShadow =
+                                        colorScheme.primary.withValues(alpha: 0.55);
+                                    final t =
+                                        ((elevation - 6) / 6).clamp(0.0, 1.0);
+                                    final shadowColor =
+                                        Color.lerp(baseShadow, hoverShadow, t)!;
+
+                                    return Padding(
+                                      padding: const EdgeInsets.all(fabPadding),
+                                      child: Material(
+                                        color: colorScheme.primary,
+                                        shape: const CircleBorder(),
+                                        elevation: elevation,
+                                        shadowColor: shadowColor,
+                                        clipBehavior: Clip.antiAlias,
+                                        child: InkWell(
+                                          onTap: () =>
+                                              _showCreateTaskDialog(context),
+                                          customBorder: const CircleBorder(),
+                                          child: SizedBox.expand(
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.add,
+                                                color: colorScheme.onPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => _showCreateTaskDialog(context),
-              child: const Icon(Icons.add),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16), // Reddit 风格圆角
-              ),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              elevation: 0, // 移除阴影，让它看起来像导航栏的一部分
-            ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
           );
         }
       },
