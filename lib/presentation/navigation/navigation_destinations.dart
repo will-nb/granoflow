@@ -20,7 +20,7 @@ enum NavigationDestinations {
       case NavigationDestinations.add:
         return Icons.add; // FAB 使用加号图标
       case NavigationDestinations.achievements:
-        return Icons.emoji_events_outlined;
+        return Icons.history_outlined;
       case NavigationDestinations.settings:
         return Icons.settings_outlined;
     }
@@ -36,7 +36,7 @@ enum NavigationDestinations {
       case NavigationDestinations.add:
         return Icons.add; // FAB 选中状态也使用加号图标
       case NavigationDestinations.achievements:
-        return Icons.emoji_events;
+        return Icons.history;
       case NavigationDestinations.settings:
         return Icons.settings;
     }
@@ -69,7 +69,7 @@ enum NavigationDestinations {
       case NavigationDestinations.add:
         return ''; // FAB 不需要标签，因为会被自定义的圆形按钮覆盖
       case NavigationDestinations.achievements:
-        return l10n.appShellAchievements;
+        return l10n.appShellReview;
       case NavigationDestinations.settings:
         return l10n.navSettingsSectionTitle;
     }

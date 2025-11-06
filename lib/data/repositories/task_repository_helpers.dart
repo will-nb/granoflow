@@ -92,76 +92,94 @@ mixin TaskRepositoryHelpers {
 
   /// 生成任务 ID
   /// 
-  /// 格式：YYYYMMDD-XXXX（日期-序号）
-  /// 同一天的任务序号递增，新的一天从 0001 开始
+  /// 格式：${秒级时间戳}${4位序号}（14位纯数字）
+  /// 同一秒内的任务序号递增，新的一秒从 0001 开始
   Future<String> _generateTaskId(DateTime now) async {
-    final dateString =
-        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final secondsSinceEpoch = now.millisecondsSinceEpoch ~/ 1000;
 
     try {
-      final latestTask = await _getLatestTask();
-
-      if (latestTask == null) {
-        return '$dateString-0001';
+      // 获取同一秒内已使用的最大序号
+      final maxSequence = await _getMaxSequenceInSecond(secondsSinceEpoch);
+      
+      // 生成下一个序号
+      final nextSequence = maxSequence + 1;
+      
+      // 检查序号是否溢出（4位最大9999）
+      if (nextSequence > 9999) {
+        debugPrint('Warning: Sequence overflow in second $secondsSinceEpoch. Using 9999.');
+        // 如果溢出，等待到下一秒或使用9999
+        // 这里选择等待到下一秒，生成新的 taskId
+        final nextSecond = secondsSinceEpoch + 1;
+        final sequenceStr = '0001';
+        return '$nextSecond$sequenceStr';
       }
-
-      final parsed = _parseTaskId(latestTask.taskId);
-      if (parsed == null) {
-        return '$dateString-0001';
-      }
-
-      final latestDate = parsed['date'] as String;
-      final latestSuffix = parsed['suffix'] as int;
-
-      if (latestDate == dateString) {
-        // 如果是今天，后缀+1
-        final nextSuffix = (latestSuffix + 1).toString().padLeft(4, '0');
-        return '$dateString-$nextSuffix';
-      } else {
-        // 如果不是今天，从0001开始
-        return '$dateString-0001';
-      }
+      
+      final sequenceStr = nextSequence.toString().padLeft(4, '0');
+      return '$secondsSinceEpoch$sequenceStr';
     } catch (e) {
       debugPrint('Error generating taskId: $e');
-      return '$dateString-0001';
+      // 错误时返回默认格式
+      final sequenceStr = '0001';
+      return '$secondsSinceEpoch$sequenceStr';
     }
   }
 
-  /// 查询最新创建的任务
-  Future<Task?> _getLatestTask() async {
+  /// 获取同一秒内创建的任务的最大序号
+  /// 
+  /// [secondsSinceEpoch] 秒级时间戳
+  /// 返回该秒内已使用的最大序号，如果没有则返回 0
+  Future<int> _getMaxSequenceInSecond(int secondsSinceEpoch) async {
     try {
-      final tasks = await _isar.taskEntitys
+      final timestampPrefix = secondsSinceEpoch.toString();
+      
+      // 查询最近创建的任务（限制数量以提高性能）
+      // 同一秒内的任务应该在最近创建的任务中，所以先查询最近的任务
+      final recentTasks = await _isar.taskEntitys
           .where()
           .sortByCreatedAtDesc()
-          .limit(1)
+          .limit(100) // 限制查询数量，通常同一秒内不会有太多任务
           .findAll();
 
-      return tasks.isNotEmpty ? _toDomain(tasks.first) : null;
+      int maxSequence = 0;
+      
+      // 遍历任务，查找同一秒内的任务
+      for (final entity in recentTasks) {
+        // 检查 taskId 是否以该秒级时间戳开头且长度为14位
+        if (entity.taskId.length == 14 && 
+            entity.taskId.startsWith(timestampPrefix)) {
+          final parsed = _parseTaskId(entity.taskId);
+          if (parsed != null && 
+              parsed['timestamp'] == secondsSinceEpoch) {
+            final sequence = parsed['sequence'] as int;
+            maxSequence = math.max(maxSequence, sequence);
+          }
+        }
+      }
+
+      return maxSequence;
     } catch (e) {
-      debugPrint('Error querying latest task: $e');
-      return null;
+      debugPrint('Error getting max sequence in second: $e');
+      return 0;
     }
   }
 
-  /// 解析任务 ID 格式，提取日期和后缀
+  /// 解析任务 ID 格式
   /// 
-  /// 返回 Map 包含 'date' 和 'suffix' 键，或 null 如果格式无效
+  /// 格式：14位纯数字，前10位是秒级时间戳，后4位是序号
+  /// 返回 Map 包含 'timestamp' 和 'sequence' 键，或 null 如果格式无效
   Map<String, dynamic>? _parseTaskId(String taskId) {
     try {
-      if (taskId.isEmpty) return null;
+      if (taskId.isEmpty || taskId.length != 14) return null;
 
-      final parts = taskId.split('-');
-      if (parts.length != 2) return null;
+      final timestampStr = taskId.substring(0, 10);
+      final sequenceStr = taskId.substring(10, 14);
 
-      final datePart = parts[0];
-      final suffixPart = parts[1];
+      final timestamp = int.tryParse(timestampStr);
+      final sequence = int.tryParse(sequenceStr);
 
-      if (datePart.length != 8) return null;
+      if (timestamp == null || sequence == null) return null;
 
-      final suffixInt = int.tryParse(suffixPart);
-      if (suffixInt == null) return null;
-
-      return {'date': datePart, 'suffix': suffixInt};
+      return {'timestamp': timestamp, 'sequence': sequence};
     } catch (e) {
       debugPrint('Error parsing taskId: $e');
       return null;

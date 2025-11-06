@@ -35,6 +35,12 @@ class FlexibleDescriptionInput extends StatefulWidget {
   /// 标签文本 (Label text)
   final String? labelText;
   
+  /// 自定义按钮文本（当有内容时显示编辑文本，无内容时显示添加文本）
+  /// 如果为 null，则使用默认的本地化文本
+  /// (Custom button text - shows edit text when has content, add text when empty)
+  /// (If null, uses default localized text)
+  final String? buttonText;
+  
   /// 是否启用 (Whether enabled)
   final bool enabled;
   
@@ -55,6 +61,7 @@ class FlexibleDescriptionInput extends StatefulWidget {
     required this.hintText,
     this.onChanged,
     this.labelText,
+    this.buttonText,
     this.enabled = true,
     this.minLines = 3,
     this.maxLines = 8,
@@ -144,12 +151,12 @@ class _FlexibleDescriptionInputState extends State<FlexibleDescriptionInput>
     final bool hasContent = _controller.text.isNotEmpty;
     
     // 根据内容状态确定按钮文本 (Determine button text based on content state)
-    final String buttonText = hasContent 
+    final String displayButtonText = widget.buttonText ?? (hasContent 
         ? l10n.flexibleDescriptionEdit 
-        : l10n.flexibleDescriptionAdd;
+        : l10n.flexibleDescriptionAdd);
     
     return Semantics(
-      label: widget.labelText ?? l10n.flexibleDescriptionAdd,
+      label: widget.labelText ?? widget.buttonText ?? l10n.flexibleDescriptionAdd,
       button: true,
       expanded: _isExpanded,
       child: Column(
@@ -173,7 +180,7 @@ class _FlexibleDescriptionInputState extends State<FlexibleDescriptionInput>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      buttonText,
+                      displayButtonText,
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.w600,

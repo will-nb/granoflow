@@ -9,6 +9,7 @@ import '../completion_management/completed_page.dart';
 import '../completion_management/archived_page.dart';
 import '../completion_management/trash_page.dart';
 import '../projects/projects_page.dart';
+import '../pomodoro/pomodoro_page.dart';
 
 /// 应用路由配置
 class AppRouter {
@@ -69,6 +70,20 @@ class AppRouter {
             builder: (context, state) => const TrashPage(),
           ),
         ],
+      ),
+      // 番茄时钟页面（不在 ShellRoute 内，全屏沉浸式）
+      GoRoute(
+        path: '/pomodoro/:taskId',
+        name: 'pomodoro',
+        builder: (context, state) {
+          final taskIdStr = state.pathParameters['taskId']!;
+          final taskId = int.tryParse(taskIdStr);
+          if (taskId == null) {
+            // 如果 taskId 无效，返回首页
+            return const HomePage();
+          }
+          return PomodoroPage(taskId: taskId);
+        },
       ),
     ],
   );

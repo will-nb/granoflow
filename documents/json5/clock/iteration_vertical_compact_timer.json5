@@ -1,0 +1,440 @@
+{
+  // 番茄时钟页面 - 竖屏紧凑布局迭代蓝图
+  // 对应设计文档：documents/json5/clock/design_vertical_compact_timer.json5
+
+  // ===========================================
+  // 1. 迭代概述
+  // ===========================================
+  iteration: {
+    id: "251106-clock-vertical-compact",
+    title: "番茄时钟竖屏紧凑布局与 sleek slider 集成",
+    description: "依据竖屏紧凑设计文档，优化手机/平板竖屏的空间利用率，并引入 sleek_circular_slider 提升计时器视觉与动效表现",
+    status: "planning",
+    estimatedTime: "4 days",
+    priority: "high",
+    basedOnDesign: "documents/json5/clock/design_vertical_compact_timer.json5"
+  },
+
+  // ===========================================
+  // 2. 文件创建清单
+  // ===========================================
+  files: {
+    theme: [],
+
+    utils: [],
+
+    services: [],
+
+    providers: [],
+
+    widgets: [
+      {
+        path: "lib/presentation/pomodoro/widgets/compact_timer_slider.dart",
+        purpose: "封装 sleek_circular_slider 与主题渐变、文本排版，提供统一 TimerCompactView 接口",
+        action: "create",
+        estimatedLines: 160,
+        dependencies: [
+          "package:sleek_circular_slider/sleek_circular_slider.dart",
+          "lib/core/theme/ocean_breeze_color_schemes.dart",
+          "lib/core/utils/pomodoro_time_formatters.dart"
+        ],
+        note: "暴露 diameter、statusColor、innerWidget builder，方便横竖屏共用"
+      },
+      {
+        path: "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart",
+        purpose: "适配竖屏紧凑布局：按钮胶囊背景、Wrap 排布、半透明吸附",
+        action: "modify",
+        estimatedLines: 80,
+        dependencies: ["lib/presentation/pomodoro/widgets/compact_timer_slider.dart"],
+        changes: [
+          "新增 Wrap 排布与 mobile/tablet 配置",
+          "控制条背景容器与圆环连接"
+        ]
+      }
+    ],
+
+    pages: [
+      {
+        path: "lib/presentation/pomodoro/pomodoro_page.dart",
+        purpose: "应用竖屏紧凑布局规则，整合新 Timer 模块与滚动策略",
+        action: "modify",
+        estimatedLines: 220,
+        dependencies: [
+          "lib/presentation/pomodoro/widgets/compact_timer_slider.dart",
+          "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart"
+        ],
+        changes: [
+          "手机/平板竖屏尺寸 clamp 与垂直留白调整",
+          "调整 SingleChildScrollView 为 CustomScrollView，保证首屏信息可见",
+          "将 Timer + Control strip 组合成 HeroCluster section"
+        ],
+        note: "重构后文件行数需 < 420，如超过需拆分额外子组件"
+      },
+      {
+        path: "lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart",
+        purpose: "限制竖屏卡片高度并启用内部滚动",
+        action: "modify",
+        estimatedLines: 50,
+        dependencies: [],
+        changes: [
+          "为卡片容器设置 maxHeight 与 Flexible 包装",
+          "更新空状态提示尺寸"
+        ]
+      }
+    ],
+
+    tests: [
+      {
+        path: "test/presentation/pomodoro/compact_timer_slider_test.dart",
+        purpose: "验证 sleek slider wrapper 的样式、状态颜色与 HH:MM 文本排版",
+        action: "create",
+        estimatedLines: 120,
+        dependencies: ["lib/presentation/pomodoro/widgets/compact_timer_slider.dart"],
+        note: "Goldens 捕捉 phone/tablet 尺寸"
+      },
+      {
+        path: "integration_test/pomodoro_wave_layout_test.dart",
+        purpose: "扩展竖屏可视区域验证与 macOS 设备执行脚本",
+        action: "modify",
+        estimatedLines: 80,
+        dependencies: ["lib/presentation/pomodoro/pomodoro_page.dart"],
+        changes: [
+          "通过 TestWidgetsFlutterBinding.setSurfaceSize 模拟 phone/tablet 竖屏",
+          "验证 HeroCluster 与 infoStack 首屏可见",
+          "提供 flutter test integration_test/... -d macos 的执行说明"
+        ],
+        note: "解除现有 skip，增加 KeyEvent 防护或跳过逻辑说明"
+      }
+    ],
+
+    documents: [
+      {
+        path: "pubspec.yaml",
+        purpose: "引入 sleek_circular_slider 依赖并补充说明，同时注册桌面窗口配置资产",
+        action: "modify",
+        estimatedLines: 10,
+        dependencies: [],
+        note: "确保同时更新 pubspec.lock，并在 flutter.assets 中添加 desktop_window.json"
+      },
+      {
+        path: "assets/config/desktop_window.json",
+        purpose: "配置 macOS 应用默认窗口宽高（竖屏），供 Runner 与测试读取",
+        action: "create",
+        estimatedLines: 12,
+        dependencies: [],
+        note: "包含 phone 与 tablet 竖屏尺寸，可按需扩展"
+      }
+    ],
+
+    platform: [
+      {
+        path: "macos/Runner/MainFlutterWindow.swift",
+        purpose: "启动时读取配置的窗口尺寸并设置，回退到竖屏默认值",
+        action: "modify",
+        estimatedLines: 40,
+        dependencies: ["assets/config/desktop_window.json"],
+        changes: [
+          "通过 Bundle 读取 desktop_window.json",
+          "解析 width/height 并调用 setContentSize",
+          "读取失败时使用 744x1133 竖屏默认值"
+        ]
+      }
+    ]
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/presentation/pomodoro/widgets/forward_timer_circular_display.dart",
+      purpose: "若保留旧组件作为 fallback，添加废弃标记或代理至新 wrapper",
+      changes: [
+        "追加 @deprecated 注释与迁移说明",
+        "提供调用 compactTimerSlider 的桥接逻辑"
+      ],
+      estimatedLines: 30,
+      note: "若最终完全替换，可在实现阶段确认是否删除"
+    },
+    {
+      file: "lib/presentation/pomodoro/widgets/pomodoro_task_analysis.dart",
+      purpose: "确保在缩小首屏高度时仍能展示折叠提示与渐隐遮罩",
+      changes: [
+        "调整 collapsedHeight 与 overlay 渐层",
+        "同步设计中 pause 行为描述"
+      ],
+      estimatedLines: 24
+    }
+  ],
+
+  // ===========================================
+  // 4. 实现步骤
+  // ===========================================
+  implementationSteps: [
+    {
+      step: 1,
+      title: "依赖与基础封装",
+      description: "引入 sleek_circular_slider 与计时器 wrapper，为后续布局调整铺垫",
+      tasks: [
+        {
+          task: "在 pubspec.yaml 添加 sleek_circular_slider:^2.0.1，并注册 assets/config/desktop_window.json",
+          command: "flutter pub get"
+        },
+        {
+          task: "创建 compact_timer_slider.dart，封装渐变、半透明光晕与 HH:MM 文本",
+          file: "lib/presentation/pomodoro/widgets/compact_timer_slider.dart",
+          action: "create"
+        },
+        {
+          task: "创建 assets/config/desktop_window.json，写入 phone/tablet 竖屏尺寸",
+          file: "assets/config/desktop_window.json",
+          action: "create",
+          note: "默认 phone: 390x844，tablet: 834x1112"
+        },
+        {
+          task: "更新 macos/Runner/MainFlutterWindow.swift，读取配置并设置窗口尺寸",
+          file: "macos/Runner/MainFlutterWindow.swift",
+          action: "modify",
+          note: "读取失败时回退到 phone 竖屏尺寸"
+        },
+        {
+          task: "为旧 ForwardTimerCircularDisplay 添加 deprecated 提示或代理",
+          file: "lib/presentation/pomodoro/widgets/forward_timer_circular_display.dart",
+          action: "modify"
+        }
+      ],
+      estimatedTime: "6 hours"
+    },
+    {
+      step: 2,
+      title: "竖屏布局重构",
+      description: "按设计调整手机与平板竖屏的 HeroCluster、信息区与子任务排布",
+      tasks: [
+        {
+          task: "重构 pomodoro_page.dart 竖屏分支，使用 CustomScrollView + SliverSpacing",
+          file: "lib/presentation/pomodoro/pomodoro_page.dart",
+          action: "modify",
+          note: "手机直径 clamp 至 235，平板至 300"
+        },
+        {
+          task: "更新 pomodoro_control_strip.dart，新增胶囊背景与 Wrap",
+          file: "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart",
+          action: "modify"
+        },
+        {
+          task: "限制子任务卡片高度并启用内部滚动",
+          file: "lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart",
+          action: "modify"
+        }
+      ],
+      estimatedTime: "10 hours"
+    },
+    {
+      step: 3,
+      title: "行为与动效同步",
+      description: "确保计时状态切换、按钮反馈与暂停逻辑与设计一致",
+      tasks: [
+        {
+          task: "为 sleek slider 加入 value 绑定与状态色动画",
+          file: "lib/presentation/pomodoro/widgets/compact_timer_slider.dart",
+          action: "modify"
+        },
+        {
+          task: "更新控制条按钮动画曲线/缩放参数",
+          file: "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart",
+          action: "modify"
+        },
+        {
+          task: "调试任务分析展开时自动暂停逻辑，避免滚动重建",
+          file: "lib/presentation/pomodoro/widgets/pomodoro_task_analysis.dart",
+          action: "modify"
+        }
+      ],
+      estimatedTime: "6 hours"
+    },
+    {
+      step: 4,
+      title: "测试与验证",
+      description: "补充 widget/golden 测试，并执行 macOS 集成测试脚本",
+      tasks: [
+        {
+          task: "编写 compact_timer_slider widget 测试，验证渐变与 HH:MM 显示",
+          file: "test/presentation/pomodoro/compact_timer_slider_test.dart",
+          action: "create"
+        },
+        {
+          task: "调整 integration_test/pomodoro_wave_layout_test.dart，读取 desktop_window.json 并模拟竖屏",
+          file: "integration_test/pomodoro_wave_layout_test.dart",
+          action: "modify",
+          note: "使用 binding.setSurfaceSize、WidgetsBindingObserver 及 rootBundle 解析配置"
+        },
+        {
+          task: "执行 flutter test integration_test/pomodoro_wave_layout_test.dart -d macos",
+          command: "flutter test integration_test/pomodoro_wave_layout_test.dart -d macos"
+        }
+      ],
+      estimatedTime: "1 day"
+    }
+  ],
+
+  // ===========================================
+  // 5. 技术细节和注意事项
+  // ===========================================
+  technicalDetails: {
+    keyDecisions: {
+      libraryChoice: {
+        recommendation: "sleek_circular_slider",
+        reason: "内建渐变与光晕效果，代码体积小且 MIT 许可，易于与现有主题整合",
+        alternative: "保留自定义 CustomPainter 版本作为 fallback"
+      },
+      timerWrapper: {
+        method: "使用 Stateless wrapper 提供 diameter / progress / status color，避免直接依赖第三方 API",
+        stateManagement: "通过 Riverpod 监听 pomodoroTimerProvider.forwardElapsed，同步 slider 的 value"
+      }
+    },
+    codeStandards: {
+      colorUsage: {
+        rule: "所有颜色引用 OceanBreezeColorSchemes 或 Theme.of(context)，禁止硬编码",
+        location: "lib/presentation/pomodoro/widgets/compact_timer_slider.dart",
+        example: "OceanBreezeColorSchemes.mintCyan",
+        forbidden: "Color(0xFF...)"
+      },
+      responsiveness: {
+        rule: "手机与平板竖屏使用 clamp + breakpoint 逻辑，不得写死像素",
+        location: "lib/presentation/pomodoro/pomodoro_page.dart",
+        example: "math.min(width * 0.72, 235)"
+      }
+    },
+    performance: {
+      optimization: [
+        "重用 sleek slider 的动画控制器，避免每帧 rebuild",
+        "对 HeroCluster 添加 RepaintBoundary，减少背景波浪对前景的重绘"
+      ]
+    },
+    security: {}
+  },
+
+  // ===========================================
+  // 6. 依赖关系图
+  // ===========================================
+  dependencies: {
+    dataLayer: [],
+    serviceLayer: [],
+    providerLayer: ["lib/core/providers/pomodoro_providers.dart"],
+    uiLayer: [
+      "lib/presentation/pomodoro/pomodoro_page.dart",
+      "lib/presentation/pomodoro/widgets/compact_timer_slider.dart",
+      "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart",
+      "lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart"
+    ],
+    themeLayer: ["lib/core/theme/ocean_breeze_color_schemes.dart"],
+    platformLayer: ["macos/Runner/MainFlutterWindow.swift"],
+    assetLayer: ["assets/config/desktop_window.json"]
+  },
+
+  // ===========================================
+  // 7. 测试策略和详细测试用例
+  // ===========================================
+  testing: {
+    unitTests: [],
+    widgetTests: [
+      {
+        file: "test/presentation/pomodoro/compact_timer_slider_test.dart",
+        description: "确保紧凑计时器在手机/平板尺寸与不同状态下渲染正确",
+        testCases: [
+          {
+            group: "CompactTimerSlider",
+            cases: [
+              {
+                name: "phone portrait renders HH:MM with gradient",
+                test: "构建小尺寸 widget，验证渐变颜色、monospace 字体与时间字符串"
+              },
+              {
+                name: "tablet portrait clamps diameter",
+                test: "模拟宽度 768，验证直径 clamp 与内部 padding"
+              },
+              {
+                name: "status switch updates progress color",
+                test: "切换 paused/complete 状态，断言 progressGradient 变化"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    integrationTests: [
+      {
+        file: "integration_test/pomodoro_wave_layout_test.dart",
+        description: "macOS 竖屏模式完整视口验证",
+        testCases: [
+          {
+            group: "Portrait visibility",
+            cases: [
+              {
+                name: "phone portrait shows all hero components",
+                test: "解析 desktop_window.json 的 phone 配置，setSurfaceSize(宽,高)，pump 后断言圆环/控制条/任务卡/子任务卡首屏可见"
+              },
+              {
+                name: "tablet portrait respects spacing",
+                test: "解析 desktop_window.json 的 tablet 配置，setSurfaceSize(宽,高)，验证 section 间距与滚动无需拖拽即可看到任务信息"
+              },
+              {
+                name: "macos command",
+                test: "运行 flutter test integration_test/pomodoro_wave_layout_test.dart -d macos，并处理 CapsLock 事件防护"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  // ===========================================
+  // 8. 风险点和注意事项
+  // ===========================================
+  risks: [
+    {
+      risk: "sleek_circular_slider 动画与背景波浪叠加导致掉帧",
+      mitigation: "在 HeroCluster 周围包裹 RepaintBoundary，并限制动画帧率；必要时提供 CustomPainter fallback",
+      priority: "medium",
+      check: "调试模式下观察 Performance Overlay 与 profile tracing",
+      enforcement: "代码审查时必须附性能自检截图"
+    },
+    {
+      risk: "macOS 集成测试仍可能因 CapsLock 事件失败",
+      mitigation: "通过 HardwareKeyboard mock 或在测试开始处拦截合成事件，若无法解决保留 skip 并标注 CI 说明",
+      priority: "high",
+      check: "本地运行 -d macos 有通过记录"
+    },
+    {
+      risk: "竖屏滚动改造可能影响横屏布局",
+      mitigation: "横屏路径需添加回归测试，确保 CustomScrollView 不影响 Landscape 布局",
+      priority: "medium"
+    }
+  ],
+
+  // ===========================================
+  // 9. 验证清单
+  // ===========================================
+  verification: {
+    codeQuality: [
+      "flutter analyze",
+      "dart format --set-exit-if-changed lib/ test/ integration_test/",
+      "确保新增文件行数与复杂度符合项目规范"
+    ],
+    functionality: [
+      "手机竖屏首次进入时，计时器、控制条、任务信息、子任务全部可见",
+      "sleek slider 与 Riverpod 状态同步，暂停/恢复时颜色与动画正确",
+      "任务分析展开时自动暂停，无滚动跳动"
+    ],
+    performance: [
+      "在中低端设备（如 iPhone 12 mini 模拟器）检查动画流畅度",
+      "profile 模式运行 5 分钟，确认 GPU/CPU 不出现峰值"
+    ],
+    compatibility: [
+      "测试手机（≤600px）与平板竖屏（>600px）",
+      "验证横屏模式回归（不受新逻辑影响）"
+    ]
+  }
+}
+

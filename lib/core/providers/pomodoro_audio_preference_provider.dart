@@ -1,0 +1,22 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'service_providers.dart';
+
+/// 番茄时钟音频设置状态 Provider
+/// 
+/// 提供音频开关状态的读取和更新
+/// 通过 StreamProvider 监听 Preference 变化，自动同步状态
+final pomodoroTickSoundEnabledProvider = StreamProvider<bool>((ref) {
+  final preferenceService = ref.watch(preferenceServiceProvider);
+  return preferenceService.watch().map((preference) => preference.pomodoroTickSoundEnabled);
+});
+
+/// 更新番茄时钟音频设置
+Future<void> updatePomodoroTickSoundEnabled(
+  WidgetRef ref,
+  bool enabled,
+) async {
+  final preferenceService = ref.read(preferenceServiceProvider);
+  await preferenceService.updatePomodoroTickSoundEnabled(enabled);
+}
+

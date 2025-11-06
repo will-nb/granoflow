@@ -8,6 +8,11 @@ import '../../data/models/tag.dart';
 class AppConstants {
   const AppConstants._();
 
+  /// 任务完成时默认记录的时间（分钟）
+  /// 
+  /// 当通过滑动完成一个没有运行时间记录的任务时，会自动记录此默认时间
+  static const int defaultTaskCompletionMinutes = 10;
+
   /// 标签定义
   ///
   /// 注意：

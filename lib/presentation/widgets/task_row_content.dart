@@ -173,7 +173,9 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
               taskTitle: widget.task.title,
             ),
           // 开始计时按钮（放在复制按钮后面）
-          if (widget.taskLevel == null || widget.taskLevel! <= 1)
+          // 只在任务状态为 pending（任务清单页面）时显示
+          if ((widget.taskLevel == null || widget.taskLevel! <= 1) &&
+              widget.task.status == TaskStatus.pending)
             TaskStartTimerButton(
               task: widget.task,
             ),

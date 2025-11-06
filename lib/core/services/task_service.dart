@@ -1,5 +1,6 @@
 import '../../data/models/task.dart';
 import '../../data/models/tag.dart';
+import '../../data/repositories/focus_session_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import 'metric_orchestrator.dart';
@@ -26,6 +27,7 @@ class TaskService {
     required TaskRepository taskRepository,
     required TagRepository tagRepository,
     required MetricOrchestrator metricOrchestrator,
+    FocusSessionRepository? focusSessionRepository,
     SortIndexService? sortIndexService,
     DateTime Function()? clock,
   })  : _crudService = TaskCrudService(
@@ -37,6 +39,7 @@ class TaskService {
         _statusService = TaskStatusService(
           taskRepository: taskRepository,
           metricOrchestrator: metricOrchestrator,
+          focusSessionRepository: focusSessionRepository,
           clock: clock,
         ),
         _dragService = TaskDragService(

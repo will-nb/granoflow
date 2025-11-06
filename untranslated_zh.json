@@ -16,6 +16,10 @@
     "datePickerCustom",
     "noCompletionTime",
     "noProject",
+    "settingsPomodoroSection",
+    "settingsPomodoroTickSound",
+    "settingsPomodoroTickSoundDescription",
+    "settingsTaskManagement",
     "taskDragCrossSectionSuccess",
     "projectFilterLabel",
     "taskCopySuccess",
@@ -24,6 +28,13 @@
     "taskStartTimerTitle",
     "trashPermanentDeleteAction",
     "trashRestoreAction"
+  ],
+
+  "zh_CN": [
+    "settingsPomodoroSection",
+    "settingsPomodoroTickSound",
+    "settingsPomodoroTickSoundDescription",
+    "settingsTaskManagement"
   ],
 
   "zh_HK": [
@@ -42,6 +53,10 @@
     "promoteToIndependentError",
     "promoteToIndependentSuccess",
     "datePickerMonthEnd",
+    "settingsPomodoroSection",
+    "settingsPomodoroTickSound",
+    "settingsPomodoroTickSoundDescription",
+    "settingsTaskManagement",
     "taskCopySuccess",
     "taskCopyTitle",
     "taskStartTimerError",

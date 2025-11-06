@@ -13,6 +13,8 @@ class GradientPageScaffold extends StatelessWidget {
   final Gradient? gradient;
   final bool extendBodyBehindAppBar;
   final bool extendBody;
+  /// 全屏沉浸式模式（无 AppBar、无导航栏）
+  final bool fullScreen;
 
   const GradientPageScaffold({
     super.key,
@@ -25,10 +27,26 @@ class GradientPageScaffold extends StatelessWidget {
     this.gradient,
     this.extendBodyBehindAppBar = false,
     this.extendBody = false,
+    this.fullScreen = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // 全屏沉浸式模式：无 AppBar、无导航栏
+    if (fullScreen) {
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: gradient ?? context.gradients.pageBackground,
+          ),
+          child: SafeArea(
+            child: body,
+          ),
+        ),
+      );
+    }
+    
+    // 正常模式
     final shouldExtendBody = extendBodyBehindAppBar || drawer != null;
     final hasAppBar = appBar != null;
     

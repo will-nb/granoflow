@@ -1,0 +1,405 @@
+{
+  // 迭代蓝图模板
+  // 详细描述实现步骤、文件创建、代码结构和技术细节
+  // 注意：此模板提供结构框架，可根据实际需求扩展或省略部分字段
+  // 所有字段都有注释说明，必填字段会明确标注
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID：格式建议 YYMMDD-<module>-<slug>
+    // 示例："251105-pomodoro-timer-page"
+    id: "YYMMDD-module-slug",
+    
+    // 迭代标题
+    title: "迭代标题",
+    
+    // 迭代描述：简要说明本次迭代要实现的功能
+    description: "基于设计文档实现XX功能，包含XX、XX等功能",
+    
+    // 状态：planning, in_progress, completed, cancelled
+    status: "planning",
+    
+    // 预估时间
+    estimatedTime: "X days",
+    
+    // 优先级：high, medium, low
+    priority: "high",
+    
+    // 基于的设计文档路径（可选）
+    basedOnDesign: "documents/json5/<module>/design.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  // 按类别组织文件，方便管理和查看
+  files: {
+    // 主题和样式文件
+    theme: [
+      {
+        // 文件路径
+        path: "lib/core/theme/xxx.dart",
+        // 文件用途说明
+        purpose: "文件用途描述",
+        // 操作类型：create（新建）、modify（修改）
+        action: "create", // 或 "modify"
+        // 预估代码行数
+        estimatedLines: 100,
+        // 依赖的其他文件（可选）
+        dependencies: [
+          // 示例：["lib/core/theme/base_theme.dart"]
+          "依赖文件1",
+          "依赖文件2",
+        ],
+        // 修改说明（仅当 action 为 modify 时）
+        // changes: [
+        //   "修改点1",
+        //   "修改点2",
+        // ],
+        // 注意事项（可选）
+        note: "注意事项说明",
+      },
+      // 可以添加更多文件
+    ],
+    
+    // 工具函数文件
+    utils: [
+      {
+        path: "lib/presentation/xxx/utils/xxx.dart",
+        purpose: "工具函数说明",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [],
+      },
+    ],
+    
+    // 服务层文件
+    services: [
+      {
+        path: "lib/core/services/xxx_service.dart",
+        purpose: "服务层说明",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [],
+      },
+    ],
+    
+    // Provider 状态管理文件
+    providers: [
+      {
+        path: "lib/core/providers/xxx_providers.dart",
+        purpose: "状态管理说明",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [],
+      },
+    ],
+    
+    // Widget 组件文件
+    widgets: [
+      {
+        path: "lib/presentation/xxx/widgets/xxx.dart",
+        purpose: "组件说明",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [],
+      },
+    ],
+    
+    // 页面文件
+    pages: [
+      {
+        path: "lib/presentation/xxx/pages/xxx_page.dart",
+        purpose: "页面说明",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [],
+      },
+    ],
+    
+    // 测试文件
+    tests: [
+      {
+        path: "test/xxx/xxx_test.dart",
+        purpose: "测试说明",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [],
+      },
+    ],
+    
+    // 可以根据需要添加更多类别
+    // 例如：models（数据模型）、repositories（仓库）、migrations（数据库迁移）等
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（可选）
+  // ===========================================
+  modifications: [
+    {
+      // 文件路径
+      file: "lib/xxx/xxx.dart",
+      // 修改目的
+      purpose: "修改目的说明",
+      // 具体修改内容列表
+      changes: [
+        // 示例：["添加新方法", "修改现有逻辑", "更新导入"]
+        "修改点1",
+        "修改点2",
+      ],
+      // 预估代码行数
+      estimatedLines: 20,
+      // 注意事项（可选）
+      note: "注意事项说明",
+    },
+    // 可以添加更多修改项
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  // 按顺序列出实现步骤，说明依赖关系
+  implementationSteps: [
+    {
+      // 步骤序号
+      step: 1,
+      // 步骤标题
+      title: "步骤标题",
+      // 步骤描述
+      description: "步骤详细描述",
+      // 任务列表
+      tasks: [
+        {
+          // 任务描述
+          task: "任务描述",
+          // 相关文件（可选）
+          file: "lib/xxx/xxx.dart",
+          // 具体操作（可选）
+          action: "具体操作说明",
+          // 注意事项（可选）
+          note: "注意事项",
+        },
+        // 如果是命令执行任务
+        // {
+        //   task: "运行命令",
+        //   command: "flutter pub get",
+        // },
+        // 可以添加更多任务
+      ],
+      // 预估时间
+      estimatedTime: "X hours",
+    },
+    // 可以添加更多步骤
+  ],
+
+  // ===========================================
+  // 5. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    // 例如：库选择、实现方案、架构设计等
+    keyDecisions: {
+      // 示例：
+      // libraryChoice: {
+      //   recommendation: "推荐使用的库",
+      //   reason: "选择理由",
+      //   alternative: "备选方案",
+      // },
+      // implementation: {
+      //   method: "实现方法",
+      //   stateManagement: "状态管理方案",
+      // },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 示例：
+      // colorUsage: {
+      //   rule: "所有颜色都必须从主题系统引用，禁止硬编码",
+      //   location: "lib/core/theme/xxx.dart",
+      //   example: "Theme.of(context).colorScheme.primary",
+      //   forbidden: "Color(0xFF...) 或 '#...' 等硬编码",
+      // },
+    },
+    
+    // 性能考虑（可选）
+    performance: {
+      // 示例：
+      // optimization: [
+      //   "使用 RepaintBoundary 优化重绘",
+      //   "避免不必要的重建",
+      // ],
+    },
+    
+    // 安全考虑（可选）
+    security: {
+      // 示例：
+      // concerns: [
+      //   "数据加密要求",
+      //   "权限检查",
+      // ],
+    },
+  },
+
+  // ===========================================
+  // 6. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // 数据层依赖
+    dataLayer: [
+      // 示例：["lib/data/models/xxx.dart", "lib/data/repositories/xxx.dart"]
+      "数据层文件1",
+      "数据层文件2",
+    ],
+    
+    // 服务层依赖
+    serviceLayer: [
+      "服务层文件1",
+      "服务层文件2",
+    ],
+    
+    // Provider 层依赖
+    providerLayer: [
+      "Provider 层文件1",
+      "Provider 层文件2",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "UI 层文件1",
+      "UI 层文件2",
+    ],
+    
+    // 主题层依赖
+    themeLayer: [
+      "主题层文件1",
+      "主题层文件2",
+    ],
+    
+    // 可以根据需要添加更多层级
+  },
+
+  // ===========================================
+  // 7. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        // 测试文件路径
+        file: "test/xxx/xxx_test.dart",
+        // 测试描述
+        description: "测试什么功能",
+        // 测试用例列表
+        testCases: [
+          {
+            // 测试组名称
+            group: "测试组名称",
+            // 具体测试用例
+            cases: [
+              {
+                // 测试用例名称
+                name: "测试用例名称",
+                // 测试步骤描述
+                test: "测试步骤：操作1 → 操作2 → 验证结果",
+              },
+              // 可以添加更多测试用例
+            ],
+          },
+          // 可以添加更多测试组
+        ],
+      },
+      // 可以添加更多单元测试文件
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/xxx/xxx_test.dart",
+        description: "Widget 测试说明",
+        testCases: [
+          {
+            group: "测试组名称",
+            cases: [
+              {
+                name: "测试用例名称",
+                test: "测试步骤描述",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        file: "integration_test/xxx_test.dart",
+        description: "集成测试说明",
+        testCases: [
+          {
+            group: "测试组名称",
+            cases: [
+              {
+                name: "测试用例名称",
+                test: "测试步骤描述",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 8. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      // 风险描述
+      risk: "风险描述",
+      // 缓解措施
+      mitigation: "如何缓解或避免风险",
+      // 优先级：high, medium, low
+      priority: "high",
+      // 检查项（可选）
+      check: "如何检查风险是否发生",
+      // 强制执行措施（可选）
+      enforcement: "如何强制执行缓解措施",
+    },
+    // 可以添加更多风险点
+  ],
+
+  // ===========================================
+  // 9. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      // 示例：["运行 flutter analyze", "检查代码覆盖率", "代码审查"]
+      "检查项1",
+      "检查项2",
+    ],
+    
+    // 功能验证
+    functionality: [
+      // 示例：["验证所有功能正常工作", "验证边界情况处理"]
+      "验证项1",
+      "验证项2",
+    ],
+    
+    // 性能验证（可选）
+    performance: [
+      // 示例：["验证页面加载时间", "检查内存使用"]
+      "性能验证项1",
+    ],
+    
+    // 兼容性验证（可选）
+    compatibility: [
+      // 示例：["测试不同设备", "测试不同系统版本"]
+      "兼容性验证项1",
+    ],
+  },
+}

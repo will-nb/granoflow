@@ -27,14 +27,19 @@ const PreferenceEntitySchema = CollectionSchema(
       name: r'localeCode',
       type: IsarType.string,
     ),
-    r'themeMode': PropertySchema(
+    r'pomodoroTickSoundEnabled': PropertySchema(
       id: 2,
+      name: r'pomodoroTickSoundEnabled',
+      type: IsarType.bool,
+    ),
+    r'themeMode': PropertySchema(
+      id: 3,
       name: r'themeMode',
       type: IsarType.byte,
       enumMap: _PreferenceEntitythemeModeEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -72,8 +77,9 @@ void _preferenceEntitySerialize(
 ) {
   writer.writeString(offsets[0], object.fontScaleLevel);
   writer.writeString(offsets[1], object.localeCode);
-  writer.writeByte(offsets[2], object.themeMode.index);
-  writer.writeDateTime(offsets[3], object.updatedAt);
+  writer.writeBool(offsets[2], object.pomodoroTickSoundEnabled);
+  writer.writeByte(offsets[3], object.themeMode.index);
+  writer.writeDateTime(offsets[4], object.updatedAt);
 }
 
 PreferenceEntity _preferenceEntityDeserialize(
@@ -86,10 +92,11 @@ PreferenceEntity _preferenceEntityDeserialize(
   object.fontScaleLevel = reader.readString(offsets[0]);
   object.id = id;
   object.localeCode = reader.readString(offsets[1]);
+  object.pomodoroTickSoundEnabled = reader.readBool(offsets[2]);
   object.themeMode = _PreferenceEntitythemeModeValueEnumMap[
-          reader.readByteOrNull(offsets[2])] ??
+          reader.readByteOrNull(offsets[3])] ??
       ThemeMode.system;
-  object.updatedAt = reader.readDateTime(offsets[3]);
+  object.updatedAt = reader.readDateTime(offsets[4]);
   return object;
 }
 
@@ -105,10 +112,12 @@ P _preferenceEntityDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
       return (_PreferenceEntitythemeModeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           ThemeMode.system) as P;
-    case 3:
+    case 4:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -549,6 +558,16 @@ extension PreferenceEntityQueryFilter
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      pomodoroTickSoundEnabledEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pomodoroTickSoundEnabled',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
       themeModeEqualTo(ThemeMode value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -698,6 +717,20 @@ extension PreferenceEntityQuerySortBy
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      sortByPomodoroTickSoundEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      sortByPomodoroTickSoundEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
       sortByThemeMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'themeMode', Sort.asc);
@@ -770,6 +803,20 @@ extension PreferenceEntityQuerySortThenBy
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      thenByPomodoroTickSoundEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      thenByPomodoroTickSoundEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
       thenByThemeMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'themeMode', Sort.asc);
@@ -816,6 +863,13 @@ extension PreferenceEntityQueryWhereDistinct
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
+      distinctByPomodoroTickSoundEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'pomodoroTickSoundEnabled');
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
       distinctByThemeMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'themeMode');
@@ -849,6 +903,13 @@ extension PreferenceEntityQueryProperty
       localeCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'localeCode');
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, bool, QQueryOperations>
+      pomodoroTickSoundEnabledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'pomodoroTickSoundEnabled');
     });
   }
 

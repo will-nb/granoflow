@@ -6,8 +6,9 @@ import '../../widgets/swipe_configs.dart';
 import '../../widgets/swipe_action_handler.dart';
 import '../../widgets/swipe_action_type.dart';
 import '../../../core/providers/app_providers.dart';
-import '../../tasks/utils/tag_utils.dart';
 import '../../widgets/inline_project_milestone_display.dart';
+import '../../widgets/modern_tag.dart';
+import '../../../core/services/tag_service.dart';
 import 'completion_time_display.dart';
 
 /// 已完成任务 Tile 组件
@@ -97,10 +98,26 @@ class CompletedTaskTile extends ConsumerWidget {
             spacing: 8,
             runSpacing: 6,
             children: [
-              // 已选中的标签（只显示，不可编辑）
+              // 已选中的标签（只显示，不可编辑，使用与Tasks页面一致的样式）
               ...task.tags.map((slug) {
-                final tagWidget = buildModernTag(context, slug);
-                return tagWidget ?? const SizedBox.shrink();
+                // 使用 TagService 统一处理，自动兼容旧数据（带前缀的 slug）
+                final tagData = TagService.getTagData(context, slug);
+                if (tagData == null) {
+                  return const SizedBox.shrink(); // 无效标签不显示
+                }
+                // 使用 ModernTag 并传入与 InlineEditableTag 相同的参数（variant: minimal, size: small）
+                // 这样样式与 Tasks 页面完全一致
+                return ModernTag(
+                  label: tagData.label,
+                  color: tagData.color,
+                  icon: tagData.icon,
+                  prefix: tagData.prefix,
+                  selected: true,
+                  variant: TagVariant.minimal, // 与 InlineEditableTag 一致
+                  size: TagSize.small, // 与 InlineEditableTag 一致
+                  showCheckmark: false, // 不显示对勾（与 InlineEditableTag 一致）
+                  onTap: null, // 只读模式，不响应点击
+                );
               }),
               // 项目/里程碑信息（只读）
               _buildProjectMilestoneDisplay(context, ref),

@@ -1,0 +1,316 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../services/focus_flow_service.dart';
+import '../services/pomodoro_audio_service.dart';
+import '../../data/repositories/focus_session_repository.dart';
+import 'repository_providers.dart';
+import 'service_providers.dart';
+
+/// 番茄时钟计时器状态
+class PomodoroTimerState {
+  const PomodoroTimerState({
+    required this.isStarted,
+    required this.isPaused,
+    required this.forwardElapsed,
+    required this.countdownRemaining,
+    required this.startTime,
+    required this.pausePeriods,
+    required this.countdownDuration,
+    required this.originalCountdownDuration,
+    this.focusSessionId,
+  });
+
+  /// 是否已开始
+  final bool isStarted;
+  
+  /// 是否暂停
+  final bool isPaused;
+  
+  /// 正向计时已过时间
+  final Duration forwardElapsed;
+  
+  /// 倒计时剩余时间（可能为负数表示超时）
+  final Duration countdownRemaining;
+  
+  /// 开始时间
+  final DateTime? startTime;
+  
+  /// 暂停时间段列表
+  final List<({DateTime start, DateTime end})> pausePeriods;
+  
+  /// 当前倒计时时长（秒）
+  final int countdownDuration;
+  
+  /// 原始倒计时时长（秒），用于计算超时百分比
+  final int originalCountdownDuration;
+  
+  /// FocusSession ID（如果已开始）
+  final int? focusSessionId;
+
+  PomodoroTimerState copyWith({
+    bool? isStarted,
+    bool? isPaused,
+    Duration? forwardElapsed,
+    Duration? countdownRemaining,
+    DateTime? startTime,
+    List<({DateTime start, DateTime end})>? pausePeriods,
+    int? countdownDuration,
+    int? originalCountdownDuration,
+    int? focusSessionId,
+  }) {
+    return PomodoroTimerState(
+      isStarted: isStarted ?? this.isStarted,
+      isPaused: isPaused ?? this.isPaused,
+      forwardElapsed: forwardElapsed ?? this.forwardElapsed,
+      countdownRemaining: countdownRemaining ?? this.countdownRemaining,
+      startTime: startTime ?? this.startTime,
+      pausePeriods: pausePeriods ?? this.pausePeriods,
+      countdownDuration: countdownDuration ?? this.countdownDuration,
+      originalCountdownDuration: originalCountdownDuration ?? this.originalCountdownDuration,
+      focusSessionId: focusSessionId ?? this.focusSessionId,
+    );
+  }
+
+  /// 是否超时
+  bool get isOvertime => countdownRemaining.isNegative;
+
+  /// 超时百分比（0.0 - 1.0）
+  double get overtimePercentage {
+    if (!isOvertime || originalCountdownDuration <= 0) {
+      return 0.0;
+    }
+    final absOvertime = countdownRemaining.abs().inSeconds;
+    final percentage = absOvertime / originalCountdownDuration;
+    return percentage > 1.0 ? 1.0 : percentage;
+  }
+
+  /// 实际运行时间（排除暂停时间）
+  Duration get actualRunningTime {
+    if (startTime == null) {
+      return Duration.zero;
+    }
+    
+    final endTime = DateTime.now();
+    final totalDuration = endTime.difference(startTime!);
+    
+    final pauseDuration = pausePeriods.fold<Duration>(
+      Duration.zero,
+      (sum, period) => sum + period.end.difference(period.start),
+    );
+    
+    final actualRunningTime = totalDuration - pauseDuration;
+    return actualRunningTime.isNegative ? Duration.zero : actualRunningTime;
+  }
+}
+
+/// 番茄时钟计时器状态管理 Notifier
+class PomodoroTimerNotifier extends StateNotifier<PomodoroTimerState> {
+  PomodoroTimerNotifier({
+    required FocusFlowService focusFlowService,
+    required PomodoroAudioService audioService,
+    required FocusSessionRepository focusSessionRepository,
+  }) : _focusFlowService = focusFlowService,
+       _audioService = audioService,
+       _focusSessionRepository = focusSessionRepository,
+       super(const PomodoroTimerState(
+         isStarted: false,
+         isPaused: false,
+         forwardElapsed: Duration.zero,
+         countdownRemaining: Duration(minutes: 25),
+         startTime: null,
+         pausePeriods: [],
+         countdownDuration: 25 * 60, // 默认25分钟（在15-60分钟范围内）
+         originalCountdownDuration: 25 * 60,
+       )) {
+    _initTimer();
+  }
+
+  final FocusFlowService _focusFlowService;
+  final PomodoroAudioService _audioService;
+  final FocusSessionRepository _focusSessionRepository;
+  
+  Timer? _timer;
+  DateTime? _currentPauseStart;
+
+  void _initTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (state.isStarted && !state.isPaused) {
+        _updateTimers();
+      }
+    });
+  }
+
+  /// 更新计时器
+  void _updateTimers() {
+    if (state.startTime == null) {
+      return;
+    }
+    
+    // 计算正向计时
+    final forwardElapsed = state.actualRunningTime;
+    
+    // 计算倒计时
+    final elapsedSeconds = forwardElapsed.inSeconds;
+    final remainingSeconds = state.countdownDuration - elapsedSeconds;
+    final countdownRemaining = Duration(seconds: remainingSeconds);
+    
+    state = state.copyWith(
+      forwardElapsed: forwardElapsed,
+      countdownRemaining: countdownRemaining,
+    );
+  }
+
+
+  /// 开始计时
+  Future<void> start(int taskId) async {
+    if (state.isStarted) {
+      return;
+    }
+    
+    // 创建 FocusSession
+    final session = await _focusFlowService.startFocus(
+      taskId: taskId,
+      estimateMinutes: state.countdownDuration ~/ 60,
+    );
+    
+    final now = DateTime.now();
+    state = state.copyWith(
+      isStarted: true,
+      isPaused: false,
+      startTime: now,
+      forwardElapsed: Duration.zero,
+      countdownRemaining: Duration(seconds: state.countdownDuration),
+      pausePeriods: [],
+      focusSessionId: session.id,
+    );
+    
+    // 开始播放滴答声
+    _audioService.resetAlertFlags();
+    _audioService.startTickSound();
+  }
+
+  /// 暂停计时
+  void pause() {
+    if (!state.isStarted || state.isPaused) {
+      return;
+    }
+    
+    final now = DateTime.now();
+    _currentPauseStart = now;
+    
+    state = state.copyWith(
+      isPaused: true,
+    );
+    
+    // 停止播放滴答声
+    _audioService.stopTickSound();
+  }
+
+  /// 继续计时
+  void resume() {
+    if (!state.isStarted || !state.isPaused) {
+      return;
+    }
+    
+    final now = DateTime.now();
+    
+    // 记录暂停时间段
+    if (_currentPauseStart != null) {
+      final pausePeriod = (
+        start: _currentPauseStart!,
+        end: now,
+      );
+      final updatedPausePeriods = [...state.pausePeriods, pausePeriod];
+      
+      state = state.copyWith(
+        isPaused: false,
+        pausePeriods: updatedPausePeriods,
+      );
+    } else {
+      state = state.copyWith(
+        isPaused: false,
+      );
+    }
+    
+    _currentPauseStart = null;
+    
+    // 继续播放滴答声
+    _audioService.startTickSound();
+  }
+
+  /// 设置倒计时时长（只能在开始前设置）
+  /// 
+  /// 限制范围：15-60分钟（900-3600秒）
+  void setCountdownDuration(int seconds) {
+    if (state.isStarted) {
+      return;
+    }
+    
+    // 限制范围：15-60分钟
+    final minSeconds = 15 * 60; // 15分钟
+    final maxSeconds = 60 * 60; // 60分钟
+    final clampedSeconds = seconds.clamp(minSeconds, maxSeconds);
+    
+    state = state.copyWith(
+      countdownDuration: clampedSeconds,
+      originalCountdownDuration: clampedSeconds,
+      countdownRemaining: Duration(seconds: clampedSeconds),
+    );
+  }
+
+  /// 重置计时器
+  /// 
+  /// 将所有状态重置为初始状态，停止声音，结束 FocusSession（如果存在）但不记录时间
+  Future<void> reset() async {
+    _timer?.cancel();
+    _audioService.stopTickSound();
+    _audioService.resetAlertFlags();
+    
+    // 如果有正在进行的 FocusSession，结束它但不记录时间（actualMinutes = 0）
+    if (state.focusSessionId != null) {
+      try {
+        await _focusSessionRepository.endSession(
+          sessionId: state.focusSessionId!,
+          actualMinutes: 0, // 不记录时间
+          transferToTaskId: null,
+          reflectionNote: null,
+        );
+      } catch (e) {
+        // 忽略错误，继续重置状态
+      }
+    }
+    
+    // 重置状态
+    state = const PomodoroTimerState(
+      isStarted: false,
+      isPaused: false,
+      forwardElapsed: Duration.zero,
+      countdownRemaining: Duration(minutes: 25),
+      startTime: null,
+      pausePeriods: [],
+      countdownDuration: 25 * 60,
+      originalCountdownDuration: 25 * 60,
+    );
+    _currentPauseStart = null;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _audioService.stopTickSound();
+    super.dispose();
+  }
+}
+
+/// 番茄时钟计时器 Provider
+final pomodoroTimerProvider = StateNotifierProvider<PomodoroTimerNotifier, PomodoroTimerState>((ref) {
+  return PomodoroTimerNotifier(
+    focusFlowService: ref.watch(focusFlowServiceProvider),
+    audioService: ref.watch(pomodoroAudioServiceProvider),
+    focusSessionRepository: ref.watch(focusSessionRepositoryProvider),
+  );
+});
+

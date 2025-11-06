@@ -15,36 +15,57 @@ enum TimeDisplayFormat {
 /// 
 /// 显示任务的完成时间（endedAt）或归档时间（archivedAt）
 /// 格式化为相对时间（如"2 天前"）或绝对时间（精确到分钟）
+/// 使用 Minimal 风格，与 InlineDeadlineEditor 和 InlineProjectMilestoneDisplay 一致
 class CompletionTimeDisplay extends StatelessWidget {
   const CompletionTimeDisplay({
     super.key,
     required this.dateTime,
-    this.style,
     this.format = TimeDisplayFormat.relative,
+    this.showIcon = true,
   });
 
   /// 要显示的时间（完成时间或归档时间）
   final DateTime? dateTime;
 
-  /// 文本样式
-  final TextStyle? style;
-
   /// 显示格式（相对时间或绝对时间）
   final TimeDisplayFormat format;
 
+  /// 是否显示图标
+  final bool showIcon;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final color = theme.colorScheme.secondary; // 使用 secondary 颜色，与其他 Minimal 风格组件一致
+
     if (dateTime == null) {
-      // 如果没有时间，显示占位文本
-      return Text(
-        AppLocalizations.of(context).noCompletionTime,
-        style: style ?? Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+      // 如果没有时间，显示占位文本（Minimal 风格）
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showIcon)
+              Icon(
+                Icons.check_circle_outline,
+                size: 14,
+                color: color,
+              ),
+            if (showIcon) const SizedBox(width: 4),
+            Text(
+              l10n.noCompletionTime,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
             ),
+          ],
+        ),
       );
     }
 
-    final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context);
     final date = dateTime!;
 
@@ -99,11 +120,29 @@ class CompletionTimeDisplay extends StatelessWidget {
       }
     }
 
-    return Text(
-      timeText,
-      style: style ?? Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+    // Minimal 风格：与 InlineDeadlineEditor 和 InlineProjectMilestoneDisplay 一致
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showIcon)
+            Icon(
+              Icons.check_circle_outline,
+              size: 14,
+              color: color,
+            ),
+          if (showIcon) const SizedBox(width: 4),
+          Text(
+            timeText,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
           ),
+        ],
+      ),
     );
   }
 }

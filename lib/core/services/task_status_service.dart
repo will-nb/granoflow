@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+import '../../core/config/app_constants.dart';
 import '../../data/models/task.dart';
+import '../../data/repositories/focus_session_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import 'metric_orchestrator.dart';
 
@@ -9,13 +11,16 @@ class TaskStatusService {
   TaskStatusService({
     required TaskRepository taskRepository,
     required MetricOrchestrator metricOrchestrator,
+    FocusSessionRepository? focusSessionRepository,
     DateTime Function()? clock,
   }) : _tasks = taskRepository,
        _metricOrchestrator = metricOrchestrator,
+       _focusSessionRepository = focusSessionRepository,
        _clock = clock ?? DateTime.now;
 
   final TaskRepository _tasks;
   final MetricOrchestrator _metricOrchestrator;
+  final FocusSessionRepository? _focusSessionRepository;
   final DateTime Function() _clock;
 
   /// 标记任务为进行中
@@ -38,6 +43,26 @@ class TaskStatusService {
     if (!task.canEditStructure && !task.allowInstantComplete) {
       throw StateError('Task is locked and cannot be completed directly.');
     }
+    
+    // 如果任务没有运行时间记录，创建一个默认的 FocusSession 记录默认时间
+    if (_focusSessionRepository != null) {
+      final totalMinutes = await _focusSessionRepository.totalMinutesForTask(taskId);
+      if (totalMinutes == 0) {
+        // 创建并立即结束一个 FocusSession，记录默认时间
+        final session = await _focusSessionRepository.startSession(
+          taskId: taskId,
+          estimateMinutes: AppConstants.defaultTaskCompletionMinutes,
+          alarmEnabled: false,
+        );
+        await _focusSessionRepository.endSession(
+          sessionId: session.id,
+          actualMinutes: AppConstants.defaultTaskCompletionMinutes,
+          transferToTaskId: null,
+          reflectionNote: null,
+        );
+      }
+    }
+    
     await _tasks.updateTask(
       taskId,
       TaskUpdate(status: TaskStatus.completedActive, endedAt: _clock()),

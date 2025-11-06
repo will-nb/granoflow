@@ -1,0 +1,414 @@
+{
+  // 番茄时钟页面 - 海浪沉浸式迭代蓝图
+  // 对应设计文档：documents/json5/clock/design_ocean_wave_layout.json5
+
+  // ===========================================
+  // 1. 迭代概述
+  // ===========================================
+  iteration: {
+    id: "251106-clock-ocean-wave-layout",
+    title: "番茄时钟海浪主题布局与动效迭代",
+    description: "依据海浪沉浸式设计文档，升级番茄时钟页面的渐变层次、响应式布局、动效细节与视觉反馈",
+    status: "planning",
+    estimatedTime: "5 days",
+    priority: "high",
+    basedOnDesign: "documents/json5/clock/design_ocean_wave_layout.json5"
+  },
+
+  // ===========================================
+  // 2. 文件创建清单
+  // ===========================================
+  files: {
+    theme: [
+      {
+        path: "lib/core/theme/pomodoro_gradients.dart",
+        purpose: "扩展昼夜海浪渐变层次，添加 TextureOverlay / ParticleOverlay 支持",
+        action: "modify",
+        estimatedLines: 80,
+        dependencies: ["lib/core/theme/ocean_breeze_color_schemes.dart"],
+        changes: [
+          "新增 CompositeGradient 定义及注释",
+          "提供前景/背景波层颜色引用"
+        ],
+        note: "保持所有颜色引用于 OceanBreezeColorSchemes，禁止硬编码"
+      },
+      {
+        path: "lib/core/theme/ocean_breeze_color_schemes.dart",
+        purpose: "如果缺失，补充海浪纹理与粒子所需的额外颜色常量",
+        action: "modify",
+        estimatedLines: 20,
+        dependencies: [],
+        changes: ["添加极淡泡沫/星点专用颜色常量"],
+        note: "检查现有常量是否已满足需求，避免重复定义"
+      }
+    ],
+
+    utils: [
+      {
+        path: "lib/core/utils/gradient_composer.dart",
+        purpose: "封装 CompositeGradient 叠加逻辑，便于复用与动画控制",
+        action: "create",
+        estimatedLines: 120,
+        dependencies: ["lib/core/theme/pomodoro_gradients.dart"],
+        note: "提供 layered parallax 与纹理叠加的公共工具"
+      }
+    ],
+
+    services: [],
+
+    providers: [
+      {
+        path: "lib/core/providers/pomodoro_animation_providers.dart",
+        purpose: "集中管理波浪、粒子与计时环光效的动画控制器与状态",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/core/utils/gradient_composer.dart",
+          "lib/presentation/pomodoro/pomodoro_page.dart"
+        ]
+      }
+    ],
+
+    widgets: [
+      {
+        path: "lib/presentation/pomodoro/widgets/pomodoro_wave_background.dart",
+        purpose: "渲染海浪分层背景、泡沫纹理与星点粒子，支持横竖屏自适应",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/core/theme/pomodoro_gradients.dart",
+          "lib/core/providers/pomodoro_animation_providers.dart"
+        ],
+        note: "拆分背景渲染逻辑，保持 pomodoro_page.dart 行数在阈值内"
+      },
+      {
+        path: "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart",
+        purpose: "封装操作按钮条，加入 hover/press 柔光动效",
+        action: "create",
+        estimatedLines: 160,
+        dependencies: ["lib/core/providers/pomodoro_providers.dart"],
+        note: "分离按钮逻辑，满足单文件行数限制"
+      }
+    ],
+
+    pages: [
+      {
+        path: "lib/presentation/pomodoro/pomodoro_page.dart",
+        purpose: "整合新布局、左右分栏、背景组件与动画 providers",
+        action: "modify",
+        estimatedLines: 220,
+        dependencies: [
+          "lib/presentation/pomodoro/widgets/pomodoro_wave_background.dart",
+          "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart"
+        ],
+        changes: [
+          "重构 build 结构，按横竖屏切换布局",
+          "引入背景与动效组件",
+          "调整任务信息/子任务栈布局"
+        ],
+        note: "确保文件总行数 < 500，必要时进一步拆分子组件"
+      }
+    ],
+
+    tests: [
+      {
+        path: "test/presentation/pomodoro/pomodoro_wave_background_test.dart",
+        purpose: "验证背景层渲染、渐变组合与响应式断点逻辑",
+        action: "create",
+        estimatedLines: 120,
+        dependencies: ["lib/presentation/pomodoro/widgets/pomodoro_wave_background.dart"],
+        note: "使用 Golden + Widget 测试结合"
+      },
+      {
+        path: "test/presentation/pomodoro/pomodoro_control_strip_test.dart",
+        purpose: "确保按钮 hover/press 动效与状态切换逻辑正确",
+        action: "create",
+        estimatedLines: 90,
+        dependencies: ["lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart"]
+      }
+    ]
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/presentation/pomodoro/widgets/pomodoro_task_info_card.dart",
+      purpose: "增加渐变分隔线与视觉层次",
+      changes: [
+        "加入 divider 渲染逻辑并暴露样式参数",
+        "调整卡片留白与字体颜色"
+      ],
+      estimatedLines: 40,
+      note: "检查文件行数，必要时拆分细分 widget"
+    },
+    {
+      file: "lib/presentation/pomodoro/widgets/pomodoro_task_analysis.dart",
+      purpose: "支持 collapsed 字体缩放与渐隐遮罩",
+      changes: [
+        "新增 collapsedTypographyScale 参数",
+        "更新 overlay 渲染逻辑"
+      ],
+      estimatedLines: 35,
+      note: "保持单方法 < 60 行"
+    },
+    {
+      file: "lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart",
+      purpose: "子任务卡片添加内阴影与微光效果，同时保持性能",
+      changes: [
+        "扩展 item builder 支持装饰",
+        "确保列表仍可复用 Reorderable/RepaintBoundary"
+      ],
+      estimatedLines: 60,
+      note: "必要时拆分子卡片 widget 避免文件过长"
+    }
+  ],
+
+  // ===========================================
+  // 4. 实现步骤
+  // ===========================================
+  implementationSteps: [
+    {
+      step: 1,
+      title: "主题与工具层准备",
+      description: "扩展渐变定义与层叠工具，为背景动效打基础",
+      tasks: [
+        { task: "更新 pomodoro_gradients.dart，添加复合渐变层", file: "lib/core/theme/pomodoro_gradients.dart" },
+        { task: "补充海浪纹理所需颜色常量", file: "lib/core/theme/ocean_breeze_color_schemes.dart", note: "若已有颜色则跳过" },
+        { task: "创建 gradient_composer.dart 封装叠加逻辑", file: "lib/core/utils/gradient_composer.dart" }
+      ],
+      estimatedTime: "1.5 days"
+    },
+    {
+      step: 2,
+      title: "动画状态与背景组件",
+      description: "实现波浪动效 provider 与背景渲染组件",
+      tasks: [
+        { task: "实现 pomodoro_animation_providers.dart，集中管理 AnimationController", file: "lib/core/providers/pomodoro_animation_providers.dart" },
+        { task: "开发 pomodoro_wave_background.dart，整合渐变、纹理、粒子", file: "lib/presentation/pomodoro/widgets/pomodoro_wave_background.dart" },
+        { task: "编写背景组件 Widget 测试", file: "test/presentation/pomodoro/pomodoro_wave_background_test.dart" }
+      ],
+      estimatedTime: "1.5 days"
+    },
+    {
+      step: 3,
+      title: "控制面板与卡片视觉反馈",
+      description: "实现按钮柔光动效与卡片层次优化",
+      tasks: [
+        { task: "创建 pomodoro_control_strip.dart 并实现 hover/press 动效", file: "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart" },
+        { task: "更新任务信息/分析/子任务组件的视觉细节", file: "lib/presentation/pomodoro/widgets/pomodoro_task_info_card.dart" },
+        { task: "更新分析组件缩放与遮罩", file: "lib/presentation/pomodoro/widgets/pomodoro_task_analysis.dart" },
+        { task: "增加子任务卡片内阴影与微光", file: "lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart" },
+        { task: "补充 control strip 测试用例", file: "test/presentation/pomodoro/pomodoro_control_strip_test.dart" }
+      ],
+      estimatedTime: "1 day"
+    },
+    {
+      step: 4,
+      title: "页面整合与响应式调整",
+      description: "重构 pomodoro_page 布局，整合新组件与动画",
+      tasks: [
+        { task: "在 pomodoro_page 中引入背景与分栏逻辑", file: "lib/presentation/pomodoro/pomodoro_page.dart", note: "检查行数限制，必要时拆分" },
+        { task: "确保竖屏展示到添加子任务按钮", file: "lib/presentation/pomodoro/pomodoro_page.dart" },
+        { task: "横屏布局测试与微调", file: "lib/presentation/pomodoro/pomodoro_page.dart" }
+      ],
+      estimatedTime: "1 day"
+    },
+    {
+      step: 5,
+      title: "联调与回归测试",
+      description: "执行全局验证与文档同步",
+      tasks: [
+        { task: "运行 flutter analyze & flutter test", action: "command" },
+        { task: "手动验证背景动画在真机/模拟器表现", note: "关注性能与掉帧" },
+        { task: "更新相关文档（design、tech notes、readme 如需）", file: "documents/" }
+      ],
+      estimatedTime: "0.5 day"
+    }
+  ],
+
+  // ===========================================
+  // 5. 技术细节和注意事项
+  // ===========================================
+  technicalDetails: {
+    keyDecisions: {
+      layeredAnimation: {
+        recommendation: "使用 Provider + AnimationController 管理多层波浪与粒子",
+        reason: "便于响应式布局下共享动画状态，减少重复初始化",
+        alternative: "直接在 StatefulWidget 中管理（不推荐，易破坏分层结构）"
+      },
+      backgroundRendering: {
+        method: "CustomPainter + ShaderMask + TextureOverlay 组合",
+        stateManagement: "通过 AnimationProvider 传入参数",
+        note: "必要时引入 RepaintBoundary 降低重绘开销"
+      }
+    },
+    codeStandards: {
+      colorUsage: {
+        rule: "所有颜色均从 OceanBreezeColorSchemes 引用，禁止硬编码",
+        location: "lib/core/theme/ocean_breeze_color_schemes.dart",
+        forbidden: "Color(0xFF...)、Colors.orange 等直接字面量"
+      },
+      fileSize: {
+        rule: "遵守 00-global.mdc 的文件行数上限，针对 pomodoro_page 等文件需拆分组件"
+      }
+    },
+    performance: {
+      optimization: [
+        "背景层使用 RepaintBoundary，防止按钮交互触发全局重绘",
+        "粒子层根据设备性能动态调整密度",
+        "动画使用 tickerProviderStateMixin，避免重复创建控制器"
+      ]
+    },
+    security: {}
+  },
+
+  // ===========================================
+  // 6. 依赖关系图
+  // ===========================================
+  dependencies: {
+    dataLayer: [],
+    serviceLayer: [],
+    providerLayer: [
+      "lib/core/providers/pomodoro_providers.dart",
+      "lib/core/providers/pomodoro_animation_providers.dart"
+    ],
+    uiLayer: [
+      "lib/presentation/pomodoro/pomodoro_page.dart",
+      "lib/presentation/pomodoro/widgets/pomodoro_wave_background.dart",
+      "lib/presentation/pomodoro/widgets/pomodoro_control_strip.dart"
+    ],
+    themeLayer: [
+      "lib/core/theme/pomodoro_gradients.dart",
+      "lib/core/utils/gradient_composer.dart"
+    ]
+  },
+
+  // ===========================================
+  // 7. 测试策略和详细测试用例
+  // ===========================================
+  testing: {
+    unitTests: [
+      {
+        file: "test/presentation/pomodoro/pomodoro_wave_background_test.dart",
+        description: "验证背景层组合与动画状态输出",
+        testCases: [
+          {
+            group: "Gradient 构建",
+            cases: [
+              {
+                name: "昼夜模式颜色组合",
+                test: "在 Light/Dark 模式下构建背景，断言渐变层次长度与颜色引用"
+              },
+              {
+                name: "纹理层开关",
+                test: "模拟开启/关闭泡沫纹理，验证渲染参数变更"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    widgetTests: [
+      {
+        file: "test/presentation/pomodoro/pomodoro_control_strip_test.dart",
+        description: "按钮动效与状态切换",
+        testCases: [
+          {
+            group: "Hover / Press",
+            cases: [
+              {
+                name: "hover 效果",
+                test: "模拟 mouseRegion hover，验证 scale 与 shadow 动画"
+              },
+              {
+                name: "press 效果",
+                test: "触发 onTapDown / onTapUp，检查缩放回弹"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    integrationTests: [
+      {
+        file: "integration_test/pomodoro_wave_layout_test.dart",
+        description: "整页布局在横竖屏切换下的可见性与性能",
+        testCases: [
+          {
+            group: "竖屏场景",
+            cases: [
+              {
+                name: "默认可见范围",
+                test: "启动页面并截屏，确认显示到添加子任务按钮，无滚动"
+              }
+            ]
+          },
+          {
+            group: "横屏场景",
+            cases: [
+              {
+                name: "左右分栏布局",
+                test: "设置窗口 800x600，验证左侧为计时、右侧为信息栈"
+              },
+              {
+                name: "动画性能",
+                test: "运行 10 秒记录帧率，确保无明显掉帧"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  // ===========================================
+  // 8. 风险点和注意事项
+  // ===========================================
+  risks: [
+    {
+      risk: "背景动效导致重绘过多，影响低端设备性能",
+      mitigation: "使用 RepaintBoundary、根据平台调整粒子密度，必要时提供设置开关",
+      priority: "high",
+      check: "在中低端设备上运行性能测试",
+      enforcement: "重绘监控与帧率日志"
+    },
+    {
+      risk: "文件行数超过 00-global.mdc 限制",
+      mitigation: "新增组件与逻辑必须拆分到独立文件，持续监控行数",
+      priority: "high",
+      check: "每次修改前后执行 wc -l"
+    },
+    {
+      risk: "动效引入导致动画控制器泄漏",
+      mitigation: "统一在 Provider 中管理生命周期，确保 dispose",
+      priority: "medium",
+      check: "使用 flutter test --coverage 检查 Dispose 覆盖"
+    }
+  ],
+
+  // ===========================================
+  // 9. 验证清单
+  // ===========================================
+  verification: {
+    codeQuality: [
+      "运行 flutter analyze",
+      "运行 flutter test",
+      "检查新增文件行数与方法长度符合规则"
+    ],
+    functionality: [
+      "验证竖屏时无需滚动即可看到添加子任务按钮",
+      "验证横屏 800x600 下左右分栏布局正确",
+      "验证计时器状态切换时光效与音效同步"
+    ],
+    performance: [
+      "在模拟器与真机上测试背景动效，确认帧率稳定"
+    ],
+    compatibility: [
+      "测试不同屏幕尺寸（手机、平板、桌面窗口）",
+      "测试 Light/Dark 模式渐变与可读性"
+    ]
+  }
+}
+

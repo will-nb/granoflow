@@ -2,8 +2,6 @@
   "@@locale": "en",
   "@@i18n_guideline": "To ensure text is fully displayed on portrait screens, use the minimum number of words necessary while maintaining clear meaning. UI icons and button styles already provide sufficient contextual hints.",
   "@@comment": "IMPORTANT: When adding new translation keys, they MUST be inserted in alphabetical order by key name. This ensures consistent ordering across all language files and makes it easier for AI to maintain the files.",
-  "achievements": "Task Achievements",
-  "achievementsOverview": "Achievements Overview",
   "actionAddSubtask": "Add Subtask",
   "actionArchive": "Archive",
   "actionDelete": "Delete",
@@ -18,7 +16,7 @@
   "actionStartTimer": "Start Timer",
   "actualTime": "Actual Time",
   "actualTimeUsed": "Actual Time Used",
-  "appShellAchievements": "Achievements",
+  "appShellReview": "Review",
   "appShellCompleted": "Completed",
   "appShellHome": "Home",
   "appShellInbox": "Inbox",
@@ -38,6 +36,8 @@
   "commonCancel": "Cancel",
   "commonConfirm": "Confirm",
   "commonDelete": "Delete",
+  "commonLoading": "Loading...",
+  "commonLoadFailed": "Load failed",
   "commonSave": "Save",
   "commonView": "View",
   "completeCurrentTask": "Complete Current Task",
@@ -101,7 +101,6 @@
   "completedYesterday": "Yesterday",
   "completionTime": "Completion Time",
   "createSubtask": "Create Subtask",
-  "dailyAchievements": "Today's Achievements",
   "dragToOverdueNotAllowed": "Cannot drag to overdue section",
   "drawerManageProjects": "Manage Projects",
   "@drawerManageProjects": {
@@ -224,10 +223,47 @@
   "plannerSectionThisWeekTitle": "This Week",
   "plannerSectionThisMonthTitle": "This Month",
   "pomodoroTimer": "Pomodoro Timer",
+  "pomodoroBack": "Back",
+  "pomodoroComplete": "Complete",
+  "pomodoroCountdownDuration": "Countdown Duration: {minutes} minutes",
+  "@pomodoroCountdownDuration": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pomodoroLevel3Warning": "You've spent too much time on this task. Consider abandoning it and finding another solution.",
+  "pomodoroLoadFailed": "Load failed: {error}",
+  "@pomodoroLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pomodoroMinutes": "{minutes} minutes",
+  "@pomodoroMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pomodoroOvertimeSubtaskTitle": "Parent task timed out, needs to be re-split",
+  "pomodoroPause": "Pause",
+  "pomodoroResume": "Resume",
+  "pomodoroStart": "Start",
+  "pomodoroStartButton": "Start",
+  "pomodoroSubtasks": "Subtasks",
+  "pomodoroTaskAnalysis": "Task Analysis",
+  "pomodoroTaskAnalysisHint": "Enter task analysis...",
+  "pomodoroTaskNotFound": "Task not found",
+  "pomodoroTurnOffSound": "Turn off sound",
+  "pomodoroTurnOnSound": "Turn on sound",
   "profile": "Profile",
   "reactivate": "Reactivate",
   "reactivateTask": "Reactivate Task",
-  "recentAchievements": "Recent Achievements",
   "restoreTask": "Restore Task",
   "sessionComplete": "Session Complete",
   "settings": "Settings",
@@ -241,10 +277,16 @@
   "settingsLanguageSimplifiedChinese": "Simplified Chinese",
   "settingsLanguageTraditionalChinese": "Traditional Chinese",
   "settingsSection": "Settings",
+  "settingsPomodoroSection": "Pomodoro Timer",
+  "settingsPomodoroTickSound": "Tick Sound",
+  "settingsPomodoroTickSoundDescription": "Play tick sound and alerts during timer",
+  "settingsTaskManagement": "Task Management",
   "settingsThemeDark": "Dark",
   "settingsThemeLabel": "Theme",
   "settingsThemeLight": "Light",
   "settingsThemeSystem": "System",
+  "settingsViewCompletedTasks": "View completed tasks",
+  "settingsViewDeletedTasks": "View deleted tasks",
   "showAllSubtasks": "Show all subtasks",
   "startTimer": "Start Timer",
   "stopTimer": "Stop Timer",
@@ -592,6 +634,5 @@
   "trashRestoreError": "Restore failed.",
   "trashRestoreSuccess": "Task restored.",
   "trashedStatus": "Deleted",
-  "viewDetails": "View Details",
-  "weeklyAchievements": "This Week's Achievements"
+  "viewDetails": "View Details"
 }

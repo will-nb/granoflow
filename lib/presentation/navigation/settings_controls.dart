@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/constants/font_scale_constants.dart';
 import '../../core/constants/font_scale_level.dart';
+import '../../core/providers/pomodoro_audio_preference_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../completion_management/completed_page.dart';
 import '../completion_management/trash_page.dart';
@@ -56,8 +57,8 @@ class SettingsControlsPage extends ConsumerWidget {
     };
 
     return GradientPageScaffold(
-      appBar: const PageAppBar(
-        title: 'Settings',
+      appBar: PageAppBar(
+        title: l10n.settings,
       ),
       drawer: const MainDrawer(),
       body: ListView(
@@ -138,13 +139,18 @@ class SettingsControlsPage extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         _SettingCard(
-          title: '任务管理', // TODO: Add to localizations
+          title: l10n.settingsPomodoroSection,
+          child: const _PomodoroTickSoundSwitch(),
+        ),
+        const SizedBox(height: 16),
+        _SettingCard(
+          title: l10n.settingsTaskManagement,
           child: Column(
             children: [
               ListTile(
                 leading: const Icon(Icons.task_alt),
                 title: Text(l10n.appShellCompleted),
-                subtitle: const Text('查看已完成的任务'),
+                subtitle: Text(l10n.settingsViewCompletedTasks),
                 onTap: () {
                   // Navigate to completed tasks
                   Navigator.of(context).push(
@@ -158,7 +164,7 @@ class SettingsControlsPage extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.delete_outline),
                 title: Text(l10n.appShellTrash),
-                subtitle: const Text('查看已删除的任务'),
+                subtitle: Text(l10n.settingsViewDeletedTasks),
                 onTap: () {
                   // Navigate to trash
                   Navigator.of(context).push(
@@ -198,6 +204,39 @@ class _SettingCard extends StatelessWidget {
             child,
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// 番茄时钟音频开关组件
+class _PomodoroTickSoundSwitch extends ConsumerWidget {
+  const _PomodoroTickSoundSwitch();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final audioEnabledAsync = ref.watch(pomodoroTickSoundEnabledProvider);
+    
+    return audioEnabledAsync.when(
+      data: (enabled) => SwitchListTile(
+        title: Text(l10n.settingsPomodoroTickSound),
+        subtitle: Text(l10n.settingsPomodoroTickSoundDescription),
+        value: enabled,
+        onChanged: (value) {
+          updatePomodoroTickSoundEnabled(ref, value);
+        },
+      ),
+      loading: () => ListTile(
+        title: Text(l10n.commonLoading),
+        trailing: const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (_, __) => ListTile(
+        title: Text(l10n.commonLoadFailed),
       ),
     );
   }

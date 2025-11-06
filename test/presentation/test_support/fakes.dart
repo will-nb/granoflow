@@ -611,10 +611,12 @@ class StubTaskRepository implements TaskRepository {
   }
 
   String _generateTaskId(DateTime now) {
-    final base =
-        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-    final suffix = _random.nextInt(9000) + 1000;
-    return '$base-$suffix';
+    // 新格式：${秒级时间戳}${4位序号}（14位纯数字）
+    final secondsSinceEpoch = now.millisecondsSinceEpoch ~/ 1000;
+    // 测试中使用随机序号，不需要严格唯一性
+    final sequence = _random.nextInt(9000) + 1000;
+    final sequenceStr = sequence.toString().padLeft(4, '0');
+    return '$secondsSinceEpoch$sequenceStr';
   }
 }
 
@@ -732,6 +734,7 @@ class StubPreferenceRepository implements PreferenceRepository {
     localeCode: 'en',
     themeMode: ThemeMode.system,
     fontScaleLevel: FontScaleLevel.medium,
+    pomodoroTickSoundEnabled: true,
     updatedAt: DateTime.now(),
   );
 

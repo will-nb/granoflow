@@ -11,6 +11,7 @@ import '../services/task_hierarchy_service.dart';
 import '../services/task_service.dart';
 import '../services/sort_index_service.dart';
 import '../services/task_template_service.dart';
+import '../services/pomodoro_audio_service.dart';
 import '../monetization/monetization_service.dart';
 import 'repository_providers.dart';
 
@@ -41,6 +42,7 @@ final taskServiceProvider = Provider<TaskService>((ref) {
     taskRepository: ref.watch(taskRepositoryProvider),
     tagRepository: ref.watch(tagRepositoryProvider),
     metricOrchestrator: ref.watch(metricOrchestratorProvider),
+    focusSessionRepository: ref.watch(focusSessionRepositoryProvider),
     sortIndexService: ref.watch(sortIndexServiceProvider),
   );
 });
@@ -104,4 +106,12 @@ final seedImportServiceProvider = Provider<SeedImportService>((ref) {
     milestoneRepository: ref.watch(milestoneRepositoryProvider),
     metricOrchestrator: ref.watch(metricOrchestratorProvider),
   );
+});
+
+final pomodoroAudioServiceProvider = Provider<PomodoroAudioService>((ref) {
+  final service = PomodoroAudioService(
+    preferenceService: ref.watch(preferenceServiceProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
 });

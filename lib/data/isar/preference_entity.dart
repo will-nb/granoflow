@@ -20,5 +20,9 @@ class PreferenceEntity {
   /// 默认值为 medium
   late String fontScaleLevel = FontScaleLevel.medium.name;
 
+  /// 番茄时钟滴答声开关
+  /// 默认值为 true（开启）
+  late bool pomodoroTickSoundEnabled = true;
+
   late DateTime updatedAt;
 }

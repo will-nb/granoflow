@@ -29,8 +29,7 @@
   - `documents/spec/` - 规格设计契约（产品需求、用户故事、技术规范）
   - `documents/config/` - 配置设计契约（主题、环境、本地化、代码规范）
   - `documents/architecture/` - 架构设计契约（组件、数据流、状态管理）
-  - `documents/project/` - 项目管理契约（计划、进度、规则、KPI）
-  - `documents/plan/` - 迭代执行契约（预览和详细计划）
+  - `documents/json5 项目管理契约（设计、计划、规则、测试用例参考）/` - 
   - `documents/deployment/` - 部署设计契约（上线、迁移、发布）
   - `documents/legal/` - 法律合规契约（隐私、服务条款）
 

@@ -2,8 +2,6 @@
   "@@locale": "zh_HK",
   "@@comment": "重要提示：添加新的翻譯鍵時，必須按照鍵名的字母升序排列插入。這確保了所有語言文件的一致性排序，便於AI維護文件。",
   "@@i18n_guideline": "為讓文字內容充分顯示，在語意充分表達的前提下，應該儘可能顯示更少的字。UI設計中的圖標和按鈕樣式已提供足夠的上下文提示。",
-  "achievements": "任務成就",
-  "achievementsOverview": "成就總覽",
   "actionAddSubtask": "新增子任務",
   "actionArchive": "封存",
   "actionDelete": "刪除",
@@ -17,7 +15,7 @@
   "actionStartTimer": "開始計時",
   "actualTime": "實際時間",
   "actualTimeUsed": "實際使用時間",
-  "appShellAchievements": "成就",
+  "appShellReview": "回顧",
   "appShellCompleted": "已完成",
   "appShellHome": "首頁",
   "appShellInbox": "收集箱",
@@ -36,6 +34,8 @@
   "commonAdd": "新增",
   "commonCancel": "取消",
   "commonDelete": "刪除",
+  "commonLoading": "載入中...",
+  "commonLoadFailed": "載入失敗",
   "commonSave": "儲存",
   "commonView": "查看",
   "completeCurrentTask": "完成當前任務",
@@ -99,7 +99,6 @@
   "completedTrashSuccess": "已移至垃圾桶。",
   "completionTime": "完成時間",
   "createSubtask": "建立子任務",
-  "dailyAchievements": "今日成就",
   "dragToOverdueNotAllowed": "無法拖曳到已逾期區域",
   "drawerManageProjects": "管理項目",
   "@drawerManageProjects": {
@@ -192,7 +191,7 @@
   "navInboxTitle": "收集箱",
   "navOverviewTitle": "總覽",
   "navPlannedTitle": "規劃任務",
-  "navSettingsSectionTitle": "偏好設定",
+  "navSettingsSectionTitle": "設置",
   "navTrashTitle": "垃圾桶",
   "navigationMenu": "導航選單",
   "noCompletionTime": "無完成時間",
@@ -209,10 +208,47 @@
   "plannerSectionThisWeekTitle": "本週",
   "plannerSectionThisMonthTitle": "當月",
   "pomodoroTimer": "番茄時鐘",
+  "pomodoroBack": "返回",
+  "pomodoroComplete": "完成",
+  "pomodoroCountdownDuration": "倒計時時長：{minutes} 分鐘",
+  "@pomodoroCountdownDuration": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pomodoroLevel3Warning": "在這個任務上花費時間過多，建議放棄任務，改用其他方式解決",
+  "pomodoroLoadFailed": "載入失敗：{error}",
+  "@pomodoroLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pomodoroMinutes": "{minutes} 分鐘",
+  "@pomodoroMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pomodoroOvertimeSubtaskTitle": "上級任務超時，需要重新拆分",
+  "pomodoroPause": "暫停",
+  "pomodoroResume": "繼續",
+  "pomodoroStart": "開始",
+  "pomodoroStartButton": "開始",
+  "pomodoroSubtasks": "子任務",
+  "pomodoroTaskAnalysis": "任務分析",
+  "pomodoroTaskAnalysisHint": "輸入任務分析...",
+  "pomodoroTaskNotFound": "任務不存在",
+  "pomodoroTurnOffSound": "關閉聲音",
+  "pomodoroTurnOnSound": "開啟聲音",
   "profile": "個人資料",
   "reactivate": "重新啟用",
   "reactivateTask": "重新啟用任務",
-  "recentAchievements": "近期成就",
   "restoreTask": "復原任務",
   "sessionComplete": "時段完成",
   "settings": "設定",
@@ -230,6 +266,8 @@
   "settingsThemeLabel": "主題",
   "settingsThemeLight": "淺色",
   "settingsThemeSystem": "跟隨系統",
+  "settingsViewCompletedTasks": "查看已完成的任務",
+  "settingsViewDeletedTasks": "查看已刪除的任務",
   "showAllSubtasks": "顯示全部子任務",
   "startTimer": "開始計時",
   "stopTimer": "停止計時",
@@ -512,7 +550,7 @@
   "taskListTaskArchivedToast": "任務已封存。",
   "taskListTaskCompletedError": "完成任務失敗。",
   "taskListTaskCompletedToast": "任務已完成。",
-  "taskListTitle": "任務清單",
+  "taskListTitle": "任務",
   "taskListTitleEdit": "任務清單 · 編輯模式",
   "taskMoveBlockedCycle": "無法建立子任務：將會形成循環關係。",
   "taskMoveBlockedDepth": "無法建立子任務：超過 3 級層級限制。",
@@ -558,6 +596,5 @@
   "trashRestoreError": "復原失敗。",
   "trashRestoreSuccess": "任務已復原。",
   "trashedStatus": "已刪除",
-  "viewDetails": "查看詳情",
-  "weeklyAchievements": "本週成就"
+  "viewDetails": "查看詳情"
 }

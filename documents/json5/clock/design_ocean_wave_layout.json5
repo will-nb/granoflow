@@ -1,0 +1,561 @@
+{
+  // 番茄时钟页面 - 海浪沉浸式布局设计文档
+  // 在原有设计基础上，针对响应式布局、信息密度与海浪主题渐变进行升级
+
+  // ===========================================
+  // 1. 整体设计理念
+  // ===========================================
+  designPhilosophy: {
+    goal: "在不同屏幕尺寸与方向下，保持沉浸式专注体验与高信息可见度的海浪主题界面",
+
+    themeIntegration: {
+      consistency: [
+        "延续 Ocean Breeze 的蓝绿色调与柔和曲线语言",
+        "继续使用现有字体系统、圆角与半透明卡片风格",
+        "保持番茄红 / 活力橙作为计时状态强调色"
+      ],
+      innovation: [
+        "引入昼夜两套海浪分层渐变，模拟白天与夜晚的海面光感",
+        "针对横屏与竖屏提供差异化信息编排，提升效率与可读性",
+        "增加波浪缓慢流动与背景呼吸动画，强化沉浸氛围"
+      ]
+    },
+
+    trends: [
+      "Master-Detail 响应式布局（大屏左右分栏、手机单栏）",
+      "Calm Technology：以柔和动效缓解时间焦虑",
+      "深度主题整合：以自然灵感渐变提升专注感"
+    ]
+  },
+
+  // ===========================================
+  // 2. 配色方案
+  // ===========================================
+  colorScheme: {
+    backgroundGradients: {
+      light: {
+        // 正常状态：白天海浪（三层叠加）
+        normal: {
+          type: "CompositeGradient",
+          layers: [
+            {
+              type: "LinearGradient",
+              direction: "topToBottom",
+              colors: [
+                "OceanBreezeColorSchemes.skyWhite",         // 天光
+                "OceanBreezeColorSchemes.seaSaltBlue",      // 浅浪
+                "OceanBreezeColorSchemes.mintCyan",         // 泡沫层
+                "OceanBreezeColorSchemes.lakeCyan"          // 海面深处
+              ],
+              stops: [0.0, 0.3, 0.65, 1.0]
+            },
+            {
+              type: "RadialGradient",
+              center: "Alignment(0.0, -0.6)",
+              radius: 1.2,
+              colors: [
+                "OceanBreezeColorSchemes.pomodoroTomatoRed",    // 旭日暖光
+                "OceanBreezeColorSchemes.pomodoroVibrantOrange",
+                "Colors.transparent"
+              ],
+              stops: [0.0, 0.25, 1.0],
+              blendMode: "screen"
+            },
+            {
+              type: "LinearGradient",
+              direction: "diagonal135",
+              colors: [
+                "Colors.transparent",
+                "OceanBreezeColorSchemes.lightSeaSalt.withOpacity(0.35)",
+                "Colors.transparent"
+              ],
+              stops: [0.0, 0.5, 1.0],
+              note: "用于模拟细碎浪纹，可结合 CustomPainter 添加柔和波形"
+            },
+            {
+              type: "TextureOverlay",
+              asset: "assets/textures/ocean_foam.png",
+              opacity: 0.12,
+              scale: 1.1,
+              note: "使用低不透明度泡沫纹理增强细节，可配合 ShaderMask 做缓慢位移动效"
+            }
+          ],
+          note: "所有颜色必须引用 OceanBreezeColorSchemes；透明层通过 withOpacity 实现"
+        },
+        paused: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.pomodoroPausedLight",
+            "OceanBreezeColorSchemes.pomodoroPausedLight2"
+          ],
+          stops: [0.0, 1.0]
+        },
+        complete: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.pomodoroSuccessGreen",
+            "OceanBreezeColorSchemes.mintCyan",
+            "OceanBreezeColorSchemes.seaSaltBlue"
+          ],
+          stops: [0.0, 0.5, 1.0]
+        }
+      },
+
+      dark: {
+        // 正常状态：晚上海浪（深色晕光）
+        normal: {
+          type: "CompositeGradient",
+          layers: [
+            {
+              type: "LinearGradient",
+              direction: "topToBottom",
+              colors: [
+                "OceanBreezeColorSchemes.darkNight",        // 夜空
+                "OceanBreezeColorSchemes.floatingWater",    // 海面反光
+                "OceanBreezeColorSchemes.navyBlue"          // 深海
+              ],
+              stops: [0.0, 0.55, 1.0]
+            },
+            {
+              type: "RadialGradient",
+              center: "Alignment(0.2, -0.4)",
+              radius: 1.0,
+              colors: [
+                "OceanBreezeColorSchemes.pomodoroDeepTomatoRed.withOpacity(0.55)",
+                "OceanBreezeColorSchemes.pomodoroDeepOrange.withOpacity(0.35)",
+                "Colors.transparent"
+              ],
+              stops: [0.0, 0.35, 1.0],
+              blendMode: "plus"
+            },
+            {
+              type: "LinearGradient",
+              direction: "diagonal45",
+              colors: [
+                "Colors.transparent",
+                "OceanBreezeColorSchemes.mintCyan.withOpacity(0.18)",
+                "Colors.transparent"
+              ],
+              stops: [0.0, 0.45, 1.0]
+            },
+            {
+              type: "ParticleOverlay",
+              style: "star_glint",
+              density: "low",
+              color: "OceanBreezeColorSchemes.auroraBlue.withOpacity(0.25)",
+              note: "夜间添加稀疏星点与月光反射粒子，建议使用轻量粒子系统或 Lottie"
+            }
+          ],
+          note: "夜间渐变强调深色对比，仍需保证文字对比度 > 4.5"
+        },
+        paused: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.pomodoroPausedDark",
+            "OceanBreezeColorSchemes.pomodoroPausedDark3"
+          ],
+          stops: [0.0, 1.0]
+        },
+        complete: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.pomodoroDeepGreen",
+            "OceanBreezeColorSchemes.lakeCyan",
+            "OceanBreezeColorSchemes.seaSaltBlue"
+          ],
+          stops: [0.0, 0.45, 1.0]
+        }
+      }
+    },
+
+    specificColors: {
+      timerAccent: {
+        normal: "OceanBreezeColorSchemes.seaSaltBlue",
+        warning: "OceanBreezeColorSchemes.pomodoroVibrantOrange",
+        overtime: "Theme.of(context).colorScheme.error"
+      },
+      cardBackground: {
+        light: "Colors.white.withOpacity(0.12)",
+        dark: "Colors.white.withOpacity(0.08)"
+      }
+    }
+  },
+
+  // ===========================================
+  // 3. 布局结构
+  // ===========================================
+  layout: {
+    fullScreen: true,
+    hideNavigation: true,
+
+    topBar: {
+      showBackButton: true,
+      background: "transparent",
+      position: "topLeft",
+      safePadding: 16
+    },
+
+    contentLayout: {
+      direction: "responsive",
+      mainAxisAlignment: "start",
+      crossAxisAlignment: "center",
+      safeArea: true,
+      padding: {
+        horizontal: 24,
+        vertical: 24
+      },
+      maxWidth: 1200
+    },
+
+    sections: [
+      {
+        name: "timerCluster",
+        description: "圆形计时器 + 状态标签 + 控制按钮组",
+        mobilePortrait: {
+          order: 1,
+          width: "100%",
+          alignment: "center",
+          spacingBelow: "24dp"
+        },
+        tabletLandscape: {
+          order: 1,
+          width: "42%",
+          minWidth: 320,
+          alignment: "center",
+          spacingRight: "32dp"
+        },
+        desktop: {
+          order: 1,
+          width: "40%",
+          maxWidth: 420,
+          alignment: "center",
+          spacingRight: "40dp"
+        }
+      },
+      {
+        name: "infoStack",
+        description: "任务信息卡片 + 任务分析可展开输入",
+        mobilePortrait: {
+          order: 2,
+          width: "100%",
+          spacingBelow: "20dp"
+        },
+        tabletLandscape: {
+          order: 1,
+          width: "58%",
+          stack: "vertical",
+          spacing: "16dp"
+        },
+        desktop: {
+          order: 1,
+          width: "60%",
+          stack: "vertical",
+          spacing: "18dp"
+        }
+      },
+      {
+        name: "subtaskSection",
+        description: "子任务列表与添加入口，竖屏需完整展示到添加按钮",
+        mobilePortrait: {
+          order: 3,
+          width: "100%",
+          minVisibleItems: 3,
+          scrollable: false,
+          note: "通过自适应高度 + IntrinsicHeight 确保显示到添加按钮"
+        },
+        tabletLandscape: {
+          order: 2,
+          width: "100%",
+          maxHeight: "calc(100vh - 120dp)",
+          scrollable: true
+        },
+        desktop: {
+          order: 2,
+          width: "100%",
+          maxHeight: "calc(100vh - 140dp)",
+          scrollable: true
+        }
+      }
+    ]
+  },
+
+  // ===========================================
+  // 4. UI 组件设计
+  // ===========================================
+  uiComponents: {
+    timerCluster: {
+      layout: "column",
+      alignment: "center",
+      spacing: 18,
+      elements: {
+        timerRing: {
+          diameter: {
+            mobilePortrait: "min(screenWidth * 0.72, 260)",
+            tabletLandscape: "min(columnWidth * 0.9, 320)",
+            desktop: "min(columnWidth * 0.95, 360)"
+          },
+          strokeWidthRatio: 0.04,
+          centerTypography: {
+            format: "HH:MM",
+            fontFamily: "tabularFigures",
+            fontWeight: "w600",
+            size: {
+              mobilePortrait: 56,
+              tabletLandscape: 64,
+              desktop: 70
+            },
+            color: {
+              light: "Colors.white",
+              dark: "OceanBreezeColorSchemes.auroraBlue"
+            }
+          },
+          haloGlow: {
+            enabled: true,
+            color: "Colors.white24",
+            blurRadius: 30,
+            spreadRadius: 6
+          }
+        },
+        controlStrip: {
+          layout: "row_wrap",
+          gap: 16,
+          buttonSize: 64,
+          soundToggleSize: 56,
+          hoverEffect: {
+            type: "glow_scale",
+            scaleFactor: 1.04,
+            shadowColor: "Colors.white24",
+            duration: 160
+          },
+          pressEffect: {
+            scaleFactor: 0.97,
+            shadowColor: "Colors.black26",
+            duration: 120
+          },
+          note: "在宽度不足时操作按钮自动换行；hover/press 添加柔光与微缩放反馈"
+        }
+      }
+    },
+
+    infoStack: {
+      cards: {
+        taskInfo: {
+          background: "semi_transparent_card",
+          cornerRadius: 18,
+          padding: 20,
+          typography: {
+            titleSize: 22,
+            subtitleSize: 14,
+            color: "Colors.white"
+          },
+          divider: {
+            enabled: true,
+            style: "gradient",
+            colors: ["Colors.white12", "Colors.white54", "Colors.white12"],
+            thickness: 1
+          }
+        },
+        analysis: {
+          component: "FlexibleDescriptionInput",
+          collapsedHeight: 72,
+          expandedHeight: {
+            mobilePortrait: 220,
+            tabletLandscape: 260,
+            desktop: 300
+          },
+          background: "semi_transparent_card",
+          overlayGradient: {
+            enabled: true,
+            colors: ["Colors.transparent", "Colors.black26"],
+            note: "收起状态下使用渐隐遮罩提示可展开"
+          },
+          collapsedTypographyScale: 0.95
+        }
+      }
+    },
+
+    subtaskSection: {
+      cardBackground: "semi_transparent_card",
+      cornerRadius: 16,
+      padding: 16,
+      listLayout: "vertical",
+      itemHeight: 64,
+      showDivider: true,
+      itemVisual: {
+        innerShadow: {
+          enabled: true,
+          color: "Colors.black26",
+          blurRadius: 8,
+          offset: [0, 2]
+        },
+        microGlow: {
+          enabled: true,
+          color: "OceanBreezeColorSchemes.seaSaltBlue.withOpacity(0.25)",
+          radius: 18
+        }
+      },
+      addButton: {
+        type: "OutlinedButton",
+        icon: "Icons.add",
+        height: 48,
+        maintainVisibility: true
+      }
+    }
+  },
+
+  // ===========================================
+  // 5. 交互流程
+  // ===========================================
+  interactions: {
+    userFlows: [
+      {
+        name: "启动计时（横屏）",
+        steps: [
+          "用户在左侧查看当前计时状态",
+          "点击开始按钮，按钮组状态切换为完成 / 暂停",
+          "右侧任务信息与子任务区保持可见，方便在计时同时浏览细节"
+        ]
+      },
+      {
+        name: "管理子任务（竖屏）",
+        steps: [
+          "向下滚动至子任务卡片（默认无需滚动即可见添加按钮）",
+          "点击子任务或添加按钮，触发对应操作",
+          "界面保持单列，避免二次导航"
+        ]
+      }
+    ],
+    gestures: {
+      horizontalSwipe: {
+        enabled: false,
+        note: "保持主界面专注，避免误触"
+      }
+    }
+  },
+
+  // ===========================================
+  // 6. 动画效果
+  // ===========================================
+  animations: {
+    backgroundWaves: {
+      type: "layered_parallax",
+      layers: 2,
+      duration: 8000,
+      curve: "Curves.easeInOut",
+      translationRange: {
+        x: [0, 12],
+        y: [0, 6]
+      },
+      parallax: {
+        foregroundSpeed: 1.0,
+        backgroundSpeed: 0.55,
+        amplitudeRatio: 1.2
+      },
+      note: "使用 ShaderMask 或自定义 Painter 实现慢速水平波动，前景与背景波速存在差异"
+    },
+    waveForeground: {
+      type: "sine_offset_animation",
+      duration: 6000,
+      amplitude: 4,
+      speed: 1.2,
+      note: "浅层泡沫纹理沿 x 轴缓慢移动，叠加轻微 scale 变化"
+    },
+    waveParticles: {
+      type: "particle_float",
+      density: "low",
+      duration: 9000,
+      note: "夜间模式启用稀疏星点粒子，昼夜切换时动态调整透明度"
+    },
+    timerRing: {
+      type: "ease_out_fill",
+      frameDuration: 1000,
+      overtimeMode: "reverse_fill",
+      glowBreath: {
+        enabled: true,
+        cycle: 5200,
+        intensityRange: [0.6, 1.0]
+      }
+    },
+    audioVisualSync: {
+      trigger: "countdown_alert",
+      visual: "ring_pulse",
+      duration: 450,
+      note: "倒计时临界音效伴随柔和光圈脉冲，增强视听关联"
+    },
+    cardEntrance: {
+      type: "staggered_fade_slide",
+      delayBetween: 60,
+      offset: 12
+    }
+  },
+
+  // ===========================================
+  // 7. 响应式设计
+  // ===========================================
+  responsive: {
+    mobilePortrait: {
+      breakpoint: "<= 600dp",
+      layout: "single_column",
+      minVisibleHeight: "screenHeight - 32dp",
+      showScrollBar: false,
+      typographyScale: 0.94,
+      note: "确保默认显示范围内可见到添加子任务按钮"
+    },
+    tabletLandscape: {
+      breakpoint: "600dp - 1024dp",
+      layout: "two_column",
+      columnRatio: [0.45, 0.55],
+      gutter: 32,
+      constrainHeight: true
+    },
+    desktop: {
+      breakpoint: "> 1024dp",
+      layout: "two_column",
+      columnRatio: [0.42, 0.58],
+      gutter: 40,
+      maxWidth: 1200,
+      enablePinnedHeader: true
+    }
+  },
+
+  // ===========================================
+  // 8. 手势支持
+  // ===========================================
+  gestures: {
+    doubleTap: {
+      enabled: false
+    },
+    longPress: {
+      enabled: false
+    }
+  },
+
+  // ===========================================
+  // 9. 待确认问题
+  // ===========================================
+  openQuestions: [
+    {
+      question: "波浪动画的实现方式选择",
+      description: "需在性能与视觉之间权衡，可选 ShaderMask、Canvas 绘制或 Lottie 动画",
+      options: [
+        "CustomPainter + sin 曲线绘制（性能高，但实现复杂）",
+        "静态分层渐变 + 轻微平移动画（实现快，效果较温和）",
+        "Lottie 波浪资源（视觉佳，但需额外资源管理）"
+      ],
+      recommendation: "先尝试分层渐变 + 平移动画，若效果不足再评估 Shader 方案",
+      confirmed: false
+    },
+    {
+      question: "竖屏显示到添加子任务按钮的最小高度",
+      description: "需确定在 16:9 及更长比例设备上保障完整视觉，必要时压缩顶部间距",
+      options: ["动态压缩计时器上方间距", "收起任务分析默认高度", "允许子任务区内局部滚动"],
+      recommendation: "优先压缩计时器上下留白并减少分析卡片默认高度", 
+      confirmed: false
+    }
+  ]
+}
+

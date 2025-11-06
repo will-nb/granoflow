@@ -1,0 +1,30 @@
+{
+  "default": {
+    "width": 744,
+    "height": 1133
+  },
+  "phone": {
+    "width": 390,
+    "height": 844
+  },
+  "tablet": {
+    "width": 834,
+    "height": 1112
+  },
+  "macos": {
+    "default": {
+      "width": 744,
+      "height": 1133,
+      "note": "竖屏默认尺寸（接近 iPad mini 竖屏比例）"
+    },
+    "phonePortrait": {
+      "width": 390,
+      "height": 844
+    },
+    "tabletPortrait": {
+      "width": 834,
+      "height": 1112
+    }
+  }
+}
+

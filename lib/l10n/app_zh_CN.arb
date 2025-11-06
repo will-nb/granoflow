@@ -162,8 +162,6 @@
   "@tag_timed": {
     "description": "计时任务标签"
   },
-  "achievements": "成就",
-  "achievementsOverview": "成就总览",
   "actionAddSubtask": "添加子任务",
   "actionArchive": "归档",
   "actionDelete": "删除",
@@ -178,7 +176,7 @@
   "actionStartTimer": "开始计时",
   "actualTime": "实际用时",
   "actualTimeUsed": "实际用时",
-  "appShellAchievements": "成就",
+  "appShellReview": "回顾",
   "appShellCompleted": "已完成",
   "appShellHome": "首页",
   "appShellInbox": "收集箱",
@@ -198,6 +196,8 @@
   "commonCancel": "取消",
   "commonConfirm": "确认",
   "commonDelete": "删除",
+  "commonLoading": "加载中...",
+  "commonLoadFailed": "加载失败",
   "commonSave": "保存",
   "commonView": "查看",
   "completeCurrentTask": "完成当前任务",
@@ -261,7 +261,6 @@
   "completedTrashSuccess": "已移至回收站。",
   "completionTime": "完成时间",
   "createSubtask": "创建子任务",
-  "dailyAchievements": "今日成就",
   "dragToOverdueNotAllowed": "无法拖拽到已逾期区域",
   "drawerManageProjects": "管理项目",
   "@drawerManageProjects": {
@@ -371,7 +370,7 @@
   "navInboxTitle": "收集箱",
   "navOverviewTitle": "总览",
   "navPlannedTitle": "计划任务",
-  "navSettingsSectionTitle": "偏好设定",
+  "navSettingsSectionTitle": "设置",
   "navTrashTitle": "回收站",
   "navigationMenu": "导航选单",
   "noCompletionTime": "无完成时间",
@@ -388,6 +387,44 @@
   "plannerSectionTodayTitle": "今天",
   "plannerSectionTomorrowTitle": "明天",
   "pomodoroTimer": "番茄时钟",
+  "pomodoroBack": "返回",
+  "pomodoroComplete": "完成",
+  "pomodoroCountdownDuration": "倒计时时长：{minutes} 分钟",
+  "@pomodoroCountdownDuration": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pomodoroLevel3Warning": "在这个任务上花费时间过多，建议放弃任务，改用其他方式解决",
+  "pomodoroLoadFailed": "加载失败：{error}",
+  "@pomodoroLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pomodoroMinutes": "{minutes} 分钟",
+  "@pomodoroMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pomodoroOvertimeSubtaskTitle": "上级任务超时，需要重新拆分",
+  "pomodoroPause": "暂停",
+  "pomodoroResume": "继续",
+  "pomodoroStart": "开始",
+  "pomodoroStartButton": "开始",
+  "pomodoroSubtasks": "子任务",
+  "pomodoroTaskAnalysis": "任务分析",
+  "pomodoroTaskAnalysisHint": "输入任务分析...",
+  "pomodoroTaskNotFound": "任务不存在",
+  "pomodoroTurnOffSound": "关闭声音",
+  "pomodoroTurnOnSound": "开启声音",
   "profile": "个人资料",
   "projectArchiveConfirmBody": "确定要归档该项目吗？之后可以在归档区域找到。",
   "projectArchiveConfirmTitle": "归档项目",
@@ -442,7 +479,6 @@
   "projectStatusOverdue": "已逾期",
   "reactivate": "重新激活",
   "reactivateTask": "重新激活任务",
-  "recentAchievements": "近期成就",
   "restoreTask": "恢复任务",
   "sessionComplete": "时段完成",
   "settings": "设定",
@@ -460,6 +496,8 @@
   "settingsThemeLabel": "主题",
   "settingsThemeLight": "浅色",
   "settingsThemeSystem": "跟随系统",
+  "settingsViewCompletedTasks": "查看已完成的任务",
+  "settingsViewDeletedTasks": "查看已删除的任务",
   "showAllSubtasks": "显示全部子任务",
   "startTimer": "开始计时",
   "stopTimer": "停止计时",
@@ -527,7 +565,7 @@
   "taskListTaskArchivedToast": "任务已归档。",
   "taskListTaskCompletedError": "完成任务失败。",
   "taskListTaskCompletedToast": "任务已完成。",
-  "taskListTitle": "任务列表",
+  "taskListTitle": "任务",
   "taskListTitleEdit": "任务列表 · 编辑模式",
   "taskMoveBlockedCycle": "无法创建子任务：会形成循环关系。",
   "taskMoveBlockedDepth": "无法创建子任务：超过 3 级层级限制。",
@@ -595,6 +633,5 @@
   "trashRestoreError": "恢复失败。",
   "trashRestoreSuccess": "任务已恢复。",
   "trashedStatus": "已删除",
-  "viewDetails": "查看详情",
-  "weeklyAchievements": "本周成就"
+  "viewDetails": "查看详情"
 }
