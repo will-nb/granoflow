@@ -235,7 +235,7 @@
       }
     }
   },
-  "pomodoroOvertimeSubtaskTitle": "上級任務超時，需要重新拆分",
+  "pomodoroOvertimeSubtaskTitle": "任務過於複雜，需要重新分析拆分。",
   "pomodoroPause": "暫停",
   "pomodoroResume": "繼續",
   "pomodoroStart": "開始",

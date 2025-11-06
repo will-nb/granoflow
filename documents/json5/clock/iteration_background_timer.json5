@@ -1,0 +1,781 @@
+{
+  // 计时器后台运行与通知功能迭代蓝图
+  // 基于 design_background_timer.json5 设计文档
+  // 创建日期：2025-01-XX
+  
+  // ===========================================
+  // 1. 迭代概述
+  // ===========================================
+  iteration: {
+    id: "2501XX-clock-background-timer",
+    title: "计时器后台运行与通知功能实现",
+    description: "实现跨平台的计时器后台运行、通知提醒、屏幕常亮和状态恢复功能，确保用户在切到后台或锁屏时仍能准确计时并收到提醒",
+    basedOn: "documents/json5/clock/design_background_timer.json5",
+    status: "planning",
+    estimatedTime: "7-10 days",
+    priority: "high",
+    owner: "开发团队",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单
+  // ===========================================
+  files: {
+    // 服务层 - 核心服务
+    services_core: [
+      {
+        path: "lib/core/services/timer_background_service.dart",
+        purpose: "计时器后台服务统一抽象接口",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [],
+        description: "定义跨平台的后台计时服务接口，包含 startTimer、pauseTimer、resumeTimer、stopTimer 方法",
+      },
+      {
+        path: "lib/core/services/timer_background_service_stub.dart",
+        purpose: "占位实现（用于非移动平台）",
+        action: "create",
+        estimatedLines: 40,
+        dependencies: ["lib/core/services/timer_background_service.dart"],
+        description: "桌面/Web 平台的空实现，所有方法为空操作",
+      },
+      {
+        path: "lib/core/services/timer_background_service_impl.dart",
+        purpose: "平台工厂方法（条件导入）",
+        action: "create",
+        estimatedLines: 60,
+        dependencies: [
+          "lib/core/services/timer_background_service.dart",
+          "lib/core/services/timer_background_service_stub.dart",
+        ],
+        description: "使用条件导入根据平台返回对应的服务实现",
+      },
+      {
+        path: "lib/core/services/timer_persistence_service.dart",
+        purpose: "计时器状态持久化服务",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/core/providers/pomodoro_providers.dart",
+          "lib/data/repositories/preference_repository.dart",
+        ],
+        description: "使用 Isar 数据库或 SharedPreferences 持久化计时状态，支持保存和恢复",
+        note: "优先使用 Isar 数据库，保持架构一致性",
+      },
+    ],
+    
+    // 服务层 - Android 实现
+    services_android: [
+      {
+        path: "lib/core/services/android_foreground_timer_service.dart",
+        purpose: "Android 前台服务封装",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/core/services/timer_background_service.dart",
+          "flutter_foreground_task",
+        ],
+        description: "封装 flutter_foreground_task，实现 Android 前台服务和通知栏显示",
+        platform: "android",
+      },
+      {
+        path: "lib/core/services/foreground_timer_task_handler.dart",
+        purpose: "Android 前台服务任务处理器（顶层回调）",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: ["flutter_foreground_task"],
+        description: "独立的 Isolate 回调处理，负责更新通知栏倒计时",
+        note: "必须是顶层函数，不能是类的成员",
+        platform: "android",
+      },
+    ],
+    
+    // 服务层 - iOS 实现
+    services_ios: [
+      {
+        path: "lib/core/services/ios_notification_timer_service.dart",
+        purpose: "iOS 本地通知服务封装",
+        action: "create",
+        estimatedLines: 180,
+        dependencies: [
+          "lib/core/services/timer_background_service.dart",
+          "flutter_local_notifications",
+          "timezone",
+        ],
+        description: "封装 flutter_local_notifications，实现 iOS 本地通知调度",
+        platform: "ios",
+      },
+    ],
+    
+    // 服务层 - 通知服务（跨平台）
+    services_notification: [
+      {
+        path: "lib/core/services/notification_service.dart",
+        purpose: "统一通知服务（跨平台）",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "flutter_local_notifications",
+          "timezone",
+        ],
+        description: "统一封装 Android/iOS 通知功能，提供初始化、调度、取消等接口",
+        platforms: ["android", "ios"],
+      },
+    ],
+    
+    // Provider 状态管理
+    providers: [
+      {
+        path: "lib/core/providers/timer_background_service_provider.dart",
+        purpose: "后台服务 Provider",
+        action: "create",
+        estimatedLines: 30,
+        dependencies: [
+          "lib/core/services/timer_background_service_impl.dart",
+        ],
+        description: "提供 TimerBackgroundService 实例的 Provider",
+      },
+      {
+        path: "lib/core/providers/timer_persistence_service_provider.dart",
+        purpose: "持久化服务 Provider",
+        action: "create",
+        estimatedLines: 30,
+        dependencies: [
+          "lib/core/services/timer_persistence_service.dart",
+        ],
+        description: "提供 TimerPersistenceService 实例的 Provider",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件
+  // ===========================================
+  modifications: [
+    {
+      file: "pubspec.yaml",
+      purpose: "添加依赖包",
+      action: "modify",
+      changes: [
+        "添加 flutter_local_notifications: ^17.2.0",
+        "添加 flutter_foreground_task: ^8.10.0（Android 专用）",
+        "添加 wakelock_plus: ^1.2.0",
+        "添加 timezone: ^0.9.2（iOS 通知时区）",
+      ],
+      estimatedLines: 4,
+      note: "flutter_foreground_task 在 iOS 上不会报错，但调用会失败，需要用平台检测保护",
+    },
+    
+    {
+      file: "android/app/src/main/AndroidManifest.xml",
+      purpose: "添加 Android 权限和前台服务声明",
+      action: "modify",
+      changes: [
+        "添加 POST_NOTIFICATIONS 权限（Android 13+）",
+        "添加 FOREGROUND_SERVICE 权限（Android 9+）",
+        "添加前台服务 Service 声明（flutter_foreground_task 自动注入或手动添加）",
+        "配置 foregroundServiceType（至少包含 dataSync 或 shortService）",
+      ],
+      estimatedLines: 20,
+      note: "参考 flutter_foreground_task 文档配置 Service",
+    },
+    
+    {
+      file: "android/app/src/main/res/drawable/ic_stat_timer.xml",
+      purpose: "创建通知小图标资源",
+      action: "create",
+      changes: [
+        "创建通知栏小图标（24x24dp，白色透明背景）",
+      ],
+      estimatedLines: 10,
+      note: "如果使用 mipmap，可以复用 ic_launcher",
+    },
+    
+    {
+      file: "ios/Runner/Info.plist",
+      purpose: "添加 iOS 通知权限说明（可选）",
+      action: "modify",
+      changes: [
+        "添加 NSUserNotificationsUsageDescription（可选，运行时请求）",
+      ],
+      estimatedLines: 5,
+      note: "iOS 通知权限在运行时请求，Info.plist 中的说明是可选的",
+    },
+    
+    {
+      file: "lib/main.dart",
+      purpose: "初始化通知服务和前台服务",
+      action: "modify",
+      changes: [
+        "在 WidgetsFlutterBinding.ensureInitialized() 后初始化通知服务",
+        "初始化前台服务（仅 Android）",
+        "请求通知权限（Android 13+ 和 iOS）",
+      ],
+      estimatedLines: 30,
+      dependencies: [
+        "lib/core/services/notification_service.dart",
+        "lib/core/services/timer_background_service_impl.dart",
+      ],
+    },
+    
+    {
+      file: "lib/core/providers/pomodoro_providers.dart",
+      purpose: "集成后台服务和状态持久化",
+      action: "modify",
+      changes: [
+        "在 PomodoroTimerNotifier 构造函数中注入 TimerBackgroundService 和 TimerPersistenceService",
+        "修改 start() 方法：调用后台服务启动、保存状态到持久化",
+        "修改 pause() 方法：调用后台服务暂停、保存状态到持久化",
+        "修改 resume() 方法：调用后台服务恢复、保存状态到持久化",
+        "修改 reset() 方法：调用后台服务停止、清除持久化状态",
+        "添加 _saveState() 私有方法，统一处理状态持久化",
+        "添加 _loadState() 私有方法，从持久化恢复状态（可选，用于初始化）",
+      ],
+      estimatedLines: 100,
+      dependencies: [
+        "lib/core/services/timer_background_service.dart",
+        "lib/core/services/timer_persistence_service.dart",
+      ],
+      note: "保持现有逻辑不变，只添加后台服务和持久化调用",
+    },
+    
+    {
+      file: "lib/presentation/pomodoro/pomodoro_page.dart",
+      purpose: "添加生命周期监听和屏幕常亮",
+      action: "modify",
+      changes: [
+        "_PomodoroPageState 实现 WidgetsBindingObserver",
+        "在 initState() 中添加观察者、启用屏幕常亮",
+        "在 dispose() 中移除观察者、禁用屏幕常亮",
+        "实现 didChangeAppLifecycleState() 监听 AppLifecycleState.resumed",
+        "切回前台时：从持久化恢复状态、基于时间戳回算剩余时间、可选自动跳转",
+        "进入页面时启用 wakelock_plus",
+        "离开页面时禁用 wakelock_plus",
+        "暂停时禁用屏幕常亮（根据设计决策）",
+        "继续时启用屏幕常亮",
+      ],
+      estimatedLines: 80,
+      dependencies: [
+        "wakelock_plus",
+        "lib/core/services/timer_persistence_service.dart",
+        "lib/core/providers/pomodoro_providers.dart",
+      ],
+    },
+    
+    {
+      file: "lib/core/providers/service_providers.dart",
+      purpose: "添加新服务的 Provider",
+      action: "modify",
+      changes: [
+        "导入 timer_background_service_provider",
+        "导入 timer_persistence_service_provider",
+        "确保服务在应用启动时初始化",
+      ],
+      estimatedLines: 10,
+    },
+  ],
+
+  // ===========================================
+  // 4. 数据模型与状态管理
+  // ===========================================
+  dataAndState: {
+    // 状态持久化结构
+    persistenceStructure: {
+      storage: "Isar 数据库（优先）或 SharedPreferences（备选）",
+      entity: {
+        name: "TimerStateEntity（如果使用 Isar）",
+        fields: {
+          isStarted: "bool",
+          isPaused: "bool",
+          startTime: "DateTime (UTC 时间戳)",
+          pausePeriods: "List<({start: DateTime, end: DateTime})> (序列化为 JSON)",
+          countdownDuration: "int (秒)",
+          originalCountdownDuration: "int (秒)",
+          focusSessionId: "int?",
+          lastUpdated: "DateTime (用于检测状态有效性)",
+        },
+        note: "如果使用 SharedPreferences，使用 JSON 序列化存储",
+      },
+    },
+    
+    // 状态恢复逻辑
+    stateRecovery: {
+      trigger: "App 启动时或切回前台时",
+      flow: [
+        "1. 从持久化存储读取状态",
+        "2. 验证状态有效性（检查 lastUpdated，避免过期状态）",
+        "3. 如果 isStarted 为 true，使用 actualRunningTime 计算剩余时间",
+        "4. 更新 PomodoroTimerState",
+        "5. 如果计时仍在进行，可选自动跳转到计时页面",
+      ],
+      edgeCases: [
+        "系统时间被修改：检测异常时间戳，记录警告日志",
+        "跨时区：使用 UTC 时间戳存储，显示时转换为本地时间",
+        "过期状态：如果 lastUpdated 超过 24 小时，清除状态",
+      ],
+    },
+    
+    // 现有状态管理修改
+    existingStateChanges: {
+      pomodoroTimerState: {
+        note: "不需要修改 PomodoroTimerState 结构，现有字段已足够",
+        additions: "无",
+      },
+      pomodoroTimerNotifier: {
+        modifications: [
+          "添加 TimerBackgroundService 依赖注入",
+          "添加 TimerPersistenceService 依赖注入",
+          "在状态变化时调用持久化服务",
+          "在启动时尝试从持久化恢复状态（可选）",
+        ],
+      },
+    },
+  },
+
+  // ===========================================
+  // 5. 测试计划
+  // ===========================================
+  tests: {
+    // 单元测试
+    unit: [
+      {
+        path: "test/core/services/timer_persistence_service_test.dart",
+        purpose: "状态持久化服务单元测试",
+        focus: [
+          "保存状态到持久化存储",
+          "从持久化存储恢复状态",
+          "清除持久化状态",
+          "处理过期状态",
+          "处理异常数据",
+        ],
+        estimatedLines: 150,
+        dependencies: ["mockito"],
+      },
+      {
+        path: "test/core/services/notification_service_test.dart",
+        purpose: "通知服务单元测试",
+        focus: [
+          "初始化通知渠道（Android）",
+          "调度本地通知（iOS）",
+          "取消通知",
+          "更新通知内容",
+          "处理权限请求",
+        ],
+        estimatedLines: 120,
+        dependencies: ["mockito"],
+      },
+      {
+        path: "test/core/services/android_foreground_timer_service_test.dart",
+        purpose: "Android 前台服务单元测试",
+        focus: [
+          "启动前台服务",
+          "停止前台服务",
+          "更新通知内容",
+          "处理通知按钮点击",
+          "平台检测（仅在 Android 上运行）",
+        ],
+        estimatedLines: 100,
+        dependencies: ["mockito"],
+        platform: "android",
+      },
+      {
+        path: "test/core/services/ios_notification_timer_service_test.dart",
+        purpose: "iOS 通知服务单元测试",
+        focus: [
+          "调度本地通知",
+          "取消通知",
+          "处理时区",
+          "平台检测（仅在 iOS 上运行）",
+        ],
+        estimatedLines: 80,
+        dependencies: ["mockito"],
+        platform: "ios",
+      },
+      {
+        path: "test/core/providers/pomodoro_timer_notifier_background_test.dart",
+        purpose: "PomodoroTimerNotifier 后台服务集成测试",
+        focus: [
+          "start() 时启动后台服务",
+          "pause() 时暂停后台服务",
+          "resume() 时恢复后台服务",
+          "reset() 时停止后台服务",
+          "状态持久化调用",
+        ],
+        estimatedLines: 150,
+        dependencies: ["mockito"],
+      },
+    ],
+    
+    // Widget 测试
+    widget: [
+      {
+        path: "test/presentation/pomodoro/pomodoro_page_lifecycle_test.dart",
+        purpose: "PomodoroPage 生命周期测试",
+        focus: [
+          "进入页面时启用屏幕常亮",
+          "离开页面时禁用屏幕常亮",
+          "切回前台时恢复状态",
+          "暂停时禁用屏幕常亮",
+          "继续时启用屏幕常亮",
+        ],
+        estimatedLines: 120,
+      },
+    ],
+    
+    // 集成测试
+    integration: [
+      {
+        path: "integration_test/timer_background_recovery_test.dart",
+        purpose: "后台恢复集成测试",
+        focus: [
+          "开始计时后关闭应用，重新打开验证状态恢复",
+          "暂停后关闭应用，重新打开验证暂停状态",
+          "到点后关闭应用，重新打开验证完成状态",
+          "跨时区测试（模拟时区变化）",
+        ],
+        estimatedLines: 200,
+        note: "集成测试不使用 mock，测试真实环境",
+      },
+      {
+        path: "integration_test/timer_notification_test.dart",
+        purpose: "通知功能集成测试",
+        focus: [
+          "Android: 验证前台服务通知显示",
+          "Android: 验证通知栏操作按钮",
+          "iOS: 验证本地通知调度和触发",
+          "到点通知提醒",
+        ],
+        estimatedLines: 150,
+        platforms: ["android", "ios"],
+        note: "需要真实设备或模拟器，需要授予通知权限",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 6. 风险与验证
+  // ===========================================
+  risks: [
+    {
+      name: "Android 前台服务被系统杀死",
+      description: "部分厂商的省电模式可能限制后台运行，导致前台服务被杀死",
+      mitigation: [
+        "引导用户加入电池优化白名单（调用 openIgnoreBatteryOptimizationSettings）",
+        "不依赖前台服务保证进程存活，使用时间戳回算确保计时准确性",
+        "在通知中提示用户如果计时不准确，检查电池优化设置",
+      ],
+      severity: "medium",
+    },
+    {
+      name: "iOS 通知权限被拒绝",
+      description: "用户可能拒绝授予通知权限，导致无法收到提醒",
+      mitigation: [
+        "在首次使用前友好地请求权限，说明用途",
+        "如果权限被拒绝，在 UI 中提示用户手动开启",
+        "提供设置页面跳转链接",
+      ],
+      severity: "low",
+    },
+    {
+      name: "状态持久化数据损坏",
+      description: "持久化存储可能因异常情况导致数据损坏",
+      mitigation: [
+        "添加数据验证逻辑，检测异常值",
+        "如果数据无效，清除并重置状态",
+        "记录错误日志，便于排查",
+      ],
+      severity: "low",
+    },
+    {
+      name: "跨平台代码复杂度",
+      description: "Android 和 iOS 实现差异较大，代码可能变得复杂",
+      mitigation: [
+        "使用统一接口抽象平台差异",
+        "使用条件导入隔离平台特定代码",
+        "充分注释说明平台差异和实现细节",
+      ],
+      severity: "medium",
+    },
+    {
+      name: "系统时间被修改",
+      description: "用户在计时过程中修改系统时间，可能导致计时不准确",
+      mitigation: [
+        "检测时间异常（如时间倒退），记录警告日志",
+        "使用最后一次保存的时间戳，避免负数或异常值",
+        "在极端情况下，提示用户重新开始计时",
+      ],
+      severity: "low",
+    },
+  ],
+
+  // ===========================================
+  // 7. 验证清单
+  // ===========================================
+  verification: {
+    checklist: [
+      "Android: 开始计时后，通知栏显示倒计时并实时更新",
+      "Android: 通知栏操作按钮（暂停/结束）正常工作",
+      "Android: 切到后台后，通知栏继续显示倒计时",
+      "Android: 锁屏时通知栏可见（取决于系统设置）",
+      "Android: 到点后通知显示'已完成'并响铃",
+      "iOS: 开始计时后，调度本地通知（到点提醒）",
+      "iOS: 到点后收到本地通知并响铃",
+      "iOS: 点击通知跳转到应用",
+      "两个平台: 进入计时页面时屏幕保持常亮",
+      "两个平台: 离开计时页面时屏幕常亮被禁用",
+      "两个平台: 暂停时屏幕常亮被禁用（根据设计决策）",
+      "两个平台: 切回前台时自动恢复计时状态",
+      "两个平台: 关闭应用后重新打开，状态正确恢复",
+      "两个平台: 计时准确性验证（基于时间戳回算）",
+      "两个平台: 状态持久化正常工作",
+      "代码通过 flutter analyze 静态检查",
+      "所有单元测试通过",
+      "所有集成测试通过（在真实设备上）",
+    ],
+    
+    manualTesting: [
+      {
+        scenario: "Android 前台服务测试",
+        steps: [
+          "在 Android 设备上启动应用",
+          "开始计时",
+          "切到后台，验证通知栏显示倒计时",
+          "点击通知栏'暂停'按钮，验证计时暂停",
+          "点击通知栏'结束'按钮，验证计时结束",
+          "锁屏，验证通知栏可见",
+        ],
+      },
+      {
+        scenario: "iOS 本地通知测试",
+        steps: [
+          "在 iOS 设备上启动应用",
+          "授予通知权限",
+          "开始计时（设置较短的时长，如 1 分钟）",
+          "切到后台或锁屏",
+          "等待到点，验证收到通知",
+          "点击通知，验证跳转到应用",
+        ],
+      },
+      {
+        scenario: "状态恢复测试",
+        steps: [
+          "开始计时",
+          "运行一段时间后强制关闭应用",
+          "重新打开应用",
+          "验证计时状态正确恢复",
+          "验证剩余时间准确",
+        ],
+      },
+      {
+        scenario: "屏幕常亮测试",
+        steps: [
+          "进入计时页面",
+          "等待屏幕自动熄屏时间（通常 30 秒）",
+          "验证屏幕保持常亮",
+          "离开计时页面",
+          "验证屏幕可以正常熄屏",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 8. 实现步骤
+  // ===========================================
+  implementationSteps: [
+    {
+      step: 1,
+      title: "添加依赖和配置",
+      description: "添加必要的依赖包和平台配置",
+      tasks: [
+        "修改 pubspec.yaml 添加依赖",
+        "运行 flutter pub get",
+        "修改 AndroidManifest.xml 添加权限和服务声明",
+        "创建通知图标资源（Android）",
+        "修改 Info.plist（iOS，可选）",
+      ],
+      estimatedTime: "1 day",
+      dependencies: [],
+    },
+    {
+      step: 2,
+      title: "创建服务层基础架构",
+      description: "创建统一接口和平台工厂",
+      tasks: [
+        "创建 TimerBackgroundService 抽象接口",
+        "创建 TimerBackgroundServiceStub 占位实现",
+        "创建 TimerBackgroundServiceImpl 平台工厂",
+        "创建 TimerPersistenceService",
+        "创建 NotificationService",
+      ],
+      estimatedTime: "2 days",
+      dependencies: ["step 1"],
+    },
+    {
+      step: 3,
+      title: "实现 Android 前台服务",
+      description: "实现 Android 平台的前台服务和通知",
+      tasks: [
+        "创建 AndroidForegroundTimerService",
+        "创建 ForegroundTimerTaskHandler（顶层回调）",
+        "实现通知栏显示和更新逻辑",
+        "实现通知按钮点击处理",
+        "测试前台服务启动和停止",
+      ],
+      estimatedTime: "2 days",
+      dependencies: ["step 2"],
+    },
+    {
+      step: 4,
+      title: "实现 iOS 本地通知",
+      description: "实现 iOS 平台的本地通知",
+      tasks: [
+        "创建 IOSNotificationTimerService",
+        "实现通知调度逻辑",
+        "实现时区处理",
+        "测试通知触发和跳转",
+      ],
+      estimatedTime: "1.5 days",
+      dependencies: ["step 2"],
+    },
+    {
+      step: 5,
+      title: "集成到 PomodoroTimerNotifier",
+      description: "在现有的计时器状态管理中集成后台服务",
+      tasks: [
+        "修改 PomodoroTimerNotifier 构造函数注入服务",
+        "在 start() 中调用后台服务启动",
+        "在 pause() 中调用后台服务暂停",
+        "在 resume() 中调用后台服务恢复",
+        "在 reset() 中调用后台服务停止",
+        "添加状态持久化调用",
+      ],
+      estimatedTime: "1 day",
+      dependencies: ["step 3", "step 4"],
+    },
+    {
+      step: 6,
+      title: "添加生命周期监听和屏幕常亮",
+      description: "在 PomodoroPage 中添加生命周期管理和屏幕常亮",
+      tasks: [
+        "实现 WidgetsBindingObserver",
+        "添加生命周期监听",
+        "实现状态恢复逻辑",
+        "集成 wakelock_plus",
+        "测试屏幕常亮开启和关闭",
+      ],
+      estimatedTime: "1 day",
+      dependencies: ["step 5"],
+    },
+    {
+      step: 7,
+      title: "应用初始化",
+      description: "在应用启动时初始化服务",
+      tasks: [
+        "修改 main.dart 初始化通知服务",
+        "初始化前台服务（Android）",
+        "请求通知权限",
+        "创建服务 Provider",
+      ],
+      estimatedTime: "0.5 day",
+      dependencies: ["step 2"],
+    },
+    {
+      step: 8,
+      title: "编写测试",
+      description: "编写单元测试、Widget 测试和集成测试",
+      tasks: [
+        "编写服务层单元测试",
+        "编写状态管理集成测试",
+        "编写 Widget 测试",
+        "编写集成测试",
+        "运行所有测试并修复问题",
+      ],
+      estimatedTime: "2 days",
+      dependencies: ["step 6", "step 7"],
+    },
+    {
+      step: 9,
+      title: "测试和优化",
+      description: "在真实设备上测试并优化",
+      tasks: [
+        "在 Android 设备上测试前台服务",
+        "在 iOS 设备上测试本地通知",
+        "测试状态恢复功能",
+        "测试边界情况",
+        "优化性能和用户体验",
+      ],
+      estimatedTime: "1 day",
+      dependencies: ["step 8"],
+    },
+  ],
+
+  // ===========================================
+  // 9. 文档同步
+  // ===========================================
+  documentation: [
+    {
+      path: "documents/json5/clock/design_background_timer.json5",
+      updateType: "reference",
+      note: "迭代蓝图基于此设计文档",
+    },
+    {
+      path: "README.md",
+      updateType: "modify",
+      changes: [
+        "更新依赖说明，添加新依赖包",
+        "更新构建说明（如果需要）",
+      ],
+    },
+    {
+      path: "documents/architecture/services/timer_background_service.yaml",
+      updateType: "create",
+      note: "创建服务架构文档（如果项目有架构文档规范）",
+    },
+  ],
+
+  // ===========================================
+  // 10. 代码重构建议
+  // ===========================================
+  refactoring: {
+    // 重构目标
+    goals: [
+      "保持代码结构清晰，平台特定代码隔离",
+      "统一接口抽象，降低耦合度",
+      "充分利用现有架构（Isar、Riverpod）",
+      "遵循项目代码规范（命名、格式等）",
+    ],
+    
+    // 重构点
+    refactoringPoints: [
+      {
+        area: "PomodoroTimerNotifier",
+        current: "直接管理计时逻辑和状态",
+        target: "保持现有逻辑，添加后台服务和持久化调用",
+        note: "不破坏现有功能，只扩展新功能",
+      },
+      {
+        area: "服务初始化",
+        current: "服务在 Provider 中懒加载",
+        target: "在 main.dart 中提前初始化通知服务",
+        note: "确保通知服务在应用启动时可用",
+      },
+      {
+        area: "状态持久化",
+        current: "状态仅在内存中",
+        target: "使用 Isar 数据库持久化状态",
+        note: "优先使用 Isar，保持架构一致性",
+      },
+    ],
+    
+    // 代码质量要求
+    codeQuality: [
+      "所有代码通过 flutter analyze",
+      "遵循项目代码规范（100 字符行宽、2 空格缩进等）",
+      "充分注释，特别是平台差异和复杂逻辑",
+      "使用有意义的变量和函数命名",
+      "保持函数简洁，单一职责",
+    ],
+  },
+}
+

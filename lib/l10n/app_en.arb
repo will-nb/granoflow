@@ -250,7 +250,7 @@
       }
     }
   },
-  "pomodoroOvertimeSubtaskTitle": "Parent task timed out, needs to be re-split",
+  "pomodoroOvertimeSubtaskTitle": "The task is too complex and needs to be re-analyzed and split.",
   "pomodoroPause": "Pause",
   "pomodoroResume": "Resume",
   "pomodoroStart": "Start",

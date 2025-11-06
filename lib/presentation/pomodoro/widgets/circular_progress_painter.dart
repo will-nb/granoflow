@@ -48,7 +48,7 @@ class CircularProgressPainter extends CustomPainter {
     
     // 先绘制背景圆环（白色底色）
     final backgroundPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.3)  // 白色半透明
+      ..color = Colors.white.withValues(alpha: 0.7)  // 提高不透明度，使圆环更清晰
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

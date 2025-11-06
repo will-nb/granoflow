@@ -97,7 +97,7 @@ class _PomodoroSubtaskSectionState
         focusSessionRepositoryProvider,
       );
 
-      // 创建特殊子任务："上级任务超时，需要重新拆分"
+      // 创建特殊子任务："任务过于复杂，需要重新分析拆分。"
       final l10n = AppLocalizations.of(context);
       final overtimeSubtask = await taskService.captureInboxTask(
         title: l10n.pomodoroOvertimeSubtaskTitle,
