@@ -45,6 +45,8 @@ flutter:
     - assets/images/background.dark.png
     - assets/images/background.light.webp
     - assets/images/background.dark.webp
+    - assets/images/clock-background-light.png
+    - assets/images/clock-background-dark.png
     - assets/logo/
     - assets/sounds/
     - assets/config/desktop_window.json

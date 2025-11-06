@@ -87,77 +87,32 @@ class _PomodoroTaskAnalysisState extends ConsumerState<PomodoroTaskAnalysis> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final cardColor = Colors.white.withValues(alpha: _isExpanded ? 0.16 : 0.12);
-    final borderColor = Colors.white.withValues(alpha: 0.18);
-    final textTheme = theme.textTheme.apply(
-      bodyColor: Colors.white.withValues(alpha: _isExpanded ? 0.95 : 0.85),
-      displayColor: Colors.white,
-    );
 
     // 监听焦点变化来检测展开状态
     return FocusScope(
       child: Focus(
         focusNode: _focusNode,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: borderColor, width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.24),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Stack(
-            children: [
-              Theme(
-                data: theme.copyWith(textTheme: textTheme),
-                child: FlexibleDescriptionInput(
-                  controller: _controller,
-                  softLimit: 200,
-                  hardLimit: 60000,
-                  hintText: l10n.pomodoroTaskAnalysisHint,
-                  labelText: l10n.pomodoroTaskAnalysis,
-                  buttonText: l10n.pomodoroTaskAnalysis,
-                  minLines: 3,
-                  maxLines: 8,
-                  showCounter: true,
-                  onChanged: (text) {
-                    _onTextChanged();
-                    if (text.isNotEmpty && !_isExpanded) {
-                      _isExpanded = true;
-                      _onExpand();
-                    }
-                  },
-                ),
-              ),
-              if (!_isExpanded)
-                IgnorePointer(
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: 0.7,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.28),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: FlexibleDescriptionInput(
+              controller: _controller,
+              softLimit: 200,
+              hardLimit: 60000,
+              hintText: l10n.pomodoroTaskAnalysisHint,
+              labelText: l10n.pomodoroTaskAnalysis,
+              buttonText: l10n.pomodoroTaskAnalysis,
+              minLines: 3,
+              maxLines: 8,
+              showCounter: true,
+              onChanged: (text) {
+                _onTextChanged();
+                if (text.isNotEmpty && !_isExpanded) {
+                  _isExpanded = true;
+                  _onExpand();
+                }
+              },
+            ),
           ),
         ),
       ),

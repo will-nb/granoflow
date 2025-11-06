@@ -237,6 +237,7 @@ class _PomodoroSubtaskSectionState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
     final bool isTablet = MediaQuery.of(context).size.width >= 600;
     final double maxListHeight = isTablet ? 420 : 320;
@@ -245,9 +246,6 @@ class _PomodoroSubtaskSectionState
     );
 
     return Card(
-      elevation: 0,
-      color: Colors.white.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -260,14 +258,14 @@ class _PomodoroSubtaskSectionState
                 Text(
                   l10n.pomodoroSubtasks,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 // 第三级任务不显示添加按钮
                 if (_taskLevel != null && _taskLevel! < 3)
                   IconButton(
-                    icon: const Icon(Icons.add, color: Colors.white),
+                    icon: Icon(Icons.add, color: colorScheme.onSurface),
                     onPressed: _handleAddSubtask,
                     tooltip: l10n.actionAddSubtask,
                   ),
@@ -331,11 +329,11 @@ class _PomodoroSubtaskSectionState
                   ),
                 );
               },
-              loading: () => const Center(
+              loading: () => Center(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                   ),
                 ),
               ),

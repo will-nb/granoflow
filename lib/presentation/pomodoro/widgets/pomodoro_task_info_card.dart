@@ -16,21 +16,10 @@ class PomodoroTaskInfoCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final hierarchyAsync = ref.watch(taskProjectHierarchyProvider(task.id));
 
-    final divider = Container(
-      height: 1,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white12, Colors.white54, Colors.white12],
-        ),
-      ),
-    );
-
     return Card(
-      elevation: 0,
-      color: Colors.white.withValues(alpha: 0.12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -39,7 +28,7 @@ class PomodoroTaskInfoCard extends ConsumerWidget {
             Text(
               task.title,
               style: theme.textTheme.titleLarge?.copyWith(
-                color: Colors.white,
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: 21,
                 height: 1.2,
@@ -48,7 +37,9 @@ class PomodoroTaskInfoCard extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 10),
-            divider,
+            Divider(
+              color: colorScheme.outline.withValues(alpha: 0.2),
+            ),
             const SizedBox(height: 10),
             hierarchyAsync.when(
               data: (hierarchy) {
@@ -63,11 +54,11 @@ class PomodoroTaskInfoCard extends ConsumerWidget {
                   showIcon: true,
                 );
               },
-              loading: () => const SizedBox(
+              loading: () => SizedBox(
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
                 ),
               ),
               error: (_, __) => const SizedBox.shrink(),

@@ -84,11 +84,12 @@ class _PomodoroPageState extends ConsumerState<PomodoroPage> {
           child: taskAsync.when(
             data: (task) {
               final l10n = AppLocalizations.of(context);
+              final colorScheme = Theme.of(context).colorScheme;
               if (task == null) {
                 return Center(
                   child: Text(
                     l10n.pomodoroTaskNotFound,
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: colorScheme.onSurface),
                   ),
                 );
               }
@@ -101,17 +102,21 @@ class _PomodoroPageState extends ConsumerState<PomodoroPage> {
                 onDescriptionChanged: _handleDescriptionChanged,
               );
             },
-            loading: () => const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-              ),
-            ),
+            loading: () {
+              final colorScheme = Theme.of(context).colorScheme;
+              return Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                ),
+              );
+            },
             error: (error, stackTrace) {
               final l10n = AppLocalizations.of(context);
+              final colorScheme = Theme.of(context).colorScheme;
               return Center(
                 child: Text(
                   l10n.pomodoroLoadFailed(error.toString()),
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: colorScheme.onSurface),
                 ),
               );
             },
@@ -140,6 +145,7 @@ class _WaveLayout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     final size = MediaQuery.of(context).size;
     final bool isLandscape = size.width >= 800 && size.width > size.height;
 
@@ -168,9 +174,9 @@ class _WaveLayout extends ConsumerWidget {
             Align(
               alignment: Alignment.topLeft,
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios_rounded,
-                  color: Colors.white,
+                  color: colorScheme.onSurface,
                 ),
                 onPressed: () async {
                   final timerNotifier = ref.read(
@@ -286,6 +292,8 @@ class _HeroCluster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
     final bool isTablet = size.width >= 600;
     final double diameter = _resolveDiameter(size.width, isTablet: isTablet);
@@ -305,12 +313,15 @@ class _HeroCluster extends StatelessWidget {
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: isTablet ? 0.22 : 0.2),
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.28), width: 1),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.2),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35),
+                color: colorScheme.shadow.withValues(alpha: 0.1),
                 blurRadius: 30,
                 offset: const Offset(0, 12),
               ),

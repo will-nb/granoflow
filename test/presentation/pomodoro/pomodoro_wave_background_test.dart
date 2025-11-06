@@ -1,27 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:granoflow/core/providers/pomodoro_animation_providers.dart';
 import 'package:granoflow/core/theme/pomodoro_gradients.dart';
 import 'package:granoflow/core/utils/gradient_composer.dart';
 import 'package:granoflow/presentation/pomodoro/widgets/pomodoro_wave_background.dart';
-
-class _PassiveTicker extends Ticker {
-  _PassiveTicker(TickerCallback onTick) : super(onTick);
-
-  @override
-  TickerFuture start() => TickerFuture.complete();
-}
-
-class _TestWaveAnimationController extends WaveAnimationController {
-  _TestWaveAnimationController({required WaveAnimationConfig config})
-    : super(config: config);
-
-  @override
-  Ticker createTicker(TickerCallback onTick) => _PassiveTicker(onTick);
-}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -55,34 +37,55 @@ void main() {
     });
   });
 
-  testWidgets('PomodoroWaveBackground 可以正常渲染', (tester) async {
-    final container = ProviderContainer(
-      overrides: [
-        waveAnimationControllerProvider.overrideWith((ref, args) {
-          final config = ref.watch(waveAnimationConfigProvider(args));
-          return _TestWaveAnimationController(config: config);
-        }),
-      ],
-    );
-
+  testWidgets('PomodoroWaveBackground 在 light 模式下使用正确的背景图片', (tester) async {
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: MaterialApp(
-          home: Scaffold(
-            body: PomodoroWaveBackground(state: PomodoroState.normal),
-          ),
+      MaterialApp(
+        theme: ThemeData.light(),
+        home: Scaffold(
+          body: PomodoroWaveBackground(state: PomodoroState.normal),
         ),
       ),
     );
 
     await tester.pump();
 
-    expect(find.byType(CustomPaint), findsWidgets);
+    // 验证 Container 存在
+    expect(find.byType(Container), findsOneWidget);
+    
+    // 验证 DecorationImage 存在
+    final container = tester.widget<Container>(find.byType(Container));
+    final decoration = container.decoration as BoxDecoration;
+    expect(decoration.image, isNotNull);
+    expect(decoration.image!.image, isA<AssetImage>());
+    
+    final assetImage = decoration.image!.image as AssetImage;
+    expect(assetImage.assetName, 'assets/images/clock-background-light.png');
+    expect(decoration.image!.fit, BoxFit.cover);
+  });
 
-    await tester.pumpWidget(const SizedBox.shrink());
+  testWidgets('PomodoroWaveBackground 在 dark 模式下使用正确的背景图片', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: Scaffold(
+          body: PomodoroWaveBackground(state: PomodoroState.normal),
+        ),
+      ),
+    );
+
     await tester.pump();
-    container.dispose();
-    await tester.pump();
+
+    // 验证 Container 存在
+    expect(find.byType(Container), findsOneWidget);
+    
+    // 验证 DecorationImage 存在
+    final container = tester.widget<Container>(find.byType(Container));
+    final decoration = container.decoration as BoxDecoration;
+    expect(decoration.image, isNotNull);
+    expect(decoration.image!.image, isA<AssetImage>());
+    
+    final assetImage = decoration.image!.image as AssetImage;
+    expect(assetImage.assetName, 'assets/images/clock-background-dark.png');
+    expect(decoration.image!.fit, BoxFit.cover);
   });
 }

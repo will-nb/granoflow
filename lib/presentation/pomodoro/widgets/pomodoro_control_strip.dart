@@ -121,7 +121,7 @@ class PomodoroControlStrip extends ConsumerWidget {
 
 enum ControlButtonEmphasis { primary, success, secondary, ghost }
 
-class _ControlButton extends StatefulWidget {
+class _ControlButton extends StatelessWidget {
   const _ControlButton({
     required this.icon,
     required this.label,
@@ -139,105 +139,72 @@ class _ControlButton extends StatefulWidget {
   final bool isToggleActive;
 
   @override
-  State<_ControlButton> createState() => _ControlButtonState();
-}
-
-class _ControlButtonState extends State<_ControlButton> {
-  bool _hovering = false;
-  bool _pressed = false;
-
-  void _handleHover(bool hovering) {
-    setState(() => _hovering = hovering);
-  }
-
-  void _handlePressed(bool pressed) {
-    setState(() => _pressed = pressed);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final ColorScheme colors = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    final Color base = switch (widget.emphasis) {
-      ControlButtonEmphasis.primary => colors.secondary,
-      ControlButtonEmphasis.success => colors.tertiary,
-      ControlButtonEmphasis.secondary => Colors.white.withValues(alpha: 0.12),
-      ControlButtonEmphasis.ghost => Colors.white.withValues(alpha: 0.08),
-    };
-
-    final Color hoverOverlay = Colors.white.withValues(alpha: 0.18);
-    final Color activeOverlay = Colors.white.withValues(alpha: 0.28);
-
-    Color background = base;
-    if (_pressed) {
-      background = Color.alphaBlend(activeOverlay, base);
-    } else if (_hovering) {
-      background = Color.alphaBlend(hoverOverlay, base);
-    } else if (widget.isToggleActive &&
-        widget.emphasis == ControlButtonEmphasis.ghost) {
-      background = Color.alphaBlend(hoverOverlay, base);
-    }
-
-    final BoxShadow shadow = BoxShadow(
-      color: Colors.white.withValues(alpha: _hovering ? 0.25 : 0.12),
-      blurRadius: _hovering ? 16 : 8,
-      spreadRadius: _hovering ? 2 : 0,
-    );
-
-    return MouseRegion(
-      onEnter: (_) => _handleHover(true),
-      onExit: (_) => _handleHover(false),
-      child: GestureDetector(
-        onTapDown: (_) => _handlePressed(true),
-        onTapUp: (_) => _handlePressed(false),
-        onTapCancel: () => _handlePressed(false),
-        onTap: widget.onPressed,
-        child: AnimatedScale(
-          scale: _pressed
-              ? 0.96
-              : _hovering
-              ? 1.04
-              : 1.0,
-          duration: const Duration(milliseconds: 140),
-          curve: Curves.easeOut,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [shadow],
-              border: Border.all(
-                color: Colors.white.withValues(
-                  alpha: widget.emphasis == ControlButtonEmphasis.secondary
-                      ? 0.18
-                      : 0.28,
-                ),
-                width: 1.2,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            child: Tooltip(
-              message: widget.tooltip,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(widget.icon, color: Colors.white, size: 24),
-                  const SizedBox(width: 10),
-                  Text(
-                    widget.label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    final Widget button = switch (emphasis) {
+      ControlButtonEmphasis.primary => FilledButton(
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(
+            backgroundColor: colorScheme.secondary,
+            foregroundColor: colorScheme.onSecondary,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 10),
+              Text(label),
+            ],
           ),
         ),
-      ),
+      ControlButtonEmphasis.success => FilledButton(
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(
+            backgroundColor: colorScheme.tertiary,
+            foregroundColor: colorScheme.onTertiary,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 10),
+              Text(label),
+            ],
+          ),
+        ),
+      ControlButtonEmphasis.secondary => OutlinedButton(
+          onPressed: onPressed,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 10),
+              Text(label),
+            ],
+          ),
+        ),
+      ControlButtonEmphasis.ghost => TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: isToggleActive
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 10),
+              Text(label),
+            ],
+          ),
+        ),
+    };
+
+    return Tooltip(
+      message: tooltip,
+      child: button,
     );
   }
 }

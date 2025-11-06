@@ -32,13 +32,46 @@ class GradientPageScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isLight = brightness == Brightness.light;
+    final backgroundImage = isLight
+        ? 'assets/images/background.light.png'
+        : 'assets/images/background.dark.png';
+    final pageGradient = gradient ?? context.gradients.pageBackground;
+
+    // 构建背景层：图片 + 半透明渐变叠加
+    Widget buildBackground({required Widget child}) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          // 底层：背景图片
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(backgroundImage),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // 上层：半透明渐变叠加
+          Opacity(
+            opacity: 0.6, // 渐变透明度，可根据需要调整
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: pageGradient,
+              ),
+            ),
+          ),
+          // 内容层
+          child,
+        ],
+      );
+    }
+
     // 全屏沉浸式模式：无 AppBar、无导航栏
     if (fullScreen) {
       return Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: gradient ?? context.gradients.pageBackground,
-          ),
+        body: buildBackground(
           child: SafeArea(
             child: body,
           ),
@@ -68,10 +101,7 @@ class GradientPageScaffold extends StatelessWidget {
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
       bottomNavigationBar: bottomNavigationBar,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: gradient ?? context.gradients.pageBackground,
-        ),
+      body: buildBackground(
         child: SafeArea(
           top: shouldExtendBody && hasAppBar,
           bottom: false,

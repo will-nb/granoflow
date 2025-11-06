@@ -104,16 +104,26 @@ void main() {
         ),
       );
 
-      // Find the Container with gradient
-      final containerFinder = find.descendant(
+      // Find the Stack with fit: StackFit.expand (our background stack)
+      final allStacks = find.descendant(
         of: find.byType(Scaffold),
-        matching: find.byType(Container),
+        matching: find.byType(Stack),
       );
+      
+      Stack? backgroundStack;
+      tester.allWidgets.forEach((widget) {
+        if (widget is Stack && widget.fit == StackFit.expand) {
+          backgroundStack = widget;
+        }
+      });
 
-      expect(containerFinder, findsWidgets);
-
-      final container = tester.widget<Container>(containerFinder.first);
-      final decoration = container.decoration as BoxDecoration;
+      expect(backgroundStack, isNotNull);
+      
+      // The gradient container should be the second child (index 1) in the Stack, wrapped in Opacity
+      expect(backgroundStack!.children.length, greaterThanOrEqualTo(2));
+      final opacityWidget = backgroundStack!.children[1] as Opacity;
+      final gradientContainer = opacityWidget.child as Container;
+      final decoration = gradientContainer.decoration as BoxDecoration;
       expect(decoration.gradient, equals(customGradient));
     });
 
@@ -127,16 +137,21 @@ void main() {
         ),
       );
 
-      // Find the Container with gradient
-      final containerFinder = find.descendant(
-        of: find.byType(Scaffold),
-        matching: find.byType(Container),
-      );
+      // Find the Stack with fit: StackFit.expand (our background stack)
+      Stack? backgroundStack;
+      tester.allWidgets.forEach((widget) {
+        if (widget is Stack && widget.fit == StackFit.expand) {
+          backgroundStack = widget;
+        }
+      });
 
-      expect(containerFinder, findsWidgets);
-
-      final container = tester.widget<Container>(containerFinder.first);
-      final decoration = container.decoration as BoxDecoration;
+      expect(backgroundStack, isNotNull);
+      
+      // The gradient container should be the second child (index 1) in the Stack, wrapped in Opacity
+      expect(backgroundStack!.children.length, greaterThanOrEqualTo(2));
+      final opacityWidget = backgroundStack!.children[1] as Opacity;
+      final gradientContainer = opacityWidget.child as Container;
+      final decoration = gradientContainer.decoration as BoxDecoration;
       expect(decoration.gradient, isNotNull);
     });
 
@@ -186,17 +201,30 @@ void main() {
 
       expect(find.text('Test Body'), findsOneWidget);
 
-      // Find the Container with gradient
-      final containerFinder = find.descendant(
-        of: find.byType(Scaffold),
-        matching: find.byType(Container),
-      );
+      // Find the Stack with fit: StackFit.expand (our background stack)
+      Stack? backgroundStack;
+      tester.allWidgets.forEach((widget) {
+        if (widget is Stack && widget.fit == StackFit.expand) {
+          backgroundStack = widget;
+        }
+      });
 
-      expect(containerFinder, findsWidgets);
-
-      final container = tester.widget<Container>(containerFinder.first);
-      final decoration = container.decoration as BoxDecoration;
+      expect(backgroundStack, isNotNull);
+      
+      // The gradient container should be the second child (index 1) in the Stack, wrapped in Opacity
+      expect(backgroundStack!.children.length, greaterThanOrEqualTo(2));
+      final opacityWidget = backgroundStack!.children[1] as Opacity;
+      final gradientContainer = opacityWidget.child as Container;
+      final decoration = gradientContainer.decoration as BoxDecoration;
       expect(decoration.gradient, isNotNull);
+      
+      // Verify background image exists (first child should be the image container)
+      final imageContainer = backgroundStack!.children[0] as Container;
+      final imageDecoration = imageContainer.decoration as BoxDecoration;
+      expect(imageDecoration.image, isNotNull);
+      expect(imageDecoration.image!.image, isA<AssetImage>());
+      final assetImage = imageDecoration.image!.image as AssetImage;
+      expect(assetImage.assetName, 'assets/images/background.dark.png');
     });
   });
 }
