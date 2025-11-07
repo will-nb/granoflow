@@ -1,0 +1,137 @@
+{
+  "timestamp": "2025-11-07T07:39:20Z",
+  "flutter": {
+  "flutter_version": "3.35.7",
+  "engine_version": "035316565a",
+  "flutter_root": "/Users/will/development/flutter",
+  "engine_cache_dir": "/Users/will/development/flutter/bin/cache/artifacts/engine"
+},
+  "elf_alignment": {
+  "total_checked": 20,
+  "misaligned_count": 16,
+  "misaligned_files": [
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/armeabi-v7a/libisar.so",
+      "alignment": 4096
+    }
+,
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86/libisar.so",
+      "alignment": 4096
+    }
+,
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a/libflutter.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a/libVkLayer_khronos_validation.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a/libisar.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/arm64-v8a/libdatastore_shared_counter.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86_64/libisar.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86_64/libdatastore_shared_counter.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/armeabi-v7a/libisar.so",
+      "alignment": 4096
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/x86/libisar.so",
+      "alignment": 4096
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/arm64-v8a/libflutter.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/arm64-v8a/libVkLayer_khronos_validation.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/arm64-v8a/libisar.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/arm64-v8a/libdatastore_shared_counter.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/x86_64/libisar.so",
+      "alignment": 0
+    }
+,
+    {
+      "file": "build/app/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out/lib/x86_64/libdatastore_shared_counter.so",
+      "alignment": 0
+    }
+  ]
+},
+  "dependencies": {
+  "checked_dependencies": [
+    {
+      "name": "isar_flutter_libs",
+      "version": "3.1.0+1"
+    }
+,
+    {
+      "name": "audioplayers",
+      "version": "6.5.1"
+    }
+,
+    {
+      "name": "flutter_local_notifications",
+      "version": "17.2.4"
+    }
+,
+    {
+      "name": "flutter_foreground_task",
+      "version": "8.17.0"
+    }
+,
+    {
+      "name": "file_picker",
+      "version": "8.3.7"
+    }
+,
+    {
+      "name": "path_provider",
+      "version": "2.1.5"
+    }
+,
+    {
+      "name": "share_plus",
+      "version": "10.1.4"
+    }
+  ]
+},
+  "build_config": {
+  "config_ok": true,
+  "issues": [
+  ]
+}
+}

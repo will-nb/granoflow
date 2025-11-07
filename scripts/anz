@@ -50,6 +50,9 @@ source "$ROOT_DIR/scripts/anz_modules/run.sh"
 # 加载帮助函数模块
 source "$ROOT_DIR/scripts/anz_modules/help.sh"
 
+# 加载诊断模块
+source "$ROOT_DIR/scripts/anz_modules/diagnose.sh"
+
 # ===== 主函数 =====
 
 main() {
@@ -301,6 +304,13 @@ main() {
         exit 0
       fi
       run_macos ;;
+    
+    diagnose:16kb)
+      if has_help "$@"; then
+        echo "diagnose:16kb: 运行16KB页面大小兼容性诊断，检查Flutter版本、引擎、ELF对齐、依赖版本和构建配置"
+        exit 0
+      fi
+      diagnose_16kb ;;
       
     *)
       echo "未知命令: $1"

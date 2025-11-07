@@ -1,0 +1,31 @@
+[0;34m生成诊断报告...[0m
+
+[0;34m=== 检查 Flutter 版本 ===[0m
+[0;34m检查 Flutter 版本和引擎...[0m
+  Flutter 版本: 3.35.7
+  引擎版本: •
+  Flutter SDK 路径: /Users/will/development/flutter
+  引擎缓存目录: /Users/will/development/flutter/bin/cache/artifacts/engine
+  找到的 Android 引擎:
+
+[0;34m=== 检查 ELF 对齐 ===[0m
+
+[0;34m=== 检查依赖版本 ===[0m
+
+[0;34m=== 检查构建配置 ===[0m
+
+{
+  "timestamp": "2025-11-07T07:06:25Z",
+  "flutter": {},
+  "elf_alignment": {},
+  "summary": [
+    "构建配置存在问题"
+  ]
+}
+{
+  "timestamp": "2025-11-07T07:06:25Z",
+  "flutter": {},
+  "elf_alignment": {}},
+  "dependencies": {},
+  "build_config": {}
+}

@@ -1,0 +1,57 @@
+[0;34m生成诊断报告...[0m
+
+[0;34m=== 检查 Flutter 版本 ===[0m
+[0;34m检查 Flutter 版本和引擎...[0m
+  Flutter 版本: 3.35.7
+  引擎版本: •
+  Flutter SDK 路径: /Users/will/development/flutter
+  引擎缓存目录: /Users/will/development/flutter/bin/cache/artifacts/engine
+  找到的 Android 引擎:
+{
+  "flutter_version": "3.35.7",
+  "engine_version": "•",
+  "flutter_sdk_path": "/Users/will/development/flutter",
+  "engine_cache_dir": "/Users/will/development/flutter/bin/cache/artifacts/engine"
+}
+
+[0;34m=== 检查 ELF 对齐 ===[0m
+[0;34m检查 ELF 对齐...[0m
+[1;33m警告: 未找到 readelf 命令，跳过 ELF 对齐检查[0m
+[1;33m提示: macOS 上可以通过 'brew install binutils' 安装[0m
+{}
+
+[0;34m=== 检查依赖版本 ===[0m
+[0;34m检查第三方依赖版本...[0m
+  [1;33m警告: 未找到 isar_flutter_libs 的版本信息[0m
+  [1;33m警告: 未找到 audioplayers 的版本信息[0m
+  [1;33m警告: 未找到 flutter_local_notifications 的版本信息[0m
+  [1;33m警告: 未找到 flutter_foreground_task 的版本信息[0m
+  [1;33m警告: 未找到 file_picker 的版本信息[0m
+  [1;33m警告: 未找到 path_provider 的版本信息[0m
+  [1;33m警告: 未找到 share_plus 的版本信息[0m
+{
+  "dependencies": [],
+  "total_checked": 7
+}
+
+[0;34m=== 检查构建配置 ===[0m
+[0;34m检查构建配置...[0m
+/Users/will/code/granoflow/scripts/anz_modules/diagnose.sh: line 325: ndk_version�: unbound variable
+  [1;33m⚠[0m  ndkVersion:     ndkVersion = "29.0.13846066" (建议: 29.0.13846066)
+  [0;32m✓[0m useLegacyPackaging = false
+  Gradle 版本: 8.12
+{
+  "ndk_version": "    ndkVersion = "29.0.13846066"",
+  "use_legacy_packaging": "false",
+  "gradle_version": "8.12",
+  "config_ok": true,
+  "issues": []
+}
+
+{
+  "timestamp": "2025-11-07T07:02:19Z",
+  "flutter": }},
+  "elf_alignment": {}},
+  "dependencies": }},
+  "build_config": }}
+}

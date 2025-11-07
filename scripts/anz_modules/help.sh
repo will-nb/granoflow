@@ -37,6 +37,9 @@ GranoFlow 项目管理脚本
   test               并行执行 test/ 下所有 *_test.dart 测试
   test:drag          运行拖拽集成测试 100 次（随机坐标测试）
 
+诊断命令：
+  diagnose:16kb      运行16KB页面大小兼容性诊断，检查Flutter版本、引擎、ELF对齐、依赖版本和构建配置
+
 使用 '$(basename "$0") <命令> --help' 查看具体命令的详细用法
 EOF
 }
