@@ -20,6 +20,16 @@ mixin TaskRepositoryQueries
     return entity == null ? null : _toDomain(entity);
   }
 
+  /// 通过业务ID（taskId）查询任务
+  @override
+  Future<Task?> findByTaskId(String taskId) async {
+    final entity = await _isar.taskEntitys
+        .filter()
+        .taskIdEqualTo(taskId)
+        .findFirst();
+    return entity == null ? null : _toDomain(entity);
+  }
+
   /// 通过 slug 查询任务
   @override
   Future<Task?> findBySlug(String slug) async {

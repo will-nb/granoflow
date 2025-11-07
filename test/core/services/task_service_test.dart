@@ -142,6 +142,11 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
       throw UnimplementedError();
 
   @override
+  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+    return {for (final taskId in taskIds) taskId: 0};
+  }
+
+  @override
   Future<int> totalMinutesOverall() async => 0;
 
   @override

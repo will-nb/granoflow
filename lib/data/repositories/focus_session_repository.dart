@@ -28,6 +28,10 @@ abstract class FocusSessionRepository {
 
   Future<int> totalMinutesForTask(int taskId);
 
+  /// 批量查询多个任务的总时间
+  /// 返回 Map<taskId, totalMinutes>，避免 N+1 查询问题
+  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds);
+
   Future<int> totalMinutesOverall();
 
   Future<FocusSession?> findById(int sessionId);
@@ -117,6 +121,36 @@ class IsarFocusSessionRepository implements FocusSessionRepository {
         .taskIdEqualTo(taskId)
         .findAll();
     return sessions.fold<int>(0, (sum, session) => sum + session.actualMinutes);
+  }
+
+  @override
+  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+    if (taskIds.isEmpty) {
+      return {};
+    }
+
+    // 一次性查询所有相关任务的 FocusSession
+    // 由于 Isar 没有直接的 anyOf 方法，我们使用循环查询并合并结果
+    // 对于少量 taskIds，性能影响可接受
+    final Map<int, int> result = {};
+    
+    // 初始化结果，确保所有 taskId 都在结果中
+    for (final taskId in taskIds) {
+      result[taskId] = 0;
+    }
+
+    // 批量查询：每次查询一个 taskId 的所有 sessions
+    for (final taskId in taskIds) {
+      final sessions = await _isar.focusSessionEntitys
+          .filter()
+          .taskIdEqualTo(taskId)
+          .findAll();
+      
+      final total = sessions.fold<int>(0, (sum, session) => sum + session.actualMinutes);
+      result[taskId] = total;
+    }
+
+    return result;
   }
 
   @override

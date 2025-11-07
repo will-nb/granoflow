@@ -219,6 +219,16 @@ class _FakeProjectRepository implements ProjectRepository {
   }
 
   @override
+  Future<Project> createProjectWithId(
+    ProjectDraft draft,
+    String projectId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> update(int isarId, ProjectUpdate update) async {
     throw UnimplementedError();
   }

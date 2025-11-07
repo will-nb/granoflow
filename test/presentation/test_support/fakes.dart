@@ -137,6 +137,16 @@ class StubTaskRepository implements TaskRepository {
   }
 
   @override
+  Future<Task?> findByTaskId(String taskId) async {
+    for (final task in _tasks.values) {
+      if (task.taskId == taskId) {
+        return task;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<Task> createTask(TaskDraft draft) async {
     final now = DateTime.now();
     final task = Task(
@@ -149,6 +159,39 @@ class StubTaskRepository implements TaskRepository {
       endedAt: null,
       createdAt: now,
       updatedAt: now,
+      parentId: draft.parentId,
+      parentTaskId: draft.parentTaskId,
+      projectId: draft.projectId,
+      milestoneId: draft.milestoneId,
+      sortIndex: draft.sortIndex,
+      tags: List.unmodifiable(draft.tags),
+      templateLockCount: 0,
+      seedSlug: draft.seedSlug,
+      allowInstantComplete: draft.allowInstantComplete,
+      description: draft.description,
+      logs: List.unmodifiable(draft.logs),
+    );
+    _tasks[task.id] = task;
+    return task;
+  }
+
+  @override
+  Future<Task> createTaskWithId(
+    TaskDraft draft,
+    String taskId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    final task = Task(
+      id: _nextId++,
+      taskId: taskId,
+      title: draft.title,
+      status: draft.status,
+      dueAt: draft.dueAt,
+      startedAt: null,
+      endedAt: null,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       parentId: draft.parentId,
       parentTaskId: draft.parentTaskId,
       projectId: draft.projectId,
@@ -491,6 +534,15 @@ class StubTaskRepository implements TaskRepository {
         .length;
   }
 
+  @override
+  Future<void> setTaskProjectAndMilestoneIsarId(
+    int taskId,
+    int? projectIsarId,
+    int? milestoneIsarId,
+  ) async {
+    // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
+  }
+
   List<Task> _filterSection(TaskSection section) {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
@@ -680,6 +732,23 @@ class StubFocusSessionRepository implements FocusSessionRepository {
       .fold<int>(0, (sum, session) => sum + session.actualMinutes);
 
   @override
+  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+    if (taskIds.isEmpty) {
+      return {};
+    }
+
+    final Map<int, int> result = {};
+    for (final taskId in taskIds) {
+      final total = _sessions.values
+          .where((s) => s.taskId == taskId)
+          .fold<int>(0, (sum, session) => sum + session.actualMinutes);
+      result[taskId] = total;
+    }
+
+    return result;
+  }
+
+  @override
   Future<int> totalMinutesOverall() async => _sessions.values.fold<int>(
     0,
     (sum, session) => sum + session.actualMinutes,
@@ -734,7 +803,7 @@ class StubPreferenceRepository implements PreferenceRepository {
     localeCode: 'en',
     themeMode: ThemeMode.system,
     fontScaleLevel: FontScaleLevel.medium,
-    pomodoroTickSoundEnabled: true,
+    clockTickSoundEnabled: true,
     updatedAt: DateTime.now(),
   );
 

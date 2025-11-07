@@ -315,6 +315,24 @@ class _TestTaskRepository implements TaskRepository {
       throw UnimplementedError();
 
   @override
+  Future<Task> createTaskWithId(
+    TaskDraft draft,
+    String taskId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<Task?> findByTaskId(String taskId) async {
+    for (final task in _tasks) {
+      if (task.taskId == taskId) {
+        return task;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<void> updateTask(int taskId, TaskUpdate payload) =>
       throw UnimplementedError();
 
@@ -436,5 +454,14 @@ class _TestTaskRepository implements TaskRepository {
 
   @override
   Future<int> countTrashedTasks() async => 0;
+
+  @override
+  Future<void> setTaskProjectAndMilestoneIsarId(
+    int taskId,
+    int? projectIsarId,
+    int? milestoneIsarId,
+  ) async {
+    // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
+  }
 }
 

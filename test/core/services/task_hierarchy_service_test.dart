@@ -90,6 +90,16 @@ class _TestTaskRepository extends TaskRepository {
   Future<Task?> findById(int id) async => tasks[id];
 
   @override
+  Future<Task?> findByTaskId(String taskId) async {
+    for (final task in tasks.values) {
+      if (task.taskId == taskId) {
+        return task;
+      }
+    }
+    return null;
+  }
+
+  @override
   Stream<Task?> watchTaskById(int id) => Stream.value(tasks[id]);
 
   @override
@@ -182,6 +192,14 @@ class _TestTaskRepository extends TaskRepository {
 
   @override
   Future<Task> createTask(TaskDraft draft) => throw UnimplementedError();
+
+  @override
+  Future<Task> createTaskWithId(
+    TaskDraft draft,
+    String taskId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) => throw UnimplementedError();
 
   @override
   Future<void> moveTask({
@@ -283,6 +301,15 @@ class _TestTaskRepository extends TaskRepository {
 
   @override
   Future<int> countTrashedTasks() => throw UnimplementedError();
+
+  @override
+  Future<void> setTaskProjectAndMilestoneIsarId(
+    int taskId,
+    int? projectIsarId,
+    int? milestoneIsarId,
+  ) async {
+    // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
+  }
 }
 
 class _StubMetricRepository implements MetricRepository {
@@ -333,6 +360,11 @@ class _StubFocusSessionRepository implements FocusSessionRepository {
 
   @override
   Future<int> totalMinutesForTask(int taskId) async => 0;
+
+  @override
+  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+    return {for (final taskId in taskIds) taskId: 0};
+  }
 
   @override
   Future<int> totalMinutesOverall() async => 0;

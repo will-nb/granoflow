@@ -10,6 +10,7 @@ class ProjectEntity {
 
   Id id = Isar.autoIncrement;
 
+  @Index()
   late String projectId;
 
   late String title;

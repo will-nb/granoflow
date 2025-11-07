@@ -38,6 +38,7 @@
   "commonDelete": "Delete",
   "commonLoading": "Loading...",
   "commonLoadFailed": "Load failed",
+  "commonOk": "OK",
   "commonSave": "Save",
   "commonView": "View",
   "completeCurrentTask": "Complete Current Task",
@@ -136,6 +137,10 @@
   "endSessionTitle": "Focus Summary",
   "endSessionWastedNote": "Will add wasted tag for statistics",
   "estimatedTime": "Estimated Time",
+  "exportData": "Export Data",
+  "exportDataDescription": "Export all projects, milestones, and tasks",
+  "exportFailed": "Export failed",
+  "exportSuccess": "Export successful",
   "filterByDate": "Filter by Date",
   "filterByStatus": "Filter by Status",
   "flexibleDescriptionAdd": "Add Description",
@@ -198,6 +203,28 @@
   "inboxTemplateApplied": "Template applied.",
   "inboxTemplateEmpty": "No template recommendations.",
   "inboxTemplateError": "Apply template failed.",
+  "importComplete": "Import Complete",
+  "importData": "Import Data",
+  "importDataDescription": "Import projects, milestones, and tasks from file",
+  "importErrors": "Errors",
+  "importFailed": "Import failed",
+  "importMilestonesCreated": "Milestones Created",
+  "importMilestonesSkipped": "Milestones Skipped",
+  "importMilestonesUpdated": "Milestones Updated",
+  "importMoreErrors": "{count} more errors",
+  "@importMoreErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importProjectsCreated": "Projects Created",
+  "importProjectsSkipped": "Projects Skipped",
+  "importProjectsUpdated": "Projects Updated",
+  "importTasksCreated": "Tasks Created",
+  "importTasksSkipped": "Tasks Skipped",
+  "importTasksUpdated": "Tasks Updated",
   "language": "Language",
   "leafTask": "Leaf Task",
   "markAsWastedTime": "Mark as Wasted Time",
@@ -222,49 +249,147 @@
   "plannerSectionTomorrowTitle": "Tomorrow",
   "plannerSectionThisWeekTitle": "This Week",
   "plannerSectionThisMonthTitle": "This Month",
-  "pomodoroTimer": "Pomodoro Timer",
-  "pomodoroBack": "Back",
-  "pomodoroComplete": "Complete",
-  "pomodoroCountdownDuration": "Countdown Duration: {minutes} minutes",
-  "@pomodoroCountdownDuration": {
+  "clockTimer": "Timer",
+  "clockBack": "Back",
+  "clockComplete": "Complete",
+  "clockCountdownDuration": "Countdown Duration: {minutes} minutes",
+  "@clockCountdownDuration": {
     "placeholders": {
       "minutes": {
         "type": "int"
       }
     }
   },
-  "pomodoroLevel3Warning": "You've spent too much time on this task. Consider abandoning it and finding another solution.",
-  "pomodoroLoadFailed": "Load failed: {error}",
-  "@pomodoroLoadFailed": {
+  "clockLevel3Warning": "You've spent too much time on this task. Consider abandoning it and finding another solution.",
+  "clockLoadFailed": "Load failed: {error}",
+  "@clockLoadFailed": {
     "placeholders": {
       "error": {
         "type": "String"
       }
     }
   },
-  "pomodoroMinutes": "{minutes} minutes",
-  "@pomodoroMinutes": {
+  "clockMinutes": "{minutes} minutes",
+  "@clockMinutes": {
     "placeholders": {
       "minutes": {
         "type": "int"
       }
     }
   },
-  "pomodoroOvertimeSubtaskTitle": "The task is too complex and needs to be re-analyzed and split.",
-  "pomodoroPause": "Pause",
-  "pomodoroResume": "Resume",
-  "pomodoroStart": "Start",
-  "pomodoroStartButton": "Start",
-  "pomodoroSubtasks": "Subtasks",
-  "pomodoroTaskAnalysis": "Task Analysis",
-  "pomodoroTaskAnalysisHint": "Enter task analysis...",
-  "pomodoroTaskNotFound": "Task not found",
-  "pomodoroTurnOffSound": "Turn off sound",
-  "pomodoroTurnOnSound": "Turn on sound",
+  "clockOvertimeSubtaskTitle": "The task is too complex and needs to be re-analyzed and split.",
+  "clockPause": "Pause",
+  "clockResume": "Resume",
+  "clockStart": "Start",
+  "clockStartButton": "Start",
+  "clockSubtasks": "Subtasks",
+  "clockTaskAnalysis": "Task Analysis",
+  "clockTaskAnalysisHint": "Enter task analysis...",
+  "clockTaskNotFound": "Task not found",
+  "clockTurnOffSound": "Turn off sound",
+  "clockTurnOnSound": "Turn on sound",
   "profile": "Profile",
   "reactivate": "Reactivate",
   "reactivateTask": "Reactivate Task",
   "restoreTask": "Restore Task",
+  "reviewActiveProjectsCountMessage": "Among them, there are {activeProjectCount} projects in progress, which are:",
+  "@reviewActiveProjectsCountMessage": {
+    "placeholders": {
+      "activeProjectCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewClosingMessage": "Today is a new day, let's continue to work hard and welcome a better tomorrow.",
+  "reviewCopiedMessage": "Article copied to clipboard",
+  "reviewCopyButton": "Copy Article",
+  "reviewExportButton": "Export Article",
+  "reviewLabelDaily": "Daily",
+  "reviewLabelMonthly": "Monthly",
+  "reviewLabelQuarterly": "Quarterly",
+  "reviewLabelReview": "Review",
+  "reviewLabelWeekly": "Weekly",
+  "reviewLabelYearly": "Yearly",
+  "reviewLongestArchivedTaskMessage": "You wisely decided to abandon this task and put your time and energy into more important things. In life, choices are often more important than effort. Congratulations on saving precious time and energy again.",
+  "reviewLongestCompletedTaskCompletionMessage": "Finally, you carefully analyzed and broke down the task, and solved this problem through your own efforts.",
+  "reviewLongestCompletedTaskMessage": "{date}, you encountered a very troubling problem: \"{taskTitle}\", which took a total of {totalMinutes} minutes",
+  "@reviewLongestCompletedTaskMessage": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "taskTitle": {
+        "type": "String"
+      },
+      "totalMinutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewMostCompletedRootTasksDayMessage": "{date}, you were like a god, completing {taskCount} tasks, spending a total of {totalHours} hours",
+  "@reviewMostCompletedRootTasksDayMessage": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "taskCount": {
+        "type": "int"
+      },
+      "totalHours": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewNewUserHint": "You have just started using our project, and there is not much content to summarize. As your number of tasks and projects accumulate, we will conduct more analysis and review,",
+  "reviewNoLongCompletedTaskMessage": "Congratulations, your work has been smooth, and you have not yet encountered a problem that must be overcome.",
+  "reviewNoProjectsMessage": "You have not created any projects yet",
+  "reviewProjectItemFormat": "{projectName}: contains {taskCount} tasks",
+  "@reviewProjectItemFormat": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "taskCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStandaloneTasksMessage": "You currently have {totalCount} standalone tasks, of which {activeCount} are in progress, {completedCount} are completed, and {archivedCount} are archived",
+  "@reviewStandaloneTasksMessage": {
+    "placeholders": {
+      "totalCount": {
+        "type": "int"
+      },
+      "activeCount": {
+        "type": "int"
+      },
+      "completedCount": {
+        "type": "int"
+      },
+      "archivedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStatsMessage": "Now, you have {projectCount} projects and {taskCount} tasks",
+  "@reviewStatsMessage": {
+    "placeholders": {
+      "projectCount": {
+        "type": "int"
+      },
+      "taskCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewWelcomeMessage": "Welcome, today is day {dayCount} of using this app",
+  "@reviewWelcomeMessage": {
+    "placeholders": {
+      "dayCount": {
+        "type": "int"
+      }
+    }
+  },
   "sessionComplete": "Session Complete",
   "settings": "Settings",
   "settingsFontSizeLabel": "Font Size",
@@ -277,9 +402,10 @@
   "settingsLanguageSimplifiedChinese": "Simplified Chinese",
   "settingsLanguageTraditionalChinese": "Traditional Chinese",
   "settingsSection": "Settings",
-  "settingsPomodoroSection": "Pomodoro Timer",
-  "settingsPomodoroTickSound": "Tick Sound",
-  "settingsPomodoroTickSoundDescription": "Play tick sound and alerts during timer",
+  "settingsClockSection": "Timer",
+  "settingsClockTickSound": "Tick Sound",
+  "settingsClockTickSoundDescription": "Play tick sound and alerts during timer",
+  "settingsExportImportSection": "Export & Import",
   "settingsTaskManagement": "Task Management",
   "settingsThemeDark": "Dark",
   "settingsThemeLabel": "Theme",

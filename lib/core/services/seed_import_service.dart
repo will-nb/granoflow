@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 
 import '../../data/models/milestone.dart';
@@ -10,6 +8,7 @@ import '../../data/repositories/seed_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/task_template_repository.dart';
+import '../utils/id_generator.dart';
 import 'metric_orchestrator.dart';
 import 'project_models.dart';
 import 'project_service.dart';
@@ -43,7 +42,6 @@ class SeedImportService {
   final MilestoneRepository _milestones;
   final MetricOrchestrator _metricOrchestrator;
   final SortIndexResetService _sortIndexResetService;
-  final Random _random = Random();
 
   // 防止重复导入的标志
   bool _isImporting = false;
@@ -117,6 +115,8 @@ class SeedImportService {
     final projectTasks = tasks
         .where((t) => t.taskKind?.toLowerCase() == 'project')
         .toList();
+    // slug -> projectIsarId 映射（用于后续设置里程碑和任务的 projectIsarId）
+    final Map<String, int> slugToProjectIsarId = <String, int>{};
     for (final seed in projectTasks) {
       // 全新安装场景：直接创建项目，无需检查重复
       final dueAt = _parseDueAt(seed.dueAt) ?? DateTime.now();
@@ -133,6 +133,7 @@ class SeedImportService {
 
       slugToProjectId[seed.slug] = project.projectId;
       slugToId[seed.slug] = project.id;
+      slugToProjectIsarId[seed.slug] = project.id;
     }
 
     // 第二遍：处理所有里程碑（milestone 类型）
@@ -153,10 +154,8 @@ class SeedImportService {
       final projectId = slugToProjectId[seed.parentSlug]!;
       final dueAt = _parseDueAt(seed.dueAt);
 
-      // 生成 milestoneId（使用类似 ProjectService 的生成逻辑）
-      final now = DateTime.now();
-      final suffix = _random.nextInt(1 << 20).toRadixString(16).padLeft(5, '0');
-      final milestoneId = 'mil-${now.millisecondsSinceEpoch}-$suffix';
+      // 生成 milestoneId（使用 UUID v4）
+      final milestoneId = IdGenerator.generateId();
 
       final milestone = await _milestones.create(
         MilestoneDraft(
@@ -176,6 +175,15 @@ class SeedImportService {
           logs: const <MilestoneLogEntry>[],
         ),
       );
+
+      // 设置里程碑的 projectIsarId
+      final projectIsarId = slugToProjectIsarId[seed.parentSlug];
+      if (projectIsarId != null) {
+        await _milestones.setMilestoneProjectIsarId(
+          milestone.id,
+          projectIsarId,
+        );
+      }
 
       slugToMilestoneId[seed.slug] = milestone.milestoneId;
       slugToId[seed.slug] = milestone.id;
@@ -234,6 +242,35 @@ class SeedImportService {
         sortIndex: seed.sortIndex,
       );
       final task = await _tasks.createTask(draft);
+      
+      // 设置任务的 projectIsarId 和 milestoneIsarId
+      int? taskProjectIsarId;
+      int? taskMilestoneIsarId;
+      
+      if (projectId != null) {
+        // 查找项目的 Isar ID
+        final project = await _projectService.findByProjectId(projectId);
+        if (project != null) {
+          taskProjectIsarId = project.id;
+        }
+      }
+      
+      if (milestoneId != null) {
+        // 查找里程碑的 Isar ID
+        final milestone = await _milestones.findByMilestoneId(milestoneId);
+        if (milestone != null) {
+          taskMilestoneIsarId = milestone.id;
+        }
+      }
+      
+      if (taskProjectIsarId != null || taskMilestoneIsarId != null) {
+        await _tasks.setTaskProjectAndMilestoneIsarId(
+          task.id,
+          taskProjectIsarId,
+          taskMilestoneIsarId,
+        );
+      }
+      
       slugToId[seed.slug] = task.id;
     }
 
@@ -257,7 +294,11 @@ class SeedImportService {
               (parentTaskKind != 'project' && parentTaskKind != 'milestone')) {
             await _tasks.updateTask(
               taskId,
-              TaskUpdate(parentTaskId: parentId, sortIndex: seed.sortIndex),
+              TaskUpdate(
+                parentId: parentId,
+                parentTaskId: parentId,
+                sortIndex: seed.sortIndex,
+              ),
             );
           }
         }

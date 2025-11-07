@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
 import '../../core/services/tag_service.dart';
+import '../../core/utils/id_generator.dart';
 import '../../core/utils/task_section_utils.dart';
 import '../isar/task_entity.dart';
 import '../models/task.dart';
@@ -54,7 +54,31 @@ abstract class TaskRepository {
 
   Future<Task> createTask(TaskDraft draft);
 
+  /// 使用指定的 taskId 创建任务（用于导入）
+  /// 
+  /// [draft] 任务草稿
+  /// [taskId] 要使用的业务ID
+  /// [createdAt] 创建时间（从导入数据中获取）
+  /// [updatedAt] 更新时间（从导入数据中获取）
+  Future<Task> createTaskWithId(
+    TaskDraft draft,
+    String taskId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  );
+
   Future<void> updateTask(int taskId, TaskUpdate payload);
+
+  /// 设置任务的 projectIsarId 和 milestoneIsarId（用于导入）
+  /// 
+  /// [taskId] 任务的 Isar ID
+  /// [projectIsarId] 项目的 Isar ID（可为 null）
+  /// [milestoneIsarId] 里程碑的 Isar ID（可为 null）
+  Future<void> setTaskProjectAndMilestoneIsarId(
+    int taskId,
+    int? projectIsarId,
+    int? milestoneIsarId,
+  );
 
   Future<void> moveTask({
     required int taskId,
@@ -79,6 +103,9 @@ abstract class TaskRepository {
   Future<void> adjustTemplateLock({required int taskId, required int delta});
 
   Future<Task?> findById(int id);
+
+  /// 通过业务ID（taskId）查询任务
+  Future<Task?> findByTaskId(String taskId);
 
   /// 监听单个任务的变化
   Stream<Task?> watchTaskById(int id);

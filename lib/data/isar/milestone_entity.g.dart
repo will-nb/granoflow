@@ -111,6 +111,19 @@ const MilestoneEntitySchema = CollectionSchema(
   deserializeProp: _milestoneEntityDeserializeProp,
   idName: r'id',
   indexes: {
+    r'milestoneId': IndexSchema(
+      id: 6650917624138872266,
+      name: r'milestoneId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'milestoneId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
     r'projectIsarId': IndexSchema(
       id: 5677975367602273851,
       name: r'projectIsarId',
@@ -486,6 +499,51 @@ extension MilestoneEntityQueryWhere
         upper: upperId,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<MilestoneEntity, MilestoneEntity, QAfterWhereClause>
+      milestoneIdEqualTo(String milestoneId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'milestoneId',
+        value: [milestoneId],
+      ));
+    });
+  }
+
+  QueryBuilder<MilestoneEntity, MilestoneEntity, QAfterWhereClause>
+      milestoneIdNotEqualTo(String milestoneId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [],
+              upper: [milestoneId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [milestoneId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [milestoneId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'milestoneId',
+              lower: [],
+              upper: [milestoneId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 

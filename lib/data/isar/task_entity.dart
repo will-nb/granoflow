@@ -10,6 +10,7 @@ class TaskEntity {
 
   Id id = Isar.autoIncrement;
 
+  @Index()
   late String taskId;
 
   late String title;

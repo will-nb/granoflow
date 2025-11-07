@@ -42,23 +42,23 @@ class OceanBreezeColorSchemes {
   static const Color errorContainerLight = Color(0xFFFFE5E5);  // 浅色错误容器
   static const Color errorContainerDark = Color(0xFF8B0000);   // 深色错误容器
 
-  // ============ 番茄时钟专用颜色 ============
+  // ============ 计时器专用颜色 ============
   
   // Light 模式颜色
-  static const Color pomodoroTomatoRed = Color(0xFFFF6B6B);      // 番茄红
-  static const Color pomodoroVibrantOrange = Color(0xFFFFA07A);  // 活力橙
-  static const Color pomodoroSuccessGreen = Color(0xFF4ECDC4);   // 成功绿
-  static const Color pomodoroPausedLight = Color(0xFF9E9E9E);    // 暂停灰色
-  static const Color pomodoroPausedMedium = Color(0xFFBDBDBD);   // 暂停中灰
-  static const Color pomodoroPausedLight2 = Color(0xFFE0E0E0);   // 暂停浅灰
+  static const Color clockPrimaryRed = Color(0xFFFF6B6B);      // 主红色
+  static const Color clockPrimaryOrange = Color(0xFFFFA07A);  // 主橙色
+  static const Color clockSuccessGreen = Color(0xFF4ECDC4);   // 成功绿
+  static const Color clockPausedLight = Color(0xFF9E9E9E);    // 暂停灰色
+  static const Color clockPausedMedium = Color(0xFFBDBDBD);   // 暂停中灰
+  static const Color clockPausedLight2 = Color(0xFFE0E0E0);   // 暂停浅灰
   
   // Dark 模式颜色
-  static const Color pomodoroDeepTomatoRed = Color(0xFFD32F2F);  // 深番茄红
-  static const Color pomodoroDeepOrange = Color(0xFFFF7043);     // 深橙
-  static const Color pomodoroDeepGreen = Color(0xFF26A69A);      // 深绿
-  static const Color pomodoroPausedDark = Color(0xFF424242);     // 暂停深灰
-  static const Color pomodoroPausedDark2 = Color(0xFF616161);    // 暂停中灰
-  static const Color pomodoroPausedDark3 = Color(0xFF757575);    // 暂停浅灰
+  static const Color clockDeepRed = Color(0xFFD32F2F);  // 深红色
+  static const Color clockDeepOrange = Color(0xFFFF7043);     // 深橙
+  static const Color clockDeepGreen = Color(0xFF26A69A);      // 深绿
+  static const Color clockPausedDark = Color(0xFF424242);     // 暂停深灰
+  static const Color clockPausedDark2 = Color(0xFF616161);    // 暂停中灰
+  static const Color clockPausedDark3 = Color(0xFF757575);    // 暂停浅灰
 
   /// Ocean Breeze 浅色主题配色方案
   static const ColorScheme light = ColorScheme(

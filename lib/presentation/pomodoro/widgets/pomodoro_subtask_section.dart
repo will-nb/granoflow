@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/providers/pomodoro_providers.dart';
+import '../../../core/providers/clock_providers.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../data/models/task.dart';
@@ -42,7 +42,7 @@ class PomodoroSubtaskSection extends ConsumerStatefulWidget {
   });
 
   final Task task;
-  final PomodoroTimerState timerState;
+  final ClockTimerState timerState;
 
   @override
   ConsumerState<PomodoroSubtaskSection> createState() =>
@@ -71,9 +71,9 @@ class _PomodoroSubtaskSectionState
 
   Future<void> _handleAddSubtask() async {
     // 打开对话框时暂停计时器
-    final timerState = ref.read(pomodoroTimerProvider);
+    final timerState = ref.read(clockTimerProvider);
     if (timerState.isStarted && !timerState.isPaused) {
-      ref.read(pomodoroTimerProvider.notifier).pause();
+      ref.read(clockTimerProvider.notifier).pause();
     }
 
     // 检查是否是第一个子任务
@@ -98,9 +98,8 @@ class _PomodoroSubtaskSectionState
       );
 
       // 创建特殊子任务："任务过于复杂，需要重新分析拆分。"
-      final l10n = AppLocalizations.of(context);
       final overtimeSubtask = await taskService.captureInboxTask(
-        title: l10n.pomodoroOvertimeSubtaskTitle,
+        title: '任务过于复杂，需要重新分析拆分。',
       );
 
       // 移动到父任务下
@@ -256,7 +255,7 @@ class _PomodoroSubtaskSectionState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  l10n.pomodoroSubtasks,
+                  '子任务',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
@@ -293,7 +292,7 @@ class _PomodoroSubtaskSectionState
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        l10n.pomodoroLevel3Warning,
+                        '此任务层级过深，无法继续添加子任务。',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,
                         ),
@@ -346,4 +345,3 @@ class _PomodoroSubtaskSectionState
   }
 }
 
-/// 子任务项组件

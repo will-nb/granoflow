@@ -1,4 +1,4 @@
-import 'dart:math';
+import '../utils/id_generator.dart';
 
 /// ProjectService 辅助工具方法
 /// 
@@ -6,11 +6,9 @@ import 'dart:math';
 class ProjectServiceHelpers {
   ProjectServiceHelpers({
     DateTime Function()? clock,
-  }) : _clock = clock ?? DateTime.now,
-       _random = Random();
+  }) : _clock = clock ?? DateTime.now;
 
   final DateTime Function() _clock;
-  final Random _random;
 
   DateTime normalizeDueDate(DateTime localDate) {
     return DateTime(
@@ -62,13 +60,11 @@ class ProjectServiceHelpers {
   }
 
   String generateProjectId(DateTime now) {
-    final suffix = _random.nextInt(1 << 20).toRadixString(16).padLeft(5, '0');
-    return 'prj-${now.millisecondsSinceEpoch}-$suffix';
+    return IdGenerator.generateId();
   }
 
   String generateMilestoneId(DateTime now, int index) {
-    final suffix = _random.nextInt(1 << 20).toRadixString(16).padLeft(5, '0');
-    return 'mil-${now.millisecondsSinceEpoch}-$index-$suffix';
+    return IdGenerator.generateId();
   }
 
   DateTime Function() get clock => _clock;

@@ -747,6 +747,103 @@
       },
     },
     
+    // 新用户提示（条件显示）
+    line_newUserHint: {
+      // 显示内容
+      content: {
+        // 文本模板
+        template: "您刚刚使用我们的项目不久，能够总结的内容不多。随着您的任务数和项目数积累，我们将进行更多分析和回顾，",
+        // 本地化key
+        l10nKey: "reviewNewUserHint",
+      },
+      
+      // 数据来源
+      dataSource: {
+        // 判断条件：满足以下任一条件即显示
+        conditions: {
+          // 条件1：总项目数 <= 3
+          condition1_projectCount: {
+            description: "总项目数不超过3个",
+            threshold: 3,
+            comparison: "<=",
+            dataSource: {
+              // 复用 line2_stats 的 projectCount 数据
+              reference: "line2_stats.dataSource.projectCount",
+            },
+          },
+          
+          // 条件2：总任务数 <= 300
+          condition2_taskCount: {
+            description: "总任务数不超过300个",
+            threshold: 300,
+            comparison: "<=",
+            dataSource: {
+              // 复用 line2_stats 的 taskCount 数据
+              reference: "line2_stats.dataSource.taskCount",
+            },
+          },
+          
+          // 条件3：用户使用时间 <= 3个月（90天）
+          condition3_usageDays: {
+            description: "用户使用时间不超过3个月（90天）",
+            threshold: 90,
+            comparison: "<=",
+            dataSource: {
+              // 复用 line1_welcome 的 dayCount 数据
+              reference: "line1_welcome.dataSource.dayCount",
+              // 计算方式：从新建日期最早的task创建时间算起
+              calculation: "days_since_earliest_task_creation",
+            },
+          },
+        },
+        
+        // 计算逻辑
+        calculationLogic: {
+          step1: "获取总项目数（projectCount）",
+          step2: "获取总任务数（taskCount）",
+          step3: "获取用户使用天数（dayCount）",
+          step4: "判断是否满足任一条件：projectCount <= 3 || taskCount <= 300 || dayCount <= 90",
+          step5: "如果满足任一条件，显示此提示",
+          
+          // 实现位置
+          implementation: {
+            condition: "projectCount <= 3 || taskCount <= 300 || dayCount <= 90",
+            // 复用已有的数据源
+            dataSources: [
+              "line2_stats.dataSource.projectCount",
+              "line2_stats.dataSource.taskCount",
+              "line1_welcome.dataSource.dayCount",
+            ],
+          },
+        },
+      },
+      
+      // 条件显示
+      conditionalDisplay: {
+        // 满足以下任一条件即显示：项目数 <= 3 或 任务数 <= 300 或 使用时间 <= 90天
+        condition: "projectCount <= 3 || taskCount <= 300 || dayCount <= 90",
+      },
+      
+      // 样式
+      style: {
+        // 字体
+        typography: {
+          fontSize: 18, // sp（稍小一些，作为提示信息）
+          fontWeight: "FontWeight.w400", // 常规字重
+          color: "Theme.of(context).colorScheme.onSurface.withOpacity(0.7)", // 稍淡一些的颜色
+        },
+        
+        // 间距
+        spacing: {
+          top: 16, // 距离上一行16dp
+          bottom: 24, // 距离下一行24dp
+        },
+        
+        // 对齐
+        alignment: "TextAlign.start", // 左对齐
+      },
+    },
+    
     // 第三行：正在进行中的项目数量
     line3_activeProjectsCount: {
       // 显示内容
@@ -1676,6 +1773,8 @@
       contentOrder: [
         "line1_welcome",
         "line2_stats",
+        // 新用户提示（条件显示：项目数 <= 3 或 任务数 <= 300 或 使用时间 <= 90天）
+        "line_newUserHint", // 条件显示：projectCount <= 3 || taskCount <= 300 || dayCount <= 90
         // 条件分支：
         // - 如果 projectCount > 0 && activeProjectCount > 0：显示 line3_activeProjectsCount 和 line4Plus_projectList
         // - 如果 projectCount == 0：显示 line3_noProjects
@@ -1824,7 +1923,246 @@
   },
 
   // ===========================================
-  // 9. 待确认问题
+  // 9. 实现建议和优化考虑
+  // ===========================================
+  implementationSuggestions: {
+    // 数据查询优化
+    dataQueryOptimization: {
+      // 问题：多次调用 totalMinutesForTask 可能导致性能问题
+      issue: "多次调用 FocusSessionRepository.totalMinutesForTask 可能产生 N+1 查询问题",
+      
+      // 建议方案
+      recommendations: [
+        {
+          title: "批量查询优化",
+          description: "对于需要计算多个任务时间的场景（如完成根任务最多的一天），应该批量查询所有相关的 FocusSession，然后在内存中计算，而不是逐个调用 totalMinutesForTask",
+          implementation: "创建一个批量查询方法，如 totalMinutesForTasks(List<int> taskIds)，一次性查询所有任务的 FocusSession",
+          benefit: "减少数据库查询次数，提高性能",
+        },
+        {
+          title: "数据预加载",
+          description: "在页面加载时，可以预先加载所有需要的数据，避免在逐行显示时等待数据查询",
+          implementation: "在开场动画播放期间，后台预加载所有统计数据",
+          benefit: "提升用户体验，减少等待时间",
+        },
+        {
+          title: "缓存机制",
+          description: "对于不经常变化的数据（如已完成任务的时间统计），可以考虑缓存，避免每次进入页面都重新计算",
+          implementation: "使用 Riverpod 的缓存机制，或者本地缓存计算结果",
+          benefit: "提升页面加载速度",
+        },
+      ],
+    },
+    
+    // 边界情况处理
+    edgeCaseHandling: {
+      // 空数据状态
+      emptyDataStates: [
+        {
+          scenario: "用户从未创建过任何任务",
+          currentHandling: "line1_welcome 会显示为第1天，但后续所有行都不会显示",
+          suggestion: "考虑添加一个友好的空状态提示，引导用户开始使用",
+        },
+        {
+          scenario: "所有任务都在回收站",
+          currentHandling: "统计会显示0个任务，但可能显示其他内容（如项目）",
+          suggestion: "确保所有统计都正确排除回收站数据，文档中已明确说明",
+        },
+        {
+          scenario: "用户有任务但没有 FocusSession（从未使用过番茄钟）",
+          currentHandling: "最长任务的时间会显示为0分钟",
+          suggestion: "考虑在显示时间时，如果为0则显示友好的提示，如'尚未开始专注'",
+        },
+        {
+          scenario: "多个任务时间相同（并列最长）",
+          currentHandling: "文档中提到选择创建时间最早的",
+          suggestion: "实现时确保正确处理并列情况",
+        },
+      ],
+      
+      // 数据一致性
+      dataConsistency: {
+        issue: "需要确保所有数据查询使用相同的过滤条件",
+        recommendations: [
+          "统一使用 TaskStatus 枚举，避免硬编码状态值",
+          "确保所有查询都正确排除 trashed 状态",
+          "确保所有查询都正确过滤 parentId == null（只统计根任务）",
+          "在实现时，考虑创建一个统一的数据查询服务，封装所有过滤逻辑",
+        ],
+      },
+    },
+    
+    // 性能考虑
+    performanceConsiderations: {
+      // 动画性能
+      animationPerformance: {
+        issue: "粒子爆炸效果可能影响性能",
+        recommendations: [
+          "使用 RepaintBoundary 隔离动画区域（文档中已提到）",
+          "限制粒子数量（文档中已设置为8个）",
+          "在低端设备上可以考虑简化动画效果",
+        ],
+      },
+      
+      // 数据计算性能
+      calculationPerformance: {
+        issue: "计算最长任务、最多完成日等需要遍历大量数据",
+        recommendations: [
+          "使用数据库索引优化查询（如 createdAt, endedAt, status 的复合索引）",
+          "对于大量数据，考虑使用聚合查询而不是在内存中计算",
+          "考虑异步计算，避免阻塞 UI",
+        ],
+      },
+    },
+    
+    // 用户体验优化
+    userExperience: {
+      // 加载状态
+      loadingStates: {
+        issue: "文档中没有明确说明加载状态的处理",
+        recommendations: [
+          "在数据加载时显示加载指示器（CircularProgressIndicator）",
+          "开场动画期间可以同时加载数据，减少等待时间",
+          "如果数据加载失败，显示友好的错误提示",
+        ],
+      },
+      
+      // 错误处理
+      errorHandling: {
+        issue: "文档中没有提到错误处理",
+        recommendations: [
+          "数据库查询失败时，显示友好的错误提示",
+          "数据为空时，显示友好的空状态提示",
+          "考虑添加重试机制",
+        ],
+      },
+      
+      // 可访问性
+      accessibility: {
+        recommendations: [
+          "为所有文本添加语义化标签（Semantics）",
+          "确保动画不会影响屏幕阅读器",
+          "考虑添加动画的开关选项（在系统设置中）",
+        ],
+      },
+    },
+    
+    // 国际化考虑
+    internationalization: {
+      // 日期格式
+      dateFormatting: {
+        issue: "不同语言环境下的日期格式可能不同",
+        recommendations: [
+          "使用 Flutter 的 DateFormat 和本地化支持",
+          "确保所有日期显示都使用本地化格式",
+          "测试不同语言环境下的显示效果",
+        ],
+      },
+      
+      // 文本长度
+      textLength: {
+        issue: "不同语言的文本长度可能差异很大",
+        recommendations: [
+          "确保 UI 布局能够适应不同长度的文本",
+          "考虑使用 Flexible 或 Expanded 处理文本溢出",
+          "测试不同语言下的布局效果",
+        ],
+      },
+    },
+    
+    // 测试建议
+    testingSuggestions: {
+      unitTests: [
+        "测试所有数据查询逻辑（过滤条件、统计计算）",
+        "测试边界情况（空数据、单条数据、大量数据）",
+        "测试条件显示逻辑（各种条件组合）",
+      ],
+      
+      integrationTests: [
+        "测试完整的数据流（从数据库查询到 UI 显示）",
+        "测试动画序列（确保所有阶段正确执行）",
+        "测试复制和导出功能",
+      ],
+      
+      widgetTests: [
+        "测试逐行显示动画",
+        "测试条件显示逻辑",
+        "测试按钮交互（复制、导出）",
+      ],
+    },
+    
+    // 实现架构建议
+    architectureSuggestions: {
+      // 数据服务层
+      dataServiceLayer: {
+        suggestion: "考虑创建一个 ReviewDataService，封装所有回顾页面的数据查询逻辑",
+        benefits: [
+          "统一管理所有数据查询逻辑",
+          "便于测试和维护",
+          "可以复用查询逻辑",
+          "便于优化和缓存",
+        ],
+        structure: {
+          service: "ReviewDataService",
+          methods: [
+            "Future<ReviewData> loadAllReviewData() - 一次性加载所有需要的数据",
+            "Future<int> calculateDayCount() - 计算使用天数",
+            "Future<ReviewStats> calculateStats() - 计算统计信息",
+            "Future<LongestTaskInfo?> findLongestCompletedTask() - 查找最长已完成任务",
+            "Future<LongestTaskInfo?> findLongestArchivedTask() - 查找最长归档任务",
+            "Future<MostCompletedDayInfo?> findMostCompletedDay() - 查找最多完成日",
+          ],
+        },
+      },
+      
+      // 状态管理
+      stateManagement: {
+        suggestion: "使用 Riverpod 的 StateNotifierProvider 管理回顾页面的状态",
+        structure: {
+          provider: "reviewPageStateProvider",
+          state: {
+            loading: "bool - 是否正在加载",
+            data: "ReviewData? - 所有回顾数据",
+            error: "String? - 错误信息",
+            animationCompleted: "bool - 动画是否完成",
+            contentDisplayIndex: "int - 当前显示到第几行",
+          },
+        },
+      },
+    },
+    
+    // 具体实现细节
+    implementationDetails: {
+      // 日期计算
+      dateCalculation: {
+        note: "计算使用天数时，需要注意时区问题",
+        recommendation: "使用本地时间（toLocal()）进行计算，确保显示的天数准确",
+      },
+      
+      // 时间格式化
+      timeFormatting: {
+        note: "时间显示需要人性化格式化",
+        recommendations: [
+          "分钟数 < 60：显示为 'X分钟'",
+          "分钟数 >= 60：显示为 'X小时Y分钟' 或 'X.X小时'（根据上下文）",
+          "使用 NumberFormat 或自定义格式化函数",
+        ],
+      },
+      
+      // 文本生成
+      textGeneration: {
+        note: "生成完整文章文本时，需要注意格式",
+        recommendations: [
+          "每行之间使用换行符（\\n）分隔",
+          "项目列表和子任务列表使用适当的缩进",
+          "Markdown 导出时，可以使用适当的 Markdown 格式（如标题、列表等）",
+        ],
+      },
+    },
+  },
+
+  // ===========================================
+  // 10. 待确认问题
   // ===========================================
   openQuestions: [
     {

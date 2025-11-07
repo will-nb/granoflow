@@ -11,6 +11,8 @@ NC='\033[0m'
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# ===== 核心工具函数 =====
+
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 # 检查是否有 --help 或 -h 参数
@@ -34,336 +36,22 @@ run_with_timeout() {
   fi
 }
 
-clean_project() {
-  echo -e "${GREEN}🧹 开始清理项目...${NC}"
-  
-  # 1. 清空数据库
-  echo -e "${BLUE}1. 清空 Isar 数据库...${NC}"
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS - 检查新旧两个可能的路径
-    NEW_DB_PATH="$HOME/Library/Containers/com.granoflow.app/Data/Library/Application Support"
-    OLD_DB_PATH="$HOME/Library/Containers/com.example.granoflow/Data/Library/Application Support"
-    
-    DB_FOUND=false
-    
-    # 清理新路径
-    if [ -d "$NEW_DB_PATH" ]; then
-      echo -e "${YELLOW}  - 清理数据库: com.granoflow.app${NC}"
-      rm -rf "$NEW_DB_PATH"/*
-      DB_FOUND=true
-    fi
-    
-    # 清理旧路径（如果存在）
-    if [ -d "$OLD_DB_PATH" ]; then
-      echo -e "${YELLOW}  - 清理旧数据库: com.example.granoflow${NC}"
-      rm -rf "$OLD_DB_PATH"/*
-      DB_FOUND=true
-    fi
-    
-    if [ "$DB_FOUND" = true ]; then
-      echo -e "${GREEN}✅ 数据库已清空，下次启动将重新导入种子数据${NC}"
-    else
-      echo -e "${YELLOW}  ⚠️  未找到数据库（可能尚未运行过应用）${NC}"
-    fi
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux
-    DB_PATH="$HOME/.local/share/granoflow"
-    if [ -d "$DB_PATH" ]; then
-      echo -e "${YELLOW}  - 清理数据库: $DB_PATH${NC}"
-      rm -rf "$DB_PATH"/*
-      echo -e "${GREEN}✅ 数据库已清空${NC}"
-    else
-      echo -e "${YELLOW}  ⚠️  未找到数据库（可能尚未运行过应用）${NC}"
-    fi
-  fi
-  
-  # 2. flutter clean
-  echo -e "${BLUE}2. 执行 flutter clean...${NC}"
-  run_with_timeout 60 flutter clean
-  echo -e "${GREEN}✅ flutter clean 完成${NC}"
-  
-  # 3. 删除构建相关的文件夹（保留配置文件）
-  echo -e "${BLUE}3. 删除构建相关文件夹...${NC}"
-  
-  # 删除 build 文件夹
-  if [ -d "build" ]; then
-    echo -e "${YELLOW}  - 删除 build/ 文件夹${NC}"
-    rm -rf build
-  fi
-  
-  # 删除 .dart_tool 文件夹
-  if [ -d ".dart_tool" ]; then
-    echo -e "${YELLOW}  - 删除 .dart_tool/ 文件夹${NC}"
-    rm -rf .dart_tool
-  fi
-  
-  # 删除各平台的构建文件夹（保留配置文件）
-  for platform in macos android ios linux web windows; do
-    if [ -d "$platform" ]; then
-      # 只删除构建相关的子文件夹，保留配置文件
-      if [ -d "$platform/build" ]; then
-        echo -e "${YELLOW}  - 删除 $platform/build/ 文件夹${NC}"
-        rm -rf "$platform/build"
-      fi
-      if [ -d "$platform/.dart_tool" ]; then
-        echo -e "${YELLOW}  - 删除 $platform/.dart_tool/ 文件夹${NC}"
-        rm -rf "$platform/.dart_tool"
-      fi
-    fi
-  done
-  
-  # 删除 Android Gradle 缓存（解决代码不更新问题）
-  if [ -d "android/.gradle" ]; then
-    echo -e "${YELLOW}  - 删除 android/.gradle/ 文件夹（Gradle 构建缓存）${NC}"
-    rm -rf android/.gradle
-  fi
-  
-  if [ -d "android/app/.gradle" ]; then
-    echo -e "${YELLOW}  - 删除 android/app/.gradle/ 文件夹（App 模块缓存）${NC}"
-    rm -rf android/app/.gradle
-  fi
-  
-  # 可选：清理 Android IDE 缓存
-  if [ -d "android/.idea" ]; then
-    echo -e "${YELLOW}  - 删除 android/.idea/ 文件夹（Android Studio 缓存）${NC}"
-    rm -rf android/.idea
-  fi
-  
-  echo -e "${GREEN}✅ 构建文件夹清理完成${NC}"
-  
-  # 4. flutter gen-l10n
-  echo -e "${BLUE}4. 生成本地化文件...${NC}"
-  run_with_timeout 60 flutter gen-l10n
-  echo -e "${GREEN}✅ 本地化文件生成完成${NC}"
-  
-  # 5. flutter pub get
-  echo -e "${BLUE}5. 获取依赖包...${NC}"
-  run_with_timeout 120 flutter pub get
-  echo -e "${GREEN}✅ 依赖包获取完成${NC}"
-  
-  # 6. flutter analyze
-  echo -e "${BLUE}6. 执行代码分析...${NC}"
-  run_with_timeout 120 flutter analyze
-  echo -e "${GREEN}✅ 代码分析完成${NC}"
-  
-  echo -e "${GREEN}🎉 项目清理和重建完成！${NC}"
-}
+# ===== 加载模块 =====
 
-build_aab() {
-  echo -e "${GREEN}📦 开始构建 Android App Bundle (AAB)...${NC}"
-  
-  # 检查是否有密钥文件
-  if [ ! -f "android/app/keystore.properties" ]; then
-    echo -e "${YELLOW}⚠ 未找到密钥文件 android/app/keystore.properties${NC}"
-    echo -e "${BLUE}ℹ 将使用调试签名构建 AAB${NC}"
-  fi
-  
-  # 构建 AAB
-  echo -e "${BLUE}执行 flutter build appbundle --release...${NC}"
-  run_with_timeout 300 flutter build appbundle --release
-  
-  if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ AAB 构建成功！${NC}"
-    echo -e "${BLUE}📁 AAB 文件位置: build/app/outputs/bundle/release/app-release.aab${NC}"
-    
-    # 显示文件大小
-    local aab_file="build/app/outputs/bundle/release/app-release.aab"
-    if [ -f "$aab_file" ]; then
-      local file_size=$(ls -lh "$aab_file" | awk '{print $5}')
-      echo -e "${BLUE}📊 文件大小: $file_size${NC}"
-    fi
-  else
-    echo -e "${RED}❌ AAB 构建失败${NC}"
-    exit 1
-  fi
-}
+# 加载构建模块
+source "$ROOT_DIR/scripts/anz_modules/build.sh"
 
-generate_icons_all() {
-  echo -e "${GREEN}🎨 开始生成所有平台图标...${NC}"
-  
-  if ! has_cmd python3; then
-    echo -e "${RED}❌ 需要 Python 3 环境${NC}"
-    return 1
-  fi
-  
-  if [ ! -f "assets/logo/granostack-logo-transparent.png" ]; then
-    echo -e "${RED}❌ 源文件不存在: assets/logo/granostack-logo-transparent.png${NC}"
-    return 1
-  fi
-  
-  echo -e "${BLUE}执行: python3 scripts/anz_modules/icons/generate.py${NC}"
-  run_with_timeout 120 python3 scripts/anz_modules/icons/generate.py
-  
-  if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ 所有平台图标生成成功！${NC}"
-  else
-    echo -e "${RED}❌ 图标生成失败${NC}"
-    return 1
-  fi
-}
+# 加载设备管理模块
+source "$ROOT_DIR/scripts/anz_modules/device.sh"
 
-run_yaml_tests_all() {
-  if has_help "$@"; then
-    show_yaml_test_help
-    return 0
-  fi
+# 加载运行命令模块
+source "$ROOT_DIR/scripts/anz_modules/run.sh"
 
-  local timeout_seconds=600
-  echo -e "${BLUE}运行 YAML 一致性测试脚本...${NC}"
-  run_with_timeout "$timeout_seconds" bash "$ROOT_DIR/scripts/devtools/run_yaml_tests.sh" "$@"
-}
+# 加载帮助函数模块
+source "$ROOT_DIR/scripts/anz_modules/help.sh"
 
-install_hooks() {
-  if has_help "$@"; then
-    show_hooks_install_help
-    return 0
-  fi
+# ===== 主函数 =====
 
-  echo -e "${BLUE}配置本地 Git hooks ...${NC}"
-  bash "$ROOT_DIR/scripts/devtools/setup_hooks.sh"
-}
-
-show_main_help() {
-  cat << EOF
-GranoFlow 项目管理脚本
-
-用法: $(basename "$0") <命令> [选项]
-
-项目管理命令：
-  clean           清理项目并重建
-  build:aab       构建 Android App Bundle (AAB) 文件
-  hooks:install   配置/更新 Git hooks（pre-commit / pre-push）
-
-代码质量命令：
-  refactor        检查哪些文件和方法需要重构（根据文件大小和方法长度阈值）
-
-图标生成命令：
-  icons:generate       生成所有平台的应用图标
-
-文档生成命令：
-  yaml:create        基于模板创建单个 architecture YAML 文档
-  yaml:create:all    批量重新生成所有六大核心类型的 YAML 文档
-  yaml:test          运行 YAML 一致性测试（支持 schema/fields/refs/sync 细粒度选项）
-
-测试命令：
-  test               并行执行 test/ 下所有 *_test.dart 测试
-  test:drag          运行拖拽集成测试 100 次（随机坐标测试）
-
-使用 '$(basename "$0") <命令> --help' 查看具体命令的详细用法
-EOF
-}
-
-# 显示 yaml 子命令帮助
-show_yaml_help() {
-  cat << 'YAML_HELP'
-Usage: scripts/anz yaml:create --file FILEPATH --type TYPE [--from DART_FILE]
-
-Description:
-  基于 Dart 文件分析或模板创建 architecture YAML 文档；自动提取类信息、依赖、i18n 键和设计令牌。
-
-Arguments:
-  --file FILEPATH     目标 YAML 文件路径（相对于项目根目录）
-  --type TYPE         文档类型：widget|page|model|provider|repository|service
-  --from DART_FILE    [可选] 源 Dart 文件路径，用于自动提取信息
-
-Examples:
-  # 从 Dart 文件自动生成 YAML（推荐）
-  scripts/anz yaml:create --file documents/architecture/widgets/modern_tag.yaml --type widget --from lib/presentation/widgets/modern_tag.dart
-  
-  # 仅从模板创建空 YAML（需手动填充）
-  scripts/anz yaml:create --file documents/architecture/widgets/new_widget.yaml --type widget
-
-Note:
-  - 使用 --from 参数可自动分析 Dart 文件并填充 YAML 字段
-  - 创建后会自动运行 Linter 校验，如有问题需修正后再提交
-YAML_HELP
-}
-
-show_yaml_test_help() {
-  cat << 'YAML_TEST_HELP'
-Usage: scripts/anz yaml:test [--all|--schema|--fields|--refs|--sync] [-v|--verbose]
-
-Description:
-  运行 YAML 架构文档的一致性测试套件。默认执行全部测试，可通过选项仅运行特定类别。
-
-Options:
-  --all        运行所有测试（默认）
-  --schema     仅验证 schema 约束（字段存在、类型正确等）
-  --fields     仅验证字段完整性（必填字段、引用字段等）
-  --refs       仅验证跨文档引用一致性（calls/called_by 等）
-  --sync       仅验证 YAML 与代码实现的同步情况
-  -v,--verbose 通过给 Flutter 测试增加 --verbose 输出
-  -h,--help    显示此帮助
-
-Examples:
-  scripts/anz yaml:test                # 运行全部测试
-  scripts/anz yaml:test --schema       # 仅运行 schema 验证
-  scripts/anz yaml:test --sync -v      # 同步验证并输出详细日志
-YAML_TEST_HELP
-}
-
-show_hooks_install_help() {
-  cat << 'HOOKS_HELP'
-Usage: scripts/anz hooks:install
-
-Description:
-  配置项目的 Git hooks（pre-commit 与 pre-push），确保在提交/推送前自动执行格式化、分析与 YAML 校验。
-
-Actions:
-  - 设置 git config core.hooksPath=scripts/git-hooks
-  - 为 pre-commit、pre-push 脚本添加执行权限
-
-Examples:
-  scripts/anz hooks:install            # 安装或更新本地 Git hooks
-HOOKS_HELP
-}
-
-# 显示 yaml:create:all 帮助
-show_yaml_create_all_help() {
-  cat << 'YAML_ALL_HELP'
-Usage: scripts/anz yaml:create:all [--dry-run] [--no-backup]
-
-Description:
-  批量重新生成所有六大核心类型的 architecture YAML 文档。
-  
-  会清空并重新生成以下目录：
-  - documents/architecture/models/
-  - documents/architecture/pages/
-  - documents/architecture/widgets/
-  - documents/architecture/providers/
-  - documents/architecture/repositories/
-  - documents/architecture/services/
-
-Options:
-  --dry-run          模拟运行，不实际修改文件
-  --no-backup        不创建备份（谨慎使用）
-
-Examples:
-  # 完整重新生成所有文档（推荐，会自动备份）
-  scripts/anz yaml:create:all
-  
-  # 模拟运行，查看会生成哪些文件
-  scripts/anz yaml:create:all --dry-run
-  
-  # 不创建备份（谨慎使用）
-  scripts/anz yaml:create:all --no-backup
-
-Safety:
-  - 默认会将 documents/architecture 重命名为 documents/architecture-yymmdd-hhmmss
-  - 然后重新创建 documents/architecture 目录并生成所有 YAML
-  - routers.yaml 会被自动保留并恢复（作为路由地图的特殊情况）
-  - 建议先运行 --dry-run 查看影响范围
-  - 运行后会自动执行 architecture_linter.py 校验
-  - 推荐在干净的 git 工作树中执行
-
-Note:
-  此命令设计为经常执行，确保 YAML 文档与代码保持同步。
-  仅为六大核心类型生成文档（不包括 Constants/Config/Theme/Enums 等）。
-  routers.yaml 作为全局路由地图会被保留。
-YAML_ALL_HELP
-}
-
-# 主逻辑
 main() {
   # 如果没有参数，显示主帮助
   if [[ $# -eq 0 ]]; then
@@ -578,6 +266,41 @@ main() {
         exit 1
       fi
       python3 "$ROOT_DIR/scripts/anz_modules/refactor/check.py" ;;
+    
+    run:android)
+      if has_help "$@"; then
+        echo "run:android: 在 Android 手机上运行应用（Pixel 6, 6.4\", 1080 x 2400）"
+        exit 0
+      fi
+      run_android ;;
+    
+    run:tablet)
+      if has_help "$@"; then
+        echo "run:tablet: 在 Android 平板上运行应用（Pixel Tablet, 10.2\", 2560 x 1600）"
+        exit 0
+      fi
+      run_tablet ;;
+    
+    run:iphone)
+      if has_help "$@"; then
+        echo "run:iphone: 在 iPhone 上运行应用（iPhone 16 Pro, 6.3\", 1290 x 2796）"
+        exit 0
+      fi
+      run_iphone ;;
+    
+    run:ipad)
+      if has_help "$@"; then
+        echo "run:ipad: 在 iPad 上运行应用（iPad Pro 11\", 11\", 2388 x 1668）"
+        exit 0
+      fi
+      run_ipad ;;
+    
+    run:macos)
+      if has_help "$@"; then
+        echo "run:macos: 在 macOS 上运行应用（桌面应用）"
+        exit 0
+      fi
+      run_macos ;;
       
     *)
       echo "未知命令: $1"

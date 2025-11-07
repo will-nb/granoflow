@@ -17,20 +17,20 @@ const PreferenceEntitySchema = CollectionSchema(
   name: r'PreferenceEntity',
   id: -1589632799977450870,
   properties: {
-    r'fontScaleLevel': PropertySchema(
+    r'clockTickSoundEnabled': PropertySchema(
       id: 0,
+      name: r'clockTickSoundEnabled',
+      type: IsarType.bool,
+    ),
+    r'fontScaleLevel': PropertySchema(
+      id: 1,
       name: r'fontScaleLevel',
       type: IsarType.string,
     ),
     r'localeCode': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'localeCode',
       type: IsarType.string,
-    ),
-    r'pomodoroTickSoundEnabled': PropertySchema(
-      id: 2,
-      name: r'pomodoroTickSoundEnabled',
-      type: IsarType.bool,
     ),
     r'themeMode': PropertySchema(
       id: 3,
@@ -75,9 +75,9 @@ void _preferenceEntitySerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.fontScaleLevel);
-  writer.writeString(offsets[1], object.localeCode);
-  writer.writeBool(offsets[2], object.pomodoroTickSoundEnabled);
+  writer.writeBool(offsets[0], object.clockTickSoundEnabled);
+  writer.writeString(offsets[1], object.fontScaleLevel);
+  writer.writeString(offsets[2], object.localeCode);
   writer.writeByte(offsets[3], object.themeMode.index);
   writer.writeDateTime(offsets[4], object.updatedAt);
 }
@@ -89,10 +89,10 @@ PreferenceEntity _preferenceEntityDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = PreferenceEntity();
-  object.fontScaleLevel = reader.readString(offsets[0]);
+  object.clockTickSoundEnabled = reader.readBool(offsets[0]);
+  object.fontScaleLevel = reader.readString(offsets[1]);
   object.id = id;
-  object.localeCode = reader.readString(offsets[1]);
-  object.pomodoroTickSoundEnabled = reader.readBool(offsets[2]);
+  object.localeCode = reader.readString(offsets[2]);
   object.themeMode = _PreferenceEntitythemeModeValueEnumMap[
           reader.readByteOrNull(offsets[3])] ??
       ThemeMode.system;
@@ -108,11 +108,11 @@ P _preferenceEntityDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
       return (_PreferenceEntitythemeModeValueEnumMap[
               reader.readByteOrNull(offset)] ??
@@ -229,6 +229,16 @@ extension PreferenceEntityQueryWhere
 
 extension PreferenceEntityQueryFilter
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QFilterCondition> {
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
+      clockTickSoundEnabledEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'clockTickSoundEnabled',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
       fontScaleLevelEqualTo(
     String value, {
@@ -558,16 +568,6 @@ extension PreferenceEntityQueryFilter
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
-      pomodoroTickSoundEnabledEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'pomodoroTickSoundEnabled',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterFilterCondition>
       themeModeEqualTo(ThemeMode value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -689,6 +689,20 @@ extension PreferenceEntityQueryLinks
 extension PreferenceEntityQuerySortBy
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QSortBy> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      sortByClockTickSoundEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'clockTickSoundEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      sortByClockTickSoundEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'clockTickSoundEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
       sortByFontScaleLevel() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fontScaleLevel', Sort.asc);
@@ -713,20 +727,6 @@ extension PreferenceEntityQuerySortBy
       sortByLocaleCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localeCode', Sort.desc);
-    });
-  }
-
-  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      sortByPomodoroTickSoundEnabled() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      sortByPomodoroTickSoundEnabledDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.desc);
     });
   }
 
@@ -761,6 +761,20 @@ extension PreferenceEntityQuerySortBy
 
 extension PreferenceEntityQuerySortThenBy
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QSortThenBy> {
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      thenByClockTickSoundEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'clockTickSoundEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
+      thenByClockTickSoundEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'clockTickSoundEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
       thenByFontScaleLevel() {
     return QueryBuilder.apply(this, (query) {
@@ -803,20 +817,6 @@ extension PreferenceEntityQuerySortThenBy
   }
 
   QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      thenByPomodoroTickSoundEnabled() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
-      thenByPomodoroTickSoundEnabledDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pomodoroTickSoundEnabled', Sort.desc);
-    });
-  }
-
-  QueryBuilder<PreferenceEntity, PreferenceEntity, QAfterSortBy>
       thenByThemeMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'themeMode', Sort.asc);
@@ -848,6 +848,13 @@ extension PreferenceEntityQuerySortThenBy
 extension PreferenceEntityQueryWhereDistinct
     on QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct> {
   QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
+      distinctByClockTickSoundEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'clockTickSoundEnabled');
+    });
+  }
+
+  QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
       distinctByFontScaleLevel({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fontScaleLevel',
@@ -859,13 +866,6 @@ extension PreferenceEntityQueryWhereDistinct
       distinctByLocaleCode({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'localeCode', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<PreferenceEntity, PreferenceEntity, QDistinct>
-      distinctByPomodoroTickSoundEnabled() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'pomodoroTickSoundEnabled');
     });
   }
 
@@ -892,6 +892,13 @@ extension PreferenceEntityQueryProperty
     });
   }
 
+  QueryBuilder<PreferenceEntity, bool, QQueryOperations>
+      clockTickSoundEnabledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'clockTickSoundEnabled');
+    });
+  }
+
   QueryBuilder<PreferenceEntity, String, QQueryOperations>
       fontScaleLevelProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -903,13 +910,6 @@ extension PreferenceEntityQueryProperty
       localeCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'localeCode');
-    });
-  }
-
-  QueryBuilder<PreferenceEntity, bool, QQueryOperations>
-      pomodoroTickSoundEnabledProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'pomodoroTickSoundEnabled');
     });
   }
 

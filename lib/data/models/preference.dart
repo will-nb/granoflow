@@ -9,7 +9,7 @@ class Preference {
     required this.localeCode,
     required this.themeMode,
     required this.fontScaleLevel,
-    required this.pomodoroTickSoundEnabled,
+    required this.clockTickSoundEnabled,
     required this.updatedAt,
   });
 
@@ -17,14 +17,14 @@ class Preference {
   final String localeCode;
   final ThemeMode themeMode;
   final FontScaleLevel fontScaleLevel;
-  final bool pomodoroTickSoundEnabled;
+  final bool clockTickSoundEnabled;
   final DateTime updatedAt;
 
   Preference copyWith({
     String? localeCode,
     ThemeMode? themeMode,
     FontScaleLevel? fontScaleLevel,
-    bool? pomodoroTickSoundEnabled,
+    bool? clockTickSoundEnabled,
     DateTime? updatedAt,
   }) {
     return Preference(
@@ -32,7 +32,7 @@ class Preference {
       localeCode: localeCode ?? this.localeCode,
       themeMode: themeMode ?? this.themeMode,
       fontScaleLevel: fontScaleLevel ?? this.fontScaleLevel,
-      pomodoroTickSoundEnabled: pomodoroTickSoundEnabled ?? this.pomodoroTickSoundEnabled,
+      clockTickSoundEnabled: clockTickSoundEnabled ?? this.clockTickSoundEnabled,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -43,11 +43,11 @@ class PreferenceUpdate {
     this.localeCode,
     this.themeMode,
     this.fontScaleLevel,
-    this.pomodoroTickSoundEnabled,
+    this.clockTickSoundEnabled,
   });
 
   final String? localeCode;
   final ThemeMode? themeMode;
   final FontScaleLevel? fontScaleLevel;
-  final bool? pomodoroTickSoundEnabled;
+  final bool? clockTickSoundEnabled;
 }

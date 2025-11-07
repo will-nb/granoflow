@@ -1,17 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
+import '../services/export_service.dart';
+import '../services/import_service.dart';
 import '../services/focus_flow_service.dart';
 import '../services/metric_orchestrator.dart';
 import '../services/preference_service.dart';
 import '../services/seed_import_service.dart';
 import '../services/milestone_service.dart';
 import '../services/project_service.dart';
+import '../services/review_data_service.dart';
 import '../services/task_hierarchy_service.dart';
 import '../services/task_service.dart';
 import '../services/sort_index_service.dart';
 import '../services/task_template_service.dart';
-import '../services/pomodoro_audio_service.dart';
+import '../services/clock_audio_service.dart';
 import '../monetization/monetization_service.dart';
 import 'repository_providers.dart';
 
@@ -108,10 +111,34 @@ final seedImportServiceProvider = Provider<SeedImportService>((ref) {
   );
 });
 
-final pomodoroAudioServiceProvider = Provider<PomodoroAudioService>((ref) {
-  final service = PomodoroAudioService(
+final clockAudioServiceProvider = Provider<ClockAudioService>((ref) {
+  final service = ClockAudioService(
     preferenceService: ref.watch(preferenceServiceProvider),
   );
   ref.onDispose(service.dispose);
   return service;
+});
+
+final reviewDataServiceProvider = Provider<ReviewDataService>((ref) {
+  return ReviewDataService(
+    taskRepository: ref.watch(taskRepositoryProvider),
+    projectRepository: ref.watch(projectRepositoryProvider),
+    focusSessionRepository: ref.watch(focusSessionRepositoryProvider),
+  );
+});
+
+final exportServiceProvider = Provider<ExportService>((ref) {
+  return ExportService(
+    taskRepository: ref.watch(taskRepositoryProvider),
+    projectRepository: ref.watch(projectRepositoryProvider),
+    milestoneRepository: ref.watch(milestoneRepositoryProvider),
+  );
+});
+
+final importServiceProvider = Provider<ImportService>((ref) {
+  return ImportService(
+    taskRepository: ref.watch(taskRepositoryProvider),
+    projectRepository: ref.watch(projectRepositoryProvider),
+    milestoneRepository: ref.watch(milestoneRepositoryProvider),
+  );
 });

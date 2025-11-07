@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import '../../data/models/milestone.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/milestone_repository.dart';
 import '../constants/task_constants.dart';
+import '../utils/id_generator.dart';
 
 class MilestoneService {
   MilestoneService({
@@ -14,7 +13,6 @@ class MilestoneService {
 
   final MilestoneRepository _milestones;
   final DateTime Function() _clock;
-  final Random _random = Random();
 
   Stream<List<Milestone>> watchByProjectId(String projectId) {
     return _milestones.watchByProjectId(projectId);
@@ -136,7 +134,6 @@ class MilestoneService {
   }
 
   String _generateMilestoneId(DateTime now) {
-    final suffix = _random.nextInt(1 << 20).toRadixString(16).padLeft(5, '0');
-    return 'mil-${now.millisecondsSinceEpoch}-$suffix';
+    return IdGenerator.generateId();
   }
 }

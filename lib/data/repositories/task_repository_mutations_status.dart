@@ -77,6 +77,27 @@ mixin TaskRepositoryMutationsStatus
     });
   }
 
+  /// 设置任务的 projectIsarId 和 milestoneIsarId（用于导入）
+  @override
+  Future<void> setTaskProjectAndMilestoneIsarId(
+    int taskId,
+    int? projectIsarId,
+    int? milestoneIsarId,
+  ) async {
+    await _isar.writeTxn(() async {
+      final entity = await _isar.taskEntitys.get(taskId);
+      if (entity == null) {
+        return;
+      }
+
+      entity
+        ..projectIsarId = projectIsarId
+        ..milestoneIsarId = milestoneIsarId;
+
+      await _isar.taskEntitys.put(entity);
+    });
+  }
+
   /// 标记任务状态
   @override
   Future<void> markStatus({

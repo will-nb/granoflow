@@ -105,10 +105,10 @@ void main() {
       );
 
       // Find the Stack with fit: StackFit.expand (our background stack)
-      final allStacks = find.descendant(
-        of: find.byType(Scaffold),
-        matching: find.byType(Stack),
-      );
+      // final allStacks = find.descendant(
+      //   of: find.byType(Scaffold),
+      //   matching: find.byType(Stack),
+      // );
       
       Stack? backgroundStack;
       tester.allWidgets.forEach((widget) {

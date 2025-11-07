@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Android 13+ 通知权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 前台服务权限（Android 9+ 必要） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 前台服务类型权限（Android 14+） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    
     <application
         android:label="granoflow"
         android:name="${applicationName}"
@@ -30,6 +37,17 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        
+        <!-- 前台服务通知图标（flutter_foreground_task） -->
+        <meta-data
+            android:name="com.pravera.flutter_foreground_task.notification_icon"
+            android:resource="@drawable/ic_stat_timer" />
+        
+        <!-- 前台服务 Service（flutter_foreground_task） -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="dataSync|shortService"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -14,9 +14,9 @@ class TaskStartTimerButton extends ConsumerWidget {
 
   final Task task;
 
-  Future<void> _startPomodoroTimer(BuildContext context, WidgetRef ref) async {
-    // 导航到番茄时钟页面
-    context.push('/pomodoro/${task.id}');
+  Future<void> _startClockTimer(BuildContext context, WidgetRef ref) async {
+    // 导航到计时器页面
+    context.push('/clock/${task.id}');
   }
 
   @override
@@ -25,7 +25,7 @@ class TaskStartTimerButton extends ConsumerWidget {
     final color = theme.colorScheme.secondary;
 
     return InkWell(
-      onTap: () => _startPomodoroTimer(context, ref),
+      onTap: () => _startClockTimer(context, ref),
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

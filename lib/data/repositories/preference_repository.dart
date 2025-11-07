@@ -54,8 +54,8 @@ class IsarPreferenceRepository implements PreferenceRepository {
       if (payload.fontScaleLevel != null) {
         entity.fontScaleLevel = payload.fontScaleLevel!.name;
       }
-      if (payload.pomodoroTickSoundEnabled != null) {
-        entity.pomodoroTickSoundEnabled = payload.pomodoroTickSoundEnabled!;
+      if (payload.clockTickSoundEnabled != null) {
+        entity.clockTickSoundEnabled = payload.clockTickSoundEnabled!;
       }
       entity.updatedAt = DateTime.now();
       await _isar.preferenceEntitys.put(entity);
@@ -85,7 +85,7 @@ class IsarPreferenceRepository implements PreferenceRepository {
       ..localeCode = systemLocale
       ..themeMode = ThemeMode.system
       ..fontScaleLevel = FontScaleLevel.medium.name  // 默认字体大小级别："中" (Default font size level: "Medium")
-      ..pomodoroTickSoundEnabled = true  // 默认开启番茄时钟滴答声
+      ..clockTickSoundEnabled = true  // 默认开启计时器滴答声
       ..updatedAt = DateTime.now();
     await _isar.writeTxn(() async {
       await _isar.preferenceEntitys.put(newEntity);
@@ -99,7 +99,7 @@ class IsarPreferenceRepository implements PreferenceRepository {
       localeCode: entity.localeCode,
       themeMode: entity.themeMode,
       fontScaleLevel: FontScaleLevel.fromString(entity.fontScaleLevel),
-      pomodoroTickSoundEnabled: entity.pomodoroTickSoundEnabled,
+      clockTickSoundEnabled: entity.clockTickSoundEnabled,
       updatedAt: entity.updatedAt,
     );
   }

@@ -19,11 +19,15 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.granoflow.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // 使用 NDK r29 以支持 16 KB 页面大小（Android 16+）
+    // Flutter 3.35.1 默认使用 r27，不支持 16 KB
+    ndkVersion = "29.0.13846066"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // 启用 core library desugaring（flutter_local_notifications 需要）
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -39,6 +43,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // 支持 16 KB 页面大小（Android 16+）
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
     }
 
     signingConfigs {
@@ -73,8 +82,20 @@ android {
             enableSplit = false
         }
     }
+    
+    // 支持 16 KB 页面大小（Android 16+）
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Core library desugaring（flutter_local_notifications 需要）
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

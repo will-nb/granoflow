@@ -314,6 +314,36 @@ class _InMemoryProjectRepository implements ProjectRepository {
       _projects.values.toList(growable: false);
 
   @override
+  Future<Project> createProjectWithId(
+    ProjectDraft draft,
+    String projectId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    final project = Project(
+      id: _nextId++,
+      projectId: projectId,
+      title: draft.title,
+      status: draft.status,
+      dueAt: draft.dueAt,
+      startedAt: draft.startedAt,
+      endedAt: draft.endedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      sortIndex: draft.sortIndex,
+      tags: List<String>.from(draft.tags),
+      templateLockCount: draft.templateLockCount,
+      seedSlug: draft.seedSlug,
+      allowInstantComplete: draft.allowInstantComplete,
+      description: draft.description,
+      logs: List<ProjectLogEntry>.from(draft.logs),
+    );
+    _projects[project.id] = project;
+    _emit();
+    return project;
+  }
+
+  @override
   Stream<List<Project>> watchActiveProjects() => watchProjectsByStatus(
         ProjectFilterStatus.active,
       );
@@ -450,6 +480,50 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
     return null;
   }
 
+  @override
+  Future<Milestone> createMilestoneWithId(
+    MilestoneDraft draft,
+    String milestoneId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    final milestone = Milestone(
+      id: _nextId++,
+      milestoneId: milestoneId,
+      projectId: draft.projectId,
+      title: draft.title,
+      status: draft.status,
+      dueAt: draft.dueAt,
+      startedAt: draft.startedAt,
+      endedAt: draft.endedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      sortIndex: draft.sortIndex,
+      tags: List<String>.from(draft.tags),
+      templateLockCount: draft.templateLockCount,
+      seedSlug: draft.seedSlug,
+      allowInstantComplete: draft.allowInstantComplete,
+      description: draft.description,
+      logs: List<MilestoneLogEntry>.from(draft.logs),
+    );
+    _milestones[milestone.id] = milestone;
+    _emitForProject(milestone.projectId);
+    return milestone;
+  }
+
+  @override
+  Future<List<Milestone>> listAll() async {
+    return _milestones.values.toList(growable: false);
+  }
+
+  @override
+  Future<void> setMilestoneProjectIsarId(
+    int milestoneId,
+    int projectIsarId,
+  ) async {
+    // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
+  }
+
   void _emitForProject(String projectId) {
     final snapshot = _milestones.values.toList(growable: false);
     if (_controller.hasListener) {
@@ -515,6 +589,11 @@ class _NoopFocusSessionRepository implements FocusSessionRepository {
 
   @override
   Future<int> totalMinutesForTask(int taskId) async => 0;
+
+  @override
+  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+    return {for (final taskId in taskIds) taskId: 0};
+  }
 
   @override
   Future<int> totalMinutesOverall() async => 0;

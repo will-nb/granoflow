@@ -183,6 +183,28 @@
   "inboxTemplateApplied": "模板已套用。",
   "inboxTemplateEmpty": "暫時沒有模板推薦。",
   "inboxTemplateError": "套用模板失敗",
+  "importComplete": "導入完成",
+  "importData": "導入數據",
+  "importDataDescription": "從文件導入項目、里程碑和任務",
+  "importErrors": "錯誤",
+  "importFailed": "導入失敗",
+  "importMilestonesCreated": "里程碑已創建",
+  "importMilestonesSkipped": "里程碑已跳過",
+  "importMilestonesUpdated": "里程碑已更新",
+  "importMoreErrors": "還有 {count} 個錯誤",
+  "@importMoreErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importProjectsCreated": "項目已創建",
+  "importProjectsSkipped": "項目已跳過",
+  "importProjectsUpdated": "項目已更新",
+  "importTasksCreated": "任務已創建",
+  "importTasksSkipped": "任務已跳過",
+  "importTasksUpdated": "任務已更新",
   "language": "語言",
   "leafTask": "葉節點任務",
   "markAsWastedTime": "標記為浪費時間",
@@ -207,49 +229,147 @@
   "plannerSectionTomorrowTitle": "明天",
   "plannerSectionThisWeekTitle": "本週",
   "plannerSectionThisMonthTitle": "當月",
-  "pomodoroTimer": "番茄時鐘",
-  "pomodoroBack": "返回",
-  "pomodoroComplete": "完成",
-  "pomodoroCountdownDuration": "倒計時時長：{minutes} 分鐘",
-  "@pomodoroCountdownDuration": {
+  "clockTimer": "計時器",
+  "clockBack": "返回",
+  "clockComplete": "完成",
+  "clockCountdownDuration": "倒計時時長：{minutes} 分鐘",
+  "@clockCountdownDuration": {
     "placeholders": {
       "minutes": {
         "type": "int"
       }
     }
   },
-  "pomodoroLevel3Warning": "在這個任務上花費時間過多，建議放棄任務，改用其他方式解決",
-  "pomodoroLoadFailed": "載入失敗：{error}",
-  "@pomodoroLoadFailed": {
+  "clockLevel3Warning": "在這個任務上花費時間過多，建議放棄任務，改用其他方式解決",
+  "clockLoadFailed": "載入失敗：{error}",
+  "@clockLoadFailed": {
     "placeholders": {
       "error": {
         "type": "String"
       }
     }
   },
-  "pomodoroMinutes": "{minutes} 分鐘",
-  "@pomodoroMinutes": {
+  "clockMinutes": "{minutes} 分鐘",
+  "@clockMinutes": {
     "placeholders": {
       "minutes": {
         "type": "int"
       }
     }
   },
-  "pomodoroOvertimeSubtaskTitle": "任務過於複雜，需要重新分析拆分。",
-  "pomodoroPause": "暫停",
-  "pomodoroResume": "繼續",
-  "pomodoroStart": "開始",
-  "pomodoroStartButton": "開始",
-  "pomodoroSubtasks": "子任務",
-  "pomodoroTaskAnalysis": "任務分析",
-  "pomodoroTaskAnalysisHint": "輸入任務分析...",
-  "pomodoroTaskNotFound": "任務不存在",
-  "pomodoroTurnOffSound": "關閉聲音",
-  "pomodoroTurnOnSound": "開啟聲音",
+  "clockOvertimeSubtaskTitle": "任務過於複雜，需要重新分析拆分。",
+  "clockPause": "暫停",
+  "clockResume": "繼續",
+  "clockStart": "開始",
+  "clockStartButton": "開始",
+  "clockSubtasks": "子任務",
+  "clockTaskAnalysis": "任務分析",
+  "clockTaskAnalysisHint": "輸入任務分析...",
+  "clockTaskNotFound": "任務不存在",
+  "clockTurnOffSound": "關閉聲音",
+  "clockTurnOnSound": "開啟聲音",
   "profile": "個人資料",
   "reactivate": "重新啟用",
   "reactivateTask": "重新啟用任務",
   "restoreTask": "復原任務",
+  "reviewActiveProjectsCountMessage": "其中，正在進行中的專案有{activeProjectCount}個，分別是：",
+  "@reviewActiveProjectsCountMessage": {
+    "placeholders": {
+      "activeProjectCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewClosingMessage": "今天又是新的一天，讓我們繼續努力，迎接美好的明天。",
+  "reviewCopiedMessage": "文章已複製到剪貼簿",
+  "reviewCopyButton": "複製文章",
+  "reviewExportButton": "匯出文章",
+  "reviewLabelDaily": "日報",
+  "reviewLabelMonthly": "月報",
+  "reviewLabelQuarterly": "季報",
+  "reviewLabelReview": "回顧",
+  "reviewLabelWeekly": "週報",
+  "reviewLabelYearly": "年報",
+  "reviewLongestArchivedTaskMessage": "您明智地決定放棄這個任務，把時間和精力放到更重要的地方。人生中，選擇往往比努力更加重要。恭喜你，再次節約了寶貴的時間和精力。",
+  "reviewLongestCompletedTaskCompletionMessage": "最終，您認真分析和拆分任務，憑藉自己的努力解決了這個問題。",
+  "reviewLongestCompletedTaskMessage": "{date}，您遇到了一個非常讓您困擾的問題：\"{taskTitle}\"，總計花費了{totalMinutes}分鐘時間",
+  "@reviewLongestCompletedTaskMessage": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "taskTitle": {
+        "type": "String"
+      },
+      "totalMinutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewMostCompletedRootTasksDayMessage": "{date}，你有如神助，完成了{taskCount}個任務，總計花費時間{totalHours}小時",
+  "@reviewMostCompletedRootTasksDayMessage": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "taskCount": {
+        "type": "int"
+      },
+      "totalHours": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewNewUserHint": "您剛剛使用我們的專案不久，能夠總結的內容不多。隨著您的任務數和專案數積累，我們將進行更多分析和回顧，",
+  "reviewNoLongCompletedTaskMessage": "恭喜您，您的工作一番風順，至今還沒有遇到必須克服的難題。",
+  "reviewNoProjectsMessage": "您目前還沒有建立專案",
+  "reviewProjectItemFormat": "{projectName}：包含{taskCount}個任務",
+  "@reviewProjectItemFormat": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "taskCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStandaloneTasksMessage": "您目前有{totalCount}條單獨任務，其中正在進行的有{activeCount}條，已經完成的{completedCount}條，歸檔處理的{archivedCount}條",
+  "@reviewStandaloneTasksMessage": {
+    "placeholders": {
+      "totalCount": {
+        "type": "int"
+      },
+      "activeCount": {
+        "type": "int"
+      },
+      "completedCount": {
+        "type": "int"
+      },
+      "archivedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewStatsMessage": "現在，您擁有{projectCount}個專案，{taskCount}個任務",
+  "@reviewStatsMessage": {
+    "placeholders": {
+      "projectCount": {
+        "type": "int"
+      },
+      "taskCount": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewWelcomeMessage": "歡迎您，今天是您使用本app的第{dayCount}天",
+  "@reviewWelcomeMessage": {
+    "placeholders": {
+      "dayCount": {
+        "type": "int"
+      }
+    }
+  },
   "sessionComplete": "時段完成",
   "settings": "設定",
   "settingsFontSizeLabel": "字體大小",
@@ -262,6 +382,11 @@
   "settingsLanguageSimplifiedChinese": "簡體中文",
   "settingsLanguageTraditionalChinese": "繁體中文",
   "settingsSection": "設定",
+  "settingsClockSection": "計時器",
+  "settingsClockTickSound": "滴答聲",
+  "settingsClockTickSoundDescription": "在計時期間播放滴答聲和提醒",
+  "settingsExportImportSection": "導出與導入",
+  "settingsTaskManagement": "任務管理",
   "settingsThemeDark": "深色",
   "settingsThemeLabel": "主題",
   "settingsThemeLight": "淺色",

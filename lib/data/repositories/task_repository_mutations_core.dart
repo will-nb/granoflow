@@ -20,33 +20,61 @@ mixin TaskRepositoryMutationsCore
     return _isar.writeTxn<Task>(() async {
       final now = _clock();
       final taskId = await _generateTaskId(now);
-      final entity = TaskEntity()
-        ..taskId = taskId
-        ..title = draft.title
-        ..status = draft.status
-        ..dueAt = draft.dueAt
-        ..startedAt = null
-        ..endedAt = null
-        ..archivedAt = null
-        ..createdAt = now
-        ..updatedAt = now
-        ..parentId = draft.parentId
-        ..parentTaskId = draft.parentTaskId ?? draft.parentId
-        ..projectId = draft.projectId
-        ..projectIsarId = null
-        ..milestoneId = draft.milestoneId
-        ..milestoneIsarId = null
-        ..sortIndex = draft.sortIndex
-        ..tags = draft.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
-        ..templateLockCount = 0
-        ..seedSlug = draft.seedSlug
-        ..allowInstantComplete = draft.allowInstantComplete
-        ..description = draft.description
-        ..logs = draft.logs.map(_logFromDomain).toList();
-      final id = await _isar.taskEntitys.put(entity);
-      entity.id = id;
-      return _toDomain(entity);
+      return await _createTaskWithIdInternal(draft, taskId, now, now);
     });
+  }
+
+  /// 使用指定的 taskId 创建任务（用于导入）
+  @override
+  Future<Task> createTaskWithId(
+    TaskDraft draft,
+    String taskId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    return _isar.writeTxn<Task>(() async {
+      return await _createTaskWithIdInternal(
+        draft,
+        taskId,
+        createdAt,
+        updatedAt,
+      );
+    });
+  }
+
+  /// 内部方法：使用指定的 taskId 创建任务实体
+  Future<Task> _createTaskWithIdInternal(
+    TaskDraft draft,
+    String taskId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    final entity = TaskEntity()
+      ..taskId = taskId
+      ..title = draft.title
+      ..status = draft.status
+      ..dueAt = draft.dueAt
+      ..startedAt = null
+      ..endedAt = null
+      ..archivedAt = null
+      ..createdAt = createdAt
+      ..updatedAt = updatedAt
+      ..parentId = draft.parentId
+      ..parentTaskId = draft.parentTaskId ?? draft.parentId
+      ..projectId = draft.projectId
+      ..projectIsarId = null
+      ..milestoneId = draft.milestoneId
+      ..milestoneIsarId = null
+      ..sortIndex = draft.sortIndex
+      ..tags = draft.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
+      ..templateLockCount = 0
+      ..seedSlug = draft.seedSlug
+      ..allowInstantComplete = draft.allowInstantComplete
+      ..description = draft.description
+      ..logs = draft.logs.map(_logFromDomain).toList();
+    final id = await _isar.taskEntitys.put(entity);
+    entity.id = id;
+    return _toDomain(entity);
   }
 
   /// 应用任务更新到实体对象

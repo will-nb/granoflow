@@ -18,9 +18,34 @@ abstract class MilestoneRepository {
 
   Future<Milestone> create(MilestoneDraft draft);
 
+  /// 使用指定的 milestoneId 创建里程碑（用于导入）
+  /// 
+  /// [draft] 里程碑草稿，其中的 milestoneId 将被忽略
+  /// [milestoneId] 要使用的业务ID
+  /// [createdAt] 创建时间（从导入数据中获取）
+  /// [updatedAt] 更新时间（从导入数据中获取）
+  Future<Milestone> createMilestoneWithId(
+    MilestoneDraft draft,
+    String milestoneId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  );
+
   Future<void> update(int isarId, MilestoneUpdate update);
 
+  /// 设置里程碑的 projectIsarId（用于导入）
+  /// 
+  /// [milestoneId] 里程碑的 Isar ID
+  /// [projectIsarId] 项目的 Isar ID
+  Future<void> setMilestoneProjectIsarId(
+    int milestoneId,
+    int projectIsarId,
+  );
+
   Future<void> delete(int isarId);
+
+  /// 列出所有里程碑（用于导出）
+  Future<List<Milestone>> listAll();
 }
 
 class IsarMilestoneRepository implements MilestoneRepository {
@@ -77,28 +102,67 @@ class IsarMilestoneRepository implements MilestoneRepository {
   Future<Milestone> create(MilestoneDraft draft) async {
     return _isar.writeTxn<Milestone>(() async {
       final now = _clock();
-      final entity = MilestoneEntity()
-        ..milestoneId = draft.milestoneId
-        ..projectId = draft.projectId
-        ..projectIsarId = null
-        ..title = draft.title
-        ..status = draft.status
-        ..dueAt = draft.dueAt
-        ..startedAt = draft.startedAt
-        ..endedAt = draft.endedAt
-        ..createdAt = now
-        ..updatedAt = now
-        ..sortIndex = draft.sortIndex
-        ..tags = draft.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
-        ..templateLockCount = draft.templateLockCount
-        ..seedSlug = draft.seedSlug
-        ..allowInstantComplete = draft.allowInstantComplete
-        ..description = draft.description
-        ..logs = draft.logs.map(_logFromDomain).toList();
-      final id = await _isar.milestoneEntitys.put(entity);
-      entity.id = id;
-      return _toDomain(entity);
+      return await _createMilestoneWithIdInternal(
+        draft,
+        draft.milestoneId,
+        now,
+        now,
+      );
     });
+  }
+
+  @override
+  Future<Milestone> createMilestoneWithId(
+    MilestoneDraft draft,
+    String milestoneId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    return _isar.writeTxn<Milestone>(() async {
+      return await _createMilestoneWithIdInternal(
+        draft,
+        milestoneId,
+        createdAt,
+        updatedAt,
+      );
+    });
+  }
+
+  /// 内部方法：使用指定的 milestoneId 创建里程碑实体
+  Future<Milestone> _createMilestoneWithIdInternal(
+    MilestoneDraft draft,
+    String milestoneId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    final entity = MilestoneEntity()
+      ..milestoneId = milestoneId
+      ..projectId = draft.projectId
+      ..projectIsarId = null
+      ..title = draft.title
+      ..status = draft.status
+      ..dueAt = draft.dueAt
+      ..startedAt = draft.startedAt
+      ..endedAt = draft.endedAt
+      ..createdAt = createdAt
+      ..updatedAt = updatedAt
+      ..sortIndex = draft.sortIndex
+      ..tags = draft.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
+      ..templateLockCount = draft.templateLockCount
+      ..seedSlug = draft.seedSlug
+      ..allowInstantComplete = draft.allowInstantComplete
+      ..description = draft.description
+      ..logs = draft.logs.map(_logFromDomain).toList();
+    final id = await _isar.milestoneEntitys.put(entity);
+    entity.id = id;
+    return _toDomain(entity);
+  }
+
+  @override
+  Future<List<Milestone>> listAll() async {
+    final entities = await _isar.milestoneEntitys.where().findAll();
+    entities.sort(_compareByDueThenCreated);
+    return entities.map(_toDomain).toList(growable: false);
   }
 
   @override
@@ -131,6 +195,23 @@ class IsarMilestoneRepository implements MilestoneRepository {
             ? update.logs!.map(_logFromDomain).toList()
             : entity.logs
         ..updatedAt = _clock();
+
+      await _isar.milestoneEntitys.put(entity);
+    });
+  }
+
+  @override
+  Future<void> setMilestoneProjectIsarId(
+    int milestoneId,
+    int projectIsarId,
+  ) async {
+    await _isar.writeTxn(() async {
+      final entity = await _isar.milestoneEntitys.get(milestoneId);
+      if (entity == null) {
+        return;
+      }
+
+      entity.projectIsarId = projectIsarId;
 
       await _isar.milestoneEntitys.put(entity);
     });

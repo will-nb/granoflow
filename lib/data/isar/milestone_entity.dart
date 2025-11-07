@@ -10,6 +10,7 @@ class MilestoneEntity {
 
   Id id = Isar.autoIncrement;
 
+  @Index()
   late String milestoneId;
 
   @Index()

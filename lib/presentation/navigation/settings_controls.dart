@@ -4,13 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/constants/font_scale_constants.dart';
 import '../../core/constants/font_scale_level.dart';
-import '../../core/providers/pomodoro_audio_preference_provider.dart';
+import '../../core/providers/clock_audio_preference_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
-import '../completion_management/completed_page.dart';
-import '../completion_management/trash_page.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import 'widgets/export_import_section.dart';
 
 class SettingsControlsPage extends ConsumerWidget {
   const SettingsControlsPage({super.key});
@@ -139,43 +138,13 @@ class SettingsControlsPage extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         _SettingCard(
-          title: l10n.settingsPomodoroSection,
-          child: const _PomodoroTickSoundSwitch(),
+          title: l10n.settingsClockSection,
+          child: const _ClockTickSoundSwitch(),
         ),
         const SizedBox(height: 16),
         _SettingCard(
-          title: l10n.settingsTaskManagement,
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.task_alt),
-                title: Text(l10n.appShellCompleted),
-                subtitle: Text(l10n.settingsViewCompletedTasks),
-                onTap: () {
-                  // Navigate to completed tasks
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const CompletedPage(),
-                    ),
-                  );
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: Text(l10n.appShellTrash),
-                subtitle: Text(l10n.settingsViewDeletedTasks),
-                onTap: () {
-                  // Navigate to trash
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const TrashPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+          title: l10n.settingsExportImportSection,
+          child: const ExportImportSection(),
         ),
       ],
     ),
@@ -209,22 +178,22 @@ class _SettingCard extends StatelessWidget {
   }
 }
 
-/// 番茄时钟音频开关组件
-class _PomodoroTickSoundSwitch extends ConsumerWidget {
-  const _PomodoroTickSoundSwitch();
+/// 计时器音频开关组件
+class _ClockTickSoundSwitch extends ConsumerWidget {
+  const _ClockTickSoundSwitch();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final audioEnabledAsync = ref.watch(pomodoroTickSoundEnabledProvider);
+    final audioEnabledAsync = ref.watch(clockTickSoundEnabledProvider);
     
     return audioEnabledAsync.when(
       data: (enabled) => SwitchListTile(
-        title: Text(l10n.settingsPomodoroTickSound),
-        subtitle: Text(l10n.settingsPomodoroTickSoundDescription),
+        title: Text(l10n.settingsClockTickSound),
+        subtitle: Text(l10n.settingsClockTickSoundDescription),
         value: enabled,
         onChanged: (value) {
-          updatePomodoroTickSoundEnabled(ref, value);
+          updateClockTickSoundEnabled(ref, value);
         },
       ),
       loading: () => ListTile(

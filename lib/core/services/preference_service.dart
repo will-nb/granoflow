@@ -26,7 +26,7 @@ class PreferenceService {
     return update(PreferenceUpdate(fontScaleLevel: level));
   }
 
-  Future<void> updatePomodoroTickSoundEnabled(bool enabled) {
-    return update(PreferenceUpdate(pomodoroTickSoundEnabled: enabled));
+  Future<void> updateClockTickSoundEnabled(bool enabled) {
+    return update(PreferenceUpdate(clockTickSoundEnabled: enabled));
   }
 }

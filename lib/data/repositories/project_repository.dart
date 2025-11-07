@@ -21,6 +21,19 @@ abstract class ProjectRepository {
 
   Future<Project> create(ProjectDraft draft);
 
+  /// 使用指定的 projectId 创建项目（用于导入）
+  /// 
+  /// [draft] 项目草稿，其中的 projectId 将被忽略
+  /// [projectId] 要使用的业务ID
+  /// [createdAt] 创建时间（从导入数据中获取）
+  /// [updatedAt] 更新时间（从导入数据中获取）
+  Future<Project> createProjectWithId(
+    ProjectDraft draft,
+    String projectId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  );
+
   Future<void> update(int isarId, ProjectUpdate update);
 
   Future<void> delete(int isarId);
@@ -90,26 +103,58 @@ class IsarProjectRepository implements ProjectRepository {
   Future<Project> create(ProjectDraft draft) async {
     return _isar.writeTxn<Project>(() async {
       final now = _clock();
-      final entity = ProjectEntity()
-        ..projectId = draft.projectId
-        ..title = draft.title
-        ..status = draft.status
-        ..dueAt = draft.dueAt
-        ..startedAt = draft.startedAt
-        ..endedAt = draft.endedAt
-        ..createdAt = now
-        ..updatedAt = now
-        ..sortIndex = draft.sortIndex
-        ..tags = draft.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
-        ..templateLockCount = draft.templateLockCount
-        ..seedSlug = draft.seedSlug
-        ..allowInstantComplete = draft.allowInstantComplete
-        ..description = draft.description
-        ..logs = draft.logs.map(_logFromDomain).toList();
-      final id = await _isar.projectEntitys.put(entity);
-      entity.id = id;
-      return _toDomain(entity);
+      return await _createProjectWithIdInternal(
+        draft,
+        draft.projectId,
+        now,
+        now,
+      );
     });
+  }
+
+  @override
+  Future<Project> createProjectWithId(
+    ProjectDraft draft,
+    String projectId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    return _isar.writeTxn<Project>(() async {
+      return await _createProjectWithIdInternal(
+        draft,
+        projectId,
+        createdAt,
+        updatedAt,
+      );
+    });
+  }
+
+  /// 内部方法：使用指定的 projectId 创建项目实体
+  Future<Project> _createProjectWithIdInternal(
+    ProjectDraft draft,
+    String projectId,
+    DateTime createdAt,
+    DateTime updatedAt,
+  ) async {
+    final entity = ProjectEntity()
+      ..projectId = projectId
+      ..title = draft.title
+      ..status = draft.status
+      ..dueAt = draft.dueAt
+      ..startedAt = draft.startedAt
+      ..endedAt = draft.endedAt
+      ..createdAt = createdAt
+      ..updatedAt = updatedAt
+      ..sortIndex = draft.sortIndex
+      ..tags = draft.tags.map((tag) => TagService.normalizeSlug(tag)).toList()
+      ..templateLockCount = draft.templateLockCount
+      ..seedSlug = draft.seedSlug
+      ..allowInstantComplete = draft.allowInstantComplete
+      ..description = draft.description
+      ..logs = draft.logs.map(_logFromDomain).toList();
+    final id = await _isar.projectEntitys.put(entity);
+    entity.id = id;
+    return _toDomain(entity);
   }
 
   @override
