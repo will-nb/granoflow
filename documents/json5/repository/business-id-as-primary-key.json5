@@ -396,6 +396,11 @@
         { task: "git checkout -b refactor/objectbox-business-id" },
         { task: "更新 pubspec.yaml 并执行 flutter pub get" },
       ],
+      verification: {
+        analyze: "flutter analyze（必须通过）",
+        test: "flutter test（可选，验证环境正常）",
+        note: "此阶段还未修改代码，可以运行所有测试验证环境",
+      },
     },
     {
       step: 2,
@@ -407,6 +412,12 @@
         { task: "新建 ObjectBox 实体文件" },
         { task: "执行 `flutter pub run build_runner build --delete-conflicting-outputs` 生成 objectbox.g.dart" },
       ],
+      verification: {
+        analyze: "flutter analyze（必须通过）",
+        test: "flutter test test/data/database/（仅运行新增的 DatabaseAdapter 测试）",
+        note: "⚠️ 重要：此阶段只运行 test/data/database/ 下的测试，不要运行其他测试（Repository/Service/UI 测试会失败，因为依赖还没实现）",
+        dartFix: "dart fix --dry-run（预览修复，审查后再应用）",
+      },
     },
     {
       step: 3,
@@ -417,6 +428,12 @@
         { task: "更新 repository_providers.dart 注入新实现" },
         { task: "更新 main.dart 初始化 DatabaseAdapter" },
       ],
+      verification: {
+        analyze: "flutter analyze（必须通过）",
+        test: "flutter test test/data/repositories/objectbox_*_repository_test.dart（仅运行新增的 ObjectBox Repository 测试）",
+        note: "⚠️ 重要：此阶段只运行新增的 ObjectBox Repository 测试，不要运行 Service/UI 测试（因为模型还是 int id，Service 层还没改）",
+        dartFix: "dart fix --dry-run（预览修复，审查后再应用）",
+      },
     },
     {
       step: 4,
@@ -427,6 +444,12 @@
         { task: "更新各 Service（CRUD/Status/Hierarchy/Drag/SortIndex/Project）" },
         { task: "重写 ImportService/ExportService/SeedImportService 的 id 逻辑" },
       ],
+      verification: {
+        analyze: "flutter analyze（必须通过）",
+        test: "flutter test test/core/services/（仅运行 Service 层测试）",
+        note: "⚠️ 重要：此阶段只运行 test/core/services/ 下的测试，不要运行 UI 测试（因为 UI 层可能还没改完）",
+        dartFix: "dart fix --dry-run（预览修复，审查后再应用）",
+      },
     },
     {
       step: 5,
@@ -435,6 +458,12 @@
         { task: "扫查 lib/presentation/**，确保所有 id 字段为 String" },
         { task: "更新 Provider 层确保仅依赖新 Repository" },
       ],
+      verification: {
+        analyze: "flutter analyze（必须通过）",
+        test: "flutter test test/presentation/（仅运行 UI 层测试）",
+        note: "⚠️ 重要：此阶段只运行 test/presentation/ 下的测试，确保 UI 层修改正确",
+        dartFix: "dart fix --dry-run（预览修复，审查后再应用）",
+      },
     },
     {
       step: 6,
@@ -445,6 +474,12 @@
         { task: "更新 scripts/anz 及相关模块" },
         { task: "执行 flutter test --coverage 确保单元测试通过" },
       ],
+      verification: {
+        analyze: "flutter analyze（必须通过）",
+        test: "flutter test（运行所有测试，因为代码和测试都已更新）",
+        note: "此阶段所有代码和测试都已更新，可以运行完整测试套件",
+        dartFix: "dart fix --dry-run（预览修复，审查后再应用）",
+      },
     },
     {
       step: 7,
@@ -456,6 +491,12 @@
         { task: "在 CHANGELOG 记录 Breaking Change" },
         { task: "提示需要运行集成测试进行检查（见第 11 节集成测试检查清单）" },
       ],
+      verification: {
+        analyze: "flutter analyze（必须通过，零错误零警告）",
+        test: "flutter test（运行所有测试，必须全部通过）",
+        note: "最终验证阶段，确保所有代码和测试都正确",
+        dartFix: "dart fix --dry-run（最后检查，确保没有遗漏的修复）",
+      },
     },
   ],
 
