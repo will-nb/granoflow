@@ -14,16 +14,16 @@ import 'task_query_providers.dart';
 /// [tasks] 任务列表
 /// [repository] 任务仓库
 /// 返回 taskId -> level 的映射（level = depth + 1）
-Future<Map<int, int>> _calculateTaskLevelMap(
+Future<Map<String, int>> _calculateTaskLevelMap(
   List<Task> tasks,
   TaskRepository repository,
 ) async {
-  final levelMap = <int, int>{};
+  final levelMap = <String, int>{};
 
   // 批量计算所有任务的 level
   for (final task in tasks) {
     final depth = await calculateHierarchyDepth(task, repository);
-    levelMap[task.id] = depth + 1;
+      levelMap[task.id] = depth + 1;
   }
 
   return levelMap;
@@ -46,7 +46,7 @@ Future<Map<int, int>> _calculateTaskLevelMap(
 ///   error: (_, __) => SizedBox.shrink(),
 /// );
 /// ```
-final inboxTaskLevelMapProvider = FutureProvider<Map<int, int>>((ref) async {
+final inboxTaskLevelMapProvider = FutureProvider<Map<String, int>>((ref) async {
   final tasksAsync = ref.watch(inboxTasksProvider);
   final tasks = await tasksAsync.requireValue;
   final taskRepository = ref.watch(taskRepositoryProvider);
@@ -63,11 +63,11 @@ final inboxTaskLevelMapProvider = FutureProvider<Map<int, int>>((ref) async {
 /// final tasksAsync = ref.watch(someTaskListProvider);
 /// final levelMapAsync = tasksAsync.when(
 ///   data: (tasks) => ref.watch(taskLevelMapProvider(tasks)),
-///   loading: () => const AsyncLoading<Map<int, int>>(),
-///   error: (_, __) => const AsyncError<Map<int, int>>(null, StackTrace.empty),
+///   loading: () => const AsyncLoading<Map<String, int>>(),
+///   error: (_, __) => const AsyncError<Map<String, int>>(null, StackTrace.empty),
 /// );
 /// ```
-final taskLevelMapProvider = FutureProvider.family<Map<int, int>, List<Task>>((
+final taskLevelMapProvider = FutureProvider.family<Map<String, int>, List<Task>>((
   ref,
   tasks,
 ) async {
@@ -76,18 +76,18 @@ final taskLevelMapProvider = FutureProvider.family<Map<int, int>, List<Task>>((
 });
 
 /// 辅助函数：递归获取所有后代任务 ID
-Future<Set<int>> _getAllDescendants(
-  int taskId,
+Future<Set<String>> _getAllDescendants(
+  String taskId,
   TaskRepository repository,
 ) async {
-  final result = <int>{};
+  final result = <String>{};
   final children = await repository.listChildren(taskId);
   final normalChildren = children
       .where((t) => !isProjectOrMilestone(t))
       .toList();
 
   for (final child in normalChildren) {
-    result.add(child.id);
+      result.add(child.id);
     result.addAll(await _getAllDescendants(child.id, repository));
   }
 
@@ -104,31 +104,31 @@ Future<Set<int>> _getAllDescendants(
 /// final childrenMapAsync = ref.watch(inboxTaskChildrenMapProvider);
 /// return childrenMapAsync.when(
 ///   data: (childrenMap) {
-///     final childTaskIds = childrenMap[task.id] ?? <int>{};
+///     final childTaskIds = childrenMap[task.id] ?? <String>{};
 ///     // ...
 ///   },
 ///   loading: () => CircularProgressIndicator(),
 ///   error: (_, __) => SizedBox.shrink(),
 /// );
 /// ```
-final inboxTaskChildrenMapProvider = FutureProvider<Map<int, Set<int>>>((
+final inboxTaskChildrenMapProvider = FutureProvider<Map<String, Set<String>>>((
   ref,
 ) async {
   final tasksAsync = ref.watch(inboxTasksProvider);
   final tasks = await tasksAsync.requireValue;
   final taskRepository = ref.watch(taskRepositoryProvider);
-  final childrenMap = <int, Set<int>>{};
+  final childrenMap = <String, Set<String>>{};
 
   // 为每个任务查找所有子任务
   for (final task in tasks) {
     final children = await taskRepository.listChildren(task.id);
-    final normalChildren = children
-        .where((t) => !isProjectOrMilestone(t))
-        .map((t) => t.id)
-        .toSet();
+      final normalChildren = children
+          .where((t) => !isProjectOrMilestone(t))
+          .map((t) => t.id)
+          .toSet();
 
     // 递归添加子任务的子任务
-    final allChildren = <int>{...normalChildren};
+      final allChildren = <String>{...normalChildren};
     for (final childId in normalChildren) {
       final childChildren = await _getAllDescendants(childId, taskRepository);
       allChildren.addAll(childChildren);
@@ -141,7 +141,7 @@ final inboxTaskChildrenMapProvider = FutureProvider<Map<int, Set<int>>>((
 });
 
 /// Provider for getting the parent task of a task (could be project or milestone)
-final taskParentProvider = FutureProvider.family<Task?, int>((
+final taskParentProvider = FutureProvider.family<Task?, String>((
   ref,
   taskId,
 ) async {
@@ -161,39 +161,39 @@ class TaskProjectHierarchy {
 }
 
 final taskProjectHierarchyProvider =
-    StreamProvider.family<TaskProjectHierarchy?, int>((ref, taskId) async* {
-      // 使用 watchTaskById 监听任务变化，这样当任务的项目/里程碑字段更新时，会自动触发
-      final taskStream = ref.watch(taskRepositoryProvider).watchTaskById(taskId);
-      await for (final task in taskStream) {
-        if (task == null) {
-          yield null;
-          continue;
-        }
+    StreamProvider.family<TaskProjectHierarchy?, String>((ref, taskId) async* {
+  // 使用 watchTaskById 监听任务变化，这样当任务的项目/里程碑字段更新时，会自动触发
+  final taskStream = ref.watch(taskRepositoryProvider).watchTaskById(taskId);
+  await for (final task in taskStream) {
+    if (task == null) {
+      yield null;
+      continue;
+    }
 
-        final projectId = task.projectId;
-        if (projectId == null || projectId.isEmpty) {
-          yield null;
-          continue;
-        }
+    final projectId = task.projectId;
+    if (projectId == null || projectId.isEmpty) {
+      yield null;
+      continue;
+    }
 
-        final projectService = ref.watch(projectServiceProvider);
-        final project = await projectService.findByProjectId(projectId);
-        if (project == null) {
-          yield null;
-          continue;
-        }
+    final projectService = ref.watch(projectServiceProvider);
+    final project = await projectService.findById(projectId);
+    if (project == null) {
+      yield null;
+      continue;
+    }
 
-        Milestone? milestone;
-        final milestoneId = task.milestoneId;
-        if (milestoneId != null && milestoneId.isNotEmpty) {
-          milestone = await projectService.findMilestoneById(milestoneId);
-        }
+    Milestone? milestone;
+    final milestoneId = task.milestoneId;
+    if (milestoneId != null && milestoneId.isNotEmpty) {
+      milestone = await projectService.findMilestoneById(milestoneId);
+    }
 
-        yield TaskProjectHierarchy(project: project, milestone: milestone);
-      }
-    });
+    yield TaskProjectHierarchy(project: project, milestone: milestone);
+  }
+});
 
-final taskTreeProvider = StreamProvider.family<TaskTreeNode, int>((
+final taskTreeProvider = StreamProvider.family<TaskTreeNode, String>((
   ref,
   rootId,
 ) {
@@ -218,7 +218,7 @@ final taskTreeProvider = StreamProvider.family<TaskTreeNode, int>((
 /// );
 /// ```
 final tasksSectionTaskLevelMapProvider =
-    FutureProvider.family<Map<int, int>, TaskSection>((ref, section) async {
+    FutureProvider.family<Map<String, int>, TaskSection>((ref, section) async {
   final tasksAsync = ref.watch(taskSectionsProvider(section));
   final tasks = await tasksAsync.requireValue;
   final taskRepository = ref.watch(taskRepositoryProvider);
@@ -243,22 +243,22 @@ final tasksSectionTaskLevelMapProvider =
 /// );
 /// ```
 final tasksSectionTaskChildrenMapProvider =
-    FutureProvider.family<Map<int, Set<int>>, TaskSection>((ref, section) async {
+    FutureProvider.family<Map<String, Set<String>>, TaskSection>((ref, section) async {
   final tasksAsync = ref.watch(taskSectionsProvider(section));
   final tasks = await tasksAsync.requireValue;
   final taskRepository = ref.watch(taskRepositoryProvider);
-  final childrenMap = <int, Set<int>>{};
+  final childrenMap = <String, Set<String>>{};
 
   // 为每个任务查找所有子任务
   for (final task in tasks) {
     final children = await taskRepository.listChildren(task.id);
-    final normalChildren = children
-        .where((t) => !isProjectOrMilestone(t))
-        .map((t) => t.id)
-        .toSet();
+      final normalChildren = children
+          .where((t) => !isProjectOrMilestone(t))
+          .map((t) => t.id)
+          .toSet();
 
     // 递归添加子任务的子任务
-    final allChildren = <int>{...normalChildren};
+      final allChildren = <String>{...normalChildren};
     for (final childId in normalChildren) {
       final childChildren = await _getAllDescendants(childId, taskRepository);
       allChildren.addAll(childChildren);

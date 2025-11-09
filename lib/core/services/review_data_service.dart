@@ -118,15 +118,15 @@ class ReviewDataService {
     final projectInfos = <ReviewProjectInfo>[];
     for (final project in activeProjects) {
       // 统计该项目下的根任务数量（排除 trashed，只统计根任务）
-      final taskCount = allTasks
-          .where((task) =>
-              task.projectId == project.projectId &&
-              task.status != TaskStatus.trashed &&
-              task.parentId == null)
-          .length;
+        final taskCount = allTasks
+            .where((task) =>
+                task.projectId == project.id &&
+                task.status != TaskStatus.trashed &&
+                task.parentId == null)
+            .length;
 
       projectInfos.add(ReviewProjectInfo(
-        projectId: project.projectId,
+          projectId: project.id,
         name: project.title,
         taskCount: taskCount,
       ));

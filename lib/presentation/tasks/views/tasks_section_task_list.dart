@@ -134,7 +134,7 @@ class _TasksSectionTaskListState
             }
 
             // 创建任务 ID 到是否有子任务的映射（用于显示展开/收缩按钮，使用工具类）
-            final taskIdToHasChildren = <int, bool>{};
+              final taskIdToHasChildren = <String, bool>{};
             for (final tree in taskTrees) {
               TaskListTreeBuilder.populateHasChildrenMap(
                 tree,
@@ -147,7 +147,7 @@ class _TasksSectionTaskListState
             final rootTasks = collectRoots(filteredTasks);
 
             // 创建任务映射：任务 ID -> 根任务索引（仅用于根任务）
-            final taskIdToIndex = <int, int>{};
+              final taskIdToIndex = <String, int>{};
             for (var i = 0; i < rootTasks.length; i++) {
               taskIdToIndex[rootTasks[i].id] = i;
             }
@@ -186,7 +186,7 @@ class _TasksSectionTaskListState
 
                 if (taskLevelForDrag == 1) {
                   // 根任务：清空所有展开状态（收缩所有根任务）
-                  expandedNotifier.state = <int>{};
+                    expandedNotifier.state = <String>{};
                 } else {
                   // 子任务：检查是否展开
                   final isExpanded = expandedTaskIds.contains(task.id);
@@ -195,8 +195,8 @@ class _TasksSectionTaskListState
                     return;
                   }
                   // 收缩自己的子任务
-                  final childTaskIds = childrenMap[task.id] ?? <int>{};
-                  final currentExpanded = Set<int>.from(expandedTaskIds);
+                    final childTaskIds = childrenMap[task.id] ?? <String>{};
+                    final currentExpanded = Set<String>.from(expandedTaskIds);
                   currentExpanded.removeAll(childTaskIds);
                   expandedNotifier.state = currentExpanded;
                 }

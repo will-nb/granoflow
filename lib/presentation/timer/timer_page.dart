@@ -55,7 +55,9 @@ class _TimerPageState extends ConsumerState<TimerPage> {
             ),
             const SizedBox(height: 16),
             _StartControlsCard(
-              onStart: _selectedTask == null ? null : () => _startFocus(_selectedTask!.id, l10n),
+                onStart: _selectedTask == null
+                    ? null
+                    : () => _startFocus(_selectedTask!.id, l10n),
               loading: _startLoading,
               startLabel: l10n.actionStartTimer,
             ),
@@ -120,7 +122,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
     );
   }
 
-  Future<void> _startFocus(int taskId, AppLocalizations l10n) async {
+    Future<void> _startFocus(String taskId, AppLocalizations l10n) async {
     setState(() => _startLoading = true);
     final notifier = ref.read(focusActionsNotifierProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);

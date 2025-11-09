@@ -17,7 +17,7 @@ class ClockActionButtons extends ConsumerWidget {
     required this.onComplete,
   });
 
-  final int taskId;
+  final String taskId;
   final VoidCallback onComplete;
 
   @override

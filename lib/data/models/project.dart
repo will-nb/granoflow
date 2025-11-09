@@ -53,7 +53,6 @@ class ProjectLogEntry {
 class Project {
   const Project({
     required this.id,
-    required this.projectId,
     required this.title,
     required this.status,
     required this.createdAt,
@@ -70,8 +69,7 @@ class Project {
     this.logs = const <ProjectLogEntry>[],
   });
 
-  final int id;
-  final String projectId;
+  final String id;
   final String title;
   final TaskStatus status;
   final DateTime? dueAt;
@@ -88,8 +86,7 @@ class Project {
   final List<ProjectLogEntry> logs;
 
   Project copyWith({
-    int? id,
-    String? projectId,
+    String? id,
     String? title,
     TaskStatus? status,
     DateTime? dueAt,
@@ -107,7 +104,6 @@ class Project {
   }) {
     return Project(
       id: id ?? this.id,
-      projectId: projectId ?? this.projectId,
       title: title ?? this.title,
       status: status ?? this.status,
       dueAt: dueAt ?? this.dueAt,
@@ -128,7 +124,6 @@ class Project {
   @override
   int get hashCode => Object.hashAll([
     id,
-    projectId,
     title,
     status,
     dueAt,
@@ -149,7 +144,6 @@ class Project {
   bool operator ==(Object other) {
     return other is Project &&
         other.id == id &&
-        other.projectId == projectId &&
         other.title == title &&
         other.status == status &&
         other.dueAt == dueAt &&
@@ -169,7 +163,6 @@ class Project {
 
 class ProjectDraft {
   const ProjectDraft({
-    required this.projectId,
     required this.title,
     required this.status,
     this.dueAt,
@@ -184,7 +177,6 @@ class ProjectDraft {
     this.logs = const <ProjectLogEntry>[],
   });
 
-  final String projectId;
   final String title;
   final TaskStatus status;
   final DateTime? dueAt;

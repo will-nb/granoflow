@@ -26,7 +26,7 @@ class ProjectServiceTasks {
   }
 
   /// 递归获取任务的所有后代任务（包括子任务的子任务）
-  Future<List<Task>> getAllDescendants(int taskId) async {
+  Future<List<Task>> getAllDescendants(String taskId) async {
     final result = <Task>[];
     final children = await _tasks.listChildren(taskId);
     for (final child in children) {
@@ -63,7 +63,7 @@ class ProjectServiceTasks {
     final tasks = await listTasksForProject(projectId);
     
     // 收集所有需要删除的任务ID（包括子任务）
-    final taskIdsToDelete = <int>{};
+    final taskIdsToDelete = <String>{};
     for (final task in tasks) {
       taskIdsToDelete.add(task.id);
       final descendants = await getAllDescendants(task.id);
@@ -79,7 +79,7 @@ class ProjectServiceTasks {
     await _tasks.purgeObsolete(DateTime.now());
   }
 
-  Future<void> assignProjectToDescendants(int taskId, String projectId) async {
+  Future<void> assignProjectToDescendants(String taskId, String projectId) async {
     final children = await _tasks.listChildren(taskId);
     for (final child in children) {
       await _tasks.updateTask(child.id, TaskUpdate(projectId: projectId));

@@ -133,8 +133,8 @@ class _TaskSectionTaskModeListState
   }
 
   /// 获取到当前索引为止已经显示的父任务 ID 集合
-  Set<int> _getDisplayedParentIdsUpTo(int index) {
-    final displayedParentIds = <int>{};
+  Set<String> _getDisplayedParentIdsUpTo(int index) {
+    final displayedParentIds = <String>{};
     for (int i = 0; i < index; i++) {
       if (i < _roots.length) {
         final task = _roots[i];
@@ -315,7 +315,7 @@ class TaskWithParentChain extends ConsumerWidget {
 
   final TaskSection section;
   final Task task;
-  final Set<int> displayedParentIds;
+  final Set<String> displayedParentIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -378,7 +378,7 @@ class TaskWithParentChain extends ConsumerWidget {
 }
 
 /// Provider: 获取父任务
-final parentTaskProvider = FutureProvider.family<Task?, int>((
+final parentTaskProvider = FutureProvider.family<Task?, String>((
   ref,
   parentId,
 ) async {

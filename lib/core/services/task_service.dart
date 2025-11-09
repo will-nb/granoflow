@@ -76,7 +76,7 @@ class TaskService {
 
   /// 规划任务（设置截止日期和区域）
   Future<void> planTask({
-    required int taskId,
+    required String taskId,
     required DateTime dueDateLocal,
     required TaskSection section,
   }) =>
@@ -88,14 +88,14 @@ class TaskService {
 
   /// 更新任务详情
   Future<void> updateDetails({
-    required int taskId,
+    required String taskId,
     required TaskUpdate payload,
   }) =>
       _crudService.updateDetails(taskId: taskId, payload: payload);
 
   /// 更新任务标签
   Future<void> updateTags({
-    required int taskId,
+    required String taskId,
     String? contextTag,
     String? priorityTag,
   }) =>
@@ -112,12 +112,12 @@ class TaskService {
   // ===== 状态管理操作 =====
 
   /// 标记任务为进行中
-  Future<void> markInProgress(int taskId) =>
+  Future<void> markInProgress(String taskId) =>
       _statusService.markInProgress(taskId);
 
   /// 标记任务为已完成
   Future<void> markCompleted({
-    required int taskId,
+    required String taskId,
     bool autoCompleteParent = true,
   }) =>
       _statusService.markCompleted(
@@ -126,18 +126,19 @@ class TaskService {
       );
 
   /// 归档任务
-  Future<void> archive(int taskId) => _statusService.archive(taskId);
+  Future<void> archive(String taskId) => _statusService.archive(taskId);
 
   /// 软删除任务（移到回收站）
-  Future<void> softDelete(int taskId) => _statusService.softDelete(taskId);
+  Future<void> softDelete(String taskId) =>
+      _statusService.softDelete(taskId);
 
   // ===== 拖拽操作 =====
 
   /// 处理拖拽到任务间（调整sortIndex，支持跨区域）
   Future<void> handleDragBetweenTasks(
-    int draggedTaskId,
-    int beforeTaskId,
-    int afterTaskId,
+    String draggedTaskId,
+    String beforeTaskId,
+    String afterTaskId,
   ) =>
       _dragService.handleDragBetweenTasks(
         draggedTaskId,
@@ -147,39 +148,39 @@ class TaskService {
 
   /// 处理拖拽到区域首位
   Future<void> handleDragToSectionFirst(
-    int draggedTaskId,
+    String draggedTaskId,
     TaskSection section,
   ) =>
       _dragService.handleDragToSectionFirst(draggedTaskId, section);
 
   /// 处理拖拽到区域末位
   Future<void> handleDragToSectionLast(
-    int draggedTaskId,
+    String draggedTaskId,
     TaskSection section,
   ) =>
       _dragService.handleDragToSectionLast(draggedTaskId, section);
 
   /// 处理 Inbox 任务在两个任务之间拖拽
   Future<void> handleInboxDragBetween(
-    int draggedId,
-    int beforeId,
-    int afterId,
+    String draggedId,
+    String beforeId,
+    String afterId,
   ) =>
       _dragService.handleInboxDragBetween(draggedId, beforeId, afterId);
 
   /// 处理 Inbox 任务拖拽到列表开头
-  Future<void> handleInboxDragToFirst(int draggedId) =>
+  Future<void> handleInboxDragToFirst(String draggedId) =>
       _dragService.handleInboxDragToFirst(draggedId);
 
   /// 处理 Inbox 任务拖拽到列表结尾
-  Future<void> handleInboxDragToLast(int draggedId) =>
+  Future<void> handleInboxDragToLast(String draggedId) =>
       _dragService.handleInboxDragToLast(draggedId);
 
   // ===== 任务提升操作 =====
 
   /// 处理子任务向左拖拽升级为根任务
   Future<bool> handlePromoteToIndependent(
-    int taskId,
+    String taskId,
     TaskHierarchyService taskHierarchyService, {
     required double? horizontalOffset,
     required double? verticalOffset,
@@ -196,7 +197,7 @@ class TaskService {
       );
 
   /// 将子任务提升为根任务（用于滑动动作）
-  Future<bool> promoteSubtaskToRoot(int taskId, {int? taskLevel}) =>
+  Future<bool> promoteSubtaskToRoot(String taskId, {int? taskLevel}) =>
       _promotionService.promoteSubtaskToRoot(taskId, taskLevel: taskLevel);
 
   // ===== 查询操作 =====

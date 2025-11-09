@@ -16,13 +16,13 @@ class TaskListExpansionDetector {
   /// [flattenedTasks] 扁平化任务列表
   /// [filteredTasks] 所有任务列表（用于查找父任务）
   /// 返回 true 如果移动出扩展区，应该提升为 level 1
-  static bool isMovedOutOfExpandedArea(
-    Task task,
-    int? hoveredTaskId,
-    int? hoveredInsertionIndex,
-    List<FlattenedTaskNode> flattenedTasks,
-    List<Task> filteredTasks,
-  ) {
+    static bool isMovedOutOfExpandedArea(
+      Task task,
+      String? hoveredTaskId,
+      int? hoveredInsertionIndex,
+      List<FlattenedTaskNode> flattenedTasks,
+      List<Task> filteredTasks,
+    ) {
     if (task.parentId == null) {
       return false; // 根任务不存在扩展区
     }

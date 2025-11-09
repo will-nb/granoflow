@@ -13,7 +13,7 @@ class Preference {
     required this.updatedAt,
   });
 
-  final int id;
+  final String id;
   final String localeCode;
   final ThemeMode themeMode;
   final FontScaleLevel fontScaleLevel;

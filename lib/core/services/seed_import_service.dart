@@ -102,9 +102,9 @@ class SeedImportService {
     await _tags.clearAll();
   }
 
-  Future<Map<String, int>> _applyTasks(List<SeedTask> tasks) async {
+  Future<Map<String, String>> _applyTasks(List<SeedTask> tasks) async {
     // slug -> id 映射，支持项目、里程碑和任务的混合映射
-    final Map<String, int> slugToId = <String, int>{};
+    final Map<String, String> slugToId = <String, String>{};
     // slug -> projectId 映射（字符串 ID）
     final Map<String, String> slugToProjectId = <String, String>{};
     // slug -> milestoneId 映射（字符串 ID）
@@ -115,8 +115,6 @@ class SeedImportService {
     final projectTasks = tasks
         .where((t) => t.taskKind?.toLowerCase() == 'project')
         .toList();
-    // slug -> projectIsarId 映射（用于后续设置里程碑和任务的 projectIsarId）
-    final Map<String, int> slugToProjectIsarId = <String, int>{};
     for (final seed in projectTasks) {
       // 全新安装场景：直接创建项目，无需检查重复
       final dueAt = _parseDueAt(seed.dueAt) ?? DateTime.now();
@@ -131,9 +129,8 @@ class SeedImportService {
         ),
       );
 
-      slugToProjectId[seed.slug] = project.projectId;
-      slugToId[seed.slug] = project.id;
-      slugToProjectIsarId[seed.slug] = project.id;
+        slugToProjectId[seed.slug] = project.id;
+        slugToId[seed.slug] = project.id;
     }
 
     // 第二遍：处理所有里程碑（milestone 类型）
@@ -157,9 +154,8 @@ class SeedImportService {
       // 生成 milestoneId（使用 UUID v4）
       final milestoneId = IdGenerator.generateId();
 
-      final milestone = await _milestones.create(
+      await _milestones.createMilestoneWithId(
         MilestoneDraft(
-          milestoneId: milestoneId,
           projectId: projectId,
           title: seed.title,
           status: seed.status,
@@ -174,19 +170,13 @@ class SeedImportService {
           description: null,
           logs: const <MilestoneLogEntry>[],
         ),
+        milestoneId,
+        DateTime.now(),
+        DateTime.now(),
       );
 
-      // 设置里程碑的 projectIsarId
-      final projectIsarId = slugToProjectIsarId[seed.parentSlug];
-      if (projectIsarId != null) {
-        await _milestones.setMilestoneProjectIsarId(
-          milestone.id,
-          projectIsarId,
-        );
-      }
-
-      slugToMilestoneId[seed.slug] = milestone.milestoneId;
-      slugToId[seed.slug] = milestone.id;
+      slugToMilestoneId[seed.slug] = milestoneId;
+      slugToId[seed.slug] = milestoneId;
     }
 
     // 第三遍：处理所有普通任务（regular 类型或未指定类型）
@@ -232,8 +222,7 @@ class SeedImportService {
         title: seed.title,
         status: seed.status,
         dueAt: dueAt,
-        parentId: null,
-        parentTaskId: null,
+          parentId: null,
         projectId: projectId,
         milestoneId: milestoneId,
         tags: seed.tags,
@@ -241,37 +230,8 @@ class SeedImportService {
         seedSlug: seed.slug,
         sortIndex: seed.sortIndex,
       );
-      final task = await _tasks.createTask(draft);
-      
-      // 设置任务的 projectIsarId 和 milestoneIsarId
-      int? taskProjectIsarId;
-      int? taskMilestoneIsarId;
-      
-      if (projectId != null) {
-        // 查找项目的 Isar ID
-        final project = await _projectService.findByProjectId(projectId);
-        if (project != null) {
-          taskProjectIsarId = project.id;
-        }
-      }
-      
-      if (milestoneId != null) {
-        // 查找里程碑的 Isar ID
-        final milestone = await _milestones.findByMilestoneId(milestoneId);
-        if (milestone != null) {
-          taskMilestoneIsarId = milestone.id;
-        }
-      }
-      
-      if (taskProjectIsarId != null || taskMilestoneIsarId != null) {
-        await _tasks.setTaskProjectAndMilestoneIsarId(
-          task.id,
-          taskProjectIsarId,
-          taskMilestoneIsarId,
-        );
-      }
-      
-      slugToId[seed.slug] = task.id;
+        final task = await _tasks.createTask(draft);
+        slugToId[seed.slug] = task.id;
     }
 
     // 第四遍：处理普通任务的父子关系（parentTaskId）
@@ -295,8 +255,7 @@ class SeedImportService {
             await _tasks.updateTask(
               taskId,
               TaskUpdate(
-                parentId: parentId,
-                parentTaskId: parentId,
+                  parentId: parentId,
                 sortIndex: seed.sortIndex,
               ),
             );
@@ -339,7 +298,7 @@ class SeedImportService {
 
   Future<void> _applyTemplates(
     List<SeedTemplate> templates,
-    Map<String, int> slugToId,
+    Map<String, String> slugToId,
   ) async {
     for (final seed in templates) {
       final draft = TaskTemplateDraft(
@@ -351,7 +310,8 @@ class SeedImportService {
       );
       final template = await _templates.createTemplateWithSeed(
         draft: draft,
-        parentId: seed.parentSlug == null ? null : slugToId[seed.parentSlug!],
+          parentTaskId:
+              seed.parentSlug == null ? null : slugToId[seed.parentSlug!],
       );
       if (template.parentTaskId != null) {
         await _tasks.adjustTemplateLock(
@@ -364,7 +324,7 @@ class SeedImportService {
 
   Future<void> _applyInboxItems(
     List<SeedInboxItem> inboxItems,
-    Map<String, int> slugToId,
+    Map<String, String> slugToId,
   ) async {
     for (final seed in inboxItems) {
       // 全新安装场景：直接创建 inbox 任务，无需检查重复

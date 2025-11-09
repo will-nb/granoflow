@@ -75,8 +75,8 @@ class ArchivedTaskTile extends ConsumerWidget {
                   minHeight: 32,
                 ),
                 onPressed: () {
-                  final notifier = ref.read(archivedTasksExpandedProvider.notifier);
-                  final currentExpanded = Set<int>.from(expandedTaskIds);
+                    final notifier = ref.read(archivedTasksExpandedProvider.notifier);
+                    final currentExpanded = Set<String>.from(expandedTaskIds);
                   if (isExpanded) {
                     currentExpanded.remove(task.id);
                   } else {

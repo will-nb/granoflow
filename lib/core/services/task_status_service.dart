@@ -24,7 +24,7 @@ class TaskStatusService {
   final DateTime Function() _clock;
 
   /// 标记任务为进行中
-  Future<void> markInProgress(int taskId) async {
+  Future<void> markInProgress(String taskId) async {
     await _tasks.markStatus(taskId: taskId, status: TaskStatus.doing);
   }
 
@@ -33,7 +33,7 @@ class TaskStatusService {
   /// [taskId] 任务 ID
   /// [autoCompleteParent] 如果所有子任务都完成，是否自动完成父任务
   Future<void> markCompleted({
-    required int taskId,
+    required String taskId,
     bool autoCompleteParent = true,
   }) async {
     final task = await _tasks.findById(taskId);
@@ -46,7 +46,8 @@ class TaskStatusService {
     
     // 如果任务没有运行时间记录，创建一个默认的 FocusSession 记录默认时间
     if (_focusSessionRepository != null) {
-      final totalMinutes = await _focusSessionRepository.totalMinutesForTask(taskId);
+        final totalMinutes =
+            await _focusSessionRepository.totalMinutesForTask(taskId);
       if (totalMinutes == 0) {
         // 创建并立即结束一个 FocusSession，记录默认时间
         final session = await _focusSessionRepository.startSession(
@@ -68,22 +69,22 @@ class TaskStatusService {
       TaskUpdate(status: TaskStatus.completedActive, endedAt: _clock()),
     );
     if (autoCompleteParent && task.parentId != null) {
-      final siblings = await _tasks.listChildren(task.parentId!);
+        final siblings = await _tasks.listChildren(task.parentId!);
       final allCompleted = siblings.every(
         (sibling) => sibling.status == TaskStatus.completedActive,
       );
       if (allCompleted) {
-        await _tasks.updateTask(
-          task.parentId!,
-          TaskUpdate(status: TaskStatus.completedActive, endedAt: _clock()),
-        );
+          await _tasks.updateTask(
+            task.parentId!,
+            TaskUpdate(status: TaskStatus.completedActive, endedAt: _clock()),
+          );
       }
     }
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
   /// 归档任务
-  Future<void> archive(int taskId) async {
+  Future<void> archive(String taskId) async {
     if (kDebugMode) {
       debugPrint('[ArchiveTask] TaskStatusService.archive: taskId=$taskId');
     }
@@ -97,7 +98,7 @@ class TaskStatusService {
   /// 软删除任务（移到回收站）
   ///
   /// 如果任务被模板锁定，会抛出 StateError
-  Future<void> softDelete(int taskId) async {
+  Future<void> softDelete(String taskId) async {
     final task = await _tasks.findById(taskId);
     if (task != null && task.templateLockCount > 0) {
       throw StateError('Task is locked by templates; remove template first.');

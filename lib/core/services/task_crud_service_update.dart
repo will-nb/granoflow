@@ -27,7 +27,7 @@ class TaskCrudServiceUpdate {
 
   /// 更新任务详情
   Future<void> updateDetails({
-    required int taskId,
+    required String taskId,
     required TaskUpdate payload,
   }) async {
     final existing = await _tasks.findById(taskId);
@@ -42,9 +42,8 @@ class TaskCrudServiceUpdate {
     if (payload.dueAt != null) {
       dueForUpdate = TaskCrudServiceHelpers.normalizeDueDate(payload.dueAt!);
     }
-    final dueChanged =
-        dueForUpdate != null &&
-            !TaskCrudServiceHelpers.isSameInstant(existing.dueAt, dueForUpdate);
+    final dueChanged = dueForUpdate != null &&
+        !TaskCrudServiceHelpers.isSameInstant(existing.dueAt, dueForUpdate);
     final now = _clock();
     List<TaskLogEntry>? updatedLogs;
 
@@ -58,7 +57,7 @@ class TaskCrudServiceUpdate {
     }
 
     if (dueChanged) {
-      final newDue = dueForUpdate;
+      final newDue = dueForUpdate!;
       ensureLogBuffer();
       updatedLogs!.add(
         TaskLogEntry(
@@ -96,7 +95,6 @@ class TaskCrudServiceUpdate {
     // 这里不再需要检查 taskKind.milestone 并更新父项目
 
     // 如果截止日期变化，同步更新所有子任务的截止日期
-    // 如果 dueChanged 为 true，则 dueForUpdate 一定不为 null
     if (dueChanged) {
       final allChildren = await _helpers.getAllDescendantTasks(taskId);
       if (allChildren.isNotEmpty) {
@@ -105,7 +103,7 @@ class TaskCrudServiceUpdate {
             '[TaskCrudService.updateDetails] 同步子任务截止日期: taskId=$taskId, childrenCount=${allChildren.length}, newDueAt=$dueForUpdate',
           );
         }
-        final updates = <int, TaskUpdate>{};
+        final updates = <String, TaskUpdate>{};
         for (final child in allChildren) {
           updates[child.id] = TaskUpdate(dueAt: dueForUpdate);
         }
@@ -115,7 +113,6 @@ class TaskCrudServiceUpdate {
 
     // 如果标签变化，同步更新所有子任务的标签
     if (payload.tags != null) {
-      // 检查标签是否真的发生变化
       final tagsChanged =
           !TaskCrudServiceHelpers.areTagsEqual(payload.tags!, existing.tags);
       if (tagsChanged) {
@@ -126,7 +123,7 @@ class TaskCrudServiceUpdate {
               '[TaskCrudService.updateDetails] 同步子任务标签: taskId=$taskId, childrenCount=${allChildren.length}, newTags=${payload.tags}',
             );
           }
-          final updates = <int, TaskUpdate>{};
+          final updates = <String, TaskUpdate>{};
           for (final child in allChildren) {
             updates[child.id] = TaskUpdate(tags: payload.tags);
           }
@@ -135,13 +132,11 @@ class TaskCrudServiceUpdate {
       }
     }
 
-    // 如果项目/里程碑变化（projectId/milestoneId），同步更新所有子任务的项目/里程碑关联
-    final projectIdChanged =
-        (payload.projectId != existing.projectId) ||
-            (payload.clearProject == true && existing.projectId != null);
-    final milestoneIdChanged =
-        (payload.milestoneId != existing.milestoneId) ||
-            (payload.clearMilestone == true && existing.milestoneId != null);
+    // 如果项目/里程碑变化，同步更新所有子任务的项目/里程碑关联
+    final projectIdChanged = (payload.projectId != existing.projectId) ||
+        (payload.clearProject == true && existing.projectId != null);
+    final milestoneIdChanged = (payload.milestoneId != existing.milestoneId) ||
+        (payload.clearMilestone == true && existing.milestoneId != null);
 
     if (projectIdChanged || milestoneIdChanged) {
       final allChildren = await _helpers.getAllDescendantTasks(taskId);
@@ -159,7 +154,7 @@ class TaskCrudServiceUpdate {
           );
         }
 
-        final updates = <int, TaskUpdate>{};
+        final updates = <String, TaskUpdate>{};
         for (final child in allChildren) {
           updates[child.id] = TaskUpdate(
             projectId: newProjectId,
@@ -177,7 +172,7 @@ class TaskCrudServiceUpdate {
 
   /// 更新任务标签
   Future<void> updateTags({
-    required int taskId,
+    required String taskId,
     String? contextTag,
     String? priorityTag,
   }) async {
@@ -211,7 +206,7 @@ class TaskCrudServiceUpdate {
           '[TaskCrudService.updateTags] 同步子任务标签: taskId=$taskId, childrenCount=${allChildren.length}, newTags=$normalized',
         );
       }
-      final updates = <int, TaskUpdate>{};
+      final updates = <String, TaskUpdate>{};
       for (final child in allChildren) {
         updates[child.id] = TaskUpdate(tags: normalized);
       }

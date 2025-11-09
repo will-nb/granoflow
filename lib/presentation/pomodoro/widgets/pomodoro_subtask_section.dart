@@ -13,7 +13,7 @@ import '../../tasks/views/task_tree_tile/task_tree_tile_actions.dart';
 import 'pomodoro_subtask_item.dart';
 
 /// Provider: 获取任务的子任务列表（实时监听）
-final pomodoroSubtaskListProvider = StreamProvider.family<List<Task>, int>((
+final pomodoroSubtaskListProvider = StreamProvider.family<List<Task>, String>((
   ref,
   parentId,
 ) async* {
@@ -160,7 +160,7 @@ class _PomodoroSubtaskSectionState
     return duration.inMinutes.clamp(0, 24 * 60);
   }
 
-  Future<void> _updateParentTaskTime(int taskId) async {
+  Future<void> _updateParentTaskTime(String taskId) async {
     // 递归更新父任务时间
     // 确保每个父任务的时间都是其所有子任务时间的总和
 

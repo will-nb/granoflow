@@ -19,20 +19,20 @@ abstract class TaskListConfig {
 
   /// 获取展开状态 Provider
   ///
-  /// Inbox: inboxExpandedTaskIdProvider (StateProvider<Set<int>>)
-  /// Tasks: tasksSectionExpandedTaskIdProvider (StateProvider.family<Set<int>, TaskSection>)
+  /// Inbox: inboxExpandedTaskIdProvider (StateProvider<Set<String>>)
+  /// Tasks: tasksSectionExpandedTaskIdProvider (StateProvider.family<Set<String>, TaskSection>)
   ProviderBase getExpandedProvider(WidgetRef ref);
 
   /// 获取层级映射 Provider
   ///
-  /// Inbox: inboxTaskLevelMapProvider (FutureProvider<Map<int, int>>)
-  /// Tasks: tasksSectionTaskLevelMapProvider (FutureProvider.family<Map<int, int>, TaskSection>)
+  /// Inbox: inboxTaskLevelMapProvider (FutureProvider<Map<String, int>>)
+  /// Tasks: tasksSectionTaskLevelMapProvider (FutureProvider.family<Map<String, int>, TaskSection>)
   ProviderBase getLevelMapProvider(WidgetRef ref);
 
   /// 获取子任务映射 Provider
   ///
-  /// Inbox: inboxTaskChildrenMapProvider (FutureProvider<Map<int, Set<int>>>)
-  /// Tasks: tasksSectionTaskChildrenMapProvider (FutureProvider.family<Map<int, Set<int>>, TaskSection>)
+  /// Inbox: inboxTaskChildrenMapProvider (FutureProvider<Map<String, Set<String>>>)
+  /// Tasks: tasksSectionTaskChildrenMapProvider (FutureProvider.family<Map<String, Set<String>>, TaskSection>)
   ProviderBase getChildrenMapProvider(WidgetRef ref);
 
   /// 构建任务卡片 Widget

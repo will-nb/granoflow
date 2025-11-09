@@ -13,7 +13,7 @@ class FocusActionsNotifier extends AsyncNotifier<void> {
 
   FocusFlowService get _focusFlowService => ref.read(focusFlowServiceProvider);
 
-  Future<void> start(int taskId) async {
+  Future<void> start(String taskId) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       await _focusFlowService.startFocus(taskId: taskId);
@@ -21,7 +21,7 @@ class FocusActionsNotifier extends AsyncNotifier<void> {
   }
 
   Future<void> end({
-    required int sessionId,
+    required String sessionId,
     required FocusOutcome outcome,
     String? reflection,
   }) async {
@@ -41,7 +41,7 @@ final focusActionsNotifierProvider =
       return FocusActionsNotifier();
     });
 
-final focusSessionProvider = StreamProvider.family<FocusSession?, int>((
+final focusSessionProvider = StreamProvider.family<FocusSession?, String>((
   ref,
   taskId,
 ) {

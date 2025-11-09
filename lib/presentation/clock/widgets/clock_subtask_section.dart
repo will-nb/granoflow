@@ -13,7 +13,7 @@ import '../../tasks/views/task_tree_tile/task_tree_tile_actions.dart';
 import 'clock_subtask_item.dart';
 
 /// Provider: 获取任务的子任务列表（实时监听）
-final clockSubtaskListProvider = StreamProvider.family<List<Task>, int>((
+final clockSubtaskListProvider = StreamProvider.family<List<Task>, String>((
   ref,
   parentId,
 ) async* {
@@ -69,7 +69,7 @@ class _ClockSubtaskSectionState
     }
   }
 
-  Future<void> _handleAddSubtask() async {
+    Future<void> _handleAddSubtask() async {
     // 打开对话框时暂停计时器
     final timerState = ref.read(clockTimerProvider);
     if (timerState.isStarted && !timerState.isPaused) {
@@ -78,11 +78,11 @@ class _ClockSubtaskSectionState
 
     // 检查是否是第一个子任务
     final childrenAsync = ref.read(clockSubtaskListProvider(widget.task.id));
-    final children = await childrenAsync.requireValue;
+      final children = await childrenAsync.requireValue;
     final isFirstSubtask = children.isEmpty;
 
     // 显示添加子任务对话框
-    await showAddSubtaskDialog(context, ref, widget.task.id);
+      await showAddSubtaskDialog(context, ref, widget.task.id);
 
     // 如果是第一个子任务，创建特殊子任务
     if (isFirstSubtask && mounted) {
@@ -90,7 +90,7 @@ class _ClockSubtaskSectionState
     }
   }
 
-  Future<void> _createOvertimeSubtask() async {
+    Future<void> _createOvertimeSubtask() async {
     try {
       final taskService = ref.read(taskServiceProvider);
       final FocusSessionRepository focusSessionRepository = ref.read(
@@ -147,7 +147,7 @@ class _ClockSubtaskSectionState
     }
   }
 
-  int _calculatePauseTime() {
+    int _calculatePauseTime() {
     // 计算从开始到暂停的时间（分钟）
     if (widget.timerState.startTime == null) {
       return 0;
@@ -161,7 +161,7 @@ class _ClockSubtaskSectionState
     return duration.inMinutes.clamp(0, 24 * 60);
   }
 
-  Future<void> _updateParentTaskTime(int taskId) async {
+    Future<void> _updateParentTaskTime(String taskId) async {
     // 递归更新父任务时间
     // 确保每个父任务的时间都是其所有子任务时间的总和
 
@@ -223,7 +223,7 @@ class _ClockSubtaskSectionState
       }
 
       // 递归向上更新父任务的父任务
-      await _updateParentTaskTime(parentId);
+    await _updateParentTaskTime(parentId);
     } catch (e) {
       debugPrint('Failed to update parent task time: $e');
     }
@@ -231,7 +231,7 @@ class _ClockSubtaskSectionState
 
   void _handleSubtaskStartTimer(Task subtask) {
     // 导航到计时器页面
-    context.push('/clock/${subtask.id}');
+  context.push('/clock/${subtask.id}');
   }
 
   @override

@@ -16,7 +16,7 @@ class AncestorTaskChain extends ConsumerWidget {
     required this.currentSection,
   });
 
-  final int taskId;
+    final String taskId;
   final TaskSection currentSection;
 
   @override
@@ -49,7 +49,7 @@ class AncestorTaskChain extends ConsumerWidget {
 }
 
 /// Provider: 获取任务的祖先任务链
-final ancestorChainProvider = FutureProvider.family<List<Task>, int>((ref, taskId) async {
+final ancestorChainProvider = FutureProvider.family<List<Task>, String>((ref, taskId) async {
   final taskRepository = ref.read(taskRepositoryProvider);
   return buildAncestorChain(taskId, taskRepository);
 });

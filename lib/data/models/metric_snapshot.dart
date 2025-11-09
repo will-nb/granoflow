@@ -11,7 +11,7 @@ class MetricSnapshot {
     required this.calculatedAt,
   });
 
-  final int id;
+  final String id;
   final int totalCompletedTasks;
   final int totalFocusMinutes;
   final int pendingTasks;

@@ -8,7 +8,7 @@ import '../../../../generated/l10n/app_localizations.dart';
 Future<void> archiveProject(
   BuildContext context,
   WidgetRef ref,
-  int projectId, {
+  String projectId, {
   bool archiveTasks = false,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
@@ -38,7 +38,7 @@ Future<void> archiveProject(
 Future<void> completeProject(
   BuildContext context,
   WidgetRef ref,
-  int projectId, {
+  String projectId, {
   bool archiveTasks = false,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
@@ -68,7 +68,7 @@ Future<void> completeProject(
 Future<void> trashProject(
   BuildContext context,
   WidgetRef ref,
-  int projectId,
+  String projectId,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
@@ -95,7 +95,7 @@ Future<void> trashProject(
 Future<void> restoreProject(
   BuildContext context,
   WidgetRef ref,
-  int projectId,
+  String projectId,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
@@ -122,7 +122,7 @@ Future<void> restoreProject(
 Future<void> reactivateProject(
   BuildContext context,
   WidgetRef ref,
-  int projectId,
+  String projectId,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
@@ -149,7 +149,7 @@ Future<void> reactivateProject(
 Future<void> deleteProject(
   BuildContext context,
   WidgetRef ref,
-  int projectId,
+  String projectId,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);

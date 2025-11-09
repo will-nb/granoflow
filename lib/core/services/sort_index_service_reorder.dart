@@ -19,15 +19,16 @@ class SortIndexServiceReorder {
   ///
   /// [orderedIds] 已排序的任务ID列表
   Future<void> reorderIds({
-    required List<int> orderedIds,
+    required List<String> orderedIds,
     String? domainKey,
     double start = 1024,
     double step = _step,
   }) async {
     if (orderedIds.isEmpty) return;
-    final updates = <int, TaskUpdate>{};
-    for (int i = 0; i < orderedIds.length; i++) {
-      updates[orderedIds[i]] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    final updates = <String, TaskUpdate>{};
+    for (var i = 0; i < orderedIds.length; i++) {
+      updates[orderedIds[i]] =
+          TaskUpdate(sortIndex: (start + i * step).toDouble());
     }
     await _tasks.batchUpdate(updates);
   }
@@ -43,9 +44,10 @@ class SortIndexServiceReorder {
     if (tasks.isEmpty) return;
     final sorted = List<Task>.from(tasks);
     SortIndexServiceSorting.sortTasksForInbox(sorted);
-    final updates = <int, TaskUpdate>{};
-    for (int i = 0; i < sorted.length; i++) {
-      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    final updates = <String, TaskUpdate>{};
+    for (var i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] =
+          TaskUpdate(sortIndex: (start + i * step).toDouble());
     }
     await _tasks.batchUpdate(updates);
   }
@@ -61,9 +63,10 @@ class SortIndexServiceReorder {
     if (tasks.isEmpty) return;
     final sorted = List<Task>.from(tasks);
     SortIndexServiceSorting.sortTasksForTasksPage(sorted);
-    final updates = <int, TaskUpdate>{};
-    for (int i = 0; i < sorted.length; i++) {
-      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    final updates = <String, TaskUpdate>{};
+    for (var i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] =
+          TaskUpdate(sortIndex: (start + i * step).toDouble());
     }
     await _tasks.batchUpdate(updates);
   }
@@ -84,9 +87,10 @@ class SortIndexServiceReorder {
     if (children.isEmpty) return;
     final sorted = List<Task>.from(children);
     SortIndexServiceSorting.sortChildrenTasks(sorted);
-    final updates = <int, TaskUpdate>{};
-    for (int i = 0; i < sorted.length; i++) {
-      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    final updates = <String, TaskUpdate>{};
+    for (var i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] =
+          TaskUpdate(sortIndex: (start + i * step).toDouble());
     }
     await _tasks.batchUpdate(updates);
   }
@@ -107,40 +111,40 @@ class SortIndexServiceReorder {
     double step = _step,
   }) async {
     if (targetDate == null) {
-      // 如果目标日期为 null，筛选所有没有 dueAt 的任务
-      final tasksWithoutDate = allTasks.where((task) => task.dueAt == null).toList();
+      final tasksWithoutDate =
+          allTasks.where((task) => task.dueAt == null).toList();
       if (tasksWithoutDate.isEmpty) return;
-      
+
       final sorted = List<Task>.from(tasksWithoutDate);
       SortIndexServiceSorting.sortTasksForTasksPage(sorted);
-      final updates = <int, TaskUpdate>{};
-      for (int i = 0; i < sorted.length; i++) {
-        updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+      final updates = <String, TaskUpdate>{};
+      for (var i = 0; i < sorted.length; i++) {
+        updates[sorted[i].id] =
+            TaskUpdate(sortIndex: (start + i * step).toDouble());
       }
       await _tasks.batchUpdate(updates);
       return;
     }
 
-    // 提取目标日期的日期部分（年-月-日，忽略时分秒）
-    final targetDayOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final targetDayOnly =
+        DateTime(targetDate.year, targetDate.month, targetDate.day);
 
-    // 筛选出同一天的任务
     final sameDateTasks = allTasks.where((task) {
       if (task.dueAt == null) return false;
-      final taskDayOnly = DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day);
+      final taskDayOnly =
+          DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day);
       return taskDayOnly == targetDayOnly;
     }).toList();
 
     if (sameDateTasks.isEmpty) return;
 
-    // 使用统一的排序规则排序
     final sorted = List<Task>.from(sameDateTasks);
     SortIndexServiceSorting.sortTasksForTasksPage(sorted);
-    
-    // 批量更新 sortIndex
-    final updates = <int, TaskUpdate>{};
-    for (int i = 0; i < sorted.length; i++) {
-      updates[sorted[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+
+    final updates = <String, TaskUpdate>{};
+    for (var i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] =
+          TaskUpdate(sortIndex: (start + i * step).toDouble());
     }
     await _tasks.batchUpdate(updates);
   }

@@ -30,7 +30,7 @@ class FocusFlowService {
   final MetricOrchestrator _metricOrchestrator;
 
   Future<FocusSession> startFocus({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) {
@@ -41,14 +41,14 @@ class FocusFlowService {
     );
   }
 
-  Future<void> pauseFocus(int sessionId) async {
+  Future<void> pauseFocus(String sessionId) async {
     // Placeholder for pause support; in-memory repository keeps session active.
   }
 
   Future<void> endFocus({
-    required int sessionId,
+    required String sessionId,
     required FocusOutcome outcome,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) async {
     final session = await _focusRepository.findById(sessionId);
@@ -65,7 +65,7 @@ class FocusFlowService {
     );
 
     final effectiveTaskId = transferToTaskId ?? session.taskId;
-    if (effectiveTaskId <= 0) {
+    if (effectiveTaskId.isEmpty) {
       return;
     }
 
@@ -92,7 +92,7 @@ class FocusFlowService {
   }
 
   Future<Task> quickSubtask({
-    required int parentTaskId,
+    required String parentTaskId,
     required String title,
   }) async {
     final draft = TaskDraft(
@@ -106,6 +106,6 @@ class FocusFlowService {
     return task;
   }
 
-  Stream<FocusSession?> watchActive(int taskId) =>
+  Stream<FocusSession?> watchActive(String taskId) =>
       _focusRepository.watchActiveSession(taskId);
 }

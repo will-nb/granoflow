@@ -20,7 +20,7 @@ class TaskListFlattener {
   static List<FlattenedTaskNode> flattenTreeWithExpansion(
     TaskTreeNode node, {
     int depth = 0,
-    required Set<int> expandedTaskIds,
+    required Set<String> expandedTaskIds,
   }) {
     final result = <FlattenedTaskNode>[];
     // 总是包含当前任务

@@ -24,7 +24,7 @@ class ProjectNodeHeader extends ConsumerWidget {
       dense: true,
       contentPadding: const EdgeInsets.only(right: 8),
       title: Text(task.title, style: theme.textTheme.titleMedium),
-      subtitle: Text('ID: ${task.taskId}'),
+        subtitle: Text('ID: ${task.id}'),
       trailing: Wrap(
         spacing: 8,
         children: [

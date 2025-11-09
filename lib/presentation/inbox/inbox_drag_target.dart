@@ -32,14 +32,14 @@ class InboxDragTarget extends ConsumerWidget {
     final dragNotifier = ref.read(inboxDragProvider.notifier);
 
     // 根据不同类型计算唯一ID
-    int? getTargetId() {
+    String? getTargetId() {
       switch (targetType) {
         case InboxDragTargetType.between:
           return beforeTask?.id;
         case InboxDragTargetType.first:
-          return 0; // 列表开头固定ID
+          return 'first'; // 列表开头固定ID
         case InboxDragTargetType.last:
-          return -1; // 列表结尾固定ID
+          return 'last'; // 列表结尾固定ID
       }
     }
 
@@ -54,7 +54,7 @@ class InboxDragTarget extends ConsumerWidget {
       ),
       insertionType: _mapToInsertionType(targetType),
       showWhenIdle: false,
-      canAccept: (dragged, _) => _canAcceptDrop(dragged, targetId),
+        canAccept: (dragged, _) => _canAcceptDrop(dragged),
       onPerform: (dragged, ref, context, l10n) async {
         try {
           return await _handleDrop(dragged, ref, dragNotifier);
@@ -76,16 +76,14 @@ class InboxDragTarget extends ConsumerWidget {
           dragNotifier.updateHoverTarget(targetType, targetId: targetId);
           
           // 根据 targetType 计算并更新 insertionIndex
-          int? insertionIndex;
+            int? insertionIndex;
           switch (targetType) {
             case InboxDragTargetType.first:
               insertionIndex = 0;
               break;
-            case InboxDragTargetType.last:
-              // 对于 last 类型，需要从外部传入实际的 insertionIndex
-              // 这里先设为 -1 作为占位符，实际使用时应该从 context 中获取
-              insertionIndex = -1;
-              break;
+              case InboxDragTargetType.last:
+                // last 的插入索引由外部设定，这里不更新
+                break;
             case InboxDragTargetType.between:
               // between 类型需要根据 beforeTask/afterTask 计算，暂时保留旧的 API
               break;
@@ -95,8 +93,8 @@ class InboxDragTarget extends ConsumerWidget {
             dragNotifier.updateInsertionHover(insertionIndex);
           }
         } else {
-          dragNotifier.updateHoverTarget(null);
-          dragNotifier.clearHover();
+            dragNotifier.updateHoverTarget(null);
+            dragNotifier.clearHover();
         }
       },
       onResult: (_, __, ___, ____, _____) {
@@ -116,7 +114,7 @@ class InboxDragTarget extends ConsumerWidget {
     }
   }
 
-  bool _canAcceptDrop(Task draggedTask, int? targetId) {
+  bool _canAcceptDrop(Task draggedTask) {
     // 统一接受根任务和子任务，都使用"成为兄弟"的逻辑
     // 检查任务是否可移动
     final movable = canMoveTask(draggedTask);
@@ -155,7 +153,7 @@ class InboxDragTarget extends ConsumerWidget {
       final dragState = ref.read(inboxDragProvider);
       
       // 确定上方任务的 parentId
-      int? aboveTaskParentId;
+    String? aboveTaskParentId;
       double newSortIndex;
       
       switch (targetType) {
@@ -179,8 +177,8 @@ class InboxDragTarget extends ConsumerWidget {
             } else {
               // 不是兄弟（不同级别）：根据向右拖动情况决定
               // 使用异步方法计算层级深度
-              final beforeDepth = await calculateHierarchyDepth(beforeTask!, taskRepository);
-              final afterDepth = await calculateHierarchyDepth(afterTask!, taskRepository);
+                final beforeDepth = await calculateHierarchyDepth(beforeTask!, taskRepository);
+                final afterDepth = await calculateHierarchyDepth(afterTask!, taskRepository);
               
               // 从 dragState 获取水平位移
               final horizontalOffset = dragState.horizontalOffset ?? 0.0;

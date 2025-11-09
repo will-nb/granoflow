@@ -33,7 +33,7 @@ class TaskListTreeBuilder {
   /// [task] 当前任务
   /// [byId] 任务 ID 到任务的映射
   /// 返回包含当前任务及其所有子任务的树节点
-  static TaskTreeNode buildSubtree(Task task, Map<int, Task> byId) {
+  static TaskTreeNode buildSubtree(Task task, Map<String, Task> byId) {
     final children =
         byId.values
             .where((t) => t.parentId == task.id && !isProjectOrMilestone(t))
@@ -55,7 +55,7 @@ class TaskListTreeBuilder {
   /// [allTasks] 所有任务列表（目前未使用，保留以兼容现有代码）
   static void populateHasChildrenMap(
     TaskTreeNode node,
-    Map<int, bool> map,
+      Map<String, bool> map,
     List<Task> allTasks,
   ) {
     // 检查是否有非项目/非里程碑的子任务
