@@ -188,10 +188,16 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
   - 调用处的参数值（包括表达式如 `startId + i` 需要转换为 `(startId + i).toString()`）
   - 可能需要 AST 分析或更精确的模式匹配
 
+### ❌ 需要手动修复或更复杂修复器的错误类型（续）
+- `undefined_named_parameter` (101 个): 参数名变更相关。已实现基础版本，但：
+  - 需要处理参数已存在的情况（删除而不是重命名）
+  - 需要更智能的上下文分析
+  - 修复后可能引入类型错误
+
 ### 🔄 待处理的错误类型
-- `undefined_named_parameter` (101 个): 参数名变更相关
 - `return_of_invalid_type_from_closure` (72 个): 闭包返回类型问题
 - `undefined_getter` (44 个): 属性访问问题
+- `uri_does_not_exist` (4 个): 已大幅减少，现有修复器有效
 - 其他较小的错误类型
 
 ## 辅助工具脚本
