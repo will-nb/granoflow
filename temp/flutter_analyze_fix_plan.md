@@ -173,9 +173,10 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
 
 ### ✅ 已实现修复器
 - `unused_import`: 删除未使用的导入
-- `uri_does_not_exist`: 删除或重映射不存在的 URI 导入
+- `uri_does_not_exist`: 删除或重映射不存在的 URI 导入（已增强，可删除 obsolete Isar 导入）
 - `undefined_class`, `non_type_as_type_argument`, `undefined_identifier`: ObjectBox repository 导入修复
 - `map_key_type_not_assignable`, `set_element_type_not_assignable`, `invalid_assignment`: 测试文件 ID 类型修复（部分）
+- `undefined_named_parameter`: 参数名重命名修复（基础版本，需要改进）
 
 ### ⚠️ 需要改进的修复器
 - `invalid_override`: 已改进，能处理多行方法签名，但仍有问题：
