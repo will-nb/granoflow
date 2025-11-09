@@ -1,3 +1,4 @@
+import '../../core/providers/project_filter_providers.dart';
 import '../models/project.dart';
 import '../models/task.dart';
 
