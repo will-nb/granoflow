@@ -14,7 +14,7 @@ IMPORT_RE = re.compile(r"^\s*import\s+['\"](?P<uri>[^'\"]+)['\"];\s*$")
 
 # Hard-coded remap table derived from ObjectBox migration blueprint.
 DIRECT_MAPPING: Dict[str, str] = {
-    "package:isar/isar.dart": "package:objectbox/objectbox.dart",
+    # Isar -> ObjectBox entity mappings
     "package:granoflow/data/isar/focus_session_entity.dart": "package:granoflow/data/objectbox/focus_session_entity.dart",
     "package:granoflow/data/isar/milestone_entity.dart": "package:granoflow/data/objectbox/milestone_entity.dart",
     "package:granoflow/data/isar/project_entity.dart": "package:granoflow/data/objectbox/project_entity.dart",
@@ -23,6 +23,14 @@ DIRECT_MAPPING: Dict[str, str] = {
     "package:granoflow/data/isar/tag_entity.dart": "package:granoflow/data/objectbox/tag_entity.dart",
     "package:granoflow/data/isar/task_entity.dart": "package:granoflow/data/objectbox/task_entity.dart",
     "package:granoflow/data/isar/task_template_entity.dart": "package:granoflow/data/objectbox/task_template_entity.dart",
+    # Relative path Isar -> ObjectBox
+    "data/isar/focus_session_entity.dart": "package:granoflow/data/objectbox/focus_session_entity.dart",
+}
+
+# Imports that should be removed (no longer needed)
+REMOVE_IMPORTS: set[str] = {
+    "package:isar/isar.dart",
+    "package:isar_flutter_libs/isar_flutter_libs.dart",
 }
 
 RELATIVE_MAPPING: Dict[str, str] = {
@@ -34,6 +42,7 @@ RELATIVE_MAPPING: Dict[str, str] = {
     "../models/project.dart": "package:granoflow/data/models/project.dart",
     "../models/milestone.dart": "package:granoflow/data/models/milestone.dart",
     "../models/seed_import_log.dart": "package:granoflow/data/models/seed_import_log.dart",
+    "../../config/app_constants.dart": "package:granoflow/core/config/app_constants.dart",
 }
 
 PREFIX_MAPPING: List[Tuple[str, str]] = [
@@ -55,7 +64,7 @@ def resolve_replacement(uri: str) -> Optional[str]:
 
 
 def apply_import_remap(path: Path, diagnostics: List["Diagnostic"]) -> bool:
-    """Remap outdated imports to their ObjectBox equivalents."""
+    """Remap outdated imports to their ObjectBox equivalents or remove obsolete imports."""
     lines = path.read_text(encoding="utf-8").splitlines()
     changed = False
 
@@ -67,6 +76,15 @@ def apply_import_remap(path: Path, diagnostics: List["Diagnostic"]) -> bool:
         if not match:
             continue
         current_uri = match.group("uri")
+        
+        # Check if this import should be removed
+        if current_uri in REMOVE_IMPORTS:
+            print(f"[anz:fix] Removing obsolete import {current_uri} in {path}")
+            lines[idx] = ""
+            changed = True
+            continue
+        
+        # Try to remap
         replacement = resolve_replacement(current_uri)
         if not replacement:
             continue
