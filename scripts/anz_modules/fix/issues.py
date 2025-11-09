@@ -243,8 +243,7 @@ FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
     "map_key_type_not_assignable": (_fix_test_ids, _is_test_file),
     "set_element_type_not_assignable": (_fix_test_ids, _is_test_file),
     "invalid_assignment": (_fix_test_ids, _is_test_file),
-    # Temporarily disabled - introduces too many new errors
-    # "invalid_override": (invalid_override.apply_invalid_override_fix, _is_test_file),
+    "invalid_override": (invalid_override.apply_invalid_override_fix, _is_test_file),
     "undefined_named_parameter": (
         undefined_named_parameter.apply_undefined_named_parameter_fix,
         lambda _: True,
