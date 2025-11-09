@@ -178,9 +178,11 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
 - `map_key_type_not_assignable`, `set_element_type_not_assignable`, `invalid_assignment`: 测试文件 ID 类型修复（部分）
 
 ### ⚠️ 需要改进的修复器
-- `invalid_override`: 已实现基础版本，但只修复参数声明，未处理调用处。需要同时修改：
-  - 方法参数类型声明（int → String）
-  - 方法调用处的参数值（int 字面量/变量 → String）
+- `invalid_override`: 已改进，能处理多行方法签名，但仍有问题：
+  - ✅ 已修复：方法参数类型声明（int → String）
+  - ❌ 未修复：方法调用处的参数值（int 字面量/变量 → String）
+  - 问题：修复方法签名后，调用处仍传递 int 值，导致新的 `argument_type_not_assignable` 错误
+  - 需要：更复杂的代码分析来找到并修复所有调用处
 
 ### ❌ 需要手动修复或更复杂修复器的错误类型
 - `argument_type_not_assignable` (281 个): 需要同时修改：
