@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Set
 
-from fixers import import_remap, objectbox_repo_imports, id_literals, id_types
+from fixers import import_remap, objectbox_repo_imports, id_literals, id_types, invalid_override
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BACKUP_ROOT = REPO_ROOT / ".tmp" / "anz_fix_backup"
@@ -231,10 +231,12 @@ FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
     "undefined_class": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
     "non_type_as_type_argument": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
     "undefined_identifier": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
-    "argument_type_not_assignable": (_fix_test_ids, _is_test_file),
+    # Temporarily disabled - introduces too many new errors
+    # "argument_type_not_assignable": (_fix_test_ids, _is_test_file),
     "map_key_type_not_assignable": (_fix_test_ids, _is_test_file),
     "set_element_type_not_assignable": (_fix_test_ids, _is_test_file),
     "invalid_assignment": (_fix_test_ids, _is_test_file),
+    "invalid_override": (invalid_override.apply_invalid_override_fix, _is_test_file),
   }
 
 

@@ -169,6 +169,31 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
 3. 每修复一批后运行 analyze 验证
 4. 提交修复结果
 
+## 错误类型修复状态
+
+### ✅ 已实现修复器
+- `unused_import`: 删除未使用的导入
+- `uri_does_not_exist`: 删除或重映射不存在的 URI 导入
+- `undefined_class`, `non_type_as_type_argument`, `undefined_identifier`: ObjectBox repository 导入修复
+- `map_key_type_not_assignable`, `set_element_type_not_assignable`, `invalid_assignment`: 测试文件 ID 类型修复（部分）
+
+### ⚠️ 需要改进的修复器
+- `invalid_override`: 已实现基础版本，但只修复参数声明，未处理调用处。需要同时修改：
+  - 方法参数类型声明（int → String）
+  - 方法调用处的参数值（int 字面量/变量 → String）
+
+### ❌ 需要手动修复或更复杂修复器的错误类型
+- `argument_type_not_assignable` (281 个): 需要同时修改：
+  - 参数类型声明
+  - 调用处的参数值（包括表达式如 `startId + i` 需要转换为 `(startId + i).toString()`）
+  - 可能需要 AST 分析或更精确的模式匹配
+
+### 🔄 待处理的错误类型
+- `undefined_named_parameter` (101 个): 参数名变更相关
+- `return_of_invalid_type_from_closure` (72 个): 闭包返回类型问题
+- `undefined_getter` (44 个): 属性访问问题
+- 其他较小的错误类型
+
 ## 辅助工具脚本
 
 ### 1. analyze_stats.py
