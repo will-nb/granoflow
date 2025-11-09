@@ -12,7 +12,12 @@ import 'package:granoflow/core/theme/app_theme.dart';
 
 class _StubTag extends Tag {
   _StubTag(String slug, TagKind kind)
-      : super(id: slug.hashCode, slug: slug, kind: kind, localizedLabels: {'en': slug});
+    : super(
+        id: slug.hashCode,
+        slug: slug,
+        kind: kind,
+        localizedLabels: {'en': slug},
+      );
 }
 
 class _RecordingTaskService extends Fake implements TaskService {
@@ -21,7 +26,7 @@ class _RecordingTaskService extends Fake implements TaskService {
 
   @override
   Future<void> planTask({
-    required int taskId,
+    required String taskId,
     required DateTime dueDateLocal,
     required TaskSection section,
   }) async {
@@ -29,7 +34,7 @@ class _RecordingTaskService extends Fake implements TaskService {
   }
 
   @override
-  Future<void> softDelete(int taskId) async {
+  Future<void> softDelete(String taskId) async {
     deleteCalled = true;
   }
 }
@@ -38,7 +43,7 @@ void main() {
   Task buildTask() {
     return Task(
       id: 10,
-      taskId: 'inbox-10',
+
       title: 'Inbox task',
       status: TaskStatus.inbox,
       createdAt: DateTime(2025, 1, 1),
@@ -54,10 +59,16 @@ void main() {
       ProviderScope(
         overrides: [
           taskServiceProvider.overrideWith((ref) => taskService),
-          contextTagOptionsProvider.overrideWith((ref) async => [_StubTag('home', TagKind.context)]),
+          contextTagOptionsProvider.overrideWith(
+            (ref) async => [_StubTag('home', TagKind.context)],
+          ),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+          importanceTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
+          executionTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),
@@ -84,10 +95,16 @@ void main() {
       ProviderScope(
         overrides: [
           taskServiceProvider.overrideWith((ref) => taskService),
-          contextTagOptionsProvider.overrideWith((ref) async => [_StubTag('home', TagKind.context)]),
+          contextTagOptionsProvider.overrideWith(
+            (ref) async => [_StubTag('home', TagKind.context)],
+          ),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+          importanceTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
+          executionTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),
@@ -109,4 +126,3 @@ void main() {
     expect(taskService.deleteCalled, isTrue);
   });
 }
-

@@ -21,7 +21,7 @@ class TaskTestData {
     final now = DateTime.now();
     return Task(
       id: id,
-      taskId: 'task-$id',
+
       title: title,
       dueAt: dueAt,
       parentId: parentId,
@@ -64,10 +64,21 @@ class TaskTestData {
           TaskSection.thisWeek,
           now: now,
         );
-        final nextWeekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 1);
+        final nextWeekStart = DateTime(
+          weekStart.year,
+          weekStart.month,
+          weekStart.day + 1,
+        );
         final daysUntilNextWeek = nextWeekStart.difference(tomorrow).inDays;
         final targetDay = tomorrow.add(Duration(days: daysUntilNextWeek ~/ 2));
-        dueAt = DateTime(targetDay.year, targetDay.month, targetDay.day, 12, 0, 0);
+        dueAt = DateTime(
+          targetDay.year,
+          targetDay.month,
+          targetDay.day,
+          12,
+          0,
+          0,
+        );
         break;
       case TaskSection.thisMonth:
         // 本月：本月某一天（比如15号）
@@ -138,10 +149,21 @@ class TaskTestData {
           TaskSection.thisWeek,
           now: now,
         );
-        final nextWeekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 1);
+        final nextWeekStart = DateTime(
+          weekStart.year,
+          weekStart.month,
+          weekStart.day + 1,
+        );
         final daysUntilNextWeek = nextWeekStart.difference(tomorrow).inDays;
         final targetDay = tomorrow.add(Duration(days: daysUntilNextWeek ~/ 2));
-        dueAt = DateTime(targetDay.year, targetDay.month, targetDay.day, 12, 0, 0);
+        dueAt = DateTime(
+          targetDay.year,
+          targetDay.month,
+          targetDay.day,
+          12,
+          0,
+          0,
+        );
         break;
       case TaskSection.thisMonth:
         final monthEnd = TaskSectionUtils.getSectionEndTime(
@@ -194,10 +216,7 @@ class TaskTestData {
   }
 
   /// 生成 Inbox 任务（无 dueAt）
-  static List<Task> generateInboxTasks({
-    required int count,
-    int startId = 1,
-  }) {
+  static List<Task> generateInboxTasks({required int count, int startId = 1}) {
     final tasks = <Task>[];
     for (int i = 0; i < count; i++) {
       tasks.add(
@@ -214,4 +233,3 @@ class TaskTestData {
     return tasks;
   }
 }
-

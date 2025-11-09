@@ -64,10 +64,7 @@ void main() {
 
     test('returns false for different lengths', () {
       final tree1 = [_createTreeNode(id: 1)];
-      final tree2 = [
-        _createTreeNode(id: 1),
-        _createTreeNode(id: 2),
-      ];
+      final tree2 = [_createTreeNode(id: 1), _createTreeNode(id: 2)];
       expect(treeEquals(tree1, tree2), isFalse);
     });
 
@@ -93,7 +90,7 @@ Task _createTask({required int id, double sortIndex = 0}) {
   final now = DateTime.now();
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     sortIndex: sortIndex,
@@ -111,4 +108,3 @@ TaskTreeNode _createTreeNode({required int id, double sortIndex = 0}) {
     children: [],
   );
 }
-

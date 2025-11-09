@@ -114,31 +114,31 @@ class _FakeMetricRepository implements MetricRepository {
 class _FakeFocusSessionRepository implements FocusSessionRepository {
   @override
   Future<void> endSession({
-    required int sessionId,
+    required String sessionId,
     required int actualMinutes,
     int? transferToTaskId,
     String? reflectionNote,
   }) async => throw UnimplementedError();
 
   @override
-  Future<FocusSession?> findById(int sessionId) async =>
+  Future<FocusSession?> findById(String sessionId) async =>
       throw UnimplementedError();
 
   @override
   Future<List<FocusSession>> listRecentSessions({
-    required int taskId,
+    required String taskId,
     int limit = 10,
   }) async => throw UnimplementedError();
 
   @override
   Future<FocusSession> startSession({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async => throw UnimplementedError();
 
   @override
-  Future<int> totalMinutesForTask(int taskId) async =>
+  Future<int> totalMinutesForTask(String taskId) async =>
       throw UnimplementedError();
 
   @override
@@ -150,5 +150,6 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
   Future<int> totalMinutesOverall() async => 0;
 
   @override
-  Stream<FocusSession?> watchActiveSession(int taskId) => const Stream.empty();
+  Stream<FocusSession?> watchActiveSession(String taskId) =>
+      const Stream.empty();
 }

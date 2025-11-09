@@ -14,7 +14,7 @@ void main() {
     }) {
       return Task(
         id: id,
-        taskId: 'task-$id',
+
         title: 'Task $id',
         status: TaskStatus.pending,
         createdAt: createdAt ?? baseDate,
@@ -165,8 +165,7 @@ void main() {
           task2,
         );
 
-        expect(result, greaterThan(0),
-            reason: '日期相同，sortIndex 小的应该排在前面');
+        expect(result, greaterThan(0), reason: '日期相同，sortIndex 小的应该排在前面');
       });
     });
 
@@ -189,4 +188,3 @@ void main() {
     });
   });
 }
-

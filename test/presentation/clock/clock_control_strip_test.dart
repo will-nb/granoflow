@@ -44,13 +44,13 @@ class _FakePreferenceService extends Fake implements PreferenceService {
 class _FakeTaskService extends Fake implements TaskService {
   @override
   Future<void> markCompleted({
-    required int taskId,
+    required String taskId,
     bool autoCompleteParent = true,
   }) async {}
 
   @override
   Future<void> updateDetails({
-    required int taskId,
+    required String taskId,
     required TaskUpdate payload,
   }) async {}
 }
@@ -58,7 +58,7 @@ class _FakeTaskService extends Fake implements TaskService {
 class _FakeFocusFlowService implements FocusFlowService {
   @override
   Future<FocusSession> startFocus({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async {
@@ -66,11 +66,11 @@ class _FakeFocusFlowService implements FocusFlowService {
   }
 
   @override
-  Future<void> pauseFocus(int sessionId) async {}
+  Future<void> pauseFocus(String sessionId) async {}
 
   @override
   Future<void> endFocus({
-    required int sessionId,
+    required String sessionId,
     required FocusOutcome outcome,
     int? transferToTaskId,
     String? reflectionNote,
@@ -85,7 +85,7 @@ class _FakeFocusFlowService implements FocusFlowService {
   }
 
   @override
-  Stream<FocusSession?> watchActive(int taskId) => const Stream.empty();
+  Stream<FocusSession?> watchActive(String taskId) => const Stream.empty();
 }
 
 class _FakeClockAudioService implements ClockAudioService {
@@ -128,7 +128,7 @@ Preference _buildPreference({required bool sound}) {
 Task _buildTask({required int id, required String title, int? parentId}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: title,
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
@@ -186,9 +186,7 @@ Future<void> _pumpControlStrip(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: Center(
-            child: ClockControlStrip(taskId: 1, onComplete: () {}),
-          ),
+          body: Center(child: ClockControlStrip(taskId: 1, onComplete: () {})),
         ),
       ),
     ),

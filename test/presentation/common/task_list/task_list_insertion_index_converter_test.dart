@@ -4,14 +4,10 @@ import 'package:granoflow/presentation/common/task_list/task_list_insertion_inde
 import 'package:granoflow/presentation/tasks/utils/tree_flattening_utils.dart';
 
 /// 创建测试任务辅助函数
-Task _createTask({
-  required int id,
-  int? parentId,
-  double sortIndex = 1000,
-}) {
+Task _createTask({required int id, int? parentId, double sortIndex = 1000}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
@@ -36,14 +32,14 @@ void main() {
         final taskIdToIndex = {1: 0, 2: 1};
         final filteredTasks = [task1, task2];
 
-        final result = TaskListInsertionIndexConverter
-            .convertFlattenedIndexToRootInsertionIndex(
-          0,
-          flattenedTasks,
-          taskIdToIndex,
-          rootTasks,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.convertFlattenedIndexToRootInsertionIndex(
+              0,
+              flattenedTasks,
+              taskIdToIndex,
+              rootTasks,
+              filteredTasks,
+            );
 
         expect(result, 0);
       });
@@ -59,14 +55,14 @@ void main() {
         final taskIdToIndex = {1: 0, 2: 1};
         final filteredTasks = [task1, task2];
 
-        final result = TaskListInsertionIndexConverter
-            .convertFlattenedIndexToRootInsertionIndex(
-          2, // 超出列表长度
-          flattenedTasks,
-          taskIdToIndex,
-          rootTasks,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.convertFlattenedIndexToRootInsertionIndex(
+              2, // 超出列表长度
+              flattenedTasks,
+              taskIdToIndex,
+              rootTasks,
+              filteredTasks,
+            );
 
         expect(result, 2); // rootTasks.length
       });
@@ -82,14 +78,14 @@ void main() {
         final taskIdToIndex = {1: 0, 2: 1};
         final filteredTasks = [task1, task2];
 
-        final result = TaskListInsertionIndexConverter
-            .convertFlattenedIndexToRootInsertionIndex(
-          1, // 指向 task2
-          flattenedTasks,
-          taskIdToIndex,
-          rootTasks,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.convertFlattenedIndexToRootInsertionIndex(
+              1, // 指向 task2
+              flattenedTasks,
+              taskIdToIndex,
+              rootTasks,
+              filteredTasks,
+            );
 
         expect(result, 1); // task2 的根索引
       });
@@ -105,14 +101,14 @@ void main() {
         final taskIdToIndex = {1: 0}; // task2 不在根任务映射中
         final filteredTasks = [task1, task2];
 
-        final result = TaskListInsertionIndexConverter
-            .convertFlattenedIndexToRootInsertionIndex(
-          1, // 指向 task2（子任务）
-          flattenedTasks,
-          taskIdToIndex,
-          rootTasks,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.convertFlattenedIndexToRootInsertionIndex(
+              1, // 指向 task2（子任务）
+              flattenedTasks,
+              taskIdToIndex,
+              rootTasks,
+              filteredTasks,
+            );
 
         expect(result, 1); // 应该返回 task1 的索引 + 1（插入到 task1 之后）
       });
@@ -130,14 +126,14 @@ void main() {
         final taskIdToIndex = {1: 0};
         final filteredTasks = [task1, task2, task3];
 
-        final result = TaskListInsertionIndexConverter
-            .convertFlattenedIndexToRootInsertionIndex(
-          2, // 指向 task3（三级任务）
-          flattenedTasks,
-          taskIdToIndex,
-          rootTasks,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.convertFlattenedIndexToRootInsertionIndex(
+              2, // 指向 task3（三级任务）
+              flattenedTasks,
+              taskIdToIndex,
+              rootTasks,
+              filteredTasks,
+            );
 
         expect(result, 1); // 应该返回 task1 的索引 + 1
       });
@@ -148,14 +144,14 @@ void main() {
         final taskIdToIndex = <int, int>{};
         final filteredTasks = <Task>[];
 
-        final result = TaskListInsertionIndexConverter
-            .convertFlattenedIndexToRootInsertionIndex(
-          0,
-          flattenedTasks,
-          taskIdToIndex,
-          rootTasks,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.convertFlattenedIndexToRootInsertionIndex(
+              0,
+              flattenedTasks,
+              taskIdToIndex,
+              rootTasks,
+              filteredTasks,
+            );
 
         expect(result, 0);
       });
@@ -172,14 +168,14 @@ void main() {
         final filteredTasks = [task1, task2]; // task2 的父任务 999 不在列表中
 
         expect(
-          () => TaskListInsertionIndexConverter
-              .convertFlattenedIndexToRootInsertionIndex(
-            1, // 指向 task2（子任务）
-            flattenedTasks,
-            taskIdToIndex,
-            rootTasks,
-            filteredTasks,
-          ),
+          () =>
+              TaskListInsertionIndexConverter.convertFlattenedIndexToRootInsertionIndex(
+                1, // 指向 task2（子任务）
+                flattenedTasks,
+                taskIdToIndex,
+                rootTasks,
+                filteredTasks,
+              ),
           throwsStateError,
         );
       });
@@ -197,13 +193,14 @@ void main() {
         final taskIdToIndex = {1: 0, 2: 1};
         final filteredTasks = [task1, task2];
 
-        final result = TaskListInsertionIndexConverter.findTasksForInsertionIndex(
-          0,
-          flattenedTasks,
-          rootTasks,
-          taskIdToIndex,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.findTasksForInsertionIndex(
+              0,
+              flattenedTasks,
+              rootTasks,
+              taskIdToIndex,
+              filteredTasks,
+            );
 
         expect(result.beforeTask, null);
         expect(result.afterTask, task1);
@@ -221,13 +218,14 @@ void main() {
         final taskIdToIndex = {1: 0, 2: 1};
         final filteredTasks = [task1, task2];
 
-        final result = TaskListInsertionIndexConverter.findTasksForInsertionIndex(
-          2, // 底部插入
-          flattenedTasks,
-          rootTasks,
-          taskIdToIndex,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.findTasksForInsertionIndex(
+              2, // 底部插入
+              flattenedTasks,
+              rootTasks,
+              taskIdToIndex,
+              filteredTasks,
+            );
 
         expect(result.beforeTask, task2);
         expect(result.afterTask, null);
@@ -247,13 +245,14 @@ void main() {
         final taskIdToIndex = {1: 0, 2: 1, 3: 2};
         final filteredTasks = [task1, task2, task3];
 
-        final result = TaskListInsertionIndexConverter.findTasksForInsertionIndex(
-          2, // 插入到 task2 之后
-          flattenedTasks,
-          rootTasks,
-          taskIdToIndex,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.findTasksForInsertionIndex(
+              2, // 插入到 task2 之后
+              flattenedTasks,
+              rootTasks,
+              taskIdToIndex,
+              filteredTasks,
+            );
 
         expect(result.beforeTask, task2);
         expect(result.afterTask, task3);
@@ -266,13 +265,14 @@ void main() {
         final taskIdToIndex = <int, int>{};
         final filteredTasks = <Task>[];
 
-        final result = TaskListInsertionIndexConverter.findTasksForInsertionIndex(
-          0,
-          flattenedTasks,
-          rootTasks,
-          taskIdToIndex,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.findTasksForInsertionIndex(
+              0,
+              flattenedTasks,
+              rootTasks,
+              taskIdToIndex,
+              filteredTasks,
+            );
 
         expect(result.beforeTask, null);
         expect(result.afterTask, null);
@@ -290,13 +290,14 @@ void main() {
         final taskIdToIndex = {1: 0};
         final filteredTasks = [task1, task2];
 
-        final result = TaskListInsertionIndexConverter.findTasksForInsertionIndex(
-          1, // 指向子任务 task2
-          flattenedTasks,
-          rootTasks,
-          taskIdToIndex,
-          filteredTasks,
-        );
+        final result =
+            TaskListInsertionIndexConverter.findTasksForInsertionIndex(
+              1, // 指向子任务 task2
+              flattenedTasks,
+              rootTasks,
+              taskIdToIndex,
+              filteredTasks,
+            );
 
         // 应该插入到 task1 之后（因为 task2 是 task1 的子任务）
         expect(result.beforeTask, task1);
@@ -306,4 +307,3 @@ void main() {
     });
   });
 }
-

@@ -18,7 +18,7 @@ import 'package:granoflow/data/models/task_template.dart';
 class _FakeTaskService extends Fake implements TaskService {}
 
 /// 测试 Inbox 和 Tasks 页面是否都能显示关联了项目/里程碑的任务
-/// 
+///
 /// 测试场景：
 /// 1. 普通任务（无 projectId/milestoneId）- 应该在两个页面都显示
 /// 2. 关联项目的任务（有 projectId）- 应该在两个页面都显示
@@ -36,13 +36,18 @@ void main() {
   }) {
     return Task(
       id: id,
-      taskId: 'task-$id',
-      title: 'Task $id${projectId != null ? " (Project)" : ""}${milestoneId != null ? " (Milestone)" : ""}',
+
+      title:
+          'Task $id${projectId != null ? " (Project)" : ""}${milestoneId != null ? " (Milestone)" : ""}',
       status: status,
       projectId: projectId,
       milestoneId: milestoneId,
       sortIndex: id.toDouble() * 1024,
-      dueAt: dueAt ?? (status == TaskStatus.pending ? DateTime(2025, 11, 2, 23, 59, 59) : null),
+      dueAt:
+          dueAt ??
+          (status == TaskStatus.pending
+              ? DateTime(2025, 11, 2, 23, 59, 59)
+              : null),
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
       tags: const [],
@@ -52,7 +57,9 @@ void main() {
   }
 
   group('Task Display with Project/Milestone', () {
-    testWidgets('InboxPage should display tasks with projectId', (tester) async {
+    testWidgets('InboxPage should display tasks with projectId', (
+      tester,
+    ) async {
       final regularTask = createTask(id: 1, status: TaskStatus.inbox);
       final taskWithProject = createTask(
         id: 2,
@@ -76,20 +83,32 @@ void main() {
                 taskWithMilestone,
               ]);
             }),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => {
-              regularTask.id: 1,
-              taskWithProject.id: 1,
-              taskWithMilestone.id: 1,
-            }),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => {
+                regularTask.id: 1,
+                taskWithProject.id: 1,
+                taskWithMilestone.id: 1,
+              },
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <int, Set<int>>{},
+            ),
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             templateSuggestionsProvider.overrideWithProvider(
               (query) => FutureProvider((ref) async => const <TaskTemplate>[]),
             ),
-            contextTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+            contextTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
+            urgencyTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
+            importanceTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
+            executionTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -109,7 +128,9 @@ void main() {
       expect(find.text('Task 3 (Milestone)'), findsOneWidget);
     });
 
-    testWidgets('TaskSectionPanel should display tasks with projectId', (tester) async {
+    testWidgets('TaskSectionPanel should display tasks with projectId', (
+      tester,
+    ) async {
       final regularTask = createTask(
         id: 1,
         status: TaskStatus.pending,
@@ -153,13 +174,19 @@ void main() {
             tasksSectionExpandedTaskIdProvider.overrideWith(
               (ref, section) => <int>{},
             ),
-            tasksDragProvider.overrideWith(
-              (ref) => TasksDragNotifier(),
+            tasksDragProvider.overrideWith((ref) => TasksDragNotifier()),
+            urgencyTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
             ),
-            urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            contextTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+            importanceTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
+            executionTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
+            contextTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -171,11 +198,7 @@ void main() {
                 title: 'Today',
                 editMode: false,
                 onQuickAdd: () {},
-                tasks: [
-                  regularTask,
-                  taskWithProject,
-                  taskWithMilestone,
-                ],
+                tasks: [regularTask, taskWithProject, taskWithMilestone],
               ),
             ),
           ),
@@ -234,7 +257,7 @@ class _TestTaskRepository implements TaskRepository {
   Stream<List<Task>> watchQuickTasks() => Stream.value([]);
 
   @override
-  Stream<List<Task>> watchMilestones(int projectId) =>
+  Stream<List<Task>> watchMilestones(String projectId) =>
       throw UnimplementedError();
 
   @override
@@ -265,8 +288,7 @@ class _TestTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<Task> createTask(TaskDraft draft) =>
-      throw UnimplementedError();
+  Future<Task> createTask(TaskDraft draft) => throw UnimplementedError();
 
   @override
   Future<Task> createTaskWithId(
@@ -287,28 +309,29 @@ class _TestTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<void> updateTask(int taskId, TaskUpdate payload) =>
+  Future<void> updateTask(String taskId, TaskUpdate payload) =>
       throw UnimplementedError();
 
   @override
   Future<void> moveTask({
-    required int taskId,
+    required String taskId,
     required int? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
-  Future<void> markStatus({required int taskId, required TaskStatus status}) =>
-      throw UnimplementedError();
+  Future<void> markStatus({
+    required String taskId,
+    required TaskStatus status,
+  }) => throw UnimplementedError();
 
   @override
-  Future<void> archiveTask(int taskId) => throw UnimplementedError();
+  Future<void> archiveTask(String taskId) => throw UnimplementedError();
 
   @override
-  Future<void> softDelete(int taskId) => throw UnimplementedError();
+  Future<void> softDelete(String taskId) => throw UnimplementedError();
 
   @override
   Future<int> clearAllTrashedTasks() async => 0;
@@ -317,16 +340,24 @@ class _TestTaskRepository implements TaskRepository {
   Future<int> purgeObsolete(DateTime olderThan) async => 0;
 
   @override
-  Future<void> adjustTemplateLock({required int taskId, required int delta}) =>
-      throw UnimplementedError();
+  Future<void> adjustTemplateLock({
+    required String taskId,
+    required int delta,
+  }) => throw UnimplementedError();
 
   @override
-  Future<Task?> findById(int id) async =>
-      _tasks.firstWhere((t) => t.id == id, orElse: () => throw StateError('Task not found'));
+  Future<Task?> findById(String id) async => _tasks.firstWhere(
+    (t) => t.id == id,
+    orElse: () => throw StateError('Task not found'),
+  );
 
   @override
-  Stream<Task?> watchTaskById(int id) => Stream.value(
-      _tasks.firstWhere((t) => t.id == id, orElse: () => throw StateError('Task not found')));
+  Stream<Task?> watchTaskById(String id) => Stream.value(
+    _tasks.firstWhere(
+      (t) => t.id == id,
+      orElse: () => throw StateError('Task not found'),
+    ),
+  );
 
   @override
   Future<Task?> findBySlug(String slug) async => null;
@@ -335,10 +366,10 @@ class _TestTaskRepository implements TaskRepository {
   Future<List<Task>> listRoots() async => [];
 
   @override
-  Future<List<Task>> listChildren(int parentId) async => [];
+  Future<List<Task>> listChildren(String parentId) async => [];
 
   @override
-  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async => [];
+  Future<List<Task>> listChildrenIncludingTrashed(String parentId) async => [];
 
   @override
   Future<void> upsertTasks(List<Task> tasks) => throw UnimplementedError();
@@ -351,8 +382,7 @@ class _TestTaskRepository implements TaskRepository {
     String query, {
     TaskStatus? status,
     int limit = 10,
-  }) async =>
-      [];
+  }) async => [];
 
   @override
   Future<void> batchUpdate(Map<int, TaskUpdate> updates) =>

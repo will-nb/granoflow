@@ -10,7 +10,7 @@ void main() {
   Project createProject(TaskStatus status) {
     return Project(
       id: 1,
-      projectId: 'project-1',
+
       title: 'Test Project',
       status: status,
       dueAt: null,
@@ -94,4 +94,3 @@ void main() {
     });
   });
 }
-

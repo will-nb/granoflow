@@ -5,10 +5,7 @@ import 'package:granoflow/presentation/tasks/utils/tree_flattening_utils.dart';
 void main() {
   group('flattenTree', () {
     test('flattens single node tree', () {
-      final root = TaskTreeNode(
-        task: _createTask(id: 1),
-        children: [],
-      );
+      final root = TaskTreeNode(task: _createTask(id: 1), children: []);
 
       final result = flattenTree(root);
 
@@ -67,9 +64,7 @@ void main() {
     test('excludes root when includeRoot is false', () {
       final root = TaskTreeNode(
         task: _createTask(id: 1),
-        children: [
-          TaskTreeNode(task: _createTask(id: 2), children: []),
-        ],
+        children: [TaskTreeNode(task: _createTask(id: 2), children: [])],
       );
 
       final result = flattenTree(root, includeRoot: false);
@@ -82,9 +77,7 @@ void main() {
     test('respects custom starting depth', () {
       final root = TaskTreeNode(
         task: _createTask(id: 1),
-        children: [
-          TaskTreeNode(task: _createTask(id: 2), children: []),
-        ],
+        children: [TaskTreeNode(task: _createTask(id: 2), children: [])],
       );
 
       final result = flattenTree(root, depth: 5);
@@ -99,7 +92,7 @@ Task _createTask({required int id}) {
   final now = DateTime.now();
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     sortIndex: 0,
@@ -110,4 +103,3 @@ Task _createTask({required int id}) {
     updatedAt: now,
   );
 }
-

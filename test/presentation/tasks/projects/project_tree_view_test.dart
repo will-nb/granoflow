@@ -16,28 +16,31 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
 
   @override
   Future<void> addSubtask({
-    required int parentId,
+    required String parentId,
     required String title,
   }) async {}
 
   @override
-  Future<void> editTitle({required int taskId, required String title}) async {}
+  Future<void> editTitle({
+    required String taskId,
+    required String title,
+  }) async {}
 
   @override
-  Future<void> archive(int taskId) async {}
+  Future<void> archive(String taskId) async {}
 }
 
 void main() {
   testWidgets('ProjectTreeView expands to show children', (tester) async {
     final parent = Task(
       id: 1,
-      taskId: 'task-1',
+
       title: 'Parent Task',
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
       parentId: null,
-      parentTaskId: null,
+
       projectId: null,
       milestoneId: null,
       sortIndex: 0,
@@ -50,13 +53,13 @@ void main() {
     );
     final child = Task(
       id: 2,
-      taskId: 'task-2',
+
       title: 'Child Task',
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
       parentId: 1,
-      parentTaskId: 1,
+
       projectId: null,
       milestoneId: null,
       sortIndex: 1,

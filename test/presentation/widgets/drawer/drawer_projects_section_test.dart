@@ -52,11 +52,13 @@ void main() {
           routes: [
             GoRoute(
               path: '/',
-              builder: (context, state) => const Scaffold(body: DrawerProjectsSection()),
+              builder: (context, state) =>
+                  const Scaffold(body: DrawerProjectsSection()),
             ),
             GoRoute(
               path: '/projects',
-              builder: (context, state) => const Scaffold(body: Text('Projects')),
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Projects')),
             ),
           ],
         ),
@@ -71,7 +73,7 @@ void main() {
   }) {
     return Project(
       id: id,
-      projectId: 'project-$id',
+
       title: title,
       status: TaskStatus.pending,
       dueAt: dueAt,
@@ -94,7 +96,9 @@ void main() {
       await tester.pumpWidget(buildTestWidget(projects: []));
       await tester.pumpAndSettle();
 
-      final l10n = AppLocalizations.of(tester.element(find.byType(DrawerProjectsSection)));
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(DrawerProjectsSection)),
+      );
       expect(find.text(l10n.drawerRecentProjects), findsOneWidget);
       expect(find.text(l10n.drawerManageProjects), findsOneWidget);
     });

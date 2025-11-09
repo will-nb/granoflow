@@ -16,16 +16,16 @@ void main() {
     late List<Task> tasks;
     late List<FlattenedTaskNode> flattenedTasks;
     late List<Task> rootTasks;
-    late Map<int, int> taskIdToIndex;
-    late Map<int, bool> taskIdToHasChildren;
-    late Map<int, int> levelMap;
-    late Map<int, Set<int>> childrenMap;
+    late Map<String, int> taskIdToIndex;
+    late Map<String, bool> taskIdToHasChildren;
+    late Map<String, int> levelMap;
+    late Map<String, Set<String>> childrenMap;
 
     setUp(() {
       tasks = [
         Task(
-          id: 1,
-          taskId: 'task-1',
+          id: '1',
+
           title: 'Task 1',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -34,8 +34,8 @@ void main() {
           tags: const [],
         ),
         Task(
-          id: 2,
-          taskId: 'task-2',
+          id: '2',
+
           title: 'Task 2',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -54,72 +54,83 @@ void main() {
     });
 
     group('buildTaskListDragUI', () {
-      testWidgets('should build widgets list with top insertion target, tasks, and bottom insertion target', (tester) async {
-        final config = InboxTaskListConfig();
-        InboxDragNotifier? dragNotifier;
-        InboxDragState? dragState;
-        WidgetRef? testRef;
+      testWidgets(
+        'should build widgets list with top insertion target, tasks, and bottom insertion target',
+        (tester) async {
+          final config = InboxTaskListConfig();
+          InboxDragNotifier? dragNotifier;
+          InboxDragState? dragState;
+          WidgetRef? testRef;
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              inboxTaskLevelMapProvider.overrideWith((ref) async => levelMap),
-              inboxTaskChildrenMapProvider.overrideWith((ref) async => childrenMap),
-            ],
-            child: Consumer(
-              builder: (context, ref, child) {
-                testRef = ref;
-                dragNotifier = ref.read(inboxDragProvider.notifier);
-                dragState = ref.read(inboxDragProvider);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                inboxTaskLevelMapProvider.overrideWith((ref) async => levelMap),
+                inboxTaskChildrenMapProvider.overrideWith(
+                  (ref) async => childrenMap,
+                ),
+              ],
+              child: Consumer(
+                builder: (context, ref, child) {
+                  testRef = ref;
+                  dragNotifier = ref.read(inboxDragProvider.notifier);
+                  dragState = ref.read(inboxDragProvider);
 
-                final widgets = TaskListDragBuilder.buildTaskListDragUI(
-                  flattenedTasks: flattenedTasks,
-                  rootTasks: rootTasks,
-                  taskIdToIndex: taskIdToIndex,
-                  taskIdToHasChildren: taskIdToHasChildren,
-                  levelMap: levelMap,
-                  childrenMap: childrenMap,
-                  expandedTaskIds: {},
-                  filteredTasks: tasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                  onExpandedChanged: (_) {},
-                  onDragStarted: (_) {},
-                  onDragEnd: () {},
-                  onDragUpdate: (_) {},
-                );
+                  final widgets = TaskListDragBuilder.buildTaskListDragUI(
+                    flattenedTasks: flattenedTasks,
+                    rootTasks: rootTasks,
+                    taskIdToIndex: taskIdToIndex,
+                    taskIdToHasChildren: taskIdToHasChildren,
+                    levelMap: levelMap,
+                    childrenMap: childrenMap,
+                    expandedTaskIds: {},
+                    filteredTasks: tasks,
+                    config: config,
+                    dragState: dragState!,
+                    dragNotifier: dragNotifier!,
+                    ref: testRef!,
+                    onExpandedChanged: (_) {},
+                    onDragStarted: (_) {},
+                    onDragEnd: () {},
+                    onDragUpdate: (_) {},
+                  );
 
-                return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: Column(
-                      children: widgets,
-                    ),
-                  ),
-                );
-              },
+                  return MaterialApp(
+                    localizationsDelegates:
+                        AppLocalizations.localizationsDelegates,
+                    supportedLocales: AppLocalizations.supportedLocales,
+                    home: Scaffold(body: Column(children: widgets)),
+                  );
+                },
+              ),
             ),
-          ),
-        );
+          );
 
-        await tester.pumpAndSettle();
+          await tester.pumpAndSettle();
 
-        // 验证顶部插入目标存在
-        expect(find.byKey(const ValueKey('inbox-insertion-first')), findsOneWidget);
-        
-        // 验证任务卡片存在
-        expect(find.byKey(const ValueKey('inbox-1')), findsOneWidget);
-        expect(find.byKey(const ValueKey('inbox-2')), findsOneWidget);
-        
-        // 验证中间插入目标存在
-        expect(find.byKey(const ValueKey('inbox-insertion-1')), findsOneWidget);
-        
-        // 验证底部插入目标存在
-        expect(find.byKey(const ValueKey('inbox-insertion-last')), findsOneWidget);
-      });
+          // 验证顶部插入目标存在
+          expect(
+            find.byKey(const ValueKey('inbox-insertion-first')),
+            findsOneWidget,
+          );
+
+          // 验证任务卡片存在
+          expect(find.byKey(const ValueKey('inbox-1')), findsOneWidget);
+          expect(find.byKey(const ValueKey('inbox-2')), findsOneWidget);
+
+          // 验证中间插入目标存在
+          expect(
+            find.byKey(const ValueKey('inbox-insertion-1')),
+            findsOneWidget,
+          );
+
+          // 验证底部插入目标存在
+          expect(
+            find.byKey(const ValueKey('inbox-insertion-last')),
+            findsOneWidget,
+          );
+        },
+      );
 
       testWidgets('should build widgets for Tasks page', (tester) async {
         final config = TasksSectionTaskListConfig(TaskSection.today);
@@ -130,8 +141,12 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              tasksSectionTaskLevelMapProvider(TaskSection.today).overrideWith((ref) async => levelMap),
-              tasksSectionTaskChildrenMapProvider(TaskSection.today).overrideWith((ref) async => childrenMap),
+              tasksSectionTaskLevelMapProvider(
+                TaskSection.today,
+              ).overrideWith((ref) async => levelMap),
+              tasksSectionTaskChildrenMapProvider(
+                TaskSection.today,
+              ).overrideWith((ref) async => childrenMap),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -159,13 +174,10 @@ void main() {
                 );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: Column(
-                      children: widgets,
-                    ),
-                  ),
+                  home: Scaffold(body: Column(children: widgets)),
                 );
               },
             ),
@@ -175,8 +187,11 @@ void main() {
         await tester.pumpAndSettle();
 
         // 验证顶部插入目标存在
-        expect(find.byKey(const ValueKey('tasks-insertion-first')), findsOneWidget);
-        
+        expect(
+          find.byKey(const ValueKey('tasks-insertion-first')),
+          findsOneWidget,
+        );
+
         // 验证任务卡片存在
         expect(find.byKey(const ValueKey('tasks-1')), findsOneWidget);
         expect(find.byKey(const ValueKey('tasks-2')), findsOneWidget);
@@ -216,13 +231,10 @@ void main() {
                 );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: Column(
-                      children: widgets,
-                    ),
-                  ),
+                  home: Scaffold(body: Column(children: widgets)),
                 );
               },
             ),
@@ -232,8 +244,14 @@ void main() {
         await tester.pumpAndSettle();
 
         // 验证只有顶部插入目标存在（没有底部插入目标，因为没有任务）
-        expect(find.byKey(const ValueKey('inbox-insertion-first')), findsOneWidget);
-        expect(find.byKey(const ValueKey('inbox-insertion-last')), findsNothing);
+        expect(
+          find.byKey(const ValueKey('inbox-insertion-first')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('inbox-insertion-last')),
+          findsNothing,
+        );
       });
 
       testWidgets('should handle tasks with children', (tester) async {
@@ -243,8 +261,8 @@ void main() {
         WidgetRef? testRef;
 
         final parentTask = Task(
-          id: 1,
-          taskId: 'task-1',
+          id: '1',
+
           title: 'Parent Task',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -254,8 +272,8 @@ void main() {
         );
 
         final childTask = Task(
-          id: 2,
-          taskId: 'task-2',
+          id: '2',
+
           title: 'Child Task',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -274,8 +292,15 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              inboxTaskLevelMapProvider.overrideWith((ref) async => {1: 1, 2: 2}),
-              inboxTaskChildrenMapProvider.overrideWith((ref) async => {1: {2}, 2: {}}),
+              inboxTaskLevelMapProvider.overrideWith(
+                (ref) async => {1: 1, 2: 2},
+              ),
+              inboxTaskChildrenMapProvider.overrideWith(
+                (ref) async => {
+                  1: {2},
+                  2: {},
+                },
+              ),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -289,7 +314,10 @@ void main() {
                   taskIdToIndex: {1: 0},
                   taskIdToHasChildren: {1: true, 2: false},
                   levelMap: {1: 1, 2: 2},
-                  childrenMap: {1: {2}, 2: {}},
+                  childrenMap: {
+                    1: {2},
+                    2: {},
+                  },
                   expandedTaskIds: {1}, // 父任务已展开
                   filteredTasks: tasksWithChildren,
                   config: config,
@@ -303,13 +331,10 @@ void main() {
                 );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: Column(
-                      children: widgets,
-                    ),
-                  ),
+                  home: Scaffold(body: Column(children: widgets)),
                 );
               },
             ),
@@ -321,7 +346,7 @@ void main() {
         // 验证父任务和子任务都存在
         expect(find.byKey(const ValueKey('inbox-1')), findsOneWidget);
         expect(find.byKey(const ValueKey('inbox-2')), findsOneWidget);
-        
+
         // 验证中间插入目标存在（在父任务和子任务之间）
         expect(find.byKey(const ValueKey('inbox-insertion-1')), findsOneWidget);
       });
@@ -338,7 +363,9 @@ void main() {
           ProviderScope(
             overrides: [
               inboxTaskLevelMapProvider.overrideWith((ref) async => levelMap),
-              inboxTaskChildrenMapProvider.overrideWith((ref) async => childrenMap),
+              inboxTaskChildrenMapProvider.overrideWith(
+                (ref) async => childrenMap,
+              ),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -366,13 +393,10 @@ void main() {
                 );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: Column(
-                      children: widgets,
-                    ),
-                  ),
+                  home: Scaffold(body: Column(children: widgets)),
                 );
               },
             ),
@@ -389,4 +413,3 @@ void main() {
     });
   });
 }
-

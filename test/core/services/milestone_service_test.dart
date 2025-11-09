@@ -60,7 +60,7 @@ void main() {
 
       final newDeadline = DateTime(2024, 4, 1);
       await service.updateMilestone(
-        isarId: milestone.id,
+        id: milestone.id,
         title: 'Updated Title',
         dueAt: newDeadline,
         description: 'Updated description',
@@ -81,7 +81,7 @@ void main() {
       );
 
       await service.updateMilestone(
-        isarId: milestone.id,
+        id: milestone.id,
         dueAt: DateTime(2024, 4, 1),
       );
 
@@ -100,7 +100,7 @@ void main() {
       );
 
       await service.updateMilestone(
-        isarId: milestone.id,
+        id: milestone.id,
         status: TaskStatus.completedActive,
       );
 
@@ -116,10 +116,7 @@ void main() {
 
     test('updateMilestone throws when milestone not found', () async {
       expect(
-        () => service.updateMilestone(
-          isarId: 999,
-          title: 'Test',
-        ),
+        () => service.updateMilestone(id: 999, title: 'Test'),
         throwsA(isA<StateError>()),
       );
     });
@@ -140,7 +137,7 @@ void main() {
 
 class _InMemoryMilestoneRepository implements MilestoneRepository {
   _InMemoryMilestoneRepository()
-      : _controller = StreamController<List<Milestone>>.broadcast();
+    : _controller = StreamController<List<Milestone>>.broadcast();
 
   final Map<int, Milestone> _milestones = <int, Milestone>{};
   final StreamController<List<Milestone>> _controller;
@@ -150,7 +147,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   Future<Milestone> create(MilestoneDraft draft) async {
     final milestone = Milestone(
       id: _nextId++,
-      milestoneId: draft.milestoneId,
+
       projectId: draft.projectId,
       title: draft.title,
       status: draft.status,
@@ -184,8 +181,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
       endedAt: update.endedAt,
       sortIndex: update.sortIndex,
       tags: update.tags,
-      templateLockCount:
-          current.templateLockCount + update.templateLockDelta,
+      templateLockCount: current.templateLockCount + update.templateLockDelta,
       allowInstantComplete: update.allowInstantComplete,
       description: update.description,
       logs: update.logs,
@@ -237,7 +233,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   ) async {
     final milestone = Milestone(
       id: _nextId++,
-      milestoneId: milestoneId,
+
       projectId: draft.projectId,
       title: draft.title,
       status: draft.status,
@@ -279,4 +275,3 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
     }
   }
 }
-

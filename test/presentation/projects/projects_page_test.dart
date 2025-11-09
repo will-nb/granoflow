@@ -22,16 +22,19 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
   Future<void> build() async {}
 
   @override
-  Future<void> archive(int taskId) async {}
+  Future<void> archive(String taskId) async {}
 
   @override
   Future<void> addSubtask({
-    required int parentId,
+    required String parentId,
     required String title,
   }) async {}
 
   @override
-  Future<void> editTitle({required int taskId, required String title}) async {}
+  Future<void> editTitle({
+    required String taskId,
+    required String title,
+  }) async {}
 }
 
 class _FakeProjectService extends Fake implements ProjectService {}
@@ -40,7 +43,9 @@ void main() {
   Widget buildTestWidget({List<Project>? projects}) {
     return ProviderScope(
       overrides: [
-        projectFilterStatusProvider.overrideWith((ref) => ProjectFilterStatus.all),
+        projectFilterStatusProvider.overrideWith(
+          (ref) => ProjectFilterStatus.all,
+        ),
         projectsByStatusProvider.overrideWith(
           (ref) => Stream<List<Project>>.value(projects ?? const <Project>[]),
         ),
@@ -137,7 +142,7 @@ void main() {
     ) async {
       final project = Project(
         id: 1,
-        projectId: 'project-1',
+
         title: 'Test Project',
         status: TaskStatus.pending,
         dueAt: null,

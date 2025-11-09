@@ -12,7 +12,7 @@ void main() {
   Project createProject() {
     return Project(
       id: 1,
-      projectId: 'project-1',
+
       title: 'Test Project',
       status: TaskStatus.pending,
       dueAt: null,
@@ -37,7 +37,7 @@ void main() {
   }) {
     return Milestone(
       id: 1,
-      milestoneId: milestoneId,
+
       projectId: 'project-1',
       title: title,
       status: status,
@@ -72,10 +72,7 @@ void main() {
 
       await tester.pumpWidget(
         buildTestWidget(
-          ProjectDetails(
-            project: project,
-            milestones: const <Milestone>[],
-          ),
+          ProjectDetails(project: project, milestones: const <Milestone>[]),
         ),
       );
 
@@ -96,10 +93,7 @@ void main() {
 
       await tester.pumpWidget(
         buildTestWidget(
-          ProjectDetails(
-            project: project,
-            milestones: milestones,
-          ),
+          ProjectDetails(project: project, milestones: milestones),
         ),
       );
 
@@ -114,10 +108,7 @@ void main() {
 
       await tester.pumpWidget(
         buildTestWidget(
-          ProjectDetails(
-            project: project,
-            milestones: const <Milestone>[],
-          ),
+          ProjectDetails(project: project, milestones: const <Milestone>[]),
         ),
       );
 
@@ -127,4 +118,3 @@ void main() {
     });
   });
 }
-

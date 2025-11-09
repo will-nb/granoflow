@@ -200,8 +200,27 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
 ### 🔄 待处理的错误类型
 - `return_of_invalid_type_from_closure` (72 个): 闭包返回类型问题
 - `undefined_getter` (44 个): 属性访问问题
-- `uri_does_not_exist` (4 个): 已大幅减少，现有修复器有效
+- `uri_does_not_exist` (剩余): 部分需要手动修复（lib/main.dart, lib/core/providers/repository_providers.dart 涉及核心初始化）
 - 其他较小的错误类型
+
+## 修复进度总结
+
+### 初始状态
+- ERROR: 707
+- WARNING: 26
+- INFO: 0
+- Total: 733
+
+### 当前状态（修复器运行后）
+- ERROR: 689-713（取决于哪些修复器启用）
+- 已修复：约 20-40 个错误（通过 import 修复等）
+- 主要剩余错误：需要手动修复或更复杂的修复器
+
+### 修复器效果评估
+- ✅ `uri_does_not_exist` 修复器：有效，已修复大部分导入问题
+- ⚠️ `invalid_override` 修复器：部分有效，修复方法签名但引入新错误
+- ⚠️ `undefined_named_parameter` 修复器：部分有效，但引入新错误
+- ❌ `argument_type_not_assignable` 修复器：已禁用，引入太多新错误
 
 ## 辅助工具脚本
 

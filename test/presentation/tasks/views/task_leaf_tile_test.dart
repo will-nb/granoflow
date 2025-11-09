@@ -13,7 +13,7 @@ class _FakeTaskService extends Fake implements TaskService {}
 Task _createTask({required int id}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     dueAt: DateTime(2025, 1, id),
@@ -46,9 +46,7 @@ void main() {
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: TaskLeafTile(task: task, depth: 0),
-          ),
+          home: Scaffold(body: TaskLeafTile(task: task, depth: 0)),
         ),
       ),
     );
@@ -58,4 +56,3 @@ void main() {
     expect(find.text('Task 1'), findsOneWidget);
   });
 }
-

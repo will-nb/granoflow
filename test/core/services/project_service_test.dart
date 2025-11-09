@@ -248,7 +248,7 @@ class _InMemoryProjectRepository implements ProjectRepository {
   Future<Project> create(ProjectDraft draft) async {
     final project = Project(
       id: _nextId++,
-      projectId: draft.projectId,
+
       title: draft.title,
       status: draft.status,
       dueAt: draft.dueAt,
@@ -322,7 +322,7 @@ class _InMemoryProjectRepository implements ProjectRepository {
   ) async {
     final project = Project(
       id: _nextId++,
-      projectId: projectId,
+
       title: draft.title,
       status: draft.status,
       dueAt: draft.dueAt,
@@ -344,42 +344,47 @@ class _InMemoryProjectRepository implements ProjectRepository {
   }
 
   @override
-  Stream<List<Project>> watchActiveProjects() => watchProjectsByStatus(
-        ProjectFilterStatus.active,
-      );
+  Stream<List<Project>> watchActiveProjects() =>
+      watchProjectsByStatus(ProjectFilterStatus.active);
 
   @override
   Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status) {
     return _controller.stream.map((allProjects) {
-      return allProjects.where((project) {
-        switch (status) {
-          case ProjectFilterStatus.all:
-            return project.status != TaskStatus.pseudoDeleted;
-          case ProjectFilterStatus.active:
-            return project.status == TaskStatus.pending ||
-                project.status == TaskStatus.doing;
-          case ProjectFilterStatus.completed:
-            return project.status == TaskStatus.completedActive;
-          case ProjectFilterStatus.archived:
-            return project.status == TaskStatus.archived;
-          case ProjectFilterStatus.trash:
-            return project.status == TaskStatus.trashed;
-        }
-      }).toList(growable: false);
+      return allProjects
+          .where((project) {
+            switch (status) {
+              case ProjectFilterStatus.all:
+                return project.status != TaskStatus.pseudoDeleted;
+              case ProjectFilterStatus.active:
+                return project.status == TaskStatus.pending ||
+                    project.status == TaskStatus.doing;
+              case ProjectFilterStatus.completed:
+                return project.status == TaskStatus.completedActive;
+              case ProjectFilterStatus.archived:
+                return project.status == TaskStatus.archived;
+              case ProjectFilterStatus.trash:
+                return project.status == TaskStatus.trashed;
+            }
+          })
+          .toList(growable: false);
     });
   }
 
   @override
-  Stream<List<Project>> watchProjectsByStatuses(Set<TaskStatus> allowedStatuses) {
+  Stream<List<Project>> watchProjectsByStatuses(
+    Set<TaskStatus> allowedStatuses,
+  ) {
     return _controller.stream.map((allProjects) {
-      return allProjects.where((project) {
-        // 排除伪删除状态
-        if (project.status == TaskStatus.pseudoDeleted) {
-          return false;
-        }
-        // 只返回状态在允许集合中的项目
-        return allowedStatuses.contains(project.status);
-      }).toList(growable: false);
+      return allProjects
+          .where((project) {
+            // 排除伪删除状态
+            if (project.status == TaskStatus.pseudoDeleted) {
+              return false;
+            }
+            // 只返回状态在允许集合中的项目
+            return allowedStatuses.contains(project.status);
+          })
+          .toList(growable: false);
     });
   }
 
@@ -403,7 +408,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   Future<Milestone> create(MilestoneDraft draft) async {
     final milestone = Milestone(
       id: _nextId++,
-      milestoneId: draft.milestoneId,
+
       projectId: draft.projectId,
       title: draft.title,
       status: draft.status,
@@ -489,7 +494,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   ) async {
     final milestone = Milestone(
       id: _nextId++,
-      milestoneId: milestoneId,
+
       projectId: draft.projectId,
       title: draft.title,
       status: draft.status,
@@ -565,30 +570,30 @@ class _NoopMetricRepository implements MetricRepository {
 class _NoopFocusSessionRepository implements FocusSessionRepository {
   @override
   Future<void> endSession({
-    required int sessionId,
+    required String sessionId,
     required int actualMinutes,
     int? transferToTaskId,
     String? reflectionNote,
   }) async {}
 
   @override
-  Future<FocusSession?> findById(int sessionId) async => null;
+  Future<FocusSession?> findById(String sessionId) async => null;
 
   @override
   Future<List<FocusSession>> listRecentSessions({
-    required int taskId,
+    required String taskId,
     int limit = 10,
   }) async => const <FocusSession>[];
 
   @override
   Future<FocusSession> startSession({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async => FocusSession(id: 1, taskId: taskId, startedAt: DateTime.now());
 
   @override
-  Future<int> totalMinutesForTask(int taskId) async => 0;
+  Future<int> totalMinutesForTask(String taskId) async => 0;
 
   @override
   Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
@@ -599,7 +604,7 @@ class _NoopFocusSessionRepository implements FocusSessionRepository {
   Future<int> totalMinutesOverall() async => 0;
 
   @override
-  Stream<FocusSession?> watchActiveSession(int taskId) async* {
+  Stream<FocusSession?> watchActiveSession(String taskId) async* {
     yield null;
   }
 }

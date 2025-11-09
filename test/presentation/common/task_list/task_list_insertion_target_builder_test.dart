@@ -21,7 +21,7 @@ void main() {
       tasks = [
         Task(
           id: 1,
-          taskId: 'task-1',
+
           title: 'Task 1',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -31,7 +31,7 @@ void main() {
         ),
         Task(
           id: 2,
-          taskId: 'task-2',
+
           title: 'Task 2',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -41,7 +41,7 @@ void main() {
         ),
         Task(
           id: 3,
-          taskId: 'task-3',
+
           title: 'Task 3',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -56,7 +56,9 @@ void main() {
     });
 
     group('buildTopInsertionTarget', () {
-      testWidgets('should build widget with correct key for Inbox', (tester) async {
+      testWidgets('should build widget with correct key for Inbox', (
+        tester,
+      ) async {
         final config = InboxTaskListConfig();
         InboxDragNotifier? dragNotifier;
         InboxDragState? dragState;
@@ -68,7 +70,9 @@ void main() {
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const [],
+              ),
               executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
@@ -77,21 +81,21 @@ void main() {
                 dragNotifier = ref.read(inboxDragProvider.notifier);
                 dragState = ref.read(inboxDragProvider);
 
-                final widget = TaskListInsertionTargetBuilder.buildTopInsertionTarget(
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                );
+                final widget =
+                    TaskListInsertionTargetBuilder.buildTopInsertionTarget(
+                      flattenedTasks: flattenedTasks,
+                      filteredTasks: filteredTasks,
+                      config: config,
+                      dragState: dragState!,
+                      dragNotifier: dragNotifier!,
+                      ref: testRef!,
+                    );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
+                  home: Scaffold(body: widget),
                 );
               },
             ),
@@ -101,10 +105,15 @@ void main() {
         await tester.pumpAndSettle();
 
         // 验证 Widget 存在
-        expect(find.byKey(const ValueKey('inbox-insertion-first')), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('inbox-insertion-first')),
+          findsOneWidget,
+        );
       });
 
-      testWidgets('should build widget with correct key for Tasks', (tester) async {
+      testWidgets('should build widget with correct key for Tasks', (
+        tester,
+      ) async {
         final config = TasksSectionTaskListConfig(TaskSection.today);
         TasksDragNotifier? dragNotifier;
         TasksDragState? dragState;
@@ -116,7 +125,9 @@ void main() {
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const [],
+              ),
               executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
@@ -125,21 +136,21 @@ void main() {
                 dragNotifier = ref.read(tasksDragProvider.notifier);
                 dragState = ref.read(tasksDragProvider);
 
-                final widget = TaskListInsertionTargetBuilder.buildTopInsertionTarget(
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                );
+                final widget =
+                    TaskListInsertionTargetBuilder.buildTopInsertionTarget(
+                      flattenedTasks: flattenedTasks,
+                      filteredTasks: filteredTasks,
+                      config: config,
+                      dragState: dragState!,
+                      dragNotifier: dragNotifier!,
+                      ref: testRef!,
+                    );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
+                  home: Scaffold(body: widget),
                 );
               },
             ),
@@ -149,7 +160,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // 验证 Widget 存在
-        expect(find.byKey(const ValueKey('tasks-insertion-first')), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('tasks-insertion-first')),
+          findsOneWidget,
+        );
       });
 
       testWidgets('should handle empty flattened tasks list', (tester) async {
@@ -164,7 +178,9 @@ void main() {
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const [],
+              ),
               executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
@@ -173,21 +189,21 @@ void main() {
                 dragNotifier = ref.read(inboxDragProvider.notifier);
                 dragState = ref.read(inboxDragProvider);
 
-                final widget = TaskListInsertionTargetBuilder.buildTopInsertionTarget(
-                  flattenedTasks: [],
-                  filteredTasks: [],
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                );
+                final widget =
+                    TaskListInsertionTargetBuilder.buildTopInsertionTarget(
+                      flattenedTasks: [],
+                      filteredTasks: [],
+                      config: config,
+                      dragState: dragState!,
+                      dragNotifier: dragNotifier!,
+                      ref: testRef!,
+                    );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
+                  home: Scaffold(body: widget),
                 );
               },
             ),
@@ -197,7 +213,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // 验证 Widget 仍然存在（即使列表为空）
-        expect(find.byKey(const ValueKey('inbox-insertion-first')), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('inbox-insertion-first')),
+          findsOneWidget,
+        );
       });
     });
 
@@ -214,7 +233,9 @@ void main() {
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const [],
+              ),
               executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
@@ -223,24 +244,24 @@ void main() {
                 dragNotifier = ref.read(inboxDragProvider.notifier);
                 dragState = ref.read(inboxDragProvider);
 
-                final widget = TaskListInsertionTargetBuilder.buildMiddleInsertionTarget(
-                  insertionIndex: 1,
-                  beforeTask: tasks[0],
-                  afterTask: tasks[1],
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                );
+                final widget =
+                    TaskListInsertionTargetBuilder.buildMiddleInsertionTarget(
+                      insertionIndex: 1,
+                      beforeTask: tasks[0],
+                      afterTask: tasks[1],
+                      flattenedTasks: flattenedTasks,
+                      filteredTasks: filteredTasks,
+                      config: config,
+                      dragState: dragState!,
+                      dragNotifier: dragNotifier!,
+                      ref: testRef!,
+                    );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
+                  home: Scaffold(body: widget),
                 );
               },
             ),
@@ -265,7 +286,9 @@ void main() {
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const [],
+              ),
               executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
@@ -274,24 +297,24 @@ void main() {
                 dragNotifier = ref.read(tasksDragProvider.notifier);
                 dragState = ref.read(tasksDragProvider);
 
-                final widget = TaskListInsertionTargetBuilder.buildMiddleInsertionTarget(
-                  insertionIndex: 1,
-                  beforeTask: tasks[0],
-                  afterTask: tasks[1],
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                );
+                final widget =
+                    TaskListInsertionTargetBuilder.buildMiddleInsertionTarget(
+                      insertionIndex: 1,
+                      beforeTask: tasks[0],
+                      afterTask: tasks[1],
+                      flattenedTasks: flattenedTasks,
+                      filteredTasks: filteredTasks,
+                      config: config,
+                      dragState: dragState!,
+                      dragNotifier: dragNotifier!,
+                      ref: testRef!,
+                    );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
+                  home: Scaffold(body: widget),
                 );
               },
             ),
@@ -318,7 +341,9 @@ void main() {
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const [],
+              ),
               executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
@@ -327,21 +352,21 @@ void main() {
                 dragNotifier = ref.read(inboxDragProvider.notifier);
                 dragState = ref.read(inboxDragProvider);
 
-                final widget = TaskListInsertionTargetBuilder.buildBottomInsertionTarget(
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                );
+                final widget =
+                    TaskListInsertionTargetBuilder.buildBottomInsertionTarget(
+                      flattenedTasks: flattenedTasks,
+                      filteredTasks: filteredTasks,
+                      config: config,
+                      dragState: dragState!,
+                      dragNotifier: dragNotifier!,
+                      ref: testRef!,
+                    );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
+                  home: Scaffold(body: widget),
                 );
               },
             ),
@@ -351,7 +376,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // 验证 Widget 存在
-        expect(find.byKey(const ValueKey('inbox-insertion-last')), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('inbox-insertion-last')),
+          findsOneWidget,
+        );
       });
 
       testWidgets('should build widget for Tasks section', (tester) async {
@@ -366,7 +394,9 @@ void main() {
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const [],
+              ),
               executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
@@ -375,21 +405,21 @@ void main() {
                 dragNotifier = ref.read(tasksDragProvider.notifier);
                 dragState = ref.read(tasksDragProvider);
 
-                final widget = TaskListInsertionTargetBuilder.buildBottomInsertionTarget(
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: dragNotifier!,
-                  ref: testRef!,
-                );
+                final widget =
+                    TaskListInsertionTargetBuilder.buildBottomInsertionTarget(
+                      flattenedTasks: flattenedTasks,
+                      filteredTasks: filteredTasks,
+                      config: config,
+                      dragState: dragState!,
+                      dragNotifier: dragNotifier!,
+                      ref: testRef!,
+                    );
 
                 return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
+                  home: Scaffold(body: widget),
                 );
               },
             ),
@@ -399,115 +429,142 @@ void main() {
         await tester.pumpAndSettle();
 
         // 验证 Widget 存在
-        expect(find.byKey(const ValueKey('tasks-insertion-last')), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('tasks-insertion-last')),
+          findsOneWidget,
+        );
       });
     });
 
     group('_updateInsertionHover compatibility', () {
-      testWidgets('should handle InboxDragNotifier.updateInsertionHover (no section)', (tester) async {
-        final config = InboxTaskListConfig();
-        InboxDragState? dragState;
-        WidgetRef? testRef;
+      testWidgets(
+        'should handle InboxDragNotifier.updateInsertionHover (no section)',
+        (tester) async {
+          final config = InboxTaskListConfig();
+          InboxDragState? dragState;
+          WidgetRef? testRef;
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              contextTagOptionsProvider.overrideWith((ref) async => const []),
-              priorityTagOptionsProvider.overrideWith((ref) async => const []),
-              urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
-            ],
-            child: Consumer(
-              builder: (context, ref, child) {
-                testRef = ref;
-                dragState = ref.read(inboxDragProvider);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                contextTagOptionsProvider.overrideWith((ref) async => const []),
+                priorityTagOptionsProvider.overrideWith(
+                  (ref) async => const [],
+                ),
+                urgencyTagOptionsProvider.overrideWith((ref) async => const []),
+                importanceTagOptionsProvider.overrideWith(
+                  (ref) async => const [],
+                ),
+                executionTagOptionsProvider.overrideWith(
+                  (ref) async => const [],
+                ),
+              ],
+              child: Consumer(
+                builder: (context, ref, child) {
+                  testRef = ref;
+                  dragState = ref.read(inboxDragProvider);
 
-                // 创建一个 Fake dragNotifier
-                final fakeNotifier = _FakeInboxDragNotifier(
-                  onUpdateInsertionHover: (_) {},
-                );
+                  // 创建一个 Fake dragNotifier
+                  final fakeNotifier = _FakeInboxDragNotifier(
+                    onUpdateInsertionHover: (_) {},
+                  );
 
-                // 通过 buildTopInsertionTarget 的 onHover 来测试 _updateInsertionHover
-                final widget = TaskListInsertionTargetBuilder.buildTopInsertionTarget(
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: fakeNotifier,
-                  ref: testRef!,
-                );
+                  // 通过 buildTopInsertionTarget 的 onHover 来测试 _updateInsertionHover
+                  final widget =
+                      TaskListInsertionTargetBuilder.buildTopInsertionTarget(
+                        flattenedTasks: flattenedTasks,
+                        filteredTasks: filteredTasks,
+                        config: config,
+                        dragState: dragState!,
+                        dragNotifier: fakeNotifier,
+                        ref: testRef!,
+                      );
 
-                return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
-                );
-              },
+                  return MaterialApp(
+                    localizationsDelegates:
+                        AppLocalizations.localizationsDelegates,
+                    supportedLocales: AppLocalizations.supportedLocales,
+                    home: Scaffold(body: widget),
+                  );
+                },
+              ),
             ),
-          ),
-        );
+          );
 
-        await tester.pumpAndSettle();
+          await tester.pumpAndSettle();
 
-        // 注意：由于 onHover 是异步回调，我们无法直接触发它
-        // 但至少验证 Widget 构建成功
-        expect(find.byKey(const ValueKey('inbox-insertion-first')), findsOneWidget);
-      });
+          // 注意：由于 onHover 是异步回调，我们无法直接触发它
+          // 但至少验证 Widget 构建成功
+          expect(
+            find.byKey(const ValueKey('inbox-insertion-first')),
+            findsOneWidget,
+          );
+        },
+      );
 
-      testWidgets('should handle TasksDragNotifier.updateInsertionHover (with section)', (tester) async {
-        final config = TasksSectionTaskListConfig(TaskSection.today);
-        TasksDragState? dragState;
-        WidgetRef? testRef;
+      testWidgets(
+        'should handle TasksDragNotifier.updateInsertionHover (with section)',
+        (tester) async {
+          final config = TasksSectionTaskListConfig(TaskSection.today);
+          TasksDragState? dragState;
+          WidgetRef? testRef;
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              contextTagOptionsProvider.overrideWith((ref) async => const []),
-              priorityTagOptionsProvider.overrideWith((ref) async => const []),
-              urgencyTagOptionsProvider.overrideWith((ref) async => const []),
-              importanceTagOptionsProvider.overrideWith((ref) async => const []),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
-            ],
-            child: Consumer(
-              builder: (context, ref, child) {
-                testRef = ref;
-                dragState = ref.read(tasksDragProvider);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                contextTagOptionsProvider.overrideWith((ref) async => const []),
+                priorityTagOptionsProvider.overrideWith(
+                  (ref) async => const [],
+                ),
+                urgencyTagOptionsProvider.overrideWith((ref) async => const []),
+                importanceTagOptionsProvider.overrideWith(
+                  (ref) async => const [],
+                ),
+                executionTagOptionsProvider.overrideWith(
+                  (ref) async => const [],
+                ),
+              ],
+              child: Consumer(
+                builder: (context, ref, child) {
+                  testRef = ref;
+                  dragState = ref.read(tasksDragProvider);
 
-                // 创建一个 Fake dragNotifier
-                final fakeNotifier = _FakeTasksDragNotifier(
-                  onUpdateInsertionHover: (_, __) {},
-                );
+                  // 创建一个 Fake dragNotifier
+                  final fakeNotifier = _FakeTasksDragNotifier(
+                    onUpdateInsertionHover: (_, __) {},
+                  );
 
-                // 通过 buildTopInsertionTarget 的 onHover 来测试 _updateInsertionHover
-                final widget = TaskListInsertionTargetBuilder.buildTopInsertionTarget(
-                  flattenedTasks: flattenedTasks,
-                  filteredTasks: filteredTasks,
-                  config: config,
-                  dragState: dragState!,
-                  dragNotifier: fakeNotifier,
-                  ref: testRef!,
-                );
+                  // 通过 buildTopInsertionTarget 的 onHover 来测试 _updateInsertionHover
+                  final widget =
+                      TaskListInsertionTargetBuilder.buildTopInsertionTarget(
+                        flattenedTasks: flattenedTasks,
+                        filteredTasks: filteredTasks,
+                        config: config,
+                        dragState: dragState!,
+                        dragNotifier: fakeNotifier,
+                        ref: testRef!,
+                      );
 
-                return MaterialApp(
-                  localizationsDelegates: AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  home: Scaffold(
-                    body: widget,
-                  ),
-                );
-              },
+                  return MaterialApp(
+                    localizationsDelegates:
+                        AppLocalizations.localizationsDelegates,
+                    supportedLocales: AppLocalizations.supportedLocales,
+                    home: Scaffold(body: widget),
+                  );
+                },
+              ),
             ),
-          ),
-        );
+          );
 
-        await tester.pumpAndSettle();
+          await tester.pumpAndSettle();
 
-        // 验证 Widget 构建成功
-        expect(find.byKey(const ValueKey('tasks-insertion-first')), findsOneWidget);
-      });
+          // 验证 Widget 构建成功
+          expect(
+            find.byKey(const ValueKey('tasks-insertion-first')),
+            findsOneWidget,
+          );
+        },
+      );
     });
 
     // 删除 _handleExpansionAreaDetection 组：测试复杂的拖拽交互逻辑，修复成本高且价值不大
@@ -519,15 +576,13 @@ void main() {
 }
 
 /// Fake InboxDragNotifier for testing
-/// 
+///
 /// Note: This is a minimal implementation for testing purposes only.
 /// It only implements the methods we actually use in the tests.
 class _FakeInboxDragNotifier {
   final void Function(int?)? onUpdateInsertionHover;
 
-  _FakeInboxDragNotifier({
-    this.onUpdateInsertionHover,
-  });
+  _FakeInboxDragNotifier({this.onUpdateInsertionHover});
 
   void updateInsertionHover(int? insertionIndex) {
     onUpdateInsertionHover?.call(insertionIndex);
@@ -545,15 +600,13 @@ class _FakeInboxDragNotifier {
 }
 
 /// Fake TasksDragNotifier for testing
-/// 
+///
 /// Note: This is a minimal implementation for testing purposes only.
 /// It only implements the methods we actually use in the tests.
 class _FakeTasksDragNotifier {
   final void Function(int?, TaskSection?)? onUpdateInsertionHover;
 
-  _FakeTasksDragNotifier({
-    this.onUpdateInsertionHover,
-  });
+  _FakeTasksDragNotifier({this.onUpdateInsertionHover});
 
   void updateInsertionHover(int? insertionIndex, TaskSection? section) {
     onUpdateInsertionHover?.call(insertionIndex, section);

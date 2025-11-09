@@ -3,13 +3,10 @@ import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/presentation/common/task_list/task_list_flattener.dart';
 
 /// 创建测试任务辅助函数
-Task _createTask({
-  required int id,
-  int? parentId,
-}) {
+Task _createTask({required int id, int? parentId}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
@@ -47,13 +44,10 @@ void main() {
         final task1 = _createTask(id: 1);
         final task2 = _createTask(id: 2, parentId: 1);
         final task3 = _createTask(id: 3, parentId: 1);
-        final node = _createNode(
-          task1,
-          [
-            _createNode(task2, []),
-            _createNode(task3, []),
-          ],
-        );
+        final node = _createNode(task1, [
+          _createNode(task2, []),
+          _createNode(task3, []),
+        ]);
         final expandedTaskIds = <int>{}; // 任务1未展开
 
         final result = TaskListFlattener.flattenTreeWithExpansion(
@@ -70,13 +64,10 @@ void main() {
         final task1 = _createTask(id: 1);
         final task2 = _createTask(id: 2, parentId: 1);
         final task3 = _createTask(id: 3, parentId: 1);
-        final node = _createNode(
-          task1,
-          [
-            _createNode(task2, []),
-            _createNode(task3, []),
-          ],
-        );
+        final node = _createNode(task1, [
+          _createNode(task2, []),
+          _createNode(task3, []),
+        ]);
         final expandedTaskIds = {1}; // 任务1已展开
 
         final result = TaskListFlattener.flattenTreeWithExpansion(
@@ -97,17 +88,9 @@ void main() {
         final task1 = _createTask(id: 1);
         final task2 = _createTask(id: 2, parentId: 1);
         final task3 = _createTask(id: 3, parentId: 2);
-        final node = _createNode(
-          task1,
-          [
-            _createNode(
-              task2,
-              [
-                _createNode(task3, []),
-              ],
-            ),
-          ],
-        );
+        final node = _createNode(task1, [
+          _createNode(task2, [_createNode(task3, [])]),
+        ]);
         final expandedTaskIds = {1, 2}; // 任务1和2都已展开
 
         final result = TaskListFlattener.flattenTreeWithExpansion(
@@ -124,35 +107,30 @@ void main() {
         expect(result[2].depth, 2);
       });
 
-      test('should only expand immediate children when nested parent is collapsed', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2, parentId: 1);
-        final task3 = _createTask(id: 3, parentId: 2);
-        final node = _createNode(
-          task1,
-          [
-            _createNode(
-              task2,
-              [
-                _createNode(task3, []),
-              ],
-            ),
-          ],
-        );
-        final expandedTaskIds = {1}; // 只有任务1展开，任务2未展开
+      test(
+        'should only expand immediate children when nested parent is collapsed',
+        () {
+          final task1 = _createTask(id: 1);
+          final task2 = _createTask(id: 2, parentId: 1);
+          final task3 = _createTask(id: 3, parentId: 2);
+          final node = _createNode(task1, [
+            _createNode(task2, [_createNode(task3, [])]),
+          ]);
+          final expandedTaskIds = {1}; // 只有任务1展开，任务2未展开
 
-        final result = TaskListFlattener.flattenTreeWithExpansion(
-          node,
-          expandedTaskIds: expandedTaskIds,
-        );
+          final result = TaskListFlattener.flattenTreeWithExpansion(
+            node,
+            expandedTaskIds: expandedTaskIds,
+          );
 
-        expect(result.length, 2); // 只有任务1和2
-        expect(result[0].task.id, 1);
-        expect(result[0].depth, 0);
-        expect(result[1].task.id, 2);
-        expect(result[1].depth, 1);
-        // 任务3不应该出现，因为任务2未展开
-      });
+          expect(result.length, 2); // 只有任务1和2
+          expect(result[0].task.id, 1);
+          expect(result[0].depth, 0);
+          expect(result[1].task.id, 2);
+          expect(result[1].depth, 1);
+          // 任务3不应该出现，因为任务2未展开
+        },
+      );
 
       test('should handle multiple root nodes', () {
         final task1 = _createTask(id: 1);
@@ -198,18 +176,10 @@ void main() {
         final task2 = _createTask(id: 2, parentId: 1);
         final task3 = _createTask(id: 3, parentId: 1);
         final task4 = _createTask(id: 4, parentId: 2);
-        final node = _createNode(
-          task1,
-          [
-            _createNode(
-              task2,
-              [
-                _createNode(task4, []),
-              ],
-            ),
-            _createNode(task3, []),
-          ],
-        );
+        final node = _createNode(task1, [
+          _createNode(task2, [_createNode(task4, [])]),
+          _createNode(task3, []),
+        ]);
         final expandedTaskIds = {1}; // 只有任务1展开
 
         final result = TaskListFlattener.flattenTreeWithExpansion(
@@ -245,4 +215,3 @@ void main() {
     });
   });
 }
-

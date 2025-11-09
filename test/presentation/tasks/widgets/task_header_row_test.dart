@@ -13,7 +13,7 @@ void main() {
   testWidgets('TaskHeaderRow renders title and convert icon', (tester) async {
     final task = Task(
       id: 1,
-      taskId: 'task-1',
+
       title: 'Header Task',
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
@@ -34,10 +34,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: TaskHeaderRow(
-              task: task,
-              showConvertAction: true,
-            ),
+            body: TaskHeaderRow(task: task, showConvertAction: true),
           ),
         ),
       ),

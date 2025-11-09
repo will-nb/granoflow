@@ -64,7 +64,7 @@ class StubTaskRepository implements TaskRepository {
 
   @override
   @Deprecated('使用 MilestoneRepository 和 MilestoneService 替代')
-  Stream<List<Task>> watchMilestones(int projectId) =>
+  Stream<List<Task>> watchMilestones(String projectId) =>
       throw UnimplementedError('watchMilestones 已废弃');
 
   @override
@@ -127,9 +127,9 @@ class StubTaskRepository implements TaskRepository {
               return false;
             }
           }
-          
+
           // TODO: 项目筛选（暂时忽略筛选参数）
-          
+
           return true;
         })
         .toList(growable: false);
@@ -160,7 +160,7 @@ class StubTaskRepository implements TaskRepository {
       createdAt: now,
       updatedAt: now,
       parentId: draft.parentId,
-      parentTaskId: draft.parentTaskId,
+
       projectId: draft.projectId,
       milestoneId: draft.milestoneId,
       sortIndex: draft.sortIndex,
@@ -184,7 +184,7 @@ class StubTaskRepository implements TaskRepository {
   ) async {
     final task = Task(
       id: _nextId++,
-      taskId: taskId,
+
       title: draft.title,
       status: draft.status,
       dueAt: draft.dueAt,
@@ -193,7 +193,7 @@ class StubTaskRepository implements TaskRepository {
       createdAt: createdAt,
       updatedAt: updatedAt,
       parentId: draft.parentId,
-      parentTaskId: draft.parentTaskId,
+
       projectId: draft.projectId,
       milestoneId: draft.milestoneId,
       sortIndex: draft.sortIndex,
@@ -209,13 +209,13 @@ class StubTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<void> updateTask(int taskId, TaskUpdate payload) async {
+  Future<void> updateTask(String taskId, TaskUpdate payload) async {
     final existing = _tasks[taskId];
     if (existing == null) return;
-    
+
     // 保存旧状态，用于触发器逻辑判断
     final oldStatus = existing.status;
-    
+
     // 先应用 payload 中的更新
     var updated = existing.copyWith(
       title: payload.title,
@@ -226,7 +226,7 @@ class StubTaskRepository implements TaskRepository {
       parentId: payload.clearParent == true
           ? null
           : payload.parentId ?? existing.parentId,
-      parentTaskId: payload.clearParent == true
+      parentId: payload.clearParent == true
           ? null
           : payload.parentTaskId ?? existing.parentTaskId,
       projectId: payload.clearProject == true
@@ -244,12 +244,12 @@ class StubTaskRepository implements TaskRepository {
       logs: payload.logs ?? existing.logs,
       updatedAt: _clock(),
     );
-    
+
     // 触发器逻辑：如果状态从非完成变为完成，自动设置 endedAt
     final newStatus = updated.status;
     final wasNotCompleted = oldStatus != TaskStatus.completedActive;
     final isNowCompleted = newStatus == TaskStatus.completedActive;
-    
+
     if (wasNotCompleted && isNowCompleted) {
       // 如果 payload 没有指定 endedAt，且原来的 endedAt 也是 null，自动设置
       if (payload.endedAt == null && updated.endedAt == null) {
@@ -259,7 +259,7 @@ class StubTaskRepository implements TaskRepository {
       // - payload.endedAt 有值：使用指定的值（已在上面应用）
       // - updated.endedAt 有值但 payload.endedAt 为 null：保持原值（已在上面应用）
     }
-    
+
     _tasks[taskId] = updated;
   }
 
@@ -290,37 +290,31 @@ class StubTaskRepository implements TaskRepository {
   }) async {
     final existing = _tasks[taskId];
     if (existing == null) return;
-    
+
     // 保存旧状态，用于触发器逻辑判断
     final oldStatus = existing.status;
     final operationTime = _clock();
-    
+
     // 触发器逻辑：如果状态从非完成状态变为 completedActive，自动记录完成时间
     final wasNotCompleted = oldStatus != TaskStatus.completedActive;
     final isNowCompleted = status == TaskStatus.completedActive;
     DateTime? endedAt;
-    
+
     if (wasNotCompleted && isNowCompleted && existing.endedAt == null) {
       endedAt = operationTime;
     } else if (wasNotCompleted && isNowCompleted) {
       endedAt = existing.endedAt;
     }
-    
-    await updateTask(
-      taskId,
-      TaskUpdate(
-        status: status,
-        endedAt: endedAt,
-      ),
-    );
+
+    await updateTask(taskId, TaskUpdate(status: status, endedAt: endedAt));
   }
 
   @override
-  Future<void> archiveTask(int taskId) =>
+  Future<void> archiveTask(String taskId) =>
       markStatus(taskId: taskId, status: TaskStatus.archived);
 
   @override
-  Future<void> softDelete(int taskId) async {
+  Future<void> softDelete(String taskId) async {
     final task = _tasks[taskId];
     if (task == null || task.templateLockCount > 0) return;
     await updateTask(taskId, const TaskUpdate(status: TaskStatus.trashed));
@@ -356,7 +350,7 @@ class StubTaskRepository implements TaskRepository {
 
   @override
   Future<void> adjustTemplateLock({
-    required int taskId,
+    required String taskId,
     required int delta,
   }) async {
     final task = _tasks[taskId];
@@ -365,10 +359,10 @@ class StubTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<Task?> findById(int id) async => _tasks[id];
+  Future<Task?> findById(String id) async => _tasks[id];
 
   @override
-  Stream<Task?> watchTaskById(int id) => Stream.value(_tasks[id]);
+  Stream<Task?> watchTaskById(String id) => Stream.value(_tasks[id]);
 
   @override
   Future<Task?> findBySlug(String slug) async =>
@@ -381,13 +375,13 @@ class StubTaskRepository implements TaskRepository {
       .toList(growable: false);
 
   @override
-  Future<List<Task>> listChildren(int parentId) async => _tasks.values
+  Future<List<Task>> listChildren(String parentId) async => _tasks.values
       .where((task) => task.parentId == parentId)
       .sortedBy((task) => task.sortIndex)
       .toList(growable: false);
 
   @override
-  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async =>
+  Future<List<Task>> listChildrenIncludingTrashed(String parentId) async =>
       _tasks.values
           .where((task) => task.parentId == parentId)
           .sortedBy((task) => task.sortIndex)
@@ -449,9 +443,9 @@ class StubTaskRepository implements TaskRepository {
     var completed = _tasks.values
         .where((task) => task.status == TaskStatus.completedActive)
         .toList(growable: false);
-    
+
     // TODO: 实现标签和项目筛选（暂时忽略筛选参数）
-    
+
     completed.sort((a, b) {
       if (a.endedAt == null && b.endedAt == null) return 0;
       if (a.endedAt == null) return 1;
@@ -477,9 +471,9 @@ class StubTaskRepository implements TaskRepository {
     var archived = _tasks.values
         .where((task) => task.status == TaskStatus.archived)
         .toList(growable: false);
-    
+
     // TODO: 实现标签和项目筛选（暂时忽略筛选参数）
-    
+
     archived.sort((a, b) {
       if (a.archivedAt == null && b.archivedAt == null) return 0;
       if (a.archivedAt == null) return 1;
@@ -519,9 +513,9 @@ class StubTaskRepository implements TaskRepository {
     var trashed = _tasks.values
         .where((task) => task.status == TaskStatus.trashed)
         .toList(growable: false);
-    
+
     // TODO: 实现标签和项目筛选（暂时忽略筛选参数）
-    
+
     trashed.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     final endIndex = (offset + limit).clamp(0, trashed.length);
     return trashed.sublist(offset.clamp(0, trashed.length), endIndex);
@@ -575,22 +569,39 @@ class StubTaskRepository implements TaskRepository {
                   task.dueAt != null &&
                   !task.dueAt!.isBefore(dayAfterTomorrow);
             case TaskSection.thisMonth:
-              final nextMonthStart = DateTime(todayStart.year, todayStart.month + 1, 1);
+              final nextMonthStart = DateTime(
+                todayStart.year,
+                todayStart.month + 1,
+                1,
+              );
               return task.status == TaskStatus.pending &&
                   task.dueAt != null &&
                   task.dueAt!.isAfter(laterStart) &&
                   task.dueAt!.isBefore(nextMonthStart);
             case TaskSection.nextMonth:
-              final nextMonthStart = DateTime(todayStart.year, todayStart.month + 1, 1);
-              final nextNextMonthStart = DateTime(todayStart.year, todayStart.month + 2, 1);
+              final nextMonthStart = DateTime(
+                todayStart.year,
+                todayStart.month + 1,
+                1,
+              );
+              final nextNextMonthStart = DateTime(
+                todayStart.year,
+                todayStart.month + 2,
+                1,
+              );
               return task.status == TaskStatus.pending &&
                   task.dueAt != null &&
                   !task.dueAt!.isBefore(nextMonthStart) &&
                   task.dueAt!.isBefore(nextNextMonthStart);
             case TaskSection.later:
-              final nextNextMonthStart = DateTime(todayStart.year, todayStart.month + 2, 1);
+              final nextNextMonthStart = DateTime(
+                todayStart.year,
+                todayStart.month + 2,
+                1,
+              );
               return task.status == TaskStatus.pending &&
-                  (task.dueAt == null || task.dueAt!.isAfter(nextNextMonthStart));
+                  (task.dueAt == null ||
+                      task.dueAt!.isAfter(nextNextMonthStart));
             case TaskSection.completed:
               return task.status == TaskStatus.completedActive;
             case TaskSection.archived:
@@ -610,7 +621,6 @@ class StubTaskRepository implements TaskRepository {
         status != TaskStatus.completedActive;
   }
 
-
   int _compareDueDates(DateTime? a, DateTime? b) {
     final aSafe = a ?? DateTime(2100, 1, 1);
     final bSafe = b ?? DateTime(2100, 1, 1);
@@ -627,7 +637,7 @@ class StubTaskRepository implements TaskRepository {
       return TaskTreeNode(
         task: Task(
           id: rootTaskId,
-          taskId: '',
+
           title: '',
           status: TaskStatus.pending,
           createdAt: DateTime.now(),
@@ -710,7 +720,7 @@ class StubFocusSessionRepository implements FocusSessionRepository {
   }
 
   @override
-  Stream<FocusSession?> watchActiveSession(int taskId) =>
+  Stream<FocusSession?> watchActiveSession(String taskId) =>
       Stream<FocusSession?>.value(null);
 
   @override
@@ -727,7 +737,7 @@ class StubFocusSessionRepository implements FocusSessionRepository {
   }
 
   @override
-  Future<int> totalMinutesForTask(int taskId) async => _sessions.values
+  Future<int> totalMinutesForTask(String taskId) async => _sessions.values
       .where((session) => session.taskId == taskId)
       .fold<int>(0, (sum, session) => sum + session.actualMinutes);
 
@@ -755,7 +765,8 @@ class StubFocusSessionRepository implements FocusSessionRepository {
   );
 
   @override
-  Future<FocusSession?> findById(int sessionId) async => _sessions[sessionId];
+  Future<FocusSession?> findById(String sessionId) async =>
+      _sessions[sessionId];
 }
 
 class StubTagRepository implements TagRepository {
@@ -837,7 +848,7 @@ class StubTaskTemplateRepository implements TaskTemplateRepository {
   @override
   Future<TaskTemplate> createTemplateWithSeed({
     required TaskTemplateDraft draft,
-    required int? parentId,
+    required String? parentId,
   }) async {
     return _insertTemplate(draft, parentId);
   }
@@ -848,7 +859,7 @@ class StubTaskTemplateRepository implements TaskTemplateRepository {
   }
 
   @override
-  Future<TaskTemplate?> findById(int id) async => _templates[id];
+  Future<TaskTemplate?> findById(String id) async => _templates[id];
 
   @override
   Future<TaskTemplate?> findBySlug(String slug) async => _templates.values

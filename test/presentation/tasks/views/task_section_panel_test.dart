@@ -14,7 +14,7 @@ class _FakeTaskService extends Fake implements TaskService {}
 Task _createTask({required int id}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     sortIndex: id.toDouble(),
@@ -30,7 +30,9 @@ Task _createTask({required int id}) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('TaskSectionPanel renders task title when tasks exist', (tester) async {
+  testWidgets('TaskSectionPanel renders task title when tasks exist', (
+    tester,
+  ) async {
     final task = _createTask(id: 1);
 
     await tester.pumpWidget(
@@ -39,7 +41,7 @@ void main() {
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
-              final nodeTask = task.copyWith(id: taskId, taskId: 'task-$taskId');
+              final nodeTask = task.copyWith(id: taskId);
               return Stream.value(
                 TaskTreeNode(task: nodeTask, children: const <TaskTreeNode>[]),
               );
@@ -59,9 +61,7 @@ void main() {
           tasksSectionExpandedTaskIdProvider.overrideWith(
             (ref, section) => <int>{},
           ),
-          tasksDragProvider.overrideWith(
-            (ref) => TasksDragNotifier(),
-          ),
+          tasksDragProvider.overrideWith((ref) => TasksDragNotifier()),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -85,4 +85,3 @@ void main() {
     expect(find.text('Task 1'), findsOneWidget);
   });
 }
-

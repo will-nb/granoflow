@@ -20,12 +20,12 @@ import 'package:granoflow/presentation/tasks/utils/hierarchy_utils.dart';
 class _FakeTaskService extends Fake implements TaskService {}
 
 /// 调试测试：验证 inbox 和 tasks 页面是否都能显示所有根任务
-/// 
+///
 /// 测试场景：
 /// 1. 普通任务（无 projectId/milestoneId）- 应该在两个页面都显示
 /// 2. 关联项目的任务（有 projectId）- 应该在两个页面都显示
 /// 3. 关联里程碑的任务（有 milestoneId）- 应该在两个页面都显示
-/// 
+///
 /// 关键问题：isProjectOrMilestone 函数会过滤掉关联项目的任务，这是错误的
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -41,14 +41,19 @@ void main() {
   }) {
     return Task(
       id: id,
-      taskId: 'task-$id',
-      title: 'Task $id${projectId != null ? " (Project)" : ""}${milestoneId != null ? " (Milestone)" : ""}',
+
+      title:
+          'Task $id${projectId != null ? " (Project)" : ""}${milestoneId != null ? " (Milestone)" : ""}',
       status: status,
       projectId: projectId,
       milestoneId: milestoneId,
       parentId: parentId,
       sortIndex: id.toDouble() * 1024,
-      dueAt: dueAt ?? (status == TaskStatus.pending ? DateTime(2025, 11, 2, 23, 59, 59) : null),
+      dueAt:
+          dueAt ??
+          (status == TaskStatus.pending
+              ? DateTime(2025, 11, 2, 23, 59, 59)
+              : null),
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
       tags: const [],
@@ -58,184 +63,253 @@ void main() {
   }
 
   group('Task Display Debug Tests - All Root Tasks Should Display', () {
-    testWidgets('InboxPage should display ALL root tasks including those with projectId', (tester) async {
-      // 创建根任务：1个普通任务，1个关联项目的任务，1个关联里程碑的任务
-      final regularRootTask = createTask(id: 1, status: TaskStatus.inbox);
-      final rootTaskWithProject = createTask(
-        id: 2,
-        status: TaskStatus.inbox,
-        projectId: 'prj-test-001',
-      );
-      final rootTaskWithMilestone = createTask(
-        id: 3,
-        status: TaskStatus.inbox,
-        milestoneId: 'mil-test-001',
-      );
+    testWidgets(
+      'InboxPage should display ALL root tasks including those with projectId',
+      (tester) async {
+        // 创建根任务：1个普通任务，1个关联项目的任务，1个关联里程碑的任务
+        final regularRootTask = createTask(id: 1, status: TaskStatus.inbox);
+        final rootTaskWithProject = createTask(
+          id: 2,
+          status: TaskStatus.inbox,
+          projectId: 'prj-test-001',
+        );
+        final rootTaskWithMilestone = createTask(
+          id: 3,
+          status: TaskStatus.inbox,
+          milestoneId: 'mil-test-001',
+        );
 
-      // 调试：检查 collectRoots 和 isProjectOrMilestone 的行为
-      final allTasks = [regularRootTask, rootTaskWithProject, rootTaskWithMilestone];
-      final roots = collectRoots(allTasks);
-      print('=== Inbox Debug ===');
-      print('All tasks: ${allTasks.length}');
-      print('Root tasks (before filter): ${roots.length}');
-      print('Root task IDs: ${roots.map((t) => t.id).toList()}');
-      
-      // 检查每个根任务是否被 isProjectOrMilestone 过滤
-      for (final root in roots) {
-        final isFiltered = isProjectOrMilestone(root);
-        print('Task ${root.id} (projectId: ${root.projectId}, milestoneId: ${root.milestoneId}): isProjectOrMilestone = $isFiltered');
-      }
-      
-      final filteredRoots = roots.where((task) => !isProjectOrMilestone(task)).toList();
-      print('Root tasks (after filter): ${filteredRoots.length}');
-      print('Filtered root task IDs: ${filteredRoots.map((t) => t.id).toList()}');
-      print('========================');
+        // 调试：检查 collectRoots 和 isProjectOrMilestone 的行为
+        final allTasks = [
+          regularRootTask,
+          rootTaskWithProject,
+          rootTaskWithMilestone,
+        ];
+        final roots = collectRoots(allTasks);
+        print('=== Inbox Debug ===');
+        print('All tasks: ${allTasks.length}');
+        print('Root tasks (before filter): ${roots.length}');
+        print('Root task IDs: ${roots.map((t) => t.id).toList()}');
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            taskRepositoryProvider.overrideWith((ref) {
-              return _TestTaskRepository([
-                regularRootTask,
-                rootTaskWithProject,
-                rootTaskWithMilestone,
-              ]);
-            }),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => {
-              regularRootTask.id: 1,
-              rootTaskWithProject.id: 1,
-              rootTaskWithMilestone.id: 1,
-            }),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
-            taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            templateSuggestionsProvider.overrideWithProvider(
-              (query) => FutureProvider((ref) async => const <TaskTemplate>[]),
-            ),
-            contextTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          ],
-          child: MaterialApp(
-            theme: AppTheme.light(),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: const InboxPage(),
-          ),
-        ),
-      );
+        // 检查每个根任务是否被 isProjectOrMilestone 过滤
+        for (final root in roots) {
+          final isFiltered = isProjectOrMilestone(root);
+          print(
+            'Task ${root.id} (projectId: ${root.projectId}, milestoneId: ${root.milestoneId}): isProjectOrMilestone = $isFiltered',
+          );
+        }
 
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+        final filteredRoots = roots
+            .where((task) => !isProjectOrMilestone(task))
+            .toList();
+        print('Root tasks (after filter): ${filteredRoots.length}');
+        print(
+          'Filtered root task IDs: ${filteredRoots.map((t) => t.id).toList()}',
+        );
+        print('========================');
 
-      // 验证所有根任务都应该显示
-      // 注意：如果任务被过滤掉，这里会失败
-      expect(find.text('Task 1'), findsOneWidget, reason: 'Regular root task should be displayed');
-      expect(find.text('Task 2 (Project)'), findsOneWidget, reason: 'Root task with projectId should be displayed');
-      expect(find.text('Task 3 (Milestone)'), findsOneWidget, reason: 'Root task with milestoneId should be displayed');
-    });
-
-    testWidgets('TaskSectionPanel should display ALL root tasks including those with projectId', (tester) async {
-      // 创建根任务：1个普通任务，1个关联项目的任务，1个关联里程碑的任务
-      final regularRootTask = createTask(
-        id: 1,
-        status: TaskStatus.pending,
-        dueAt: DateTime(2025, 11, 2, 23, 59, 59),
-      );
-      final rootTaskWithProject = createTask(
-        id: 2,
-        status: TaskStatus.pending,
-        projectId: 'prj-test-001',
-        dueAt: DateTime(2025, 11, 2, 23, 59, 59),
-      );
-      final rootTaskWithMilestone = createTask(
-        id: 3,
-        status: TaskStatus.pending,
-        milestoneId: 'mil-test-001',
-        dueAt: DateTime(2025, 11, 2, 23, 59, 59),
-      );
-
-      // 调试：检查 collectRoots 和 isProjectOrMilestone 的行为
-      final allTasks = [regularRootTask, rootTaskWithProject, rootTaskWithMilestone];
-      final roots = collectRoots(allTasks);
-      print('=== Tasks Debug ===');
-      print('All tasks: ${allTasks.length}');
-      print('Root tasks (before filter): ${roots.length}');
-      print('Root task IDs: ${roots.map((t) => t.id).toList()}');
-      
-      // 检查每个根任务是否被 isProjectOrMilestone 过滤
-      for (final root in roots) {
-        final isFiltered = isProjectOrMilestone(root);
-        print('Task ${root.id} (projectId: ${root.projectId}, milestoneId: ${root.milestoneId}): isProjectOrMilestone = $isFiltered');
-      }
-      
-      final filteredRoots = roots.where((task) => !isProjectOrMilestone(task)).toList();
-      print('Root tasks (after filter): ${filteredRoots.length}');
-      print('Filtered root task IDs: ${filteredRoots.map((t) => t.id).toList()}');
-      print('========================');
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            taskRepositoryProvider.overrideWith((ref) {
-              return _TestTaskRepository([
-                regularRootTask,
-                rootTaskWithProject,
-                rootTaskWithMilestone,
-              ]);
-            }),
-            taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionTaskLevelMapProvider.overrideWith(
-              (ref, section) async => {
-                regularRootTask.id: 1,
-                rootTaskWithProject.id: 1,
-                rootTaskWithMilestone.id: 1,
-              },
-            ),
-            tasksSectionTaskChildrenMapProvider.overrideWith(
-              (ref, section) async => <int, Set<int>>{},
-            ),
-            tasksSectionExpandedTaskIdProvider.overrideWith(
-              (ref, section) => <int>{},
-            ),
-            tasksDragProvider.overrideWith(
-              (ref) => TasksDragNotifier(),
-            ),
-            urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-            contextTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          ],
-          child: MaterialApp(
-            theme: AppTheme.light(),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: TaskSectionPanel(
-                section: TaskSection.today,
-                title: 'Today',
-                editMode: false,
-                onQuickAdd: () {},
-                tasks: [
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              taskRepositoryProvider.overrideWith((ref) {
+                return _TestTaskRepository([
                   regularRootTask,
                   rootTaskWithProject,
                   rootTaskWithMilestone,
-                ],
+                ]);
+              }),
+              inboxTaskLevelMapProvider.overrideWith(
+                (ref) async => {
+                  regularRootTask.id: 1,
+                  rootTaskWithProject.id: 1,
+                  rootTaskWithMilestone.id: 1,
+                },
+              ),
+              inboxTaskChildrenMapProvider.overrideWith(
+                (ref) async => <int, Set<int>>{},
+              ),
+              taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
+              templateSuggestionsProvider.overrideWithProvider(
+                (query) =>
+                    FutureProvider((ref) async => const <TaskTemplate>[]),
+              ),
+              contextTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+              urgencyTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+              executionTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+            ],
+            child: MaterialApp(
+              theme: AppTheme.light(),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: const InboxPage(),
+            ),
+          ),
+        );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // 验证所有根任务都应该显示
+        // 注意：如果任务被过滤掉，这里会失败
+        expect(
+          find.text('Task 1'),
+          findsOneWidget,
+          reason: 'Regular root task should be displayed',
+        );
+        expect(
+          find.text('Task 2 (Project)'),
+          findsOneWidget,
+          reason: 'Root task with projectId should be displayed',
+        );
+        expect(
+          find.text('Task 3 (Milestone)'),
+          findsOneWidget,
+          reason: 'Root task with milestoneId should be displayed',
+        );
+      },
+    );
+
+    testWidgets(
+      'TaskSectionPanel should display ALL root tasks including those with projectId',
+      (tester) async {
+        // 创建根任务：1个普通任务，1个关联项目的任务，1个关联里程碑的任务
+        final regularRootTask = createTask(
+          id: 1,
+          status: TaskStatus.pending,
+          dueAt: DateTime(2025, 11, 2, 23, 59, 59),
+        );
+        final rootTaskWithProject = createTask(
+          id: 2,
+          status: TaskStatus.pending,
+          projectId: 'prj-test-001',
+          dueAt: DateTime(2025, 11, 2, 23, 59, 59),
+        );
+        final rootTaskWithMilestone = createTask(
+          id: 3,
+          status: TaskStatus.pending,
+          milestoneId: 'mil-test-001',
+          dueAt: DateTime(2025, 11, 2, 23, 59, 59),
+        );
+
+        // 调试：检查 collectRoots 和 isProjectOrMilestone 的行为
+        final allTasks = [
+          regularRootTask,
+          rootTaskWithProject,
+          rootTaskWithMilestone,
+        ];
+        final roots = collectRoots(allTasks);
+        print('=== Tasks Debug ===');
+        print('All tasks: ${allTasks.length}');
+        print('Root tasks (before filter): ${roots.length}');
+        print('Root task IDs: ${roots.map((t) => t.id).toList()}');
+
+        // 检查每个根任务是否被 isProjectOrMilestone 过滤
+        for (final root in roots) {
+          final isFiltered = isProjectOrMilestone(root);
+          print(
+            'Task ${root.id} (projectId: ${root.projectId}, milestoneId: ${root.milestoneId}): isProjectOrMilestone = $isFiltered',
+          );
+        }
+
+        final filteredRoots = roots
+            .where((task) => !isProjectOrMilestone(task))
+            .toList();
+        print('Root tasks (after filter): ${filteredRoots.length}');
+        print(
+          'Filtered root task IDs: ${filteredRoots.map((t) => t.id).toList()}',
+        );
+        print('========================');
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              taskRepositoryProvider.overrideWith((ref) {
+                return _TestTaskRepository([
+                  regularRootTask,
+                  rootTaskWithProject,
+                  rootTaskWithMilestone,
+                ]);
+              }),
+              taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
+              tasksSectionTaskLevelMapProvider.overrideWith(
+                (ref, section) async => {
+                  regularRootTask.id: 1,
+                  rootTaskWithProject.id: 1,
+                  rootTaskWithMilestone.id: 1,
+                },
+              ),
+              tasksSectionTaskChildrenMapProvider.overrideWith(
+                (ref, section) async => <int, Set<int>>{},
+              ),
+              tasksSectionExpandedTaskIdProvider.overrideWith(
+                (ref, section) => <int>{},
+              ),
+              tasksDragProvider.overrideWith((ref) => TasksDragNotifier()),
+              urgencyTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+              importanceTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+              executionTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+              contextTagOptionsProvider.overrideWith(
+                (ref) async => const <Tag>[],
+              ),
+            ],
+            child: MaterialApp(
+              theme: AppTheme.light(),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: TaskSectionPanel(
+                  section: TaskSection.today,
+                  title: 'Today',
+                  editMode: false,
+                  onQuickAdd: () {},
+                  tasks: [
+                    regularRootTask,
+                    rootTaskWithProject,
+                    rootTaskWithMilestone,
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump();
-      await tester.pump(); // Pump again to allow async providers to resolve
+        await tester.pump();
+        await tester.pump(); // Pump again to allow async providers to resolve
 
-      // 验证所有根任务都应该显示
-      // 注意：如果任务被过滤掉，这里会失败
-      expect(find.text('Task 1'), findsOneWidget, reason: 'Regular root task should be displayed');
-      expect(find.text('Task 2 (Project)'), findsOneWidget, reason: 'Root task with projectId should be displayed');
-      expect(find.text('Task 3 (Milestone)'), findsOneWidget, reason: 'Root task with milestoneId should be displayed');
-    });
+        // 验证所有根任务都应该显示
+        // 注意：如果任务被过滤掉，这里会失败
+        expect(
+          find.text('Task 1'),
+          findsOneWidget,
+          reason: 'Regular root task should be displayed',
+        );
+        expect(
+          find.text('Task 2 (Project)'),
+          findsOneWidget,
+          reason: 'Root task with projectId should be displayed',
+        );
+        expect(
+          find.text('Task 3 (Milestone)'),
+          findsOneWidget,
+          reason: 'Root task with milestoneId should be displayed',
+        );
+      },
+    );
   });
 }
 
@@ -280,7 +354,7 @@ class _TestTaskRepository implements TaskRepository {
   Stream<List<Task>> watchQuickTasks() => Stream.value([]);
 
   @override
-  Stream<List<Task>> watchMilestones(int projectId) =>
+  Stream<List<Task>> watchMilestones(String projectId) =>
       throw UnimplementedError();
 
   @override
@@ -311,8 +385,7 @@ class _TestTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<Task> createTask(TaskDraft draft) =>
-      throw UnimplementedError();
+  Future<Task> createTask(TaskDraft draft) => throw UnimplementedError();
 
   @override
   Future<Task> createTaskWithId(
@@ -333,28 +406,29 @@ class _TestTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<void> updateTask(int taskId, TaskUpdate payload) =>
+  Future<void> updateTask(String taskId, TaskUpdate payload) =>
       throw UnimplementedError();
 
   @override
   Future<void> moveTask({
-    required int taskId,
+    required String taskId,
     required int? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
-  Future<void> markStatus({required int taskId, required TaskStatus status}) =>
-      throw UnimplementedError();
+  Future<void> markStatus({
+    required String taskId,
+    required TaskStatus status,
+  }) => throw UnimplementedError();
 
   @override
-  Future<void> archiveTask(int taskId) => throw UnimplementedError();
+  Future<void> archiveTask(String taskId) => throw UnimplementedError();
 
   @override
-  Future<void> softDelete(int taskId) => throw UnimplementedError();
+  Future<void> softDelete(String taskId) => throw UnimplementedError();
 
   @override
   Future<int> clearAllTrashedTasks() async => 0;
@@ -363,16 +437,24 @@ class _TestTaskRepository implements TaskRepository {
   Future<int> purgeObsolete(DateTime olderThan) async => 0;
 
   @override
-  Future<void> adjustTemplateLock({required int taskId, required int delta}) =>
-      throw UnimplementedError();
+  Future<void> adjustTemplateLock({
+    required String taskId,
+    required int delta,
+  }) => throw UnimplementedError();
 
   @override
-  Future<Task?> findById(int id) async =>
-      _tasks.firstWhere((t) => t.id == id, orElse: () => throw StateError('Task not found'));
+  Future<Task?> findById(String id) async => _tasks.firstWhere(
+    (t) => t.id == id,
+    orElse: () => throw StateError('Task not found'),
+  );
 
   @override
-  Stream<Task?> watchTaskById(int id) => Stream.value(
-      _tasks.firstWhere((t) => t.id == id, orElse: () => throw StateError('Task not found')));
+  Stream<Task?> watchTaskById(String id) => Stream.value(
+    _tasks.firstWhere(
+      (t) => t.id == id,
+      orElse: () => throw StateError('Task not found'),
+    ),
+  );
 
   @override
   Future<Task?> findBySlug(String slug) async => null;
@@ -381,10 +463,10 @@ class _TestTaskRepository implements TaskRepository {
   Future<List<Task>> listRoots() async => [];
 
   @override
-  Future<List<Task>> listChildren(int parentId) async => [];
+  Future<List<Task>> listChildren(String parentId) async => [];
 
   @override
-  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async => [];
+  Future<List<Task>> listChildrenIncludingTrashed(String parentId) async => [];
 
   @override
   Future<void> upsertTasks(List<Task> tasks) => throw UnimplementedError();
@@ -397,8 +479,7 @@ class _TestTaskRepository implements TaskRepository {
     String query, {
     TaskStatus? status,
     int limit = 10,
-  }) async =>
-      [];
+  }) async => [];
 
   @override
   Future<void> batchUpdate(Map<int, TaskUpdate> updates) =>
@@ -464,4 +545,3 @@ class _TestTaskRepository implements TaskRepository {
     // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
   }
 }
-

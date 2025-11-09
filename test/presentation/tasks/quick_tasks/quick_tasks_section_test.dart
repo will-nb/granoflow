@@ -9,7 +9,7 @@ import 'package:granoflow/presentation/tasks/quick_tasks/quick_tasks_section.dar
 Task _createTask({required int id}) {
   return Task(
     id: id,
-    taskId: 'quick-$id',
+
     title: 'Quick Task $id',
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
@@ -33,7 +33,7 @@ void main() {
         overrides: [
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
-              final nodeTask = task.copyWith(id: taskId, taskId: 'task-$taskId');
+              final nodeTask = task.copyWith(id: taskId);
               return Stream.value(
                 TaskTreeNode(task: nodeTask, children: const <TaskTreeNode>[]),
               );

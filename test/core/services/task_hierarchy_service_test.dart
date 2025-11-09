@@ -69,7 +69,7 @@ Task _task({required int id, int? parentId}) {
   final now = DateTime(2025, 1, 1);
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     dueAt: DateTime(2025, 1, 2),
@@ -87,7 +87,7 @@ class _TestTaskRepository extends TaskRepository {
   TaskUpdate? lastUpdate;
 
   @override
-  Future<Task?> findById(int id) async => tasks[id];
+  Future<Task?> findById(String id) async => tasks[id];
 
   @override
   Future<Task?> findByTaskId(String taskId) async {
@@ -100,10 +100,10 @@ class _TestTaskRepository extends TaskRepository {
   }
 
   @override
-  Stream<Task?> watchTaskById(int id) => Stream.value(tasks[id]);
+  Stream<Task?> watchTaskById(String id) => Stream.value(tasks[id]);
 
   @override
-  Future<void> updateTask(int taskId, TaskUpdate payload) async {
+  Future<void> updateTask(String taskId, TaskUpdate payload) async {
     final existing = tasks[taskId];
     if (existing == null) return;
     final parentId = payload.clearParent == true
@@ -111,7 +111,7 @@ class _TestTaskRepository extends TaskRepository {
         : payload.parentId ?? existing.parentId;
     tasks[taskId] = Task(
       id: existing.id,
-      taskId: existing.taskId,
+
       title: existing.title,
       status: existing.status,
       dueAt: payload.dueAt ?? existing.dueAt,
@@ -132,12 +132,12 @@ class _TestTaskRepository extends TaskRepository {
   }
 
   @override
-  Future<List<Task>> listChildren(int parentId) async => tasks.values
+  Future<List<Task>> listChildren(String parentId) async => tasks.values
       .where((task) => task.parentId == parentId)
       .toList(growable: false);
 
   @override
-  Future<List<Task>> listChildrenIncludingTrashed(int parentId) async =>
+  Future<List<Task>> listChildrenIncludingTrashed(String parentId) async =>
       tasks.values
           .where((task) => task.parentId == parentId)
           .toList(growable: false);
@@ -164,7 +164,7 @@ class _TestTaskRepository extends TaskRepository {
   Stream<List<Task>> watchQuickTasks() => throw UnimplementedError();
 
   @override
-  Stream<List<Task>> watchMilestones(int projectId) =>
+  Stream<List<Task>> watchMilestones(String projectId) =>
       throw UnimplementedError();
 
   @override
@@ -203,7 +203,7 @@ class _TestTaskRepository extends TaskRepository {
 
   @override
   Future<void> moveTask({
-    required int taskId,
+    required String taskId,
     required int? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
@@ -211,14 +211,16 @@ class _TestTaskRepository extends TaskRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<void> markStatus({required int taskId, required TaskStatus status}) =>
-      throw UnimplementedError();
+  Future<void> markStatus({
+    required String taskId,
+    required TaskStatus status,
+  }) => throw UnimplementedError();
 
   @override
-  Future<void> archiveTask(int taskId) => throw UnimplementedError();
+  Future<void> archiveTask(String taskId) => throw UnimplementedError();
 
   @override
-  Future<void> softDelete(int taskId) => throw UnimplementedError();
+  Future<void> softDelete(String taskId) => throw UnimplementedError();
 
   @override
   Future<int> clearAllTrashedTasks() => throw UnimplementedError();
@@ -227,8 +229,10 @@ class _TestTaskRepository extends TaskRepository {
   Future<int> purgeObsolete(DateTime olderThan) => throw UnimplementedError();
 
   @override
-  Future<void> adjustTemplateLock({required int taskId, required int delta}) =>
-      throw UnimplementedError();
+  Future<void> adjustTemplateLock({
+    required String taskId,
+    required int delta,
+  }) => throw UnimplementedError();
 
   @override
   Future<Task?> findBySlug(String slug) => throw UnimplementedError();
@@ -336,30 +340,31 @@ class _StubMetricRepository implements MetricRepository {
 class _StubFocusSessionRepository implements FocusSessionRepository {
   @override
   Future<FocusSession> startSession({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) => throw UnimplementedError();
 
   @override
   Future<void> endSession({
-    required int sessionId,
+    required String sessionId,
     required int actualMinutes,
     int? transferToTaskId,
     String? reflectionNote,
   }) => throw UnimplementedError();
 
   @override
-  Stream<FocusSession?> watchActiveSession(int taskId) => const Stream.empty();
+  Stream<FocusSession?> watchActiveSession(String taskId) =>
+      const Stream.empty();
 
   @override
   Future<List<FocusSession>> listRecentSessions({
-    required int taskId,
+    required String taskId,
     int limit = 10,
   }) => throw UnimplementedError();
 
   @override
-  Future<int> totalMinutesForTask(int taskId) async => 0;
+  Future<int> totalMinutesForTask(String taskId) async => 0;
 
   @override
   Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
@@ -370,5 +375,6 @@ class _StubFocusSessionRepository implements FocusSessionRepository {
   Future<int> totalMinutesOverall() async => 0;
 
   @override
-  Future<FocusSession?> findById(int sessionId) => throw UnimplementedError();
+  Future<FocusSession?> findById(String sessionId) =>
+      throw UnimplementedError();
 }

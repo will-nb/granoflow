@@ -13,87 +13,96 @@ void main() {
       expect(SwipeConfigs.inboxConfig.rightAction, SwipeActionType.delete);
     });
 
-    testWidgets('Right swipe triggers quickPlan, left swipe triggers delete (LTR)', (tester) async {
-      // Build a minimal Task
-      Task buildTask(int id) => Task(
-            id: id,
-            taskId: 'test-$id',
-            title: 'Task $id',
-            status: TaskStatus.inbox,
-            createdAt: DateTime(2025, 1, 1),
-            updatedAt: DateTime(2025, 1, 1),
-          );
+    testWidgets(
+      'Right swipe triggers quickPlan, left swipe triggers delete (LTR)',
+      (tester) async {
+        // Build a minimal Task
+        Task buildTask(int id) => Task(
+          id: id,
 
-      bool leftCalled = false; // quickPlan in our config
-      bool rightCalled = false; // delete in our config
+          title: 'Task $id',
+          status: TaskStatus.inbox,
+          createdAt: DateTime(2025, 1, 1),
+          updatedAt: DateTime(2025, 1, 1),
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: DismissibleTaskTile(
-              task: buildTask(1),
-              config: SwipeConfigs.inboxConfig,
-              onLeftAction: (_) {
-                if (SwipeConfigs.inboxConfig.leftAction == SwipeActionType.quickPlan) {
-                  leftCalled = true;
-                }
-              },
-              onRightAction: (_) {
-                if (SwipeConfigs.inboxConfig.rightAction == SwipeActionType.delete) {
-                  rightCalled = true;
-                }
-              },
-              child: const Text('inbox item'),
+        bool leftCalled = false; // quickPlan in our config
+        bool rightCalled = false; // delete in our config
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DismissibleTaskTile(
+                task: buildTask(1),
+                config: SwipeConfigs.inboxConfig,
+                onLeftAction: (_) {
+                  if (SwipeConfigs.inboxConfig.leftAction ==
+                      SwipeActionType.quickPlan) {
+                    leftCalled = true;
+                  }
+                },
+                onRightAction: (_) {
+                  if (SwipeConfigs.inboxConfig.rightAction ==
+                      SwipeActionType.delete) {
+                    rightCalled = true;
+                  }
+                },
+                child: const Text('inbox item'),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // 使用 confirmDismiss 直接触发，避免手势在测试环境下的不稳定
-      final dismissibleWidget = tester.widget<Dismissible>(find.byType(Dismissible));
-      await dismissibleWidget.confirmDismiss!(DismissDirection.startToEnd);
-      await tester.pump();
-      expect(leftCalled, isTrue);
-      expect(rightCalled, isFalse);
+        // 使用 confirmDismiss 直接触发，避免手势在测试环境下的不稳定
+        final dismissibleWidget = tester.widget<Dismissible>(
+          find.byType(Dismissible),
+        );
+        await dismissibleWidget.confirmDismiss!(DismissDirection.startToEnd);
+        await tester.pump();
+        expect(leftCalled, isTrue);
+        expect(rightCalled, isFalse);
 
-      // Rebuild with a different key (different task id) and perform left swipe
-      leftCalled = false;
-      rightCalled = false;
+        // Rebuild with a different key (different task id) and perform left swipe
+        leftCalled = false;
+        rightCalled = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: DismissibleTaskTile(
-              task: buildTask(2),
-              config: SwipeConfigs.inboxConfig,
-              onLeftAction: (_) {
-                if (SwipeConfigs.inboxConfig.leftAction == SwipeActionType.quickPlan) {
-                  leftCalled = true;
-                }
-              },
-              onRightAction: (_) {
-                if (SwipeConfigs.inboxConfig.rightAction == SwipeActionType.delete) {
-                  rightCalled = true;
-                }
-              },
-              child: const Text('inbox item 2'),
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DismissibleTaskTile(
+                task: buildTask(2),
+                config: SwipeConfigs.inboxConfig,
+                onLeftAction: (_) {
+                  if (SwipeConfigs.inboxConfig.leftAction ==
+                      SwipeActionType.quickPlan) {
+                    leftCalled = true;
+                  }
+                },
+                onRightAction: (_) {
+                  if (SwipeConfigs.inboxConfig.rightAction ==
+                      SwipeActionType.delete) {
+                    rightCalled = true;
+                  }
+                },
+                child: const Text('inbox item 2'),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Left swipe (endToStart) 应触发 rightAction (delete)
-      final dismissibleWidget2 = tester.widget<Dismissible>(find.byType(Dismissible));
-      await dismissibleWidget2.confirmDismiss!(DismissDirection.endToStart);
-      await tester.pump();
-      expect(leftCalled, isFalse);
-      expect(rightCalled, isTrue);
-    });
+        // Left swipe (endToStart) 应触发 rightAction (delete)
+        final dismissibleWidget2 = tester.widget<Dismissible>(
+          find.byType(Dismissible),
+        );
+        await dismissibleWidget2.confirmDismiss!(DismissDirection.endToStart);
+        await tester.pump();
+        expect(leftCalled, isFalse);
+        expect(rightCalled, isTrue);
+      },
+    );
   });
 }
-
-

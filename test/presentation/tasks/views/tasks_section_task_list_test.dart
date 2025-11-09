@@ -13,7 +13,7 @@ class _FakeTaskService extends Fake implements TaskService {}
 Task _createTask({required int id, DateTime? dueAt}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     dueAt: dueAt ?? DateTime(2025, 1, 1),
@@ -34,12 +34,15 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionExpandedTaskIdProvider(TaskSection.today)
-                .overrideWith((ref) => const <int>{}),
-            tasksSectionTaskLevelMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, int>{1: 1}),
-            tasksSectionTaskChildrenMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, Set<int>>{}),
+            tasksSectionExpandedTaskIdProvider(
+              TaskSection.today,
+            ).overrideWith((ref) => const <int>{}),
+            tasksSectionTaskLevelMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, int>{1: 1}),
+            tasksSectionTaskChildrenMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, Set<int>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -63,7 +66,9 @@ void main() {
       expect(find.text('Task 1'), findsOneWidget);
     });
 
-    testWidgets('should handle widget update when tasks change', (tester) async {
+    testWidgets('should handle widget update when tasks change', (
+      tester,
+    ) async {
       final tasks1 = [_createTask(id: 1)];
       final tasks2 = [_createTask(id: 1), _createTask(id: 2)];
 
@@ -71,12 +76,15 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionExpandedTaskIdProvider(TaskSection.today)
-                .overrideWith((ref) => const <int>{}),
-            tasksSectionTaskLevelMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
-            tasksSectionTaskChildrenMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, Set<int>>{}),
+            tasksSectionExpandedTaskIdProvider(
+              TaskSection.today,
+            ).overrideWith((ref) => const <int>{}),
+            tasksSectionTaskLevelMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
+            tasksSectionTaskChildrenMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, Set<int>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -105,12 +113,15 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionExpandedTaskIdProvider(TaskSection.today)
-                .overrideWith((ref) => const <int>{}),
-            tasksSectionTaskLevelMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
-            tasksSectionTaskChildrenMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, Set<int>>{}),
+            tasksSectionExpandedTaskIdProvider(
+              TaskSection.today,
+            ).overrideWith((ref) => const <int>{}),
+            tasksSectionTaskLevelMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
+            tasksSectionTaskChildrenMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, Set<int>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -143,21 +154,21 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionExpandedTaskIdProvider(TaskSection.today)
-                .overrideWith((ref) => const <int>{}),
-            tasksSectionTaskLevelMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, int>{}),
-            tasksSectionTaskChildrenMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, Set<int>>{}),
+            tasksSectionExpandedTaskIdProvider(
+              TaskSection.today,
+            ).overrideWith((ref) => const <int>{}),
+            tasksSectionTaskLevelMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, int>{}),
+            tasksSectionTaskChildrenMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, Set<int>>{}),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: TasksSectionTaskList(
-                section: TaskSection.today,
-                tasks: [],
-              ),
+              body: TasksSectionTaskList(section: TaskSection.today, tasks: []),
             ),
           ),
         ),
@@ -168,19 +179,24 @@ void main() {
       expect(find.byType(TasksSectionTaskList), findsOneWidget);
     });
 
-    testWidgets('should handle widget rebuild after drag operation', (tester) async {
+    testWidgets('should handle widget rebuild after drag operation', (
+      tester,
+    ) async {
       final tasks = [_createTask(id: 1), _createTask(id: 2)];
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionExpandedTaskIdProvider(TaskSection.today)
-                .overrideWith((ref) => const <int>{}),
-            tasksSectionTaskLevelMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
-            tasksSectionTaskChildrenMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, Set<int>>{}),
+            tasksSectionExpandedTaskIdProvider(
+              TaskSection.today,
+            ).overrideWith((ref) => const <int>{}),
+            tasksSectionTaskLevelMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
+            tasksSectionTaskChildrenMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, Set<int>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -210,12 +226,15 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionExpandedTaskIdProvider(TaskSection.today)
-                .overrideWith((ref) => const <int>{}),
-            tasksSectionTaskLevelMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, int>{2: 1, 1: 1}),
-            tasksSectionTaskChildrenMapProvider(TaskSection.today)
-                .overrideWith((ref) async => <int, Set<int>>{}),
+            tasksSectionExpandedTaskIdProvider(
+              TaskSection.today,
+            ).overrideWith((ref) => const <int>{}),
+            tasksSectionTaskLevelMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, int>{2: 1, 1: 1}),
+            tasksSectionTaskChildrenMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <int, Set<int>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -251,4 +270,3 @@ void main() {
     });
   });
 }
-

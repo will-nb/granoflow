@@ -71,7 +71,7 @@ Task _createTask({required int id, int? parentId}) {
   final baseTime = DateTime(2025, 1, 1);
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     parentId: parentId,
@@ -83,4 +83,3 @@ Task _createTask({required int id, int? parentId}) {
     updatedAt: baseTime.add(Duration(hours: id)),
   );
 }
-

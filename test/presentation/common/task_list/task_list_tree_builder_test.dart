@@ -12,7 +12,7 @@ Task _createTask({
 }) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
@@ -229,9 +229,7 @@ void main() {
           children: [
             TaskTreeNode(
               task: task2,
-              children: [
-                TaskTreeNode(task: task3, children: const []),
-              ],
+              children: [TaskTreeNode(task: task3, children: const [])],
             ),
           ],
         );
@@ -259,4 +257,3 @@ void main() {
     });
   });
 }
-
