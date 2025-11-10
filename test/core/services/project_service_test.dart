@@ -69,12 +69,12 @@ void main() {
       expect(project.tags, contains('#urgent'));
       expect(project.logs.last.action, 'deadline_set');
 
-      final stored = await projectRepository.findByIsarId(project.id);
+      final stored = await projectRepository.findById(project.id);
       expect(stored, isNotNull);
       expect(stored!.dueAt, DateTime(2024, 3, 1, 23, 59, 59, 999));
 
       final milestones = await milestoneRepository.listByProjectId(
-        project.projectId,
+        project.id,
       );
       expect(milestones, hasLength(1));
       expect(milestones.first.title, 'Kickoff');
@@ -125,7 +125,7 @@ void main() {
 
         final archivedRoot = await taskRepository.findById(root.id);
         expect(archivedRoot?.status, TaskStatus.archived);
-        expect(archivedRoot?.projectId, project.projectId);
+        expect(archivedRoot?.projectId, project.id);
 
         final reassignedChild = await taskRepository.findById(child.id);
         expect(reassignedChild?.projectId, project.projectId);
@@ -279,10 +279,10 @@ class _InMemoryProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<void> update(int isarId, ProjectUpdate update) async {
-    final current = _projects[isarId];
+  Future<void> update(String id, ProjectUpdate update) async {
+    final current = _projects[id];
     if (current == null) return;
-    _projects[isarId] = current.copyWith(
+    _projects[id] = current.copyWith(
       title: update.title,
       status: update.status,
       dueAt: update.dueAt,
@@ -306,12 +306,9 @@ class _InMemoryProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<Project?> findByIsarId(int id) async => _projects[id];
-
-  @override
   Future<Project?> findByProjectId(String projectId) async {
     for (final project in _projects.values) {
-      if (project.projectId == projectId) {
+      if (project.id == projectId) {
         return project;
       }
     }
@@ -409,7 +406,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   _InMemoryMilestoneRepository()
     : _controller = StreamController<List<Milestone>>.broadcast();
 
-  final Map<int, Milestone> _milestones = <int, Milestone>{};
+  final Map<String, Milestone> _milestones = <String, Milestone>{};
   final StreamController<List<Milestone>> _controller;
 
   @override
@@ -425,7 +422,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   @override
   Future<Milestone> create(MilestoneDraft draft) async {
     final milestone = Milestone(
-      id: _nextId++,
+      id: (_nextId++).toString(),
 
       projectId: draft.projectId,
       title: draft.title,
@@ -449,10 +446,10 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   }
 
   @override
-  Future<void> update(int isarId, MilestoneUpdate update) async {
-    final current = _milestones[isarId];
+  Future<void> update(String id, MilestoneUpdate update) async {
+    final current = _milestones[id];
     if (current == null) return;
-    _milestones[isarId] = current.copyWith(
+    _milestones[id] = current.copyWith(
       title: update.title,
       status: update.status,
       dueAt: update.dueAt,
@@ -469,8 +466,8 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   }
 
   @override
-  Future<void> delete(int isarId) async {
-    final removed = _milestones.remove(isarId);
+  Future<void> delete(String id) async {
+    final removed = _milestones.remove(id);
     if (removed != null) {
       _emitForProject(removed.projectId);
     }
@@ -491,9 +488,6 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   }
 
   @override
-  Future<Milestone?> findByIsarId(int id) async => _milestones[id];
-
-  @override
   Future<Milestone?> findByMilestoneId(String milestoneId) async {
     for (final milestone in _milestones.values) {
       if (milestone.milestoneId == milestoneId) {
@@ -511,7 +505,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
     DateTime updatedAt,
   ) async {
     final milestone = Milestone(
-      id: _nextId++,
+      id: milestoneId,
 
       projectId: draft.projectId,
       title: draft.title,
@@ -564,7 +558,7 @@ class _NoopMetricRepository implements MetricRepository {
     required int totalFocusMinutes,
   }) async {
     _latest = MetricSnapshot(
-      id: 1,
+      id: '1',
       totalCompletedTasks: 0,
       totalFocusMinutes: totalFocusMinutes,
       pendingTasks: tasks.length,
@@ -608,13 +602,13 @@ class _NoopFocusSessionRepository implements FocusSessionRepository {
     required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
-  }) async => FocusSession(id: 1, taskId: taskId, startedAt: DateTime.now());
+  }) async => FocusSession(id: '1', taskId: taskId, startedAt: DateTime.now());
 
   @override
   Future<int> totalMinutesForTask(String taskId) async => 0;
 
   @override
-  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+  Future<Map<String, int>> totalMinutesForTasks(List<String> taskIds) async {
     return {for (final taskId in taskIds) taskId: 0};
   }
 
