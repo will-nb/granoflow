@@ -118,7 +118,7 @@ void main() {
 
 Project _createProject(String projectId, TaskStatus status) {
   return Project(
-    id: projectId.hashCode,
+    id: projectId,
 
     title: 'Project $projectId',
     status: status,

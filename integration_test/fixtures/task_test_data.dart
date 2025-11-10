@@ -221,7 +221,7 @@ class TaskTestData {
     for (int i = 0; i < count; i++) {
       tasks.add(
         generateTask(
-          id: startId + i,
+          id: (startId + i).toString(),
           title: 'Inbox 测试任务 $i',
           dueAt: null,
           parentId: null,
