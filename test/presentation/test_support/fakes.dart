@@ -18,8 +18,7 @@ import 'package:granoflow/data/repositories/task_template_repository.dart';
 import 'package:granoflow/core/constants/font_scale_level.dart';
 
 class StubTaskRepository implements TaskRepository {
-  final Map<int, Task> _tasks = <int, Task>{};
-  int _nextId = 1;
+  final Map<String, Task> _tasks = <String, Task>{};
   final Random _random = Random();
   DateTime Function() _clock = DateTime.now;
 
@@ -33,7 +32,7 @@ class StubTaskRepository implements TaskRepository {
       Stream<List<Task>>.value(_filterSection(section));
 
   @override
-  Stream<TaskTreeNode> watchTaskTree(int rootTaskId) =>
+  Stream<TaskTreeNode> watchTaskTree(String rootTaskId) =>
       Stream.value(_buildTree(rootTaskId));
 
   @override
@@ -139,7 +138,7 @@ class StubTaskRepository implements TaskRepository {
   @override
   Future<Task?> findByTaskId(String taskId) async {
     for (final task in _tasks.values) {
-      if (task.taskId == taskId) {
+      if (task.id == taskId) {
         return task;
       }
     }
@@ -182,7 +181,7 @@ class StubTaskRepository implements TaskRepository {
     DateTime updatedAt,
   ) async {
     final task = Task(
-      id: _nextId++,
+      id: taskId,
 
       title: draft.title,
       status: draft.status,
@@ -224,7 +223,7 @@ class StubTaskRepository implements TaskRepository {
       endedAt: payload.endedAt,
       parentId: payload.clearParent == true
           ? null
-          : payload.parentId ?? payload.parentTaskId ?? existing.parentId,
+          : payload.parentId ?? existing.parentId,
       projectId: payload.clearProject == true
           ? null
           : payload.projectId ?? existing.projectId,
@@ -261,8 +260,8 @@ class StubTaskRepository implements TaskRepository {
 
   @override
   Future<void> moveTask({
-    required int taskId,
-    required int? targetParentId,
+    required String taskId,
+    required String? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
@@ -281,7 +280,7 @@ class StubTaskRepository implements TaskRepository {
 
   @override
   Future<void> markStatus({
-    required int taskId,
+    required String taskId,
     required TaskStatus status,
   }) async {
     final existing = _tasks[taskId];
@@ -413,7 +412,7 @@ class StubTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<void> batchUpdate(Map<int, TaskUpdate> updates) async {
+  Future<void> batchUpdate(Map<String, TaskUpdate> updates) async {
     for (final entry in updates.entries) {
       await updateTask(entry.key, entry.value);
     }
@@ -524,7 +523,6 @@ class StubTaskRepository implements TaskRepository {
         .length;
   }
 
-  @override
   Future<void> setTaskProjectAndMilestoneIsarId(
     int taskId,
     int? projectIsarId,
@@ -627,7 +625,7 @@ class StubTaskRepository implements TaskRepository {
     return 0;
   }
 
-  TaskTreeNode _buildTree(int rootTaskId) {
+  TaskTreeNode _buildTree(String rootTaskId) {
     final task = _tasks[rootTaskId];
     if (task == null) {
       return TaskTreeNode(
@@ -679,17 +677,17 @@ class StubTaskRepository implements TaskRepository {
 }
 
 class StubFocusSessionRepository implements FocusSessionRepository {
-  final Map<int, FocusSession> _sessions = <int, FocusSession>{};
+  final Map<String, FocusSession> _sessions = <String, FocusSession>{};
   int _nextId = 1;
 
   @override
   Future<FocusSession> startSession({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async {
     final session = FocusSession(
-      id: _nextId++,
+      id: (_nextId++).toString(),
       taskId: taskId,
       startedAt: DateTime.now(),
       estimateMinutes: estimateMinutes,
@@ -701,9 +699,9 @@ class StubFocusSessionRepository implements FocusSessionRepository {
 
   @override
   Future<void> endSession({
-    required int sessionId,
+    required String sessionId,
     required int actualMinutes,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) async {
     final session = _sessions[sessionId];
@@ -721,7 +719,7 @@ class StubFocusSessionRepository implements FocusSessionRepository {
 
   @override
   Future<List<FocusSession>> listRecentSessions({
-    required int taskId,
+    required String taskId,
     int limit = 10,
   }) async {
     return _sessions.values
@@ -738,12 +736,12 @@ class StubFocusSessionRepository implements FocusSessionRepository {
       .fold<int>(0, (sum, session) => sum + session.actualMinutes);
 
   @override
-  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+  Future<Map<String, int>> totalMinutesForTasks(List<String> taskIds) async {
     if (taskIds.isEmpty) {
       return {};
     }
 
-    final Map<int, int> result = {};
+    final Map<String, int> result = {};
     for (final taskId in taskIds) {
       final total = _sessions.values
           .where((s) => s.taskId == taskId)
@@ -773,13 +771,13 @@ class StubTagRepository implements TagRepository {
     // 测试实现：初始化一些测试标签
     final testTags = [
       Tag(
-        id: 1,
+        id: '1',
         slug: '@home',
         kind: TagKind.context,
         localizedLabels: {'en': 'Home'},
       ),
       Tag(
-        id: 2,
+        id: '2',
         slug: '#urgent',
         kind: TagKind.priority,
         localizedLabels: {'en': 'Urgent'},
@@ -806,7 +804,7 @@ class StubTagRepository implements TagRepository {
 class StubPreferenceRepository implements PreferenceRepository {
   final _controller = StreamController<Preference>.broadcast();
   Preference _preference = Preference(
-    id: 1,
+    id: '1',
     localeCode: 'en',
     themeMode: ThemeMode.system,
     fontScaleLevel: FontScaleLevel.medium,
@@ -833,7 +831,7 @@ class StubPreferenceRepository implements PreferenceRepository {
 }
 
 class StubTaskTemplateRepository implements TaskTemplateRepository {
-  final Map<int, TaskTemplate> _templates = <int, TaskTemplate>{};
+  final Map<String, TaskTemplate> _templates = <String, TaskTemplate>{};
   int _nextId = 1;
 
   @override
@@ -844,13 +842,13 @@ class StubTaskTemplateRepository implements TaskTemplateRepository {
   @override
   Future<TaskTemplate> createTemplateWithSeed({
     required TaskTemplateDraft draft,
-    required String? parentId,
+    required String? parentTaskId,
   }) async {
-    return _insertTemplate(draft, parentId);
+    return _insertTemplate(draft, parentTaskId);
   }
 
   @override
-  Future<void> deleteTemplate(int templateId) async {
+  Future<void> deleteTemplate(String templateId) async {
     _templates.remove(templateId);
   }
 
@@ -862,7 +860,7 @@ class StubTaskTemplateRepository implements TaskTemplateRepository {
       .firstWhereOrNull((template) => template.seedSlug == slug);
 
   @override
-  Future<void> markUsed(int templateId, DateTime usedAt) async {
+  Future<void> markUsed(String templateId, DateTime usedAt) async {
     final template = _templates[templateId];
     if (template == null) return;
     _templates[templateId] = template.copyWith(
@@ -895,7 +893,7 @@ class StubTaskTemplateRepository implements TaskTemplateRepository {
 
   @override
   Future<void> updateTemplate({
-    required int templateId,
+    required String templateId,
     required TaskTemplateUpdate payload,
   }) async {
     final template = _templates[templateId];
@@ -910,12 +908,12 @@ class StubTaskTemplateRepository implements TaskTemplateRepository {
     );
   }
 
-  TaskTemplate _insertTemplate(TaskTemplateDraft draft, int? parentId) {
+  TaskTemplate _insertTemplate(TaskTemplateDraft draft, String? parentTaskId) {
     final now = DateTime.now();
     final template = TaskTemplate(
-      id: _nextId++,
+      id: (_nextId++).toString(),
       title: draft.title,
-      parentTaskId: parentId,
+      parentTaskId: parentTaskId,
       defaultTags: List.unmodifiable(draft.defaultTags),
       createdAt: now,
       updatedAt: now,
