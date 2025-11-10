@@ -245,7 +245,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     }
     
     // 创建 FocusSession
-    final session = await _focusFlowService.startFocus(
+    final session = await _focusFlowServiceOrThrow.startFocus(
       taskId: taskId,
       estimateMinutes: state.countdownDuration ~/ 60,
     );
