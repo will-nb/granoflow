@@ -7,7 +7,7 @@ class MilestoneEntity {
   MilestoneEntity({
     this.obxId = 0,
     required this.id,
-    required this.projectId,
+    this.projectId,
     required this.title,
     required this.statusIndex,
     this.dueAt,
@@ -29,7 +29,8 @@ class MilestoneEntity {
   @Unique()
   String id;
 
-  String projectId;
+  // projectId 用于存储业务 ID（可选），project 关系用于 ObjectBox 关联
+  String? projectId;
 
   final project = ToOne<ProjectEntity>();
 
@@ -37,10 +38,19 @@ class MilestoneEntity {
 
   int statusIndex;
 
+  @Property(type: PropertyType.date)
   DateTime? dueAt;
+  
+  @Property(type: PropertyType.date)
   DateTime? startedAt;
+  
+  @Property(type: PropertyType.date)
   DateTime? endedAt;
+  
+  @Property(type: PropertyType.date)
   DateTime createdAt;
+  
+  @Property(type: PropertyType.date)
   DateTime updatedAt;
   double sortIndex;
 

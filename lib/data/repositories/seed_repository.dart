@@ -80,6 +80,9 @@ abstract class SeedRepository {
   Future<String?> latestVersion();
 
   Future<void> recordVersion(String version);
+
+  /// 清除指定版本的导入记录（用于强制重新导入）
+  Future<void> clearVersion(String version);
 }
 
 Future<SeedPayload> loadSeedPayload(String localeCode) async {

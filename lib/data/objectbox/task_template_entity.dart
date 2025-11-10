@@ -31,8 +31,13 @@ class TaskTemplateEntity {
 
   List<String> defaultTags;
 
+  @Property(type: PropertyType.date)
   DateTime createdAt;
+  
+  @Property(type: PropertyType.date)
   DateTime updatedAt;
+  
+  @Property(type: PropertyType.date)
   DateTime? lastUsedAt;
 
   String? seedSlug;

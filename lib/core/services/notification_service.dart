@@ -34,10 +34,18 @@ class NotificationService {
       requestSoundPermission: true,
     );
 
+    // macOS 通知配置（与 iOS 相同）
+    const macosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
     // 初始化设置
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
+      macOS: macosSettings,
     );
 
     // 初始化通知插件

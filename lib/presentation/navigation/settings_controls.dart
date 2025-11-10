@@ -9,6 +9,10 @@ import '../../generated/l10n/app_localizations.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import '../widgets/modern_tag_group.dart';
+import '../widgets/modern_tag.dart';
+import '../widgets/tag_data.dart';
+import '../../data/models/tag.dart';
 import 'widgets/export_import_section.dart';
 
 class SettingsControlsPage extends ConsumerWidget {
@@ -41,6 +45,27 @@ class SettingsControlsPage extends ConsumerWidget {
       'zh_HK': l10n.settingsLanguageTraditionalChinese,
     };
 
+    // 为每种语言创建 TagData
+    final languageTags = localeOptions.entries.map((entry) {
+      final localeCode = entry.key;
+      final label = entry.value;
+      // 为不同语言分配不同的颜色
+      final color = _getLanguageColor(localeCode, context);
+      return TagData(
+        slug: localeCode,
+        label: label,
+        color: color,
+        kind: TagKind.special, // 语言标签使用 special 类型
+      );
+    }).toList();
+
+    // 当前选中的语言
+    final currentLocaleCode = locale.languageCode + 
+        (locale.countryCode != null ? '_${locale.countryCode}' : '');
+    final selectedLanguageTags = <String>{
+      if (localeOptions.containsKey(currentLocaleCode)) currentLocaleCode
+    };
+
     // 字体大小级别标签映射（不受屏幕方向影响）
     final fontLabels = <FontScaleLevel, String>{
       FontScaleLevel.small: l10n.settingsFontSizeSmall,
@@ -65,27 +90,27 @@ class SettingsControlsPage extends ConsumerWidget {
         children: [
         _SettingCard(
           title: l10n.settingsLanguageLabel,
-          child: DropdownMenu<String>(
-            initialSelection: locale.languageCode + (locale.countryCode != null ? '_${locale.countryCode}' : ''),
-            enabled: !isLoading,
-            onSelected: (value) async {
-              final currentLocale = locale.languageCode + (locale.countryCode != null ? '_${locale.countryCode}' : '');
-              print('Language selection: $value, current: $currentLocale');
-              if (value != null && value != currentLocale) {
-                print('Updating locale to: $value');
-                await actionsNotifier.updateLocale(value);
-              } else {
-                print('No locale change needed');
-              }
-            },
-            dropdownMenuEntries: localeOptions.entries
-                .map(
-                  (entry) => DropdownMenuEntry<String>(
-                    value: entry.key,
-                    label: entry.value,
-                  ),
-                )
-                .toList(),
+          child: Opacity(
+            opacity: isLoading ? 0.5 : 1.0,
+            child: ModernTagGroup(
+              tags: languageTags,
+              selectedTags: selectedLanguageTags,
+              multiSelect: false,
+              variant: TagVariant.pill,
+              size: TagSize.medium,
+              spacing: 8.0,
+              runSpacing: 8.0,
+              onSelectionChanged: isLoading
+                  ? (_) {}
+                  : (selected) {
+                      if (selected.isNotEmpty) {
+                        final selectedLocale = selected.first;
+                        if (selectedLocale != currentLocaleCode) {
+                          actionsNotifier.updateLocale(selectedLocale);
+                        }
+                      }
+                    },
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -151,6 +176,24 @@ class SettingsControlsPage extends ConsumerWidget {
     );
   }
 }
+/// 获取语言对应的颜色
+Color _getLanguageColor(String localeCode, BuildContext context) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  
+  // 为不同语言分配不同的颜色
+  switch (localeCode) {
+    case 'en':
+      return colorScheme.primary;
+    case 'zh_CN':
+      return Colors.red.shade600;
+    case 'zh_HK':
+      return Colors.orange.shade600;
+    default:
+      return colorScheme.secondary;
+  }
+}
+
 class _SettingCard extends StatelessWidget {
   const _SettingCard({required this.title, required this.child});
 

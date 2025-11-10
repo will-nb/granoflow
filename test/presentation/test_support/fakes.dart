@@ -944,6 +944,13 @@ class StubSeedRepository implements SeedRepository {
   Future<void> recordVersion(String version) async {
     _version = version;
   }
+
+  @override
+  Future<void> clearVersion(String version) async {
+    if (_version == version) {
+      _version = null;
+    }
+  }
 }
 
 extension<T> on Stream<T> {

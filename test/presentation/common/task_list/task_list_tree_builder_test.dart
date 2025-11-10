@@ -38,9 +38,9 @@ void main() {
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
         expect(trees.length, 3);
-        expect(trees[0].task.id, 1);
-        expect(trees[1].task.id, 2);
-        expect(trees[2].task.id, 3);
+        expect(trees[0].task.id, '1');
+        expect(trees[1].task.id, '2');
+        expect(trees[2].task.id, '3');
         expect(trees[0].children, isEmpty);
         expect(trees[1].children, isEmpty);
         expect(trees[2].children, isEmpty);

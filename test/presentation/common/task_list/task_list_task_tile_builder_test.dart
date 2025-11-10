@@ -52,6 +52,9 @@ void main() {
               inboxTaskChildrenMapProvider.overrideWith(
                 (ref) async => <String, Set<String>>{},
               ),
+              taskProjectHierarchyProvider.overrideWith(
+                (ref, taskId) => Stream.value(null),
+              ),
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -342,7 +345,7 @@ void main() {
           // 验证回调被调用
           expect(expandedChangedCalled, true);
           expect(lastExpandedIds, isNotNull);
-          expect(lastExpandedIds!.contains(1), true);
+          expect(lastExpandedIds!.contains('1'), true);
         },
       );
 
@@ -394,6 +397,9 @@ void main() {
                     '1': {'3'},
                     '2': {'4'},
                   },
+                ),
+                taskProjectHierarchyProvider.overrideWith(
+                  (ref, taskId) => Stream.value(null),
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
                 priorityTagOptionsProvider.overrideWith(
@@ -459,8 +465,8 @@ void main() {
 
           // 验证：task2 应该被收缩，task1 应该被展开
           expect(lastExpandedIds, isNotNull);
-          expect(lastExpandedIds!.contains(1), true);
-          expect(lastExpandedIds!.contains(2), false); // task2 应该被收缩
+          expect(lastExpandedIds!.contains('1'), true);
+          expect(lastExpandedIds!.contains('2'), false); // task2 应该被收缩
         },
       );
 

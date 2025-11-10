@@ -204,6 +204,7 @@ class ProjectUpdate {
     this.allowInstantComplete,
     this.description,
     this.logs,
+    this.seedSlug,
   });
 
   final String? title;
@@ -217,4 +218,5 @@ class ProjectUpdate {
   final bool? allowInstantComplete;
   final String? description;
   final List<ProjectLogEntry>? logs;
+  final String? seedSlug;
 }

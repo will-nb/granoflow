@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/review_data.dart';
@@ -72,7 +73,11 @@ class ReviewPageNotifier extends StateNotifier<ReviewPageState> {
         data: data,
         error: null,
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
+      // 输出详细错误信息到控制台
+      debugPrint('ReviewPageNotifier: Failed to load review data');
+      debugPrint('ReviewPageNotifier: Error: $error');
+      debugPrint('ReviewPageNotifier: Stack trace: $stackTrace');
       state = state.copyWith(
         loading: false,
         error: error.toString(),

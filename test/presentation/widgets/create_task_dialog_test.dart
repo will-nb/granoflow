@@ -5,7 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
 import 'package:granoflow/presentation/widgets/create_task_dialog.dart';
 import 'package:granoflow/core/providers/repository_providers.dart';
-import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import '../test_support/fakes.dart';
 

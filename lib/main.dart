@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
+import 'core/providers/repository_providers.dart';
+import 'data/database/objectbox_adapter.dart';
+import 'objectbox.g.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,25 +41,40 @@ Future<void> main() async {
   // 请求通知权限（Android 13+ 和 iOS）
   await notificationService.requestPermission();
 
-  // TODO: Initialize ObjectBox Store properly
-  // For now, create a placeholder - this will need proper Store initialization
-  // final store = await _openObjectBoxStore();
-  // final adapter = ObjectBoxAdapter(store);
+  // 初始化 ObjectBox Store
+  final store = await _openObjectBoxStore();
+  final adapter = ObjectBoxAdapter(store);
   
   runApp(
     ProviderScope(
-      // TODO: Add databaseAdapterProvider override once Store is properly initialized
-      // overrides: [databaseAdapterProvider.overrideWithValue(adapter)],
+      overrides: [
+        databaseAdapterProvider.overrideWithValue(adapter),
+      ],
       child: const GranoFlowApp(),
     ),
   );
 }
 
-// TODO: Implement proper ObjectBox Store initialization
-// Future<Store> _openObjectBoxStore() async {
-//   final dir = await getApplicationSupportDirectory();
-//   // This will need the generated ObjectBox model code
-//   // final model = getObjectBoxModel();
-//   // return Store(getObjectBoxModel(), directory: dir.path);
-//   throw UnimplementedError('ObjectBox Store initialization not yet implemented');
-// }
+/// 初始化 ObjectBox Store
+Future<Store> _openObjectBoxStore() async {
+  // 对于 macOS，使用默认目录（openStore 会自动处理）
+  // 如果指定目录，可能会遇到沙盒权限问题
+  try {
+    // 先尝试使用默认目录（openStore 会自动使用合适的目录）
+    return await openStore();
+  } catch (e) {
+    // 如果默认目录失败，尝试使用应用支持目录
+    debugPrint('Failed to open store with default directory: $e');
+    try {
+      final dir = await getApplicationSupportDirectory();
+      // 确保目录存在
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      return await openStore(directory: dir.path);
+    } catch (e2) {
+      debugPrint('Failed to open store at application support directory: $e2');
+      rethrow;
+    }
+  }
+}

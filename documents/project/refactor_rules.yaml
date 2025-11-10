@@ -306,6 +306,23 @@ rules:
       - name: "Adapter/Facade"
       - name: "Port-Adapter (Hexagonal)"
     notes.dart: "便于替换/Mock；隔离平台通道。"
+  
+  - smell: Direct Database Access (ObjectBox Store/Box)
+    detect:
+      - "业务层或仓储层直接持有或使用 ObjectBox Store 或 Box 实例"
+      - "在 Repository 之外直接调用 store.box<T>() 或 box.put/getAll/remove"
+    refactorings:
+      - name: "通过 DatabaseAdapter 接口访问数据库"
+      - name: "使用 BaseObjectBoxRepository 封装通用操作"
+      - name: "将 Store/Box 访问限制在 ObjectBoxAdapter 内部"
+    notes.dart: |
+      数据库抽象层规则：
+      - 所有数据库操作必须通过 DatabaseAdapter 接口进行
+      - Repository 层只能依赖 DatabaseAdapter，不能直接使用 Store/Box
+      - ObjectBoxAdapter 是 DatabaseAdapter 的唯一实现，封装所有 ObjectBox 细节
+      - 未来切换到 Drift 等 SQL 数据库时，只需实现新的 DatabaseAdapter，无需修改业务代码
+      - 测试中使用 InMemoryDatabaseAdapter 替代 ObjectBoxAdapter，验证抽象层充分性
+    safety: ["require-tests-with-in-memory-adapter"]
 
   - smell: Unawaited Futures / Fire-and-Forget
     detect:

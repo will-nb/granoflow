@@ -7,7 +7,7 @@ class MilestoneLogEntity {
   MilestoneLogEntity({
     this.obxId = 0,
     required this.id,
-    required this.milestoneId,
+    this.milestoneId,
     required this.timestamp,
     required this.action,
     this.previous,
@@ -21,10 +21,12 @@ class MilestoneLogEntity {
   @Unique()
   String id;
 
-  String milestoneId;
+  // milestoneId 用于存储业务 ID（可选），milestone 关系用于 ObjectBox 关联
+  String? milestoneId;
 
   final milestone = ToOne<MilestoneEntity>();
 
+  @Property(type: PropertyType.date)
   DateTime timestamp;
   String action;
   String? previous;

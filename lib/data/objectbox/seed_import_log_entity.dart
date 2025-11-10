@@ -17,5 +17,6 @@ class SeedImportLogEntity {
 
   String version;
 
+  @Property(type: PropertyType.date)
   DateTime importedAt;
 }

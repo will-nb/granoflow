@@ -170,6 +170,9 @@ class ObjectBoxProjectRepository implements ProjectRepository {
       if (update.description != null) {
         entity.description = update.description;
       }
+      if (update.seedSlug != null) {
+        entity.seedSlug = update.seedSlug;
+      }
 
       entity.updatedAt = DateTime.now();
       projectBox.put(entity);
@@ -332,14 +335,17 @@ class ObjectBoxProjectRepository implements ProjectRepository {
 
     final records = logBox
         .getAll()
-        .where((log) => idSet.contains(log.projectId))
+        .where((log) => log.projectId != null && idSet.contains(log.projectId))
         .toList(growable: false)
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     final Map<String, List<ProjectLogEntry>> result = {};
     for (final record in records) {
-      result.putIfAbsent(record.projectId, () => <ProjectLogEntry>[]);
-      result[record.projectId]!.add(_toLogEntry(record));
+      final projectId = record.projectId;
+      if (projectId != null) {
+        result.putIfAbsent(projectId, () => <ProjectLogEntry>[]);
+        result[projectId]!.add(_toLogEntry(record));
+      }
     }
     return result;
   }
@@ -350,7 +356,7 @@ class ObjectBoxProjectRepository implements ProjectRepository {
   ) {
     final logs = logBox
         .getAll()
-        .where((log) => log.projectId == projectId)
+        .where((log) => log.projectId != null && log.projectId == projectId)
         .toList()
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     return logs.map(_toLogEntry).toList(growable: false);
@@ -368,7 +374,7 @@ class ObjectBoxProjectRepository implements ProjectRepository {
   void _removeLogs(Box<ProjectLogEntity> box, String projectId) {
     final ids = box
         .getAll()
-        .where((log) => log.projectId == projectId)
+        .where((log) => log.projectId != null && log.projectId == projectId)
         .map((log) => log.obxId)
         .toList(growable: false);
     if (ids.isNotEmpty) {

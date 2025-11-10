@@ -26,5 +26,6 @@ class PreferenceEntity {
 
   bool clockTickSoundEnabled;
 
+  @Property(type: PropertyType.date)
   DateTime updatedAt;
 }

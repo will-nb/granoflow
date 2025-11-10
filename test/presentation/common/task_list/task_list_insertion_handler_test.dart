@@ -153,7 +153,7 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(fakeTaskHierarchyService.moveToParentParentId, null);
         expect(fakeTaskHierarchyService.moveToParentClearParent, true);
         expect(result.success, true);
@@ -193,7 +193,7 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(
           fakeTaskHierarchyService.moveToParentParentId,
           beforeTask.parentId,
@@ -241,7 +241,7 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(
           fakeTaskHierarchyService.moveToParentParentId,
           beforeTask.parentId,
@@ -288,7 +288,7 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(fakeTaskHierarchyService.moveToParentParentId, null);
         expect(fakeTaskHierarchyService.moveToParentClearParent, true);
         expect(result.success, true);
@@ -381,7 +381,7 @@ void main() {
 
         // 应该使用目标 section 的结束时间作为 dueDate
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(fakeTaskHierarchyService.moveToParentParentId, null);
         expect(fakeTaskHierarchyService.moveToParentDueDate, isNotNull);
         expect(fakeTaskHierarchyService.moveToParentClearParent, true);
@@ -511,7 +511,7 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(
           fakeTaskHierarchyService.moveToParentParentId,
           beforeTask.parentId,
@@ -562,7 +562,7 @@ void main() {
 
           // 应该使用默认 sortIndex
           expect(fakeTaskHierarchyService.moveToParentCalled, true);
-          expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+          expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
           expect(fakeTaskHierarchyService.moveToParentParentId, null);
           expect(
             fakeTaskHierarchyService.moveToParentSortIndex,

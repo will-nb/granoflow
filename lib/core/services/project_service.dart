@@ -49,6 +49,8 @@ class ProjectService {
 
   Future<Project?> findById(String id) => _projects.findById(id);
 
+  Future<List<Project>> listAll() => _projects.listAll();
+
   Future<void> updateProject(String id, ProjectUpdate update) =>
       _actions.updateProject(id, update);
 

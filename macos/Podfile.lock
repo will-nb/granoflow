@@ -2,11 +2,15 @@ PODS:
   - audioplayers_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
+  - file_picker (0.0.1):
+    - FlutterMacOS
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
-  - isar_flutter_libs (1.0.0):
+  - ObjectBox (4.1.0)
+  - objectbox_flutter_libs (0.0.1):
     - FlutterMacOS
+    - ObjectBox (= 4.1.0)
   - package_info_plus (0.0.1):
     - FlutterMacOS
   - path_provider_foundation (0.0.1):
@@ -22,24 +26,31 @@ PODS:
 
 DEPENDENCIES:
   - audioplayers_darwin (from `Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/darwin`)
+  - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
+  - objectbox_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
 
+SPEC REPOS:
+  trunk:
+    - ObjectBox
+
 EXTERNAL SOURCES:
   audioplayers_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/darwin
+  file_picker:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
-  isar_flutter_libs:
-    :path: Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos
+  objectbox_flutter_libs:
+    :path: Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos
   package_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   path_provider_foundation:
@@ -53,9 +64,11 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
+  file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   flutter_local_notifications: 7e5a17a1dbc00d83dc10d43c2c4c05f2ceed233c
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  isar_flutter_libs: a65381780401f81ad6bf3f2e7cd0de5698fb98c4
+  ObjectBox: bf3d4b51075d52868422d5d1f2f2141b1d630d30
+  objectbox_flutter_libs: 947b3a4e371d88c3c5b59f6a2e95e108cc072e6b
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc

@@ -7,7 +7,7 @@ class ProjectLogEntity {
   ProjectLogEntity({
     this.obxId = 0,
     required this.id,
-    required this.projectId,
+    this.projectId,
     required this.timestamp,
     required this.action,
     this.previous,
@@ -21,10 +21,12 @@ class ProjectLogEntity {
   @Unique()
   String id;
 
-  String projectId;
+  // projectId 用于存储业务 ID（可选），project 关系用于 ObjectBox 关联
+  String? projectId;
 
   final project = ToOne<ProjectEntity>();
 
+  @Property(type: PropertyType.date)
   DateTime timestamp;
   String action;
   String? previous;

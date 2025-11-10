@@ -37,11 +37,22 @@ class TaskEntity {
 
   int statusIndex;
 
+  @Property(type: PropertyType.date)
   DateTime? dueAt;
+  
+  @Property(type: PropertyType.date)
   DateTime? startedAt;
+  
+  @Property(type: PropertyType.date)
   DateTime? endedAt;
+  
+  @Property(type: PropertyType.date)
   DateTime? archivedAt;
+  
+  @Property(type: PropertyType.date)
   DateTime createdAt;
+  
+  @Property(type: PropertyType.date)
   DateTime updatedAt;
 
   String? parentId;
