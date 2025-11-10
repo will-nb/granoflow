@@ -199,7 +199,7 @@ class ObjectBoxProjectRepository implements ProjectRepository {
   Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status) {
     return _adapter
         .watch<ProjectEntity>((builder) {
-          builder
+          return builder
             ..filter((entity) => _matchesFilter(status, entity))
             ..sort(_sortByIndexThenCreated);
         })
@@ -213,7 +213,7 @@ class ObjectBoxProjectRepository implements ProjectRepository {
     final allowed = allowedStatuses.map(taskStatusToIndex).toSet();
     return _adapter
         .watch<ProjectEntity>((builder) {
-          builder
+          return builder
             ..filter(
               (entity) =>
                   entity.statusIndex != taskStatusToIndex(TaskStatus.pseudoDeleted) &&
