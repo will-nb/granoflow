@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+
 import 'package:path_provider/path_provider.dart';
 // ignore: unused_import
-import 'package:isar_flutter_libs/isar_flutter_libs.dart';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'core/app.dart';
 import 'core/providers/repository_providers.dart';
 import 'core/services/notification_service.dart';
-import 'data/isar/focus_session_entity.dart';
+import 'package:granoflow/data/objectbox/focus_session_entity.dart';
 import 'data/isar/preference_entity.dart';
 import 'data/isar/project_entity.dart';
 import 'data/isar/milestone_entity.dart';
@@ -23,7 +22,7 @@ Isar? _isarInstance;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 初始化前台服务（Android）
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
@@ -44,14 +43,14 @@ Future<void> main() async {
       allowWifiLock: true,
     ),
   );
-  
+
   // 初始化通知服务
   final notificationService = NotificationService();
   await notificationService.initialize();
-  
+
   // 请求通知权限（Android 13+ 和 iOS）
   await notificationService.requestPermission();
-  
+
   final isar = await _openIsar();
   runApp(
     ProviderScope(
@@ -68,21 +67,21 @@ Future<Isar> _openIsar() async {
   }
 
   try {
-  final dir = await getApplicationSupportDirectory();
+    final dir = await getApplicationSupportDirectory();
     final isar = await Isar.open(
-    [
-      TaskEntitySchema,
-      TaskTemplateEntitySchema,
-      FocusSessionEntitySchema,
-      TagEntitySchema,
-      PreferenceEntitySchema,
-      SeedImportLogEntitySchema,
-      ProjectEntitySchema,
-      MilestoneEntitySchema,
-    ],
-    directory: dir.path,
-    inspector: false,
-  );
+      [
+        TaskEntitySchema,
+        TaskTemplateEntitySchema,
+        FocusSessionEntitySchema,
+        TagEntitySchema,
+        PreferenceEntitySchema,
+        SeedImportLogEntitySchema,
+        ProjectEntitySchema,
+        MilestoneEntitySchema,
+      ],
+      directory: dir.path,
+      inspector: false,
+    );
     _isarInstance = isar;
     return isar;
   } catch (e) {

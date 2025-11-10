@@ -138,13 +138,13 @@ class _FakeFocusFlowService implements FocusFlowService {
   Future<void> endFocus({
     required String sessionId,
     required FocusOutcome outcome,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) async {}
 
   @override
   Future<Task> quickSubtask({
-    required int parentTaskId,
+    required String parentTaskId,
     required String title,
   }) async {
     return _buildTask(id: 1000, title: title, parentId: parentTaskId);

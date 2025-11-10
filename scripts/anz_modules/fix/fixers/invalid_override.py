@@ -10,8 +10,10 @@ if TYPE_CHECKING:  # pragma: no cover
     from ..issues import Diagnostic  # pylint: disable=cyclic-import
 
 # Pattern to match parameter declarations with int type and ID-related names
+# Includes: taskId, sessionId, parentId, projectId, milestoneId, focusId, id
+# Also includes: transferToTaskId, parentTaskId (compound names)
 ID_PARAM_PATTERN = re.compile(
-    r"\b(required\s+)?int(\?)?\s+((task|session|parent|project|milestone|focus)[Ii]d|id)\b"
+    r"\b(required\s+)?int(\?)?\s+((task|session|parent|project|milestone|focus|transferTo)[Ii]d|id|parentTaskId|transferToTaskId)\b"
 )
 
 # Pattern to match function parameter lists (for multi-line function signatures)

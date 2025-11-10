@@ -3,9 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:granoflow/main.dart' as app;
 
-import 'package:granoflow/data/objectbox/project_entity.dart';
-import 'package:granoflow/data/objectbox/milestone_entity.dart';
-import 'package:granoflow/data/objectbox/task_entity.dart';
 import 'package:granoflow/core/providers/repository_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

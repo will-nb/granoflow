@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 
 import '../../data/repositories/focus_session_repository.dart';
 import '../../data/repositories/metric_repository.dart';

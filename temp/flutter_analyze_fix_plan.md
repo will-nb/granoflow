@@ -212,9 +212,15 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
 - Total: 733
 
 ### 当前状态（修复器运行后）
-- ERROR: 689-713（取决于哪些修复器启用）
-- 已修复：约 20-40 个错误（通过 import 修复等）
+- ERROR: 462（从 707 减少到 462，减少了 245 个错误！）
+- WARNING: 28（从 26 增加到 28，增加了 2 个）
+- 已修复：约 243 个错误
 - 主要剩余错误：需要手动修复或更复杂的修复器
+
+### 修复器实际效果
+- `invalid_override`: 从 129 减少到 42（减少 87 个，67% 修复率）
+- `undefined_named_parameter`: 从 101 减少到 2（减少 99 个，98% 修复率！）
+- `uri_does_not_exist`: 从 17 减少到 13（减少 4 个）
 
 ### 修复器效果评估
 - ✅ `uri_does_not_exist` 修复器：有效，已修复大部分导入问题

@@ -349,7 +349,7 @@ class _StubFocusSessionRepository implements FocusSessionRepository {
   Future<void> endSession({
     required String sessionId,
     required int actualMinutes,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) => throw UnimplementedError();
 

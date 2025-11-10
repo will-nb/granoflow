@@ -1,5 +1,4 @@
 import '../models/milestone.dart';
-import '../models/task.dart';
 
 abstract class MilestoneRepository {
   Stream<List<Milestone>> watchByProjectId(String projectId);
@@ -11,7 +10,7 @@ abstract class MilestoneRepository {
   Future<Milestone> create(MilestoneDraft draft);
 
   /// 使用指定的 milestoneId 创建里程碑（用于导入）
-  /// 
+  ///
   /// [draft] 里程碑草稿，其中的 milestoneId 将被忽略
   /// [milestoneId] 要使用的业务ID
   /// [createdAt] 创建时间（从导入数据中获取）

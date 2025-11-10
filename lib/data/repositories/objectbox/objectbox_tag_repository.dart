@@ -1,4 +1,4 @@
-import '../../config/app_constants.dart';
+import 'package:granoflow/core/config/app_constants.dart';
 import '../../database/database_adapter.dart';
 import '../../models/tag.dart';
 import '../tag_repository.dart';

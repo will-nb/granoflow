@@ -1,6 +1,6 @@
 import '../../database/database_adapter.dart';
 import '../../models/milestone.dart';
-import '../../models/task.dart';
+
 import '../milestone_repository.dart';
 
 class ObjectBoxMilestoneRepository implements MilestoneRepository {
@@ -52,8 +52,6 @@ class ObjectBoxMilestoneRepository implements MilestoneRepository {
 
   @override
   Stream<List<Milestone>> watchByProjectId(String projectId) {
-    throw UnimplementedError(
-      'ObjectBoxMilestoneRepository.watchByProjectId',
-    );
+    throw UnimplementedError('ObjectBoxMilestoneRepository.watchByProjectId');
   }
 }

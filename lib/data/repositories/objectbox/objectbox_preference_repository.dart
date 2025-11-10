@@ -1,5 +1,5 @@
 import '../../database/database_adapter.dart';
-import '../models/preference.dart';
+import 'package:granoflow/data/models/preference.dart';
 import '../preference_repository.dart';
 
 class ObjectBoxPreferenceRepository implements PreferenceRepository {

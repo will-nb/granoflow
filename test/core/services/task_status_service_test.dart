@@ -246,7 +246,7 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
   Future<void> endSession({
     required String sessionId,
     required int actualMinutes,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) async => throw UnimplementedError();
 

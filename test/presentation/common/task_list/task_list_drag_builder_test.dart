@@ -47,10 +47,10 @@ void main() {
 
       flattenedTasks = tasks.map((task) => FlattenedTaskNode(task, 0)).toList();
       rootTasks = tasks;
-      taskIdToIndex = {1: 0, 2: 1};
-      taskIdToHasChildren = {1: false, 2: false};
-      levelMap = {1: 1, 2: 1};
-      childrenMap = {1: {}, 2: {}};
+      taskIdToIndex = {'1': 0, '2': 1};
+      taskIdToHasChildren = {'1': false, '2': false};
+      levelMap = {'1': 1, '2': 1};
+      childrenMap = {'1': {}, '2': {}};
     });
 
     group('buildTaskListDragUI', () {
@@ -293,12 +293,12 @@ void main() {
           ProviderScope(
             overrides: [
               inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => {1: 1, 2: 2},
+                (ref) async => {'1': 1, '2': 2},
               ),
               inboxTaskChildrenMapProvider.overrideWith(
                 (ref) async => {
-                  1: {2},
-                  2: {},
+                  '1': {2},
+                  '2': {},
                 },
               ),
             ],
@@ -311,12 +311,12 @@ void main() {
                 final widgets = TaskListDragBuilder.buildTaskListDragUI(
                   flattenedTasks: flattenedWithChildren,
                   rootTasks: [parentTask],
-                  taskIdToIndex: {1: 0},
-                  taskIdToHasChildren: {1: true, 2: false},
-                  levelMap: {1: 1, 2: 2},
+                  taskIdToIndex: {'1': 0},
+                  taskIdToHasChildren: {'1': true, '2': false},
+                  levelMap: {'1': 1, '2': 2},
                   childrenMap: {
-                    1: {2},
-                    2: {},
+                    '1': {2},
+                    '2': {},
                   },
                   expandedTaskIds: {1}, // 父任务已展开
                   filteredTasks: tasksWithChildren,

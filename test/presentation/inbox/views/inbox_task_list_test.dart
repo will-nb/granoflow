@@ -122,11 +122,11 @@ void main() {
             ),
             inboxTaskChildrenMapProvider.overrideWith(
               (ref) async => <int, Set<String>>{
-                1: {2},
+                1: {'2'},
                 2: {},
               },
             ),
-            inboxExpandedTaskIdProvider.overrideWith((ref) => {1}), // 父任务默认展开
+            inboxExpandedTaskIdProvider.overrideWith((ref) => {'1'}), // 父任务默认展开
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -183,7 +183,7 @@ void main() {
             ),
             inboxTaskChildrenMapProvider.overrideWith(
               (ref) async => <int, Set<String>>{
-                1: {2},
+                1: {'2'},
                 2: {},
               },
             ),
@@ -494,13 +494,13 @@ void main() {
             ),
             inboxTaskChildrenMapProvider.overrideWith(
               (ref) async => <int, Set<String>>{
-                1: {2},
-                2: {3},
+                1: {'2'},
+                2: {'3'},
                 3: {},
               },
             ),
             inboxExpandedTaskIdProvider.overrideWith(
-              (ref) => {1, 2},
+              (ref) => {'1', '2'},
             ), // 前两级默认展开
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),

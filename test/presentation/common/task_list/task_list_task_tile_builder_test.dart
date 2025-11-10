@@ -123,7 +123,7 @@ void main() {
                 ),
                 inboxTaskChildrenMapProvider.overrideWith(
                   (ref) async => <int, Set<String>>{
-                    1: {2},
+                    1: {'2'},
                   },
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -191,7 +191,7 @@ void main() {
         InboxDragNotifier? dragNotifier;
         InboxDragState? dragState;
         WidgetRef? testRef;
-        Set<String> expandedTaskIds = {1};
+        Set<String> expandedTaskIds = {'1'};
 
         await tester.pumpWidget(
           ProviderScope(
@@ -201,7 +201,7 @@ void main() {
               ),
               inboxTaskChildrenMapProvider.overrideWith(
                 (ref) async => <int, Set<String>>{
-                  1: {2},
+                  1: {'2'},
                 },
               ),
               contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -276,7 +276,7 @@ void main() {
                 ),
                 inboxTaskChildrenMapProvider.overrideWith(
                   (ref) async => <int, Set<String>>{
-                    1: {2},
+                    1: {'2'},
                   },
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -378,7 +378,7 @@ void main() {
             tags: const [],
           );
 
-          Set<String> expandedTaskIds = {2}; // task2 已展开
+          Set<String> expandedTaskIds = {'2'}; // task2 已展开
           Set<String>? lastExpandedIds;
 
           await tester.pumpWidget(
@@ -391,8 +391,8 @@ void main() {
                   TaskSection.today,
                 ).overrideWith(
                   (ref) async => <int, Set<String>>{
-                    1: {3},
-                    2: {4},
+                    1: {'3'},
+                    2: {'4'},
                   },
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
