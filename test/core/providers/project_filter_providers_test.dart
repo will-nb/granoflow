@@ -220,17 +220,9 @@ class _FakeProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<Project?> findByIsarId(int id) async {
-    return _projects.firstWhere(
-      (p) => p.id == id,
-      orElse: () => throw Exception('Not found'),
-    );
-  }
-
-  @override
   Future<Project?> findByProjectId(String projectId) async {
     try {
-      return _projects.firstWhere((p) => p.projectId == projectId);
+      return _projects.firstWhere((p) => p.id == projectId);
     } catch (e) {
       return null;
     }

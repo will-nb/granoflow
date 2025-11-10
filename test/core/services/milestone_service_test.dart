@@ -179,10 +179,10 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   }
 
   @override
-  Future<void> update(int isarId, MilestoneUpdate update) async {
-    final current = _milestones[isarId];
+  Future<void> update(String id, MilestoneUpdate update) async {
+    final current = _milestones[id];
     if (current == null) return;
-    _milestones[isarId] = current.copyWith(
+    _milestones[id] = current.copyWith(
       title: update.title,
       status: update.status,
       dueAt: update.dueAt,
