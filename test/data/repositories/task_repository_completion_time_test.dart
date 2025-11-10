@@ -159,7 +159,7 @@ void main() {
       );
       
       // 批量更新状态为完成
-      await repository.batchUpdate({
+      await repository.batchUpdate(<String, TaskUpdate>{
         task1.id: TaskUpdate(status: TaskStatus.completedActive),
         task2.id: TaskUpdate(status: TaskStatus.completedActive),
       });
