@@ -76,7 +76,7 @@ class _StubTaskService extends TaskService {
     required String title,
     List<String> tags = const <String>[],
   }) async {
-    return _buildTask(id: 999, title: title, parentId: null);
+    return _buildTask(id: '999', title: title, parentId: null);
   }
 }
 
@@ -88,7 +88,7 @@ class _DummyMetricOrchestrator extends Fake implements MetricOrchestrator {
   @override
   Future<MetricSnapshot> requestRecompute(MetricRecomputeReason reason) async {
     return MetricSnapshot(
-      id: 0,
+      id: '0',
       totalCompletedTasks: 0,
       totalFocusMinutes: 0,
       pendingTasks: 0,
@@ -128,7 +128,7 @@ class _FakeFocusFlowService implements FocusFlowService {
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async {
-    return FocusSession(id: 1, taskId: taskId, startedAt: DateTime.now());
+    return FocusSession(id: '1', taskId: taskId, startedAt: DateTime.now());
   }
 
   @override
@@ -147,7 +147,7 @@ class _FakeFocusFlowService implements FocusFlowService {
     required String parentTaskId,
     required String title,
   }) async {
-    return _buildTask(id: 1000, title: title, parentId: parentTaskId);
+    return _buildTask(id: '1000', title: title, parentId: parentTaskId);
   }
 
   @override
@@ -188,7 +188,7 @@ class _FakeTaskRepository extends Fake implements TaskRepository {
   }
 }
 
-Task _buildTask({required int id, required String title, int? parentId}) {
+Task _buildTask({required String id, required String title, String? parentId}) {
   return Task(
     id: id,
 
@@ -219,14 +219,14 @@ ClockTimerState _timerState({required bool started, required bool paused}) {
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  final parentTask = _buildTask(id: 1, title: 'Top Level Task');
+  final parentTask = _buildTask(id: '1', title: 'Top Level Task');
   final childTask = _buildTask(
-    id: 2,
+    id: '2',
     title: 'Subtask A',
     parentId: parentTask.id,
   );
   final preference = Preference(
-    id: 1,
+    id: '1',
     localeCode: 'en',
     themeMode: ThemeMode.light,
     fontScaleLevel: FontScaleLevel.medium,

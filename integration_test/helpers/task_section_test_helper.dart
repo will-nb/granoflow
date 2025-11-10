@@ -69,7 +69,7 @@ class TaskSectionTestHelper {
 
   /// 验证任务在指定 section 中
   Future<bool> verifyTaskInSection(
-    int taskId,
+    String taskId,
     TaskSection expectedSection,
   ) async {
     final taskRepository = container.read(taskRepositoryProvider);

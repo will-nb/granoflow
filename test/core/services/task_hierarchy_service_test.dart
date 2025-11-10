@@ -16,8 +16,8 @@ void main() {
 
     setUp(() {
       repository = _TestTaskRepository({
-        1: _task(id: 1, parentId: null),
-        2: _task(id: 2, parentId: null),
+        '1': _task(id: '1', parentId: null),
+        '2': _task(id: '2', parentId: null),
       });
       final orchestrator = MetricOrchestrator(
         metricRepository: _StubMetricRepository(),
@@ -34,30 +34,30 @@ void main() {
       final due = DateTime(2025, 2, 2);
 
       await service.moveToParent(
-        taskId: 1,
-        parentId: 2,
+        taskId: '1',
+        parentId: '2',
         sortIndex: 4200,
         dueDate: due,
       );
 
-      final updated = repository.tasks[1]!;
-      expect(updated.parentId, 2);
+      final updated = repository.tasks['1']!;
+      expect(updated.parentId, '2');
       expect(updated.sortIndex, 4200);
       expect(updated.dueAt, due);
       expect(repository.lastUpdate?.dueAt, due);
     });
 
     test('clearParent removes parentId when promoted to root', () async {
-      repository.tasks[1] = _task(id: 1, parentId: 2);
+      repository.tasks['1'] = _task(id: '1', parentId: '2');
 
       await service.moveToParent(
-        taskId: 1,
+        taskId: '1',
         parentId: null,
         sortIndex: 100,
         clearParent: true,
       );
 
-      final updated = repository.tasks[1]!;
+      final updated = repository.tasks['1']!;
       expect(updated.parentId, isNull);
       expect(updated.sortIndex, 100);
       expect(repository.lastUpdate?.clearParent, isTrue);
@@ -65,7 +65,7 @@ void main() {
   });
 }
 
-Task _task({required int id, int? parentId}) {
+Task _task({required String id, String? parentId}) {
   final now = DateTime(2025, 1, 1);
   return Task(
     id: id,
@@ -83,7 +83,7 @@ Task _task({required int id, int? parentId}) {
 class _TestTaskRepository extends TaskRepository {
   _TestTaskRepository(this.tasks);
 
-  final Map<int, Task> tasks;
+  final Map<String, Task> tasks;
   TaskUpdate? lastUpdate;
 
   @override
@@ -151,7 +151,7 @@ class _TestTaskRepository extends TaskRepository {
       throw UnimplementedError();
 
   @override
-  Stream<TaskTreeNode> watchTaskTree(int rootTaskId) =>
+  Stream<TaskTreeNode> watchTaskTree(String rootTaskId) =>
       throw UnimplementedError();
 
   @override
@@ -251,7 +251,7 @@ class _TestTaskRepository extends TaskRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<void> batchUpdate(Map<int, TaskUpdate> updates) =>
+  Future<void> batchUpdate(Map<String, TaskUpdate> updates) =>
       throw UnimplementedError();
 
   @override
@@ -322,7 +322,7 @@ class _StubMetricRepository implements MetricRepository {
     required Iterable<Task> tasks,
     required int totalFocusMinutes,
   }) async => MetricSnapshot(
-    id: 1,
+    id: '1',
     totalCompletedTasks: 0,
     totalFocusMinutes: 0,
     pendingTasks: 0,

@@ -102,7 +102,7 @@ void main() {
     testWidgets('should build InboxTaskTile', (tester) async {
       final config = InboxTaskListConfig();
       final task = Task(
-        id: 1,
+        id: '1',
 
         title: 'Test Task',
         status: TaskStatus.inbox,
@@ -149,7 +149,7 @@ void main() {
       final config = InboxTaskListConfig();
       final tasks = [
         Task(
-          id: 1,
+          id: '1',
 
           title: 'Task 1',
           status: TaskStatus.inbox,
@@ -190,7 +190,7 @@ void main() {
     test('should return null for handleDueDate (no date change)', () {
       final config = InboxTaskListConfig();
       final task = Task(
-        id: 1,
+        id: '1',
 
         title: 'Test Task',
         status: TaskStatus.inbox,

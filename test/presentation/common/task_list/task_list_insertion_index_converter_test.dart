@@ -22,8 +22,8 @@ void main() {
   group('TaskListInsertionIndexConverter', () {
     group('convertFlattenedIndexToRootInsertionIndex', () {
       test('should return 0 for top insertion (index 0)', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2);
+        final task1 = _createTask(id: '1');
+        final task2 = _createTask(id: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 0),
@@ -45,8 +45,8 @@ void main() {
       });
 
       test('should return rootTasks.length for bottom insertion', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2);
+        final task1 = _createTask(id: '1');
+        final task2 = _createTask(id: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 0),
@@ -68,8 +68,8 @@ void main() {
       });
 
       test('should return root index for root task', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2);
+        final task1 = _createTask(id: '1');
+        final task2 = _createTask(id: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 0),
@@ -91,7 +91,7 @@ void main() {
       });
 
       test('should find root parent for subtask', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: 2, parentId: 1);
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
@@ -114,7 +114,7 @@ void main() {
       });
 
       test('should handle nested subtask (three levels)', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: 2, parentId: 1);
         final task3 = _createTask(id: 3, parentId: 2);
         final flattenedTasks = [
@@ -157,7 +157,7 @@ void main() {
       });
 
       test('should throw StateError when parent task not found', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: 2, parentId: 999); // 父任务不存在
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
@@ -183,8 +183,8 @@ void main() {
 
     group('findTasksForInsertionIndex', () {
       test('should return first target type for top insertion', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2);
+        final task1 = _createTask(id: '1');
+        final task2 = _createTask(id: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 0),
@@ -208,8 +208,8 @@ void main() {
       });
 
       test('should return last target type for bottom insertion', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2);
+        final task1 = _createTask(id: '1');
+        final task2 = _createTask(id: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 0),
@@ -233,9 +233,9 @@ void main() {
       });
 
       test('should return between target type for middle insertion', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2);
-        final task3 = _createTask(id: 3);
+        final task1 = _createTask(id: '1');
+        final task2 = _createTask(id: '2');
+        final task3 = _createTask(id: '3');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 0),
@@ -280,7 +280,7 @@ void main() {
       });
 
       test('should handle insertion at subtask position', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: 2, parentId: 1);
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),

@@ -14,8 +14,8 @@ import 'package:granoflow/presentation/common/task_list/tasks_section_task_list_
 
 class _FakeTaskHierarchyService extends Fake implements TaskHierarchyService {
   bool moveToParentCalled = false;
-  int? moveToParentTaskId;
-  int? moveToParentParentId;
+  String? moveToParentTaskId;
+  String? moveToParentParentId;
   double? moveToParentSortIndex;
   DateTime? moveToParentDueDate;
   bool? moveToParentClearParent;
@@ -99,8 +99,8 @@ void main() {
     });
 
     Task _createTask({
-      required int id,
-      int? parentId,
+      required String id,
+      String? parentId,
       double sortIndex = 1000,
       DateTime? dueAt,
     }) {
@@ -120,8 +120,8 @@ void main() {
 
     group('handleInsertionDrop', () {
       testWidgets('should handle first insertion (top)', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
@@ -160,8 +160,8 @@ void main() {
       });
 
       testWidgets('should handle last insertion (bottom)', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
@@ -207,9 +207,9 @@ void main() {
       });
 
       testWidgets('should handle between insertion', (tester) async {
-        final draggedTask = _createTask(id: 1);
+        final draggedTask = _createTask(id: '1');
         final beforeTask = _createTask(id: 2, sortIndex: 1000);
-        final afterTask = _createTask(id: 3, sortIndex: 2000);
+        final afterTask = _createTask(id: '3', sortIndex: 2000);
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
@@ -255,8 +255,8 @@ void main() {
       });
 
       testWidgets('should handle subtask promotion (Inbox)', (tester) async {
-        final draggedTask = _createTask(id: 1, parentId: 99);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1', parentId: '99');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
@@ -295,8 +295,8 @@ void main() {
       });
 
       testWidgets('should call reorderTasks for Inbox config', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         final inboxTasks = [_createTask(id: 1), _createTask(id: 2)];
         WidgetRef? testRef;
@@ -343,7 +343,7 @@ void main() {
         final now = DateTime.now();
         final draggedTask = _createTask(id: 1, dueAt: now);
         final beforeTask = _createTask(
-          id: 2,
+          id: '2',
           dueAt: TaskSectionUtils.getSectionEndTime(
             TaskSection.tomorrow,
             now: now,
@@ -391,10 +391,10 @@ void main() {
       testWidgets('should call reorderTasksForSameDate for Tasks config', (
         tester,
       ) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = TasksSectionTaskListConfig(TaskSection.today);
-        final allTasks = [_createTask(id: 1), _createTask(id: 2)];
+        final allTasks = [_createTask(id: '1'), _createTask(id: '2')];
         WidgetRef? testRef;
 
         fakeTaskRepository = _FakeTaskRepository(allTasks: allTasks);
@@ -435,8 +435,8 @@ void main() {
       });
 
       testWidgets('should return blocked result on error', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
@@ -478,8 +478,8 @@ void main() {
       testWidgets('should handle between insertion with only beforeTask', (
         tester,
       ) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
@@ -527,7 +527,7 @@ void main() {
       testWidgets(
         'should handle between insertion with neither beforeTask nor afterTask',
         (tester) async {
-          final draggedTask = _createTask(id: 1);
+          final draggedTask = _createTask(id: '1');
           final config = InboxTaskListConfig();
           WidgetRef? testRef;
 

@@ -9,10 +9,10 @@ class TaskTestData {
 
   /// 生成一个测试任务
   static Task generateTask({
-    required int id,
+    required String id,
     required String title,
     DateTime? dueAt,
-    int? parentId,
+    String? parentId,
     double sortIndex = 1000.0,
     TaskStatus status = TaskStatus.pending,
     DateTime? createdAt,
@@ -20,11 +20,11 @@ class TaskTestData {
   }) {
     final now = DateTime.now();
     return Task(
-      id: id.toString(),
+      id: id,
 
       title: title,
       dueAt: dueAt,
-      parentId: parentId?.toString(),
+      parentId: parentId,
       sortIndex: sortIndex,
       status: status,
       createdAt: createdAt ?? now,
@@ -110,7 +110,7 @@ class TaskTestData {
     for (int i = 0; i < count; i++) {
       tasks.add(
         generateTask(
-          id: startId + i,
+          id: (startId + i).toString(),
           title: '${section.name} 测试任务 $i',
           dueAt: dueAt,
           sortIndex: 1000.0 + (i * 1000.0),
@@ -189,7 +189,7 @@ class TaskTestData {
 
     // 生成根任务
     final rootTask = generateTask(
-      id: rootTaskId,
+      id: rootTaskId.toString(),
       title: '根任务 $rootTaskId',
       dueAt: dueAt,
       parentId: null,
@@ -202,10 +202,10 @@ class TaskTestData {
     for (int i = 0; i < childCount; i++) {
       tasks.add(
         generateTask(
-          id: rootTaskId + 100 + i,
+          id: (rootTaskId + 100 + i).toString(),
           title: '子任务 $i',
           dueAt: dueAt,
-          parentId: rootTaskId,
+          parentId: rootTaskId.toString(),
           sortIndex: 1000.0 + (i * 1000.0),
           status: TaskStatus.pending,
         ),

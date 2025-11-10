@@ -240,16 +240,12 @@ class _InMemoryProjectRepository implements ProjectRepository {
   _InMemoryProjectRepository()
     : _controller = StreamController<List<Project>>.broadcast();
 
-  final Map<int, Project> _projects = <int, Project>{};
+  final Map<String, Project> _projects = <String, Project>{};
   final StreamController<List<Project>> _controller;
 
   @override
   Future<Project?> findById(String id) async {
-    try {
-      return _projects.values.firstWhere((p) => p.id == id);
-    } catch (e) {
-      return null;
-    }
+    return _projects[id];
   }
   int _nextId = 1;
 

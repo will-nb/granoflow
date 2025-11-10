@@ -81,7 +81,7 @@ class _FakeFocusFlowService implements FocusFlowService {
     required String parentTaskId,
     required String title,
   }) async {
-    return _buildTask(id: 999, title: title, parentId: parentTaskId);
+    return _buildTask(id: '999', title: title, parentId: parentTaskId);
   }
 
   @override
@@ -116,7 +116,7 @@ class _FakeFocusSessionRepository extends Fake
 
 Preference _buildPreference({required bool sound}) {
   return Preference(
-    id: 1,
+    id: '1',
     localeCode: 'en',
     themeMode: ThemeMode.light,
     fontScaleLevel: FontScaleLevel.medium,
@@ -125,7 +125,7 @@ Preference _buildPreference({required bool sound}) {
   );
 }
 
-Task _buildTask({required int id, required String title, int? parentId}) {
+Task _buildTask({required String id, required String title, String? parentId}) {
   return Task(
     id: id,
 
@@ -186,7 +186,7 @@ Future<void> _pumpControlStrip(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: Center(child: ClockControlStrip(taskId: 1, onComplete: () {})),
+          body: Center(child: ClockControlStrip(taskId: '1', onComplete: () {})),
         ),
       ),
     ),

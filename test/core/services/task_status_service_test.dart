@@ -203,7 +203,7 @@ class _StubMetricOrchestrator extends MetricOrchestrator {
   @override
   Future<MetricSnapshot> requestRecompute(MetricRecomputeReason reason) async {
     return MetricSnapshot(
-      id: 0,
+      id: '0',
       totalCompletedTasks: 0,
       totalFocusMinutes: 0,
       pendingTasks: 0,
@@ -223,7 +223,7 @@ class _FakeMetricRepository implements MetricRepository {
     required int totalFocusMinutes,
   }) async {
     return MetricSnapshot(
-      id: 0,
+      id: '0',
       totalCompletedTasks: 0,
       totalFocusMinutes: 0,
       pendingTasks: 0,

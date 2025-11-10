@@ -20,7 +20,7 @@ void main() {
     setUp(() {
       tasks = [
         Task(
-          id: 1,
+          id: '1',
 
           title: 'Task 1',
           status: TaskStatus.pending,
@@ -30,7 +30,7 @@ void main() {
           tags: const [],
         ),
         Task(
-          id: 2,
+          id: '2',
 
           title: 'Task 2',
           status: TaskStatus.pending,
@@ -40,7 +40,7 @@ void main() {
           tags: const [],
         ),
         Task(
-          id: 3,
+          id: '3',
 
           title: 'Task 3',
           status: TaskStatus.pending,

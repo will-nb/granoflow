@@ -4,8 +4,8 @@ import 'package:granoflow/presentation/common/task_list/task_list_tree_builder.d
 
 /// 创建测试任务辅助函数
 Task _createTask({
-  required int id,
-  int? parentId,
+  required String id,
+  String? parentId,
   double sortIndex = 1000,
   String? projectId,
   String? milestoneId,
@@ -50,7 +50,7 @@ void main() {
         final tasks = [
           _createTask(id: 1),
           _createTask(id: 2, parentId: 1),
-          _createTask(id: 3, parentId: 1),
+          _createTask(id: '3', parentId: '1'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -67,7 +67,7 @@ void main() {
           _createTask(id: 1),
           _createTask(id: 2, parentId: 1),
           _createTask(id: 3),
-          _createTask(id: 4, parentId: 3),
+          _createTask(id: '4', parentId: 3),
           _createTask(id: 5, parentId: 3),
         ];
 
@@ -114,7 +114,7 @@ void main() {
           _createTask(id: 1),
           _createTask(id: 2, parentId: 1, sortIndex: 3000),
           _createTask(id: 3, parentId: 1, sortIndex: 1000),
-          _createTask(id: 4, parentId: 1, sortIndex: 2000),
+          _createTask(id: '4', parentId: 1, sortIndex: 2000),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -137,7 +137,7 @@ void main() {
         final tasks = [
           _createTask(id: 1),
           _createTask(id: 2, parentId: 1),
-          _createTask(id: 3, parentId: 2),
+          _createTask(id: '3', parentId: '2'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -153,7 +153,7 @@ void main() {
 
     group('buildSubtree', () {
       test('should build subtree with single task', () {
-        final task = _createTask(id: 1);
+        final task = _createTask(id: '1');
         final byId = {1: task};
 
         final node = TaskListTreeBuilder.buildSubtree(task, byId);
@@ -164,7 +164,7 @@ void main() {
 
       test('should build subtree with children', () {
         final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2, parentId: 1);
+        final task2 = _createTask(id: '2', parentId: '1');
         final task3 = _createTask(id: 3, parentId: 1);
         final byId = {1: task1, 2: task2, 3: task3};
 
@@ -178,8 +178,8 @@ void main() {
 
       test('should recursively build nested subtrees', () {
         final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2, parentId: 1);
-        final task3 = _createTask(id: 3, parentId: 2);
+        final task2 = _createTask(id: '2', parentId: '1');
+        final task3 = _createTask(id: '3', parentId: '2');
         final byId = {1: task1, 2: task2, 3: task3};
 
         final node = TaskListTreeBuilder.buildSubtree(task1, byId);
@@ -195,7 +195,7 @@ void main() {
     group('populateHasChildrenMap', () {
       test('should mark task with children as true', () {
         final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2, parentId: 1);
+        final task2 = _createTask(id: '2', parentId: '1');
         final node = TaskTreeNode(
           task: task1,
           children: [TaskTreeNode(task: task2, children: const [])],
@@ -210,7 +210,7 @@ void main() {
       });
 
       test('should mark task without children as false', () {
-        final task = _createTask(id: 1);
+        final task = _createTask(id: '1');
         final node = TaskTreeNode(task: task, children: const []);
         final map = <int, bool>{};
         final allTasks = [task];
@@ -222,8 +222,8 @@ void main() {
 
       test('should recursively populate map for nested trees', () {
         final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2, parentId: 1);
-        final task3 = _createTask(id: 3, parentId: 2);
+        final task2 = _createTask(id: '2', parentId: '1');
+        final task3 = _createTask(id: '3', parentId: '2');
         final node = TaskTreeNode(
           task: task1,
           children: [
@@ -244,7 +244,7 @@ void main() {
       });
 
       test('should handle empty tree', () {
-        final task = _createTask(id: 1);
+        final task = _createTask(id: '1');
         final node = TaskTreeNode(task: task, children: const []);
         final map = <int, bool>{};
         final allTasks = [task];
