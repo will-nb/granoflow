@@ -221,7 +221,13 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   }
 
   @override
-  Future<Milestone?> findByIsarId(int id) async => _milestones[id];
+  Future<Milestone?> findById(String id) async {
+    try {
+      return _milestones.values.firstWhere((m) => m.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   Future<Milestone?> findByMilestoneId(String milestoneId) async {
