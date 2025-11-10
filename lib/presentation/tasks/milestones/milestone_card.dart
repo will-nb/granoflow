@@ -23,7 +23,7 @@ class MilestoneCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final tasksAsync = ref.watch(milestoneTasksProvider(milestone.milestoneId));
+    final tasksAsync = ref.watch(milestoneTasksProvider(milestone.id));
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -235,10 +235,10 @@ class MilestoneCard extends ConsumerWidget {
     }
 
     tasks.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
-    final byParent = <int?, List<Task>>{};
+    final byParent = <String?, List<Task>>{};
     final taskIds = tasks.map((task) => task.id).toSet();
     for (final task in tasks) {
-      final parentKey = task.parentTaskId ?? task.parentId;
+      final parentKey = task.parentId;
       byParent.putIfAbsent(parentKey, () => <Task>[]).add(task);
     }
 
@@ -252,7 +252,7 @@ class MilestoneCard extends ConsumerWidget {
 
     final roots = <Task>[];
     for (final task in tasks) {
-      final parentKey = task.parentTaskId ?? task.parentId;
+      final parentKey = task.parentId;
       if (parentKey == null || !taskIds.contains(parentKey)) {
         roots.add(task);
       }

@@ -24,7 +24,7 @@ class ProjectCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final milestonesAsync = ref.watch(
-      projectMilestonesDomainProvider(project.projectId),
+      projectMilestonesDomainProvider(project.id),
     );
     final expandedId = ref.watch(projectsExpandedTaskIdProvider);
     final isExpanded = expandedId == project.id;

@@ -20,7 +20,7 @@ Future<bool?> confirmProjectArchive(
   final l10n = AppLocalizations.of(context);
   final hasActiveTasks = await ref
       .read(projectServiceProvider)
-      .hasActiveTasks(project.projectId);
+      .hasActiveTasks(project.id);
 
   if (!hasActiveTasks) {
     // 没有活跃任务，直接确认
@@ -69,7 +69,7 @@ Future<bool?> confirmProjectComplete(
   final l10n = AppLocalizations.of(context);
   final hasActiveTasks = await ref
       .read(projectServiceProvider)
-      .hasActiveTasks(project.projectId);
+      .hasActiveTasks(project.id);
 
   if (!hasActiveTasks) {
     // 没有活跃任务，直接确认

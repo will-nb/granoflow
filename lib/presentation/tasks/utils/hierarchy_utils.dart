@@ -78,9 +78,9 @@ Future<int> calculateHierarchyDepth(
       break;
     }
 
-    // 只追踪普通任务的层级，parentTaskId 确保只指向普通任务
+    // 只追踪普通任务的层级，parentId 确保只指向普通任务
     depth++;
-    currentParentId = parent.parentTaskId;
+    currentParentId = parent.parentId;
   }
 
   return depth;
@@ -120,7 +120,7 @@ bool isProjectOrMilestone(Task task) {
 ///
 /// 返回祖先任务列表（从最远的祖先到最近的父任务）
 /// 最多3级
-/// 只追踪普通任务的层级（通过 parentTaskId）
+/// 只追踪普通任务的层级（通过 parentId）
 Future<List<Task>> buildAncestorChain(
   String taskId,
   TaskRepository repository,
@@ -141,7 +141,7 @@ Future<List<Task>> buildAncestorChain(
     }
 
     ancestors.add(parent);
-    currentParentId = parent.parentTaskId;
+    currentParentId = parent.parentId;
   }
 
   // 反转列表，使最远的祖先在最后（符合显示顺序：祖任务→父任务→当前任务）
