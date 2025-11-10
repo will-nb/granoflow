@@ -1,16 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
 import 'package:granoflow/presentation/widgets/responsive_task_dialog.dart';
 import 'package:granoflow/presentation/widgets/create_task_dialog.dart';
+import 'package:granoflow/core/providers/repository_providers.dart';
+import 'package:granoflow/generated/l10n/app_localizations.dart';
+import '../test_support/fakes.dart';
 
 void main() {
   group('ResponsiveTaskDialog Widget Tests', () {
     Widget buildTestWidget({double width = 800}) {
+      final taskRepository = StubTaskRepository();
+      final tagRepository = StubTagRepository();
+      final focusRepository = StubFocusSessionRepository();
+      final preferenceRepository = StubPreferenceRepository();
+      final templateRepository = StubTaskTemplateRepository();
+      final seedRepository = StubSeedRepository();
+
       return ProviderScope(
+        overrides: [
+          taskRepositoryProvider.overrideWithValue(taskRepository),
+          tagRepositoryProvider.overrideWithValue(tagRepository),
+          focusSessionRepositoryProvider.overrideWithValue(focusRepository),
+          preferenceRepositoryProvider.overrideWithValue(preferenceRepository),
+          taskTemplateRepositoryProvider.overrideWithValue(templateRepository),
+          seedRepositoryProvider.overrideWithValue(seedRepository),
+        ],
         child: MaterialApp(
           theme: AppTheme.light(),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', ''),
+            Locale('zh', 'CN'),
+            Locale('zh', 'HK'),
+          ],
           home: Scaffold(
             body: SizedBox(
               width: width,
