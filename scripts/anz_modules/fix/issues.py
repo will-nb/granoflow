@@ -31,6 +31,7 @@ from fixers import (
     return_of_invalid_type_from_closure,
     undefined_getter,
     override_on_non_overriding_member,
+    argument_type_not_assignable,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -241,8 +242,10 @@ FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
     "undefined_class": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
     "non_type_as_type_argument": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
     "undefined_identifier": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
-    # Temporarily disabled - introduces too many new errors
-    # "argument_type_not_assignable": (_fix_test_ids, _is_test_file),
+    "argument_type_not_assignable": (
+        argument_type_not_assignable.apply_argument_type_not_assignable_fix,
+        _is_test_file,
+    ),
     "map_key_type_not_assignable": (_fix_test_ids, _is_test_file),
     "set_element_type_not_assignable": (_fix_test_ids, _is_test_file),
     "invalid_assignment": (_fix_test_ids, _is_test_file),
