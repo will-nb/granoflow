@@ -82,9 +82,13 @@ class AppDatabase extends _$AppDatabase {
 LazyDatabase _openConnection() {
   if (kIsWeb) {
     // Web 平台：使用 WasmDatabase (IndexedDB)
+    // 注意：WasmDatabase 需要 sqlite3.wasm 文件，这里使用简化的方式
+    // 实际使用时需要确保 sqlite3.wasm 文件已正确加载
     return LazyDatabase(() async {
       // ignore: undefined_class, undefined_identifier
-      return web_impl.WasmDatabase('granoflow');
+      // WasmDatabase 构造函数需要 path 和 sqlite3 参数
+      // 这里暂时使用占位符，实际使用时需要正确配置
+      throw UnimplementedError('Web platform database connection not yet implemented. Use NativeDatabase for now.');
     });
   } else {
     // 移动端：使用 SQLite
