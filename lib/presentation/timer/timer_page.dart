@@ -247,7 +247,7 @@ class _TaskSelectorCard extends StatelessWidget {
                   );
                 }
                 final entries = tasks
-                    .map((task) => DropdownMenuEntry<int>(value: task.id, label: task.title))
+                    .map((task) => DropdownMenuEntry<String>(value: task.id, label: task.title))
                     .toList(growable: false);
                 final currentValue = selectedTask != null
                     ? tasks
@@ -259,7 +259,7 @@ class _TaskSelectorCard extends StatelessWidget {
                     onSelected(tasks.first);
                   });
                 }
-                return DropdownMenu<int>(
+                return DropdownMenu<String>(
                   initialSelection: currentValue,
                   dropdownMenuEntries: entries,
                   onSelected: (value) {

@@ -126,7 +126,7 @@ class _TaskRowTitleEditorState extends ConsumerState<TaskRowTitleEditor> {
     final isTrashed = widget.task.status == TaskStatus.trashed;
 
     // 监听全局编辑状态，当其他任务开始编辑时自动退出当前编辑
-    ref.listen<int?>(currentEditingTaskIdProvider, (previous, next) {
+    ref.listen<String?>(currentEditingTaskIdProvider, (previous, next) {
       // 如果当前任务正在编辑，但全局状态变为其他任务ID，则退出编辑
       if (_isEditingTitle && next != null && next != widget.task.id) {
         // 其他任务开始编辑，当前任务需要退出编辑状态

@@ -43,7 +43,7 @@ class TemplateActionsNotifier extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() => _service.createTemplate(draft));
   }
 
-  Future<void> delete(int templateId) async {
+  Future<void> delete(String templateId) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _service.deleteTemplate(templateId));
   }

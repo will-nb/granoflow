@@ -187,7 +187,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
 }
 
 /// Provider: 获取父任务的子任务数量（排除 trashed）
-final parentTaskChildrenCountProvider = FutureProvider.family<int, int>((ref, parentId) async {
+final parentTaskChildrenCountProvider = FutureProvider.family<int, String>((ref, parentId) async {
   final taskRepository = ref.read(taskRepositoryProvider);
   final children = await taskRepository.listChildren(parentId);
   return children.length;

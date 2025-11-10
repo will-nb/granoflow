@@ -232,7 +232,7 @@ class _ChildTaskItem extends ConsumerWidget {
 
 /// Provider: 获取父任务的所有子任务（排除 trashed）
 final parentTaskChildrenProvider =
-    FutureProvider.family<List<Task>, int>((ref, parentId) async {
+    FutureProvider.family<List<Task>, String>((ref, parentId) async {
   final taskRepository = ref.read(taskRepositoryProvider);
   return taskRepository.listChildren(parentId);
 });
@@ -240,7 +240,7 @@ final parentTaskChildrenProvider =
 /// Provider: 获取父任务的所有子任务（包括 trashed 状态）
 /// 用于在父任务展开时显示已删除的子任务
 final parentTaskChildrenIncludingTrashedProvider =
-    FutureProvider.family<List<Task>, int>((ref, parentId) async {
+    FutureProvider.family<List<Task>, String>((ref, parentId) async {
   final taskRepository = ref.read(taskRepositoryProvider);
   return taskRepository.listChildrenIncludingTrashed(parentId);
 });

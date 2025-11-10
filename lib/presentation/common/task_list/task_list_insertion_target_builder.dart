@@ -201,7 +201,7 @@ class TaskListInsertionTargetBuilder {
     required dynamic dragNotifier,
     required List<FlattenedTaskNode> flattenedTasks,
     required List<Task> filteredTasks,
-    required int? hoveredTaskId,
+    required String? hoveredTaskId,
     required int? hoveredInsertionIndex,
   }) {
     final draggedTask = dragState?.draggedTask;
