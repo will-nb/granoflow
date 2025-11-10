@@ -8,7 +8,6 @@ import 'core/app.dart';
 import 'core/services/notification_service.dart';
 import 'core/providers/repository_providers.dart';
 import 'core/config/database_config.dart';
-import 'data/database/objectbox_adapter.dart';
 import 'objectbox.g.dart';
 
 Future<void> main() async {
