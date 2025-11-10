@@ -7,8 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 // Web 支持：使用条件导入
-// 在 Web 平台使用 wasm.dart，在非 Web 平台使用占位符
-import 'package:drift/wasm.dart' if (dart.library.io) 'package:drift/native.dart' as web_impl;
+// TODO: 在 Web 平台实现时启用
+// import 'package:drift/wasm.dart' if (dart.library.io) 'package:drift/native.dart' as web_impl;
 
 import 'tables/tasks.dart';
 import 'tables/projects.dart';

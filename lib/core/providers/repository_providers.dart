@@ -18,53 +18,141 @@ import '../../data/repositories/objectbox/objectbox_seed_repository.dart';
 import '../../data/repositories/objectbox/objectbox_tag_repository.dart';
 import '../../data/repositories/objectbox/objectbox_task_repository.dart';
 import '../../data/repositories/objectbox/objectbox_task_template_repository.dart';
-// TODO: 在阶段 3.7 启用这些导入，用于切换到 Drift
-// import '../../data/repositories/drift/drift_focus_session_repository.dart';
-// import '../../data/repositories/drift/drift_milestone_repository.dart';
-// import '../../data/repositories/drift/drift_preference_repository.dart';
-// import '../../data/repositories/drift/drift_project_repository.dart';
-// import '../../data/repositories/drift/drift_seed_repository.dart';
-// import '../../data/repositories/drift/drift_tag_repository.dart';
-// import '../../data/repositories/drift/drift_task_repository.dart';
-// import '../../data/repositories/drift/drift_task_template_repository.dart';
-// import '../../core/config/database_config.dart';
+import '../../data/repositories/drift/drift_focus_session_repository.dart';
+import '../../data/repositories/drift/drift_milestone_repository.dart';
+import '../../data/repositories/drift/drift_preference_repository.dart';
+import '../../data/repositories/drift/drift_project_repository.dart';
+import '../../data/repositories/drift/drift_seed_repository.dart';
+import '../../data/repositories/drift/drift_tag_repository.dart';
+import '../../data/repositories/drift/drift_task_repository.dart';
+import '../../data/repositories/drift/drift_task_template_repository.dart';
+import '../../core/config/database_config.dart';
+import 'package:objectbox/objectbox.dart';
 
-final databaseAdapterProvider = Provider<DatabaseAdapter>((ref) {
-  throw UnimplementedError('DatabaseAdapter instance has not been provided');
+/// ObjectBox Store Provider（仅在需要 ObjectBox 时使用）
+final objectBoxStoreProvider = Provider<Store?>((ref) => null);
+
+/// DatabaseAdapter Provider，根据 DatabaseConfig.current 创建对应的 adapter
+final databaseAdapterProvider = FutureProvider<DatabaseAdapter>((ref) async {
+  final store = ref.watch(objectBoxStoreProvider);
+  
+  return await DatabaseConfig.createAdapter(
+    objectBoxStore: store,
+  );
 });
 
-final taskRepositoryProvider = Provider<TaskRepository>((ref) {
-  return ObjectBoxTaskRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 TaskRepository
+final taskRepositoryProvider = FutureProvider<TaskRepository>((ref) async {
+  final adapter = await ref.read(databaseAdapterProvider.future);
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxTaskRepository(adapter);
+    case DatabaseType.drift:
+      return DriftTaskRepository(adapter);
+  }
 });
 
-final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
-  return ObjectBoxProjectRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 ProjectRepository
+final projectRepositoryProvider = FutureProvider<ProjectRepository>((ref) async {
+  final adapterAsync = ref.watch(databaseAdapterProvider);
+  final adapter = await adapterAsync.requireValue;
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxProjectRepository(adapter);
+    case DatabaseType.drift:
+      return DriftProjectRepository(adapter);
+  }
 });
 
-final milestoneRepositoryProvider = Provider<MilestoneRepository>((ref) {
-  return ObjectBoxMilestoneRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 MilestoneRepository
+final milestoneRepositoryProvider = FutureProvider<MilestoneRepository>((ref) async {
+  final adapterAsync = ref.watch(databaseAdapterProvider);
+  final adapter = await adapterAsync.requireValue;
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxMilestoneRepository(adapter);
+    case DatabaseType.drift:
+      return DriftMilestoneRepository(adapter);
+  }
 });
 
-final focusSessionRepositoryProvider = Provider<FocusSessionRepository>((ref) {
-  return ObjectBoxFocusSessionRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 FocusSessionRepository
+final focusSessionRepositoryProvider = FutureProvider<FocusSessionRepository>((ref) async {
+  final adapterAsync = ref.watch(databaseAdapterProvider);
+  final adapter = await adapterAsync.requireValue;
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxFocusSessionRepository(adapter);
+    case DatabaseType.drift:
+      return DriftFocusSessionRepository(adapter);
+  }
 });
 
-final tagRepositoryProvider = Provider<TagRepository>((ref) {
-  return ObjectBoxTagRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 TagRepository
+final tagRepositoryProvider = FutureProvider<TagRepository>((ref) async {
+  final adapterAsync = ref.watch(databaseAdapterProvider);
+  final adapter = await adapterAsync.requireValue;
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxTagRepository(adapter);
+    case DatabaseType.drift:
+      return DriftTagRepository(adapter);
+  }
 });
 
-final preferenceRepositoryProvider = Provider<PreferenceRepository>((ref) {
-  return ObjectBoxPreferenceRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 PreferenceRepository
+final preferenceRepositoryProvider = FutureProvider<PreferenceRepository>((ref) async {
+  final adapterAsync = ref.watch(databaseAdapterProvider);
+  final adapter = await adapterAsync.requireValue;
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxPreferenceRepository(adapter);
+    case DatabaseType.drift:
+      return DriftPreferenceRepository(adapter);
+  }
 });
 
+/// MetricRepository 不依赖数据库，使用内存实现
 final metricRepositoryProvider = Provider<MetricRepository>((ref) {
   return InMemoryMetricRepository();
 });
 
-final taskTemplateRepositoryProvider = Provider<TaskTemplateRepository>((ref) {
-  return ObjectBoxTaskTemplateRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 TaskTemplateRepository
+final taskTemplateRepositoryProvider = FutureProvider<TaskTemplateRepository>((ref) async {
+  final adapterAsync = ref.watch(databaseAdapterProvider);
+  final adapter = await adapterAsync.requireValue;
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxTaskTemplateRepository(adapter);
+    case DatabaseType.drift:
+      return DriftTaskTemplateRepository(adapter);
+  }
 });
 
-final seedRepositoryProvider = Provider<SeedRepository>((ref) {
-  return ObjectBoxSeedRepository(ref.watch(databaseAdapterProvider));
+/// 根据当前数据库类型创建 SeedRepository
+final seedRepositoryProvider = FutureProvider<SeedRepository>((ref) async {
+  final adapterAsync = ref.watch(databaseAdapterProvider);
+  final adapter = await adapterAsync.requireValue;
+  final type = await DatabaseConfig.current;
+  
+  switch (type) {
+    case DatabaseType.objectbox:
+      return ObjectBoxSeedRepository(adapter);
+    case DatabaseType.drift:
+      return DriftSeedRepository(adapter);
+  }
 });

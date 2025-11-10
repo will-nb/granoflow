@@ -7,6 +7,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
 import 'core/providers/repository_providers.dart';
+import 'core/config/database_config.dart';
 import 'data/database/objectbox_adapter.dart';
 import 'objectbox.g.dart';
 
@@ -41,14 +42,21 @@ Future<void> main() async {
   // 请求通知权限（Android 13+ 和 iOS）
   await notificationService.requestPermission();
 
-  // 初始化 ObjectBox Store
-  final store = await _openObjectBoxStore();
-  final adapter = ObjectBoxAdapter(store);
+  // 根据 DatabaseConfig 初始化数据库
+  final databaseType = await DatabaseConfig.current;
+  
+  // 如果使用 ObjectBox，需要初始化 Store
+  Store? store;
+  if (databaseType == DatabaseType.objectbox) {
+    store = await _openObjectBoxStore();
+  }
   
   runApp(
     ProviderScope(
       overrides: [
-        databaseAdapterProvider.overrideWithValue(adapter),
+        // 如果使用 ObjectBox，提供 Store
+        if (store != null)
+          objectBoxStoreProvider.overrideWithValue(store),
       ],
       child: const GranoFlowApp(),
     ),
