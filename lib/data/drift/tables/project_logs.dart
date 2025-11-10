@@ -1,7 +1,5 @@
 import 'package:drift/drift.dart';
 
-import 'projects.dart';
-
 /// ProjectLogs 表定义
 class ProjectLogs extends Table {
   @override

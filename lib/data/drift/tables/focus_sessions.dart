@@ -1,7 +1,5 @@
 import 'package:drift/drift.dart';
 
-import 'tasks.dart';
-
 /// FocusSessions 表定义
 class FocusSessions extends Table {
   @override

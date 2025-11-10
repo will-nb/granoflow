@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 
 import '../converters.dart';
-import 'tasks.dart';
 
 /// TaskTemplates 表定义
 class TaskTemplates extends Table {

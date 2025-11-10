@@ -10,6 +10,7 @@ class DriftQueryBuilder<E> implements DatabaseQueryBuilder<E> {
   // 保留对函数式谓词的支持（向后兼容）
   DatabasePredicate<E>? _predicate;
   // TODO: 在阶段 2 实现，保留对函数式比较器的支持（向后兼容）
+  // ignore: unused_field
   DatabaseComparator<E>? _comparator;
 
   // 新的查询描述符支持

@@ -2,10 +2,13 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:drift/web.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+
+// Web 支持：使用条件导入
+// 在 Web 平台使用 wasm.dart，在非 Web 平台使用占位符
+import 'package:drift/wasm.dart' if (dart.library.io) 'package:drift/native.dart' as web_impl;
 
 import 'tables/tasks.dart';
 import 'tables/projects.dart';
@@ -78,9 +81,10 @@ class AppDatabase extends _$AppDatabase {
 /// 创建数据库连接
 LazyDatabase _openConnection() {
   if (kIsWeb) {
-    // Web 平台：使用 IndexedDB
+    // Web 平台：使用 WasmDatabase (IndexedDB)
     return LazyDatabase(() async {
-      return WebDatabase('granoflow');
+      // ignore: undefined_class, undefined_identifier
+      return web_impl.WasmDatabase('granoflow');
     });
   } else {
     // 移动端：使用 SQLite

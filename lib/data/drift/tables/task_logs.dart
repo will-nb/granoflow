@@ -1,7 +1,5 @@
 import 'package:drift/drift.dart';
 
-import 'tasks.dart';
-
 /// TaskLogs 表定义
 class TaskLogs extends Table {
   @override

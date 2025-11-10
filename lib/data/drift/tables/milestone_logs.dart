@@ -1,7 +1,5 @@
 import 'package:drift/drift.dart';
 
-import 'milestones.dart';
-
 /// MilestoneLogs 表定义
 class MilestoneLogs extends Table {
   @override

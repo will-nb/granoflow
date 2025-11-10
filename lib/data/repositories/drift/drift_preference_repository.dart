@@ -7,7 +7,6 @@ import '../../../core/constants/font_scale_level.dart';
 import '../../database/database_adapter.dart';
 import '../../drift/database.dart' hide Preference;
 import '../../drift/database.dart' as drift show Preference;
-import '../../drift/converters.dart';
 import '../../models/preference.dart';
 import '../../objectbox/converters.dart';
 import '../preference_repository.dart';

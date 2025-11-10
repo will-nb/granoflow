@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 import '../converters.dart';
 import '../../models/task.dart';
-import 'projects.dart';
 
 /// Milestones 表定义
 class Milestones extends Table {

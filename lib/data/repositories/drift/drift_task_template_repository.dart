@@ -46,8 +46,6 @@ class DriftTaskTemplateRepository implements TaskTemplateRepository {
 
   @override
   Future<TaskTemplate> createTemplate(TaskTemplateDraft draft) async {
-    final now = DateTime.now();
-    final templateId = generateUuid();
     return createTemplateWithSeed(draft: draft, parentTaskId: draft.parentTaskId);
   }
 
