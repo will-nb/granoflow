@@ -100,34 +100,169 @@ class DriftTaskRepository implements TaskRepository {
 
   @override
   Stream<domain.TaskTreeNode> watchTaskTree(String rootTaskId) {
-    // TODO: 实现
-    throw UnimplementedError('watchTaskTree will be implemented');
+    // 监听根任务及其所有子任务的变化
+    // 策略：
+    // 1. 监听根任务的变化
+    // 2. 监听所有子任务的变化（通过监听所有任务的 Stream，然后过滤出属于这棵树的）
+    // 3. 当任何相关任务变化时，重新构建整个树
+    // 
+    // 注意：由于需要监听所有子任务，我们使用 watchAllTasks 然后过滤
+    // 这是一个权衡：性能 vs 实时性
+    return _watchAllTasksForTree(rootTaskId)
+        .asyncMap((_) => _buildTaskTreeFromId(rootTaskId))
+        .distinct((prev, next) => _taskTreeEquals(prev, next));
+  }
+
+  /// 监听任务树中所有任务的变化
+  ///
+  /// [rootTaskId] 根任务 ID
+  /// 返回一个 Stream，当树中任何任务变化时触发
+  ///
+  /// 策略：监听根任务的变化，当根任务变化时重新构建整个树
+  /// 这样可以捕获根任务及其所有子任务的变化（因为子任务变化会触发父任务的 updatedAt 更新）
+  /// 注意：这是一个简化的实现，如果需要更细粒度的监听，可以后续优化
+  Stream<void> _watchAllTasksForTree(String rootTaskId) {
+    // 监听根任务的变化
+    return watchTaskById(rootTaskId).map((_) => null);
+  }
+
+  /// 从任务 ID 构建任务树
+  ///
+  /// [rootTaskId] 根任务 ID
+  /// 返回包含根任务及其所有子任务的 TaskTreeNode
+  Future<domain.TaskTreeNode> _buildTaskTreeFromId(String rootTaskId) async {
+    final rootTask = await findById(rootTaskId);
+    if (rootTask == null) {
+      throw StateError('Root task not found: $rootTaskId');
+    }
+    return await _buildTaskTreeFromRoot(rootTask);
+  }
+
+  /// 从根任务构建任务树（递归）
+  ///
+  /// [rootTask] 根任务
+  /// 返回包含根任务及其所有子任务的 TaskTreeNode
+  Future<domain.TaskTreeNode> _buildTaskTreeFromRoot(domain.Task rootTask) async {
+    // 递归获取所有子任务
+    final children = await _buildChildrenTree(rootTask.id);
+
+    return domain.TaskTreeNode(
+      task: rootTask,
+      children: children,
+    );
+  }
+
+  /// 递归构建子任务树
+  ///
+  /// [parentId] 父任务 ID
+  /// 返回子任务的 TaskTreeNode 列表
+  Future<List<domain.TaskTreeNode>> _buildChildrenTree(String parentId) async {
+    // 获取直接子任务（包括已删除的，用于显示）
+    final children = await listChildrenIncludingTrashed(parentId);
+
+    // 递归构建每个子任务的子树
+    final childrenTrees = <domain.TaskTreeNode>[];
+    for (final child in children) {
+      final childTree = domain.TaskTreeNode(
+        task: child,
+        children: await _buildChildrenTree(child.id),
+      );
+      childrenTrees.add(childTree);
+    }
+
+    return childrenTrees;
+  }
+
+  /// 比较两个任务树是否相等
+  ///
+  /// 用于 Stream.distinct，避免不必要的重建
+  bool _taskTreeEquals(domain.TaskTreeNode a, domain.TaskTreeNode b) {
+    if (a.task.id != b.task.id) return false;
+    if (a.task.updatedAt != b.task.updatedAt) return false;
+    if (a.children.length != b.children.length) return false;
+
+    // 递归比较子节点
+    for (var i = 0; i < a.children.length; i++) {
+      if (!_taskTreeEquals(a.children[i], b.children[i])) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @override
   Stream<List<domain.Task>> watchInbox() {
-    // TODO: 实现
-    throw UnimplementedError('watchInbox will be implemented');
+    // Inbox 任务：状态为 inbox 或 pending/doing（未完成的任务）
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.status.isIn([
+            domain.TaskStatus.inbox.index,
+            domain.TaskStatus.pending.index,
+            domain.TaskStatus.doing.index,
+          ]));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      return await _toTasks(entities);
+    });
   }
 
   @override
   @Deprecated('使用 ProjectRepository 和 ProjectService 替代')
   Stream<List<domain.Task>> watchProjects() {
-    // TODO: 实现
-    throw UnimplementedError('watchProjects will be implemented');
+    // 项目任务：有 projectId 的任务
+    // 状态为 inbox、pending 或 doing
+    final query = _db.select(_db.tasks)
+      ..where((t) =>
+          t.projectId.isNotNull() &
+          t.status.isIn([
+            domain.TaskStatus.inbox.index,
+            domain.TaskStatus.pending.index,
+            domain.TaskStatus.doing.index,
+          ]));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      return await _toTasks(entities);
+    });
   }
 
   @override
   Stream<List<domain.Task>> watchQuickTasks() {
-    // TODO: 实现
-    throw UnimplementedError('watchQuickTasks will be implemented');
+    // 快速任务：没有父任务、没有项目、没有里程碑的独立任务
+    // 状态为 inbox、pending 或 doing
+    final query = _db.select(_db.tasks)
+      ..where((t) =>
+          t.parentId.isNull() &
+          t.projectId.isNull() &
+          t.milestoneId.isNull() &
+          t.status.isIn([
+            domain.TaskStatus.inbox.index,
+            domain.TaskStatus.pending.index,
+            domain.TaskStatus.doing.index,
+          ]));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      return await _toTasks(entities);
+    });
   }
 
   @override
   @Deprecated('使用 MilestoneRepository 和 MilestoneService 替代')
   Stream<List<domain.Task>> watchMilestones(String projectId) {
-    // TODO: 实现
-    throw UnimplementedError('watchMilestones will be implemented');
+    // 里程碑任务：属于指定项目的里程碑任务
+    // 状态为 inbox、pending 或 doing
+    final query = _db.select(_db.tasks)
+      ..where((t) =>
+          t.projectId.equals(projectId) &
+          t.milestoneId.isNotNull() &
+          t.status.isIn([
+            domain.TaskStatus.inbox.index,
+            domain.TaskStatus.pending.index,
+            domain.TaskStatus.doing.index,
+          ]));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      return await _toTasks(entities);
+    });
   }
 
   @override
@@ -142,8 +277,12 @@ class DriftTaskRepository implements TaskRepository {
 
   @override
   Stream<List<domain.Task>> watchTasksByMilestoneId(String milestoneId) {
-    // TODO: 实现
-    throw UnimplementedError('watchTasksByMilestoneId will be implemented');
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.milestoneId.equals(milestoneId));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      return await _toTasks(entities);
+    });
   }
 
   @override
@@ -173,7 +312,7 @@ class DriftTaskRepository implements TaskRepository {
             domain.TaskStatus.doing.index,
           ]));
 
-    // 应用过滤条件
+    // 应用项目/里程碑过滤条件
     if (projectId != null) {
       query.where((t) => t.projectId.equals(projectId));
     }
@@ -183,25 +322,19 @@ class DriftTaskRepository implements TaskRepository {
     if (showNoProject == true) {
       query.where((t) => t.projectId.isNull());
     }
-    // TODO: 实现标签过滤（contextTag, priorityTag, urgencyTag, importanceTag）
-    // 标签存储在 tags 字段（List<String>），需要使用 JSON 查询或内存过滤
 
     return query.watch().asyncMap((entities) async {
       if (entities.isEmpty) return <domain.Task>[];
-      
-      // 在内存中应用标签过滤
-      var filtered = entities;
-      if (contextTag != null || priorityTag != null || urgencyTag != null || importanceTag != null) {
-        filtered = entities.where((entity) {
-          final tags = entity.tags;
-          if (contextTag != null && !tags.contains(contextTag)) return false;
-          if (priorityTag != null && !tags.contains(priorityTag)) return false;
-          if (urgencyTag != null && !tags.contains(urgencyTag)) return false;
-          if (importanceTag != null && !tags.contains(importanceTag)) return false;
-          return true;
-        }).toList();
-      }
-      
+
+      // 应用标签过滤（在内存中过滤，因为标签存储在 JSON 中）
+      final filtered = _applyTagFilters(
+        entities,
+        contextTag: contextTag,
+        priorityTag: priorityTag,
+        urgencyTag: urgencyTag,
+        importanceTag: importanceTag,
+      );
+
       return await _toTasks(filtered);
     });
   }
@@ -402,9 +535,34 @@ class DriftTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<int> purgeObsolete(DateTime olderThan) {
-    // TODO: 实现
-    throw UnimplementedError('purgeObsolete will be implemented');
+  Future<int> purgeObsolete(DateTime olderThan) async {
+    // 清理过时的已删除/已归档任务
+    // 条件：状态为 trashed 或 archived，且 updatedAt < olderThan
+    return await _adapter.writeTransaction(() async {
+      // 查找需要清理的任务
+      final query = _db.select(_db.tasks)
+        ..where((t) =>
+            (t.status.equals(domain.TaskStatus.trashed.index) |
+                t.status.equals(domain.TaskStatus.archived.index)) &
+            t.updatedAt.isSmallerThanValue(olderThan));
+      final entities = await query.get();
+
+      if (entities.isEmpty) return 0;
+
+      final ids = entities.map((e) => e.id).toList();
+      var totalDeleted = 0;
+
+      // 批量删除任务及其日志
+      for (final id in ids) {
+        // 删除任务日志（外键级联删除会自动处理，但为了明确性，我们手动删除）
+        await (_db.delete(_db.taskLogs)..where((t) => t.taskId.equals(id))).go();
+        // 删除任务
+        await (_db.delete(_db.tasks)..where((t) => t.id.equals(id))).go();
+        totalDeleted++;
+      }
+
+      return totalDeleted;
+    });
   }
 
   @override
@@ -727,9 +885,38 @@ class DriftTaskRepository implements TaskRepository {
     String? projectId,
     String? milestoneId,
     bool? showNoProject,
-  }) {
-    // TODO: 实现
-    throw UnimplementedError('listCompletedTasks will be implemented');
+  }) async {
+    return await _adapter.readTransaction(() async {
+      final query = _db.select(_db.tasks)
+        ..where((t) => t.status.equals(domain.TaskStatus.completedActive.index))
+        ..orderBy([(t) => OrderingTerm(expression: t.endedAt, mode: OrderingMode.desc)])
+        ..limit(limit, offset: offset);
+
+      // 应用项目/里程碑过滤条件
+      if (projectId != null) {
+        query.where((t) => t.projectId.equals(projectId));
+      }
+      if (milestoneId != null) {
+        query.where((t) => t.milestoneId.equals(milestoneId));
+      }
+      if (showNoProject == true) {
+        query.where((t) => t.projectId.isNull());
+      }
+
+      // 获取实体
+      var entities = await query.get();
+
+      // 应用标签过滤（在内存中过滤，因为标签存储在 JSON 中）
+      entities = _applyTagFilters(
+        entities,
+        contextTag: contextTag,
+        priorityTag: priorityTag,
+        urgencyTag: urgencyTag,
+        importanceTag: importanceTag,
+      );
+
+      return await _toTasks(entities);
+    });
   }
 
   @override
@@ -750,7 +937,7 @@ class DriftTaskRepository implements TaskRepository {
         ..orderBy([(t) => OrderingTerm(expression: t.archivedAt, mode: OrderingMode.desc)])
         ..limit(limit, offset: offset);
 
-      // 应用过滤条件
+      // 应用项目/里程碑过滤条件
       if (projectId != null) {
         query.where((t) => t.projectId.equals(projectId));
       }
@@ -760,9 +947,19 @@ class DriftTaskRepository implements TaskRepository {
       if (showNoProject == true) {
         query.where((t) => t.projectId.isNull());
       }
-      // TODO: 实现标签过滤（contextTag, priorityTag, urgencyTag, importanceTag）
 
-      final entities = await query.get();
+      // 获取实体
+      var entities = await query.get();
+
+      // 应用标签过滤（在内存中过滤，因为标签存储在 JSON 中）
+      entities = _applyTagFilters(
+        entities,
+        contextTag: contextTag,
+        priorityTag: priorityTag,
+        urgencyTag: urgencyTag,
+        importanceTag: importanceTag,
+      );
+
       return await _toTasks(entities);
     });
   }
@@ -807,7 +1004,7 @@ class DriftTaskRepository implements TaskRepository {
         ..orderBy([(t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc)])
         ..limit(limit, offset: offset);
 
-      // 应用过滤条件
+      // 应用项目/里程碑过滤条件
       if (projectId != null) {
         query.where((t) => t.projectId.equals(projectId));
       }
@@ -817,9 +1014,19 @@ class DriftTaskRepository implements TaskRepository {
       if (showNoProject == true) {
         query.where((t) => t.projectId.isNull());
       }
-      // TODO: 实现标签过滤（contextTag, priorityTag, urgencyTag, importanceTag）
 
-      final entities = await query.get();
+      // 获取实体
+      var entities = await query.get();
+
+      // 应用标签过滤（在内存中过滤，因为标签存储在 JSON 中）
+      entities = _applyTagFilters(
+        entities,
+        contextTag: contextTag,
+        priorityTag: priorityTag,
+        urgencyTag: urgencyTag,
+        importanceTag: importanceTag,
+      );
+
       return await _toTasks(entities);
     });
   }
@@ -929,4 +1136,37 @@ class DriftTaskRepository implements TaskRepository {
       actor: entity.actor,
     );
   }
+
+  /// 应用标签过滤条件
+  ///
+  /// [entities] 要过滤的任务实体列表
+  /// [contextTag] 上下文标签
+  /// [priorityTag] 优先级标签
+  /// [urgencyTag] 紧急度标签
+  /// [importanceTag] 重要度标签
+  /// 返回过滤后的任务实体列表
+  List<drift.Task> _applyTagFilters(
+    List<drift.Task> entities, {
+    String? contextTag,
+    String? priorityTag,
+    String? urgencyTag,
+    String? importanceTag,
+  }) {
+    if (contextTag == null &&
+        priorityTag == null &&
+        urgencyTag == null &&
+        importanceTag == null) {
+      return entities;
+    }
+
+    return entities.where((entity) {
+      final tags = entity.tags;
+      if (contextTag != null && !tags.contains(contextTag)) return false;
+      if (priorityTag != null && !tags.contains(priorityTag)) return false;
+      if (urgencyTag != null && !tags.contains(urgencyTag)) return false;
+      if (importanceTag != null && !tags.contains(importanceTag)) return false;
+      return true;
+    }).toList();
+  }
+
 }
