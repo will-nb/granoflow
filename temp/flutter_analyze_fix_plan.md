@@ -176,7 +176,9 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
 - `uri_does_not_exist`: 删除或重映射不存在的 URI 导入（已增强，可删除 obsolete Isar 导入）
 - `undefined_class`, `non_type_as_type_argument`, `undefined_identifier`: ObjectBox repository 导入修复
 - `map_key_type_not_assignable`, `set_element_type_not_assignable`, `invalid_assignment`: 测试文件 ID 类型修复（部分）
-- `undefined_named_parameter`: 参数名重命名修复（基础版本，需要改进）
+- `undefined_named_parameter`: 参数名重命名修复（效果很好，98%+ 修复率）
+- `invalid_override`: 方法签名参数类型修复（74% 修复率，但引入新错误）
+- `return_of_invalid_type_from_closure`: 闭包返回类型修复（8% 修复率，需要改进）
 
 ### ⚠️ 需要改进的修复器
 - `invalid_override`: 已改进，能处理多行方法签名，但仍有问题：
@@ -212,15 +214,16 @@ git commit --no-verify -m "fix: auto-fix xxx_error_code issues (X files, Y issue
 - Total: 733
 
 ### 当前状态（修复器运行后）
-- ERROR: 462（从 707 减少到 462，减少了 245 个错误！）
-- WARNING: 28（从 26 增加到 28，增加了 2 个）
-- 已修复：约 243 个错误
+- ERROR: 405（从 707 减少到 405，减少了 302 个错误！）
+- WARNING: 23（从 26 减少到 23，减少了 3 个）
+- 已修复：约 305 个错误（42% 的修复率）
 - 主要剩余错误：需要手动修复或更复杂的修复器
 
 ### 修复器实际效果
-- `invalid_override`: 从 129 减少到 42（减少 87 个，67% 修复率）
-- `undefined_named_parameter`: 从 101 减少到 2（减少 99 个，98% 修复率！）
-- `uri_does_not_exist`: 从 17 减少到 13（减少 4 个）
+- `invalid_override`: 从 129 减少到 34（减少 95 个，74% 修复率）
+- `undefined_named_parameter`: 从 101 减少到 0（减少 101 个，100% 修复率！）
+- `uri_does_not_exist`: 从 17 减少到 7（减少 10 个，59% 修复率）
+- `return_of_invalid_type_from_closure`: 从 72 减少到 66（减少 6 个，8% 修复率，需要改进）
 
 ### 修复器效果评估
 - ✅ `uri_does_not_exist` 修复器：有效，已修复大部分导入问题
