@@ -105,7 +105,7 @@ Future<void> showRenameDialog(
     return;
   }
 
-  final taskService = ref.read(taskServiceProvider);
+  final taskService = await ref.read(taskServiceProvider.future);
   await taskService.updateDetails(
     taskId: task.id,
     payload: TaskUpdate(title: result),

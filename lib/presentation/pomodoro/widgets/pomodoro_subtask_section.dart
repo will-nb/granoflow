@@ -103,7 +103,7 @@ class _PomodoroSubtaskSectionState
       );
 
       // 移动到父任务下
-      final hierarchyService = ref.read(taskHierarchyServiceProvider);
+      final hierarchyService = await ref.read(taskHierarchyServiceProvider.future);
       await hierarchyService.moveToParent(
         taskId: overtimeSubtask.id,
         parentId: widget.task.id,
@@ -165,9 +165,9 @@ class _PomodoroSubtaskSectionState
     // 确保每个父任务的时间都是其所有子任务时间的总和
 
     try {
-      final taskRepository = ref.read(taskRepositoryProvider);
-      final FocusSessionRepository focusSessionRepository = ref.read(
-        focusSessionRepositoryProvider,
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
+      final FocusSessionRepository focusSessionRepository = await ref.read(
+        focusSessionRepositoryProvider.future,
       );
       final task = await taskRepository.findById(taskId);
 

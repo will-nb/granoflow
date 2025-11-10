@@ -75,7 +75,7 @@ class _TaskSectionTaskModeListState
     }
 
     final task = _roots[oldIndex];
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
 
     try {
       await taskService.updateDetails(
@@ -205,7 +205,7 @@ class _TaskSectionProjectModePanelState
     }
 
     final task = _roots[oldIndex];
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
 
     try {
       await taskService.updateDetails(

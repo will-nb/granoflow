@@ -57,7 +57,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
 
   Future<void> _saveTitle(String newTitle) async {
     try {
-      final taskService = ref.read(taskServiceProvider);
+      final taskService = await ref.read(taskServiceProvider.future);
       await taskService.updateDetails(
         taskId: widget.task.id,
         payload: TaskUpdate(title: newTitle),
@@ -286,7 +286,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   /// 处理添加标签
   Future<void> _handleAddTag(WidgetRef ref, String slug) async {
     try {
-      final taskService = ref.read(taskServiceProvider);
+      final taskService = await ref.read(taskServiceProvider.future);
 
       // 检查是否是同组标签，如果是则先删除同组的旧标签
       // 使用 TagService 判断同组关系（兼容旧数据）
@@ -322,7 +322,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   /// 处理删除标签
   Future<void> _handleRemoveTag(WidgetRef ref, String slug) async {
     try {
-      final taskService = ref.read(taskServiceProvider);
+      final taskService = await ref.read(taskServiceProvider.future);
       // 规范化 slug（确保兼容旧数据）
       final normalizedSlug = TagService.normalizeSlug(slug);
       // 从任务的标签列表中移除（规范化后比较）
@@ -344,7 +344,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
     DateTime? newDeadline,
   ) async {
     try {
-      final taskService = ref.read(taskServiceProvider);
+      final taskService = await ref.read(taskServiceProvider.future);
       await taskService.updateDetails(
         taskId: widget.task.id,
         payload: TaskUpdate(dueAt: newDeadline),
@@ -403,7 +403,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
     ProjectMilestoneSelection? selection,
   ) async {
     try {
-      final taskService = ref.read(taskServiceProvider);
+      final taskService = await ref.read(taskServiceProvider.future);
       
       await taskService.updateDetails(
         taskId: widget.task.id,

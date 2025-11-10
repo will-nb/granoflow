@@ -147,7 +147,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
   }
 
   Future<void> _applyTemplate(BuildContext context, TaskTemplate template) async {
-    final service = ref.read(taskTemplateServiceProvider);
+    final service = await ref.read(taskTemplateServiceProvider.future);
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
     try {

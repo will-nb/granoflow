@@ -251,7 +251,7 @@ class InboxDragTarget extends ConsumerWidget {
       );
 
       // 批量重排所有inbox任务的sortIndex
-      final sortIndexService = ref.read(sortIndexServiceProvider);
+      final sortIndexService = await ref.read(sortIndexServiceProvider.future);
       final allInboxTasks = await taskRepository.watchInbox().first;
       await sortIndexService.reorderTasksForInbox(tasks: allInboxTasks);
       
