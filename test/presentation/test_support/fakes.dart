@@ -150,8 +150,7 @@ class StubTaskRepository implements TaskRepository {
   Future<Task> createTask(TaskDraft draft) async {
     final now = DateTime.now();
     final task = Task(
-      id: _nextId++,
-      taskId: _generateTaskId(now),
+      id: _generateTaskId(now),
       title: draft.title,
       status: draft.status,
       dueAt: draft.dueAt,
@@ -225,10 +224,7 @@ class StubTaskRepository implements TaskRepository {
       endedAt: payload.endedAt,
       parentId: payload.clearParent == true
           ? null
-          : payload.parentId ?? existing.parentId,
-      parentId: payload.clearParent == true
-          ? null
-          : payload.parentTaskId ?? existing.parentTaskId,
+          : payload.parentId ?? payload.parentTaskId ?? existing.parentId,
       projectId: payload.clearProject == true
           ? null
           : payload.projectId ?? existing.projectId,

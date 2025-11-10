@@ -254,8 +254,4 @@ class ObjectBoxTaskRepository implements TaskRepository {
   Stream<TaskTreeNode> watchTaskTree(String rootTaskId) {
     throw UnimplementedError('ObjectBoxTaskRepository.watchTaskTree');
   }
-
-  Future<T> _unsupported<T>() {
-    throw UnimplementedError('ObjectBoxTaskRepository not implemented yet');
-  }
 }

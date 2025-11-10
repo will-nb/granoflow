@@ -57,7 +57,7 @@ class TaskCrudServiceUpdate {
     }
 
     if (dueChanged) {
-      final newDue = dueForUpdate!;
+      final newDue = dueForUpdate!; // dueChanged is true only when dueForUpdate != null
       ensureLogBuffer();
       updatedLogs!.add(
         TaskLogEntry(
