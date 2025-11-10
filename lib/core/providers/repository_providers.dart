@@ -18,6 +18,15 @@ import '../../data/repositories/objectbox/objectbox_seed_repository.dart';
 import '../../data/repositories/objectbox/objectbox_tag_repository.dart';
 import '../../data/repositories/objectbox/objectbox_task_repository.dart';
 import '../../data/repositories/objectbox/objectbox_task_template_repository.dart';
+import '../../data/repositories/drift/drift_focus_session_repository.dart';
+import '../../data/repositories/drift/drift_milestone_repository.dart';
+import '../../data/repositories/drift/drift_preference_repository.dart';
+import '../../data/repositories/drift/drift_project_repository.dart';
+import '../../data/repositories/drift/drift_seed_repository.dart';
+import '../../data/repositories/drift/drift_tag_repository.dart';
+import '../../data/repositories/drift/drift_task_repository.dart';
+import '../../data/repositories/drift/drift_task_template_repository.dart';
+import '../../core/config/database_config.dart';
 
 final databaseAdapterProvider = Provider<DatabaseAdapter>((ref) {
   throw UnimplementedError('DatabaseAdapter instance has not been provided');
