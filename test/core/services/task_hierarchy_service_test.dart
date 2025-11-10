@@ -92,7 +92,7 @@ class _TestTaskRepository extends TaskRepository {
   @override
   Future<Task?> findByTaskId(String taskId) async {
     for (final task in tasks.values) {
-      if (task.taskId == taskId) {
+      if (task.id == taskId) {
         return task;
       }
     }

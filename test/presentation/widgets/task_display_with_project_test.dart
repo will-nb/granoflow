@@ -301,7 +301,7 @@ class _TestTaskRepository implements TaskRepository {
   @override
   Future<Task?> findByTaskId(String taskId) async {
     for (final task in _tasks) {
-      if (task.taskId == taskId) {
+      if (task.id == taskId) {
         return task;
       }
     }

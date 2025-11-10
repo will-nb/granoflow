@@ -51,15 +51,15 @@ void main() {
 
         // 应该只包含活跃、已完成、已归档项目
         expect(projectList.length, 4);
-        expect(projectList.map((p) => p.projectId).toSet(), {
+        expect(projectList.map((p) => p.id).toSet(), {
           'active1',
           'active2',
           'completed1',
           'archived1',
         });
         // 不应该包含回收站和伪删除项目
-        expect(projectList.any((p) => p.projectId == 'trashed1'), false);
-        expect(projectList.any((p) => p.projectId == 'pseudoDeleted1'), false);
+        expect(projectList.any((p) => p.id == 'trashed1'), false);
+        expect(projectList.any((p) => p.id == 'pseudoDeleted1'), false);
 
         container.dispose();
       },
@@ -99,7 +99,7 @@ void main() {
 
         // 应该包含所有项目（除了伪删除）
         expect(projectList.length, 6);
-        expect(projectList.map((p) => p.projectId).toSet(), {
+        expect(projectList.map((p) => p.id).toSet(), {
           'inbox1',
           'active1',
           'active2',
@@ -108,7 +108,7 @@ void main() {
           'trashed1',
         });
         // 不应该包含伪删除项目
-        expect(projectList.any((p) => p.projectId == 'pseudoDeleted1'), false);
+        expect(projectList.any((p) => p.id == 'pseudoDeleted1'), false);
 
         container.dispose();
       },

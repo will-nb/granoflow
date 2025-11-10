@@ -92,7 +92,7 @@ void main() {
 
       await service.snoozeProject(project.id);
 
-      final updated = await projectRepository.findByIsarId(project.id);
+      final updated = await projectRepository.findById(project.id);
       expect(updated, isNotNull);
       expect(updated!.dueAt, DateTime(2025, 2, 28, 23, 59, 59, 999));
       expect(updated.logs.last.action, 'deadline_snoozed');
@@ -128,7 +128,7 @@ void main() {
         expect(archivedRoot?.projectId, project.id);
 
         final reassignedChild = await taskRepository.findById(child.id);
-        expect(reassignedChild?.projectId, project.projectId);
+        expect(reassignedChild?.projectId, project.id);
         expect(reassignedChild?.parentId, root.id);
       },
     );
@@ -144,7 +144,7 @@ void main() {
 
       await service.completeProject(project.id);
 
-      final updated = await projectRepository.findByIsarId(project.id);
+      final updated = await projectRepository.findById(project.id);
       expect(updated, isNotNull);
       expect(updated!.status, TaskStatus.completedActive);
       expect(updated.logs.last.action, 'completed');
@@ -163,7 +163,7 @@ void main() {
 
       await service.trashProject(project.id);
 
-      final updated = await projectRepository.findByIsarId(project.id);
+      final updated = await projectRepository.findById(project.id);
       expect(updated, isNotNull);
       expect(updated!.status, TaskStatus.trashed);
       expect(updated.logs.last.action, 'trashed');
@@ -184,7 +184,7 @@ void main() {
       // 然后恢复
       await service.restoreProject(project.id);
 
-      final updated = await projectRepository.findByIsarId(project.id);
+      final updated = await projectRepository.findById(project.id);
       expect(updated, isNotNull);
       expect(updated!.status, TaskStatus.pending);
       expect(updated.logs.last.action, 'restored');
@@ -227,7 +227,7 @@ void main() {
         ),
       );
 
-      final updated = await projectRepository.findByIsarId(project.id);
+      final updated = await projectRepository.findById(project.id);
       expect(updated, isNotNull);
       expect(updated!.title, 'Updated Title');
       expect(updated.description, 'Updated description');
@@ -490,7 +490,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   @override
   Future<Milestone?> findByMilestoneId(String milestoneId) async {
     for (final milestone in _milestones.values) {
-      if (milestone.milestoneId == milestoneId) {
+      if (milestone.id == milestoneId) {
         return milestone;
       }
     }

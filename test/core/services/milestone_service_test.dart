@@ -66,7 +66,7 @@ void main() {
         description: 'Updated description',
       );
 
-      final updated = await milestoneRepository.findByIsarId(milestone.id);
+      final updated = await milestoneRepository.findById(milestone.id);
       expect(updated, isNotNull);
       expect(updated!.title, 'Updated Title');
       expect(updated.description, 'Updated description');
@@ -85,7 +85,7 @@ void main() {
         dueAt: DateTime(2024, 4, 1),
       );
 
-      final updated = await milestoneRepository.findByIsarId(milestone.id);
+      final updated = await milestoneRepository.findById(milestone.id);
       expect(updated, isNotNull);
       final deadlineLogs = updated!.logs
           .where((log) => log.action == 'deadline_changed')
@@ -104,7 +104,7 @@ void main() {
         status: TaskStatus.completedActive,
       );
 
-      final updated = await milestoneRepository.findByIsarId(milestone.id);
+      final updated = await milestoneRepository.findById(milestone.id);
       expect(updated, isNotNull);
       final statusLogs = updated!.logs
           .where((log) => log.action == 'status_changed')
@@ -129,7 +129,7 @@ void main() {
 
       await service.delete(milestone.id);
 
-      final deleted = await milestoneRepository.findByIsarId(milestone.id);
+      final deleted = await milestoneRepository.findById(milestone.id);
       expect(deleted, isNull);
     });
   });
@@ -221,18 +221,9 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   }
 
   @override
-  Future<Milestone?> findById(String id) async {
-    try {
-      return _milestones.values.firstWhere((m) => m.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  @override
   Future<Milestone?> findByMilestoneId(String milestoneId) async {
     for (final milestone in _milestones.values) {
-      if (milestone.milestoneId == milestoneId) {
+      if (milestone.id == milestoneId) {
         return milestone;
       }
     }
