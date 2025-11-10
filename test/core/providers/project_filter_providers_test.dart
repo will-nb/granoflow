@@ -244,12 +244,12 @@ class _FakeProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<void> update(int isarId, ProjectUpdate update) async {
+  Future<void> update(String id, ProjectUpdate update) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<void> delete(int isarId) async {
+  Future<void> delete(String id) async {
     throw UnimplementedError();
   }
 
