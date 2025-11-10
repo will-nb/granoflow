@@ -53,7 +53,7 @@ class TaskTemplateService {
   }
 
   Future<Task> applyTemplate({
-    required int templateId,
+    required String templateId,
     TaskTemplateOverrides? overrides,
   }) async {
     final template = await _templates.findById(templateId);
@@ -103,7 +103,7 @@ class TaskTemplateService {
   }
 
   Future<void> _updateTemplateInternal(
-    int templateId,
+    String templateId,
     TaskTemplateUpdate payload,
   ) async {
     final existing = await _templates.findById(templateId);
@@ -128,4 +128,6 @@ class TaskTemplateService {
       }
     }
   }
+}
+
 }

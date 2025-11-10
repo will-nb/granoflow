@@ -43,7 +43,7 @@ class InMemoryMetricRepository implements MetricRepository {
           due.day == now.day;
     }).length;
     _latest = MetricSnapshot(
-      id: _nextId++,
+      id: (_nextId++).toString(),
       totalCompletedTasks: totalCompleted,
       totalFocusMinutes: totalFocusMinutes,
       pendingTasks: pendingTasks,
