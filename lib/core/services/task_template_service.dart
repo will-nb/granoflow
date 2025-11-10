@@ -26,11 +26,11 @@ class TaskTemplateService {
     return template;
   }
 
-  Future<void> updateTemplate(int templateId, TaskTemplateUpdate payload) {
+  Future<void> updateTemplate(String templateId, TaskTemplateUpdate payload) {
     return _updateTemplateInternal(templateId, payload);
   }
 
-  Future<void> deleteTemplate(int templateId) async {
+  Future<void> deleteTemplate(String templateId) async {
     final template = await _templates.findById(templateId);
     if (template?.parentTaskId != null) {
       await _tasks.adjustTemplateLock(
