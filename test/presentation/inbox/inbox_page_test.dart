@@ -98,7 +98,7 @@ void main() {
             (ref) => Stream<List<Task>>.value(<Task>[task]),
           ),
           inboxTaskLevelMapProvider.overrideWith(
-            (ref) async => <String, int>{task.id: '1'},
+            (ref) async => <String, int>{task.id: 1},
           ),
           inboxTaskChildrenMapProvider.overrideWith(
             (ref) async => <String, Set<String>>{},

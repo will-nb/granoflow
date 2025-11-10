@@ -260,10 +260,11 @@ FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
     #     undefined_getter.apply_undefined_getter_fix,
     #     lambda _: True,  # Fix in both lib and test files
     # ),
-    "override_on_non_overriding_member": (
-        override_on_non_overriding_member.apply_override_on_non_overriding_member_fix,
-        _is_test_file,
-    ),
+    # Temporarily disabled - introduces too many new errors
+    # "override_on_non_overriding_member": (
+    #     override_on_non_overriding_member.apply_override_on_non_overriding_member_fix,
+    #     _is_test_file,
+    # ),
   }
 
 
