@@ -139,7 +139,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   _InMemoryMilestoneRepository()
     : _controller = StreamController<List<Milestone>>.broadcast();
 
-  final Map<int, Milestone> _milestones = <int, Milestone>{};
+  final Map<String, Milestone> _milestones = <String, Milestone>{};
   final StreamController<List<Milestone>> _controller;
   int _nextId = 1;
 
