@@ -53,10 +53,10 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1, 2: 1},
+              (ref) async => <String, int>{'1': 1, '2': 1},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             contextTagOptionsProvider.overrideWith(
               (ref) async => [_StubTag('@home', TagKind.context)],
@@ -118,12 +118,12 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1, 2: 2},
+              (ref) async => <String, int>{'1': 1, '2': 2},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{
-                1: {'2'},
-                2: {},
+              (ref) async => <String, Set<String>>{
+                '1': {'2'},
+                '2': {},
               },
             ),
             inboxExpandedTaskIdProvider.overrideWith((ref) => {'1'}), // 父任务默认展开
@@ -179,12 +179,12 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1, 2: 2},
+              (ref) async => <String, int>{'1': 1, '2': 2},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{
-                1: {'2'},
-                2: {},
+              (ref) async => <String, Set<String>>{
+                '1': {'2'},
+                '2': {},
               },
             ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -243,10 +243,10 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1, 2: 1},
+              (ref) async => <String, int>{'1': 1, '2': 1},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -281,9 +281,11 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{},
+            ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -337,10 +339,10 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1},
+              (ref) async => <String, int>{'1': 1},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -380,10 +382,10 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1},
+              (ref) async => <String, int>{'1': 1},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -421,10 +423,10 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1},
+              (ref) async => <String, int>{'1': 1},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -490,13 +492,13 @@ void main() {
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1, 2: 2, 3: 3},
+              (ref) async => <String, int>{'1': 1, '2': 2, '3': 3},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<String>>{
-                1: {'2'},
-                2: {'3'},
-                3: {},
+              (ref) async => <String, Set<String>>{
+                '1': {'2'},
+                '2': {'3'},
+                '3': {},
               },
             ),
             inboxExpandedTaskIdProvider.overrideWith(

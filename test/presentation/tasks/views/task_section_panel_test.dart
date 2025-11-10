@@ -56,7 +56,7 @@ void main() {
             (ref, section) async => {task.id: 1},
           ),
           tasksSectionTaskChildrenMapProvider.overrideWith(
-            (ref, section) async => <int, Set<int>>{},
+            (ref, section) async => <String, Set<String>>{},
           ),
           tasksSectionExpandedTaskIdProvider.overrideWith(
             (ref, section) => <int>{},

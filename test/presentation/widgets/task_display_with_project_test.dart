@@ -91,7 +91,7 @@ void main() {
               },
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<int>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             templateSuggestionsProvider.overrideWithProvider(
@@ -169,7 +169,7 @@ void main() {
               },
             ),
             tasksSectionTaskChildrenMapProvider.overrideWith(
-              (ref, section) async => <int, Set<int>>{},
+              (ref, section) async => <String, Set<String>>{},
             ),
             tasksSectionExpandedTaskIdProvider.overrideWith(
               (ref, section) => <int>{},

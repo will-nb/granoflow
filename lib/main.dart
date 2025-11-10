@@ -10,13 +10,6 @@ import 'core/app.dart';
 import 'core/providers/repository_providers.dart';
 import 'core/services/notification_service.dart';
 import 'package:granoflow/data/objectbox/focus_session_entity.dart';
-import 'data/isar/preference_entity.dart';
-import 'data/isar/project_entity.dart';
-import 'data/isar/milestone_entity.dart';
-import 'data/isar/seed_import_log_entity.dart';
-import 'data/isar/tag_entity.dart';
-import 'data/isar/task_entity.dart';
-import 'data/isar/task_template_entity.dart';
 
 Isar? _isarInstance;
 

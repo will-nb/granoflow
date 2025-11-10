@@ -47,10 +47,10 @@ void main() {
           ProviderScope(
             overrides: [
               inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => <int, int>{1: 1},
+                (ref) async => <String, int>{'1': 1},
               ),
               inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => <int, Set<String>>{},
+                (ref) async => <String, Set<String>>{},
               ),
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
@@ -119,11 +119,11 @@ void main() {
             ProviderScope(
               overrides: [
                 inboxTaskLevelMapProvider.overrideWith(
-                  (ref) async => <int, int>{1: 1},
+                  (ref) async => <String, int>{'1': 1},
                 ),
                 inboxTaskChildrenMapProvider.overrideWith(
-                  (ref) async => <int, Set<String>>{
-                    1: {'2'},
+                  (ref) async => <String, Set<String>>{
+                    '1': {'2'},
                   },
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -197,11 +197,11 @@ void main() {
           ProviderScope(
             overrides: [
               inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => <int, int>{1: 1},
+                (ref) async => <String, int>{'1': 1},
               ),
               inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => <int, Set<String>>{
-                  1: {'2'},
+                (ref) async => <String, Set<String>>{
+                  '1': {'2'},
                 },
               ),
               contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -272,11 +272,11 @@ void main() {
             ProviderScope(
               overrides: [
                 inboxTaskLevelMapProvider.overrideWith(
-                  (ref) async => <int, int>{1: 1},
+                  (ref) async => <String, int>{'1': 1},
                 ),
                 inboxTaskChildrenMapProvider.overrideWith(
-                  (ref) async => <int, Set<String>>{
-                    1: {'2'},
+                  (ref) async => <String, Set<String>>{
+                    '1': {'2'},
                   },
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -386,13 +386,13 @@ void main() {
               overrides: [
                 tasksSectionTaskLevelMapProvider(
                   TaskSection.today,
-                ).overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
+                ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
                 tasksSectionTaskChildrenMapProvider(
                   TaskSection.today,
                 ).overrideWith(
-                  (ref) async => <int, Set<String>>{
-                    1: {'3'},
-                    2: {'4'},
+                  (ref) async => <String, Set<String>>{
+                    '1': {'3'},
+                    '2': {'4'},
                   },
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
@@ -474,10 +474,10 @@ void main() {
           ProviderScope(
             overrides: [
               inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => <int, int>{1: 2},
+                (ref) async => <String, int>{'1': 2},
               ),
               inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => <int, Set<String>>{},
+                (ref) async => <String, Set<String>>{},
               ),
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
@@ -546,10 +546,10 @@ void main() {
             ProviderScope(
               overrides: [
                 inboxTaskLevelMapProvider.overrideWith(
-                  (ref) async => <int, int>{1: 2},
+                  (ref) async => <String, int>{'1': 2},
                 ),
                 inboxTaskChildrenMapProvider.overrideWith(
-                  (ref) async => <int, Set<String>>{},
+                  (ref) async => <String, Set<String>>{},
                 ),
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
                 priorityTagOptionsProvider.overrideWith(

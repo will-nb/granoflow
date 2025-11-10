@@ -49,9 +49,11 @@ void main() {
           inboxTasksProvider.overrideWith(
             (ref) => Stream<List<Task>>.value(const <Task>[]),
           ),
-          inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{}),
+          inboxTaskLevelMapProvider.overrideWith(
+            (ref) async => <String, int>{},
+          ),
           inboxTaskChildrenMapProvider.overrideWith(
-            (ref) async => <int, Set<String>>{},
+            (ref) async => <String, Set<String>>{},
           ),
           templateSuggestionsProvider.overrideWithProvider(
             (query) => FutureProvider(
@@ -96,10 +98,10 @@ void main() {
             (ref) => Stream<List<Task>>.value(<Task>[task]),
           ),
           inboxTaskLevelMapProvider.overrideWith(
-            (ref) async => <int, int>{task.id: '1'},
+            (ref) async => <String, int>{task.id: '1'},
           ),
           inboxTaskChildrenMapProvider.overrideWith(
-            (ref) async => <int, Set<String>>{},
+            (ref) async => <String, Set<String>>{},
           ),
           templateSuggestionsProvider.overrideWithProvider(
             (query) => FutureProvider((ref) async => const <TaskTemplate>[]),

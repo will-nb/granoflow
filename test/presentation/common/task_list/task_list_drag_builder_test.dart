@@ -297,7 +297,7 @@ void main() {
               ),
               inboxTaskChildrenMapProvider.overrideWith(
                 (ref) async => {
-                  '1': {2},
+                  '1': {'2'},
                   '2': {},
                 },
               ),
@@ -315,10 +315,10 @@ void main() {
                   taskIdToHasChildren: {'1': true, '2': false},
                   levelMap: {'1': 1, '2': 2},
                   childrenMap: {
-                    '1': {2},
+                    '1': {'2'},
                     '2': {},
                   },
-                  expandedTaskIds: {1}, // 父任务已展开
+                  expandedTaskIds: {'1'}, // 父任务已展开
                   filteredTasks: tasksWithChildren,
                   config: config,
                   dragState: dragState!,

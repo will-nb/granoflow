@@ -137,10 +137,10 @@ void main() {
           overrides: [
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, int>{1: 1}),
+            ).overrideWith((ref) async => <String, int>{'1': 1}),
             tasksSectionTaskChildrenMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, Set<int>>{}),
+            ).overrideWith((ref) async => <String, Set<String>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),

@@ -39,10 +39,10 @@ void main() {
             ).overrideWith((ref) => const <int>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, int>{1: 1}),
+            ).overrideWith((ref) async => <String, int>{'1': 1}),
             tasksSectionTaskChildrenMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, Set<int>>{}),
+            ).overrideWith((ref) async => <String, Set<String>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -81,10 +81,10 @@ void main() {
             ).overrideWith((ref) => const <int>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
+            ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
             tasksSectionTaskChildrenMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, Set<int>>{}),
+            ).overrideWith((ref) async => <String, Set<String>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -118,10 +118,10 @@ void main() {
             ).overrideWith((ref) => const <int>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
+            ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
             tasksSectionTaskChildrenMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, Set<int>>{}),
+            ).overrideWith((ref) async => <String, Set<String>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -159,10 +159,10 @@ void main() {
             ).overrideWith((ref) => const <int>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, int>{}),
+            ).overrideWith((ref) async => <String, int>{}),
             tasksSectionTaskChildrenMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, Set<int>>{}),
+            ).overrideWith((ref) async => <String, Set<String>>{}),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -193,10 +193,10 @@ void main() {
             ).overrideWith((ref) => const <int>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
+            ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
             tasksSectionTaskChildrenMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, Set<int>>{}),
+            ).overrideWith((ref) async => <String, Set<String>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -231,10 +231,10 @@ void main() {
             ).overrideWith((ref) => const <int>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, int>{2: 1, 1: 1}),
+            ).overrideWith((ref) async => <String, int>{'2': 1, '1': 1}),
             tasksSectionTaskChildrenMapProvider(
               TaskSection.today,
-            ).overrideWith((ref) async => <int, Set<int>>{}),
+            ).overrideWith((ref) async => <String, Set<String>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             priorityTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),

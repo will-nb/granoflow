@@ -78,53 +78,32 @@ def apply_return_of_invalid_type_from_closure_fix(
             
             # Find the actual return statement in the line
             # The line might contain: <int, int>{...} or Map<int, int>{...}
-            # We need to replace the type annotation in the code
+            # We need to replace the type annotation in the code AND fix Map literal keys
             if new_type != returned_type:
-                # Try to find and replace the type in the line
-                # Look for patterns like: <int, int>{, <int, Set<int>>{, etc.
-                # Also handle: Map<int, int>{...} (less common)
-                
-                # Replace type annotations like <int, int> with <String, int>
-                # Replace type annotations like <int, Set<int>> with <String, Set<String>>
                 new_line = line
                 
+                # Step 1: Replace type annotations
                 # Replace Map<int, with Map<String,
                 new_line = re.sub(r"Map<\s*int\??\s*,", "Map<String,", new_line)
-                # Replace <int, with <String, (for type annotations)
+                # Replace <int, with <String, (for type annotations like <int, int>)
                 new_line = re.sub(r"<\s*int\??\s*,", "<String,", new_line)
                 # Replace Set<int> with Set<String>
                 new_line = re.sub(r"Set<\s*int\??\s*>", "Set<String>", new_line)
+                
+                # Step 2: Fix Map literal keys (convert int keys to String)
+                # Pattern to match Map literal keys: {int_key: or , int_key:
+                # Only fix if we have a type annotation that suggests String keys
+                if "<String," in new_line or "Map<String," in new_line:
+                    map_key_pattern = re.compile(r"([{,]\s*)(\d+)(\s*:)")
+                    new_line = map_key_pattern.sub(
+                        lambda m: m.group(1) + f"'{m.group(2)}'" + m.group(3),
+                        new_line
+                    )
                 
                 if new_line != line:
                     lines[line_idx] = new_line
                     changed = True
                     continue
-
-        # After fixing type annotations, we also need to fix Map literal keys
-        # Look for patterns like: <String, int>{1: 1} which should be <String, int>{'1': 1}
-        # Pattern: <String, ...>{int_key: value, ...}
-        if "<String," in line and "{" in line:
-            # Find Map literal keys that are int literals and convert to String
-            # Pattern: {int_key: ...} where int_key is a digit
-            # Use regex to find and replace int keys in Map literals
-            # Match patterns like: {1: ..., 2: ...} -> {'1': ..., '2': ...}
-            def replace_map_key(match):
-                key = match.group(1)
-                if key.isdigit():
-                    return f"'{key}'"
-                return match.group(0)
-            
-            # Pattern to match Map literal keys: {int_key: or , int_key:
-            map_key_pattern = re.compile(r"([{,]\s*)(\d+)(\s*:)")
-            new_line = map_key_pattern.sub(
-                lambda m: m.group(1) + f"'{m.group(2)}'" + m.group(3),
-                line
-            )
-            
-            if new_line != line:
-                lines[line_idx] = new_line
-                changed = True
-                continue
 
     if changed:
         path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")

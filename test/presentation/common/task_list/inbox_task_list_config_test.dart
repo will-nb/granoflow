@@ -116,10 +116,10 @@ void main() {
         ProviderScope(
           overrides: [
             inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <int, int>{1: 1},
+              (ref) async => <String, int>{'1': 1},
             ),
             inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <int, Set<int>>{},
+              (ref) async => <String, Set<String>>{},
             ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
