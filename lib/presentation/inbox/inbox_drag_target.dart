@@ -120,6 +120,20 @@ class InboxDragTarget extends ConsumerWidget {
     final movable = canMoveTask(draggedTask);
     
     if (kDebugMode) {
+      // 根据不同类型计算唯一ID
+      String? targetId;
+      switch (targetType) {
+        case InboxDragTargetType.between:
+          targetId = 'between:${beforeTask?.id ?? 'null'}:${afterTask?.id ?? 'null'}';
+          break;
+        case InboxDragTargetType.first:
+          targetId = 'first';
+          break;
+        case InboxDragTargetType.last:
+          targetId = 'last';
+          break;
+      }
+      
       // 详细记录 canAccept 检查的每个步骤
       final steps = <String, Object?>{
         'movable': movable,
