@@ -256,7 +256,7 @@ class _InMemoryProjectRepository implements ProjectRepository {
   @override
   Future<Project> create(ProjectDraft draft) async {
     final project = Project(
-      id: _nextId++,
+      id: (_nextId++).toString(),
 
       title: draft.title,
       status: draft.status,
@@ -300,8 +300,8 @@ class _InMemoryProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<void> delete(int isarId) async {
-    _projects.remove(isarId);
+  Future<void> delete(String id) async {
+    _projects.remove(id);
     _emit();
   }
 
@@ -327,7 +327,7 @@ class _InMemoryProjectRepository implements ProjectRepository {
     DateTime updatedAt,
   ) async {
     final project = Project(
-      id: _nextId++,
+      id: projectId,
 
       title: draft.title,
       status: draft.status,
