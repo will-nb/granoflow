@@ -144,6 +144,15 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   int _nextId = 1;
 
   @override
+  Future<Milestone?> findById(String id) async {
+    try {
+      return _milestones.values.firstWhere((m) => m.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   Future<Milestone> create(MilestoneDraft draft) async {
     final milestone = Milestone(
       id: _nextId++,

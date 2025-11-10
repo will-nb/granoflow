@@ -8,6 +8,11 @@ class ObjectBoxTaskRepository implements TaskRepository {
   final DatabaseAdapter _adapter;
 
   @override
+  Future<void> upsertTasks(List<Task> tasks) {
+    throw UnimplementedError('ObjectBoxTaskRepository.upsertTasks');
+  }
+
+  @override
   Future<void> adjustTemplateLock({required String taskId, required int delta}) {
     throw UnimplementedError('ObjectBoxTaskRepository.adjustTemplateLock');
   }

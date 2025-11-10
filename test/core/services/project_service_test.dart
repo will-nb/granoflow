@@ -242,6 +242,15 @@ class _InMemoryProjectRepository implements ProjectRepository {
 
   final Map<int, Project> _projects = <int, Project>{};
   final StreamController<List<Project>> _controller;
+
+  @override
+  Future<Project?> findById(String id) async {
+    try {
+      return _projects.values.firstWhere((p) => p.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
   int _nextId = 1;
 
   @override
@@ -402,6 +411,15 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
 
   final Map<int, Milestone> _milestones = <int, Milestone>{};
   final StreamController<List<Milestone>> _controller;
+
+  @override
+  Future<Milestone?> findById(String id) async {
+    try {
+      return _milestones.values.firstWhere((m) => m.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
   int _nextId = 1;
 
   @override

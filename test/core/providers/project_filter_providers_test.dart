@@ -145,6 +145,15 @@ class _FakeProjectRepository implements ProjectRepository {
   }
 
   @override
+  Future<Project?> findById(String id) async {
+    try {
+      return _projects.firstWhere((p) => p.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   Stream<List<Project>> watchActiveProjects() {
     return watchProjectsByStatus(ProjectFilterStatus.active);
   }
