@@ -30,6 +30,7 @@ from fixers import (
     undefined_named_parameter,
     return_of_invalid_type_from_closure,
     undefined_getter,
+    override_on_non_overriding_member,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -259,6 +260,10 @@ FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
     #     undefined_getter.apply_undefined_getter_fix,
     #     lambda _: True,  # Fix in both lib and test files
     # ),
+    "override_on_non_overriding_member": (
+        override_on_non_overriding_member.apply_override_on_non_overriding_member_fix,
+        _is_test_file,
+    ),
   }
 
 
