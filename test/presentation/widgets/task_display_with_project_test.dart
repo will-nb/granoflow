@@ -315,7 +315,7 @@ class _TestTaskRepository implements TaskRepository {
   @override
   Future<void> moveTask({
     required String taskId,
-    required int? targetParentId,
+    required String? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
@@ -385,7 +385,7 @@ class _TestTaskRepository implements TaskRepository {
   }) async => [];
 
   @override
-  Future<void> batchUpdate(Map<int, TaskUpdate> updates) =>
+  Future<void> batchUpdate(Map<String, TaskUpdate> updates) =>
       throw UnimplementedError();
 
   @override

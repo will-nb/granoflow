@@ -204,7 +204,7 @@ class _TestTaskRepository extends TaskRepository {
   @override
   Future<void> moveTask({
     required String taskId,
-    required int? targetParentId,
+    required String? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
@@ -367,7 +367,7 @@ class _StubFocusSessionRepository implements FocusSessionRepository {
   Future<int> totalMinutesForTask(String taskId) async => 0;
 
   @override
-  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+  Future<Map<String, int>> totalMinutesForTasks(List<String> taskIds) async {
     return {for (final taskId in taskIds) taskId: 0};
   }
 

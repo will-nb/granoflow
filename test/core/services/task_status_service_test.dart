@@ -271,7 +271,7 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
   Future<int> totalMinutesForTask(String taskId) async => 0;
 
   @override
-  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+  Future<Map<String, int>> totalMinutesForTasks(List<String> taskIds) async {
     return {for (final taskId in taskIds) taskId: 0};
   }
 

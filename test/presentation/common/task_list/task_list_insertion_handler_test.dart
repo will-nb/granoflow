@@ -23,8 +23,8 @@ class _FakeTaskHierarchyService extends Fake implements TaskHierarchyService {
 
   @override
   Future<void> moveToParent({
-    required int taskId,
-    required int? parentId,
+    required String taskId,
+    required String? parentId,
     required double sortIndex,
     DateTime? dueDate,
     bool clearParent = false,

@@ -344,7 +344,7 @@ class _TestTaskRepository implements TaskRepository {
 
   // 其他必需的方法实现为抛出异常或返回空值
   @override
-  Stream<TaskTreeNode> watchTaskTree(int rootTaskId) =>
+  Stream<TaskTreeNode> watchTaskTree(String rootTaskId) =>
       throw UnimplementedError();
 
   @override
@@ -412,7 +412,7 @@ class _TestTaskRepository implements TaskRepository {
   @override
   Future<void> moveTask({
     required String taskId,
-    required int? targetParentId,
+    required String? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
@@ -482,7 +482,7 @@ class _TestTaskRepository implements TaskRepository {
   }) async => [];
 
   @override
-  Future<void> batchUpdate(Map<int, TaskUpdate> updates) =>
+  Future<void> batchUpdate(Map<String, TaskUpdate> updates) =>
       throw UnimplementedError();
 
   @override
