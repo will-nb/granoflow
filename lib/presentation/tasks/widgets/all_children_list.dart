@@ -233,7 +233,7 @@ class _ChildTaskItem extends ConsumerWidget {
 /// Provider: 获取父任务的所有子任务（排除 trashed）
 final parentTaskChildrenProvider =
     FutureProvider.family<List<Task>, String>((ref, parentId) async {
-  final taskRepository = ref.read(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   return taskRepository.listChildren(parentId);
 });
 

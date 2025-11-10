@@ -36,16 +36,22 @@ class TemplateActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  TaskTemplateService get _service => ref.read(taskTemplateServiceProvider);
+  Future<TaskTemplateService> get _service async => await ref.read(taskTemplateServiceProvider.future);
 
   Future<void> create(TaskTemplateDraft draft) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.createTemplate(draft));
+    state = await AsyncValue.guard(() async {
+      final service = await _service;
+      return service.createTemplate(draft);
+    });
   }
 
   Future<void> delete(String templateId) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.deleteTemplate(templateId));
+    state = await AsyncValue.guard(() async {
+      final service = await _service;
+      return service.deleteTemplate(templateId);
+    });
   }
 }
 

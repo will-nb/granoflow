@@ -9,21 +9,30 @@ class PreferenceActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  PreferenceService get _service => ref.read(preferenceServiceProvider);
+  Future<PreferenceService> get _service async => await ref.read(preferenceServiceProvider.future);
 
   Future<void> updateLocale(String localeCode) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateLocale(localeCode));
+    state = await AsyncValue.guard(() async {
+      final service = await _service;
+      return service.updateLocale(localeCode);
+    });
   }
 
   Future<void> updateTheme(ThemeMode mode) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateTheme(mode));
+    state = await AsyncValue.guard(() async {
+      final service = await _service;
+      return service.updateTheme(mode);
+    });
   }
 
   Future<void> updateFontScaleLevel(FontScaleLevel level) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateFontScaleLevel(level));
+    state = await AsyncValue.guard(() async {
+      final service = await _service;
+      return service.updateFontScaleLevel(level);
+    });
   }
 }
 

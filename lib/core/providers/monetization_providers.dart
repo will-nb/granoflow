@@ -4,8 +4,9 @@ import '../monetization/monetization_service.dart';
 import '../monetization/monetization_state.dart';
 import 'service_providers.dart';
 
-final monetizationStateProvider = StreamProvider<MonetizationState>((ref) {
-  return ref.watch(monetizationServiceProvider).watch();
+final monetizationStateProvider = StreamProvider<MonetizationState>((ref) async* {
+  final service = await ref.read(monetizationServiceProvider.future);
+  yield* service.watch();
 });
 
 class MonetizationActionsNotifier extends AsyncNotifier<void> {

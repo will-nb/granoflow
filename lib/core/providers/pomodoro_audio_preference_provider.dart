@@ -16,7 +16,7 @@ Future<void> updateClockTickSoundEnabled(
   WidgetRef ref,
   bool enabled,
 ) async {
-  final preferenceService = ref.read(preferenceServiceProvider);
+  final preferenceService = await ref.read(preferenceServiceProvider.future);
   await preferenceService.updateClockTickSoundEnabled(enabled);
 }
 

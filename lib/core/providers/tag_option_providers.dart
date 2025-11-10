@@ -33,7 +33,8 @@ final urgencyTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   try {
     // 依赖种子初始化：导入完成后会刷新本 Provider
     ref.watch(seedInitializerProvider);
-    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.urgency);
+    final taskService = await ref.read(taskServiceProvider.future);
+    return await taskService.listTagsByKind(TagKind.urgency);
   } catch (error) {
     debugPrint('UrgencyTagOptionsProvider error: $error');
     return <Tag>[]; // 返回空列表而不是抛出错误
@@ -56,9 +57,8 @@ final importanceTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
 final executionTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   try {
     ref.watch(seedInitializerProvider);
-    return await ref
-        .watch(taskServiceProvider)
-        .listTagsByKind(TagKind.execution);
+    final taskService = await ref.read(taskServiceProvider.future);
+    return await taskService.listTagsByKind(TagKind.execution);
   } catch (error) {
     debugPrint('ExecutionTagOptionsProvider error: $error');
     return <Tag>[];

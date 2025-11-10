@@ -11,7 +11,7 @@ class MetricRefreshNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  MetricOrchestrator get _orchestrator => ref.read(metricOrchestratorProvider);
+  Future<MetricOrchestrator> get _orchestrator async => await ref.read(metricOrchestratorProvider.future);
 
   Future<void> refresh() async {
     state = const AsyncLoading();
