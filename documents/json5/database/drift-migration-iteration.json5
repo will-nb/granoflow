@@ -47,7 +47,7 @@
           "put 方法：保存单个实体，使用 Drift 的 insert 或 update 操作。",
           "putMany 方法：批量保存实体，使用 Drift 的批量插入操作，提高性能。",
           "remove 方法：根据 ID 删除实体，返回是否删除成功。",
-          "removeMany 方法：批量删除实体，返回删除的数量。",
+          "removeMany 方法：批量删除实体，每批 100 条记录，返回删除的数量。",
           "findById 方法：根据 ID 查找实体，返回实体或 null。",
           "findAll 方法：查找所有实体（无过滤条件），返回实体列表。",
           "count 方法：统计实体数量，应该与 findAll() 返回的结果数量一致。",
@@ -101,7 +101,7 @@
           "配置存储：生产环境使用 SharedPreferences 存储用户选择的数据库类型（key: 'database_type'），开发环境可以通过环境变量切换（DATABASE_TYPE=objectbox|drift）。",
           "默认配置：生产环境默认使用 Drift，开发环境可以通过环境变量 DATABASE_TYPE=objectbox|drift 切换数据库类型。",
           "配置切换：支持通过环境变量切换（开发环境），生产环境使用 SharedPreferences 存储用户选择。",
-          "迁移期间默认使用 Drift，但保留 ObjectBox 切换能力（通过环境变量或 SharedPreferences 切换）。",
+          "切换期间默认使用 Drift，但保留 ObjectBox 切换能力（通过环境变量或 SharedPreferences 切换）。",
         ],
       },
     ],
@@ -122,6 +122,7 @@
           "外键约束：在数据库打开时执行 PRAGMA foreign_keys = ON（通过 customStatement('PRAGMA foreign_keys = ON')），启用外键约束，确保数据完整性。",
           "提供数据库实例创建方法：createDatabase()，根据平台（kIsWeb）选择 WebDatabase 或 NativeDatabase，返回 LazyDatabase 实例。",
           "实现数据库打开和关闭逻辑，处理连接异常，捕获 DriftException 并转换为 DatabaseAdapterException。",
+          "使用单例模式管理数据库连接，提供全局单例 getter（如 AppDatabase.instance），在应用启动时初始化，在应用关闭时调用 close()。",
         ],
       },
       {
@@ -135,7 +136,7 @@
         details: [
           "定义 Tasks Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
           "定义所有字段：id（主键）、title（String）、status（intEnum<TaskStatus>）、dueAt（DateTime?）、startedAt（DateTime?）、endedAt（DateTime?）、archivedAt（DateTime?）、createdAt（DateTime）、updatedAt（DateTime）、parentId（String?）、projectId（String?）、milestoneId（String?）、sortIndex（double）、tags（List<String>，使用 JSON 存储）、templateLockCount（int）、seedSlug（String?）、allowInstantComplete（bool）、description（String?）。",
-          "配置外键关系：projectId 引用 Projects 表的 id 字段，parentId 自引用 Tasks 表的 id 字段，milestoneId 引用 Milestones 表的 id 字段。",
+          "配置外键关系：projectId 引用 Projects 表的 id 字段（onDelete: ReferenceAction.setNull），parentId 自引用 Tasks 表的 id 字段（onDelete: ReferenceAction.cascade），milestoneId 引用 Milestones 表的 id 字段（onDelete: ReferenceAction.setNull）。",
           "定义 Task Data 类，实现 Insertable<Task> 接口，用于插入和更新操作。",
           "使用 intEnum<TaskStatus>() 处理 TaskStatus 枚举类型，存储为 int。",
           "tags 字段使用 JSON 存储（TextColumn 存储 JSON 字符串），或考虑使用关联表（如果查询需求复杂）。",
@@ -187,7 +188,7 @@
           "定义 TaskLogs Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
           "定义所有字段：id（主键）、taskId（String?，外键引用 Tasks.id）、timestamp（DateTime）、action（String）、previous（String?）、next（String?）、actor（String?）。",
           "定义 TaskLog Data 类，实现 Insertable<TaskLog> 接口。",
-          "配置外键关系：taskId 引用 Tasks 表（references(Tasks, #id)）。",
+          "配置外键关系：taskId 引用 Tasks 表（references(Tasks, #id, onDelete: ReferenceAction.cascade)）。",
           "添加索引：为 id、taskId、timestamp 等常用查询字段添加索引。",
         ],
       },
@@ -203,7 +204,7 @@
           "定义 ProjectLogs Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
           "定义所有字段：id（主键）、projectId（String?，外键引用 Projects.id）、timestamp（DateTime）、action（String）、previous（String?）、next（String?）、actor（String?）。",
           "定义 ProjectLog Data 类，实现 Insertable<ProjectLog> 接口。",
-          "配置外键关系：projectId 引用 Projects 表（references(Projects, #id)）。",
+          "配置外键关系：projectId 引用 Projects 表（references(Projects, #id, onDelete: ReferenceAction.cascade)）。",
           "添加索引：为 id、projectId、timestamp 等常用查询字段添加索引。",
         ],
       },
@@ -219,7 +220,7 @@
           "定义 MilestoneLogs Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
           "定义所有字段：id（主键）、milestoneId（String?，外键引用 Milestones.id）、timestamp（DateTime）、action（String）、previous（String?）、next（String?）、actor（String?）。",
           "定义 MilestoneLog Data 类，实现 Insertable<MilestoneLog> 接口。",
-          "配置外键关系：milestoneId 引用 Milestones 表（references(Milestones, #id)）。",
+          "配置外键关系：milestoneId 引用 Milestones 表（references(Milestones, #id, onDelete: ReferenceAction.cascade)）。",
           "添加索引：为 id、milestoneId、timestamp 等常用查询字段添加索引。",
         ],
       },
@@ -251,7 +252,7 @@
           "定义 TaskTemplates Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
           "定义所有字段：id（主键）、title（String）、parentTaskId（String?，外键引用 Tasks.id）、defaultTags（List<String>，使用 JSON 存储）、createdAt（DateTime）、updatedAt（DateTime）、lastUsedAt（DateTime?）、seedSlug（String?）、suggestedEstimateMinutes（int?）。",
           "定义 TaskTemplate Data 类，实现 Insertable<TaskTemplate> 接口。",
-          "配置外键关系：parentTaskId 引用 Tasks 表（references(Tasks, #id)）。",
+          "配置外键关系：parentTaskId 引用 Tasks 表（references(Tasks, #id, onDelete: ReferenceAction.setNull)）。",
           "defaultTags 字段使用 JSON 存储（TextColumn 存储 JSON 字符串）。",
           "添加索引：为 id、parentTaskId、seedSlug、lastUsedAt 等常用查询字段添加索引。",
         ],
@@ -268,7 +269,7 @@
           "定义 FocusSessions Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
           "定义所有字段：id（主键）、taskId（String?，外键引用 Tasks.id）、startedAt（DateTime）、endedAt（DateTime?）、actualMinutes（int）、estimateMinutes（int?）、alarmEnabled（bool）、transferredToTaskId（String?，外键引用 Tasks.id）、reflectionNote（String?）。",
           "定义 FocusSession Data 类，实现 Insertable<FocusSession> 接口。",
-          "配置外键关系：taskId 引用 Tasks 表（references(Tasks, #id)），transferredToTaskId 引用 Tasks 表（references(Tasks, #id)）。",
+          "配置外键关系：taskId 引用 Tasks 表（references(Tasks, #id, onDelete: ReferenceAction.setNull)），transferredToTaskId 引用 Tasks 表（references(Tasks, #id, onDelete: ReferenceAction.setNull)）。",
           "添加索引：为 id、taskId、startedAt、endedAt 等常用查询字段添加索引。",
         ],
       },
@@ -315,8 +316,9 @@
           "实现 TaskStatus 枚举转换器（intEnum）。",
           "实现 ProjectStatus 枚举转换器（intEnum）。",
           "实现 DateTime 转换器（dateTime）。",
-          "实现 List<String> 转换器（tags 字段，使用 JSON 存储）。",
+          "实现 List<String> 转换器（tags 字段，使用 JSON 存储，使用 dart:convert 的 jsonEncode/jsonDecode）。",
           "提供双向转换方法：Model → Drift Data，Drift Data → Model。",
+          "UUID 生成：统一使用 Uuid().v4() 生成 UUID v4（uuid 包已在 pubspec.yaml 中）。",
         ],
       },
     ],
@@ -511,43 +513,6 @@
       },
     ],
 
-    // 数据迁移工具
-    migration: [
-      {
-        path: "lib/data/migration/objectbox_to_drift_migrator.dart",
-        purpose: "数据迁移工具，从 ObjectBox 导出数据并导入到 Drift 数据库。",
-        action: "create",
-        estimatedLines: 300,
-        dependencies: [
-          "lib/data/database/objectbox_adapter.dart",
-          "lib/data/database/drift_adapter.dart",
-        ],
-        details: [
-          "实现 ObjectBox 数据导出逻辑：遍历所有实体类型（TaskEntity、ProjectEntity、MilestoneEntity、TaskLogEntity、ProjectLogEntity、MilestoneLogEntity、TagEntity、TaskTemplateEntity、FocusSessionEntity、PreferenceEntity、SeedImportLogEntity），使用 ObjectBoxAdapter 查询所有记录，转换为 JSON 格式（包含所有字段值）。",
-          "实现 Drift 数据导入逻辑：将 JSON 数据转换为对应的 Drift Data 类（Task、Project、Milestone、TaskLog、ProjectLog、MilestoneLog、Tag、TaskTemplate、FocusSession、Preference、SeedImportLog），使用 DriftAdapter 的 putMany 批量插入。",
-          "迁移顺序：先迁移主实体（Task、Project、Milestone、Tag、TaskTemplate、Preference、SeedImportLog），再迁移关联实体（TaskLog、ProjectLog、MilestoneLog、FocusSession），确保外键关系正确。",
-          "支持增量迁移：检查 Drift 数据库中是否已存在记录（通过 id 判断），只迁移新增或修改的数据（通过 updatedAt 比较）。",
-          "错误处理：记录迁移过程中的错误（实体类型、实体 ID、错误信息）。",
-          "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
-          "进度报告：提供迁移进度（当前实体类型、已迁移数量、总数量）和统计信息（成功数量、失败数量、跳过数量、总耗时）。",
-        ],
-      },
-      {
-        path: "scripts/migrate_to_drift.dart",
-        purpose: "数据迁移脚本，命令行工具，用于执行数据迁移。",
-        action: "create",
-        estimatedLines: 150,
-        dependencies: [
-          "lib/data/migration/objectbox_to_drift_migrator.dart",
-        ],
-        details: [
-          "命令行接口：支持 --dry-run 等选项。",
-          "执行迁移流程：导出 → 转换 → 导入。",
-          "生成迁移报告：包含迁移统计、错误信息。",
-          "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
-        ],
-      },
-    ],
 
     // 测试文件
     tests: [
@@ -601,23 +566,8 @@
         ],
       },
       {
-        path: "test/data/migration/objectbox_to_drift_migrator_test.dart",
-        purpose: "数据迁移工具单元测试，验证迁移逻辑正确。",
-        action: "create",
-        estimatedLines: 200,
-        dependencies: [
-          "lib/data/migration/objectbox_to_drift_migrator.dart",
-        ],
-        details: [
-          "测试数据导出：验证 ObjectBox 数据正确导出。",
-          "测试数据导入：验证数据正确导入到 Drift。",
-          "测试错误处理：验证错误记录和异常处理。",
-          "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
-        ],
-      },
-      {
-        path: "integration_test/drift_migration_test.dart",
-        purpose: "Drift 迁移集成测试，验证迁移后所有功能正常。",
+        path: "integration_test/drift_integration_test.dart",
+        purpose: "Drift 集成测试，验证所有功能正常。",
         action: "create",
         estimatedLines: 300,
         dependencies: [
@@ -628,9 +578,9 @@
           "测试核心功能：创建/编辑/删除任务、项目、里程碑。",
           "测试查询功能：验证所有查询方法正常工作。",
           "测试 Stream/监听：验证数据变化时 Stream 正确触发。",
-          "测试 Web 平台：验证 Web 平台数据持久化正常。",
+          "测试 Web 平台：验证 Web 平台数据持久化正常，包括 IndexedDB 存储限制测试、跨标签页数据同步测试、浏览器兼容性测试（Chrome、Firefox、Safari、Edge）。",
           "注意：不需要保存历史数据，每次测试前运行 scripts/anz clean 清空所有数据。",
-          "测试命令：flutter test integration_test/drift_migration_test.dart -d macos",
+          "测试命令：flutter test integration_test/drift_integration_test.dart -d macos",
         ],
       },
     ],
@@ -647,7 +597,7 @@
         "添加 drift: ^2.29.0 和 drift_dev: ^2.29.0 依赖（用于代码生成，需要与 Drift 版本匹配，使用最新稳定版）。",
         "添加 sqlite3_flutter_libs: ^0.5.40 依赖（用于移动端 SQLite，提供 SQLite 原生库，使用最新稳定版）。",
         "添加 drift_web: ^2.29.0 依赖（用于 Web 平台 IndexedDB，提供 Web 数据库支持，使用最新稳定版，版本需与 drift 匹配）。",
-        "保留 objectbox: ^4.0.0 和 objectbox_flutter_libs: ^4.0.0 依赖（迁移期间需要，迁移完成后删除）。",
+        "保留 objectbox: ^4.0.0 和 objectbox_flutter_libs: ^4.0.0 依赖（切换期间需要，切换完成后删除）。",
       ],
       estimatedLines: 10,
     },
@@ -657,7 +607,7 @@
       changes: [
         "引入 DatabaseConfig，在 databaseAdapterProvider 中根据 DatabaseConfig.current 创建对应的 DatabaseAdapter（ObjectBoxAdapter 或 DriftAdapter）。",
         "更新所有 Repository Provider（taskRepositoryProvider、projectRepositoryProvider 等），根据 DatabaseConfig.current 创建对应的 Repository（DriftRepository 或 ObjectBoxRepository）。",
-        "迁移期间默认使用 Drift，但保留 ObjectBox 切换能力（通过 DatabaseConfig 配置切换）。",
+        "切换期间默认使用 Drift，但保留 ObjectBox 切换能力（通过 DatabaseConfig 配置切换）。",
       ],
       estimatedLines: 50,
     },
@@ -667,13 +617,9 @@
       changes: [
         "根据 DatabaseConfig.current 读取配置，调用 DatabaseConfig.createAdapter() 创建对应的 DatabaseAdapter（ObjectBox 或 Drift）。",
         "Web 平台：使用 drift_web 初始化 Drift 数据库（IndexedDB），移动端使用 sqlite3_flutter_libs 初始化 Drift 数据库（SQLite）。",
-        "迁移检测：在应用启动时检测是否存在 ObjectBox 数据（检查 ObjectBox 数据库文件是否存在，路径：getApplicationSupportDirectory()/objectbox），如果存在且 Drift 数据库为空（通过 count 检查），提示用户迁移。",
-        "迁移提示：使用对话框（showDialog）提示用户是否迁移数据，提供'立即迁移'和'稍后提醒'选项，用户选择后保存到 SharedPreferences（key: 'migration_prompted'）。",
-        "迁移执行：用户确认后，调用 ObjectBoxToDriftMigrator 执行迁移，显示进度条（使用 Stream 监听迁移进度），迁移完成后标记迁移完成（保存到 SharedPreferences key: 'migration_completed'）。",
-        "迁移失败：如果迁移失败，记录错误日志，提示用户稍后重试，保留 ObjectBox 数据，不删除 ObjectBox 数据库，允许用户下次启动时再次尝试迁移。",
-        "迁移成功：迁移成功后，标记迁移完成（保存到 SharedPreferences），后续启动不再提示迁移。",
+        "注意：不需要检测或迁移历史数据，应用启动时直接使用配置的数据库类型（默认 Drift）。首次使用 Drift 时，数据库为空，种子数据会自动导入。",
       ],
-      estimatedLines: 30,
+      estimatedLines: 10,
     },
   ],
 
@@ -693,7 +639,7 @@
     {
       step: 1,
       title: "阶段 1：基础设施搭建",
-      description: "添加 Drift 依赖，实现 DriftAdapter 和 DriftQueryBuilder，创建数据迁移工具。",
+      description: "添加 Drift 依赖，实现 DriftAdapter 和 DriftQueryBuilder。",
       tasks: [
         {
           task: "更新 pubspec.yaml，添加 Drift 相关依赖",
@@ -718,11 +664,6 @@
           task: "创建 DatabaseConfig，支持数据库切换",
           file: "lib/core/config/database_config.dart",
           action: "实现工厂方法，根据配置创建对应的 Adapter",
-        },
-        {
-          task: "创建数据迁移工具",
-          file: "lib/data/migration/objectbox_to_drift_migrator.dart",
-          action: "实现 ObjectBox 数据导出和 Drift 数据导入逻辑",
         },
         {
           task: "编写单元测试，验证 DriftAdapter 和 DriftQueryBuilder",
@@ -793,8 +734,8 @@
     },
     {
       step: 3,
-      title: "阶段 3：Repository 迁移",
-      description: "实现所有 DriftRepository，迁移查询和写操作逻辑，优化查询性能。",
+      title: "阶段 3：Repository 实现",
+      description: "实现所有 DriftRepository，实现查询和写操作逻辑，优化查询性能。",
       tasks: [
         {
           task: "实现 DriftTaskRepository",
@@ -832,7 +773,7 @@
         },
         {
           task: "阶段完成：忽略 pre-commit，强行 git commit",
-          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - Repository 迁移'",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - Repository 实现'",
           action: "提交阶段 3 的所有更改，忽略 pre-commit 钩子",
         },
       ],
@@ -895,7 +836,7 @@
         },
         {
           task: "性能测试和优化",
-          action: "对比迁移前后性能，优化慢查询，添加索引",
+          action: "测试性能指标，优化慢查询，添加索引",
         },
         {
           task: "在 Android 16KB 页面大小设备上测试",
@@ -916,12 +857,7 @@
         {
           task: "更新架构文档",
           file: "documents/architecture/",
-          action: "记录 Drift 数据库架构和迁移过程",
-        },
-        {
-          task: "更新迁移指南",
-          file: "documents/deployment/",
-          action: "记录数据迁移步骤和注意事项",
+          action: "记录 Drift 数据库架构和切换过程",
         },
         {
           task: "更新 API 文档",
@@ -944,7 +880,7 @@
         },
         {
           task: "代码审查",
-          action: "审查所有新增代码，确保符合代码规范",
+          action: "审查所有新增代码，确保符合代码规范（类型安全、错误处理、性能优化、外键约束、事务使用、Stream 监听、测试覆盖）",
         },
         {
           task: "阶段完成：忽略 pre-commit，强行 git commit",
@@ -993,12 +929,6 @@
         example: "使用 where((t) => t.id.equals(taskId)) 而不是字符串查询",
         note: "类型安全查询可以编译时检查，减少运行时错误",
       },
-      migration: {
-        rule: "数据迁移需要记录错误信息",
-        location: "lib/data/migration/objectbox_to_drift_migrator.dart",
-        example: "记录迁移过程中的错误（实体类型、实体 ID、错误信息）",
-        note: "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
-      },
     },
     
     performance: {
@@ -1011,7 +941,7 @@
       monitoring: [
         "使用 DatabaseInstrumentation 记录操作耗时",
         "监控慢查询，优化查询性能",
-        "对比迁移前后性能指标",
+        "记录性能指标，确保性能满足要求",
       ],
     },
     
@@ -1058,10 +988,6 @@
       "lib/core/providers/repository_providers.dart",
     ],
     
-    migrationLayer: [
-      "lib/data/migration/objectbox_to_drift_migrator.dart",
-      "scripts/migrate_to_drift.dart",
-    ],
   },
 
   // ===========================================
@@ -1239,14 +1165,7 @@
   // ===========================================
   risks: [
     {
-      risk: "数据迁移过程中数据丢失或损坏",
-      mitigation: "测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。生产环境迁移时，用户需要自行备份数据。",
-      priority: "high",
-      check: "迁移后验证记录数量、关系完整性、字段值正确性（仅生产环境）",
-      enforcement: "数据迁移工具需要记录错误信息，便于排查问题",
-    },
-    {
-      risk: "迁移后性能下降",
+      risk: "切换后性能下降",
       mitigation: "为常用查询字段添加索引，优化查询逻辑，对比迁移前后性能",
       priority: "medium",
       check: "性能测试对比迁移前后查询耗时，监控慢查询",
@@ -1260,7 +1179,7 @@
       enforcement: "Web 平台测试必须通过，所有核心功能正常",
     },
     {
-      risk: "迁移期间代码复杂度增加",
+      risk: "切换期间代码复杂度增加",
       mitigation: "通过 DatabaseConfig 统一管理数据库切换，保持 Repository 接口不变",
       priority: "low",
       check: "代码审查确保切换逻辑清晰，不影响业务代码",
@@ -1298,7 +1217,7 @@
     ],
     
     performance: [
-      "对比迁移前后性能（查询耗时、插入耗时）",
+      "测试性能指标（查询耗时、插入耗时）",
       "验证慢查询已优化（添加索引、优化查询逻辑）",
       "监控内存使用，确保没有内存泄漏",
     ],
@@ -1328,17 +1247,299 @@
     
     // 持久化结构变更
     persistenceChanges: [
-      "数据库从 ObjectBox 迁移到 Drift（SQLite/IndexedDB）",
+      "数据库从 ObjectBox 切换到 Drift（SQLite/IndexedDB）",
       "Web 平台使用 IndexedDB 作为存储后端",
       "移动端使用 SQLite 作为存储后端",
-      "数据库文件格式从 ObjectBox 格式迁移到 SQLite 格式",
+      "数据库文件格式从 ObjectBox 格式切换到 SQLite 格式",
+      "注意：不需要迁移历史数据，所有数据将清空，首次使用 Drift 时会自动导入种子数据",
     ],
     
     // 状态管理变更
     stateManagementChanges: [
       "Repository 接口保持不变，只更换底层实现",
       "通过 DatabaseConfig 配置切换数据库实现",
-      "迁移期间支持 ObjectBox 和 Drift 并行运行",
+      "切换期间支持 ObjectBox 和 Drift 并行运行",
+    ],
+  },
+
+  // ===========================================
+  // 11. 补充的技术细节和实现规范
+  // ===========================================
+  additionalTechnicalDetails: {
+    // UUID 生成规范
+    uuidGeneration: {
+      package: "uuid: ^4.0.0（已在 pubspec.yaml 中）",
+      method: "统一使用 Uuid().v4() 生成 UUID v4",
+      location: "在 Repository 的 create 方法中统一使用，封装为工具函数（如 lib/core/utils/uuid_util.dart）",
+      example: "final taskId = const Uuid().v4();",
+    },
+
+    // JSON 序列化规范
+    jsonSerialization: {
+      package: "dart:convert（标准库）",
+      method: "统一使用 jsonEncode 和 jsonDecode",
+      location: "在 lib/data/drift/converters.dart 中封装为工具函数",
+      fields: [
+        "tags 字段（List<String>）：使用 jsonEncode 序列化，jsonDecode 反序列化",
+        "localizedLabelsJson 字段（Map<String, String>）：使用 jsonEncode 序列化，jsonDecode 反序列化",
+        "defaultTags 字段（List<String>）：使用 jsonEncode 序列化，jsonDecode 反序列化",
+      ],
+      example: "tags: jsonEncode(tags), // 存储为 JSON 字符串",
+    },
+
+    // 外键级联删除策略
+    foreignKeyCascade: {
+      rules: [
+        {
+          relation: "Task → Project（projectId）",
+          onDelete: "SET NULL",
+          reason: "删除项目时，任务保留但 projectId 设为 null",
+        },
+        {
+          relation: "Task → Milestone（milestoneId）",
+          onDelete: "SET NULL",
+          reason: "删除里程碑时，任务保留但 milestoneId 设为 null",
+        },
+        {
+          relation: "Task → Task（parentId，自引用）",
+          onDelete: "CASCADE",
+          reason: "删除父任务时，级联删除所有子任务",
+        },
+        {
+          relation: "Milestone → Project（projectId）",
+          onDelete: "CASCADE",
+          reason: "删除项目时，级联删除所有关联的里程碑",
+        },
+        {
+          relation: "TaskLog → Task（taskId）",
+          onDelete: "CASCADE",
+          reason: "删除任务时，级联删除所有关联的日志",
+        },
+        {
+          relation: "ProjectLog → Project（projectId）",
+          onDelete: "CASCADE",
+          reason: "删除项目时，级联删除所有关联的日志",
+        },
+        {
+          relation: "MilestoneLog → Milestone（milestoneId）",
+          onDelete: "CASCADE",
+          reason: "删除里程碑时，级联删除所有关联的日志",
+        },
+        {
+          relation: "FocusSession → Task（taskId）",
+          onDelete: "SET NULL",
+          reason: "删除任务时，会话保留但 taskId 设为 null（保留历史记录）",
+        },
+        {
+          relation: "TaskTemplate → Task（parentTaskId）",
+          onDelete: "SET NULL",
+          reason: "删除任务时，模板保留但 parentTaskId 设为 null",
+        },
+      ],
+      implementation: "在表定义中使用 references() 方法的 onDelete 参数，例如：references(Projects, #id, onDelete: ReferenceAction.setNull)",
+    },
+
+    // 索引策略（完整列表）
+    indexStrategy: {
+      tasks: [
+        "id（主键，自动索引）",
+        "parentId（外键，用于查询子任务）",
+        "projectId（外键，用于查询项目任务）",
+        "milestoneId（外键，用于查询里程碑任务）",
+        "status（用于按状态过滤）",
+        "sortIndex（用于排序）",
+        "seedSlug（用于查询种子任务）",
+        "复合索引：(status, dueAt) 用于按状态和日期查询",
+        "复合索引：(projectId, status) 用于查询项目下的特定状态任务",
+      ],
+      projects: [
+        "id（主键，自动索引）",
+        "status（用于按状态过滤）",
+        "sortIndex（用于排序）",
+        "seedSlug（用于查询种子项目）",
+      ],
+      milestones: [
+        "id（主键，自动索引）",
+        "projectId（外键，用于查询项目里程碑）",
+        "status（用于按状态过滤）",
+        "sortIndex（用于排序）",
+        "seedSlug（用于查询种子里程碑）",
+      ],
+      taskLogs: [
+        "id（主键，自动索引）",
+        "taskId（外键，用于查询任务日志）",
+        "timestamp（用于按时间排序）",
+        "复合索引：(taskId, timestamp) 用于查询任务日志并按时间排序",
+      ],
+      projectLogs: [
+        "id（主键，自动索引）",
+        "projectId（外键，用于查询项目日志）",
+        "timestamp（用于按时间排序）",
+      ],
+      milestoneLogs: [
+        "id（主键，自动索引）",
+        "milestoneId（外键，用于查询里程碑日志）",
+        "timestamp（用于按时间排序）",
+      ],
+      tags: [
+        "id（主键，自动索引）",
+        "slug（唯一索引，用于快速查找）",
+        "kindIndex（用于按类型过滤）",
+      ],
+      taskTemplates: [
+        "id（主键，自动索引）",
+        "parentTaskId（外键）",
+        "seedSlug（用于查询种子模板）",
+        "lastUsedAt（用于查询最近使用的模板）",
+      ],
+      focusSessions: [
+        "id（主键，自动索引）",
+        "taskId（外键，用于查询任务会话）",
+        "startedAt（用于按时间排序）",
+        "endedAt（用于查询活跃会话）",
+        "复合索引：(taskId, startedAt) 用于查询任务会话并按时间排序",
+      ],
+      preferences: [
+        "id（主键，自动索引，唯一索引）",
+      ],
+      seedImportLogs: [
+        "id（主键，自动索引）",
+        "version（用于查询特定版本）",
+        "importedAt（用于查询最新版本）",
+      ],
+    },
+
+    // 批量操作规范
+    batchOperations: {
+      putMany: {
+        batchSize: 100,
+        reason: "避免内存溢出和事务超时",
+        implementation: "在 DriftAdapter.putMany 中分批处理，每批 100 条记录",
+      },
+      removeMany: {
+        batchSize: 100,
+        reason: "避免事务超时",
+        implementation: "在 DriftAdapter.removeMany 中分批处理，每批 100 条记录",
+      },
+    },
+
+    // 数据库连接管理
+    connectionManagement: {
+      pattern: "单例模式",
+      location: "lib/data/drift/database.dart",
+      implementation: [
+        "使用 LazyDatabase 延迟初始化，避免阻塞应用启动",
+        "提供全局单例 getter（如 AppDatabase.instance）",
+        "在应用启动时初始化，在应用关闭时调用 close()",
+        "Web 平台：使用 drift_web 的 WebDatabase",
+        "移动端：使用 path_provider 获取目录，创建 NativeDatabase",
+      ],
+    },
+
+    // 错误处理和日志规范
+    errorHandling: {
+      errorClassification: [
+        {
+          type: "DatabaseAdapterException",
+          categories: [
+            "数据错误（无效数据、约束违反）",
+            "连接错误（数据库连接失败）",
+            "权限错误（数据库文件权限问题）",
+            "查询错误（SQL 语法错误、类型错误）",
+          ],
+        },
+      ],
+      logging: {
+        debug: "使用 debugPrint 记录详细日志（操作步骤、参数值）",
+        info: "使用 print 记录关键步骤（数据库初始化、重要操作）",
+        warning: "使用 print 记录警告（性能问题、非致命错误）",
+        error: "使用 print 或日志框架记录错误（异常堆栈、错误上下文）",
+        location: "在 DriftAdapter 和 Repository 中使用 DatabaseOperationContext 记录上下文信息",
+      },
+    },
+
+    // 性能基准和监控
+    performanceBenchmarks: {
+      metrics: [
+        {
+          name: "查询耗时",
+          target: "< 50ms（单表查询）",
+          measurement: "使用 DatabaseInstrumentation 记录操作耗时",
+        },
+        {
+          name: "插入耗时",
+          target: "< 10ms（单条插入）",
+          measurement: "使用 DatabaseInstrumentation 记录操作耗时",
+        },
+        {
+          name: "批量插入耗时",
+          target: "< 100ms（100 条记录）",
+          measurement: "使用 DatabaseInstrumentation 记录操作耗时",
+        },
+        {
+          name: "内存使用",
+          target: "监控内存使用，确保没有内存泄漏",
+          measurement: "使用 Flutter DevTools 监控内存",
+        },
+      ],
+      monitoring: [
+        "在 DatabaseAdapter 中使用 DatabaseInstrumentation 记录所有操作耗时",
+        "在 Repository 中记录慢查询（> 100ms）",
+        "定期检查慢查询日志，优化查询性能",
+      ],
+    },
+
+    // Web 平台测试场景
+    webPlatformTesting: {
+      scenarios: [
+        {
+          name: "IndexedDB 存储限制测试",
+          test: "创建大量数据（接近浏览器存储限制），验证应用行为",
+          browsers: ["Chrome", "Firefox", "Safari", "Edge"],
+        },
+        {
+          name: "跨标签页数据同步测试",
+          test: "在多个标签页中打开应用，验证数据同步",
+          browsers: ["Chrome", "Firefox"],
+        },
+        {
+          name: "浏览器兼容性测试",
+          test: "在所有支持的浏览器中测试核心功能",
+          browsers: ["Chrome", "Firefox", "Safari", "Edge"],
+        },
+        {
+          name: "数据持久化测试",
+          test: "创建数据 → 刷新页面 → 验证数据仍然存在",
+          browsers: ["Chrome", "Firefox", "Safari"],
+        },
+      ],
+    },
+
+    // 环境变量配置
+    environmentVariables: {
+      databaseType: {
+        name: "DATABASE_TYPE",
+        values: ["objectbox", "drift"],
+        usage: [
+          "开发环境：通过环境变量设置（flutter run --dart-define=DATABASE_TYPE=drift）",
+          "CI/CD：在 CI 配置中设置环境变量",
+          "生产环境：使用 SharedPreferences 存储用户选择（key: 'database_type'）",
+        ],
+        default: "drift",
+        location: "lib/core/config/database_config.dart",
+      },
+    },
+
+    // 代码审查清单
+    codeReviewChecklist: [
+      "类型安全：所有查询使用 Drift 的类型安全 API，避免字符串查询",
+      "错误处理：所有数据库操作都有适当的错误处理和日志记录",
+      "性能优化：为常用查询字段添加索引，使用批量操作",
+      "外键约束：正确配置外键关系和级联删除策略",
+      "事务使用：写操作使用 writeTransaction，读操作使用 readTransaction",
+      "Stream 监听：正确使用 watchList，确保首次订阅时立即触发",
+      "代码规范：符合项目代码规范，通过 flutter analyze",
+      "测试覆盖：关键逻辑有单元测试覆盖",
     ],
   }
 }
