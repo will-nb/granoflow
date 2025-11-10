@@ -1,0 +1,1345 @@
+{
+  // ===========================================
+  // 1. 迭代概述
+  // ===========================================
+  iteration: {
+    // 迭代 ID：从 ObjectBox 迁移到 Drift
+    id: "2501XX-database-drift-migration",
+    
+    // 迭代标题
+    title: "数据库迁移：从 ObjectBox 到 Drift",
+    
+    // 迭代描述
+    description: "将项目数据库从 ObjectBox 迁移到 Drift，满足三个核心需求：1. 支持 Android 16KB 页面大小 2. 使用 UUID 作为主键 3. 支持 Web 平台。迁移期间保持 ObjectBox 和 Drift 并行支持，通过配置切换，确保迁移过程安全可控。",
+    
+    // 状态：planning
+    status: "planning",
+    
+    // 优先级：high（Web 支持是硬性需求）
+    priority: "high",
+    
+    // 基于的评估文档
+    basedOnDesign: "temp/drift_migration_evaluation.md",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单
+  // ===========================================
+  files: {
+    // 数据库适配器层
+    dataAdapters: [
+      {
+        path: "lib/data/database/drift_adapter.dart",
+        purpose: "实现 Drift 版本的 DatabaseAdapter，支持 Web（IndexedDB）和移动端（SQLite），提供与 ObjectBoxAdapter 相同的接口契约。",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/database/database_adapter.dart",
+          "lib/data/database/query_builder.dart",
+        ],
+        details: [
+          "实现 DatabaseAdapter 接口的所有方法：readTransaction、writeTransaction、queryBuilder、watch、watchList、put、putMany、remove、removeMany、findById、findAll、count、close。",
+          "readTransaction 方法：执行只读事务，使用 Drift 的 transaction API，允许多个并发读取。",
+          "writeTransaction 方法：执行写入事务，使用 Drift 的 transaction API，保证原子性和隔离性。",
+          "queryBuilder 方法：返回 DriftQueryBuilder 实例，用于构建类型安全的查询。",
+          "watch 方法：基于查询构建器监听查询结果变化，使用 Drift 的 Stream 查询监听机制。",
+          "watchList 方法：基于查询描述符监听查询结果变化，首次订阅时立即触发一次（triggerImmediately: true）。",
+          "put 方法：保存单个实体，使用 Drift 的 insert 或 update 操作。",
+          "putMany 方法：批量保存实体，使用 Drift 的批量插入操作，提高性能。",
+          "remove 方法：根据 ID 删除实体，返回是否删除成功。",
+          "removeMany 方法：批量删除实体，返回删除的数量。",
+          "findById 方法：根据 ID 查找实体，返回实体或 null。",
+          "findAll 方法：查找所有实体（无过滤条件），返回实体列表。",
+          "count 方法：统计实体数量，应该与 findAll() 返回的结果数量一致。",
+          "close 方法：关闭数据库连接，释放资源。",
+          "使用 drift_web 在 Web 平台使用 IndexedDB 作为后端存储。",
+          "使用 sqlite3_flutter_libs 在移动端使用 SQLite。",
+          "错误处理：捕获 Drift 异常，封装为 DatabaseAdapterException，附带 DatabaseOperationContext。",
+          "支持 DatabaseInstrumentation，记录操作日志和性能监控。",
+        ],
+      },
+      {
+        path: "lib/data/database/drift_query_builder.dart",
+        purpose: "实现 Drift 版本的 QueryBuilder，将 QueryDescriptor 转换为 Drift 的类型安全查询 API。",
+        action: "create",
+        estimatedLines: 250,
+        dependencies: [
+          "lib/data/database/query_builder.dart",
+          "lib/data/database/drift_adapter.dart",
+        ],
+        details: [
+          "实现 DatabaseQueryBuilder 接口的所有方法：filter、sort、limit、offset、findAll、findFirst、descriptor。",
+          "filter 方法：添加过滤条件，使用函数式谓词（DatabasePredicate），向后兼容。",
+          "sort 方法：添加排序条件，使用函数式比较器（DatabaseComparator），向后兼容。",
+          "limit 方法：限制返回数量，支持分页查询。",
+          "offset 方法：设置偏移量，支持分页查询。",
+          "findAll 方法：执行查询，返回所有匹配的实体列表。",
+          "findFirst 方法：执行查询，返回第一个匹配的实体或 null。",
+          "descriptor 属性：返回 QueryDescriptor，包含所有查询条件的结构化描述。",
+          "将 FieldCondition 转换为 Drift 的 where() 条件，支持所有操作符：equals、notEquals、greaterThan、lessThan、greaterOrEqual、lessOrEqual、between、contains、startsWith、endsWith、isNull、isNotNull。",
+          "将 OrderDescriptor 转换为 Drift 的 orderBy() 方法，支持升序和降序。",
+          "支持多字段排序：可以按多个字段排序，按顺序应用。",
+          "支持组合条件：使用 and、or 组合多个条件。",
+          "实现 describe() 方法，返回查询条件的结构化描述（字段、操作符、值），用于调试和日志。",
+          "类型安全：所有查询都是编译时类型检查，利用 Drift 的类型安全 API，避免运行时错误。",
+        ],
+      },
+      {
+        path: "lib/core/config/database_config.dart",
+        purpose: "数据库配置管理，支持在 ObjectBox 和 Drift 之间切换，迁移期间保持并行支持。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/database/database_adapter.dart",
+          "lib/data/database/objectbox_adapter.dart",
+          "lib/data/database/drift_adapter.dart",
+        ],
+        details: [
+          "定义 DatabaseType 枚举（objectbox、drift）。",
+          "提供 createAdapter() 工厂方法，根据配置返回对应的 DatabaseAdapter（ObjectBoxAdapter 或 DriftAdapter）。",
+          "配置读取：在应用启动时（main.dart）读取配置，优先从环境变量读取（kDebugMode 时，通过 const String.fromEnvironment('DATABASE_TYPE')），如果未设置则从 SharedPreferences 读取，如果都没有则使用默认值（drift）。",
+          "配置存储：生产环境使用 SharedPreferences 存储用户选择的数据库类型（key: 'database_type'），开发环境可以通过环境变量切换（DATABASE_TYPE=objectbox|drift）。",
+          "默认配置：生产环境默认使用 Drift，开发环境可以通过环境变量 DATABASE_TYPE=objectbox|drift 切换数据库类型。",
+          "配置切换：支持通过环境变量切换（开发环境），生产环境使用 SharedPreferences 存储用户选择。",
+          "迁移期间默认使用 Drift，但保留 ObjectBox 切换能力（通过环境变量或 SharedPreferences 切换）。",
+        ],
+      },
+    ],
+
+    // Drift 数据库和表定义
+    driftDatabase: [
+      {
+        path: "lib/data/drift/database.dart",
+        purpose: "定义 Drift 数据库类，配置所有表，支持 Web 和移动端连接。",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [],
+        details: [
+          "继承 GeneratedDatabase，使用 @DriftDatabase(version: 1) 注解，定义所有表：Tasks、Projects、Milestones、TaskLogs、ProjectLogs、MilestoneLogs、Tags、TaskTemplates、FocusSessions、Preferences、SeedImportLogs。",
+          "Web 平台初始化：使用 drift_web 的 WebDatabase 构造函数，数据库名称使用 'granoflow'，使用 LazyDatabase 延迟初始化，避免阻塞应用启动。",
+          "移动端初始化：使用 path_provider 的 getApplicationSupportDirectory() 获取目录，数据库文件名为 'granoflow.db'，使用 LazyDatabase 延迟初始化。",
+          "数据库版本管理：初始版本为 1，使用 @DriftDatabase(version: 1) 注解，后续版本变更时在 onUpgrade 方法中定义迁移逻辑（migration.addAll([...])）。",
+          "外键约束：在数据库打开时执行 PRAGMA foreign_keys = ON（通过 customStatement('PRAGMA foreign_keys = ON')），启用外键约束，确保数据完整性。",
+          "提供数据库实例创建方法：createDatabase()，根据平台（kIsWeb）选择 WebDatabase 或 NativeDatabase，返回 LazyDatabase 实例。",
+          "实现数据库打开和关闭逻辑，处理连接异常，捕获 DriftException 并转换为 DatabaseAdapterException。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/tasks.dart",
+        purpose: "定义 Tasks 表和 Task Data 类，迁移自 TaskEntity。",
+        action: "create",
+        estimatedLines: 120,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 Tasks Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、title（String）、status（intEnum<TaskStatus>）、dueAt（DateTime?）、startedAt（DateTime?）、endedAt（DateTime?）、archivedAt（DateTime?）、createdAt（DateTime）、updatedAt（DateTime）、parentId（String?）、projectId（String?）、milestoneId（String?）、sortIndex（double）、tags（List<String>，使用 JSON 存储）、templateLockCount（int）、seedSlug（String?）、allowInstantComplete（bool）、description（String?）。",
+          "配置外键关系：projectId 引用 Projects 表的 id 字段，parentId 自引用 Tasks 表的 id 字段，milestoneId 引用 Milestones 表的 id 字段。",
+          "定义 Task Data 类，实现 Insertable<Task> 接口，用于插入和更新操作。",
+          "使用 intEnum<TaskStatus>() 处理 TaskStatus 枚举类型，存储为 int。",
+          "tags 字段使用 JSON 存储（TextColumn 存储 JSON 字符串），或考虑使用关联表（如果查询需求复杂）。",
+          "添加索引：为 id、parentId、projectId、milestoneId、status、sortIndex 等常用查询字段添加索引，优化查询性能。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/projects.dart",
+        purpose: "定义 Projects 表和 Project Data 类，迁移自 ProjectEntity。",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 Projects Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、title（String）、status（intEnum<TaskStatus>）、dueAt（DateTime?）、startedAt（DateTime?）、endedAt（DateTime?）、createdAt（DateTime）、updatedAt（DateTime）、sortIndex（double）、tags（List<String>，使用 JSON 存储）、templateLockCount（int）、seedSlug（String?）、allowInstantComplete（bool）、description（String?）。",
+          "定义 Project Data 类，实现 Insertable<Project> 接口。",
+          "tags 字段使用 JSON 存储（TextColumn 存储 JSON 字符串）。",
+          "添加索引：为 id、status、sortIndex 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/milestones.dart",
+        purpose: "定义 Milestones 表和 Milestone Data 类，迁移自 MilestoneEntity。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 Milestones Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、projectId（String?，外键引用 Projects.id）、title（String）、status（intEnum<TaskStatus>）、dueAt（DateTime?）、startedAt（DateTime?）、endedAt（DateTime?）、createdAt（DateTime）、updatedAt（DateTime）、sortIndex（double）、tags（List<String>，使用 JSON 存储）、templateLockCount（int）、seedSlug（String?）、allowInstantComplete（bool）、description（String?）。",
+          "定义 Milestone Data 类，实现 Insertable<Milestone> 接口。",
+          "配置外键关系：projectId 引用 Projects 表（references(Projects, #id)）。",
+          "tags 字段使用 JSON 存储（TextColumn 存储 JSON 字符串）。",
+          "添加索引：为 id、projectId、status、sortIndex 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/task_logs.dart",
+        purpose: "定义 TaskLogs 表和 TaskLog Data 类，迁移自 TaskLogEntity。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 TaskLogs Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、taskId（String?，外键引用 Tasks.id）、timestamp（DateTime）、action（String）、previous（String?）、next（String?）、actor（String?）。",
+          "定义 TaskLog Data 类，实现 Insertable<TaskLog> 接口。",
+          "配置外键关系：taskId 引用 Tasks 表（references(Tasks, #id)）。",
+          "添加索引：为 id、taskId、timestamp 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/project_logs.dart",
+        purpose: "定义 ProjectLogs 表和 ProjectLog Data 类，迁移自 ProjectLogEntity。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 ProjectLogs Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、projectId（String?，外键引用 Projects.id）、timestamp（DateTime）、action（String）、previous（String?）、next（String?）、actor（String?）。",
+          "定义 ProjectLog Data 类，实现 Insertable<ProjectLog> 接口。",
+          "配置外键关系：projectId 引用 Projects 表（references(Projects, #id)）。",
+          "添加索引：为 id、projectId、timestamp 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/milestone_logs.dart",
+        purpose: "定义 MilestoneLogs 表和 MilestoneLog Data 类，迁移自 MilestoneLogEntity。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 MilestoneLogs Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、milestoneId（String?，外键引用 Milestones.id）、timestamp（DateTime）、action（String）、previous（String?）、next（String?）、actor（String?）。",
+          "定义 MilestoneLog Data 类，实现 Insertable<MilestoneLog> 接口。",
+          "配置外键关系：milestoneId 引用 Milestones 表（references(Milestones, #id)）。",
+          "添加索引：为 id、milestoneId、timestamp 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/tags.dart",
+        purpose: "定义 Tags 表和 Tag Data 类，迁移自 TagEntity。",
+        action: "create",
+        estimatedLines: 60,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 Tags Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、slug（String，唯一索引）、kindIndex（int，对应 TagKind 枚举）、localizedLabelsJson（String，JSON 格式存储 Map<String, String>）。",
+          "定义 Tag Data 类，实现 Insertable<Tag> 接口。",
+          "localizedLabelsJson 字段使用 JSON 存储本地化标签映射（Map<String, String>）。",
+          "添加索引：为 id、slug、kindIndex 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/task_templates.dart",
+        purpose: "定义 TaskTemplates 表和 TaskTemplate Data 类，迁移自 TaskTemplateEntity。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 TaskTemplates Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、title（String）、parentTaskId（String?，外键引用 Tasks.id）、defaultTags（List<String>，使用 JSON 存储）、createdAt（DateTime）、updatedAt（DateTime）、lastUsedAt（DateTime?）、seedSlug（String?）、suggestedEstimateMinutes（int?）。",
+          "定义 TaskTemplate Data 类，实现 Insertable<TaskTemplate> 接口。",
+          "配置外键关系：parentTaskId 引用 Tasks 表（references(Tasks, #id)）。",
+          "defaultTags 字段使用 JSON 存储（TextColumn 存储 JSON 字符串）。",
+          "添加索引：为 id、parentTaskId、seedSlug、lastUsedAt 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/focus_sessions.dart",
+        purpose: "定义 FocusSessions 表和 FocusSession Data 类，迁移自 FocusSessionEntity。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 FocusSessions Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、taskId（String?，外键引用 Tasks.id）、startedAt（DateTime）、endedAt（DateTime?）、actualMinutes（int）、estimateMinutes（int?）、alarmEnabled（bool）、transferredToTaskId（String?，外键引用 Tasks.id）、reflectionNote（String?）。",
+          "定义 FocusSession Data 类，实现 Insertable<FocusSession> 接口。",
+          "配置外键关系：taskId 引用 Tasks 表（references(Tasks, #id)），transferredToTaskId 引用 Tasks 表（references(Tasks, #id)）。",
+          "添加索引：为 id、taskId、startedAt、endedAt 等常用查询字段添加索引。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/preferences.dart",
+        purpose: "定义 Preferences 表和 Preference Data 类，迁移自 PreferenceEntity。",
+        action: "create",
+        estimatedLines: 60,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 Preferences Table，使用 TextColumn 作为主键（id，String，默认值为 'default'）。",
+          "定义所有字段：id（主键，String，默认值为 'default'）、localeCode（String）、themeModeIndex（int，对应 ThemeMode 枚举）、fontScaleLevel（String，对应 FontScaleLevel 枚举名称）、clockTickSoundEnabled（bool）、updatedAt（DateTime）。",
+          "定义 Preference Data 类，实现 Insertable<Preference> 接口。",
+          "添加索引：为 id 添加唯一索引（因为只有一条记录）。",
+        ],
+      },
+      {
+        path: "lib/data/drift/tables/seed_import_logs.dart",
+        purpose: "定义 SeedImportLogs 表和 SeedImportLog Data 类，迁移自 SeedImportLogEntity。",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/drift/database.dart",
+        ],
+        details: [
+          "定义 SeedImportLogs Table，使用 TextColumn 作为主键（id，String，UUID v4）。",
+          "定义所有字段：id（主键）、version（String）、importedAt（DateTime）。",
+          "定义 SeedImportLog Data 类，实现 Insertable<SeedImportLog> 接口。",
+          "添加索引：为 id、version、importedAt 等常用查询字段添加索引，特别是 importedAt 用于排序查询最新版本。",
+        ],
+      },
+      {
+        path: "lib/data/drift/converters.dart",
+        purpose: "类型转换器，处理枚举、DateTime、List<String> 等类型的转换。",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/data/models/project.dart",
+        ],
+        details: [
+          "实现 TaskStatus 枚举转换器（intEnum）。",
+          "实现 ProjectStatus 枚举转换器（intEnum）。",
+          "实现 DateTime 转换器（dateTime）。",
+          "实现 List<String> 转换器（tags 字段，使用 JSON 存储）。",
+          "提供双向转换方法：Model → Drift Data，Drift Data → Model。",
+        ],
+      },
+    ],
+
+    // Repository 层
+    repositories: [
+      {
+        path: "lib/data/repositories/drift/drift_task_repository.dart",
+        purpose: "实现 Drift 版本的 TaskRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 400,
+        dependencies: [
+          "lib/data/repositories/task_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/tasks.dart",
+        ],
+        details: [
+          "实现 TaskRepository 接口的所有方法（共 30+ 个方法）。",
+          "Stream/监听方法：watchSection(TaskSection)、watchTaskTree(String rootTaskId)、watchInbox()、watchProjects()（已废弃）、watchQuickTasks()、watchMilestones(String projectId)（已废弃）、watchTasksByProjectId(String projectId)、watchTasksByMilestoneId(String milestoneId)、watchInboxFiltered({...})、watchTaskById(String id)。",
+          "查询方法：listAll()、listRoots()、listChildren(String parentId)、listChildrenIncludingTrashed(String parentId)、listSectionTasks(TaskSection)、listTasksByMilestoneId(String milestoneId)、findById(String id)、findByTaskId(String taskId)、findBySlug(String slug)、searchByTitle(String query, {TaskStatus? status, int limit})。",
+          "分页查询方法：listCompletedTasks({limit, offset, contextTag, priorityTag, urgencyTag, importanceTag, projectId, milestoneId, showNoProject})、listArchivedTasks({...})、listTrashedTasks({...})。",
+          "计数方法：countCompletedTasks()、countArchivedTasks()、countTrashedTasks()。",
+          "写操作方法：createTask(TaskDraft)、createTaskWithId(TaskDraft, String taskId, DateTime createdAt, DateTime updatedAt)、updateTask(String taskId, TaskUpdate payload)、moveTask({taskId, targetParentId, targetSection, sortIndex, dueAt})、markStatus({taskId, status})、archiveTask(String taskId)、softDelete(String taskId)、adjustTemplateLock({taskId, delta})。",
+          "批量操作方法：upsertTasks(List<Task>)、batchUpdate(Map<String, TaskUpdate>)、purgeObsolete(DateTime olderThan)、clearAllTrashedTasks()。",
+          "使用 DriftQueryBuilder 构建类型安全的查询，处理复杂条件（状态、标签、项目、里程碑、父任务等）。",
+          "关系查询策略：优先使用 Drift 的 JOIN 查询（select(tasks).join([innerJoin(projects, tasks.projectId.equalsExp(projects.id))])），提高性能，减少数据库查询次数。Task → Project 使用 JOIN 查询，Task → Milestone 使用 JOIN 查询，Task 自引用（parentId）使用单独查询。",
+          "日志查询：Task 的 logs 使用单独查询（select(taskLogs).where((t) => t.taskId.equals(taskId))），因为是一对多关系，JOIN 可能返回重复行，单独查询更清晰。",
+          "性能优化：对于频繁查询的关系（如 Task → Project），使用 JOIN；对于不频繁的关系（如 Task → Logs），使用多次查询。",
+          "实现 TaskEntity 到 Task 模型的转换方法（_toTask），处理日志（TaskLogEntry）的加载和转换，使用 converters.dart 中的转换器函数（taskStatusFromIndex 等）。",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_project_repository.dart",
+        purpose: "实现 Drift 版本的 ProjectRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/repositories/project_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/projects.dart",
+        ],
+        details: [
+          "实现 ProjectRepository 接口的所有方法：watchActiveProjects()、watchProjectsByStatus(ProjectFilterStatus)、watchProjectsByStatuses(Set<TaskStatus>)、findById(String id)、create(ProjectDraft)、createProjectWithId(ProjectDraft, String projectId, DateTime createdAt, DateTime updatedAt)、update(String id, ProjectUpdate)、delete(String id)、listAll()。",
+          "watchActiveProjects() 方法：使用 DriftQueryBuilder 查询状态为 active 的项目，使用 watchList 监听变化，转换为 Project 模型并返回 Stream。",
+          "watchProjectsByStatus(ProjectFilterStatus) 方法：根据状态过滤项目（active、completed、archived），使用 watchList 监听变化。",
+          "watchProjectsByStatuses(Set<TaskStatus>) 方法：根据多个状态过滤项目，使用 where status in (statuses) 查询。",
+          "findById(String id) 方法：查询指定 id 的项目，加载关联的 ProjectLogEntry，转换为 Project 模型。",
+          "create(ProjectDraft) 方法：生成 UUID v4 作为 projectId，调用 createProjectWithId 创建项目。",
+          "createProjectWithId(...) 方法：创建 ProjectEntity，保存到数据库，如果 draft.logs 不为空则创建 ProjectLogEntity，返回 Project 模型。",
+          "update(String id, ProjectUpdate) 方法：查询现有项目，根据 payload 更新字段，更新 updatedAt 时间戳，保存到数据库。",
+          "delete(String id) 方法：查询项目，删除关联的 ProjectLogEntity，删除项目实体。",
+          "listAll() 方法：查询所有项目，加载关联的日志，转换为 Project 模型列表。",
+          "使用 DriftQueryBuilder 构建类型安全的查询，处理状态过滤和排序。",
+          "关系查询策略：Project 的 logs 使用单独查询（select(projectLogs).where((p) => p.projectId.equals(projectId))），因为是一对多关系，JOIN 可能返回重复行，单独查询更清晰。",
+          "性能优化：对于不频繁的关系（如 Project → Logs），使用多次查询，避免 JOIN 返回重复行。",
+          "实现 ProjectEntity 到 Project 模型的转换方法（_toProject），处理日志（ProjectLogEntry）的加载和转换，使用 converters.dart 中的转换器函数。",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_milestone_repository.dart",
+        purpose: "实现 Drift 版本的 MilestoneRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 250,
+        dependencies: [
+          "lib/data/repositories/milestone_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/milestones.dart",
+        ],
+        details: [
+          "实现 MilestoneRepository 接口的所有方法：watchByProjectId(String projectId)、listByProjectId(String projectId)、findById(String id)、create(MilestoneDraft)、createMilestoneWithId(MilestoneDraft, String milestoneId, DateTime createdAt, DateTime updatedAt)、update(String id, MilestoneUpdate)、delete(String id)、listAll()。",
+          "watchByProjectId(String projectId) 方法：使用 DriftQueryBuilder 查询指定项目的里程碑（where projectId equals projectId），使用 watchList 监听变化，转换为 Milestone 模型并返回 Stream。",
+          "listByProjectId(String projectId) 方法：查询指定项目的所有里程碑，加载关联的 MilestoneLogEntry，转换为 Milestone 模型列表，按 sortIndex 排序。",
+          "findById(String id) 方法：查询指定 id 的里程碑，加载关联的 MilestoneLogEntry，转换为 Milestone 模型。",
+          "create(MilestoneDraft) 方法：生成 UUID v4 作为 milestoneId，调用 createMilestoneWithId 创建里程碑。",
+          "createMilestoneWithId(...) 方法：创建 MilestoneEntity，保存到数据库，如果 draft.logs 不为空则创建 MilestoneLogEntity，返回 Milestone 模型。",
+          "update(String id, MilestoneUpdate) 方法：查询现有里程碑，根据 payload 更新字段，更新 updatedAt 时间戳，保存到数据库。",
+          "delete(String id) 方法：查询里程碑，删除关联的 MilestoneLogEntity，删除里程碑实体。",
+          "listAll() 方法：查询所有里程碑，加载关联的日志，转换为 Milestone 模型列表。",
+          "使用 DriftQueryBuilder 构建类型安全的查询，处理 projectId 过滤和排序。",
+          "关系查询策略：Milestone → Project 使用 JOIN 查询（select(milestones).join([innerJoin(projects, milestones.projectId.equalsExp(projects.id))])），提高性能，减少数据库查询次数。Milestone 的 logs 使用单独查询，因为是一对多关系，JOIN 可能返回重复行，单独查询更清晰。",
+          "性能优化：对于频繁查询的关系（如 Milestone → Project），使用 JOIN；对于不频繁的关系（如 Milestone → Logs），使用多次查询。",
+          "实现 MilestoneEntity 到 Milestone 模型的转换方法（_toMilestone），处理日志（MilestoneLogEntry）的加载和转换，使用 converters.dart 中的转换器函数。",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_tag_repository.dart",
+        purpose: "实现 Drift 版本的 TagRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/repositories/tag_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/tags.dart",
+        ],
+        details: [
+          "实现 TagRepository 接口的所有方法：initializeTags()、clearAll()、listByKind(TagKind)、findBySlug(String slug)。",
+          "initializeTags() 方法：从 AppConstants.tags 加载标签定义，为每个标签创建或更新 TagEntity（检查 slug 是否存在，存在则更新，不存在则创建新记录），使用 JSON 存储 localizedLabels。",
+          "clearAll() 方法：删除所有 TagEntity 记录，使用事务保证原子性。",
+          "listByKind(TagKind) 方法：使用 DriftQueryBuilder 查询指定类型的标签（where kindIndex equals kind.index），转换为 Tag 模型列表。",
+          "findBySlug(String slug) 方法：使用 DriftQueryBuilder 查询指定 slug 的标签（where slug equals slug），如果找到则转换为 Tag 模型，否则返回 null。",
+          "使用 DriftQueryBuilder 构建类型安全的查询，处理 kindIndex 和 slug 过滤。",
+          "实现 TagEntity 到 Tag 模型的转换方法（_toTag），解析 JSON 字符串为 Map<String, String> 的 localizedLabels，处理 TagKind 枚举转换。",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_task_template_repository.dart",
+        purpose: "实现 Drift 版本的 TaskTemplateRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/repositories/task_template_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/task_templates.dart",
+        ],
+        details: [
+          "实现 TaskTemplateRepository 接口的所有方法：listRecent({int limit})、search({String query, int limit})、createTemplate(TaskTemplateDraft)、createTemplateWithSeed({TaskTemplateDraft draft, String? parentTaskId})、updateTemplate({String templateId, TaskTemplateUpdate payload})、deleteTemplate(String templateId)、markUsed(String templateId, DateTime usedAt)、findBySlug(String slug)、findById(String id)。",
+          "listRecent({int limit}) 方法：使用 DriftQueryBuilder 查询最近使用的模板（orderBy lastUsedAt descending，limit limit），转换为 TaskTemplate 模型列表。",
+          "search({String query, int limit}) 方法：使用 DriftQueryBuilder 查询标题包含 query 的模板（where title contains query，limit limit），转换为 TaskTemplate 模型列表。",
+          "createTemplate(TaskTemplateDraft) 方法：生成 UUID v4 作为 templateId，创建 TaskTemplateEntity，保存到数据库，返回 TaskTemplate 模型。",
+          "createTemplateWithSeed({...}) 方法：生成 UUID v4 作为 templateId，创建 TaskTemplateEntity（使用 parentTaskId 参数或 draft.parentTaskId），保存到数据库，如果设置了 parentTaskId 则处理外键关系，返回 TaskTemplate 模型。",
+          "updateTemplate({...}) 方法：查询现有模板，根据 payload 更新字段（title、parentTaskId、defaultTags、suggestedEstimateMinutes），更新 updatedAt 时间戳，保存到数据库。",
+          "deleteTemplate(String templateId) 方法：查询模板，删除实体。",
+          "markUsed(String templateId, DateTime usedAt) 方法：查询模板，更新 lastUsedAt 字段为 usedAt，保存到数据库。",
+          "findBySlug(String slug) 方法：使用 DriftQueryBuilder 查询指定 slug 的模板（where seedSlug equals slug），如果找到则转换为 TaskTemplate 模型，否则返回 null。",
+          "findById(String id) 方法：查询指定 id 的模板，转换为 TaskTemplate 模型。",
+          "使用 DriftQueryBuilder 构建类型安全的查询，处理标题搜索、排序和分页。",
+          "实现 TaskTemplateEntity 到 TaskTemplate 模型的转换方法（_toTaskTemplate）。",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_focus_session_repository.dart",
+        purpose: "实现 Drift 版本的 FocusSessionRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/repositories/focus_session_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/focus_sessions.dart",
+        ],
+        details: [
+          "实现 FocusSessionRepository 接口的所有方法：startSession({String taskId, int? estimateMinutes, bool alarmEnabled})、endSession({String sessionId, int actualMinutes, String? transferToTaskId, String? reflectionNote})、watchActiveSession(String taskId)、listRecentSessions({String taskId, int limit})、totalMinutesForTask(String taskId)、totalMinutesForTasks(List<String> taskIds})、totalMinutesOverall()、findById(String sessionId)。",
+          "startSession({...}) 方法：生成 UUID v4 作为 sessionId，创建 FocusSessionEntity（taskId、estimateMinutes、alarmEnabled、startedAt=当前时间、endedAt=null、actualMinutes=0），保存到数据库，返回 FocusSession 模型。",
+          "endSession({...}) 方法：查询指定 sessionId 的会话，更新 endedAt 为当前时间、actualMinutes 为 actualMinutes、transferToTaskId、reflectionNote，保存到数据库。如果 transferToTaskId 不为空，需要处理时间转移逻辑。",
+          "watchActiveSession(String taskId) 方法：使用 DriftQueryBuilder 查询指定任务的活跃会话（where taskId equals taskId and endedAt is null），使用 watchList 监听变化，转换为 FocusSession 模型并返回 Stream（最多返回一个会话）。",
+          "listRecentSessions({String taskId, int limit}) 方法：使用 DriftQueryBuilder 查询指定任务的最近会话（where taskId equals taskId，orderBy startedAt descending，limit limit），转换为 FocusSession 模型列表。",
+          "totalMinutesForTask(String taskId) 方法：使用 DriftQueryBuilder 查询指定任务的所有会话，计算 actualMinutes 的总和，返回总分钟数。",
+          "totalMinutesForTasks(List<String> taskIds}) 方法：使用 DriftQueryBuilder 批量查询多个任务的会话（where taskId in (taskIds)），按 taskId 分组计算 actualMinutes 总和，返回 Map<taskId, totalMinutes>，避免 N+1 查询问题。",
+          "totalMinutesOverall() 方法：查询所有会话，计算 actualMinutes 的总和，返回总分钟数。",
+          "findById(String sessionId) 方法：查询指定 sessionId 的会话，转换为 FocusSession 模型。",
+          "使用 DriftQueryBuilder 构建类型安全的查询，处理 taskId 过滤、时间排序和聚合计算。",
+          "实现 FocusSessionEntity 到 FocusSession 模型的转换方法。",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_preference_repository.dart",
+        purpose: "实现 Drift 版本的 PreferenceRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/repositories/preference_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/preferences.dart",
+        ],
+        details: [
+          "实现 PreferenceRepository 接口的所有方法：watch()、load()、update(PreferenceUpdate)。",
+          "load() 方法：查询 id='default' 的偏好设置，如果不存在则创建默认值（localeCode='en'、themeMode=system、fontScaleLevel=medium、clockTickSoundEnabled=true），返回 Preference 模型。",
+          "update(PreferenceUpdate) 方法：查询 id='default' 的偏好设置，如果不存在则先创建默认值，然后根据 payload 更新字段（localeCode、themeMode、fontScaleLevel、clockTickSoundEnabled），更新 updatedAt 时间戳，保存到数据库。",
+          "watch() 方法：使用 DriftAdapter 的 watchList 监听 Preferences 表变化，查找 id='default' 的记录，如果不存在则创建默认值，转换为 Preference 模型并返回 Stream。",
+          "使用 DriftQueryBuilder 构建类型安全的查询（where id equals 'default'）。",
+          "实现 PreferenceEntity 到 Preference 模型的转换方法（_toPreference），处理枚举类型转换（themeMode、fontScaleLevel）。",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_seed_repository.dart",
+        purpose: "实现 Drift 版本的 SeedRepository，迁移所有查询和写操作逻辑。",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/repositories/seed_repository.dart",
+          "lib/data/database/drift_adapter.dart",
+          "lib/data/drift/tables/seed_import_logs.dart",
+        ],
+        details: [
+          "实现 SeedRepository 接口的所有方法：wasImported(String version)、importSeeds(SeedPayload payload)、latestVersion()、recordVersion(String version)、clearVersion(String version)。",
+          "wasImported(String version) 方法：查询 SeedImportLogs 表，查找 version 字段等于指定版本号的记录，如果找到则返回 true，否则返回 false。使用 DriftQueryBuilder 构建查询（where version equals version）。",
+          "importSeeds(SeedPayload payload) 方法：保留接口兼容性，实际导入逻辑在 SeedImportService 中完成，这里只需要调用 recordVersion(payload.version) 记录导入版本即可。",
+          "latestVersion() 方法：查询 SeedImportLogs 表所有记录，如果为空则返回 null，否则找到 importedAt 时间最新的记录，返回其 version 字段。使用 DriftQueryBuilder 构建查询并排序（orderBy importedAt descending，limit 1）。",
+          "recordVersion(String version) 方法：查询 SeedImportLogs 表，查找 version 字段等于指定版本号的记录，如果已存在则更新 importedAt 为当前时间，如果不存在则创建新记录（生成 UUID v4 作为 id，设置 version 和 importedAt）。使用事务保证原子性。",
+          "clearVersion(String version) 方法：查询 SeedImportLogs 表，查找所有 version 字段等于指定版本号的记录，批量删除这些记录。使用事务保证原子性。",
+          "使用 DriftQueryBuilder 构建类型安全的查询，处理版本号匹配和时间排序。",
+        ],
+      },
+    ],
+
+    // 数据迁移工具
+    migration: [
+      {
+        path: "lib/data/migration/objectbox_to_drift_migrator.dart",
+        purpose: "数据迁移工具，从 ObjectBox 导出数据并导入到 Drift 数据库。",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/database/objectbox_adapter.dart",
+          "lib/data/database/drift_adapter.dart",
+        ],
+        details: [
+          "实现 ObjectBox 数据导出逻辑：遍历所有实体类型（TaskEntity、ProjectEntity、MilestoneEntity、TaskLogEntity、ProjectLogEntity、MilestoneLogEntity、TagEntity、TaskTemplateEntity、FocusSessionEntity、PreferenceEntity、SeedImportLogEntity），使用 ObjectBoxAdapter 查询所有记录，转换为 JSON 格式（包含所有字段值）。",
+          "实现 Drift 数据导入逻辑：将 JSON 数据转换为对应的 Drift Data 类（Task、Project、Milestone、TaskLog、ProjectLog、MilestoneLog、Tag、TaskTemplate、FocusSession、Preference、SeedImportLog），使用 DriftAdapter 的 putMany 批量插入。",
+          "迁移顺序：先迁移主实体（Task、Project、Milestone、Tag、TaskTemplate、Preference、SeedImportLog），再迁移关联实体（TaskLog、ProjectLog、MilestoneLog、FocusSession），确保外键关系正确。",
+          "支持增量迁移：检查 Drift 数据库中是否已存在记录（通过 id 判断），只迁移新增或修改的数据（通过 updatedAt 比较）。",
+          "错误处理：记录迁移过程中的错误（实体类型、实体 ID、错误信息）。",
+          "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
+          "进度报告：提供迁移进度（当前实体类型、已迁移数量、总数量）和统计信息（成功数量、失败数量、跳过数量、总耗时）。",
+        ],
+      },
+      {
+        path: "scripts/migrate_to_drift.dart",
+        purpose: "数据迁移脚本，命令行工具，用于执行数据迁移。",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/migration/objectbox_to_drift_migrator.dart",
+        ],
+        details: [
+          "命令行接口：支持 --dry-run 等选项。",
+          "执行迁移流程：导出 → 转换 → 导入。",
+          "生成迁移报告：包含迁移统计、错误信息。",
+          "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
+        ],
+      },
+    ],
+
+    // 测试文件
+    tests: [
+      {
+        path: "test/data/database/drift_adapter_test.dart",
+        purpose: "DriftAdapter 单元测试，验证所有接口方法实现正确。",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/database/drift_adapter.dart",
+        ],
+        details: [
+          "测试 CRUD 操作：put、putMany、remove、findById、findAll、count。",
+          "测试事务：readTransaction、writeTransaction，验证原子性和隔离性。",
+          "测试 Stream/监听：watchList，验证触发规则和去重逻辑。",
+          "测试错误处理：验证异常封装和 DatabaseOperationContext。",
+          "测试 Instrumentation：验证日志记录和性能监控。",
+          "与 ObjectBoxAdapter 对比测试，确保接口契约一致。",
+        ],
+      },
+      {
+        path: "test/data/database/drift_query_builder_test.dart",
+        purpose: "DriftQueryBuilder 单元测试，验证查询构建逻辑正确。",
+        action: "create",
+        estimatedLines: 250,
+        dependencies: [
+          "lib/data/database/drift_query_builder.dart",
+        ],
+        details: [
+          "测试条件构建：equals、greaterThan、contains、startsWith 等。",
+          "测试排序：单字段、多字段、升序、降序。",
+          "测试分页：limit、offset。",
+          "测试组合条件：and、or。",
+          "测试 describe() 方法，验证输出格式。",
+        ],
+      },
+      {
+        path: "test/data/repositories/drift/drift_task_repository_test.dart",
+        purpose: "DriftTaskRepository 单元测试，使用 mock adapter 验证所有方法。",
+        action: "create",
+        estimatedLines: 400,
+        dependencies: [
+          "lib/data/repositories/drift/drift_task_repository.dart",
+        ],
+        details: [
+          "测试查询方法：listAll、listRoots、listChildren、findById、findBySlug。",
+          "测试写操作：create、update、delete、archiveTask、markStatus。",
+          "测试 Stream/监听：watchInbox、watchSection、watchTasksByProjectId。",
+          "测试关系查询：Task → Project、Task → Milestone。",
+          "测试错误处理：验证异常传播和上下文信息。",
+        ],
+      },
+      {
+        path: "test/data/migration/objectbox_to_drift_migrator_test.dart",
+        purpose: "数据迁移工具单元测试，验证迁移逻辑正确。",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/migration/objectbox_to_drift_migrator.dart",
+        ],
+        details: [
+          "测试数据导出：验证 ObjectBox 数据正确导出。",
+          "测试数据导入：验证数据正确导入到 Drift。",
+          "测试错误处理：验证错误记录和异常处理。",
+          "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
+        ],
+      },
+      {
+        path: "integration_test/drift_migration_test.dart",
+        purpose: "Drift 迁移集成测试，验证迁移后所有功能正常。",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/repositories/drift/drift_task_repository.dart",
+          "lib/data/repositories/drift/drift_project_repository.dart",
+        ],
+        details: [
+          "测试核心功能：创建/编辑/删除任务、项目、里程碑。",
+          "测试查询功能：验证所有查询方法正常工作。",
+          "测试 Stream/监听：验证数据变化时 Stream 正确触发。",
+          "测试 Web 平台：验证 Web 平台数据持久化正常。",
+          "注意：不需要保存历史数据，每次测试前运行 scripts/anz clean 清空所有数据。",
+          "测试命令：flutter test integration_test/drift_migration_test.dart -d macos",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件
+  // ===========================================
+  modifications: [
+    {
+      file: "pubspec.yaml",
+      purpose: "添加 Drift 相关依赖，保留 ObjectBox 依赖直到迁移完成。",
+      changes: [
+        "添加 drift: ^2.29.0 和 drift_dev: ^2.29.0 依赖（用于代码生成，需要与 Drift 版本匹配，使用最新稳定版）。",
+        "添加 sqlite3_flutter_libs: ^0.5.40 依赖（用于移动端 SQLite，提供 SQLite 原生库，使用最新稳定版）。",
+        "添加 drift_web: ^2.29.0 依赖（用于 Web 平台 IndexedDB，提供 Web 数据库支持，使用最新稳定版，版本需与 drift 匹配）。",
+        "保留 objectbox: ^4.0.0 和 objectbox_flutter_libs: ^4.0.0 依赖（迁移期间需要，迁移完成后删除）。",
+      ],
+      estimatedLines: 10,
+    },
+    {
+      file: "lib/core/providers/repository_providers.dart",
+      purpose: "更新依赖注入，支持根据配置创建 ObjectBox 或 Drift 的 Repository。",
+      changes: [
+        "引入 DatabaseConfig，在 databaseAdapterProvider 中根据 DatabaseConfig.current 创建对应的 DatabaseAdapter（ObjectBoxAdapter 或 DriftAdapter）。",
+        "更新所有 Repository Provider（taskRepositoryProvider、projectRepositoryProvider 等），根据 DatabaseConfig.current 创建对应的 Repository（DriftRepository 或 ObjectBoxRepository）。",
+        "迁移期间默认使用 Drift，但保留 ObjectBox 切换能力（通过 DatabaseConfig 配置切换）。",
+      ],
+      estimatedLines: 50,
+    },
+    {
+      file: "lib/main.dart",
+      purpose: "更新应用初始化，支持 Drift 数据库初始化。",
+      changes: [
+        "根据 DatabaseConfig.current 读取配置，调用 DatabaseConfig.createAdapter() 创建对应的 DatabaseAdapter（ObjectBox 或 Drift）。",
+        "Web 平台：使用 drift_web 初始化 Drift 数据库（IndexedDB），移动端使用 sqlite3_flutter_libs 初始化 Drift 数据库（SQLite）。",
+        "迁移检测：在应用启动时检测是否存在 ObjectBox 数据（检查 ObjectBox 数据库文件是否存在，路径：getApplicationSupportDirectory()/objectbox），如果存在且 Drift 数据库为空（通过 count 检查），提示用户迁移。",
+        "迁移提示：使用对话框（showDialog）提示用户是否迁移数据，提供'立即迁移'和'稍后提醒'选项，用户选择后保存到 SharedPreferences（key: 'migration_prompted'）。",
+        "迁移执行：用户确认后，调用 ObjectBoxToDriftMigrator 执行迁移，显示进度条（使用 Stream 监听迁移进度），迁移完成后标记迁移完成（保存到 SharedPreferences key: 'migration_completed'）。",
+        "迁移失败：如果迁移失败，记录错误日志，提示用户稍后重试，保留 ObjectBox 数据，不删除 ObjectBox 数据库，允许用户下次启动时再次尝试迁移。",
+        "迁移成功：迁移成功后，标记迁移完成（保存到 SharedPreferences），后续启动不再提示迁移。",
+      ],
+      estimatedLines: 30,
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤
+  // ===========================================
+  // 注意：阶段完成后自动执行下一阶段，不需要沟通确认
+  // AI 开发将完成所有功能，按顺序执行所有阶段
+  // 每个阶段完成时忽略 pre-commit，强行 git commit（使用 --no-verify 选项）
+  // 
+  // 错误处理策略：
+  // - 如果某个任务失败，先尝试修复（如 analyze issues、测试失败），修复后继续
+  // - 如果无法自动修复（如需要人工决策），记录问题并继续下一个任务，在阶段完成时总结所有未解决问题
+  // - build_runner 冲突：使用 --delete-conflicting-outputs 参数自动删除冲突文件
+  // - analyze issues 无法自动修复：记录到 commit message 中，标记为已知问题，继续后续任务
+  implementationSteps: [
+    {
+      step: 1,
+      title: "阶段 1：基础设施搭建",
+      description: "添加 Drift 依赖，实现 DriftAdapter 和 DriftQueryBuilder，创建数据迁移工具。",
+      tasks: [
+        {
+          task: "更新 pubspec.yaml，添加 Drift 相关依赖",
+          file: "pubspec.yaml",
+          action: "添加 drift、drift_dev、sqlite3_flutter_libs、drift_web 依赖",
+        },
+        {
+          task: "运行 flutter pub get，验证依赖安装成功",
+          command: "flutter pub get",
+        },
+        {
+          task: "创建 DriftAdapter，实现 DatabaseAdapter 接口",
+          file: "lib/data/database/drift_adapter.dart",
+          action: "实现所有接口方法，支持 Web 和移动端",
+        },
+        {
+          task: "创建 DriftQueryBuilder，实现查询构建逻辑",
+          file: "lib/data/database/drift_query_builder.dart",
+          action: "将 QueryDescriptor 转换为 Drift 查询",
+        },
+        {
+          task: "创建 DatabaseConfig，支持数据库切换",
+          file: "lib/core/config/database_config.dart",
+          action: "实现工厂方法，根据配置创建对应的 Adapter",
+        },
+        {
+          task: "创建数据迁移工具",
+          file: "lib/data/migration/objectbox_to_drift_migrator.dart",
+          action: "实现 ObjectBox 数据导出和 Drift 数据导入逻辑",
+        },
+        {
+          task: "编写单元测试，验证 DriftAdapter 和 DriftQueryBuilder",
+          file: "test/data/database/drift_adapter_test.dart",
+          action: "测试所有接口方法，确保与 ObjectBoxAdapter 契约一致",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 基础设施搭建'",
+          action: "提交阶段 1 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：实体定义迁移",
+      description: "创建 Drift 数据库文件，定义所有表的 Table 和 Data 类，实现类型转换器。",
+      tasks: [
+        {
+          task: "创建 Drift 数据库文件",
+          file: "lib/data/drift/database.dart",
+          action: "定义数据库类，配置所有表，支持 Web 和移动端连接",
+        },
+        {
+          task: "定义 Tasks Table 和 Task Data 类",
+          file: "lib/data/drift/tables/tasks.dart",
+          action: "迁移 TaskEntity 所有字段，配置主键和外键关系",
+        },
+        {
+          task: "定义 Projects Table 和 Project Data 类",
+          file: "lib/data/drift/tables/projects.dart",
+          action: "迁移 ProjectEntity 所有字段",
+        },
+        {
+          task: "定义 Milestones Table 和 Milestone Data 类",
+          file: "lib/data/drift/tables/milestones.dart",
+          action: "迁移 MilestoneEntity 所有字段，配置外键关系",
+        },
+        {
+          task: "定义所有 Log 表（TaskLogs、ProjectLogs、MilestoneLogs）",
+          file: "lib/data/drift/tables/task_logs.dart",
+          action: "迁移所有 Log 实体，配置外键关系",
+        },
+        {
+          task: "定义其他表（Tags、TaskTemplates、FocusSessions、Preferences、SeedImportLogs）",
+          file: "lib/data/drift/tables/tags.dart",
+          action: "迁移所有剩余实体",
+        },
+        {
+          task: "实现类型转换器",
+          file: "lib/data/drift/converters.dart",
+          action: "实现枚举、DateTime、List<String> 转换器",
+        },
+        {
+          task: "运行 build_runner，验证代码生成",
+          command: "flutter pub run build_runner build --delete-conflicting-outputs",
+        },
+        {
+          task: "验证数据库可以正常创建和连接",
+          action: "在 Web 和移动端测试数据库初始化",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - 实体定义迁移'",
+          action: "提交阶段 2 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：Repository 迁移",
+      description: "实现所有 DriftRepository，迁移查询和写操作逻辑，优化查询性能。",
+      tasks: [
+        {
+          task: "实现 DriftTaskRepository",
+          file: "lib/data/repositories/drift/drift_task_repository.dart",
+          action: "迁移所有 TaskRepository 方法，使用 DriftQueryBuilder",
+        },
+        {
+          task: "实现 DriftProjectRepository",
+          file: "lib/data/repositories/drift/drift_project_repository.dart",
+          action: "迁移所有 ProjectRepository 方法",
+        },
+        {
+          task: "实现 DriftMilestoneRepository",
+          file: "lib/data/repositories/drift/drift_milestone_repository.dart",
+          action: "迁移所有 MilestoneRepository 方法",
+        },
+        {
+          task: "实现其他 Repository（Tag、TaskTemplate、FocusSession、Preference、Seed）",
+          file: "lib/data/repositories/drift/drift_tag_repository.dart",
+          action: "迁移所有剩余 Repository",
+        },
+        {
+          task: "优化查询性能，添加必要的索引",
+          action: "分析慢查询，在 Table 定义中添加索引",
+        },
+        {
+          task: "编写单元测试，验证所有 Repository 方法",
+          file: "test/data/repositories/drift/drift_task_repository_test.dart",
+          action: "使用 mock adapter 测试所有方法",
+        },
+        {
+          task: "更新依赖注入，支持创建 DriftRepository",
+          file: "lib/core/di/dependency_injection.dart",
+          action: "根据 DatabaseConfig 创建对应的 Repository",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - Repository 迁移'",
+          action: "提交阶段 3 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：代码质量检查和单元测试",
+      description: "运行 flutter analyze 修复所有 lint 错误，运行所有单元测试确保测试通过。",
+      tasks: [
+        {
+          task: "运行 flutter analyze，修复所有 lint 错误",
+          command: "flutter analyze --format=json",
+          action: [
+            "步骤 1：运行 flutter analyze --format=json，解析 JSON 输出，记录初始 issues 统计（total、error、warning、info 数量）。",
+            "步骤 2：如果有错误，检查 scripts/anz_modules/fix/issues.py 中的 FIXERS 字典，查看是否已有对应错误代码的修复器。",
+            "步骤 3：如果 FIXERS 中没有对应修复器，分析当前报错，判断哪些适合批量自动修复。将修复逻辑添加到 scripts/anz_modules/fix/fixers.py，然后运行 python3 scripts/anz_modules/fix/issues.py（或 scripts/anz fix:issues）。",
+            "步骤 4：修复后再次运行 flutter analyze --format=json，对比修复前后的 issues 数量。",
+            "步骤 5：如果修复有效（issues 总数下降，且没有新增 error），执行 git add -A && git commit --no-verify -m 'fix: 修复 analyze issues (total: X, error: Y, warning: Z, info: W)'，其中 X/Y/Z/W 为当前实际数量。",
+            "步骤 6：重复步骤 2-5，直到所有 issues 修复完成或无法继续自动修复。",
+          ],
+        },
+        {
+          task: "运行所有单元测试，确保测试通过",
+          command: "flutter test",
+          action: "在 analyze 通过后运行所有单元测试（不包括集成测试），确保所有测试通过",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - 代码质量检查和单元测试'",
+          action: "提交阶段 4 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：集成测试和验证",
+      description: "运行集成测试，验证 Web 平台支持，进行性能测试和优化。注意：不需要保存历史数据，每次集成测试前必须清空所有数据。",
+      tasks: [
+        {
+          task: "清空所有数据（每次集成测试前必须执行）",
+          command: "scripts/anz clean",
+          action: "清空全部原有数据，确保测试环境干净",
+        },
+        {
+          task: "运行现有集成测试，修复发现的问题",
+          file: "integration_test/seed_import_test.dart",
+          command: "flutter test integration_test/seed_import_test.dart -d macos",
+          action: "确保所有集成测试通过，使用 macOS 平台",
+        },
+        {
+          task: "创建 Drift 迁移集成测试",
+          file: "integration_test/drift_migration_test.dart",
+          command: "flutter test integration_test/drift_migration_test.dart -d macos",
+          action: "测试迁移后所有核心功能正常，使用 macOS 平台",
+        },
+        {
+          task: "在 Web 平台测试应用",
+          command: "flutter test integration_test -d macos",
+          action: "验证 Web 平台数据持久化（IndexedDB）正常，使用 macOS 平台",
+        },
+        {
+          task: "性能测试和优化",
+          action: "对比迁移前后性能，优化慢查询，添加索引",
+        },
+        {
+          task: "在 Android 16KB 页面大小设备上测试",
+          action: "验证 16KB 兼容性正常",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 5 完成 - 集成测试和验证'",
+          action: "提交阶段 5 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：文档和清理",
+      description: "更新文档，删除 ObjectBox 代码，清理未使用的依赖，代码审查。",
+      tasks: [
+        {
+          task: "更新架构文档",
+          file: "documents/architecture/",
+          action: "记录 Drift 数据库架构和迁移过程",
+        },
+        {
+          task: "更新迁移指南",
+          file: "documents/deployment/",
+          action: "记录数据迁移步骤和注意事项",
+        },
+        {
+          task: "更新 API 文档",
+          action: "更新 Repository 接口文档",
+        },
+        {
+          task: "删除 ObjectBox 相关代码",
+          file: "lib/data/objectbox/",
+          action: "删除所有 ObjectBox 实体和 Repository",
+        },
+        {
+          task: "清理未使用的依赖",
+          file: "pubspec.yaml",
+          action: "删除 objectbox 和 objectbox_flutter_libs 依赖",
+        },
+        {
+          task: "最终代码质量检查：运行 flutter analyze",
+          command: "flutter analyze",
+          action: "最终检查代码质量，确保没有 lint 错误（单元测试已在阶段 4 完成）",
+        },
+        {
+          task: "代码审查",
+          action: "审查所有新增代码，确保符合代码规范",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - 文档和清理'",
+          action: "提交阶段 6 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 技术细节和注意事项
+  // ===========================================
+  technicalDetails: {
+    keyDecisions: {
+      databaseChoice: {
+        recommendation: "使用 Drift（基于 SQLite）替代 ObjectBox",
+        reason: "满足三个核心需求：1. 支持 Web 平台（ObjectBox 不支持） 2. UUID 主键原生支持 3. Android 16KB 页面大小支持。同时，Drift 的类型安全查询 API 更适合 AI 辅助开发。",
+        alternative: "继续使用 ObjectBox（但无法支持 Web 平台）",
+      },
+      migrationStrategy: {
+        method: "分阶段迁移，保持 ObjectBox 和 Drift 并行支持",
+        stateManagement: "通过 DatabaseConfig 配置切换数据库实现",
+        rollback: "保留 ObjectBox 代码直到 Drift 完全验证，支持快速回滚（代码层面）。注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
+      },
+      webSupport: {
+        implementation: "使用 drift_web 在 Web 平台使用 IndexedDB",
+        reason: "Drift 官方支持 Web 平台，通过 IndexedDB 实现数据持久化",
+      },
+      primaryKey: {
+        method: "使用 TextColumn 作为主键，存储 UUID v4",
+        reason: "Drift 原生支持 String 主键，无需混合方案（obxId + id）",
+      },
+    },
+    
+    codeStandards: {
+      adapterInterface: {
+        rule: "所有 DatabaseAdapter 实现必须遵循相同的接口契约",
+        location: "lib/data/database/database_adapter.dart",
+        example: "DriftAdapter 和 ObjectBoxAdapter 必须实现相同的接口方法",
+        note: "确保 Repository 层可以无缝切换数据库实现",
+      },
+      typeSafety: {
+        rule: "所有查询必须使用 Drift 的类型安全 API，避免字符串查询",
+        location: "lib/data/database/drift_query_builder.dart",
+        example: "使用 where((t) => t.id.equals(taskId)) 而不是字符串查询",
+        note: "类型安全查询可以编译时检查，减少运行时错误",
+      },
+      migration: {
+        rule: "数据迁移需要记录错误信息",
+        location: "lib/data/migration/objectbox_to_drift_migrator.dart",
+        example: "记录迁移过程中的错误（实体类型、实体 ID、错误信息）",
+        note: "注意：测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。",
+      },
+    },
+    
+    performance: {
+      optimization: [
+        "为常用查询字段添加索引（id、projectId、parentId、status 等）",
+        "使用批量操作（putMany）减少数据库调用次数",
+        "优化关系查询，使用 JOIN 而不是多次查询",
+        "使用 Stream 监听数据变化，避免轮询",
+      ],
+      monitoring: [
+        "使用 DatabaseInstrumentation 记录操作耗时",
+        "监控慢查询，优化查询性能",
+        "对比迁移前后性能指标",
+      ],
+    },
+    
+    security: {
+      concerns: [
+        "数据迁移过程中确保数据安全，不泄露敏感信息",
+        "Web 平台使用 IndexedDB，注意浏览器存储限制",
+        "注意：测试时不需要数据完整性验证和备份，因为每次测试前都会清空所有数据（scripts/anz clean）。",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 6. 依赖关系图
+  // ===========================================
+  dependencies: {
+    dataLayer: [
+      "lib/data/database/database_adapter.dart",
+      "lib/data/database/drift_adapter.dart",
+      "lib/data/database/drift_query_builder.dart",
+      "lib/data/drift/database.dart",
+      "lib/data/drift/tables/tasks.dart",
+      "lib/data/drift/tables/projects.dart",
+      "lib/data/drift/tables/milestones.dart",
+      "lib/data/drift/converters.dart",
+    ],
+    
+    repositoryLayer: [
+      "lib/data/repositories/drift/drift_task_repository.dart",
+      "lib/data/repositories/drift/drift_project_repository.dart",
+      "lib/data/repositories/drift/drift_milestone_repository.dart",
+      "lib/data/repositories/task_repository.dart",
+      "lib/data/repositories/project_repository.dart",
+      "lib/data/repositories/milestone_repository.dart",
+    ],
+    
+    serviceLayer: [
+      "lib/core/services/seed_import_service.dart",
+      "lib/core/services/task_hierarchy_service.dart",
+    ],
+    
+    configLayer: [
+      "lib/core/config/database_config.dart",
+      "lib/core/providers/repository_providers.dart",
+    ],
+    
+    migrationLayer: [
+      "lib/data/migration/objectbox_to_drift_migrator.dart",
+      "scripts/migrate_to_drift.dart",
+    ],
+  },
+
+  // ===========================================
+  // 7. 测试策略和详细测试用例
+  // ===========================================
+  testing: {
+    unitTests: [
+      {
+        file: "test/data/database/drift_adapter_test.dart",
+        description: "测试 DriftAdapter 所有接口方法实现正确",
+        testCases: [
+          {
+            group: "CRUD 操作",
+            cases: [
+              {
+                name: "put 方法可以插入实体",
+                test: "创建实体 → 调用 put → 验证实体已插入 → 通过 findById 查询验证",
+              },
+              {
+                name: "putMany 方法可以批量插入实体",
+                test: "创建多个实体 → 调用 putMany → 验证所有实体已插入",
+              },
+              {
+                name: "remove 方法可以删除实体",
+                test: "插入实体 → 调用 remove → 验证实体已删除",
+              },
+              {
+                name: "findById 方法可以查询实体",
+                test: "插入实体 → 调用 findById → 验证返回正确的实体",
+              },
+              {
+                name: "findAll 方法可以查询所有实体",
+                test: "插入多个实体 → 调用 findAll → 验证返回所有实体",
+              },
+              {
+                name: "count 方法可以统计实体数量",
+                test: "插入多个实体 → 调用 count → 验证返回正确的数量",
+              },
+            ],
+          },
+          {
+            group: "事务操作",
+            cases: [
+              {
+                name: "writeTransaction 保证原子性",
+                test: "在事务中执行多个操作 → 其中一个操作失败 → 验证所有操作都回滚",
+              },
+              {
+                name: "readTransaction 允许多个并发读取",
+                test: "同时执行多个 readTransaction → 验证都可以成功执行",
+              },
+            ],
+          },
+          {
+            group: "Stream/监听",
+            cases: [
+              {
+                name: "watchList 首次订阅时立即触发",
+                test: "订阅 watchList → 验证立即收到当前数据快照",
+              },
+              {
+                name: "watchList 数据变化时触发",
+                test: "订阅 watchList → 修改数据 → 验证收到新的数据快照",
+              },
+              {
+                name: "watchList 支持去重",
+                test: "订阅 watchList → 快速修改数据多次 → 验证只收到去重后的快照",
+              },
+            ],
+          },
+          {
+            group: "错误处理",
+            cases: [
+              {
+                name: "异常封装为 DatabaseAdapterException",
+                test: "触发数据库错误 → 验证抛出 DatabaseAdapterException → 验证包含 DatabaseOperationContext",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/data/repositories/drift/drift_task_repository_test.dart",
+        description: "测试 DriftTaskRepository 所有方法实现正确",
+        testCases: [
+          {
+            group: "查询方法",
+            cases: [
+              {
+                name: "listAll 返回所有任务",
+                test: "插入多个任务 → 调用 listAll → 验证返回所有任务",
+              },
+              {
+                name: "listRoots 只返回根任务",
+                test: "插入根任务和子任务 → 调用 listRoots → 验证只返回根任务",
+              },
+              {
+                name: "findById 可以查询任务",
+                test: "插入任务 → 调用 findById → 验证返回正确的任务",
+              },
+              {
+                name: "findBySlug 可以查询任务",
+                test: "插入任务 → 调用 findBySlug → 验证返回正确的任务",
+              },
+            ],
+          },
+          {
+            group: "写操作",
+            cases: [
+              {
+                name: "create 可以创建任务",
+                test: "调用 create → 验证任务已创建 → 通过 findById 查询验证",
+              },
+              {
+                name: "update 可以更新任务",
+                test: "创建任务 → 调用 update → 验证任务已更新",
+              },
+              {
+                name: "delete 可以删除任务",
+                test: "创建任务 → 调用 delete → 验证任务已删除",
+              },
+            ],
+          },
+          {
+            group: "Stream/监听",
+            cases: [
+              {
+                name: "watchInbox 监听收件箱任务",
+                test: "订阅 watchInbox → 修改任务状态 → 验证收到新的数据快照",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    integrationTests: [
+      {
+        file: "integration_test/drift_migration_test.dart",
+        description: "测试 Drift 迁移后所有核心功能正常",
+        testCases: [
+          {
+            group: "核心功能",
+            cases: [
+              {
+                name: "可以创建、编辑、删除任务",
+                test: "创建任务 → 编辑任务 → 删除任务 → 验证所有操作成功",
+              },
+              {
+                name: "可以创建、编辑、删除项目",
+                test: "创建项目 → 编辑项目 → 删除项目 → 验证所有操作成功",
+              },
+              {
+                name: "可以创建、编辑、删除里程碑",
+                test: "创建里程碑 → 编辑里程碑 → 删除里程碑 → 验证所有操作成功",
+              },
+            ],
+          },
+          {
+            group: "Web 平台",
+            cases: [
+              {
+                name: "Web 平台数据持久化正常",
+                test: "在 Web 平台创建数据 → 刷新页面 → 验证数据仍然存在",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 8. 风险点和注意事项
+  // ===========================================
+  risks: [
+    {
+      risk: "数据迁移过程中数据丢失或损坏",
+      mitigation: "测试时不需要数据备份和回滚，因为每次测试前都会清空所有数据（scripts/anz clean）。生产环境迁移时，用户需要自行备份数据。",
+      priority: "high",
+      check: "迁移后验证记录数量、关系完整性、字段值正确性（仅生产环境）",
+      enforcement: "数据迁移工具需要记录错误信息，便于排查问题",
+    },
+    {
+      risk: "迁移后性能下降",
+      mitigation: "为常用查询字段添加索引，优化查询逻辑，对比迁移前后性能",
+      priority: "medium",
+      check: "性能测试对比迁移前后查询耗时，监控慢查询",
+      enforcement: "性能测试必须通过，慢查询必须优化",
+    },
+    {
+      risk: "Web 平台兼容性问题",
+      mitigation: "在 Web 平台充分测试，验证 IndexedDB 存储正常，处理浏览器存储限制",
+      priority: "high",
+      check: "在多个浏览器（Chrome、Firefox、Safari）测试 Web 平台功能",
+      enforcement: "Web 平台测试必须通过，所有核心功能正常",
+    },
+    {
+      risk: "迁移期间代码复杂度增加",
+      mitigation: "通过 DatabaseConfig 统一管理数据库切换，保持 Repository 接口不变",
+      priority: "low",
+      check: "代码审查确保切换逻辑清晰，不影响业务代码",
+      enforcement: "代码审查必须通过，确保切换逻辑简单明了",
+    },
+    {
+      risk: "团队学习成本",
+      mitigation: "提供详细的迁移文档和示例，Drift 文档完善，学习曲线平缓",
+      priority: "low",
+      check: "团队成员可以理解和使用 Drift API",
+      enforcement: "提供培训文档和代码示例",
+    },
+  ],
+
+  // ===========================================
+  // 9. 验证清单
+  // ===========================================
+  verification: {
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试通过",
+      "运行 integration_test，确保所有集成测试通过",
+      "代码审查，确保符合代码规范",
+      "检查代码覆盖率，确保关键逻辑有测试覆盖",
+    ],
+    
+    functionality: [
+      "验证所有核心功能正常（创建/编辑/删除任务、项目、里程碑）",
+      "验证查询功能正常（listAll、findById、findBySlug 等）",
+      "验证 Stream/监听功能正常（watchInbox、watchSection 等）",
+      "验证 Web 平台功能正常（数据持久化、核心功能）",
+      "验证 Android 16KB 页面大小兼容性正常",
+      "验证 UUID 主键支持正常",
+      "注意：不需要保存历史数据，每次集成测试前运行 scripts/anz clean 清空所有数据",
+    ],
+    
+    performance: [
+      "对比迁移前后性能（查询耗时、插入耗时）",
+      "验证慢查询已优化（添加索引、优化查询逻辑）",
+      "监控内存使用，确保没有内存泄漏",
+    ],
+    
+    compatibility: [
+      "测试 Android 平台（16KB 页面大小设备）",
+      "测试 iOS 平台",
+      "测试 Web 平台（Chrome、Firefox、Safari）",
+      "测试 macOS 平台",
+      "测试 Linux 平台",
+      "测试 Windows 平台",
+    ],
+  },
+
+  // ===========================================
+  // 10. 数据与状态
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "主键从混合方案（obxId + id）简化为单一 id（String，UUID v4）",
+      "所有实体使用 TextColumn 作为主键，不再需要 int obxId",
+      "关系查询使用外键约束，不再需要手动管理关系",
+      "枚举类型使用 intEnum 存储，DateTime 使用 dateTime 类型",
+      "List<String>（tags）使用 JSON 存储或关联表",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "数据库从 ObjectBox 迁移到 Drift（SQLite/IndexedDB）",
+      "Web 平台使用 IndexedDB 作为存储后端",
+      "移动端使用 SQLite 作为存储后端",
+      "数据库文件格式从 ObjectBox 格式迁移到 SQLite 格式",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "Repository 接口保持不变，只更换底层实现",
+      "通过 DatabaseConfig 配置切换数据库实现",
+      "迁移期间支持 ObjectBox 和 Drift 并行运行",
+    ],
+  }
+}
+
