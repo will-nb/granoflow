@@ -28,6 +28,7 @@ from fixers import (
     id_types,
     invalid_override,
     undefined_named_parameter,
+    return_of_invalid_type_from_closure,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -247,6 +248,10 @@ FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
     "undefined_named_parameter": (
         undefined_named_parameter.apply_undefined_named_parameter_fix,
         lambda _: True,
+    ),
+    "return_of_invalid_type_from_closure": (
+        return_of_invalid_type_from_closure.apply_return_of_invalid_type_from_closure_fix,
+        _is_test_file,
     ),
   }
 
