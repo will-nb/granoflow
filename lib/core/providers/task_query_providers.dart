@@ -14,7 +14,7 @@ final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
   section,
 ) async* {
   final filter = ref.watch(tasksFilterProvider);
-  final repository = ref.watch(taskRepositoryProvider);
+  final repository = await ref.read(taskRepositoryProvider.future);
   
   await for (final tasks in repository.watchSection(section)) {
     // 应用筛选逻辑（内存筛选，参考 watchInboxFiltered 的实现）
@@ -97,24 +97,25 @@ final rootTasksProvider = FutureProvider<List<Task>>((ref) async {
   return ref.watch(taskRepositoryProvider).listRoots();
 });
 
-final projectsDomainProvider = StreamProvider<List<Project>>((ref) {
-  return ref.watch(projectServiceProvider).watchActiveProjects();
+final projectsDomainProvider = StreamProvider<List<Project>>((ref) async* {
+  final projectService = await ref.read(projectServiceProvider.future);
+  yield* projectService.watchActiveProjects();
 });
 
 /// 根据筛选状态返回项目列表
 /// 根据 projectFilterStatusProvider 的值返回对应状态的项目列表
-final projectsByStatusProvider = StreamProvider<List<Project>>((ref) {
+final projectsByStatusProvider = StreamProvider<List<Project>>((ref) async* {
   final filterStatus = ref.watch(projectFilterStatusProvider);
-  final repository = ref.watch(projectRepositoryProvider);
-  return repository.watchProjectsByStatus(filterStatus);
+  final repository = await ref.read(projectRepositoryProvider.future);
+  yield* repository.watchProjectsByStatus(filterStatus);
 });
 
 /// 用于已完成/已归档页面的项目筛选
 /// 显示活跃、已完成、已归档项目（排除伪删除和回收站）
 final projectsForCompletedArchivedFilterProvider =
-    StreamProvider<List<Project>>((ref) {
-  final repository = ref.watch(projectRepositoryProvider);
-  return repository.watchProjectsByStatuses({
+    StreamProvider<List<Project>>((ref) async* {
+  final repository = await ref.read(projectRepositoryProvider.future);
+  yield* repository.watchProjectsByStatuses({
     TaskStatus.pending,
     TaskStatus.doing,
     TaskStatus.completedActive,
@@ -124,9 +125,9 @@ final projectsForCompletedArchivedFilterProvider =
 
 /// 用于回收站页面的项目筛选
 /// 显示所有项目（排除伪删除）
-final projectsForTrashFilterProvider = StreamProvider<List<Project>>((ref) {
-  final repository = ref.watch(projectRepositoryProvider);
-  return repository.watchProjectsByStatuses({
+final projectsForTrashFilterProvider = StreamProvider<List<Project>>((ref) async* {
+  final repository = await ref.read(projectRepositoryProvider.future);
+  yield* repository.watchProjectsByStatuses({
     TaskStatus.inbox,
     TaskStatus.pending,
     TaskStatus.doing,
@@ -137,18 +138,21 @@ final projectsForTrashFilterProvider = StreamProvider<List<Project>>((ref) {
 });
 
 final projectMilestonesDomainProvider =
-    StreamProvider.family<List<Milestone>, String>((ref, projectId) {
-      return ref.watch(projectServiceProvider).watchMilestones(projectId);
+    StreamProvider.family<List<Milestone>, String>((ref, projectId) async* {
+      final projectService = await ref.read(projectServiceProvider.future);
+      yield* projectService.watchMilestones(projectId);
     });
 
 final milestoneTasksProvider = StreamProvider.family<List<Task>, String>((
   ref,
   milestoneId,
-) {
-  return ref.watch(taskRepositoryProvider).watchTasksByMilestoneId(milestoneId);
+) async* {
+  final repository = await ref.read(taskRepositoryProvider.future);
+  yield* repository.watchTasksByMilestoneId(milestoneId);
 });
 
-final quickTasksProvider = StreamProvider<List<Task>>((ref) {
-  return ref.watch(taskRepositoryProvider).watchQuickTasks();
+final quickTasksProvider = StreamProvider<List<Task>>((ref) async* {
+  final repository = await ref.read(taskRepositoryProvider.future);
+  yield* repository.watchQuickTasks();
 });
 

@@ -18,11 +18,13 @@ import '../services/clock_audio_service.dart';
 import '../monetization/monetization_service.dart';
 import 'repository_providers.dart';
 
-final metricOrchestratorProvider = Provider<MetricOrchestrator>((ref) {
+final metricOrchestratorProvider = FutureProvider<MetricOrchestrator>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final focusRepository = await ref.read(focusSessionRepositoryProvider.future);
   return MetricOrchestrator(
-    metricRepository: ref.watch(metricRepositoryProvider),
-    taskRepository: ref.watch(taskRepositoryProvider),
-    focusRepository: ref.watch(focusSessionRepositoryProvider),
+    metricRepository: ref.read(metricRepositoryProvider),
+    taskRepository: taskRepository,
+    focusRepository: focusRepository,
   );
 });
 
@@ -36,48 +38,65 @@ final appConfigProvider = Provider<AppConfig>((ref) {
   return AppConfig.fromEnvironment();
 });
 
-final sortIndexServiceProvider = Provider<SortIndexService>((ref) {
-  return SortIndexService(taskRepository: ref.watch(taskRepositoryProvider));
+final sortIndexServiceProvider = FutureProvider<SortIndexService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  return SortIndexService(taskRepository: taskRepository);
 });
 
-final taskServiceProvider = Provider<TaskService>((ref) {
+final taskServiceProvider = FutureProvider<TaskService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final tagRepository = await ref.read(tagRepositoryProvider.future);
+  final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
+  final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
+  final sortIndexService = await ref.read(sortIndexServiceProvider.future);
   return TaskService(
-    taskRepository: ref.watch(taskRepositoryProvider),
-    tagRepository: ref.watch(tagRepositoryProvider),
-    metricOrchestrator: ref.watch(metricOrchestratorProvider),
-    focusSessionRepository: ref.watch(focusSessionRepositoryProvider),
-    sortIndexService: ref.watch(sortIndexServiceProvider),
+    taskRepository: taskRepository,
+    tagRepository: tagRepository,
+    metricOrchestrator: metricOrchestrator,
+    focusSessionRepository: focusSessionRepository,
+    sortIndexService: sortIndexService,
   );
 });
 
-final projectServiceProvider = Provider<ProjectService>((ref) {
+final projectServiceProvider = FutureProvider<ProjectService>((ref) async {
+  final projectRepository = await ref.read(projectRepositoryProvider.future);
+  final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
   return ProjectService(
-    projectRepository: ref.watch(projectRepositoryProvider),
-    milestoneRepository: ref.watch(milestoneRepositoryProvider),
-    taskRepository: ref.watch(taskRepositoryProvider),
-    metricOrchestrator: ref.watch(metricOrchestratorProvider),
+    projectRepository: projectRepository,
+    milestoneRepository: milestoneRepository,
+    taskRepository: taskRepository,
+    metricOrchestrator: metricOrchestrator,
   );
 });
 
-final milestoneServiceProvider = Provider<MilestoneService>((ref) {
+final milestoneServiceProvider = FutureProvider<MilestoneService>((ref) async {
+  final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
   return MilestoneService(
-    milestoneRepository: ref.watch(milestoneRepositoryProvider),
+    milestoneRepository: milestoneRepository,
   );
 });
 
-final taskHierarchyServiceProvider = Provider<TaskHierarchyService>((ref) {
+final taskHierarchyServiceProvider = FutureProvider<TaskHierarchyService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
   return TaskHierarchyService(
-    taskRepository: ref.watch(taskRepositoryProvider),
-    metricOrchestrator: ref.watch(metricOrchestratorProvider),
+    taskRepository: taskRepository,
+    metricOrchestrator: metricOrchestrator,
   );
 });
 
-final focusFlowServiceProvider = Provider<FocusFlowService>((ref) {
+final focusFlowServiceProvider = FutureProvider<FocusFlowService>((ref) async {
+  final focusRepository = await ref.read(focusSessionRepositoryProvider.future);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final taskService = await ref.read(taskServiceProvider.future);
+  final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
   return FocusFlowService(
-    focusRepository: ref.watch(focusSessionRepositoryProvider),
-    taskRepository: ref.watch(taskRepositoryProvider),
-    taskService: ref.watch(taskServiceProvider),
-    metricOrchestrator: ref.watch(metricOrchestratorProvider),
+    focusRepository: focusRepository,
+    taskRepository: taskRepository,
+    taskService: taskService,
+    metricOrchestrator: metricOrchestrator,
   );
 });
 
@@ -87,58 +106,79 @@ final monetizationServiceProvider = Provider<MonetizationService>((ref) {
   return service;
 });
 
-final taskTemplateServiceProvider = Provider<TaskTemplateService>((ref) {
+final taskTemplateServiceProvider = FutureProvider<TaskTemplateService>((ref) async {
+  final templateRepository = await ref.read(taskTemplateRepositoryProvider.future);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final taskService = await ref.read(taskServiceProvider.future);
   return TaskTemplateService(
-    templateRepository: ref.watch(taskTemplateRepositoryProvider),
-    taskRepository: ref.watch(taskRepositoryProvider),
-    taskService: ref.watch(taskServiceProvider),
+    templateRepository: templateRepository,
+    taskRepository: taskRepository,
+    taskService: taskService,
   );
 });
 
-final preferenceServiceProvider = Provider<PreferenceService>((ref) {
-  return PreferenceService(repository: ref.watch(preferenceRepositoryProvider));
+final preferenceServiceProvider = FutureProvider<PreferenceService>((ref) async {
+  final repository = await ref.read(preferenceRepositoryProvider.future);
+  return PreferenceService(repository: repository);
 });
 
-final seedImportServiceProvider = Provider<SeedImportService>((ref) {
+final seedImportServiceProvider = FutureProvider<SeedImportService>((ref) async {
+  final seedRepository = await ref.read(seedRepositoryProvider.future);
+  final tagRepository = await ref.read(tagRepositoryProvider.future);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final templateRepository = await ref.read(taskTemplateRepositoryProvider.future);
+  final projectService = await ref.read(projectServiceProvider.future);
+  final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
+  final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
   return SeedImportService(
-    seedRepository: ref.watch(seedRepositoryProvider),
-    tagRepository: ref.watch(tagRepositoryProvider),
-    taskRepository: ref.watch(taskRepositoryProvider),
-    templateRepository: ref.watch(taskTemplateRepositoryProvider),
-    projectService: ref.watch(projectServiceProvider),
-    milestoneRepository: ref.watch(milestoneRepositoryProvider),
-    metricOrchestrator: ref.watch(metricOrchestratorProvider),
+    seedRepository: seedRepository,
+    tagRepository: tagRepository,
+    taskRepository: taskRepository,
+    templateRepository: templateRepository,
+    projectService: projectService,
+    milestoneRepository: milestoneRepository,
+    metricOrchestrator: metricOrchestrator,
   );
 });
 
-final clockAudioServiceProvider = Provider<ClockAudioService>((ref) {
+final clockAudioServiceProvider = FutureProvider<ClockAudioService>((ref) async {
+  final preferenceService = await ref.read(preferenceServiceProvider.future);
   final service = ClockAudioService(
-    preferenceService: ref.watch(preferenceServiceProvider),
+    preferenceService: preferenceService,
   );
   ref.onDispose(service.dispose);
   return service;
 });
 
-final reviewDataServiceProvider = Provider<ReviewDataService>((ref) {
+final reviewDataServiceProvider = FutureProvider<ReviewDataService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final projectRepository = await ref.read(projectRepositoryProvider.future);
+  final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
   return ReviewDataService(
-    taskRepository: ref.watch(taskRepositoryProvider),
-    projectRepository: ref.watch(projectRepositoryProvider),
-    focusSessionRepository: ref.watch(focusSessionRepositoryProvider),
+    taskRepository: taskRepository,
+    projectRepository: projectRepository,
+    focusSessionRepository: focusSessionRepository,
   );
 });
 
-final exportServiceProvider = Provider<ExportService>((ref) {
+final exportServiceProvider = FutureProvider<ExportService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final projectRepository = await ref.read(projectRepositoryProvider.future);
+  final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
   return ExportService(
-    taskRepository: ref.watch(taskRepositoryProvider),
-    projectRepository: ref.watch(projectRepositoryProvider),
-    milestoneRepository: ref.watch(milestoneRepositoryProvider),
+    taskRepository: taskRepository,
+    projectRepository: projectRepository,
+    milestoneRepository: milestoneRepository,
   );
 });
 
-final importServiceProvider = Provider<ImportService>((ref) {
+final importServiceProvider = FutureProvider<ImportService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final projectRepository = await ref.read(projectRepositoryProvider.future);
+  final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
   return ImportService(
-    taskRepository: ref.watch(taskRepositoryProvider),
-    projectRepository: ref.watch(projectRepositoryProvider),
-    milestoneRepository: ref.watch(milestoneRepositoryProvider),
+    taskRepository: taskRepository,
+    projectRepository: projectRepository,
+    milestoneRepository: milestoneRepository,
   );
 });

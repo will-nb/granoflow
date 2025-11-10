@@ -11,7 +11,7 @@ import 'service_providers.dart';
 /// 用于在已完成页面展开任务时显示子任务
 final completedTaskChildrenProvider =
     FutureProvider.family<List<Task>, String>((ref, parentId) async {
-  final taskRepository = ref.read(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   final children = await taskRepository.listChildrenIncludingTrashed(parentId);
   // 只返回已完成状态的子任务
   return children
@@ -35,9 +35,8 @@ class TaskEditActionsNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  TaskService get _taskService => ref.read(taskServiceProvider);
-  TaskHierarchyService get _hierarchyService =>
-      ref.read(taskHierarchyServiceProvider);
+  Future<TaskService> get _taskService async => await ref.read(taskServiceProvider.future);
+  Future<TaskHierarchyService> get _hierarchyService async => await ref.read(taskHierarchyServiceProvider.future);
 
   Future<void> addSubtask({
     required String parentId,
@@ -45,13 +44,15 @@ class TaskEditActionsNotifier extends AsyncNotifier<void> {
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final subtask = await _taskService.captureInboxTask(title: title);
-      await _hierarchyService.moveToParent(
+      final taskService = await _taskService;
+      final hierarchyService = await _hierarchyService;
+      final subtask = await taskService.captureInboxTask(title: title);
+      await hierarchyService.moveToParent(
         taskId: subtask.id,
         parentId: parentId,
         sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
       );
-      await _taskService.updateDetails(
+      await taskService.updateDetails(
         taskId: subtask.id,
         payload: const TaskUpdate(status: TaskStatus.pending),
       );
@@ -61,7 +62,8 @@ class TaskEditActionsNotifier extends AsyncNotifier<void> {
   Future<void> editTitle({required String taskId, required String title}) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await _taskService.updateDetails(
+      final taskService = await _taskService;
+      await taskService.updateDetails(
         taskId: taskId,
         payload: TaskUpdate(title: title),
       );
@@ -70,7 +72,10 @@ class TaskEditActionsNotifier extends AsyncNotifier<void> {
 
   Future<void> archive(String taskId) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _taskService.archive(taskId));
+    state = await AsyncValue.guard(() async {
+      final taskService = await _taskService;
+      return taskService.archive(taskId);
+    });
   }
 }
 

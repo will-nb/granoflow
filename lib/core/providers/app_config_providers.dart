@@ -5,8 +5,9 @@ import '../constants/font_scale_level.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
 
-final appLocaleProvider = StreamProvider<Locale>((ref) {
-  return ref.watch(preferenceServiceProvider).watch().map((pref) {
+final appLocaleProvider = StreamProvider<Locale>((ref) async* {
+  final preferenceService = await ref.read(preferenceServiceProvider.future);
+  yield* preferenceService.watch().map((pref) {
     final parts = pref.localeCode.split('_');
     if (parts.length == 2) {
       return Locale(parts[0], parts[1]);
@@ -16,23 +17,19 @@ final appLocaleProvider = StreamProvider<Locale>((ref) {
   });
 });
 
-final themeProvider = StreamProvider<ThemeMode>((ref) {
-  return ref
-      .watch(preferenceServiceProvider)
-      .watch()
-      .map((pref) => pref.themeMode);
+final themeProvider = StreamProvider<ThemeMode>((ref) async* {
+  final preferenceService = await ref.read(preferenceServiceProvider.future);
+  yield* preferenceService.watch().map((pref) => pref.themeMode);
 });
 
-final fontScaleLevelProvider = StreamProvider<FontScaleLevel>((ref) {
-  return ref
-      .watch(preferenceServiceProvider)
-      .watch()
-      .map((pref) => pref.fontScaleLevel);
+final fontScaleLevelProvider = StreamProvider<FontScaleLevel>((ref) async* {
+  final preferenceService = await ref.read(preferenceServiceProvider.future);
+  yield* preferenceService.watch().map((pref) => pref.fontScaleLevel);
 });
 
 final seedInitializerProvider = FutureProvider<void>((ref) async {
   ref.keepAlive();
-  final service = ref.watch(seedImportServiceProvider);
+  final service = await ref.read(seedImportServiceProvider.future);
 
   // 等待 appLocaleProvider 加载完成，而不是使用默认值
   // 使用 ref.read 而不是 ref.watch，避免 locale 变化时重复触发导入
@@ -41,7 +38,8 @@ final seedInitializerProvider = FutureProvider<void>((ref) async {
     data: (value) => Future.value(value),
     loading: () async {
       // 如果还在加载，直接从 PreferenceRepository 加载
-      final pref = await ref.read(preferenceRepositoryProvider).load();
+      final prefRepo = await ref.read(preferenceRepositoryProvider.future);
+      final pref = await prefRepo.load();
       final parts = pref.localeCode.split('_');
       if (parts.length == 2) {
         return Locale(parts[0], parts[1]);

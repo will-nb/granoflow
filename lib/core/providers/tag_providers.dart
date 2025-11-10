@@ -4,13 +4,13 @@ import 'repository_providers.dart';
 
 /// 根据标签类型获取标签列表
 final tagsByKindProvider = FutureProvider.family<List<Tag>, TagKind>((ref, kind) async {
-  final repo = ref.watch(tagRepositoryProvider);
+  final repo = await ref.read(tagRepositoryProvider.future);
   return await repo.listByKind(kind);
 });
 
 /// 获取所有标签
 final allTagsProvider = FutureProvider<List<Tag>>((ref) async {
-  final repo = ref.watch(tagRepositoryProvider);
+  final repo = await ref.read(tagRepositoryProvider.future);
   final allTags = <Tag>[];
   
   for (final kind in TagKind.values) {

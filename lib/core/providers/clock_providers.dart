@@ -111,13 +111,35 @@ class ClockTimerState {
 
 /// 计时器状态管理 Notifier
 class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
+  /// 私有构造函数，用于从 Provider 创建（异步初始化依赖）
+  ClockTimerNotifier._(this._ref)
+      : _focusFlowService = null,
+        _audioService = null,
+        _focusSessionRepository = null,
+        _backgroundService = null,
+        _persistenceService = null,
+        super(const ClockTimerState(
+          isStarted: false,
+          isPaused: false,
+          forwardElapsed: Duration.zero,
+          countdownRemaining: Duration(minutes: 25),
+          startTime: null,
+          pausePeriods: [],
+          countdownDuration: 25 * 60, // 默认25分钟（在15-60分钟范围内）
+          originalCountdownDuration: 25 * 60,
+        )) {
+    _initAsync();
+  }
+
+  /// 公共构造函数（用于测试或直接创建）
   ClockTimerNotifier({
     required FocusFlowService focusFlowService,
     required ClockAudioService audioService,
     required FocusSessionRepository focusSessionRepository,
     TimerBackgroundService? backgroundService,
     TimerPersistenceService? persistenceService,
-  }) : _focusFlowService = focusFlowService,
+  }) : _ref = null,
+       _focusFlowService = focusFlowService,
        _audioService = audioService,
        _focusSessionRepository = focusSessionRepository,
        _backgroundService = backgroundService,
@@ -137,11 +159,51 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     _loadState();
   }
 
-  final FocusFlowService _focusFlowService;
-  final ClockAudioService _audioService;
-  final FocusSessionRepository _focusSessionRepository;
-  final TimerBackgroundService? _backgroundService;
-  final TimerPersistenceService? _persistenceService;
+  final Ref? _ref;
+  FocusFlowService? _focusFlowService;
+  ClockAudioService? _audioService;
+  FocusSessionRepository? _focusSessionRepository;
+  TimerBackgroundService? _backgroundService;
+  TimerPersistenceService? _persistenceService;
+
+  /// 异步初始化依赖
+  Future<void> _initAsync() async {
+    if (_ref == null) return;
+    
+    _focusFlowService = await _ref!.read(focusFlowServiceProvider.future);
+    _audioService = await _ref!.read(clockAudioServiceProvider.future);
+    _focusSessionRepository = await _ref!.read(focusSessionRepositoryProvider.future);
+    _backgroundService = _ref!.read(timerBackgroundServiceProvider);
+    _persistenceService = _ref!.read(timerPersistenceServiceProvider);
+    
+    _initTimer();
+    // 可选：尝试从持久化存储恢复状态
+    _loadState();
+  }
+
+  /// 获取 FocusFlowService（延迟初始化）
+  FocusFlowService get _focusFlowServiceOrThrow {
+    if (_focusFlowService == null) {
+      throw StateError('ClockTimerNotifier not initialized. Call _initAsync() first.');
+    }
+    return _focusFlowService!;
+  }
+
+  /// 获取 ClockAudioService（延迟初始化）
+  ClockAudioService get _audioServiceOrThrow {
+    if (_audioService == null) {
+      throw StateError('ClockTimerNotifier not initialized. Call _initAsync() first.');
+    }
+    return _audioService!;
+  }
+
+  /// 获取 FocusSessionRepository（延迟初始化）
+  FocusSessionRepository get _focusSessionRepositoryOrThrow {
+    if (_focusSessionRepository == null) {
+      throw StateError('ClockTimerNotifier not initialized. Call _initAsync() first.');
+    }
+    return _focusSessionRepository!;
+  }
   
   Timer? _timer;
   DateTime? _currentPauseStart;
@@ -213,8 +275,8 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     await _saveState();
     
     // 开始播放滴答声
-    _audioService.resetAlertFlags();
-    _audioService.startTickSound();
+    _audioServiceOrThrow.resetAlertFlags();
+    _audioServiceOrThrow.startTickSound();
   }
 
   /// 暂停计时
@@ -239,7 +301,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     await _saveState();
     
     // 停止播放滴答声
-    _audioService.stopTickSound();
+    _audioServiceOrThrow.stopTickSound();
   }
 
   /// 继续计时
@@ -293,7 +355,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     await _saveState();
     
     // 继续播放滴答声
-    _audioService.startTickSound();
+    _audioServiceOrThrow.startTickSound();
   }
 
   /// 设置倒计时时长（只能在开始前设置）
@@ -321,8 +383,8 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
   /// 将所有状态重置为初始状态，停止声音，结束 FocusSession（如果存在）但不记录时间
   Future<void> reset() async {
     _timer?.cancel();
-    _audioService.stopTickSound();
-    _audioService.resetAlertFlags();
+    _audioServiceOrThrow.stopTickSound();
+    _audioServiceOrThrow.resetAlertFlags();
     
     // 停止后台服务
     if (_backgroundService != null) {
@@ -337,7 +399,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     // 如果有正在进行的 FocusSession，结束它但不记录时间（actualMinutes = 0）
     if (state.focusSessionId != null) {
       try {
-        await _focusSessionRepository.endSession(
+        await _focusSessionRepositoryOrThrow.endSession(
           sessionId: state.focusSessionId!,
           actualMinutes: 0, // 不记录时间
           transferToTaskId: null,
@@ -414,13 +476,10 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
 }
 
 /// 计时器 Provider
+/// 注意：由于依赖的 Service 现在是 FutureProvider，我们需要在 StateNotifier 内部异步初始化
 final clockTimerProvider = StateNotifierProvider<ClockTimerNotifier, ClockTimerState>((ref) {
-  return ClockTimerNotifier(
-    focusFlowService: ref.watch(focusFlowServiceProvider),
-    audioService: ref.watch(clockAudioServiceProvider),
-    focusSessionRepository: ref.watch(focusSessionRepositoryProvider),
-    backgroundService: ref.watch(timerBackgroundServiceProvider),
-    persistenceService: ref.watch(timerPersistenceServiceProvider),
-  );
+  // StateNotifierProvider 不能是 async，所以我们需要在 StateNotifier 内部处理异步初始化
+  // ClockTimerNotifier 需要在内部异步获取依赖
+  return ClockTimerNotifier._(ref);
 });
 

@@ -63,7 +63,8 @@ class ArchivedTasksPaginationNotifier
       // 读取筛选条件
       final filter = ref.read(archivedTasksFilterProvider);
       
-      final tasks = await _repository.listArchivedTasks(
+      final repository = await _repository;
+      final tasks = await repository.listArchivedTasks(
         limit: _pageSize,
         offset: 0,
         contextTag: filter.contextTag,
@@ -74,7 +75,7 @@ class ArchivedTasksPaginationNotifier
         milestoneId: filter.milestoneId,
         showNoProject: filter.showNoProject,
       );
-      final totalCount = await _repository.countArchivedTasks();
+      final totalCount = await repository.countArchivedTasks();
 
       debugPrint(
         '[ArchivedPagination] loadInitial: Loaded ${tasks.length} tasks, totalCount=$totalCount',

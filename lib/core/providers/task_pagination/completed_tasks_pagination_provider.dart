@@ -57,7 +57,8 @@ class CompletedTasksPaginationNotifier
       // 读取筛选条件
       final filter = ref.read(completedTasksFilterProvider);
       
-      final tasks = await _repository.listCompletedTasks(
+      final repository = await _repository;
+      final tasks = await repository.listCompletedTasks(
         limit: _pageSize,
         offset: 0,
         contextTag: filter.contextTag,
@@ -68,7 +69,7 @@ class CompletedTasksPaginationNotifier
         milestoneId: filter.milestoneId,
         showNoProject: filter.showNoProject,
       );
-      final totalCount = await _repository.countCompletedTasks();
+      final totalCount = await repository.countCompletedTasks();
 
       state = state.copyWith(
         tasks: tasks,
@@ -92,7 +93,8 @@ class CompletedTasksPaginationNotifier
       // 读取筛选条件
       final filter = ref.read(completedTasksFilterProvider);
       
-      final tasks = await _repository.listCompletedTasks(
+      final repository = await _repository;
+      final tasks = await repository.listCompletedTasks(
         limit: _pageSize,
         offset: state.tasks.length,
         contextTag: filter.contextTag,

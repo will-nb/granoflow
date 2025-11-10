@@ -49,7 +49,7 @@ Future<Map<String, int>> _calculateTaskLevelMap(
 final inboxTaskLevelMapProvider = FutureProvider<Map<String, int>>((ref) async {
   final tasksAsync = ref.watch(inboxTasksProvider);
   final tasks = await tasksAsync.requireValue;
-  final taskRepository = ref.watch(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   return _calculateTaskLevelMap(tasks, taskRepository);
 });
 
@@ -71,7 +71,7 @@ final taskLevelMapProvider = FutureProvider.family<Map<String, int>, List<Task>>
   ref,
   tasks,
 ) async {
-  final taskRepository = ref.watch(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   return _calculateTaskLevelMap(tasks, taskRepository);
 });
 
@@ -116,7 +116,7 @@ final inboxTaskChildrenMapProvider = FutureProvider<Map<String, Set<String>>>((
 ) async {
   final tasksAsync = ref.watch(inboxTasksProvider);
   final tasks = await tasksAsync.requireValue;
-  final taskRepository = ref.watch(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   final childrenMap = <String, Set<String>>{};
 
   // 为每个任务查找所有子任务
@@ -145,9 +145,10 @@ final taskParentProvider = FutureProvider.family<Task?, String>((
   ref,
   taskId,
 ) async {
-  final task = await ref.watch(taskRepositoryProvider).findById(taskId);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final task = await taskRepository.findById(taskId);
   if (task?.parentId == null) return null;
-  return ref.watch(taskRepositoryProvider).findById(task!.parentId!);
+  return taskRepository.findById(task!.parentId!);
 });
 
 /// Provider for getting the complete hierarchy of a task (project and milestone if applicable)
@@ -163,7 +164,8 @@ class TaskProjectHierarchy {
 final taskProjectHierarchyProvider =
     StreamProvider.family<TaskProjectHierarchy?, String>((ref, taskId) async* {
   // 使用 watchTaskById 监听任务变化，这样当任务的项目/里程碑字段更新时，会自动触发
-  final taskStream = ref.watch(taskRepositoryProvider).watchTaskById(taskId);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final taskStream = taskRepository.watchTaskById(taskId);
   await for (final task in taskStream) {
     if (task == null) {
       yield null;
@@ -196,8 +198,9 @@ final taskProjectHierarchyProvider =
 final taskTreeProvider = StreamProvider.family<TaskTreeNode, String>((
   ref,
   rootId,
-) {
-  return ref.watch(taskRepositoryProvider).watchTaskTree(rootId);
+) async* {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  yield* taskRepository.watchTaskTree(rootId);
 });
 
 /// Provider for getting task level map for a specific section (虚拟字段)
@@ -221,7 +224,7 @@ final tasksSectionTaskLevelMapProvider =
     FutureProvider.family<Map<String, int>, TaskSection>((ref, section) async {
   final tasksAsync = ref.watch(taskSectionsProvider(section));
   final tasks = await tasksAsync.requireValue;
-  final taskRepository = ref.watch(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   return _calculateTaskLevelMap(tasks, taskRepository);
 });
 
@@ -246,7 +249,7 @@ final tasksSectionTaskChildrenMapProvider =
     FutureProvider.family<Map<String, Set<String>>, TaskSection>((ref, section) async {
   final tasksAsync = ref.watch(taskSectionsProvider(section));
   final tasks = await tasksAsync.requireValue;
-  final taskRepository = ref.watch(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   final childrenMap = <String, Set<String>>{};
 
   // 为每个任务查找所有子任务

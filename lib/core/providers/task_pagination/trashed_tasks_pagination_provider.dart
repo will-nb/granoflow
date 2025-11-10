@@ -47,7 +47,7 @@ class TrashedTasksPaginationNotifier
   final Ref ref;
   static const int _pageSize = 30;
 
-  TaskRepository get _repository => ref.read(taskRepositoryProvider);
+  Future<TaskRepository> get _repository async => await ref.read(taskRepositoryProvider.future);
 
   /// 加载初始数据
   Future<void> loadInitial() async {
@@ -63,7 +63,8 @@ class TrashedTasksPaginationNotifier
       // 读取筛选条件
       final filter = ref.read(trashedTasksFilterProvider);
       
-      final tasks = await _repository.listTrashedTasks(
+      final repository = await _repository;
+      final tasks = await repository.listTrashedTasks(
         limit: _pageSize,
         offset: 0,
         contextTag: filter.contextTag,
@@ -74,7 +75,7 @@ class TrashedTasksPaginationNotifier
         milestoneId: filter.milestoneId,
         showNoProject: filter.showNoProject,
       );
-      final totalCount = await _repository.countTrashedTasks();
+      final totalCount = await repository.countTrashedTasks();
 
       debugPrint(
         '[TrashedPagination] loadInitial: Loaded ${tasks.length} tasks, totalCount=$totalCount',
