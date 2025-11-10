@@ -20,8 +20,13 @@ class DriftMilestoneRepository implements MilestoneRepository {
 
   @override
   Stream<List<Milestone>> watchByProjectId(String projectId) {
-    // TODO: 实现
-    throw UnimplementedError('watchByProjectId will be implemented');
+    final query = _db.select(_db.milestones)
+      ..where((m) => m.projectId.equals(projectId))
+      ..orderBy([(m) => OrderingTerm(expression: m.sortIndex, mode: OrderingMode.asc)]);
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <Milestone>[];
+      return await _toMilestones(entities);
+    });
   }
 
   @override

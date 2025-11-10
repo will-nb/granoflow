@@ -22,8 +22,15 @@ class DriftProjectRepository implements ProjectRepository {
 
   @override
   Stream<List<Project>> watchActiveProjects() {
-    // TODO: 实现
-    throw UnimplementedError('watchActiveProjects will be implemented');
+    final query = _db.select(_db.projects)
+      ..where((p) => p.status.isIn([
+            TaskStatus.pending.index,
+            TaskStatus.doing.index,
+          ]));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <Project>[];
+      return await _toProjects(entities);
+    });
   }
 
   @override
@@ -34,8 +41,13 @@ class DriftProjectRepository implements ProjectRepository {
 
   @override
   Stream<List<Project>> watchProjectsByStatuses(Set<TaskStatus> allowedStatuses) {
-    // TODO: 实现
-    throw UnimplementedError('watchProjectsByStatuses will be implemented');
+    final statusIndexes = allowedStatuses.map((s) => s.index).toList();
+    final query = _db.select(_db.projects)
+      ..where((p) => p.status.isIn(statusIndexes));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <Project>[];
+      return await _toProjects(entities);
+    });
   }
 
   @override
@@ -234,6 +246,23 @@ class DriftProjectRepository implements ProjectRepository {
 
     final logsByProject = <String, List<ProjectLogEntry>>{};
     for (final entity in entities) {
+      logsByProject.putIfAbsent(entity.projectId ?? '', () => []).add(_toLogEntry(entity));
+    }
+    return logsByProject;
+  }
+
+  /// 将 Drift ProjectLog 实体转换为 ProjectLogEntry
+  ProjectLogEntry _toLogEntry(drift.ProjectLog entity) {
+    return ProjectLogEntry(
+      timestamp: entity.timestamp,
+      action: entity.action,
+      previous: entity.previous,
+      next: entity.next,
+      actor: entity.actor,
+    );
+  }
+}
+entities) {
       logsByProject.putIfAbsent(entity.projectId ?? '', () => []).add(_toLogEntry(entity));
     }
     return logsByProject;

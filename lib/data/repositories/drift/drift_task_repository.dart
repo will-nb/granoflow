@@ -21,8 +21,81 @@ class DriftTaskRepository implements TaskRepository {
 
   @override
   Stream<List<domain.Task>> watchSection(domain.TaskSection section) {
-    // TODO: 实现
-    throw UnimplementedError('watchSection will be implemented');
+    final query = _db.select(_db.tasks);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (section) {
+      case domain.TaskSection.overdue:
+        query.where((t) =>
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.dueAt.isNotNull() &
+            t.dueAt.isSmallerThanValue(today));
+        break;
+      case domain.TaskSection.today:
+        final tomorrow = today.add(const Duration(days: 1));
+        query.where((t) =>
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.dueAt.isNotNull() &
+            t.dueAt.isBiggerOrEqualValue(today) &
+            t.dueAt.isSmallerThanValue(tomorrow));
+        break;
+      case domain.TaskSection.tomorrow:
+        final tomorrow = today.add(const Duration(days: 1));
+        final dayAfterTomorrow = tomorrow.add(const Duration(days: 1));
+        query.where((t) =>
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.dueAt.isNotNull() &
+            t.dueAt.isBiggerOrEqualValue(tomorrow) &
+            t.dueAt.isSmallerThanValue(dayAfterTomorrow));
+        break;
+      case domain.TaskSection.thisWeek:
+        final nextWeek = today.add(const Duration(days: 7));
+        query.where((t) =>
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.dueAt.isNotNull() &
+            t.dueAt.isBiggerOrEqualValue(today) &
+            t.dueAt.isSmallerThanValue(nextWeek));
+        break;
+      case domain.TaskSection.thisMonth:
+        final thisMonth = DateTime(now.year, now.month, 1);
+        final nextMonth = DateTime(now.year, now.month + 1, 1);
+        query.where((t) =>
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.dueAt.isNotNull() &
+            t.dueAt.isBiggerOrEqualValue(thisMonth) &
+            t.dueAt.isSmallerThanValue(nextMonth));
+        break;
+      case domain.TaskSection.nextMonth:
+        final nextMonth = DateTime(now.year, now.month + 1, 1);
+        final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+        query.where((t) =>
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.dueAt.isNotNull() &
+            t.dueAt.isBiggerOrEqualValue(nextMonth) &
+            t.dueAt.isSmallerThanValue(monthAfterNext));
+        break;
+      case domain.TaskSection.later:
+        final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+        query.where((t) =>
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            (t.dueAt.isNull() | t.dueAt.isBiggerOrEqualValue(monthAfterNext)));
+        break;
+      case domain.TaskSection.completed:
+        query.where((t) => t.status.equals(domain.TaskStatus.completedActive.index));
+        break;
+      case domain.TaskSection.archived:
+        query.where((t) => t.status.equals(domain.TaskStatus.archived.index));
+        break;
+      case domain.TaskSection.trash:
+        query.where((t) => t.status.equals(domain.TaskStatus.trashed.index));
+        break;
+    }
+
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      return await _toTasks(entities);
+    });
   }
 
   @override
@@ -59,8 +132,12 @@ class DriftTaskRepository implements TaskRepository {
 
   @override
   Stream<List<domain.Task>> watchTasksByProjectId(String projectId) {
-    // TODO: 实现
-    throw UnimplementedError('watchTasksByProjectId will be implemented');
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.projectId.equals(projectId));
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      return await _toTasks(entities);
+    });
   }
 
   @override
@@ -89,8 +166,44 @@ class DriftTaskRepository implements TaskRepository {
     String? milestoneId,
     bool? showNoProject,
   }) {
-    // TODO: 实现
-    throw UnimplementedError('watchInboxFiltered will be implemented');
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.status.isIn([
+            domain.TaskStatus.inbox.index,
+            domain.TaskStatus.pending.index,
+            domain.TaskStatus.doing.index,
+          ]));
+
+    // 应用过滤条件
+    if (projectId != null) {
+      query.where((t) => t.projectId.equals(projectId));
+    }
+    if (milestoneId != null) {
+      query.where((t) => t.milestoneId.equals(milestoneId));
+    }
+    if (showNoProject == true) {
+      query.where((t) => t.projectId.isNull());
+    }
+    // TODO: 实现标签过滤（contextTag, priorityTag, urgencyTag, importanceTag）
+    // 标签存储在 tags 字段（List<String>），需要使用 JSON 查询或内存过滤
+
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <domain.Task>[];
+      
+      // 在内存中应用标签过滤
+      var filtered = entities;
+      if (contextTag != null || priorityTag != null || urgencyTag != null || importanceTag != null) {
+        filtered = entities.where((entity) {
+          final tags = entity.tags;
+          if (contextTag != null && !tags.contains(contextTag)) return false;
+          if (priorityTag != null && !tags.contains(priorityTag)) return false;
+          if (urgencyTag != null && !tags.contains(urgencyTag)) return false;
+          if (importanceTag != null && !tags.contains(importanceTag)) return false;
+          return true;
+        }).toList();
+      }
+      
+      return await _toTasks(filtered);
+    });
   }
 
   @override
@@ -209,9 +322,43 @@ class DriftTaskRepository implements TaskRepository {
     required domain.TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
-  }) {
-    // TODO: 实现
-    throw UnimplementedError('moveTask will be implemented');
+  }) async {
+    await _adapter.writeTransaction(() async {
+      var companion = TasksCompanion(
+        parentId: targetParentId != null ? Value(targetParentId) : const Value.absent(),
+        sortIndex: Value(sortIndex),
+        dueAt: dueAt != null ? Value(dueAt) : const Value.absent(),
+        updatedAt: Value(DateTime.now()),
+      );
+
+      // 根据 targetSection 更新状态
+      TasksCompanion finalCompanion;
+      switch (targetSection) {
+        case domain.TaskSection.completed:
+          finalCompanion = companion.copyWith(
+            status: Value(domain.TaskStatus.completedActive),
+            endedAt: Value(DateTime.now()),
+          );
+          break;
+        case domain.TaskSection.archived:
+          finalCompanion = companion.copyWith(
+            status: Value(domain.TaskStatus.archived),
+            archivedAt: Value(DateTime.now()),
+          );
+          break;
+        case domain.TaskSection.trash:
+          finalCompanion = companion.copyWith(
+            status: Value(domain.TaskStatus.trashed),
+          );
+          break;
+        default:
+          // 其他 section 保持当前状态
+          finalCompanion = companion;
+          break;
+      }
+
+      await (_db.update(_db.tasks)..where((t) => t.id.equals(taskId))).write(finalCompanion);
+    });
   }
 
   @override
@@ -312,8 +459,11 @@ class DriftTaskRepository implements TaskRepository {
 
   @override
   Stream<domain.Task?> watchTaskById(String id) {
-    // TODO: 实现
-    throw UnimplementedError('watchTaskById will be implemented');
+    final query = _db.select(_db.tasks)..where((t) => t.id.equals(id));
+    return query.watchSingleOrNull().asyncMap((entity) async {
+      if (entity == null) return null;
+      return await _toTask(entity);
+    });
   }
 
   @override
@@ -488,9 +638,82 @@ class DriftTaskRepository implements TaskRepository {
   }
 
   @override
-  Future<List<domain.Task>> listSectionTasks(domain.TaskSection section) {
-    // TODO: 实现
-    throw UnimplementedError('listSectionTasks will be implemented');
+  Future<List<domain.Task>> listSectionTasks(domain.TaskSection section) async {
+    return await _adapter.readTransaction(() async {
+      final query = _db.select(_db.tasks);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      switch (section) {
+        case domain.TaskSection.overdue:
+          query.where((t) =>
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.dueAt.isNotNull() &
+              t.dueAt.isSmallerThanValue(today));
+          break;
+        case domain.TaskSection.today:
+          final tomorrow = today.add(const Duration(days: 1));
+          query.where((t) =>
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.dueAt.isNotNull() &
+              t.dueAt.isBiggerOrEqualValue(today) &
+              t.dueAt.isSmallerThanValue(tomorrow));
+          break;
+        case domain.TaskSection.tomorrow:
+          final tomorrow = today.add(const Duration(days: 1));
+          final dayAfterTomorrow = tomorrow.add(const Duration(days: 1));
+          query.where((t) =>
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.dueAt.isNotNull() &
+              t.dueAt.isBiggerOrEqualValue(tomorrow) &
+              t.dueAt.isSmallerThanValue(dayAfterTomorrow));
+          break;
+        case domain.TaskSection.thisWeek:
+          final nextWeek = today.add(const Duration(days: 7));
+          query.where((t) =>
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.dueAt.isNotNull() &
+              t.dueAt.isBiggerOrEqualValue(today) &
+              t.dueAt.isSmallerThanValue(nextWeek));
+          break;
+        case domain.TaskSection.thisMonth:
+          final thisMonth = DateTime(now.year, now.month, 1);
+          final nextMonth = DateTime(now.year, now.month + 1, 1);
+          query.where((t) =>
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.dueAt.isNotNull() &
+              t.dueAt.isBiggerOrEqualValue(thisMonth) &
+              t.dueAt.isSmallerThanValue(nextMonth));
+          break;
+        case domain.TaskSection.nextMonth:
+          final nextMonth = DateTime(now.year, now.month + 1, 1);
+          final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+          query.where((t) =>
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.dueAt.isNotNull() &
+              t.dueAt.isBiggerOrEqualValue(nextMonth) &
+              t.dueAt.isSmallerThanValue(monthAfterNext));
+          break;
+        case domain.TaskSection.later:
+          final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+          query.where((t) =>
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              (t.dueAt.isNull() | t.dueAt.isBiggerOrEqualValue(monthAfterNext)));
+          break;
+        case domain.TaskSection.completed:
+          query.where((t) => t.status.equals(domain.TaskStatus.completedActive.index));
+          break;
+        case domain.TaskSection.archived:
+          query.where((t) => t.status.equals(domain.TaskStatus.archived.index));
+          break;
+        case domain.TaskSection.trash:
+          query.where((t) => t.status.equals(domain.TaskStatus.trashed.index));
+          break;
+      }
+
+      final entities = await query.get();
+      return await _toTasks(entities);
+    });
   }
 
   @override
@@ -520,9 +743,28 @@ class DriftTaskRepository implements TaskRepository {
     String? projectId,
     String? milestoneId,
     bool? showNoProject,
-  }) {
-    // TODO: 实现
-    throw UnimplementedError('listArchivedTasks will be implemented');
+  }) async {
+    return await _adapter.readTransaction(() async {
+      final query = _db.select(_db.tasks)
+        ..where((t) => t.status.equals(domain.TaskStatus.archived.index))
+        ..orderBy([(t) => OrderingTerm(expression: t.archivedAt, mode: OrderingMode.desc)])
+        ..limit(limit, offset: offset);
+
+      // 应用过滤条件
+      if (projectId != null) {
+        query.where((t) => t.projectId.equals(projectId));
+      }
+      if (milestoneId != null) {
+        query.where((t) => t.milestoneId.equals(milestoneId));
+      }
+      if (showNoProject == true) {
+        query.where((t) => t.projectId.isNull());
+      }
+      // TODO: 实现标签过滤（contextTag, priorityTag, urgencyTag, importanceTag）
+
+      final entities = await query.get();
+      return await _toTasks(entities);
+    });
   }
 
   @override
@@ -558,9 +800,28 @@ class DriftTaskRepository implements TaskRepository {
     String? projectId,
     String? milestoneId,
     bool? showNoProject,
-  }) {
-    // TODO: 实现
-    throw UnimplementedError('listTrashedTasks will be implemented');
+  }) async {
+    return await _adapter.readTransaction(() async {
+      final query = _db.select(_db.tasks)
+        ..where((t) => t.status.equals(domain.TaskStatus.trashed.index))
+        ..orderBy([(t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc)])
+        ..limit(limit, offset: offset);
+
+      // 应用过滤条件
+      if (projectId != null) {
+        query.where((t) => t.projectId.equals(projectId));
+      }
+      if (milestoneId != null) {
+        query.where((t) => t.milestoneId.equals(milestoneId));
+      }
+      if (showNoProject == true) {
+        query.where((t) => t.projectId.isNull());
+      }
+      // TODO: 实现标签过滤（contextTag, priorityTag, urgencyTag, importanceTag）
+
+      final entities = await query.get();
+      return await _toTasks(entities);
+    });
   }
 
   @override

@@ -66,8 +66,12 @@ class DriftFocusSessionRepository implements FocusSessionRepository {
 
   @override
   Stream<FocusSession?> watchActiveSession(String taskId) {
-    // TODO: 实现 Stream 监听
-    throw UnimplementedError('watchActiveSession will be implemented');
+    final query = _db.select(_db.focusSessions)
+      ..where((f) => f.taskId.equals(taskId) & f.endedAt.isNull());
+    return query.watchSingleOrNull().asyncMap((entity) async {
+      if (entity == null) return null;
+      return _toFocusSession(entity);
+    });
   }
 
   @override

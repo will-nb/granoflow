@@ -25,8 +25,26 @@ class DriftPreferenceRepository implements PreferenceRepository {
 
   @override
   Stream<Preference> watch() {
-    // TODO: 实现 Stream 监听
-    throw UnimplementedError('watch will be implemented');
+    final query = _db.select(_db.preferences)
+      ..where((p) => p.id.equals(_defaultPreferenceId));
+    return query.watchSingleOrNull().asyncMap((entity) async {
+      // 如果不存在，创建默认设置
+      if (entity == null) {
+        final now = DateTime.now();
+        await _db.into(_db.preferences).insert(PreferencesCompanion(
+          id: Value(_defaultPreferenceId),
+          localeCode: const Value('en'),
+          themeModeIndex: Value(themeModeToIndex(ThemeMode.system)),
+          fontScaleLevel: Value(FontScaleLevel.medium.name),
+          clockTickSoundEnabled: const Value(true),
+          updatedAt: Value(now),
+        ));
+        // 重新查询
+        final newEntity = await query.getSingleOrNull();
+        return _toPreference(newEntity!);
+      }
+      return _toPreference(entity);
+    });
   }
 
   @override
