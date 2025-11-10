@@ -5,6 +5,7 @@ import '../preference_repository.dart';
 class ObjectBoxPreferenceRepository implements PreferenceRepository {
   const ObjectBoxPreferenceRepository(this._adapter);
 
+  // ignore: unused_field
   final DatabaseAdapter _adapter;
 
   @override

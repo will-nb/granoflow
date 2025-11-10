@@ -5,6 +5,7 @@ import '../task_repository.dart';
 class ObjectBoxTaskRepository implements TaskRepository {
   const ObjectBoxTaskRepository(this._adapter);
 
+  // ignore: unused_field
   final DatabaseAdapter _adapter;
 
   @override

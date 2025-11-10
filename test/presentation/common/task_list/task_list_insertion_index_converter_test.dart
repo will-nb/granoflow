@@ -4,7 +4,7 @@ import 'package:granoflow/presentation/common/task_list/task_list_insertion_inde
 import 'package:granoflow/presentation/tasks/utils/tree_flattening_utils.dart';
 
 /// 创建测试任务辅助函数
-Task _createTask({required int id, int? parentId, double sortIndex = 1000}) {
+Task _createTask({required String id, String? parentId, double sortIndex = 1000}) {
   return Task(
     id: id,
 
@@ -29,7 +29,7 @@ void main() {
           FlattenedTaskNode(task2, 0),
         ];
         final rootTasks = [task1, task2];
-        final taskIdToIndex = {1: 0, 2: 1};
+        final taskIdToIndex = {'1': 0, '2': 1};
         final filteredTasks = [task1, task2];
 
         final result =
@@ -52,7 +52,7 @@ void main() {
           FlattenedTaskNode(task2, 0),
         ];
         final rootTasks = [task1, task2];
-        final taskIdToIndex = {1: 0, 2: 1};
+        final taskIdToIndex = {'1': 0, '2': 1};
         final filteredTasks = [task1, task2];
 
         final result =
@@ -75,7 +75,7 @@ void main() {
           FlattenedTaskNode(task2, 0),
         ];
         final rootTasks = [task1, task2];
-        final taskIdToIndex = {1: 0, 2: 1};
+        final taskIdToIndex = {'1': 0, '2': 1};
         final filteredTasks = [task1, task2];
 
         final result =
@@ -92,13 +92,13 @@ void main() {
 
       test('should find root parent for subtask', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: 2, parentId: 1);
+        final task2 = _createTask(id: '2', parentId: '1');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1), // 子任务
         ];
         final rootTasks = [task1];
-        final taskIdToIndex = {1: 0}; // task2 不在根任务映射中
+        final taskIdToIndex = {'1': 0}; // task2 不在根任务映射中
         final filteredTasks = [task1, task2];
 
         final result =
@@ -115,15 +115,15 @@ void main() {
 
       test('should handle nested subtask (three levels)', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: 2, parentId: 1);
-        final task3 = _createTask(id: 3, parentId: 2);
+        final task2 = _createTask(id: '2', parentId: '1');
+        final task3 = _createTask(id: '3', parentId: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1),
           FlattenedTaskNode(task3, 2), // 三级任务
         ];
         final rootTasks = [task1];
-        final taskIdToIndex = {1: 0};
+        final taskIdToIndex = {'1': 0};
         final filteredTasks = [task1, task2, task3];
 
         final result =
@@ -141,7 +141,7 @@ void main() {
       test('should handle empty root tasks list', () {
         final flattenedTasks = <FlattenedTaskNode>[];
         final rootTasks = <Task>[];
-        final taskIdToIndex = <int, int>{};
+        final taskIdToIndex = <String, int>{};
         final filteredTasks = <Task>[];
 
         final result =
@@ -158,13 +158,13 @@ void main() {
 
       test('should throw StateError when parent task not found', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: 2, parentId: 999); // 父任务不存在
+        final task2 = _createTask(id: '2', parentId: '999'); // 父任务不存在
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1), // 子任务，但父任务不在 filteredTasks 中
         ];
         final rootTasks = [task1];
-        final taskIdToIndex = {1: 0};
+        final taskIdToIndex = {'1': 0};
         final filteredTasks = [task1, task2]; // task2 的父任务 999 不在列表中
 
         expect(
@@ -190,7 +190,7 @@ void main() {
           FlattenedTaskNode(task2, 0),
         ];
         final rootTasks = [task1, task2];
-        final taskIdToIndex = {1: 0, 2: 1};
+        final taskIdToIndex = {'1': 0, '2': 1};
         final filteredTasks = [task1, task2];
 
         final result =
@@ -215,7 +215,7 @@ void main() {
           FlattenedTaskNode(task2, 0),
         ];
         final rootTasks = [task1, task2];
-        final taskIdToIndex = {1: 0, 2: 1};
+        final taskIdToIndex = {'1': 0, '2': 1};
         final filteredTasks = [task1, task2];
 
         final result =
@@ -242,7 +242,7 @@ void main() {
           FlattenedTaskNode(task3, 0),
         ];
         final rootTasks = [task1, task2, task3];
-        final taskIdToIndex = {1: 0, 2: 1, 3: 2};
+        final taskIdToIndex = {'1': 0, '2': 1, '3': 2};
         final filteredTasks = [task1, task2, task3];
 
         final result =
@@ -262,7 +262,7 @@ void main() {
       test('should handle empty root tasks list', () {
         final flattenedTasks = <FlattenedTaskNode>[];
         final rootTasks = <Task>[];
-        final taskIdToIndex = <int, int>{};
+        final taskIdToIndex = <String, int>{};
         final filteredTasks = <Task>[];
 
         final result =
@@ -281,13 +281,13 @@ void main() {
 
       test('should handle insertion at subtask position', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: 2, parentId: 1);
+        final task2 = _createTask(id: '2', parentId: '1');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1),
         ];
         final rootTasks = [task1];
-        final taskIdToIndex = {1: 0};
+        final taskIdToIndex = {'1': 0};
         final filteredTasks = [task1, task2];
 
         final result =

@@ -15,9 +15,10 @@ import 'package:granoflow/presentation/tasks/views/task_section_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required int id, int? parentId, DateTime? dueAt}) {
+Task _createTask({required String id, String? parentId, DateTime? dueAt}) {
   // 如果没有指定 dueAt，使用同一个日期，确保父子任务在同一区域
   final taskDueAt = dueAt ?? DateTime(2025, 1, 15); // 使用固定日期，确保在同一区域
+  final idNum = int.tryParse(id) ?? 0;
   return Task(
     id: id,
 
@@ -27,7 +28,7 @@ Task _createTask({required int id, int? parentId, DateTime? dueAt}) {
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
     parentId: parentId,
-    sortIndex: id.toDouble(),
+    sortIndex: idNum.toDouble(),
     tags: const [],
     templateLockCount: 0,
     allowInstantComplete: false,
@@ -41,8 +42,8 @@ void main() {
   testWidgets('TaskTreeTile renders root and child tasks', (tester) async {
     // 使用今天作为日期，确保任务在 TaskSection.today 区域
     final today = DateTime.now();
-    final root = _createTask(id: 1, dueAt: today);
-    final child = _createTask(id: 2, parentId: 1, dueAt: today);
+    final root = _createTask(id: '1', dueAt: today);
+    final child = _createTask(id: '2', parentId: '1', dueAt: today);
 
     await tester.pumpWidget(
       ProviderScope(

@@ -28,7 +28,7 @@ void main() {
 
   // 创建测试用的任务
   Task createTask({
-    required int id,
+    required String id,
     String? projectId,
     String? milestoneId,
     TaskStatus status = TaskStatus.inbox,
@@ -42,7 +42,7 @@ void main() {
       status: status,
       projectId: projectId,
       milestoneId: milestoneId,
-      sortIndex: id.toDouble() * 1024,
+      sortIndex: double.parse(id) * 1024,
       dueAt:
           dueAt ??
           (status == TaskStatus.pending
@@ -60,14 +60,14 @@ void main() {
     testWidgets('InboxPage should display tasks with projectId', (
       tester,
     ) async {
-      final regularTask = createTask(id: 1, status: TaskStatus.inbox);
+      final regularTask = createTask(id: '1', status: TaskStatus.inbox);
       final taskWithProject = createTask(
-        id: 2,
+        id: '2',
         status: TaskStatus.inbox,
         projectId: 'prj-test-001',
       );
       final taskWithMilestone = createTask(
-        id: 3,
+        id: '3',
         status: TaskStatus.inbox,
         milestoneId: 'mil-test-001',
       );
@@ -132,18 +132,18 @@ void main() {
       tester,
     ) async {
       final regularTask = createTask(
-        id: 1,
+        id: '1',
         status: TaskStatus.pending,
         dueAt: DateTime(2025, 11, 2, 23, 59, 59),
       );
       final taskWithProject = createTask(
-        id: 2,
+        id: '2',
         status: TaskStatus.pending,
         projectId: 'prj-test-001',
         dueAt: DateTime(2025, 11, 2, 23, 59, 59),
       );
       final taskWithMilestone = createTask(
-        id: 3,
+        id: '3',
         status: TaskStatus.pending,
         milestoneId: 'mil-test-001',
         dueAt: DateTime(2025, 11, 2, 23, 59, 59),
@@ -247,7 +247,7 @@ class _TestTaskRepository implements TaskRepository {
 
   // 其他必需的方法实现为抛出异常或返回空值
   @override
-  Stream<TaskTreeNode> watchTaskTree(int rootTaskId) =>
+  Stream<TaskTreeNode> watchTaskTree(String rootTaskId) =>
       throw UnimplementedError();
 
   @override
@@ -439,7 +439,6 @@ class _TestTaskRepository implements TaskRepository {
   @override
   Future<int> countTrashedTasks() async => 0;
 
-  @override
   Future<void> setTaskProjectAndMilestoneIsarId(
     int taskId,
     int? projectIsarId,

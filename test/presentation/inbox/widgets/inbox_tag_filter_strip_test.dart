@@ -9,7 +9,7 @@ import 'package:granoflow/core/theme/app_theme.dart';
 
 Tag buildTag(String slug, TagKind kind) {
   return Tag(
-    id: slug.hashCode,
+    id: slug.hashCode.toString(),
     slug: slug,
     kind: kind,
     localizedLabels: {'en': slug},

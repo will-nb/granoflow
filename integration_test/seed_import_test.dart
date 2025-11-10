@@ -25,14 +25,23 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final isar = container.read(databaseAdapterProvider);
+        final taskRepository = container.read(taskRepositoryProvider);
+        final projectRepository = container.read(projectRepositoryProvider);
+        final milestoneRepository = container.read(milestoneRepositoryProvider);
 
         // 清空数据库（在应用启动后）
-        await isar.writeTxn(() async {
-          await isar.taskEntitys.clear();
-          await isar.projectEntitys.clear();
-          await isar.milestoneEntitys.clear();
-        });
+        final existingTasks = await taskRepository.listAll();
+        for (final task in existingTasks) {
+          await taskRepository.softDelete(task.id);
+        }
+        final existingProjects = await projectRepository.listAll();
+        for (final project in existingProjects) {
+          await projectRepository.delete(project.id);
+        }
+        final existingMilestones = await milestoneRepository.listAll();
+        for (final milestone in existingMilestones) {
+          await milestoneRepository.delete(milestone.id);
+        }
 
         // 应用已经在 setUpAll 中启动，等待界面加载
         await tester.pumpAndSettle(const Duration(seconds: 5));
@@ -41,112 +50,92 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 3));
 
         // 验证项目已导入
-        final projects = await isar.projectEntitys.where().findAll();
+        final projects = await projectRepository.listAll();
         expect(projects.length, greaterThan(0), reason: '应该至少导入一个项目');
 
         // 验证里程碑已导入
-        final milestones = await isar.milestoneEntitys.where().findAll();
+        final milestones = await milestoneRepository.listAll();
         expect(milestones.length, greaterThan(0), reason: '应该至少导入一个里程碑');
 
         // 验证任务已导入
-        final tasks = await isar.taskEntitys.where().findAll();
+        final tasks = await taskRepository.listAll();
         expect(tasks.length, greaterThan(0), reason: '应该至少导入一个任务');
 
-        // 验证项目有正确的 projectId（UUID v4 格式）
+        // 验证项目有正确的 id（UUID v4 格式）
         for (final project in projects) {
-          expect(project.projectId, isNotEmpty, reason: '项目应该有 projectId');
+          expect(project.id, isNotEmpty, reason: '项目应该有 id');
           expect(
-            project.projectId,
+            project.id,
             matches(
               RegExp(
                 r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
                 caseSensitive: false,
               ),
             ),
-            reason: 'projectId 应该是 UUID v4 格式',
+            reason: 'id 应该是 UUID v4 格式',
           );
         }
 
-        // 验证里程碑有正确的 milestoneId（UUID v4 格式）和 projectIsarId
+        // 验证里程碑有正确的 id（UUID v4 格式）和 projectId
         for (final milestone in milestones) {
           expect(
-            milestone.milestoneId,
+            milestone.id,
             isNotEmpty,
-            reason: '里程碑应该有 milestoneId',
+            reason: '里程碑应该有 id',
           );
           expect(
-            milestone.milestoneId,
+            milestone.id,
             matches(
               RegExp(
                 r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
                 caseSensitive: false,
               ),
             ),
-            reason: 'milestoneId 应该是 UUID v4 格式',
+            reason: 'id 应该是 UUID v4 格式',
           );
           expect(
-            milestone.projectIsarId,
-            isNotNull,
-            reason: '里程碑应该有 projectIsarId',
+            milestone.projectId,
+            isNotEmpty,
+            reason: '里程碑应该有 projectId',
           );
 
-          // 验证 projectIsarId 指向一个存在的项目
-          final project = await isar.projectEntitys.get(
-            milestone.projectIsarId!,
-          );
-          expect(project, isNotNull, reason: '里程碑的 projectIsarId 应该指向一个存在的项目');
+          // 验证 projectId 指向一个存在的项目
+          final project = await projectRepository.findById(milestone.projectId);
+          expect(project, isNotNull, reason: '里程碑的 projectId 应该指向一个存在的项目');
         }
 
-        // 验证任务有正确的 taskId（UUID v4 格式）
+        // 验证任务有正确的 id（UUID v4 格式）
         for (final task in tasks) {
-          expect(task.taskId, isNotEmpty, reason: '任务应该有 taskId');
+          expect(task.id, isNotEmpty, reason: '任务应该有 id');
           expect(
-            task.taskId,
+            task.id,
             matches(
               RegExp(
                 r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
                 caseSensitive: false,
               ),
             ),
-            reason: 'taskId 应该是 UUID v4 格式',
+            reason: 'id 应该是 UUID v4 格式',
           );
 
-          // 如果任务有关联的项目，验证 projectIsarId
+          // 如果任务有关联的项目，验证 projectId
           if (task.projectId != null && task.projectId!.isNotEmpty) {
+            final project = await projectRepository.findById(task.projectId!);
             expect(
-              task.projectIsarId,
+              project,
               isNotNull,
-              reason: '任务如果有 projectId，应该有 projectIsarId',
+              reason: '任务的 projectId 应该指向一个存在的项目',
             );
-            if (task.projectIsarId != null) {
-              final project = await isar.projectEntitys.get(
-                task.projectIsarId!,
-              );
-              expect(
-                project,
-                isNotNull,
-                reason: '任务的 projectIsarId 应该指向一个存在的项目',
-              );
-            }
           }
 
-          // 如果任务有关联的里程碑，验证 milestoneIsarId
+          // 如果任务有关联的里程碑，验证 milestoneId
           if (task.milestoneId != null && task.milestoneId!.isNotEmpty) {
+            final milestone = await milestoneRepository.findById(task.milestoneId!);
             expect(
-              task.milestoneIsarId,
+              milestone,
               isNotNull,
-              reason: '任务如果有 milestoneId，应该有 milestoneIsarId',
+              reason: '任务的 milestoneId 应该指向一个存在的里程碑',
             );
-            if (task.milestoneIsarId != null) {
-              final milestone = await isar.milestoneEntitys.get(
-                task.milestoneIsarId!,
-              );
-              expect(
-                milestone,
-                isNotNull,
-                reason: '任务的 milestoneIsarId 应该指向一个存在的里程碑',
-              );
-            }
           }
         }
 
@@ -169,7 +158,7 @@ void main() {
         expect(seedMilestones.length, greaterThan(0), reason: '应该导入种子里程碑');
         for (final milestone in seedMilestones) {
           expect(
-            milestone.projectIsarId,
+            milestone.projectId,
             equals(seedProject.id),
             reason: '里程碑应该关联到种子项目',
           );
@@ -193,12 +182,14 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final isar = container.read(databaseAdapterProvider);
+        final taskRepository = container.read(taskRepositoryProvider);
+        final projectRepository = container.read(projectRepositoryProvider);
+        final milestoneRepository = container.read(milestoneRepositoryProvider);
 
         // 获取第一次导入后的数据数量
-        final projectsBefore = await isar.projectEntitys.where().findAll();
-        final milestonesBefore = await isar.milestoneEntitys.where().findAll();
-        final tasksBefore = await isar.taskEntitys.where().findAll();
+        final projectsBefore = await projectRepository.listAll();
+        final milestonesBefore = await milestoneRepository.listAll();
+        final tasksBefore = await taskRepository.listAll();
 
         final projectCountBefore = projectsBefore.length;
         final milestoneCountBefore = milestonesBefore.length;
@@ -209,9 +200,9 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
         // 验证数据数量没有增加
-        final projectsAfter = await isar.projectEntitys.where().findAll();
-        final milestonesAfter = await isar.milestoneEntitys.where().findAll();
-        final tasksAfter = await isar.taskEntitys.where().findAll();
+        final projectsAfter = await projectRepository.listAll();
+        final milestonesAfter = await milestoneRepository.listAll();
+        final tasksAfter = await taskRepository.listAll();
 
         expect(
           projectsAfter.length,

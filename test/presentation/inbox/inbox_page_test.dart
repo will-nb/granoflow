@@ -12,7 +12,7 @@ import 'package:granoflow/presentation/inbox/inbox_page.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
 
 Tag _tag(String slug, TagKind kind) => Tag(
-  id: slug.hashCode,
+  id: slug.hashCode.toString(),
   slug: slug,
   kind: kind,
   localizedLabels: {'en': slug},
@@ -29,7 +29,7 @@ Task _task(String id, String title) => Task(
 );
 
 TaskTemplate _template(String title) => TaskTemplate(
-  id: title.hashCode,
+  id: title.hashCode.toString(),
   title: title,
   createdAt: DateTime(2025, 1, 1),
   updatedAt: DateTime(2025, 1, 1),

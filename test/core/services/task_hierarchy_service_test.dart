@@ -306,7 +306,6 @@ class _TestTaskRepository extends TaskRepository {
   @override
   Future<int> countTrashedTasks() => throw UnimplementedError();
 
-  @override
   Future<void> setTaskProjectAndMilestoneIsarId(
     int taskId,
     int? projectIsarId,

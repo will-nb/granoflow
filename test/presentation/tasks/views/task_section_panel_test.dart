@@ -11,14 +11,15 @@ import 'package:granoflow/presentation/tasks/views/task_section_panel.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required int id}) {
+Task _createTask({required String id}) {
+  final idNum = int.tryParse(id) ?? 0;
   return Task(
     id: id,
 
     title: 'Task $id',
     status: TaskStatus.pending,
-    sortIndex: id.toDouble(),
-    dueAt: DateTime(2025, 1, id),
+    sortIndex: idNum.toDouble(),
+    dueAt: DateTime(2025, 1, idNum),
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
     tags: const [],
@@ -33,7 +34,7 @@ void main() {
   testWidgets('TaskSectionPanel renders task title when tasks exist', (
     tester,
   ) async {
-    final task = _createTask(id: 1);
+    final task = _createTask(id: '1');
 
     await tester.pumpWidget(
       ProviderScope(

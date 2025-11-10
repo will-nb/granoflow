@@ -9,7 +9,7 @@ import 'package:granoflow/presentation/inbox/sections/inbox_capture_section.dart
 import 'package:granoflow/core/theme/app_theme.dart';
 
 Tag _contextTag(String slug) => Tag(
-  id: slug.hashCode,
+  id: slug.hashCode.toString(),
   slug: slug,
   kind: TagKind.context,
   localizedLabels: {'en': slug},

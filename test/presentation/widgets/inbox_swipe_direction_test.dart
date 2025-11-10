@@ -17,7 +17,7 @@ void main() {
       'Right swipe triggers quickPlan, left swipe triggers delete (LTR)',
       (tester) async {
         // Build a minimal Task
-        Task buildTask(int id) => Task(
+        Task buildTask(String id) => Task(
           id: id,
 
           title: 'Task $id',
@@ -35,7 +35,7 @@ void main() {
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: DismissibleTaskTile(
-                task: buildTask(1),
+                task: buildTask('1'),
                 config: SwipeConfigs.inboxConfig,
                 onLeftAction: (_) {
                   if (SwipeConfigs.inboxConfig.leftAction ==
@@ -74,7 +74,7 @@ void main() {
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: DismissibleTaskTile(
-                task: buildTask(2),
+                task: buildTask('2'),
                 config: SwipeConfigs.inboxConfig,
                 onLeftAction: (_) {
                   if (SwipeConfigs.inboxConfig.leftAction ==

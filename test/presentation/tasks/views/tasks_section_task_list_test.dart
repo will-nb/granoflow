@@ -10,7 +10,7 @@ import 'package:granoflow/presentation/tasks/views/tasks_section_task_list.dart'
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required int id, DateTime? dueAt}) {
+Task _createTask({required String id, DateTime? dueAt}) {
   return Task(
     id: id,
 
@@ -28,7 +28,7 @@ Task _createTask({required int id, DateTime? dueAt}) {
 void main() {
   group('TasksSectionTaskList Widget Updates', () {
     testWidgets('should initialize without errors', (tester) async {
-      final tasks = [_createTask(id: 1)];
+      final tasks = [_createTask(id: '1')];
 
       await tester.pumpWidget(
         ProviderScope(
@@ -69,8 +69,8 @@ void main() {
     testWidgets('should handle widget update when tasks change', (
       tester,
     ) async {
-      final tasks1 = [_createTask(id: 1)];
-      final tasks2 = [_createTask(id: 1), _createTask(id: 2)];
+      final tasks1 = [_createTask(id: '1')];
+      final tasks2 = [_createTask(id: '1'), _createTask(id: '2')];
 
       await tester.pumpWidget(
         ProviderScope(
@@ -182,7 +182,7 @@ void main() {
     testWidgets('should handle widget rebuild after drag operation', (
       tester,
     ) async {
-      final tasks = [_createTask(id: 1), _createTask(id: 2)];
+      final tasks = [_createTask(id: '1'), _createTask(id: '2')];
 
       await tester.pumpWidget(
         ProviderScope(
@@ -221,7 +221,7 @@ void main() {
       expect(find.text('Task 2'), findsOneWidget);
 
       // 模拟拖拽后的重建（tasks 顺序改变）
-      final reorderedTasks = [_createTask(id: 2), _createTask(id: 1)];
+      final reorderedTasks = [_createTask(id: '2'), _createTask(id: '1')];
       await tester.pumpWidget(
         ProviderScope(
           overrides: [

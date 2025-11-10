@@ -9,7 +9,7 @@ import 'package:granoflow/presentation/inbox/widgets/inbox_filter_collapsible.da
 
 Tag buildTag(String slug, TagKind kind) {
   return Tag(
-    id: slug.hashCode,
+    id: slug.hashCode.toString(),
     slug: slug,
     kind: kind,
     localizedLabels: {'en': slug},

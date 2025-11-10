@@ -6,7 +6,8 @@ import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/quick_tasks/quick_tasks_section.dart';
 
-Task _createTask({required int id}) {
+Task _createTask({required String id}) {
+  final idNum = int.tryParse(id) ?? 0;
   return Task(
     id: id,
 
@@ -14,7 +15,7 @@ Task _createTask({required int id}) {
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
-    sortIndex: id.toDouble(),
+    sortIndex: idNum.toDouble(),
     tags: const [],
     templateLockCount: 0,
     allowInstantComplete: false,
@@ -26,7 +27,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('QuickTasksCollapsibleSection toggles expansion', (tester) async {
-    final task = _createTask(id: 1);
+    final task = _createTask(id: '1');
 
     await tester.pumpWidget(
       ProviderScope(
@@ -66,3 +67,4 @@ void main() {
     expect(find.text('Quick Task 1'), findsOneWidget);
   });
 }
+

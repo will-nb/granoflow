@@ -5,6 +5,7 @@ import '../tag_repository.dart';
 class ObjectBoxTagRepository implements TagRepository {
   const ObjectBoxTagRepository(this._adapter);
 
+  // ignore: unused_field
   final DatabaseAdapter _adapter;
 
   @override

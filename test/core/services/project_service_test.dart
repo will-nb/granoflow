@@ -301,7 +301,6 @@ class _InMemoryProjectRepository implements ProjectRepository {
     _emit();
   }
 
-  @override
   Future<Project?> findByProjectId(String projectId) async {
     for (final project in _projects.values) {
       if (project.id == projectId) {
@@ -483,7 +482,6 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
         .toList(growable: false);
   }
 
-  @override
   Future<Milestone?> findByMilestoneId(String milestoneId) async {
     for (final milestone in _milestones.values) {
       if (milestone.id == milestoneId) {
@@ -529,7 +527,6 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
     return _milestones.values.toList(growable: false);
   }
 
-  @override
   Future<void> setMilestoneProjectIsarId(
     int milestoneId,
     int projectIsarId,

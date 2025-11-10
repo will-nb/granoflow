@@ -56,10 +56,10 @@ void main() {
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
         expect(trees.length, 1);
-        expect(trees[0].task.id, 1);
+        expect(trees[0].task.id, '1');
         expect(trees[0].children.length, 2);
-        expect(trees[0].children[0].task.id, 2);
-        expect(trees[0].children[1].task.id, 3);
+        expect(trees[0].children[0].task.id, '2');
+        expect(trees[0].children[1].task.id, '3');
       });
 
       test('should build tree with multiple root tasks and children', () {
@@ -74,13 +74,13 @@ void main() {
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
         expect(trees.length, 2);
-        expect(trees[0].task.id, 1);
-        expect(trees[1].task.id, 3);
+        expect(trees[0].task.id, '1');
+        expect(trees[1].task.id, '3');
         expect(trees[0].children.length, 1);
         expect(trees[1].children.length, 2);
-        expect(trees[0].children[0].task.id, 2);
-        expect(trees[1].children[0].task.id, 4);
-        expect(trees[1].children[1].task.id, 5);
+        expect(trees[0].children[0].task.id, '2');
+        expect(trees[1].children[0].task.id, '4');
+        expect(trees[1].children[1].task.id, '5');
       });
 
       test('should exclude project tasks from children', () {
@@ -92,7 +92,7 @@ void main() {
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
         expect(trees.length, 1);
-        expect(trees[0].task.id, 1);
+        expect(trees[0].task.id, '1');
         expect(trees[0].children, isEmpty);
       });
 
@@ -105,7 +105,7 @@ void main() {
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
         expect(trees.length, 1);
-        expect(trees[0].task.id, 1);
+        expect(trees[0].task.id, '1');
         expect(trees[0].children, isEmpty);
       });
 
@@ -120,9 +120,9 @@ void main() {
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
         expect(trees[0].children.length, 3);
-        expect(trees[0].children[0].task.id, 3); // sortIndex: 1000
-        expect(trees[0].children[1].task.id, 4); // sortIndex: 2000
-        expect(trees[0].children[2].task.id, 2); // sortIndex: 3000
+        expect(trees[0].children[0].task.id, '3'); // sortIndex: 1000
+        expect(trees[0].children[1].task.id, '4'); // sortIndex: 2000
+        expect(trees[0].children[2].task.id, '2'); // sortIndex: 3000
       });
 
       test('should handle empty task list', () {
@@ -143,22 +143,22 @@ void main() {
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
         expect(trees.length, 1);
-        expect(trees[0].task.id, 1);
+        expect(trees[0].task.id, '1');
         expect(trees[0].children.length, 1);
-        expect(trees[0].children[0].task.id, 2);
+        expect(trees[0].children[0].task.id, '2');
         expect(trees[0].children[0].children.length, 1);
-        expect(trees[0].children[0].children[0].task.id, 3);
+        expect(trees[0].children[0].children[0].task.id, '3');
       });
     });
 
     group('buildSubtree', () {
       test('should build subtree with single task', () {
         final task = _createTask(id: '1');
-        final byId = {1: task};
+        final byId = {'1': task};
 
         final node = TaskListTreeBuilder.buildSubtree(task, byId);
 
-        expect(node.task.id, 1);
+        expect(node.task.id, '1');
         expect(node.children, isEmpty);
       });
 
@@ -166,29 +166,29 @@ void main() {
         final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2', parentId: '1');
         final task3 = _createTask(id: '3', parentId: '1');
-        final byId = {1: task1, 2: task2, 3: task3};
+        final byId = {'1': task1, '2': task2, '3': task3};
 
         final node = TaskListTreeBuilder.buildSubtree(task1, byId);
 
-        expect(node.task.id, 1);
+        expect(node.task.id, '1');
         expect(node.children.length, 2);
-        expect(node.children[0].task.id, 2);
-        expect(node.children[1].task.id, 3);
+        expect(node.children[0].task.id, '2');
+        expect(node.children[1].task.id, '3');
       });
 
       test('should recursively build nested subtrees', () {
         final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2', parentId: '1');
         final task3 = _createTask(id: '3', parentId: '2');
-        final byId = {1: task1, 2: task2, 3: task3};
+        final byId = {'1': task1, '2': task2, '3': task3};
 
         final node = TaskListTreeBuilder.buildSubtree(task1, byId);
 
-        expect(node.task.id, 1);
+        expect(node.task.id, '1');
         expect(node.children.length, 1);
-        expect(node.children[0].task.id, 2);
+        expect(node.children[0].task.id, '2');
         expect(node.children[0].children.length, 1);
-        expect(node.children[0].children[0].task.id, 3);
+        expect(node.children[0].children[0].task.id, '3');
       });
     });
 
@@ -200,24 +200,24 @@ void main() {
           task: task1,
           children: [TaskTreeNode(task: task2, children: const [])],
         );
-        final map = <int, bool>{};
+        final map = <String, bool>{};
         final allTasks = [task1, task2];
 
         TaskListTreeBuilder.populateHasChildrenMap(node, map, allTasks);
 
-        expect(map[1], true);
-        expect(map[2], false);
+        expect(map['1'], true);
+        expect(map['2'], false);
       });
 
       test('should mark task without children as false', () {
         final task = _createTask(id: '1');
         final node = TaskTreeNode(task: task, children: const []);
-        final map = <int, bool>{};
+        final map = <String, bool>{};
         final allTasks = [task];
 
         TaskListTreeBuilder.populateHasChildrenMap(node, map, allTasks);
 
-        expect(map[1], false);
+        expect(map['1'], false);
       });
 
       test('should recursively populate map for nested trees', () {
@@ -233,25 +233,25 @@ void main() {
             ),
           ],
         );
-        final map = <int, bool>{};
+        final map = <String, bool>{};
         final allTasks = [task1, task2, task3];
 
         TaskListTreeBuilder.populateHasChildrenMap(node, map, allTasks);
 
-        expect(map[1], true);
-        expect(map[2], true);
-        expect(map[3], false);
+        expect(map['1'], true);
+        expect(map['2'], true);
+        expect(map['3'], false);
       });
 
       test('should handle empty tree', () {
         final task = _createTask(id: '1');
         final node = TaskTreeNode(task: task, children: const []);
-        final map = <int, bool>{};
+        final map = <String, bool>{};
         final allTasks = [task];
 
         TaskListTreeBuilder.populateHasChildrenMap(node, map, allTasks);
 
-        expect(map[1], false);
+        expect(map['1'], false);
         expect(map.length, 1);
       });
     });

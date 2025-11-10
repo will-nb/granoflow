@@ -13,7 +13,7 @@ import 'package:granoflow/core/theme/app_theme.dart';
 class _StubTag extends Tag {
   _StubTag(String slug, TagKind kind)
     : super(
-        id: slug.hashCode,
+        id: slug.hashCode.toString(),
         slug: slug,
         kind: kind,
         localizedLabels: {'en': slug},

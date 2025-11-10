@@ -32,13 +32,14 @@ void main() {
 
   // 创建测试用的任务
   Task createTask({
-    required int id,
+    required String id,
     String? projectId,
     String? milestoneId,
     TaskStatus status = TaskStatus.inbox,
     DateTime? dueAt,
-    int? parentId,
+    String? parentId,
   }) {
+    final idNum = int.tryParse(id) ?? 0;
     return Task(
       id: id,
 
@@ -48,7 +49,7 @@ void main() {
       projectId: projectId,
       milestoneId: milestoneId,
       parentId: parentId,
-      sortIndex: id.toDouble() * 1024,
+      sortIndex: idNum.toDouble() * 1024,
       dueAt:
           dueAt ??
           (status == TaskStatus.pending
@@ -67,14 +68,14 @@ void main() {
       'InboxPage should display ALL root tasks including those with projectId',
       (tester) async {
         // 创建根任务：1个普通任务，1个关联项目的任务，1个关联里程碑的任务
-        final regularRootTask = createTask(id: 1, status: TaskStatus.inbox);
+        final regularRootTask = createTask(id: '1', status: TaskStatus.inbox);
         final rootTaskWithProject = createTask(
-          id: 2,
+          id: '2',
           status: TaskStatus.inbox,
           projectId: 'prj-test-001',
         );
         final rootTaskWithMilestone = createTask(
-          id: 3,
+          id: '3',
           status: TaskStatus.inbox,
           milestoneId: 'mil-test-001',
         );
@@ -183,18 +184,18 @@ void main() {
       (tester) async {
         // 创建根任务：1个普通任务，1个关联项目的任务，1个关联里程碑的任务
         final regularRootTask = createTask(
-          id: 1,
+          id: '1',
           status: TaskStatus.pending,
           dueAt: DateTime(2025, 11, 2, 23, 59, 59),
         );
         final rootTaskWithProject = createTask(
-          id: 2,
+          id: '2',
           status: TaskStatus.pending,
           projectId: 'prj-test-001',
           dueAt: DateTime(2025, 11, 2, 23, 59, 59),
         );
         final rootTaskWithMilestone = createTask(
-          id: 3,
+          id: '3',
           status: TaskStatus.pending,
           milestoneId: 'mil-test-001',
           dueAt: DateTime(2025, 11, 2, 23, 59, 59),
@@ -536,7 +537,6 @@ class _TestTaskRepository implements TaskRepository {
   @override
   Future<int> countTrashedTasks() async => 0;
 
-  @override
   Future<void> setTaskProjectAndMilestoneIsarId(
     int taskId,
     int? projectIsarId,

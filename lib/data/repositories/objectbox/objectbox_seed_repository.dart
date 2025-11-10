@@ -4,6 +4,7 @@ import '../seed_repository.dart';
 class ObjectBoxSeedRepository implements SeedRepository {
   const ObjectBoxSeedRepository(this._adapter);
 
+  // ignore: unused_field
   final DatabaseAdapter _adapter;
 
   @override

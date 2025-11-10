@@ -5,6 +5,7 @@ import '../focus_session_repository.dart';
 class ObjectBoxFocusSessionRepository implements FocusSessionRepository {
   const ObjectBoxFocusSessionRepository(this._adapter);
 
+  // ignore: unused_field
   final DatabaseAdapter _adapter;
 
   @override

@@ -6,6 +6,7 @@ import '../milestone_repository.dart';
 class ObjectBoxMilestoneRepository implements MilestoneRepository {
   const ObjectBoxMilestoneRepository(this._adapter);
 
+  // ignore: unused_field
   final DatabaseAdapter _adapter;
 
   @override
