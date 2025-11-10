@@ -162,8 +162,8 @@ class InboxDragTarget extends ConsumerWidget {
     InboxDragNotifier dragNotifier,
   ) async {
     try {
-      final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
-      final taskRepository = ref.read(taskRepositoryProvider);
+      final taskHierarchyService = await ref.read(taskHierarchyServiceProvider.future);
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
       final dragState = ref.read(inboxDragProvider);
       
       // 确定上方任务的 parentId

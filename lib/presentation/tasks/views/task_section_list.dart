@@ -382,6 +382,6 @@ final parentTaskProvider = FutureProvider.family<Task?, String>((
   ref,
   parentId,
 ) async {
-  final taskRepository = ref.read(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   return taskRepository.findById(parentId);
 });

@@ -241,7 +241,7 @@ final parentTaskChildrenProvider =
 /// 用于在父任务展开时显示已删除的子任务
 final parentTaskChildrenIncludingTrashedProvider =
     FutureProvider.family<List<Task>, String>((ref, parentId) async {
-  final taskRepository = ref.read(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   return taskRepository.listChildrenIncludingTrashed(parentId);
 });
 

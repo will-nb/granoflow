@@ -60,7 +60,7 @@ class _PomodoroSubtaskSectionState
   }
 
   Future<void> _loadTaskLevel() async {
-    final repository = ref.read(taskRepositoryProvider);
+    final repository = await ref.read(taskRepositoryProvider.future);
     final level = await getTaskLevel(widget.task, repository);
     if (mounted) {
       setState(() {

@@ -120,7 +120,7 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
     final updatedNode = _nodes[targetIndex];
     final newSortIndex = calculateSortIndex(before, after);
 
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
     try {
@@ -130,8 +130,8 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
       );
 
       // 批量重排该父任务的所有子任务的sortIndex
-      final taskRepository = ref.read(taskRepositoryProvider);
-      final sortIndexService = ref.read(sortIndexServiceProvider);
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
+      final sortIndexService = await ref.read(sortIndexServiceProvider.future);
       final parentId = updatedNode.task.parentId;
       if (parentId != null) {
         final allChildren = await taskRepository.listChildren(parentId);

@@ -131,7 +131,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
   }
 
   Future<void> _jumpToParentTask(BuildContext context, WidgetRef ref) async {
-    final taskRepository = ref.read(taskRepositoryProvider);
+    final taskRepository = await ref.read(taskRepositoryProvider.future);
     final parentTask = await taskRepository.findById(widget.parentTask.id);
     if (parentTask == null) return;
 
@@ -188,7 +188,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
 
 /// Provider: 获取父任务的子任务数量（排除 trashed）
 final parentTaskChildrenCountProvider = FutureProvider.family<int, String>((ref, parentId) async {
-  final taskRepository = ref.read(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   final children = await taskRepository.listChildren(parentId);
   return children.length;
 });

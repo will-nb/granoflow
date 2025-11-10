@@ -50,7 +50,7 @@ class AncestorTaskChain extends ConsumerWidget {
 
 /// Provider: 获取任务的祖先任务链
 final ancestorChainProvider = FutureProvider.family<List<Task>, String>((ref, taskId) async {
-  final taskRepository = ref.read(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   return buildAncestorChain(taskId, taskRepository);
 });
 
