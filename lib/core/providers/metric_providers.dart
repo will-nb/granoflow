@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/metric_orchestrator.dart';
 import 'service_providers.dart';
 
-final metricSnapshotProvider = StreamProvider.autoDispose((ref) {
-  return ref.watch(metricOrchestratorProvider).latest();
+final metricSnapshotProvider = StreamProvider.autoDispose((ref) async* {
+  final orchestrator = await ref.read(metricOrchestratorProvider.future);
+  yield* orchestrator.latest();
 });
 
 class MetricRefreshNotifier extends AsyncNotifier<void> {
