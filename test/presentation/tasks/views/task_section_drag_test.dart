@@ -33,7 +33,7 @@ void main() {
       final now = DateTime.now();
       final testTasks = <Task>[
         Task(
-          id: 1,
+          id: '1',
           title: 'Test Task',
           sortIndex: 1000,
           status: TaskStatus.pending,

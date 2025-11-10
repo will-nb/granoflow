@@ -5,7 +5,7 @@ import 'package:granoflow/presentation/tasks/views/task_title.dart';
 
 Task _createTask() {
   return Task(
-    id: 1,
+    id: '1',
 
     title: 'Sample Task',
     status: TaskStatus.pending,

@@ -9,7 +9,7 @@ import 'package:granoflow/presentation/tasks/projects/widgets/project_card_swipe
 void main() {
   Project createProject(TaskStatus status) {
     return Project(
-      id: 1,
+      id: '1',
 
       title: 'Test Project',
       status: status,

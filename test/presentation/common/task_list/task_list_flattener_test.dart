@@ -85,8 +85,8 @@ void main() {
       });
 
       test('should calculate depth correctly for nested tasks', () {
-        final task1 = _createTask(id: 1);
-        final task2 = _createTask(id: 2, parentId: 1);
+        final task1 = _createTask(id: '1');
+        final task2 = _createTask(id: '2', parentId: '1');
         final task3 = _createTask(id: '3', parentId: '2');
         final node = _createNode(task1, [
           _createNode(task2, [_createNode(task3, [])]),
@@ -110,8 +110,8 @@ void main() {
       test(
         'should only expand immediate children when nested parent is collapsed',
         () {
-          final task1 = _createTask(id: 1);
-          final task2 = _createTask(id: 2, parentId: 1);
+          final task1 = _createTask(id: '1');
+          final task2 = _createTask(id: '2', parentId: '1');
           final task3 = _createTask(id: '3', parentId: '2');
           final node = _createNode(task1, [
             _createNode(task2, [_createNode(task3, [])]),
@@ -133,7 +133,7 @@ void main() {
       );
 
       test('should handle multiple root nodes', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2');
         final node1 = _createNode(task1, []);
         final node2 = _createNode(task2, []);

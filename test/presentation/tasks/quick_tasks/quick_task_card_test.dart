@@ -11,7 +11,7 @@ void main() {
     tester,
   ) async {
     final task = Task(
-      id: 1,
+      id: '1',
 
       title: 'Quick timing task',
       status: TaskStatus.pending,

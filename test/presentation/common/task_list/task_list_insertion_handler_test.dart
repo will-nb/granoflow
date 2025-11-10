@@ -208,7 +208,7 @@ void main() {
 
       testWidgets('should handle between insertion', (tester) async {
         final draggedTask = _createTask(id: '1');
-        final beforeTask = _createTask(id: 2, sortIndex: 1000);
+        final beforeTask = _createTask(id: '2', sortIndex: 1000);
         final afterTask = _createTask(id: '3', sortIndex: 2000);
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
@@ -298,7 +298,7 @@ void main() {
         final draggedTask = _createTask(id: '1');
         final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
-        final inboxTasks = [_createTask(id: 1), _createTask(id: 2)];
+        final inboxTasks = [_createTask(id: '1'), _createTask(id: '2')];
         WidgetRef? testRef;
 
         fakeTaskRepository = _FakeTaskRepository(
@@ -341,7 +341,7 @@ void main() {
         tester,
       ) async {
         final now = DateTime.now();
-        final draggedTask = _createTask(id: 1, dueAt: now);
+        final draggedTask = _createTask(id: '1', dueAt: now);
         final beforeTask = _createTask(
           id: '2',
           dueAt: TaskSectionUtils.getSectionEndTime(

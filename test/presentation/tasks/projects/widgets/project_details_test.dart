@@ -11,7 +11,7 @@ import 'package:granoflow/presentation/tasks/projects/widgets/project_details.da
 void main() {
   Project createProject() {
     return Project(
-      id: 1,
+      id: '1',
 
       title: 'Test Project',
       status: TaskStatus.pending,
@@ -36,7 +36,7 @@ void main() {
     TaskStatus status = TaskStatus.pending,
   }) {
     return Milestone(
-      id: 1,
+      id: '1',
 
       projectId: 'project-1',
       title: title,

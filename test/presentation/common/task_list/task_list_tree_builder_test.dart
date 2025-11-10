@@ -30,9 +30,9 @@ void main() {
     group('buildTaskTree', () {
       test('should build tree with root tasks only', () {
         final tasks = [
-          _createTask(id: 1),
-          _createTask(id: 2),
-          _createTask(id: 3),
+          _createTask(id: '1'),
+          _createTask(id: '2'),
+          _createTask(id: '3'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -48,8 +48,8 @@ void main() {
 
       test('should build tree with parent-child relationships', () {
         final tasks = [
-          _createTask(id: 1),
-          _createTask(id: 2, parentId: 1),
+          _createTask(id: '1'),
+          _createTask(id: '2', parentId: '1'),
           _createTask(id: '3', parentId: '1'),
         ];
 
@@ -64,11 +64,11 @@ void main() {
 
       test('should build tree with multiple root tasks and children', () {
         final tasks = [
-          _createTask(id: 1),
-          _createTask(id: 2, parentId: 1),
-          _createTask(id: 3),
-          _createTask(id: '4', parentId: 3),
-          _createTask(id: 5, parentId: 3),
+          _createTask(id: '1'),
+          _createTask(id: '2', parentId: '1'),
+          _createTask(id: '3'),
+          _createTask(id: '4', parentId: '3'),
+          _createTask(id: '5', parentId: '3'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -85,8 +85,8 @@ void main() {
 
       test('should exclude project tasks from children', () {
         final tasks = [
-          _createTask(id: 1),
-          _createTask(id: 2, parentId: 1, projectId: 'project-1'),
+          _createTask(id: '1'),
+          _createTask(id: '2', parentId: '1', projectId: 'project-1'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -98,8 +98,8 @@ void main() {
 
       test('should exclude milestone tasks from children', () {
         final tasks = [
-          _createTask(id: 1),
-          _createTask(id: 2, parentId: 1, milestoneId: 'milestone-1'),
+          _createTask(id: '1'),
+          _createTask(id: '2', parentId: '1', milestoneId: 'milestone-1'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -111,10 +111,10 @@ void main() {
 
       test('should sort children by sortIndex', () {
         final tasks = [
-          _createTask(id: 1),
-          _createTask(id: 2, parentId: 1, sortIndex: 3000),
-          _createTask(id: 3, parentId: 1, sortIndex: 1000),
-          _createTask(id: '4', parentId: 1, sortIndex: 2000),
+          _createTask(id: '1'),
+          _createTask(id: '2', parentId: '1', sortIndex: 3000),
+          _createTask(id: '3', parentId: '1', sortIndex: 1000),
+          _createTask(id: '4', parentId: '1', sortIndex: 2000),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
@@ -135,8 +135,8 @@ void main() {
 
       test('should handle deep nesting (three levels)', () {
         final tasks = [
-          _createTask(id: 1),
-          _createTask(id: 2, parentId: 1),
+          _createTask(id: '1'),
+          _createTask(id: '2', parentId: '1'),
           _createTask(id: '3', parentId: '2'),
         ];
 
@@ -163,9 +163,9 @@ void main() {
       });
 
       test('should build subtree with children', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2', parentId: '1');
-        final task3 = _createTask(id: 3, parentId: 1);
+        final task3 = _createTask(id: '3', parentId: '1');
         final byId = {1: task1, 2: task2, 3: task3};
 
         final node = TaskListTreeBuilder.buildSubtree(task1, byId);
@@ -177,7 +177,7 @@ void main() {
       });
 
       test('should recursively build nested subtrees', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2', parentId: '1');
         final task3 = _createTask(id: '3', parentId: '2');
         final byId = {1: task1, 2: task2, 3: task3};
@@ -194,7 +194,7 @@ void main() {
 
     group('populateHasChildrenMap', () {
       test('should mark task with children as true', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2', parentId: '1');
         final node = TaskTreeNode(
           task: task1,
@@ -221,7 +221,7 @@ void main() {
       });
 
       test('should recursively populate map for nested trees', () {
-        final task1 = _createTask(id: 1);
+        final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2', parentId: '1');
         final task3 = _createTask(id: '3', parentId: '2');
         final node = TaskTreeNode(

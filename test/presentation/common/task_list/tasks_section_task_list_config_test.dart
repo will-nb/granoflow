@@ -121,7 +121,7 @@ void main() {
     testWidgets('should build TasksSectionTaskTile', (tester) async {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       final task = Task(
-        id: 1,
+        id: '1',
 
         title: 'Test Task',
         status: TaskStatus.pending,
@@ -169,7 +169,7 @@ void main() {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       final tasks = [
         Task(
-          id: 1,
+          id: '1',
 
           title: 'Task 1',
           status: TaskStatus.pending,
@@ -214,7 +214,7 @@ void main() {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       final now = DateTime.now();
       final draggedTask = Task(
-        id: 1,
+        id: '1',
 
         title: 'Task 1',
         status: TaskStatus.pending,
@@ -225,7 +225,7 @@ void main() {
         tags: const [],
       );
       final beforeTask = Task(
-        id: 2,
+        id: '2',
 
         title: 'Task 2',
         status: TaskStatus.pending,
@@ -251,7 +251,7 @@ void main() {
       final config = TasksSectionTaskListConfig(TaskSection.tomorrow);
       final now = DateTime.now();
       final draggedTask = Task(
-        id: 1,
+        id: '1',
 
         title: 'Task 1',
         status: TaskStatus.pending,
@@ -262,7 +262,7 @@ void main() {
         tags: const [],
       );
       final beforeTask = Task(
-        id: 2,
+        id: '2',
 
         title: 'Task 2',
         status: TaskStatus.pending,

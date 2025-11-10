@@ -33,7 +33,7 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
 void main() {
   testWidgets('ProjectTreeView expands to show children', (tester) async {
     final parent = Task(
-      id: 1,
+      id: '1',
 
       title: 'Parent Task',
       status: TaskStatus.pending,
@@ -52,13 +52,13 @@ void main() {
       logs: const <TaskLogEntry>[],
     );
     final child = Task(
-      id: 2,
+      id: '2',
 
       title: 'Child Task',
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
-      parentId: 1,
+      parentId: '1',
 
       projectId: null,
       milestoneId: null,

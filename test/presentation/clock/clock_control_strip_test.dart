@@ -62,7 +62,7 @@ class _FakeFocusFlowService implements FocusFlowService {
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async {
-    return FocusSession(id: 1, taskId: taskId, startedAt: DateTime.now());
+    return FocusSession(id: '1', taskId: taskId, startedAt: DateTime.now());
   }
 
   @override
@@ -186,7 +186,9 @@ Future<void> _pumpControlStrip(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: Center(child: ClockControlStrip(taskId: '1', onComplete: () {})),
+          body: Center(
+            child: ClockControlStrip(taskId: '1', onComplete: () {}),
+          ),
         ),
       ),
     ),

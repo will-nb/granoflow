@@ -89,7 +89,7 @@ void main() {
   });
 
   testWidgets('InboxPage renders inbox tasks', (tester) async {
-    final task = _task(1, 'Inbox Item');
+    final task = _task('1', 'Inbox Item');
 
     await tester.pumpWidget(
       ProviderScope(

@@ -10,7 +10,7 @@ void main() {
       tester,
     ) async {
       final task = Task(
-        id: 1,
+        id: '1',
 
         title: 'Test Task',
         status: TaskStatus.pending,
@@ -40,7 +40,7 @@ void main() {
 
     testWidgets('should show draggable when enabled is true', (tester) async {
       final task = Task(
-        id: 1,
+        id: '1',
 
         title: 'Test Task',
         status: TaskStatus.pending,
@@ -68,7 +68,7 @@ void main() {
 
     testWidgets('should show feedback when dragging', (tester) async {
       final task = Task(
-        id: 1,
+        id: '1',
 
         title: 'Test Task',
         status: TaskStatus.pending,

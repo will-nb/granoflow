@@ -12,7 +12,7 @@ class _FakeTaskService extends Fake implements TaskService {}
 void main() {
   testWidgets('TaskHeaderRow renders title and convert icon', (tester) async {
     final task = Task(
-      id: 1,
+      id: '1',
 
       title: 'Header Task',
       status: TaskStatus.pending,

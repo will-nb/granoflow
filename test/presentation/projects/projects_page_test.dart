@@ -141,7 +141,7 @@ void main() {
       tester,
     ) async {
       final project = Project(
-        id: 1,
+        id: '1',
 
         title: 'Test Project',
         status: TaskStatus.pending,

@@ -24,7 +24,7 @@ void main() {
 
   testWidgets('TaskHierarchyList renders entries for nodes', (tester) async {
     final task = Task(
-      id: 1,
+      id: '1',
 
       title: 'Child Task',
       status: TaskStatus.pending,

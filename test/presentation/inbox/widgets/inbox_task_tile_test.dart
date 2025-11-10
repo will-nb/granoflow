@@ -42,7 +42,7 @@ class _RecordingTaskService extends Fake implements TaskService {
 void main() {
   Task buildTask() {
     return Task(
-      id: 10,
+      id: '10',
 
       title: 'Inbox task',
       status: TaskStatus.inbox,

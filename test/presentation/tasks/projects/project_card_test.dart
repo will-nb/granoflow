@@ -35,7 +35,7 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
 void main() {
   testWidgets('ProjectCard shows project title', (tester) async {
     final project = Project(
-      id: 1,
+      id: '1',
 
       title: 'Landing Page Revamp',
       status: TaskStatus.pending,
