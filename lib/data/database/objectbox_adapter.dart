@@ -60,10 +60,12 @@ class ObjectBoxAdapter implements DatabaseAdapter {
   Future<T> _runInTransaction<T>(
     TxMode mode,
     DatabaseTransactionCallback<T> action,
-  ) {
+  ) async {
+    // ObjectBox's runInTransactionAsync requires TxAsyncCallback<R, P> = R Function(Store store, P parameter)
+    // Our action is Future<T> Function(), so we wrap it to match the signature
     return store.runInTransactionAsync<T, void>(
       mode,
-      (void _) async {
+      (Store store, void _) async {
         try {
           return await action();
         } on DatabaseAdapterException {
