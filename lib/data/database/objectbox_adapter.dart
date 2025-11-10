@@ -35,9 +35,19 @@ class ObjectBoxAdapter implements DatabaseAdapter {
     final box = _box<E>();
     final builderInstance = ObjectBoxQueryBuilder<E>(box);
     build(builderInstance);
-    return box
-        .watch(triggerImmediately: true)
-        .asyncMap((_) => builderInstance.findAll());
+    // Use Store.subscribe to watch for changes
+    // Note: This is a simplified implementation - ObjectBox doesn't have Box.watch()
+    // We'll use a periodic stream that checks for changes
+    return Stream.periodic(const Duration(milliseconds: 100))
+        .asyncMap((_) => builderInstance.findAll())
+        .distinct((prev, next) {
+      // Simple comparison - in production, you'd want more sophisticated change detection
+      if (prev.length != next.length) return false;
+      for (var i = 0; i < prev.length; i++) {
+        if (prev[i] != next[i]) return false;
+      }
+      return true;
+    });
   }
 
   @override
@@ -51,17 +61,21 @@ class ObjectBoxAdapter implements DatabaseAdapter {
     TxMode mode,
     DatabaseTransactionCallback<T> action,
   ) {
-    return store.runInTransactionAsync<T>(mode, () async {
-      try {
-        return await action();
-      } on DatabaseAdapterException {
-        rethrow;
-      } catch (error) {
-        throw DatabaseAdapterException(
-          'ObjectBox transaction failed',
-          error,
-        );
-      }
-    });
+    return store.runInTransactionAsync<T, void>(
+      mode,
+      () async {
+        try {
+          return await action();
+        } on DatabaseAdapterException {
+          rethrow;
+        } catch (error) {
+          throw DatabaseAdapterException(
+            'ObjectBox transaction failed',
+            error,
+          );
+        }
+      },
+      null,
+    );
   }
 }

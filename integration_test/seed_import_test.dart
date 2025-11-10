@@ -25,7 +25,7 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final isar = container.read(isarProvider);
+        final isar = container.read(databaseAdapterProvider);
 
         // 清空数据库（在应用启动后）
         await isar.writeTxn(() async {
@@ -193,7 +193,7 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final isar = container.read(isarProvider);
+        final isar = container.read(databaseAdapterProvider);
 
         // 获取第一次导入后的数据数量
         final projectsBefore = await isar.projectEntitys.where().findAll();
