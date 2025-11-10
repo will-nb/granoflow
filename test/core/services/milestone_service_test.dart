@@ -116,7 +116,7 @@ void main() {
 
     test('updateMilestone throws when milestone not found', () async {
       expect(
-        () => service.updateMilestone(id: 999, title: 'Test'),
+        () => service.updateMilestone(id: '999', title: 'Test'),
         throwsA(isA<StateError>()),
       );
     });
@@ -155,7 +155,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   @override
   Future<Milestone> create(MilestoneDraft draft) async {
     final milestone = Milestone(
-      id: _nextId++,
+      id: (_nextId++).toString(),
 
       projectId: draft.projectId,
       title: draft.title,

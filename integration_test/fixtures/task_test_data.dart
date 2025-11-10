@@ -20,11 +20,11 @@ class TaskTestData {
   }) {
     final now = DateTime.now();
     return Task(
-      id: id,
+      id: id.toString(),
 
       title: title,
       dueAt: dueAt,
-      parentId: parentId,
+      parentId: parentId?.toString(),
       sortIndex: sortIndex,
       status: status,
       createdAt: createdAt ?? now,
