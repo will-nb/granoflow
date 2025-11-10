@@ -63,7 +63,7 @@ class ObjectBoxAdapter implements DatabaseAdapter {
   ) {
     return store.runInTransactionAsync<T, void>(
       mode,
-      () async {
+      (void _) async {
         try {
           return await action();
         } on DatabaseAdapterException {
