@@ -35,8 +35,31 @@ class DriftProjectRepository implements ProjectRepository {
 
   @override
   Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status) {
-    // TODO: 实现
-    throw UnimplementedError('watchProjectsByStatus will be implemented');
+    final query = _db.select(_db.projects);
+    switch (status) {
+      case ProjectFilterStatus.all:
+        // 不添加状态过滤
+        break;
+      case ProjectFilterStatus.active:
+        query.where((p) => p.status.isIn([
+              TaskStatus.pending.index,
+              TaskStatus.doing.index,
+            ]));
+        break;
+      case ProjectFilterStatus.completed:
+        query.where((p) => p.status.equals(TaskStatus.completedActive.index));
+        break;
+      case ProjectFilterStatus.archived:
+        query.where((p) => p.status.equals(TaskStatus.archived.index));
+        break;
+      case ProjectFilterStatus.trash:
+        query.where((p) => p.status.equals(TaskStatus.trashed.index));
+        break;
+    }
+    return query.watch().asyncMap((entities) async {
+      if (entities.isEmpty) return <Project>[];
+      return await _toProjects(entities);
+    });
   }
 
   @override
@@ -246,23 +269,6 @@ class DriftProjectRepository implements ProjectRepository {
 
     final logsByProject = <String, List<ProjectLogEntry>>{};
     for (final entity in entities) {
-      logsByProject.putIfAbsent(entity.projectId ?? '', () => []).add(_toLogEntry(entity));
-    }
-    return logsByProject;
-  }
-
-  /// 将 Drift ProjectLog 实体转换为 ProjectLogEntry
-  ProjectLogEntry _toLogEntry(drift.ProjectLog entity) {
-    return ProjectLogEntry(
-      timestamp: entity.timestamp,
-      action: entity.action,
-      previous: entity.previous,
-      next: entity.next,
-      actor: entity.actor,
-    );
-  }
-}
-entities) {
       logsByProject.putIfAbsent(entity.projectId ?? '', () => []).add(_toLogEntry(entity));
     }
     return logsByProject;

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'database_adapter.dart';
 import 'drift_query_builder.dart';
 import 'query_builder.dart';
+import '../drift/database.dart';
 
 /// Drift 版 `DatabaseAdapter` 实现。
 ///
@@ -12,6 +13,9 @@ class DriftAdapter implements DatabaseAdapter {
   DriftAdapter();
 
   DatabaseInstrumentation? _instrumentation;
+
+  /// 获取 AppDatabase 实例
+  AppDatabase get _db => AppDatabase.instance;
 
   @override
   DatabaseInstrumentation? get instrumentation => _instrumentation;
@@ -23,16 +27,22 @@ class DriftAdapter implements DatabaseAdapter {
 
   @override
   Future<T> readTransaction<T>(DatabaseTransactionCallback<T> action) async {
-    // TODO: 在阶段 2 实现，需要数据库实例
     // 使用 Drift 的 transaction API，允许多个并发读取
-    return await action();
+    // 注意：由于 Repository 直接使用 AppDatabase，这里的 action 可能不直接使用数据库
+    // 但为了保持接口一致性，我们仍然使用事务
+    return await _db.transaction(() async {
+      return await action();
+    });
   }
 
   @override
   Future<T> writeTransaction<T>(DatabaseTransactionCallback<T> action) async {
-    // TODO: 在阶段 2 实现，需要数据库实例
     // 使用 Drift 的 transaction API，保证原子性和隔离性
-    return await action();
+    // 注意：由于 Repository 直接使用 AppDatabase，这里的 action 可能不直接使用数据库
+    // 但为了保持接口一致性，我们仍然使用事务
+    return await _db.transaction(() async {
+      return await action();
+    });
   }
 
   @override
