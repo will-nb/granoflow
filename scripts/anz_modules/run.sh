@@ -83,17 +83,17 @@ run_ipad() {
 run_macos() {
   echo -e "${GREEN}🚀 准备在 macOS 上运行应用（桌面应用）${NC}"
   
-  # 检查 macos 设备是否可用
-  if ! flutter devices 2>&1 | grep -q "macos"; then
+  # 检查 macOS 设备是否可用
+  if ! flutter devices --machine 2>/dev/null | grep -q '"id"[[:space:]]*:[[:space:]]*"macos"'; then
     echo -e "${RED}❌ macOS 设备不可用${NC}"
     echo -e "${BLUE}提示: 请确保 Flutter 支持 macOS 平台${NC}"
     return 1
   fi
   
-  # 清空应用数据
-  clean_macos_app_data
+  echo -e "${BLUE}🧹 运行前执行完整清理流程（scripts/anz clean）...${NC}"
+  clean_project
   
-  echo -e "${GREEN}✅ macOS 设备可用${NC}"
+  echo -e "${GREEN}✅ 环境已清理完毕，macOS 设备可用${NC}"
   echo -e "${BLUE}运行应用...${NC}"
   flutter run -d macos
 }
