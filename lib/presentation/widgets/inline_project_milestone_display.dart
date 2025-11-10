@@ -74,8 +74,8 @@ class InlineProjectMilestoneDisplay extends ConsumerWidget {
       onTap: () {
         ProjectMilestonePicker(
           onSelected: onSelected,
-          currentProjectId: project.projectId,
-          currentMilestoneId: milestone?.milestoneId,
+          currentProjectId: project.id,
+          currentMilestoneId: milestone?.id,
         ).showPickerMenu(context, ref);
       },
       borderRadius: BorderRadius.circular(12),

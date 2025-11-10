@@ -9,7 +9,7 @@ import 'tasks_drag_provider/tasks_drag_auto_scroll_mixin.dart';
 class TasksDragState {
   final Task? draggedTask;
   final TasksDragTargetType? hoverTarget;
-  final int? hoverTargetId; // 用于区分同类型的不同目标
+  final String? hoverTargetId; // 用于区分同类型的不同目标
   final bool isDragging;
   
   // 统一拖拽系统：当前悬停的插入位置索引（该 section 内的索引）
@@ -17,7 +17,7 @@ class TasksDragState {
   // 统一拖拽系统：当前悬停的插入位置所在的 section
   final TaskSection? hoveredInsertionSection;
   // 统一拖拽系统：当前悬停的任务 ID
-  final int? hoveredTaskId;
+  final String? hoveredTaskId;
   // 已提交的插入位置索引（让位动画触发时的位置，即使后续hover状态变化也保留）
   final int? committedInsertionIndex;
   // 已提交的插入位置所在的 section
@@ -53,11 +53,11 @@ class TasksDragState {
   TasksDragState copyWith({
     Task? draggedTask,
     TasksDragTargetType? hoverTarget,
-    int? hoverTargetId,
+    String? hoverTargetId,
     bool? isDragging,
     int? hoveredInsertionIndex,
     TaskSection? hoveredInsertionSection,
-    int? hoveredTaskId,
+    String? hoveredTaskId,
     int? committedInsertionIndex,
     TaskSection? committedInsertionSection,
     Offset? dragStartPosition,
@@ -148,7 +148,7 @@ class TasksDragNotifier extends StateNotifier<TasksDragState>
   }
   
   /// 更新悬停目标（保留以向后兼容）
-  void updateHoverTarget(TasksDragTargetType? targetType, {int? targetId}) {
+    void updateHoverTarget(TasksDragTargetType? targetType, {String? targetId}) {
     state = state.copyWith(
       hoverTarget: targetType,
       hoverTargetId: targetId,
@@ -211,7 +211,7 @@ class TasksDragNotifier extends StateNotifier<TasksDragState>
   }
   
   /// 统一拖拽系统：更新任务表面悬停状态
-  void updateTaskSurfaceHover(int? taskId) {
+    void updateTaskSurfaceHover(String? taskId) {
     state = state.copyWith(
       hoveredTaskId: taskId,
       hoveredInsertionIndex: null, // 清除插入位置悬停

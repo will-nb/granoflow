@@ -48,7 +48,7 @@ class ProjectDetails extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) => MilestoneEditSheet(
-        projectId: project.projectId,
+        projectId: project.id,
       ),
     );
     if (created == true && context.mounted) {

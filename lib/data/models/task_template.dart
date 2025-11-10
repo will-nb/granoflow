@@ -14,9 +14,9 @@ class TaskTemplate {
     this.suggestedEstimateMinutes,
   });
 
-  final int id;
+  final String id;
   final String title;
-  final int? parentTaskId;
+  final String? parentTaskId;
   final List<String> defaultTags;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -25,9 +25,9 @@ class TaskTemplate {
   final int? suggestedEstimateMinutes;
 
   TaskTemplate copyWith({
-    int? id,
+    String? id,
     String? title,
-    int? parentTaskId,
+    String? parentTaskId,
     List<String>? defaultTags,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -60,7 +60,7 @@ class TaskTemplateDraft {
   });
 
   final String title;
-  final int? parentTaskId;
+  final String? parentTaskId;
   final List<String> defaultTags;
   final String? seedSlug;
   final int? suggestedEstimateMinutes;
@@ -75,7 +75,7 @@ class TaskTemplateUpdate {
   });
 
   final String? title;
-  final int? parentTaskId;
+  final String? parentTaskId;
   final List<String>? defaultTags;
   final int? suggestedEstimateMinutes;
 }
@@ -88,7 +88,7 @@ class TaskTemplateOverrides {
     this.dueAt,
   });
 
-  final int? parentTaskId;
+  final String? parentTaskId;
   final List<String>? tags;
   final bool? allowInstantComplete;
   final DateTime? dueAt;

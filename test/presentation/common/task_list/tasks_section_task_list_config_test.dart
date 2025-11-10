@@ -46,7 +46,9 @@ void main() {
       expect(config.dragProvider, tasksDragProvider);
     });
 
-    testWidgets('should return correct expandedProvider for section', (tester) async {
+    testWidgets('should return correct expandedProvider for section', (
+      tester,
+    ) async {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       WidgetRef? testRef;
 
@@ -62,10 +64,15 @@ void main() {
       );
 
       final expandedProvider = config.getExpandedProvider(testRef!);
-      expect(expandedProvider, tasksSectionExpandedTaskIdProvider(TaskSection.today));
+      expect(
+        expandedProvider,
+        tasksSectionExpandedTaskIdProvider(TaskSection.today),
+      );
     });
 
-    testWidgets('should return correct levelMapProvider for section', (tester) async {
+    testWidgets('should return correct levelMapProvider for section', (
+      tester,
+    ) async {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       WidgetRef? testRef;
 
@@ -81,10 +88,15 @@ void main() {
       );
 
       final levelMapProvider = config.getLevelMapProvider(testRef!);
-      expect(levelMapProvider, tasksSectionTaskLevelMapProvider(TaskSection.today));
+      expect(
+        levelMapProvider,
+        tasksSectionTaskLevelMapProvider(TaskSection.today),
+      );
     });
 
-    testWidgets('should return correct childrenMapProvider for section', (tester) async {
+    testWidgets('should return correct childrenMapProvider for section', (
+      tester,
+    ) async {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       WidgetRef? testRef;
 
@@ -100,14 +112,17 @@ void main() {
       );
 
       final childrenMapProvider = config.getChildrenMapProvider(testRef!);
-      expect(childrenMapProvider, tasksSectionTaskChildrenMapProvider(TaskSection.today));
+      expect(
+        childrenMapProvider,
+        tasksSectionTaskChildrenMapProvider(TaskSection.today),
+      );
     });
 
     testWidgets('should build TasksSectionTaskTile', (tester) async {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       final task = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Test Task',
         status: TaskStatus.pending,
         createdAt: DateTime(2025, 1, 1),
@@ -120,8 +135,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            tasksSectionTaskLevelMapProvider(TaskSection.today).overrideWith((ref) async => <int, int>{1: 1}),
-            tasksSectionTaskChildrenMapProvider(TaskSection.today).overrideWith((ref) async => <int, Set<int>>{}),
+            tasksSectionTaskLevelMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <String, int>{'1': 1}),
+            tasksSectionTaskChildrenMapProvider(
+              TaskSection.today,
+            ).overrideWith((ref) async => <String, Set<String>>{}),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -144,12 +163,14 @@ void main() {
       expect(find.text('Test Task'), findsOneWidget);
     });
 
-    testWidgets('should call reorderTasksForSameDate in reorderTasks', (tester) async {
+    testWidgets('should call reorderTasksForSameDate in reorderTasks', (
+      tester,
+    ) async {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       final tasks = [
         Task(
-          id: 1,
-          taskId: 'task-1',
+          id: '1',
+
           title: 'Task 1',
           status: TaskStatus.pending,
           createdAt: DateTime(2025, 1, 1),
@@ -193,8 +214,8 @@ void main() {
       final config = TasksSectionTaskListConfig(TaskSection.today);
       final now = DateTime.now();
       final draggedTask = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Task 1',
         status: TaskStatus.pending,
         createdAt: DateTime(2025, 1, 1),
@@ -204,8 +225,8 @@ void main() {
         tags: const [],
       );
       final beforeTask = Task(
-        id: 2,
-        taskId: 'task-2',
+        id: '2',
+
         title: 'Task 2',
         status: TaskStatus.pending,
         createdAt: DateTime(2025, 1, 1),
@@ -230,8 +251,8 @@ void main() {
       final config = TasksSectionTaskListConfig(TaskSection.tomorrow);
       final now = DateTime.now();
       final draggedTask = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Task 1',
         status: TaskStatus.pending,
         createdAt: DateTime(2025, 1, 1),
@@ -241,8 +262,8 @@ void main() {
         tags: const [],
       );
       final beforeTask = Task(
-        id: 2,
-        taskId: 'task-2',
+        id: '2',
+
         title: 'Task 2',
         status: TaskStatus.pending,
         createdAt: DateTime(2025, 1, 1),
@@ -260,7 +281,10 @@ void main() {
       );
 
       // 跨区域拖拽应该返回目标区域的结束时间
-      final expectedEndTime = TaskSectionUtils.getSectionEndTime(TaskSection.tomorrow, now: now);
+      final expectedEndTime = TaskSectionUtils.getSectionEndTime(
+        TaskSection.tomorrow,
+        now: now,
+      );
       expect(result, expectedEndTime);
     });
 
@@ -296,4 +320,3 @@ void main() {
     });
   });
 }
-

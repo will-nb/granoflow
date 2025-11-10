@@ -14,27 +14,27 @@ class FocusSession {
     this.reflectionNote,
   });
 
-  final int id;
-  final int taskId;
+  final String id;
+  final String taskId;
   final DateTime startedAt;
   final DateTime? endedAt;
   final int actualMinutes;
   final int? estimateMinutes;
   final bool alarmEnabled;
-  final int? transferredToTaskId;
+  final String? transferredToTaskId;
   final String? reflectionNote;
 
   bool get isActive => endedAt == null;
 
   FocusSession copyWith({
-    int? id,
-    int? taskId,
+    String? id,
+    String? taskId,
     DateTime? startedAt,
     DateTime? endedAt,
     int? actualMinutes,
     int? estimateMinutes,
     bool? alarmEnabled,
-    int? transferredToTaskId,
+    String? transferredToTaskId,
     String? reflectionNote,
   }) {
     return FocusSession(

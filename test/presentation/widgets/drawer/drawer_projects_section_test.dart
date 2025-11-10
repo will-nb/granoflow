@@ -52,11 +52,13 @@ void main() {
           routes: [
             GoRoute(
               path: '/',
-              builder: (context, state) => const Scaffold(body: DrawerProjectsSection()),
+              builder: (context, state) =>
+                  const Scaffold(body: DrawerProjectsSection()),
             ),
             GoRoute(
               path: '/projects',
-              builder: (context, state) => const Scaffold(body: Text('Projects')),
+              builder: (context, state) =>
+                  const Scaffold(body: Text('Projects')),
             ),
           ],
         ),
@@ -65,13 +67,13 @@ void main() {
   }
 
   Project _createProject({
-    required int id,
+    required String id,
     required String title,
     DateTime? dueAt,
   }) {
     return Project(
       id: id,
-      projectId: 'project-$id',
+
       title: title,
       status: TaskStatus.pending,
       dueAt: dueAt,
@@ -94,7 +96,9 @@ void main() {
       await tester.pumpWidget(buildTestWidget(projects: []));
       await tester.pumpAndSettle();
 
-      final l10n = AppLocalizations.of(tester.element(find.byType(DrawerProjectsSection)));
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(DrawerProjectsSection)),
+      );
       expect(find.text(l10n.drawerRecentProjects), findsOneWidget);
       expect(find.text(l10n.drawerManageProjects), findsOneWidget);
     });
@@ -117,7 +121,7 @@ void main() {
     testWidgets('should display up to 3 projects', (tester) async {
       final projects = List.generate(
         5,
-        (i) => _createProject(id: i + 1, title: 'Project ${i + 1}'),
+        (i) => _createProject(id: '${i + 1}', title: 'Project ${i + 1}'),
       );
 
       await tester.pumpWidget(buildTestWidget(projects: projects));
@@ -132,7 +136,7 @@ void main() {
     });
 
     testWidgets('should show project title and icon', (tester) async {
-      final project = _createProject(id: 1, title: 'Test Project');
+      final project = _createProject(id: '1', title: 'Test Project');
 
       await tester.pumpWidget(buildTestWidget(projects: [project]));
       await tester.pump();
@@ -151,7 +155,7 @@ void main() {
         59,
       ).add(const Duration(days: 5)); // 使用当天结束时间，避免时区问题
       final project = _createProject(
-        id: 1,
+        id: '1',
         title: 'Test Project',
         dueAt: dueDate,
       );
@@ -172,7 +176,7 @@ void main() {
     testWidgets('should format due date as "今天" for today', (tester) async {
       final now = DateTime.now();
       final project = _createProject(
-        id: 1,
+        id: '1',
         title: 'Test Project',
         dueAt: DateTime(now.year, now.month, now.day),
       );
@@ -193,7 +197,7 @@ void main() {
         59,
       ).add(const Duration(days: 1)); // 使用当天结束时间
       final project = _createProject(
-        id: 1,
+        id: '1',
         title: 'Test Project',
         dueAt: dueDate,
       );
@@ -223,7 +227,7 @@ void main() {
         59,
       ).add(const Duration(days: 3)); // 使用当天结束时间
       final project = _createProject(
-        id: 1,
+        id: '1',
         title: 'Test Project',
         dueAt: dueDate,
       );
@@ -251,7 +255,7 @@ void main() {
         now.day,
       ).add(const Duration(days: 10)); // 10天后，超过7天
       final project = _createProject(
-        id: 1,
+        id: '1',
         title: 'Test Project',
         dueAt: dueDate,
       );
@@ -267,7 +271,7 @@ void main() {
     testWidgets('should show "已逾期" for past dates', (tester) async {
       final now = DateTime.now();
       final project = _createProject(
-        id: 1,
+        id: '1',
         title: 'Test Project',
         dueAt: now.subtract(const Duration(days: 5)),
       );

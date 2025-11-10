@@ -38,7 +38,7 @@ class TaskPromotionService {
   ///
   /// 返回 true 如果成功执行了提升操作，false 如果条件不满足或操作失败
   Future<bool> handlePromoteToIndependent(
-    int taskId,
+    String taskId,
     TaskHierarchyService taskHierarchyService, {
     required double? horizontalOffset,
     required double? verticalOffset,
@@ -76,7 +76,7 @@ class TaskPromotionService {
       return false;
     }
 
-    int? targetParentId;
+    String? targetParentId;
     Task? referenceTask; // 用于计算 sortIndex 的参考任务
 
     if (taskLevel == 2) {
@@ -166,7 +166,7 @@ class TaskPromotionService {
   /// [taskLevel] 任务的层级（可选），如果提供则避免重新计算
   ///
   /// 返回 true 如果成功执行了提升操作，false 如果条件不满足或操作失败
-  Future<bool> promoteSubtaskToRoot(int taskId, {int? taskLevel}) async {
+  Future<bool> promoteSubtaskToRoot(String taskId, {int? taskLevel}) async {
     // 获取任务信息
     final task = await _tasks.findById(taskId);
     if (task == null || task.parentId == null) {
@@ -197,7 +197,7 @@ class TaskPromotionService {
     // 直接设置为根任务：parentId = null
     // 获取当前 inbox 任务列表，计算合适的 sortIndex
     try {
-      final inboxTasks = await _tasks.watchInbox().first;
+        final inboxTasks = await _tasks.watchInbox().first;
       final rootTasks = inboxTasks
           .where((t) => t.parentId == null && t.id != taskId)
           .toList();

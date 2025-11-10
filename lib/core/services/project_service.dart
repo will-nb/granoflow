@@ -47,16 +47,15 @@ class ProjectService {
   Stream<List<Project>> watchActiveProjects() =>
       _projects.watchActiveProjects();
 
-  Future<Project?> findByIsarId(int isarId) => _projects.findByIsarId(isarId);
+  Future<Project?> findById(String id) => _projects.findById(id);
 
-  Future<Project?> findByProjectId(String projectId) =>
-      _projects.findByProjectId(projectId);
+  Future<List<Project>> listAll() => _projects.listAll();
 
-  Future<void> updateProject(int isarId, ProjectUpdate update) =>
-      _actions.updateProject(isarId, update);
+  Future<void> updateProject(String id, ProjectUpdate update) =>
+      _actions.updateProject(id, update);
 
   Future<Milestone?> findMilestoneById(String milestoneId) =>
-      _milestones.findByMilestoneId(milestoneId);
+      _milestones.findById(milestoneId);
 
   Stream<List<Milestone>> watchMilestones(String projectId) =>
       _milestones.watchByProjectId(projectId);
@@ -76,9 +75,8 @@ class ProjectService {
       ),
     ];
 
-    final project = await _projects.create(
+    final project = await _projects.createProjectWithId(
       ProjectDraft(
-        projectId: projectId,
         title: blueprint.title,
         status: TaskStatus.pending,
         dueAt: dueAt,
@@ -92,6 +90,9 @@ class ProjectService {
         description: blueprint.description,
         logs: projectLogs,
       ),
+      projectId,
+      now,
+      now,
     );
 
     for (var i = 0; i < blueprint.milestones.length; i++) {
@@ -109,10 +110,9 @@ class ProjectService {
           ),
         );
       }
-      await _milestones.create(
+      await _milestones.createMilestoneWithId(
         MilestoneDraft(
-          milestoneId: _helpers.generateMilestoneId(now, i),
-          projectId: project.projectId,
+          projectId: project.id,
           title: milestoneBlueprint.title,
           status: TaskStatus.pending,
           dueAt: milestoneDue,
@@ -126,6 +126,9 @@ class ProjectService {
           description: milestoneBlueprint.description,
           logs: milestoneLogs,
         ),
+        _helpers.generateMilestoneId(now, i),
+        now,
+        now,
       );
     }
 
@@ -133,7 +136,7 @@ class ProjectService {
     return project;
   }
 
-  Future<Project> convertTaskToProject(int taskId) async {
+    Future<Project> convertTaskToProject(String taskId) async {
     final task = await _tasks.findById(taskId);
     if (task == null) {
       throw StateError('Task not found: $taskId');
@@ -155,7 +158,7 @@ class ProjectService {
         TaskLogEntry(
           timestamp: now,
           action: 'converted_to_project',
-          next: project.projectId,
+          next: project.id,
         ),
       );
 
@@ -163,34 +166,33 @@ class ProjectService {
       taskId,
       TaskUpdate(
         status: TaskStatus.archived,
-        projectId: project.projectId,
+        projectId: project.id,
         clearParent: true,
         clearMilestone: true,
         logs: updatedLogs,
       ),
     );
 
-    await _tasksHelper.assignProjectToDescendants(taskId, project.projectId);
+    await _tasksHelper.assignProjectToDescendants(taskId, project.id);
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
     return project;
   }
 
-  Future<void> snoozeProject(int isarId) => _actions.snoozeProject(isarId);
+  Future<void> snoozeProject(String id) => _actions.snoozeProject(id);
 
-  Future<void> archiveProject(int isarId, {bool archiveActiveTasks = false}) =>
-      _actions.archiveProject(isarId, archiveActiveTasks: archiveActiveTasks);
+  Future<void> archiveProject(String id, {bool archiveActiveTasks = false}) =>
+      _actions.archiveProject(id, archiveActiveTasks: archiveActiveTasks);
 
-  Future<void> deleteProject(int isarId) => _actions.deleteProject(isarId);
+  Future<void> deleteProject(String id) => _actions.deleteProject(id);
 
-  Future<void> completeProject(int isarId, {bool archiveActiveTasks = false}) =>
-      _actions.completeProject(isarId, archiveActiveTasks: archiveActiveTasks);
+  Future<void> completeProject(String id, {bool archiveActiveTasks = false}) =>
+      _actions.completeProject(id, archiveActiveTasks: archiveActiveTasks);
 
-  Future<void> trashProject(int isarId) => _actions.trashProject(isarId);
+  Future<void> trashProject(String id) => _actions.trashProject(id);
 
-  Future<void> restoreProject(int isarId) => _actions.restoreProject(isarId);
+  Future<void> restoreProject(String id) => _actions.restoreProject(id);
 
-  Future<void> reactivateProject(int isarId) =>
-      _actions.reactivateProject(isarId);
+  Future<void> reactivateProject(String id) => _actions.reactivateProject(id);
 
   Future<List<Task>> listTasksForProject(String projectId) =>
       _tasksHelper.listTasksForProject(projectId);

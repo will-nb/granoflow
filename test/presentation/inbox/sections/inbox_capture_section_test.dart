@@ -9,16 +9,18 @@ import 'package:granoflow/presentation/inbox/sections/inbox_capture_section.dart
 import 'package:granoflow/core/theme/app_theme.dart';
 
 Tag _contextTag(String slug) => Tag(
-      id: slug.hashCode,
-      slug: slug,
-      kind: TagKind.context,
-      localizedLabels: {'en': slug},
-    );
+  id: slug.hashCode.toString(),
+  slug: slug,
+  kind: TagKind.context,
+  localizedLabels: {'en': slug},
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('InboxCaptureSection submits text and shows templates', (tester) async {
+  testWidgets('InboxCaptureSection submits text and shows templates', (
+    tester,
+  ) async {
     String? submittedValue;
     TaskTemplate? appliedTemplate;
 
@@ -26,7 +28,7 @@ void main() {
     final focusNode = FocusNode();
 
     final template = TaskTemplate(
-      id: 1,
+      id: '1',
       title: 'Daily Review',
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
@@ -38,9 +40,13 @@ void main() {
           templateSuggestionsProvider.overrideWithProvider((query) {
             return FutureProvider((ref) async => <TaskTemplate>[template]);
           }),
-          contextTagOptionsProvider.overrideWith((ref) async => [_contextTag('@home')]),
+          contextTagOptionsProvider.overrideWith(
+            (ref) async => [_contextTag('@home')],
+          ),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+          importanceTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),
@@ -73,10 +79,11 @@ void main() {
     await tester.pump();
 
     expect(submittedValue, 'Capture idea');
-    final captureSection = tester.widget<InboxCaptureSection>(find.byType(InboxCaptureSection));
+    final captureSection = tester.widget<InboxCaptureSection>(
+      find.byType(InboxCaptureSection),
+    );
     await captureSection.onTemplateApply(template);
 
     expect(appliedTemplate, equals(template));
   });
 }
-

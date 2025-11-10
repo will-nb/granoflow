@@ -1,30 +1,9 @@
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
-
-import '../../core/services/tag_service.dart';
-import '../../core/utils/id_generator.dart';
-import '../../core/utils/task_section_utils.dart';
-import '../isar/task_entity.dart';
 import '../models/task.dart';
-
-// Part 文件：包含各个功能模块的 mixin
-part 'task_repository_helpers.dart';
-part 'task_repository_streams.dart';
-part 'task_repository_queries.dart';
-part 'task_repository_paged_queries.dart';
-part 'task_repository_mutations_core.dart';
-part 'task_repository_mutations_status.dart';
-part 'task_repository_mutations_move.dart';
-part 'task_repository_mutations_batch.dart';
-part 'task_repository_section_queries.dart';
-part 'task_repository_task_hierarchy.dart';
 
 abstract class TaskRepository {
   Stream<List<Task>> watchSection(TaskSection section);
 
-  Stream<TaskTreeNode> watchTaskTree(int rootTaskId);
+  Stream<TaskTreeNode> watchTaskTree(String rootTaskId);
 
   Stream<List<Task>> watchInbox();
 
@@ -34,7 +13,7 @@ abstract class TaskRepository {
   Stream<List<Task>> watchQuickTasks();
 
   @Deprecated('使用 MilestoneRepository 和 MilestoneService 替代')
-  Stream<List<Task>> watchMilestones(int projectId);
+  Stream<List<Task>> watchMilestones(String projectId);
 
   Stream<List<Task>> watchTasksByProjectId(String projectId);
 
@@ -67,32 +46,21 @@ abstract class TaskRepository {
     DateTime updatedAt,
   );
 
-  Future<void> updateTask(int taskId, TaskUpdate payload);
-
-  /// 设置任务的 projectIsarId 和 milestoneIsarId（用于导入）
-  /// 
-  /// [taskId] 任务的 Isar ID
-  /// [projectIsarId] 项目的 Isar ID（可为 null）
-  /// [milestoneIsarId] 里程碑的 Isar ID（可为 null）
-  Future<void> setTaskProjectAndMilestoneIsarId(
-    int taskId,
-    int? projectIsarId,
-    int? milestoneIsarId,
-  );
+  Future<void> updateTask(String taskId, TaskUpdate payload);
 
   Future<void> moveTask({
-    required int taskId,
-    required int? targetParentId,
+    required String taskId,
+    required String? targetParentId,
     required TaskSection targetSection,
     required double sortIndex,
     DateTime? dueAt,
   });
 
-  Future<void> markStatus({required int taskId, required TaskStatus status});
+  Future<void> markStatus({required String taskId, required TaskStatus status});
 
-  Future<void> archiveTask(int taskId);
+  Future<void> archiveTask(String taskId);
 
-  Future<void> softDelete(int taskId);
+  Future<void> softDelete(String taskId);
 
   Future<int> purgeObsolete(DateTime olderThan);
 
@@ -100,25 +68,25 @@ abstract class TaskRepository {
   /// 返回删除的任务数量
   Future<int> clearAllTrashedTasks();
 
-  Future<void> adjustTemplateLock({required int taskId, required int delta});
+  Future<void> adjustTemplateLock({required String taskId, required int delta});
 
-  Future<Task?> findById(int id);
+  Future<Task?> findById(String id);
 
-  /// 通过业务ID（taskId）查询任务
+  /// 通过业务ID查询任务
   Future<Task?> findByTaskId(String taskId);
 
   /// 监听单个任务的变化
-  Stream<Task?> watchTaskById(int id);
+  Stream<Task?> watchTaskById(String id);
 
   Future<Task?> findBySlug(String slug);
 
   Future<List<Task>> listRoots();
 
-  Future<List<Task>> listChildren(int parentId);
+  Future<List<Task>> listChildren(String parentId);
 
   /// 列出父任务的所有子任务（包括 trashed 状态）
   /// 用于在父任务展开时显示已删除的子任务
-  Future<List<Task>> listChildrenIncludingTrashed(int parentId);
+  Future<List<Task>> listChildrenIncludingTrashed(String parentId);
 
   Future<void> upsertTasks(List<Task> tasks);
 
@@ -131,7 +99,7 @@ abstract class TaskRepository {
   });
 
   /// 批量更新：按 id -> TaskUpdate 的映射执行更新
-  Future<void> batchUpdate(Map<int, TaskUpdate> updates);
+  Future<void> batchUpdate(Map<String, TaskUpdate> updates);
 
   /// 列出某个区域内用于排序的任务（与 UI 一致，已排序的叶任务）
   Future<List<Task>> listSectionTasks(TaskSection section);
@@ -183,38 +151,4 @@ abstract class TaskRepository {
 
   /// 获取已删除任务总数
   Future<int> countTrashedTasks();
-}
-
-/// Isar 实现的 TaskRepository
-/// 
-/// 使用 mixin 组合各个功能模块，保持代码组织清晰
-/// 
-/// Mixin 顺序很重要，必须按照依赖关系排序：
-/// 1. TaskRepositoryHelpers - 基础辅助方法（不依赖其他 mixin）
-/// 2. TaskRepositorySectionQueries - 区域查询（依赖 Helpers）
-/// 3. TaskRepositoryQueries - 基础查询方法（依赖 Helpers, SectionQueries）
-/// 4. TaskRepositoryPagedQueries - 分页查询方法（依赖 Helpers）
-/// 5. TaskRepositoryTaskHierarchy - 任务层级（依赖 Helpers）
-/// 6. TaskRepositoryMutationsCore - 变更方法核心（依赖 Helpers, SectionQueries, TaskHierarchy）
-/// 7. TaskRepositoryMutationsStatus - 状态相关操作（依赖 Core）
-/// 8. TaskRepositoryMutationsMove - 移动操作（依赖 Status）
-/// 9. TaskRepositoryMutationsBatch - 批量操作（依赖 Core）
-/// 10. TaskRepositoryStreams - Stream 方法（依赖 Helpers, SectionQueries, TaskHierarchy）
-class IsarTaskRepository
-    with TaskRepositoryHelpers,
-         TaskRepositorySectionQueries,
-         TaskRepositoryQueries,
-         TaskRepositoryPagedQueries,
-         TaskRepositoryTaskHierarchy,
-         TaskRepositoryMutationsCore,
-         TaskRepositoryMutationsStatus,
-         TaskRepositoryMutationsMove,
-         TaskRepositoryMutationsBatch,
-         TaskRepositoryStreams
-    implements TaskRepository {
-  IsarTaskRepository(this._isar, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
-
-  final Isar _isar;
-  final DateTime Function() _clock;
 }

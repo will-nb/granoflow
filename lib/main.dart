@@ -1,29 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-// ignore: unused_import
-import 'package:isar_flutter_libs/isar_flutter_libs.dart';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'core/app.dart';
-import 'core/providers/repository_providers.dart';
 import 'core/services/notification_service.dart';
-import 'data/isar/focus_session_entity.dart';
-import 'data/isar/preference_entity.dart';
-import 'data/isar/project_entity.dart';
-import 'data/isar/milestone_entity.dart';
-import 'data/isar/seed_import_log_entity.dart';
-import 'data/isar/tag_entity.dart';
-import 'data/isar/task_entity.dart';
-import 'data/isar/task_template_entity.dart';
-
-Isar? _isarInstance;
+import 'core/providers/repository_providers.dart';
+import 'data/database/objectbox_adapter.dart';
+import 'objectbox.g.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 初始化前台服务（Android）
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
@@ -44,54 +33,48 @@ Future<void> main() async {
       allowWifiLock: true,
     ),
   );
-  
+
   // 初始化通知服务
   final notificationService = NotificationService();
   await notificationService.initialize();
-  
+
   // 请求通知权限（Android 13+ 和 iOS）
   await notificationService.requestPermission();
+
+  // 初始化 ObjectBox Store
+  final store = await _openObjectBoxStore();
+  final adapter = ObjectBoxAdapter(store);
   
-  final isar = await _openIsar();
   runApp(
     ProviderScope(
-      overrides: [isarProvider.overrideWithValue(isar)],
+      overrides: [
+        databaseAdapterProvider.overrideWithValue(adapter),
+      ],
       child: const GranoFlowApp(),
     ),
   );
 }
 
-Future<Isar> _openIsar() async {
-  // 如果实例已经打开，直接返回（用于集成测试场景）
-  if (_isarInstance != null && _isarInstance!.isOpen) {
-    return _isarInstance!;
-  }
-
+/// 初始化 ObjectBox Store
+Future<Store> _openObjectBoxStore() async {
+  // 对于 macOS，使用默认目录（openStore 会自动处理）
+  // 如果指定目录，可能会遇到沙盒权限问题
   try {
-  final dir = await getApplicationSupportDirectory();
-    final isar = await Isar.open(
-    [
-      TaskEntitySchema,
-      TaskTemplateEntitySchema,
-      FocusSessionEntitySchema,
-      TagEntitySchema,
-      PreferenceEntitySchema,
-      SeedImportLogEntitySchema,
-      ProjectEntitySchema,
-      MilestoneEntitySchema,
-    ],
-    directory: dir.path,
-    inspector: false,
-  );
-    _isarInstance = isar;
-    return isar;
+    // 先尝试使用默认目录（openStore 会自动使用合适的目录）
+    return await openStore();
   } catch (e) {
-    // 如果 Isar 已经打开，尝试获取已打开的实例
-    // Isar.open() 在同一个目录下如果已经打开会抛出异常
-    // 这种情况下，我们返回缓存的实例（如果存在）
-    if (_isarInstance != null && _isarInstance!.isOpen) {
-      return _isarInstance!;
+    // 如果默认目录失败，尝试使用应用支持目录
+    debugPrint('Failed to open store with default directory: $e');
+    try {
+      final dir = await getApplicationSupportDirectory();
+      // 确保目录存在
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      return await openStore(directory: dir.path);
+    } catch (e2) {
+      debugPrint('Failed to open store at application support directory: $e2');
+      rethrow;
     }
-    rethrow;
   }
 }

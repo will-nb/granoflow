@@ -73,14 +73,8 @@ class ExportService {
     // 收集数据
     final exportData = await collectExportData();
 
-    // 建立 Isar ID 到 taskId 的映射，用于转换 parentTaskId
-    final isarIdToTaskId = <int, String>{};
-    for (final task in exportData.tasks) {
-      isarIdToTaskId[task.id] = task.taskId;
-    }
-
     // 序列化为JSON（手动处理 parentTaskId 转换）
-    final jsonData = _exportDataToJson(exportData, isarIdToTaskId);
+    final jsonData = _exportDataToJson(exportData);
     final jsonString = _jsonEncode(jsonData);
     final jsonBytes = utf8.encode(jsonString);
 
@@ -122,25 +116,20 @@ class ExportService {
   }
 
   /// 将 ExportData 转换为 JSON（手动处理 parentTaskId 转换）
-  Map<String, dynamic> _exportDataToJson(
-    ExportData exportData,
-    Map<int, String> isarIdToTaskId,
-  ) {
+  Map<String, dynamic> _exportDataToJson(ExportData exportData) {
     return {
       'version': exportData.version,
       'exportedAt': exportData.exportedAt.toIso8601String(),
       'projects': exportData.projects.map(_projectToJson).toList(),
       'milestones': exportData.milestones.map(_milestoneToJson).toList(),
-      'tasks': exportData.tasks
-          .map((task) => _taskToJson(task, isarIdToTaskId))
-          .toList(),
+      'tasks': exportData.tasks.map(_taskToJson).toList(),
     };
   }
 
   /// 序列化项目
   Map<String, dynamic> _projectToJson(Project project) {
     return {
-      'projectId': project.projectId,
+      'projectId': project.id,
       'title': project.title,
       'status': project.status.name,
       'dueAt': project.dueAt?.toIso8601String(),
@@ -161,7 +150,7 @@ class ExportService {
   /// 序列化里程碑
   Map<String, dynamic> _milestoneToJson(Milestone milestone) {
     return {
-      'milestoneId': milestone.milestoneId,
+      'milestoneId': milestone.id,
       'projectId': milestone.projectId,
       'title': milestone.title,
       'status': milestone.status.name,
@@ -180,20 +169,10 @@ class ExportService {
     };
   }
 
-  /// 序列化任务（将 parentTaskId 从 Isar ID 转换为 taskId）
-  Map<String, dynamic> _taskToJson(
-    Task task,
-    Map<int, String> isarIdToTaskId,
-  ) {
-    // 转换 parentTaskId 从 Isar ID 到 taskId（业务ID）
-    String? parentTaskId;
-    if (task.parentTaskId != null) {
-      parentTaskId = isarIdToTaskId[task.parentTaskId];
-      // 如果父任务不在导出列表中（可能是伪删除），则不设置 parentTaskId
-    }
-
+    /// 序列化任务
+  Map<String, dynamic> _taskToJson(Task task) {
     return {
-      'taskId': task.taskId,
+      'taskId': task.id,
       'title': task.title,
       'status': task.status.name,
       'dueAt': task.dueAt?.toIso8601String(),
@@ -202,7 +181,7 @@ class ExportService {
       'archivedAt': task.archivedAt?.toIso8601String(),
       'createdAt': task.createdAt.toIso8601String(),
       'updatedAt': task.updatedAt.toIso8601String(),
-      'parentTaskId': parentTaskId, // 使用转换后的 taskId
+      'parentTaskId': task.parentId,
       'projectId': task.projectId,
       'milestoneId': task.milestoneId,
       'sortIndex': task.sortIndex,

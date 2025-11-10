@@ -61,13 +61,13 @@ class _StubTaskService extends TaskService {
 
   @override
   Future<void> markCompleted({
-    required int taskId,
+    required String taskId,
     bool autoCompleteParent = true,
   }) async {}
 
   @override
   Future<void> updateDetails({
-    required int taskId,
+    required String taskId,
     required TaskUpdate payload,
   }) async {}
 
@@ -76,7 +76,7 @@ class _StubTaskService extends TaskService {
     required String title,
     List<String> tags = const <String>[],
   }) async {
-    return _buildTask(id: 999, title: title, parentId: null);
+    return _buildTask(id: '999', title: title, parentId: null);
   }
 }
 
@@ -88,7 +88,7 @@ class _DummyMetricOrchestrator extends Fake implements MetricOrchestrator {
   @override
   Future<MetricSnapshot> requestRecompute(MetricRecomputeReason reason) async {
     return MetricSnapshot(
-      id: 0,
+      id: '0',
       totalCompletedTasks: 0,
       totalFocusMinutes: 0,
       pendingTasks: 0,
@@ -124,34 +124,34 @@ class _FakeClockAudioService implements ClockAudioService {
 class _FakeFocusFlowService implements FocusFlowService {
   @override
   Future<FocusSession> startFocus({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async {
-    return FocusSession(id: 1, taskId: taskId, startedAt: DateTime.now());
+    return FocusSession(id: '1', taskId: taskId, startedAt: DateTime.now());
   }
 
   @override
-  Future<void> pauseFocus(int sessionId) async {}
+  Future<void> pauseFocus(String sessionId) async {}
 
   @override
   Future<void> endFocus({
-    required int sessionId,
+    required String sessionId,
     required FocusOutcome outcome,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) async {}
 
   @override
   Future<Task> quickSubtask({
-    required int parentTaskId,
+    required String parentTaskId,
     required String title,
   }) async {
-    return _buildTask(id: 1000, title: title, parentId: parentTaskId);
+    return _buildTask(id: '1000', title: title, parentId: parentTaskId);
   }
 
   @override
-  Stream<FocusSession?> watchActive(int taskId) => const Stream.empty();
+  Stream<FocusSession?> watchActive(String taskId) => const Stream.empty();
 }
 
 class _FakeFocusSessionRepository extends Fake
@@ -164,7 +164,7 @@ class _FakeTaskRepository extends Fake implements TaskRepository {
   final List<Task> _children;
 
   @override
-  Future<Task?> findById(int id) async {
+  Future<Task?> findById(String id) async {
     if (_task.id == id) {
       return _task;
     }
@@ -172,7 +172,7 @@ class _FakeTaskRepository extends Fake implements TaskRepository {
   }
 
   @override
-  Future<List<Task>> listChildren(int parentId) async {
+  Future<List<Task>> listChildren(String parentId) async {
     if (parentId == _task.id) {
       return _children;
     }
@@ -180,7 +180,7 @@ class _FakeTaskRepository extends Fake implements TaskRepository {
   }
 
   @override
-  Stream<Task?> watchTaskById(int id) {
+  Stream<Task?> watchTaskById(String id) {
     if (_task.id == id) {
       return Stream.value(_task);
     }
@@ -188,10 +188,10 @@ class _FakeTaskRepository extends Fake implements TaskRepository {
   }
 }
 
-Task _buildTask({required int id, required String title, int? parentId}) {
+Task _buildTask({required String id, required String title, String? parentId}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: title,
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
@@ -217,17 +217,16 @@ ClockTimerState _timerState({required bool started, required bool paused}) {
 }
 
 void main() {
-  final binding =
-      IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  final parentTask = _buildTask(id: 1, title: 'Top Level Task');
+  final parentTask = _buildTask(id: '1', title: 'Top Level Task');
   final childTask = _buildTask(
-    id: 2,
+    id: '2',
     title: 'Subtask A',
     parentId: parentTask.id,
   );
   final preference = Preference(
-    id: 1,
+    id: '1',
     localeCode: 'en',
     themeMode: ThemeMode.light,
     fontScaleLevel: FontScaleLevel.medium,

@@ -10,7 +10,9 @@ import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('TaskHierarchyList returns SizedBox when nodes empty', (tester) async {
+  testWidgets('TaskHierarchyList returns SizedBox when nodes empty', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(body: TaskHierarchyList(nodes: [])),
@@ -22,8 +24,8 @@ void main() {
 
   testWidgets('TaskHierarchyList renders entries for nodes', (tester) async {
     final task = Task(
-      id: 1,
-      taskId: 'task-1',
+      id: '1',
+
       title: 'Child Task',
       status: TaskStatus.pending,
       createdAt: DateTime.now(),
@@ -56,4 +58,3 @@ void main() {
     expect(find.text('Child Task'), findsOneWidget);
   });
 }
-

@@ -2,7 +2,6 @@ import '../../data/models/milestone.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/milestone_repository.dart';
 import '../constants/task_constants.dart';
-import '../utils/id_generator.dart';
 
 class MilestoneService {
   MilestoneService({
@@ -22,12 +21,8 @@ class MilestoneService {
     return _milestones.listByProjectId(projectId);
   }
 
-  Future<Milestone?> findByIsarId(int isarId) {
-    return _milestones.findByIsarId(isarId);
-  }
-
-  Future<Milestone?> findByMilestoneId(String milestoneId) {
-    return _milestones.findByMilestoneId(milestoneId);
+  Future<Milestone?> findById(String id) {
+    return _milestones.findById(id);
   }
 
   Future<Milestone> createMilestone({
@@ -38,7 +33,6 @@ class MilestoneService {
     List<String> tags = const <String>[],
   }) async {
     final now = _clock();
-    final milestoneId = _generateMilestoneId(now);
     final logs = <MilestoneLogEntry>[];
 
     // 标准化截止日期到当天23:59:59
@@ -63,7 +57,6 @@ class MilestoneService {
     }
 
     final draft = MilestoneDraft(
-      milestoneId: milestoneId,
       projectId: projectId,
       title: title,
       status: TaskStatus.pending,
@@ -78,16 +71,16 @@ class MilestoneService {
   }
 
   Future<void> updateMilestone({
-    required int isarId,
+    required String id,
     String? title,
     DateTime? dueAt,
     String? description,
     List<String>? tags,
     TaskStatus? status,
   }) async {
-    final milestone = await _milestones.findByIsarId(isarId);
+    final milestone = await _milestones.findById(id);
     if (milestone == null) {
-      throw StateError('Milestone not found: $isarId');
+      throw StateError('Milestone not found: $id');
     }
 
     final logs = milestone.logs.toList(growable: true);
@@ -126,14 +119,10 @@ class MilestoneService {
       logs: logs,
     );
 
-    await _milestones.update(isarId, update);
+    await _milestones.update(id, update);
   }
 
-  Future<void> delete(int isarId) {
-    return _milestones.delete(isarId);
-  }
-
-  String _generateMilestoneId(DateTime now) {
-    return IdGenerator.generateId();
+  Future<void> delete(String id) {
+    return _milestones.delete(id);
   }
 }

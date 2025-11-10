@@ -17,23 +17,26 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
   Future<void> build() async {}
 
   @override
-  Future<void> archive(int taskId) async {}
+  Future<void> archive(String taskId) async {}
 
   @override
   Future<void> addSubtask({
-    required int parentId,
+    required String parentId,
     required String title,
   }) async {}
 
   @override
-  Future<void> editTitle({required int taskId, required String title}) async {}
+  Future<void> editTitle({
+    required String taskId,
+    required String title,
+  }) async {}
 }
 
 void main() {
   testWidgets('ProjectCard shows project title', (tester) async {
     final project = Project(
-      id: 1,
-      projectId: 'project-1',
+      id: '1',
+
       title: 'Landing Page Revamp',
       status: TaskStatus.pending,
       dueAt: DateTime(2025, 1, 15),

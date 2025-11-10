@@ -11,14 +11,15 @@ import 'package:granoflow/presentation/tasks/views/task_section_panel.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required int id}) {
+Task _createTask({required String id}) {
+  final idNum = int.tryParse(id) ?? 0;
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
-    sortIndex: id.toDouble(),
-    dueAt: DateTime(2025, 1, id),
+    sortIndex: idNum.toDouble(),
+    dueAt: DateTime(2025, 1, idNum),
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
     tags: const [],
@@ -30,8 +31,10 @@ Task _createTask({required int id}) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('TaskSectionPanel renders task title when tasks exist', (tester) async {
-    final task = _createTask(id: 1);
+  testWidgets('TaskSectionPanel renders task title when tasks exist', (
+    tester,
+  ) async {
+    final task = _createTask(id: '1');
 
     await tester.pumpWidget(
       ProviderScope(
@@ -39,7 +42,7 @@ void main() {
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
-              final nodeTask = task.copyWith(id: taskId, taskId: 'task-$taskId');
+              final nodeTask = task.copyWith(id: taskId);
               return Stream.value(
                 TaskTreeNode(task: nodeTask, children: const <TaskTreeNode>[]),
               );
@@ -54,14 +57,12 @@ void main() {
             (ref, section) async => {task.id: 1},
           ),
           tasksSectionTaskChildrenMapProvider.overrideWith(
-            (ref, section) async => <int, Set<int>>{},
+            (ref, section) async => <String, Set<String>>{},
           ),
           tasksSectionExpandedTaskIdProvider.overrideWith(
-            (ref, section) => <int>{},
+            (ref, section) => <String>{},
           ),
-          tasksDragProvider.overrideWith(
-            (ref) => TasksDragNotifier(),
-          ),
+          tasksDragProvider.overrideWith((ref) => TasksDragNotifier()),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -85,4 +86,3 @@ void main() {
     expect(find.text('Task 1'), findsOneWidget);
   });
 }
-

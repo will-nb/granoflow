@@ -12,7 +12,12 @@ import 'package:granoflow/core/theme/app_theme.dart';
 
 class _StubTag extends Tag {
   _StubTag(String slug, TagKind kind)
-      : super(id: slug.hashCode, slug: slug, kind: kind, localizedLabels: {'en': slug});
+    : super(
+        id: slug.hashCode.toString(),
+        slug: slug,
+        kind: kind,
+        localizedLabels: {'en': slug},
+      );
 }
 
 class _FakeTaskService extends Fake implements TaskService {}
@@ -22,8 +27,8 @@ void main() {
     testWidgets('should render tasks list correctly', (tester) async {
       final tasks = <Task>[
         Task(
-          id: 1,
-          taskId: 'task-1',
+          id: '1',
+
           title: 'First Task',
           status: TaskStatus.inbox,
           createdAt: DateTime(2025, 1, 1),
@@ -32,8 +37,8 @@ void main() {
           tags: const <String>[],
         ),
         Task(
-          id: 2,
-          taskId: 'task-2',
+          id: '2',
+
           title: 'Second Task',
           status: TaskStatus.inbox,
           createdAt: DateTime(2025, 1, 1),
@@ -47,20 +52,30 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
-            contextTagOptionsProvider.overrideWith((ref) async => [_StubTag('@home', TagKind.context)]),
-            urgencyTagOptionsProvider.overrideWith((ref) async => [_StubTag('#urgent', TagKind.urgency)]),
-            importanceTagOptionsProvider.overrideWith((ref) async => [_StubTag('#important', TagKind.importance)]),
-            executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1, '2': 1},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{},
+            ),
+            contextTagOptionsProvider.overrideWith(
+              (ref) async => [_StubTag('@home', TagKind.context)],
+            ),
+            urgencyTagOptionsProvider.overrideWith(
+              (ref) async => [_StubTag('#urgent', TagKind.urgency)],
+            ),
+            importanceTagOptionsProvider.overrideWith(
+              (ref) async => [_StubTag('#important', TagKind.importance)],
+            ),
+            executionTagOptionsProvider.overrideWith(
+              (ref) async => const <Tag>[],
+            ),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: tasks),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: tasks)),
           ),
         ),
       );
@@ -74,8 +89,8 @@ void main() {
 
     testWidgets('should display tasks with hierarchy', (tester) async {
       final parentTask = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Parent Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -85,13 +100,13 @@ void main() {
       );
 
       final childTask = Task(
-        id: 2,
-        taskId: 'task-2',
+        id: '2',
+
         title: 'Child Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
         updatedAt: DateTime(2025, 1, 1),
-        parentId: 1,
+        parentId: '1',
         sortIndex: 2000,
         tags: const <String>[],
       );
@@ -102,9 +117,16 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1, 2: 2}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{1: {2}, 2: {}}),
-            inboxExpandedTaskIdProvider.overrideWith((ref) => {1}), // 父任务默认展开
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1, '2': 2},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{
+                '1': {'2'},
+                '2': {},
+              },
+            ),
+            inboxExpandedTaskIdProvider.overrideWith((ref) => {'1'}), // 父任务默认展开
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -114,9 +136,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: tasks),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: tasks)),
           ),
         ),
       );
@@ -130,8 +150,8 @@ void main() {
 
     testWidgets('should handle expand/collapse functionality', (tester) async {
       final parentTask = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Parent Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -141,13 +161,13 @@ void main() {
       );
 
       final childTask = Task(
-        id: 2,
-        taskId: 'task-2',
+        id: '2',
+
         title: 'Child Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
         updatedAt: DateTime(2025, 1, 1),
-        parentId: 1,
+        parentId: '1',
         sortIndex: 2000,
         tags: const <String>[],
       );
@@ -158,8 +178,15 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1, 2: 2}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{1: {2}, 2: {}}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1, '2': 2},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{
+                '1': {'2'},
+                '2': {},
+              },
+            ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -169,9 +196,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: tasks),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: tasks)),
           ),
         ),
       );
@@ -192,8 +217,8 @@ void main() {
     testWidgets('should show insertion targets when dragging', (tester) async {
       final tasks = <Task>[
         Task(
-          id: 1,
-          taskId: 'task-1',
+          id: '1',
+
           title: 'First Task',
           status: TaskStatus.inbox,
           createdAt: DateTime(2025, 1, 1),
@@ -202,8 +227,8 @@ void main() {
           tags: const <String>[],
         ),
         Task(
-          id: 2,
-          taskId: 'task-2',
+          id: '2',
+
           title: 'Second Task',
           status: TaskStatus.inbox,
           createdAt: DateTime(2025, 1, 1),
@@ -217,8 +242,12 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1, 2: 1}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1, '2': 1},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{},
+            ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -228,9 +257,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: tasks),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: tasks)),
           ),
         ),
       );
@@ -238,9 +265,15 @@ void main() {
       await tester.pumpAndSettle();
 
       // 验证插入目标存在（顶部、中间、底部）
-      expect(find.byKey(const ValueKey('inbox-insertion-first')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('inbox-insertion-first')),
+        findsOneWidget,
+      );
       expect(find.byKey(const ValueKey('inbox-insertion-1')), findsOneWidget);
-      expect(find.byKey(const ValueKey('inbox-insertion-last')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('inbox-insertion-last')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('should handle empty tasks list', (tester) async {
@@ -248,8 +281,12 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{},
+            ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -259,9 +296,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: []),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: [])),
           ),
         ),
       );
@@ -276,8 +311,8 @@ void main() {
 
     testWidgets('should filter out trashed tasks', (tester) async {
       final activeTask = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Active Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -287,8 +322,8 @@ void main() {
       );
 
       final trashedTask = Task(
-        id: 2,
-        taskId: 'task-2',
+        id: '2',
+
         title: 'Trashed Task',
         status: TaskStatus.trashed,
         createdAt: DateTime(2025, 1, 1),
@@ -303,8 +338,12 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{},
+            ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -314,9 +353,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: tasks),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: tasks)),
           ),
         ),
       );
@@ -330,8 +367,8 @@ void main() {
 
     testWidgets('should handle task updates and rebuild', (tester) async {
       final task1 = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Original Title',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -344,8 +381,12 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{},
+            ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -355,9 +396,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: [task1]),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: [task1])),
           ),
         ),
       );
@@ -369,8 +408,8 @@ void main() {
 
       // 更新任务列表
       final updatedTask1 = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Updated Title',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -383,8 +422,12 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{},
+            ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -394,9 +437,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: [updatedTask1]),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: [updatedTask1])),
           ),
         ),
       );
@@ -410,8 +451,8 @@ void main() {
 
     testWidgets('should handle multiple levels of hierarchy', (tester) async {
       final level1Task = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Level 1 Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -421,25 +462,25 @@ void main() {
       );
 
       final level2Task = Task(
-        id: 2,
-        taskId: 'task-2',
+        id: '2',
+
         title: 'Level 2 Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
         updatedAt: DateTime(2025, 1, 1),
-        parentId: 1,
+        parentId: '1',
         sortIndex: 2000,
         tags: const <String>[],
       );
 
       final level3Task = Task(
-        id: 3,
-        taskId: 'task-3',
+        id: '3',
+
         title: 'Level 3 Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
         updatedAt: DateTime(2025, 1, 1),
-        parentId: 2,
+        parentId: '2',
         sortIndex: 3000,
         tags: const <String>[],
       );
@@ -450,9 +491,19 @@ void main() {
         ProviderScope(
           overrides: [
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1, 2: 2, 3: 3}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{1: {2}, 2: {3}, 3: {}}),
-            inboxExpandedTaskIdProvider.overrideWith((ref) => {1, 2}), // 前两级默认展开
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1, '2': 2, '3': 3},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{
+                '1': {'2'},
+                '2': {'3'},
+                '3': {},
+              },
+            ),
+            inboxExpandedTaskIdProvider.overrideWith(
+              (ref) => {'1', '2'},
+            ), // 前两级默认展开
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -462,9 +513,7 @@ void main() {
             theme: AppTheme.light(),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: InboxTaskList(tasks: tasks),
-            ),
+            home: Scaffold(body: InboxTaskList(tasks: tasks)),
           ),
         ),
       );

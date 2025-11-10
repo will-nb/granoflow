@@ -13,11 +13,10 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(seedInitializerProvider);
+    // 触发种子导入，但不监听状态变化（避免无限重建）
+    ref.read(seedInitializerProvider);
     
     final l10n = AppLocalizations.of(context);
-    debugPrint('HomePage locale: ${Localizations.localeOf(context)}');
-    debugPrint('HomePage greeting: ${l10n.homeGreeting}');
 
     return GradientPageScaffold(
       appBar: const PageAppBar(

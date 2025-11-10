@@ -24,12 +24,12 @@ class InboxDragState {
   });
 
   final Task? draggedTask;
-  final InboxDragTargetType? hoverTarget;
-  final int? hoverTargetId;
+    final InboxDragTargetType? hoverTarget;
+    final String? hoverTargetId;
   // 统一拖拽系统：当前悬停的插入位置索引
   final int? hoveredInsertionIndex;
   // 统一拖拽系统：当前悬停的任务 ID
-  final int? hoveredTaskId;
+    final String? hoveredTaskId;
   // 已提交的插入位置索引（让位动画触发时的位置，即使后续hover状态变化也保留）
   final int? committedInsertionIndex;
   // 拖拽起始位置（全局坐标）
@@ -45,19 +45,19 @@ class InboxDragState {
 
   bool get isDragging => draggedTask != null;
 
-  InboxDragState copyWith({
-    Task? draggedTask,
-    InboxDragTargetType? hoverTarget,
-    int? hoverTargetId,
-    int? hoveredInsertionIndex,
-    int? hoveredTaskId,
-    Offset? dragStartPosition,
-    Offset? currentDragPosition,
-    double? horizontalOffset,
-    double? verticalOffset,
-    bool? isDraggedTaskHiddenFromExpansion,
-    int? committedInsertionIndex,
-  }) {
+    InboxDragState copyWith({
+      Task? draggedTask,
+      InboxDragTargetType? hoverTarget,
+      String? hoverTargetId,
+      int? hoveredInsertionIndex,
+      String? hoveredTaskId,
+      Offset? dragStartPosition,
+      Offset? currentDragPosition,
+      double? horizontalOffset,
+      double? verticalOffset,
+      bool? isDraggedTaskHiddenFromExpansion,
+      int? committedInsertionIndex,
+    }) {
     return InboxDragState(
       draggedTask: draggedTask ?? this.draggedTask,
       hoverTarget: hoverTarget ?? this.hoverTarget,
@@ -179,7 +179,7 @@ class InboxDragNotifier extends StateNotifier<InboxDragState>
     );
   }
 
-  void updateHoverTarget(InboxDragTargetType? type, {int? targetId}) {
+    void updateHoverTarget(InboxDragTargetType? type, {String? targetId}) {
     state = state.copyWith(hoverTarget: type, hoverTargetId: targetId);
   }
 
@@ -207,7 +207,7 @@ class InboxDragNotifier extends StateNotifier<InboxDragState>
   }
 
   /// 统一拖拽系统：更新任务表面悬停状态
-  void updateTaskSurfaceHover(int? taskId) {
+    void updateTaskSurfaceHover(String? taskId) {
     state = state.copyWith(
       hoveredTaskId: taskId,
       hoveredInsertionIndex: null, // 清除插入位置悬停

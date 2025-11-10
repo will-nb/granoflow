@@ -26,11 +26,11 @@ class TaskTemplateService {
     return template;
   }
 
-  Future<void> updateTemplate(int templateId, TaskTemplateUpdate payload) {
+  Future<void> updateTemplate(String templateId, TaskTemplateUpdate payload) {
     return _updateTemplateInternal(templateId, payload);
   }
 
-  Future<void> deleteTemplate(int templateId) async {
+  Future<void> deleteTemplate(String templateId) async {
     final template = await _templates.findById(templateId);
     if (template?.parentTaskId != null) {
       await _tasks.adjustTemplateLock(
@@ -53,7 +53,7 @@ class TaskTemplateService {
   }
 
   Future<Task> applyTemplate({
-    required int templateId,
+    required String templateId,
     TaskTemplateOverrides? overrides,
   }) async {
     final template = await _templates.findById(templateId);
@@ -103,7 +103,7 @@ class TaskTemplateService {
   }
 
   Future<void> _updateTemplateInternal(
-    int templateId,
+    String templateId,
     TaskTemplateUpdate payload,
   ) async {
     final existing = await _templates.findById(templateId);

@@ -46,7 +46,7 @@ class TaskListInsertionHandler {
       final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
 
       // 确定上方任务的 parentId
-      int? aboveTaskParentId;
+        String? aboveTaskParentId;
       double newSortIndex;
 
       // 通过 config.handleDueDate 处理 dueDate（Inbox 和 Tasks 的差异）

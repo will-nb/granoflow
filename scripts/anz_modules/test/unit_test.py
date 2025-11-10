@@ -93,7 +93,7 @@ def main() -> int:
         return 0
 
     total = len(files)
-    default_workers = max(2, min(8, (os.cpu_count() or 4)))
+    default_workers = max(2, min(6, (os.cpu_count() or 4)))
     max_workers = int(os.getenv("ANZ_TEST_WORKERS", str(default_workers)))
 
     print(f"[ANZ] Found {total} test files under test/. Running in parallel with {max_workers} workers...")
@@ -114,8 +114,7 @@ def main() -> int:
             rel, ok, summary = fut.result()
             with lock:
                 done += 1
-                percent = int(done * 100 / total)
-                print(f"[{percent:3d}%] {done}/{total} done")
+                print(f"{done}/{total} done")
 
                 all_warnings.extend(summary["warnings"])
                 all_errors.extend(summary["errors"])

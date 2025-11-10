@@ -32,13 +32,13 @@ class TaskListInsertionTargetBuilder {
   }) {
     return TaskDragIntentTarget.insertion(
       key: ValueKey('${config.pageName.toLowerCase()}-insertion-first'),
-      meta: TaskDragIntentMeta(
-        page: config.pageName,
-        targetType: 'insertionFirst',
-        targetId: 0,
-        targetTaskId: flattenedTasks.isNotEmpty ? flattenedTasks[0].task.id : null,
-        section: config.section?.name,
-      ),
+        meta: TaskDragIntentMeta(
+          page: config.pageName,
+          targetType: 'insertionFirst',
+          targetId: 'first',
+          targetTaskId: flattenedTasks.isNotEmpty ? flattenedTasks[0].task.id : null,
+          section: config.section?.name,
+        ),
       insertionType: InsertionType.first,
       showWhenIdle: false,
       canAccept: (draggedTask, _) {
@@ -91,13 +91,13 @@ class TaskListInsertionTargetBuilder {
       key: ValueKey(
         '${config.pageName.toLowerCase()}-insertion-${insertionIndex}',
       ),
-      meta: TaskDragIntentMeta(
-        page: config.pageName,
-        targetType: 'insertionBetween',
-        targetId: insertionIndex,
-        targetTaskId: afterTask.id,
-        section: config.section?.name,
-      ),
+        meta: TaskDragIntentMeta(
+          page: config.pageName,
+          targetType: 'insertionBetween',
+          targetId: 'between-$insertionIndex',
+          targetTaskId: afterTask.id,
+          section: config.section?.name,
+        ),
       insertionType: InsertionType.between,
       showWhenIdle: false,
       canAccept: (draggedTask, _) {
@@ -149,13 +149,13 @@ class TaskListInsertionTargetBuilder {
       key: ValueKey(
         '${config.pageName.toLowerCase()}-insertion-last',
       ),
-      meta: TaskDragIntentMeta(
-        page: config.pageName,
-        targetType: 'insertionLast',
-        targetId: flattenedTasks.length,
-        targetTaskId: lastTask.id,
-        section: config.section?.name,
-      ),
+        meta: TaskDragIntentMeta(
+          page: config.pageName,
+          targetType: 'insertionLast',
+          targetId: 'last',
+          targetTaskId: lastTask.id,
+          section: config.section?.name,
+        ),
       insertionType: InsertionType.last,
       showWhenIdle: false,
       canAccept: (draggedTask, _) {
@@ -201,7 +201,7 @@ class TaskListInsertionTargetBuilder {
     required dynamic dragNotifier,
     required List<FlattenedTaskNode> flattenedTasks,
     required List<Task> filteredTasks,
-    required int? hoveredTaskId,
+    required String? hoveredTaskId,
     required int? hoveredInsertionIndex,
   }) {
     final draggedTask = dragState?.draggedTask;

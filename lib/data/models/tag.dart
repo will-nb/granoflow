@@ -11,7 +11,7 @@ class Tag {
     required this.localizedLabels,
   });
 
-  final int id;
+  final String id;
   final String slug;
   final TagKind kind;
   final Map<String, String> localizedLabels;

@@ -8,7 +8,7 @@ class SeedImportLog {
     required this.importedAt,
   });
 
-  final int id;
+  final String id;
   final String version;
   final DateTime importedAt;
 }

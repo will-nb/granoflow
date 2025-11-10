@@ -26,8 +26,8 @@ class StandardDragTarget<T extends Object> extends StatefulWidget {
 
   final InsertionType type;
   final bool Function(T dragged) canAccept;
-  final void Function(T dragged) onAccept;
-  final int? targetId; // 用于唯一标识
+    final void Function(T dragged) onAccept;
+    final String? targetId; // 用于唯一标识
   final Widget? child;
   final void Function(bool isHovering)? onHoverChanged;
   // 是否在未悬停时也显示插入目标区域（保持与 Tasks 行为一致）

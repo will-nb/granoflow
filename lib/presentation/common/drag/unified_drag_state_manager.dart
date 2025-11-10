@@ -18,8 +18,8 @@ class UnifiedDragStateManager extends ChangeNotifier {
   /// 当前悬停的插入位置索引（null 表示未悬停在插入位置）
   int? _hoveredInsertionIndex;
   
-  /// 当前悬停的任务 ID（null 表示未悬停在任务表面）
-  int? _hoveredTaskId;
+    /// 当前悬停的任务 ID（null 表示未悬停在任务表面）
+    String? _hoveredTaskId;
   
   /// 当前拖拽意图
   DragIntent _currentIntent = DragIntent.none;
@@ -30,8 +30,8 @@ class UnifiedDragStateManager extends ChangeNotifier {
   /// 获取当前悬停的插入位置索引
   int? get hoveredInsertionIndex => _hoveredInsertionIndex;
 
-  /// 获取当前悬停的任务 ID
-  int? get hoveredTaskId => _hoveredTaskId;
+    /// 获取当前悬停的任务 ID
+    String? get hoveredTaskId => _hoveredTaskId;
 
   /// 获取当前拖拽意图
   DragIntent get currentIntent => _currentIntent;
@@ -73,8 +73,8 @@ class UnifiedDragStateManager extends ChangeNotifier {
   /// [taskId] 任务 ID（仅在 intent == DragIntent.dragIn 时使用）
   void updateHover({
     required DragIntent intent,
-    int? insertionIndex,
-    int? taskId,
+      int? insertionIndex,
+      String? taskId,
   }) {
     if (!isDragging) {
       // 如果不在拖拽状态，忽略悬停更新

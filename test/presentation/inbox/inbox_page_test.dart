@@ -12,48 +12,64 @@ import 'package:granoflow/presentation/inbox/inbox_page.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
 
 Tag _tag(String slug, TagKind kind) => Tag(
-      id: slug.hashCode,
-      slug: slug,
-      kind: kind,
-      localizedLabels: {'en': slug},
-    );
+  id: slug.hashCode.toString(),
+  slug: slug,
+  kind: kind,
+  localizedLabels: {'en': slug},
+);
 
-Task _task(int id, String title) => Task(
-      id: id,
-      taskId: 'task-$id',
-      title: title,
-      status: TaskStatus.inbox,
-      createdAt: DateTime(2025, 1, 1),
-      updatedAt: DateTime(2025, 1, 1),
-      tags: const <String>[],
-    );
+Task _task(String id, String title) => Task(
+  id: id,
+
+  title: title,
+  status: TaskStatus.inbox,
+  createdAt: DateTime(2025, 1, 1),
+  updatedAt: DateTime(2025, 1, 1),
+  tags: const <String>[],
+);
 
 TaskTemplate _template(String title) => TaskTemplate(
-      id: title.hashCode,
-      title: title,
-      createdAt: DateTime(2025, 1, 1),
-      updatedAt: DateTime(2025, 1, 1),
-    );
+  id: title.hashCode.toString(),
+  title: title,
+  createdAt: DateTime(2025, 1, 1),
+  updatedAt: DateTime(2025, 1, 1),
+);
 
 class _NoopTaskService extends Fake implements TaskService {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('InboxPage shows empty placeholder when no tasks', (tester) async {
+  testWidgets('InboxPage shows empty placeholder when no tasks', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          inboxTasksProvider.overrideWith((ref) => Stream<List<Task>>.value(const <Task>[])),
-          inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{}),
-          inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
-          templateSuggestionsProvider.overrideWithProvider(
-            (query) => FutureProvider((ref) async => <TaskTemplate>[_template('Template')]),
+          inboxTasksProvider.overrideWith(
+            (ref) => Stream<List<Task>>.value(const <Task>[]),
           ),
-          contextTagOptionsProvider.overrideWith((ref) async => <Tag>[_tag('@home', TagKind.context)]),
+          inboxTaskLevelMapProvider.overrideWith(
+            (ref) async => <String, int>{},
+          ),
+          inboxTaskChildrenMapProvider.overrideWith(
+            (ref) async => <String, Set<String>>{},
+          ),
+          templateSuggestionsProvider.overrideWithProvider(
+            (query) => FutureProvider(
+              (ref) async => <TaskTemplate>[_template('Template')],
+            ),
+          ),
+          contextTagOptionsProvider.overrideWith(
+            (ref) async => <Tag>[_tag('@home', TagKind.context)],
+          ),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+          importanceTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
+          executionTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
           taskServiceProvider.overrideWith((ref) => _NoopTaskService()),
         ],
         child: MaterialApp(
@@ -73,21 +89,31 @@ void main() {
   });
 
   testWidgets('InboxPage renders inbox tasks', (tester) async {
-    final task = _task(1, 'Inbox Item');
+    final task = _task('1', 'Inbox Item');
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          inboxTasksProvider.overrideWith((ref) => Stream<List<Task>>.value(<Task>[task])),
-          inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{task.id: 1}),
-          inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+          inboxTasksProvider.overrideWith(
+            (ref) => Stream<List<Task>>.value(<Task>[task]),
+          ),
+          inboxTaskLevelMapProvider.overrideWith(
+            (ref) async => <String, int>{task.id: 1},
+          ),
+          inboxTaskChildrenMapProvider.overrideWith(
+            (ref) async => <String, Set<String>>{},
+          ),
           templateSuggestionsProvider.overrideWithProvider(
             (query) => FutureProvider((ref) async => const <TaskTemplate>[]),
           ),
           contextTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
-          executionTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+          importanceTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
+          executionTagOptionsProvider.overrideWith(
+            (ref) async => const <Tag>[],
+          ),
           taskServiceProvider.overrideWith((ref) => _NoopTaskService()),
         ],
         child: MaterialApp(
@@ -105,4 +131,3 @@ void main() {
     expect(find.text('Inbox Item'), findsOneWidget);
   });
 }
-

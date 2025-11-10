@@ -36,7 +36,7 @@ class TasksPageDragTarget extends ConsumerWidget {
     final dragNotifier = ref.read(tasksDragProvider.notifier);
 
     // 根据不同类型计算唯一ID
-    int? getTargetId() {
+    String? getTargetId() {
       switch (targetType) {
         case TasksDragTargetType.between:
           return beforeTask?.id;
@@ -49,7 +49,7 @@ class TasksPageDragTarget extends ConsumerWidget {
       meta: TaskDragIntentMeta(
         page: 'Tasks',
         targetType: targetType.name,
-        targetId: targetId,
+          targetId: targetId,
         section: section?.name,
         targetTaskId: afterTask?.id ?? beforeTask?.id,
       ),

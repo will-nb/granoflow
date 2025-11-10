@@ -30,9 +30,9 @@ class ProjectMilestoneMenu extends ConsumerStatefulWidget {
 }
 
 class _ProjectMilestoneMenuState extends ConsumerState<ProjectMilestoneMenu> {
-  final Set<int> _expandedProjects = {};
+  final Set<String> _expandedProjects = {};
 
-  void _toggleProject(int projectId) {
+  void _toggleProject(String projectId) {
     setState(() {
       if (_expandedProjects.contains(projectId)) {
         _expandedProjects.remove(projectId);
@@ -143,7 +143,7 @@ class _ProjectSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final milestonesAsync = ref.watch(
-      projectMilestonesDomainProvider(project.projectId),
+      projectMilestonesDomainProvider(project.id),
     );
 
     return Column(
@@ -159,17 +159,17 @@ class _ProjectSection extends ConsumerWidget {
           leading: Icon(
             Icons.folder_outlined,
             size: 20,
-            color: currentProjectId == project.projectId
+              color: currentProjectId == project.id
                 ? theme.colorScheme.primary
                 : theme.colorScheme.onSurfaceVariant,
           ),
           title: Text(
             project.title,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: currentProjectId == project.projectId
+                color: currentProjectId == project.id
                   ? theme.colorScheme.primary
                   : null,
-              fontWeight: currentProjectId == project.projectId
+                fontWeight: currentProjectId == project.id
                   ? FontWeight.w600
                   : null,
             ),
@@ -209,8 +209,7 @@ class _ProjectSection extends ConsumerWidget {
               }
               return Column(
                 children: milestones.map((milestone) {
-                  final isSelected =
-                      currentMilestoneId == milestone.milestoneId;
+                final isSelected = currentMilestoneId == milestone.id;
                   return Padding(
                     padding: const EdgeInsets.only(left: 16),
                     child: ListTile(

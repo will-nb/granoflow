@@ -72,7 +72,7 @@ class ProjectNodeHeader extends ConsumerWidget {
       dense: true,
       contentPadding: const EdgeInsets.only(right: 8),
       title: Text(task.title, style: theme.textTheme.titleMedium),
-      subtitle: Text('ID: ${task.taskId}'),
+        subtitle: Text('ID: ${task.id}'),
       trailing: Wrap(
         spacing: 8,
         children: [
@@ -98,9 +98,9 @@ class ProjectNodeHeader extends ConsumerWidget {
 
   Future<void> _showAddSubtaskDialog(
     BuildContext context,
-    WidgetRef ref,
-    int parentId,
-  ) async {
+      WidgetRef ref,
+      String parentId,
+    ) async {
     final l10n = AppLocalizations.of(context);
     final controller = TextEditingController();
     final result = await showDialog<String>(
@@ -204,7 +204,7 @@ class ProjectNodeHeader extends ConsumerWidget {
   Future<void> _archiveTask(
     BuildContext context,
     WidgetRef ref,
-    int taskId,
+    String taskId,
   ) async {
     final notifier = ref.read(taskEditActionsNotifierProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);
@@ -295,7 +295,7 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               title: TaskHeaderRow(task: node.task, useBodyText: true),
-              subtitle: Text('ID: ${node.task.taskId}'),
+              subtitle: Text('ID: ${node.task.id}'),
             ),
           ),
         );

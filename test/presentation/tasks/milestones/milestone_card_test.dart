@@ -9,8 +9,8 @@ import 'package:granoflow/presentation/tasks/milestones/milestone_card.dart';
 
 Milestone _createMilestone() {
   return Milestone(
-    id: 1,
-    milestoneId: 'milestone-1',
+    id: '1',
+
     projectId: 'project-1',
     title: 'Launch Beta',
     status: TaskStatus.pending,

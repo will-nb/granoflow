@@ -19,8 +19,7 @@ class MilestoneEditSheet extends ConsumerStatefulWidget {
   final Milestone? milestone;
 
   @override
-  ConsumerState<MilestoneEditSheet> createState() =>
-      _MilestoneEditSheetState();
+  ConsumerState<MilestoneEditSheet> createState() => _MilestoneEditSheetState();
 }
 
 class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
@@ -106,8 +105,8 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
                     child: Text(
                       _deadlineError!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                 const SizedBox(height: 16),
@@ -185,22 +184,27 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
     final description = _descriptionController.text.trim().isEmpty
         ? null
         : _descriptionController.text.trim();
-    final sanitizedDescription =
-        description != null && description.isNotEmpty ? description : null;
+    final sanitizedDescription = description != null && description.isNotEmpty
+        ? description
+        : null;
 
     setState(() => _submitting = true);
     try {
       if (widget.milestone != null) {
         // 编辑现有里程碑
-        await ref.read(milestoneServiceProvider).updateMilestone(
-              isarId: widget.milestone!.id,
+        await ref
+            .read(milestoneServiceProvider)
+            .updateMilestone(
+              id: widget.milestone!.id,
               title: title,
               dueAt: normalizedDeadline,
               description: sanitizedDescription,
             );
       } else {
         // 创建新里程碑
-        await ref.read(milestoneServiceProvider).createMilestone(
+        await ref
+            .read(milestoneServiceProvider)
+            .createMilestone(
               projectId: widget.projectId,
               title: title,
               dueAt: normalizedDeadline,
@@ -212,16 +216,17 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
       }
       Navigator.of(context).pop(true);
     } catch (error, stackTrace) {
-      debugPrint('Failed to ${widget.milestone != null ? 'update' : 'create'} milestone: $error\n$stackTrace');
+      debugPrint(
+        'Failed to ${widget.milestone != null ? 'update' : 'create'} milestone: $error\n$stackTrace',
+      );
       if (!mounted) {
         return;
       }
       final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.projectCreateError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.projectCreateError)));
       setState(() => _submitting = false);
     }
   }
 }
-

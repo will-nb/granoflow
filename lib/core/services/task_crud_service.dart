@@ -36,7 +36,7 @@ class TaskCrudService {
   ///
   /// [taskId] 起始任务 ID
   /// 返回所有后代任务的列表（排除 project 和 milestone）
-  Future<List<Task>> getAllDescendantTasks(int taskId) =>
+  Future<List<Task>> getAllDescendantTasks(String taskId) =>
       _helpers.getAllDescendantTasks(taskId);
 
   /// 在 Inbox 中创建任务
@@ -58,7 +58,7 @@ class TaskCrudService {
 
   /// 规划任务（设置截止日期和区域）
   Future<void> planTask({
-    required int taskId,
+    required String taskId,
     required DateTime dueDateLocal,
     required TaskSection section,
   }) async {
@@ -74,11 +74,11 @@ class TaskCrudService {
     try {
       final tasksInSection = await _tasks.listSectionTasks(section);
       // 找到当前首个"其它任务"（排除自己）
+      const placeholderId = '__placeholder__';
       final firstOther = tasksInSection.firstWhere(
         (t) => t.id != taskId,
         orElse: () => Task(
-          id: -1,
-          taskId: '',
+          id: placeholderId,
           title: '',
           status: TaskStatus.pending,
           createdAt: DateTime(1970, 1, 1),
@@ -86,7 +86,7 @@ class TaskCrudService {
           sortIndex: 0,
         ),
       );
-      if (firstOther.id == -1) {
+      if (firstOther.id == placeholderId) {
         // 区域为空或只有自己 → 赋默认HEAD
         await _tasks.updateTask(taskId, const TaskUpdate(sortIndex: 1024));
       } else {
@@ -116,7 +116,7 @@ class TaskCrudService {
           '[TaskCrudService.planTask] 同步子任务截止日期: taskId=$taskId, childrenCount=${allChildren.length}, newDueAt=$normalizedDue, section=$section',
         );
       }
-      final updates = <int, TaskUpdate>{};
+      final updates = <String, TaskUpdate>{};
       for (final child in allChildren) {
         updates[child.id] = TaskUpdate(dueAt: normalizedDue);
       }
@@ -128,14 +128,14 @@ class TaskCrudService {
 
   /// 更新任务详情
   Future<void> updateDetails({
-    required int taskId,
+    required String taskId,
     required TaskUpdate payload,
   }) =>
       _update.updateDetails(taskId: taskId, payload: payload);
 
   /// 更新任务标签
   Future<void> updateTags({
-    required int taskId,
+    required String taskId,
     String? contextTag,
     String? priorityTag,
   }) =>

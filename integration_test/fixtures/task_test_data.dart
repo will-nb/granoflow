@@ -9,10 +9,10 @@ class TaskTestData {
 
   /// 生成一个测试任务
   static Task generateTask({
-    required int id,
+    required String id,
     required String title,
     DateTime? dueAt,
-    int? parentId,
+    String? parentId,
     double sortIndex = 1000.0,
     TaskStatus status = TaskStatus.pending,
     DateTime? createdAt,
@@ -21,7 +21,7 @@ class TaskTestData {
     final now = DateTime.now();
     return Task(
       id: id,
-      taskId: 'task-$id',
+
       title: title,
       dueAt: dueAt,
       parentId: parentId,
@@ -64,10 +64,21 @@ class TaskTestData {
           TaskSection.thisWeek,
           now: now,
         );
-        final nextWeekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 1);
+        final nextWeekStart = DateTime(
+          weekStart.year,
+          weekStart.month,
+          weekStart.day + 1,
+        );
         final daysUntilNextWeek = nextWeekStart.difference(tomorrow).inDays;
         final targetDay = tomorrow.add(Duration(days: daysUntilNextWeek ~/ 2));
-        dueAt = DateTime(targetDay.year, targetDay.month, targetDay.day, 12, 0, 0);
+        dueAt = DateTime(
+          targetDay.year,
+          targetDay.month,
+          targetDay.day,
+          12,
+          0,
+          0,
+        );
         break;
       case TaskSection.thisMonth:
         // 本月：本月某一天（比如15号）
@@ -99,7 +110,7 @@ class TaskTestData {
     for (int i = 0; i < count; i++) {
       tasks.add(
         generateTask(
-          id: startId + i,
+          id: (startId + i).toString(),
           title: '${section.name} 测试任务 $i',
           dueAt: dueAt,
           sortIndex: 1000.0 + (i * 1000.0),
@@ -138,10 +149,21 @@ class TaskTestData {
           TaskSection.thisWeek,
           now: now,
         );
-        final nextWeekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 1);
+        final nextWeekStart = DateTime(
+          weekStart.year,
+          weekStart.month,
+          weekStart.day + 1,
+        );
         final daysUntilNextWeek = nextWeekStart.difference(tomorrow).inDays;
         final targetDay = tomorrow.add(Duration(days: daysUntilNextWeek ~/ 2));
-        dueAt = DateTime(targetDay.year, targetDay.month, targetDay.day, 12, 0, 0);
+        dueAt = DateTime(
+          targetDay.year,
+          targetDay.month,
+          targetDay.day,
+          12,
+          0,
+          0,
+        );
         break;
       case TaskSection.thisMonth:
         final monthEnd = TaskSectionUtils.getSectionEndTime(
@@ -167,7 +189,7 @@ class TaskTestData {
 
     // 生成根任务
     final rootTask = generateTask(
-      id: rootTaskId,
+      id: rootTaskId.toString(),
       title: '根任务 $rootTaskId',
       dueAt: dueAt,
       parentId: null,
@@ -180,10 +202,10 @@ class TaskTestData {
     for (int i = 0; i < childCount; i++) {
       tasks.add(
         generateTask(
-          id: rootTaskId + 100 + i,
+          id: (rootTaskId + 100 + i).toString(),
           title: '子任务 $i',
           dueAt: dueAt,
-          parentId: rootTaskId,
+          parentId: rootTaskId.toString(),
           sortIndex: 1000.0 + (i * 1000.0),
           status: TaskStatus.pending,
         ),
@@ -194,15 +216,12 @@ class TaskTestData {
   }
 
   /// 生成 Inbox 任务（无 dueAt）
-  static List<Task> generateInboxTasks({
-    required int count,
-    int startId = 1,
-  }) {
+  static List<Task> generateInboxTasks({required int count, int startId = 1}) {
     final tasks = <Task>[];
     for (int i = 0; i < count; i++) {
       tasks.add(
         generateTask(
-          id: startId + i,
+          id: (startId + i).toString(),
           title: 'Inbox 测试任务 $i',
           dueAt: null,
           parentId: null,
@@ -214,4 +233,3 @@ class TaskTestData {
     return tasks;
   }
 }
-

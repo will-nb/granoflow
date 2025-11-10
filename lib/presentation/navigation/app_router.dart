@@ -76,9 +76,8 @@ class AppRouter {
         path: '/clock/:taskId',
         name: 'clock',
         builder: (context, state) {
-          final taskIdStr = state.pathParameters['taskId']!;
-          final taskId = int.tryParse(taskIdStr);
-          if (taskId == null) {
+          final taskId = state.pathParameters['taskId'];
+          if (taskId == null || taskId.isEmpty) {
             // 如果 taskId 无效，返回首页
             return const HomePage();
           }

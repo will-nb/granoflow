@@ -53,7 +53,6 @@ class MilestoneLogEntry {
 class Milestone {
   const Milestone({
     required this.id,
-    required this.milestoneId,
     required this.projectId,
     required this.title,
     required this.status,
@@ -71,8 +70,7 @@ class Milestone {
     this.logs = const <MilestoneLogEntry>[],
   });
 
-  final int id;
-  final String milestoneId;
+  final String id;
   final String projectId;
   final String title;
   final TaskStatus status;
@@ -90,8 +88,7 @@ class Milestone {
   final List<MilestoneLogEntry> logs;
 
   Milestone copyWith({
-    int? id,
-    String? milestoneId,
+    String? id,
     String? projectId,
     String? title,
     TaskStatus? status,
@@ -110,7 +107,6 @@ class Milestone {
   }) {
     return Milestone(
       id: id ?? this.id,
-      milestoneId: milestoneId ?? this.milestoneId,
       projectId: projectId ?? this.projectId,
       title: title ?? this.title,
       status: status ?? this.status,
@@ -132,7 +128,6 @@ class Milestone {
   @override
   int get hashCode => Object.hashAll([
     id,
-    milestoneId,
     projectId,
     title,
     status,
@@ -154,7 +149,6 @@ class Milestone {
   bool operator ==(Object other) {
     return other is Milestone &&
         other.id == id &&
-        other.milestoneId == milestoneId &&
         other.projectId == projectId &&
         other.title == title &&
         other.status == status &&
@@ -175,7 +169,6 @@ class Milestone {
 
 class MilestoneDraft {
   const MilestoneDraft({
-    required this.milestoneId,
     required this.projectId,
     required this.title,
     required this.status,
@@ -191,7 +184,6 @@ class MilestoneDraft {
     this.logs = const <MilestoneLogEntry>[],
   });
 
-  final String milestoneId;
   final String projectId;
   final String title;
   final TaskStatus status;

@@ -12,18 +12,13 @@ class TaskCrudServiceHelpers {
 
   final TaskRepository _tasks;
 
-  /// 递归获取所有后代任务（包括子任务的子任务）
-  ///
-  /// [taskId] 起始任务 ID
-  /// 返回所有后代任务的列表（排除 project 和 milestone）
-  Future<List<Task>> getAllDescendantTasks(int taskId) async {
+  /// 递归获取所有后代任务（包括子任务的子任务）。
+  Future<List<Task>> getAllDescendantTasks(String taskId) async {
     final result = <Task>[];
     final children = await _tasks.listChildren(taskId);
 
     // 只处理普通任务，排除 project 和 milestone
-    final normalChildren = children
-        .where((t) => !isProjectOrMilestone(t))
-        .toList();
+    final normalChildren = children.where((t) => !isProjectOrMilestone(t)).toList();
 
     for (final child in normalChildren) {
       result.add(child);

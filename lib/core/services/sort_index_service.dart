@@ -53,7 +53,7 @@ class SortIndexService {
   ///
   /// [orderedIds] 已排序的任务ID列表
   Future<void> reorderIds({
-    required List<int> orderedIds,
+    required List<String> orderedIds,
     String? domainKey,
     double start = 1024,
     double step = _step,
@@ -136,9 +136,9 @@ class SortIndexService {
 
   /// 插入到相邻任务之间；必要时做局部重排
   Future<void> insertBetween({
-    required int draggedId,
-    required int beforeId,
-    required int afterId,
+    required String draggedId,
+    required String beforeId,
+    required String afterId,
     String? domainKey,
     int window = _window,
     double step = _step,
@@ -178,9 +178,9 @@ class SortIndexService {
 
   /// 移动到区域头部
   Future<void> moveToHead({
-    required int draggedId,
+    required String draggedId,
     required TaskSection section,
-    required int firstId,
+    required String firstId,
     int window = _window,
     double step = _step,
   }) async {
@@ -205,9 +205,9 @@ class SortIndexService {
 
   /// 移动到区域尾部
   Future<void> moveToTail({
-    required int draggedId,
+    required String draggedId,
     required TaskSection section,
-    required int lastId,
+    required String lastId,
     double step = _step,
   }) async {
     final last = await _tasks.findById(lastId);
@@ -241,9 +241,10 @@ class SortIndexService {
     // 使用统一的排序函数：Tasks页面的排序规则
     final ordered = List<Task>.from(tasks);
     sortTasksForTasksPage(ordered);
-    final updates = <int, TaskUpdate>{};
-    for (int i = 0; i < ordered.length; i++) {
-      updates[ordered[i].id] = TaskUpdate(sortIndex: (start + i * step).toDouble());
+    final updates = <String, TaskUpdate>{};
+    for (var i = 0; i < ordered.length; i++) {
+      updates[ordered[i].id] =
+          TaskUpdate(sortIndex: (start + i * step).toDouble());
     }
     await _tasks.batchUpdate(updates);
   }
@@ -252,8 +253,8 @@ class SortIndexService {
 
   Future<void> _reindexAround({
     required TaskSection section,
-    required int anchorBeforeId,
-    required int anchorAfterId,
+    required String anchorBeforeId,
+    required String anchorAfterId,
     required int window,
     required double step,
   }) async {
@@ -265,9 +266,9 @@ class SortIndexService {
 
     final start = (idxBefore - window).clamp(0, tasks.length - 1);
     final end = (idxAfter + window).clamp(0, tasks.length - 1);
-    final updates = <int, TaskUpdate>{};
+    final updates = <String, TaskUpdate>{};
     double base = 1024.0;
-    for (int i = start; i <= end; i++) {
+    for (var i = start; i <= end; i++) {
       updates[tasks[i].id] = TaskUpdate(sortIndex: base);
       base += step;
     }

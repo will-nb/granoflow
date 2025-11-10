@@ -11,7 +11,7 @@ import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Tag _createTag({
-  required int id,
+  required String id,
   required String slug,
   required TagKind kind,
 }) {
@@ -94,8 +94,8 @@ void main() {
 
     testWidgets('should display context tag group', (tester) async {
       final tags = [
-        _createTag(id: 1, slug: '@home', kind: TagKind.context),
-        _createTag(id: 2, slug: '@office', kind: TagKind.context),
+        _createTag(id: '1', slug: '@home', kind: TagKind.context),
+        _createTag(id: '2', slug: '@office', kind: TagKind.context),
       ];
       
       await tester.pumpWidget(
@@ -110,10 +110,10 @@ void main() {
     testWidgets('should display quadrant tag group (urgency + importance)',
         (tester) async {
       final urgencyTags = [
-        _createTag(id: 1, slug: '#urgent', kind: TagKind.urgency),
+        _createTag(id: '1', slug: '#urgent', kind: TagKind.urgency),
       ];
       final importanceTags = [
-        _createTag(id: 2, slug: '#important', kind: TagKind.importance),
+        _createTag(id: '2', slug: '#important', kind: TagKind.importance),
       ];
       
       await tester.pumpWidget(
@@ -131,8 +131,8 @@ void main() {
 
     testWidgets('should display execution tag group', (tester) async {
       final tags = [
-        _createTag(id: 1, slug: 'phone', kind: TagKind.execution),
-        _createTag(id: 2, slug: 'email', kind: TagKind.execution),
+        _createTag(id: '1', slug: 'phone', kind: TagKind.execution),
+        _createTag(id: '2', slug: 'email', kind: TagKind.execution),
       ];
       
       await tester.pumpWidget(
@@ -167,7 +167,7 @@ void main() {
     testWidgets('should render tags with correct ModernTag widgets',
         (tester) async {
       final tags = [
-        _createTag(id: 1, slug: '@home', kind: TagKind.context),
+        _createTag(id: '1', slug: '@home', kind: TagKind.context),
       ];
       
       await tester.pumpWidget(
@@ -191,16 +191,16 @@ void main() {
 
     testWidgets('should display tag groups in correct order', (tester) async {
       final contextTags = [
-        _createTag(id: 1, slug: '@home', kind: TagKind.context),
+        _createTag(id: '1', slug: '@home', kind: TagKind.context),
       ];
       final urgencyTags = [
-        _createTag(id: 2, slug: '#urgent', kind: TagKind.urgency),
+        _createTag(id: '2', slug: '#urgent', kind: TagKind.urgency),
       ];
       final importanceTags = [
-        _createTag(id: 3, slug: '#important', kind: TagKind.importance),
+        _createTag(id: '3', slug: '#important', kind: TagKind.importance),
       ];
       final executionTags = [
-        _createTag(id: 4, slug: 'phone', kind: TagKind.execution),
+        _createTag(id: '4', slug: 'phone', kind: TagKind.execution),
       ];
       
       await tester.pumpWidget(
@@ -221,10 +221,10 @@ void main() {
 
     testWidgets('should use correct spacing between tag groups', (tester) async {
       final contextTags = [
-        _createTag(id: 1, slug: '@home', kind: TagKind.context),
+        _createTag(id: '1', slug: '@home', kind: TagKind.context),
       ];
       final executionTags = [
-        _createTag(id: 2, slug: 'phone', kind: TagKind.execution),
+        _createTag(id: '2', slug: 'phone', kind: TagKind.execution),
       ];
       
       await tester.pumpWidget(

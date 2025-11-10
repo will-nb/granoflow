@@ -10,17 +10,18 @@ import 'package:granoflow/presentation/tasks/views/task_section_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required int id}) {
+Task _createTask({required String id}) {
+  final idNum = int.tryParse(id) ?? 0;
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
-    dueAt: DateTime(2025, 1, id),
+    dueAt: DateTime(2025, 1, idNum),
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
     parentId: null,
-    sortIndex: id.toDouble(),
+    sortIndex: idNum.toDouble(),
     tags: const [],
     templateLockCount: 0,
     allowInstantComplete: false,
@@ -32,7 +33,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('TaskSectionTaskModeList shows tasks', (tester) async {
-    final task = _createTask(id: 1);
+    final task = _createTask(id: '1');
 
     await tester.pumpWidget(
       ProviderScope(
@@ -40,7 +41,7 @@ void main() {
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
-              final nodeTask = task.copyWith(id: taskId, taskId: 'task-$taskId');
+              final nodeTask = task.copyWith(id: taskId);
               return Stream.value(
                 TaskTreeNode(task: nodeTask, children: const <TaskTreeNode>[]),
               );
@@ -69,4 +70,3 @@ void main() {
     expect(find.text('Task 1'), findsOneWidget);
   });
 }
-

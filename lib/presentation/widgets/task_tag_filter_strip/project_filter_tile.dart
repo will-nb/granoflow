@@ -30,7 +30,7 @@ class _ProjectFilterTileState extends ConsumerState<ProjectFilterTile> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final milestonesAsync = ref.watch(
-      projectMilestonesDomainProvider(widget.project.projectId),
+      projectMilestonesDomainProvider(widget.project.id),
     );
 
     return Column(
@@ -97,7 +97,7 @@ class _ProjectFilterTileState extends ConsumerState<ProjectFilterTile> {
               return Column(
                 children: milestones.map((milestone) {
                   final isSelected =
-                      widget.currentMilestoneId == milestone.milestoneId;
+                      widget.currentMilestoneId == milestone.id;
                   return Padding(
                     padding: const EdgeInsets.only(left: 16),
                     child: ListTile(
@@ -122,7 +122,7 @@ class _ProjectFilterTileState extends ConsumerState<ProjectFilterTile> {
                           fontWeight: isSelected ? FontWeight.w600 : null,
                         ),
                       ),
-                      onTap: () => widget.onSelected(milestone.milestoneId),
+                      onTap: () => widget.onSelected(milestone.id),
                     ),
                   );
                 }).toList(),

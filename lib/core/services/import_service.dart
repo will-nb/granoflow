@@ -144,15 +144,15 @@ class ImportService {
     bool isValid = true;
 
     for (final project in exportData.projects) {
-      if (!_isValidUuid(project.projectId)) {
-        errors.add('项目ID格式无效: ${project.projectId}');
+      if (!_isValidUuid(project.id)) {
+        errors.add('项目ID格式无效: ${project.id}');
         isValid = false;
       }
     }
 
     for (final milestone in exportData.milestones) {
-      if (!_isValidUuid(milestone.milestoneId)) {
-        errors.add('里程碑ID格式无效: ${milestone.milestoneId}');
+      if (!_isValidUuid(milestone.id)) {
+        errors.add('里程碑ID格式无效: ${milestone.id}');
         isValid = false;
       }
       if (!_isValidUuid(milestone.projectId)) {
@@ -162,8 +162,8 @@ class ImportService {
     }
 
     for (final task in exportData.tasks) {
-      if (!_isValidUuid(task.taskId)) {
-        errors.add('任务ID格式无效: ${task.taskId}');
+      if (!_isValidUuid(task.id)) {
+        errors.add('任务ID格式无效: ${task.id}');
         isValid = false;
       }
       if (task.projectId != null && !_isValidUuid(task.projectId!)) {
@@ -215,22 +215,18 @@ class ImportService {
     int tasksUpdated = 0;
     int tasksSkipped = 0;
 
-    // 建立业务ID到Isar ID的映射
-    final projectIdToIsarId = <String, int>{};
-    final milestoneIdToIsarId = <String, int>{};
-    final taskIdToIsarId = <String, int>{};
+    // 记录在导入过程中已存在或新建的实体 ID
+    final existingProjectIds = <String>{};
+    final existingMilestoneIds = <String>{};
 
     // 第一轮：导入项目
-    for (final project in exportData.projects) {
+      for (final project in exportData.projects) {
       try {
-        final existing = await _projectRepository.findByProjectId(
-          project.projectId,
-        );
+          final existing = await _projectRepository.findById(project.id);
         if (existing == null) {
           // 创建新项目
           final created = await _projectRepository.createProjectWithId(
             ProjectDraft(
-              projectId: project.projectId,
               title: project.title,
               status: project.status,
               dueAt: project.dueAt,
@@ -244,18 +240,18 @@ class ImportService {
               description: project.description,
               logs: project.logs,
             ),
-            project.projectId,
+              project.id,
             project.createdAt,
             project.updatedAt,
           );
-          projectIdToIsarId[project.projectId] = created.id;
+            existingProjectIds.add(created.id);
           projectsCreated++;
         } else {
           // 比较时间戳
           if (project.updatedAt.isAfter(existing.updatedAt)) {
             // 导入数据更新，更新本地数据
             await _projectRepository.update(
-              existing.id,
+                project.id,
               ProjectUpdate(
                 title: project.title,
                 status: project.status,
@@ -271,39 +267,34 @@ class ImportService {
                 logs: project.logs,
               ),
             );
-            projectIdToIsarId[project.projectId] = existing.id;
+              existingProjectIds.add(project.id);
             projectsUpdated++;
           } else {
             // 本地数据更新或相同，跳过
-            projectIdToIsarId[project.projectId] = existing.id;
+              existingProjectIds.add(project.id);
             projectsSkipped++;
           }
         }
       } catch (e) {
-        errors.add('导入项目失败 ${project.projectId}: $e');
+          errors.add('导入项目失败 ${project.id}: $e');
       }
     }
 
     // 第二轮：导入里程碑
     for (final milestone in exportData.milestones) {
       try {
-        // 查找关联项目的Isar ID
-        final projectIsarId = projectIdToIsarId[milestone.projectId];
-        if (projectIsarId == null) {
+        if (!existingProjectIds.contains(milestone.projectId)) {
           errors.add(
-            '里程碑 ${milestone.milestoneId} 引用的项目 ${milestone.projectId} 不存在',
+            '里程碑 ${milestone.id} 引用的项目 ${milestone.projectId} 不存在',
           );
           continue;
         }
 
-        final existing = await _milestoneRepository.findByMilestoneId(
-          milestone.milestoneId,
-        );
+        final existing = await _milestoneRepository.findById(milestone.id);
         if (existing == null) {
           // 创建新里程碑
-          final created = await _milestoneRepository.createMilestoneWithId(
+          await _milestoneRepository.createMilestoneWithId(
             MilestoneDraft(
-              milestoneId: milestone.milestoneId,
               projectId: milestone.projectId,
               title: milestone.title,
               status: milestone.status,
@@ -318,22 +309,18 @@ class ImportService {
               description: milestone.description,
               logs: milestone.logs,
             ),
-            milestone.milestoneId,
+            milestone.id,
             milestone.createdAt,
             milestone.updatedAt,
           );
-          milestoneIdToIsarId[milestone.milestoneId] = created.id;
-
-          // 设置 projectIsarId
-          // 注意：createMilestoneWithId 不会设置 projectIsarId，需要手动更新
-          await _setMilestoneProjectIsarId(created.id, projectIsarId);
+          existingMilestoneIds.add(milestone.id);
           milestonesCreated++;
         } else {
           // 比较时间戳
           if (milestone.updatedAt.isAfter(existing.updatedAt)) {
             // 导入数据更新，更新本地数据
             await _milestoneRepository.update(
-              existing.id,
+              milestone.id,
               MilestoneUpdate(
                 title: milestone.title,
                 status: milestone.status,
@@ -342,66 +329,59 @@ class ImportService {
                 endedAt: milestone.endedAt,
                 sortIndex: milestone.sortIndex,
                 tags: milestone.tags,
-                templateLockDelta: milestone.templateLockCount -
-                    existing.templateLockCount,
+                templateLockDelta:
+                    milestone.templateLockCount - existing.templateLockCount,
                 allowInstantComplete: milestone.allowInstantComplete,
                 description: milestone.description,
                 logs: milestone.logs,
               ),
             );
-            milestoneIdToIsarId[milestone.milestoneId] = existing.id;
-            // 重新设置 projectIsarId（因为 update 方法不会自动设置）
-            await _setMilestoneProjectIsarId(existing.id, projectIsarId);
+            existingMilestoneIds.add(milestone.id);
             milestonesUpdated++;
           } else {
             // 本地数据更新或相同，跳过
-            milestoneIdToIsarId[milestone.milestoneId] = existing.id;
+            existingMilestoneIds.add(milestone.id);
             milestonesSkipped++;
           }
         }
       } catch (e) {
-        errors.add('导入里程碑失败 ${milestone.milestoneId}: $e');
+        errors.add('导入里程碑失败 ${milestone.id}: $e');
       }
     }
 
     // 第三轮：导入任务（不设置父子关系）
     for (final task in exportData.tasks) {
       try {
-        // 查找关联项目和里程碑的Isar ID
-        int? projectIsarId;
-        if (task.projectId != null) {
-          projectIsarId = projectIdToIsarId[task.projectId];
-          if (projectIsarId == null) {
-            errors.add(
-              '任务 ${task.taskId} 引用的项目 ${task.projectId} 不存在',
-            );
-            // 继续处理，但不设置项目关联
-          }
+        final hasProject =
+            task.projectId == null || existingProjectIds.contains(task.projectId!);
+        if (!hasProject && task.projectId != null) {
+          errors.add(
+            '任务 ${task.id} 引用的项目 ${task.projectId} 不存在',
+          );
         }
 
-        int? milestoneIsarId;
-        if (task.milestoneId != null) {
-          milestoneIsarId = milestoneIdToIsarId[task.milestoneId];
-          if (milestoneIsarId == null) {
-            errors.add(
-              '任务 ${task.taskId} 引用的里程碑 ${task.milestoneId} 不存在',
-            );
-            // 继续处理，但不设置里程碑关联
-          }
+        final hasMilestone = task.milestoneId == null ||
+            existingMilestoneIds.contains(task.milestoneId!);
+        if (!hasMilestone && task.milestoneId != null) {
+          errors.add(
+            '任务 ${task.id} 引用的里程碑 ${task.milestoneId} 不存在',
+          );
         }
 
-        final existing = await _taskRepository.findByTaskId(task.taskId);
+        final sanitizedProjectId = hasProject ? task.projectId : null;
+        final sanitizedMilestoneId = hasMilestone ? task.milestoneId : null;
+
+        final existing = await _taskRepository.findById(task.id);
         if (existing == null) {
-          // 创建新任务（不设置 parentTaskId，在第四轮处理）
-          final created = await _taskRepository.createTaskWithId(
+          // 创建新任务（不设置 parentId，在第四轮处理）
+          await _taskRepository.createTaskWithId(
             TaskDraft(
               title: task.title,
               status: task.status,
               dueAt: task.dueAt,
               parentId: null, // 第四轮处理
-              parentTaskId: null, // 第四轮处理
-              projectId: task.projectId,
-              milestoneId: task.milestoneId,
+              projectId: sanitizedProjectId,
+              milestoneId: sanitizedMilestoneId,
               tags: task.tags,
               sortIndex: task.sortIndex,
               seedSlug: task.seedSlug,
@@ -409,21 +389,11 @@ class ImportService {
               description: task.description,
               logs: task.logs,
             ),
-            task.taskId,
+            task.id,
             task.createdAt,
             task.updatedAt,
           );
-          taskIdToIsarId[task.taskId] = created.id;
           tasksCreated++;
-
-          // 设置 projectIsarId 和 milestoneIsarId
-          // 注意：createTaskWithId 不会设置 projectIsarId 和 milestoneIsarId
-          // 需要手动设置
-          await _setTaskProjectAndMilestoneIsarId(
-            created.id,
-            projectIsarId,
-            milestoneIsarId,
-          );
         } else {
           // 比较时间戳
           if (task.updatedAt.isAfter(existing.updatedAt)) {
@@ -437,69 +407,64 @@ class ImportService {
                 startedAt: task.startedAt,
                 endedAt: task.endedAt,
                 archivedAt: task.archivedAt,
-                projectId: task.projectId,
-                milestoneId: task.milestoneId,
+                projectId: sanitizedProjectId,
+                milestoneId: sanitizedMilestoneId,
                 sortIndex: task.sortIndex,
                 tags: task.tags,
-                templateLockDelta: task.templateLockCount -
-                    existing.templateLockCount,
+                templateLockDelta:
+                    task.templateLockCount - existing.templateLockCount,
                 allowInstantComplete: task.allowInstantComplete,
                 description: task.description,
                 logs: task.logs,
+                clearProject: sanitizedProjectId == null &&
+                        existing.projectId != null
+                    ? true
+                    : null,
+                clearMilestone: sanitizedMilestoneId == null &&
+                        existing.milestoneId != null
+                    ? true
+                    : null,
               ),
-            );
-            taskIdToIsarId[task.taskId] = existing.id;
-            // 重新设置 projectIsarId 和 milestoneIsarId（因为 update 方法不会自动设置）
-            await _setTaskProjectAndMilestoneIsarId(
-              existing.id,
-              projectIsarId,
-              milestoneIsarId,
             );
             tasksUpdated++;
           } else {
             // 本地数据更新或相同，跳过
-            taskIdToIsarId[task.taskId] = existing.id;
             tasksSkipped++;
           }
         }
       } catch (e) {
-        errors.add('导入任务失败 ${task.taskId}: $e');
+        errors.add('导入任务失败 ${task.id}: $e');
       }
     }
 
     // 第四轮：建立任务父子关系
     // 使用从原始 JSON 中提取的 parentTaskId（taskId，String）
     for (final task in exportData.tasks) {
-      final parentTaskId = taskIdToParentTaskId[task.taskId];
+      final parentTaskId = taskIdToParentTaskId[task.id];
       if (parentTaskId == null) {
         continue;
       }
 
       try {
-        // 查找父任务的Isar ID（通过 taskId）
-        final parentTask = await _taskRepository.findByTaskId(parentTaskId);
+        final parentTask = await _taskRepository.findById(parentTaskId);
         if (parentTask == null) {
           errors.add(
-            '任务 ${task.taskId} 的父任务 $parentTaskId 不存在',
+            '任务 ${task.id} 的父任务 $parentTaskId 不存在',
           );
           continue;
         }
 
-        final childTask = await _taskRepository.findByTaskId(task.taskId);
+        final childTask = await _taskRepository.findById(task.id);
         if (childTask == null) {
           continue; // 已经在第三轮处理过错误
         }
 
-        // 更新父任务关系
         await _taskRepository.updateTask(
           childTask.id,
-          TaskUpdate(
-            parentId: parentTask.id,
-            parentTaskId: parentTask.id,
-          ),
+          TaskUpdate(parentId: parentTask.id),
         );
       } catch (e) {
-        errors.add('设置任务父子关系失败 ${task.taskId}: $e');
+        errors.add('设置任务父子关系失败 ${task.id}: $e');
       }
     }
 
@@ -517,31 +482,5 @@ class ImportService {
     );
   }
 
-  /// 设置里程碑的 projectIsarId
-  Future<void> _setMilestoneProjectIsarId(
-    int milestoneIsarId,
-    int? projectIsarId,
-  ) async {
-    if (projectIsarId == null) {
-      return;
-    }
-    await _milestoneRepository.setMilestoneProjectIsarId(
-      milestoneIsarId,
-      projectIsarId,
-    );
-  }
-
-  /// 设置任务的 projectIsarId 和 milestoneIsarId
-  Future<void> _setTaskProjectAndMilestoneIsarId(
-    int taskIsarId,
-    int? projectIsarId,
-    int? milestoneIsarId,
-  ) async {
-    await _taskRepository.setTaskProjectAndMilestoneIsarId(
-      taskIsarId,
-      projectIsarId,
-      milestoneIsarId,
-    );
-  }
 }
 

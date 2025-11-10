@@ -7,7 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/review_text_generator.dart';
-import '../../../../data/models/review_data.dart';
+import '../../../data/models/review_data.dart';
 
 /// 回顾页面操作按钮组件
 class ReviewActionButtons extends StatelessWidget {

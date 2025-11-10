@@ -9,7 +9,7 @@ import '../../../../generated/l10n/app_localizations.dart';
 Future<void> showAddSubtaskDialog(
   BuildContext context,
   WidgetRef ref,
-  int parentId,
+  String parentId,
 ) async {
   final l10n = AppLocalizations.of(context);
   final controller = TextEditingController();
@@ -116,7 +116,7 @@ Future<void> showRenameDialog(
 Future<void> archiveTask(
   BuildContext context,
   WidgetRef ref,
-  int taskId,
+  String taskId,
 ) async {
   final notifier = ref.read(taskEditActionsNotifierProvider.notifier);
   final messenger = ScaffoldMessenger.of(context);

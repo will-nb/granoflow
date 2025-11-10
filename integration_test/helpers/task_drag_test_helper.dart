@@ -227,9 +227,9 @@ class TaskDragTestHelper {
 
   /// 验证任务在数据库中的状态
   Future<bool> verifyTaskInDatabase({
-    required int taskId,
+    required String taskId,
     TaskSection? expectedSection,
-    int? expectedParentId,
+    String? expectedParentId,
     double? expectedSortIndex,
   }) async {
     final taskRepository = container.read(taskRepositoryProvider);
@@ -350,7 +350,7 @@ class TaskDragTestHelper {
 
   /// 移动任务到指定 section
   Future<void> moveTaskToSection(
-    int taskId,
+    String taskId,
     TaskSection section,
     DateTime now,
   ) async {

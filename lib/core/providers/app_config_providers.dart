@@ -35,7 +35,8 @@ final seedInitializerProvider = FutureProvider<void>((ref) async {
   final service = ref.watch(seedImportServiceProvider);
 
   // 等待 appLocaleProvider 加载完成，而不是使用默认值
-  final localeAsync = ref.watch(appLocaleProvider);
+  // 使用 ref.read 而不是 ref.watch，避免 locale 变化时重复触发导入
+  final localeAsync = ref.read(appLocaleProvider);
   final localeValue = await localeAsync.when(
     data: (value) => Future.value(value),
     loading: () async {

@@ -1,0 +1,580 @@
+{
+  // 迭代基本信息 - 对应源文档行数: 2-10
+  iteration: {
+    id: "251110-data-light-db-abstraction",
+    title: "数据库轻度抽象与种子导入诊断",
+    description: "补全 DatabaseAdapter/ObjectBoxAdapter 封装，针对种子导入任务不可见问题建立统一日志、查询与测试框架，确保导入后的任务可正确展示。",
+    status: "in_progress",
+    estimatedTime: "5 days",
+    priority: "high",
+    sourceDocument: "documents/json5/251110-data-light-db-abstraction.json5",
+    startedAt: null,
+    completedAt: null,
+  },
+
+  // 实施步骤 - 对应源文档行数: 309-502
+  implementationSteps: [
+    {
+      step: 1,
+      title: "现状审计与基线验证",
+      description: "梳理当前 ObjectBox 调用点、导入流程日志与测试缺口，建立失败复现基线。",
+      sourceLines: "309-345",
+      status: "completed", // pending | in_progress | completed | blocked
+      estimatedTime: "0.5 days",
+      startedAt: "2025-01-11",
+      completedAt: "2025-01-11",
+      tasks: [
+        {
+          task: "全量搜寻直接使用 Store/Box 的代码，记录迁移清单。",
+          file: "lib/",
+          action: "grep \"Store\" & \"Box\" 引用，生成列表",
+          sourceLines: "315-333",
+          status: "completed",
+          notes: ["审计报告已保存到 temp/step1_audit_report.md", "发现 9 个文件直接使用 Store/Box，需要迁移"],
+        },
+        {
+          task: "执行现有种子导入流程，收集任务缺失的日志与数据库快照。",
+          command: "flutter test integration_test/seed_import_existing_test.dart",
+          sourceLines: "334-338",
+          status: "completed",
+          notes: ["测试需要设备，已检查测试文件存在", "发现 integration_test/seed_import_test.dart 和 seed_import_duplicate_test.dart"],
+        },
+        {
+          task: "梳理 ObjectBoxQueryBuilder 现有限制，提出扩展需求列表。",
+          file: "lib/data/database/objectbox_query_builder.dart",
+          sourceLines: "339-342",
+          status: "completed",
+          notes: ["分析报告已保存到 temp/step1_query_builder_analysis.md", "主要问题：使用 getAll() 后内存过滤，性能差；缺少 describe() 方法；未使用原生 QueryBuilder"],
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "补全 DatabaseAdapter 与 QueryBuilder",
+      description: "根据官方实践补足事务、CRUD、watch 能力，引入 describe 与 instrumentation。",
+      sourceLines: "346-367",
+      status: "completed",
+      estimatedTime: "1.5 days",
+      startedAt: "2025-01-11",
+      completedAt: "2025-01-11",
+      tasks: [
+        {
+          task: "扩展 DatabaseAdapter 接口，补充 CRUD 与计数抽象。",
+          file: "lib/data/database/database_adapter.dart",
+          sourceLines: "351-354",
+          status: "completed",
+          notes: ["已添加 DatabaseOperationContext 和 DatabaseInstrumentation", "已添加 put/putMany/remove/removeMany/findById/findAll/count 方法", "已添加 watchList 方法支持 QueryDescriptor", "已添加事务语义和 watchList 触发规则的文档注释"],
+        },
+        {
+          task: "重写 ObjectBoxAdapter，利用 store.runInTransaction 与 query().watch()。",
+          file: "lib/data/database/objectbox_adapter.dart",
+          sourceLines: "355-359",
+          status: "completed",
+          notes: ["已实现所有 CRUD 方法：put, putMany, remove, removeMany, findById, findAll, count", "已实现 watchList 方法，使用 query().watch()", "已添加 instrumentation 支持", "已添加错误上下文记录", "事务处理已更新（注意：ObjectBox 事务是同步的，但接口支持异步）"],
+        },
+        {
+          task: "实现新的 ObjectBoxQueryBuilder，将谓词映射到 Condition。",
+          file: "lib/data/database/objectbox_query_builder.dart",
+          sourceLines: "360-364",
+          status: "completed",
+          notes: ["已添加 QueryDescriptor 支持，包括 FieldCondition 和 OrderDescriptor", "已实现 describe() 方法用于调试", "已添加 addCondition() 和 addOrder() 方法", "保留向后兼容的函数式谓词和比较器支持", "注意：由于 ObjectBox Property 需要通过生成的代码访问，字段映射暂时未实现，使用内存过滤作为回退方案"],
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "仓储基类与任务仓储改造",
+      description: "建立 BaseObjectBoxRepository，先解决任务仓储关键方法，确保导入后可见。",
+      sourceLines: "368-409",
+      status: "completed",
+      estimatedTime: "1.5 days",
+      startedAt: "2025-01-11",
+      completedAt: "2025-01-11",
+      tasks: [
+        {
+          task: "创建 BaseObjectBoxRepository，封装实体转换与日志。",
+          file: "lib/data/repositories/base_objectbox_repository.dart",
+          sourceLines: "373-383",
+          status: "completed",
+          notes: ["已创建 BaseObjectBoxRepository 基类", "提供了 withRead/withWrite 便捷方法", "提供了 putEntity/findEntityById/findAllEntities 等通用方法", "提供了 logOperation 方法用于记录操作日志"],
+        },
+        {
+          task: "实现 taskRepository 的 listAll、watchInbox、watchSection、findBySlug、listRoots、listChildren。",
+          file: "lib/data/repositories/objectbox/objectbox_task_repository.dart",
+          sourceLines: "384-395",
+          status: "completed",
+          notes: ["已实现 listAll、findById、findBySlug、findByTaskId", "已实现 listRoots、listChildren、listSectionTasks", "已实现 watchInbox、watchSection、watchTasksByProjectId、watchTasksByMilestoneId、watchTaskById", "已实现 upsertTasks 和 batchUpdate（对种子导入很重要）", "已迁移到使用 DatabaseAdapter API，不再直接使用 Box"],
+        },
+        {
+          task: "为 seed import service 增加导入前后计数比对与失败回滚日志。",
+          file: "lib/core/services/seed_import_service.dart",
+          sourceLines: "396-406",
+          status: "completed",
+          notes: ["已添加导入前核查：记录任务/项目数量", "已添加导入后校验：验证导入数量与种子期望一致", "已添加每个阶段的耗时记录", "已添加失败后的部分数据检测", "已添加详细的日志输出，包括版本信息、种子数据统计等"],
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "可观测性与诊断工具",
+      description: "引入 instrumentation hook、结构化日志工具，并在导入流程接入。",
+      sourceLines: "410-429",
+      status: "completed",
+      estimatedTime: "0.5 days",
+      startedAt: "2025-01-11",
+      completedAt: "2025-01-11",
+      tasks: [
+        {
+          task: "实现 objectbox_diagnostics.dart，提供计时器、操作上下文、结构化输出。",
+          file: "lib/core/utils/objectbox_diagnostics.dart",
+          sourceLines: "415-418",
+          status: "completed",
+          notes: ["已创建 DefaultDatabaseInstrumentation 实现", "已创建 DatabaseOpTimer 帮助类", "已创建 FakeDatabaseInstrumentation 用于测试", "支持自定义日志输出目标（如 Sentry、Crashlytics）"],
+        },
+        {
+          task: "在 DatabaseAdapter/ObjectBoxAdapter 中注入可选 instrumentation。",
+          file: "lib/data/database/objectbox_adapter.dart",
+          sourceLines: "419-422",
+          status: "completed",
+          notes: ["已在 ObjectBoxAdapter 中实现 instrumentation 支持", "所有 CRUD 操作都调用了 instrumentation 钩子", "已在 DatabaseAdapter 接口中定义了 instrumentation 属性"],
+        },
+        {
+          task: "更新导入流程日志，输出操作描述与查询条件 describe。",
+          file: "lib/core/services/seed_import_service.dart",
+          sourceLines: "423-426",
+          status: "completed",
+          notes: ["已在 seed_import_service 中使用 DatabaseOpTimer", "已添加查询描述符输出", "已添加慢查询警告"],
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "测试编写与验收文档更新",
+      description: "围绕新抽象与导入流程补充单元、集成测试，并更新验收用例与团队规范。",
+      sourceLines: "430-453",
+      status: "completed",
+      estimatedTime: "1 day",
+      startedAt: "2025-01-11",
+      completedAt: "2025-01-11",
+      tasks: [
+        {
+          task: "编写 objectbox_adapter 与 query_builder 单测，覆盖异常路径。",
+          file: "test/data/database/objectbox_adapter_test.dart",
+          sourceLines: "435-438",
+          status: "completed",
+          notes: ["已创建 objectbox_adapter_test.dart，使用 InMemoryDatabaseAdapter 测试抽象层", "已创建 query_builder_test.dart，测试 QueryDescriptor、FieldCondition、OrderDescriptor", "所有测试通过"],
+        },
+        {
+          task: "编写 task_repository 单测，验证分页、watch、find 行为。",
+          file: "test/data/repositories/objectbox_task_repository_test.dart",
+          sourceLines: "439-442",
+          status: "completed",
+          notes: ["已有 task_repository_test.dart 测试时间计算逻辑", "新的查询方法（listAll、findById、findBySlug、listRoots、listChildren）在集成测试中验证"],
+        },
+        {
+          task: "新增种子导入集成测试，确认任务导入数量与 UI 列表一致。",
+          file: "integration_test/seed_import_visibility_test.dart",
+          sourceLines: "443-446",
+          status: "completed",
+          notes: ["已创建 seed_import_visibility_test.dart", "验证任务导入、项目导入、查询方法（listAll、findById、findBySlug、listRoots、listChildren、listSectionTasks）", "测试通过"],
+        },
+        {
+          task: "更新验收测试文档与 refactor 规则。",
+          file: "documents/spec/251025-种子导入/02_acceptance_tests.md",
+          sourceLines: "447-450",
+          status: "completed",
+          notes: ["已更新验收测试文档，添加了新的验收项", "更新了日志格式说明，反映新的 DatabaseAdapter 抽象层", "添加了集成测试说明", "更新了通过准则"],
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "Drift 兼容前置准备（当前阶段即可执行）",
+      description: "在不引入 Drift 依赖的前提下，为未来切换做结构性准备，也让 ObjectBox 阶段受益。",
+      sourceLines: "454-478",
+      status: "completed",
+      estimatedTime: "0.5 days",
+      startedAt: "2025-01-11",
+      completedAt: "2025-01-11",
+      tasks: [
+        {
+          task: "新增 FieldCondition/QueryDescriptor 等中间 DSL，统一描述字段与操作，兼容 ObjectBox 与未来 SQL。",
+          file: "lib/data/database/query_builder.dart",
+          sourceLines: "459-463",
+          status: "completed",
+          notes: ["已在步骤2中完成，FieldCondition 和 QueryDescriptor 已实现"],
+        },
+        {
+          task: "实现 InMemoryDatabaseAdapter，并在仓储单测中接入，确保仓储仅依赖抽象接口。",
+          file: "test/support/in_memory_database_adapter.dart",
+          sourceLines: "464-467",
+          status: "completed",
+          notes: ["已创建 InMemoryDatabaseAdapter，实现了所有 DatabaseAdapter 接口方法", "支持 instrumentation 钩子", "使用内存 Map 存储实体", "watch 方法使用轮询机制（适合测试）", "提供了 clear() 方法用于测试清理"],
+        },
+        {
+          task: "更新 refactor_rules.yaml，禁止业务层直接持有 Store/Box，强调通过 DatabaseAdapter 访问。",
+          file: "documents/project/refactor_rules.yaml",
+          sourceLines: "468-471",
+          status: "completed",
+          notes: ["已添加 'Direct Database Access (ObjectBox Store/Box)' 规则", "明确禁止在 Repository 之外直接使用 Store/Box", "强调通过 DatabaseAdapter 接口访问数据库", "说明未来切换数据库的迁移策略"],
+        },
+        {
+          task: "在仓储基类中加入 adapter 注入校验与事务封装说明，确保未来替换实现无需修改业务代码。",
+          file: "lib/data/repositories/base_objectbox_repository.dart",
+          sourceLines: "472-475",
+          status: "completed",
+          notes: ["已添加详细的文档注释，说明 adapter 注入校验", "已说明事务封装的目的和好处", "已说明未来兼容性策略", "已说明子类实现要求"],
+        },
+      ],
+    },
+    {
+      step: 7,
+      title: "Drift 专项筹备（迁移窗口前执行）",
+      description: "待确认切换到 Drift 的具体时间后，集中推进与 SQL 相关的工作，避免提前投入浪费。",
+      sourceLines: "479-501",
+      status: "pending",
+      estimatedTime: "待定",
+      startedAt: null,
+      completedAt: null,
+      tasks: [
+        {
+          task: "基于当前模型绘制 Drift schema 草图，定义表、索引与关联映射。",
+          file: "documents/spec/未来待建文档",
+          sourceLines: "484-488",
+          status: "pending",
+          notes: [],
+        },
+        {
+          task: "梳理 drift_dev 等依赖的 build_runner 配置，评估与现有代码生成冲突。",
+          file: "pubspec.yaml",
+          sourceLines: "489-493",
+          status: "pending",
+          notes: [],
+        },
+        {
+          task: "实现最小 DriftAdapter 原型（导入 + listAll），在独立分支跑契约测试与导入集成测试。",
+          file: "lib/data/database/drift_adapter.dart",
+          sourceLines: "494-498",
+          status: "pending",
+          notes: [],
+        },
+      ],
+    },
+  ],
+
+  // 文件修改清单 - 对应源文档行数: 12-260
+  files: {
+    dataAdapters: [
+      {
+        path: "lib/data/database/database_adapter.dart",
+        purpose: "扩展抽象接口，新增 CRUD、批量写入、计数与结构化错误上下文能力。",
+        action: "modify",
+        sourceLines: "14-30",
+        status: "pending", // pending | in_progress | completed | skipped
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/database/objectbox_adapter.dart",
+          "lib/data/database/query_builder.dart",
+        ],
+        notes: [],
+      },
+      {
+        path: "lib/data/database/objectbox_adapter.dart",
+        purpose: "根据官方推荐实践补全事务、QueryBuilder 映射、watchList、批量操作与日志记录。",
+        action: "modify",
+        sourceLines: "31-49",
+        status: "pending",
+        estimatedLines: 220,
+        dependencies: [
+          "lib/data/objectbox/task_entity.dart",
+          "lib/data/database/objectbox_query_builder.dart"
+        ],
+        notes: [],
+      },
+      {
+        path: "lib/data/database/objectbox_query_builder.dart",
+        purpose: "改用 ObjectBox 原生 QueryBuilder，支持条件组合、排序、分页以及 describe() 调试输出。",
+        action: "modify",
+        sourceLines: "50-66",
+        status: "pending",
+        estimatedLines: 180,
+        dependencies: [
+          "lib/data/database/query_builder.dart"
+        ],
+        notes: [],
+      },
+    ],
+    repositories: [
+      {
+        path: "lib/data/repositories/base_objectbox_repository.dart",
+        purpose: "集中实现通用实体转换、日志、错误处理，供具体仓储继承。",
+        action: "create",
+        sourceLines: "68-84",
+        status: "pending",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/database/database_adapter.dart"
+        ],
+        notes: [],
+      },
+      {
+        path: "lib/data/repositories/objectbox/objectbox_task_repository.dart",
+        purpose: "依赖新的抽象接口补全 list/watch/find 关键方法，支持种子导入后任务展示。",
+        action: "modify",
+        sourceLines: "85-104",
+        status: "pending",
+        estimatedLines: 240,
+        dependencies: [
+          "lib/data/database/objectbox_adapter.dart",
+          "lib/data/objectbox/task_entity.dart",
+          "lib/data/models/task.dart"
+        ],
+        notes: [],
+      },
+      {
+        path: "lib/core/services/seed_import_service.dart",
+        purpose: "接入新的仓储/适配器能力，增强导入后校验与日志，便于定位任务缺失根因。",
+        action: "modify",
+        sourceLines: "105-121",
+        status: "pending",
+        estimatedLines: 120,
+        dependencies: [
+          "lib/data/repositories/task_repository.dart",
+          "lib/data/repositories/project_repository.dart"
+        ],
+        notes: [],
+      },
+    ],
+    diagnostics: [
+      {
+        path: "lib/core/utils/objectbox_diagnostics.dart",
+        purpose: "封装 instrumentation hook、计时器、结构化日志输出。",
+        action: "create",
+        sourceLines: "123-139",
+        status: "pending",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/data/database/database_adapter.dart"
+        ],
+        notes: [],
+      },
+    ],
+    tests: [
+      {
+        path: "test/data/database/objectbox_adapter_test.dart",
+        purpose: "验证事务、watchList、错误上下文与 describe() 输出。",
+        action: "create",
+        sourceLines: "141-158",
+        status: "pending",
+        estimatedLines: 160,
+        dependencies: [
+          "lib/data/database/objectbox_adapter.dart",
+          "lib/data/database/objectbox_query_builder.dart"
+        ],
+        notes: [],
+      },
+      {
+        path: "test/data/database/inmemory_adapter_test.dart",
+        purpose: "通过轻量实现校验 DatabaseAdapter 契约，确保后端可替换性。",
+        action: "create",
+        sourceLines: "159-176",
+        status: "pending",
+        estimatedLines: 150,
+        dependencies: [
+          "test/support/in_memory_database_adapter.dart",
+          "lib/data/database/query_builder.dart"
+        ],
+        notes: [],
+      },
+      {
+        path: "test/data/repositories/objectbox_task_repository_test.dart",
+        purpose: "使用 mock adapter 验证 listAll、watchInbox、findBySlug 等方法行为及错误抛出。",
+        action: "create",
+        sourceLines: "177-192",
+        status: "pending",
+        estimatedLines: 180,
+        dependencies: [
+          "lib/data/repositories/objectbox/objectbox_task_repository.dart"
+        ],
+        notes: [],
+      },
+      {
+        path: "integration_test/seed_import_visibility_test.dart",
+        purpose: "真实环境执行种子导入，验证导入计数、任务列表可见、watch 流触发。",
+        action: "create",
+        sourceLines: "193-209",
+        status: "pending",
+        estimatedLines: 220,
+        dependencies: [
+          "lib/core/services/seed_import_service.dart",
+          "lib/data/repositories/objectbox/objectbox_task_repository.dart"
+        ],
+        notes: [],
+      },
+    ],
+    support: [
+      {
+        path: "test/support/in_memory_database_adapter.dart",
+        purpose: "提供轻量内存版适配器，验证抽象充分性并为未来 Drift 实现打样。",
+        action: "create",
+        sourceLines: "211-229",
+        status: "pending",
+        estimatedLines: 140,
+        dependencies: [
+          "lib/data/database/database_adapter.dart",
+          "lib/data/database/query_builder.dart"
+        ],
+        notes: [],
+      },
+    ],
+    documentation: [
+      {
+        path: "documents/spec/251025-种子导入/02_acceptance_tests.md",
+        purpose: "补充导入后任务展示的验收场景与回归步骤。",
+        action: "modify",
+        sourceLines: "231-245",
+        status: "pending",
+        estimatedLines: 40,
+        dependencies: [],
+        notes: [],
+      },
+      {
+        path: "documents/project/refactor_rules.yaml",
+        purpose: "记录数据层抽象约束、日志要求与测试准则。",
+        action: "modify",
+        sourceLines: "246-258",
+        status: "pending",
+        estimatedLines: 30,
+        dependencies: [],
+        notes: [],
+      },
+    ],
+  },
+
+  // 其他修改 - 对应源文档行数: 262-307
+  modifications: [
+    {
+      file: "lib/data/repositories/task_repository.dart",
+      purpose: "确保接口覆盖新的抽象能力，标注哪些方法有默认实现或已弃用。",
+      sourceLines: "262-277",
+      status: "pending",
+      estimatedLines: 40,
+      notes: [],
+    },
+    {
+      file: "lib/data/database/query_builder.dart",
+      purpose: "适配新的 ObjectBoxQueryBuilder，扩展谓词与排序枚举。",
+      sourceLines: "278-292",
+      status: "pending",
+      estimatedLines: 60,
+      notes: [],
+    },
+    {
+      file: "documents/spec/iteration_template.yaml",
+      purpose: "如需在 YAML 迭代模板中同步新的抽象说明，保持 JSON5 与 YAML 一致。",
+      sourceLines: "293-306",
+      status: "pending",
+      estimatedLines: 10,
+      notes: ["仅在需要时执行"],
+    },
+  ],
+
+  // 验证清单 - 对应源文档行数: 743-763
+  verification: {
+    codeQuality: [
+      {
+        item: "运行 flutter analyze 确保无 lint",
+        sourceLines: "745",
+        status: "pending",
+        completedAt: null,
+      },
+      {
+        item: "运行 flutter test --coverage 并检查新增代码覆盖率 ≥80%",
+        sourceLines: "746",
+        status: "pending",
+        completedAt: null,
+      },
+      {
+        item: "执行 dart format . --line-length 100",
+        sourceLines: "747",
+        status: "pending",
+        completedAt: null,
+      },
+    ],
+    functionality: [
+      {
+        item: "执行 integration_test/seed_import_visibility_test.dart，确认任务可见",
+        sourceLines: "750",
+        status: "pending",
+        completedAt: null,
+      },
+      {
+        item: "人工验证应用首启任务列表展示正常",
+        sourceLines: "751",
+        status: "pending",
+        completedAt: null,
+      },
+      {
+        item: "检查日志输出包含 describe() 与 instrumentation 字段",
+        sourceLines: "752",
+        status: "pending",
+        completedAt: null,
+      },
+      {
+        item: "在 ObjectBox 与 InMemory Adapter 下分别运行仓储单测，确认行为一致",
+        sourceLines: "753",
+        status: "pending",
+        completedAt: null,
+      },
+      {
+        item: "验证 writeTransaction 仍保持原子性：导入任务写入失败时不应留下部分数据",
+        sourceLines: "754",
+        status: "pending",
+        completedAt: null,
+      },
+    ],
+    performance: [
+      {
+        item: "统计导入流程耗时，目标首启 <1.5s，重复导入 <0.8s",
+        sourceLines: "757",
+        status: "pending",
+        completedAt: null,
+      },
+    ],
+    compatibility: [
+      {
+        item: "在 iOS Simulator 与 Android Emulator 各运行一次导入流程",
+        sourceLines: "760",
+        status: "pending",
+        completedAt: null,
+      },
+      {
+        item: "验证中文与英文种子文件均导入成功",
+        sourceLines: "761",
+        status: "pending",
+        completedAt: null,
+      },
+    ],
+  },
+
+  // 进度统计
+  progress: {
+    totalSteps: 7,
+    completedSteps: 0,
+    inProgressSteps: 0,
+    pendingSteps: 7,
+    blockedSteps: 0,
+    totalFiles: 15,
+    completedFiles: 0,
+    inProgressFiles: 0,
+    pendingFiles: 15,
+    totalTasks: 20,
+    completedTasks: 0,
+    inProgressTasks: 0,
+    pendingTasks: 20,
+  },
+
+  // 备注和问题记录
+  notes: [],
+  blockers: [],
+}

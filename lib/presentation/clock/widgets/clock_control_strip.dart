@@ -15,7 +15,7 @@ class ClockControlStrip extends ConsumerWidget {
     required this.onComplete,
   });
 
-  final int taskId;
+  final String taskId;
   final VoidCallback onComplete;
 
   @override
@@ -110,7 +110,7 @@ class ClockControlStrip extends ConsumerWidget {
 
     final taskService = ref.read(taskServiceProvider);
     try {
-      await taskService.markCompleted(taskId: taskId);
+          await taskService.markCompleted(taskId: taskId);
     } catch (error) {
       debugPrint('Failed to mark task as completed: $error');
     }

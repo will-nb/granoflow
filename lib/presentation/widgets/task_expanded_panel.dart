@@ -243,7 +243,7 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
   Future<void> _updateTags(
     BuildContext context,
     WidgetRef ref,
-    int taskId,
+    String taskId,
     String? contextTag,
     String? priorityTag,
   ) async {

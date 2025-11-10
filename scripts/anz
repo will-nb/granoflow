@@ -301,9 +301,113 @@ main() {
     run:macos)
       if has_help "$@"; then
         echo "run:macos: 在 macOS 上运行应用（桌面应用）"
+        echo "流程：先执行 scripts/anz clean，再 flutter run -d macos，确保环境干净"
         exit 0
       fi
       run_macos ;;
+    
+    test:macos)
+      if has_help "$@"; then
+        echo "test:macos: 清理项目并运行 macOS 应用或测试"
+        echo "用法:"
+        echo "  scripts/anz test:macos                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:macos [flutter test 参数...]  # 运行测试"
+        echo "示例:"
+        echo "  scripts/anz test:macos"
+        echo "  scripts/anz test:macos integration_test/seed_import_test.dart"
+        echo "  scripts/anz test:macos integration_test/ --reporter expanded"
+        exit 0
+      fi
+      shift  # 移除 test:macos 参数
+      run_tests_with_clean macos "$@" ;;
+    
+    test:ios)
+      if has_help "$@"; then
+        echo "test:ios: 清理项目并运行 iOS 应用或测试（使用 iPhone 16 Pro）"
+        echo "用法:"
+        echo "  scripts/anz test:ios                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:ios [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:ios 参数
+      run_tests_with_clean ios "iPhone 16 Pro" "iPhone" "$@" ;;
+    
+    test:iphone)
+      if has_help "$@"; then
+        echo "test:iphone: 清理项目并运行 iPhone 应用或测试（使用 iPhone 16 Pro）"
+        echo "用法:"
+        echo "  scripts/anz test:iphone                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:iphone [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:iphone 参数
+      run_tests_with_clean iphone "iPhone 16 Pro" "iPhone" "$@" ;;
+    
+    test:ipad)
+      if has_help "$@"; then
+        echo "test:ipad: 清理项目并运行 iPad 应用或测试（使用 iPad Pro 11-inch）"
+        echo "用法:"
+        echo "  scripts/anz test:ipad                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:ipad [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:ipad 参数
+      run_tests_with_clean ipad "iPad Pro 11-inch" "iPad" "$@" ;;
+    
+    test:android)
+      if has_help "$@"; then
+        echo "test:android: 清理项目并运行 Android 应用或测试（使用 Pixel 6）"
+        echo "用法:"
+        echo "  scripts/anz test:android                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:android [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:android 参数
+      run_tests_with_clean android "Pixel 6" "" "$@" ;;
+    
+    test:tablet)
+      if has_help "$@"; then
+        echo "test:tablet: 清理项目并运行 Android 平板应用或测试（使用 Pixel Tablet）"
+        echo "用法:"
+        echo "  scripts/anz test:tablet                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:tablet [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:tablet 参数
+      run_tests_with_clean tablet "Pixel Tablet" "" "$@" ;;
+    
+    test:linux)
+      if has_help "$@"; then
+        echo "test:linux: 清理项目并运行 Linux 应用或测试"
+        echo "用法:"
+        echo "  scripts/anz test:linux                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:linux [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:linux 参数
+      run_tests_with_clean linux "$@" ;;
+    
+    test:windows)
+      if has_help "$@"; then
+        echo "test:windows: 清理项目并运行 Windows 应用或测试"
+        echo "用法:"
+        echo "  scripts/anz test:windows                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:windows [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:windows 参数
+      run_tests_with_clean windows "$@" ;;
+    
+    test:web)
+      if has_help "$@"; then
+        echo "test:web: 清理项目并运行 Web 应用或测试"
+        echo "用法:"
+        echo "  scripts/anz test:web                    # 运行应用 (flutter run)"
+        echo "  scripts/anz test:web [flutter test 参数...]  # 运行测试"
+        exit 0
+      fi
+      shift  # 移除 test:web 参数
+      run_tests_with_clean web "$@" ;;
     
     diagnose:16kb)
       if has_help "$@"; then

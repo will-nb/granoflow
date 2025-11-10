@@ -112,7 +112,7 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
             }
 
             // 创建任务 ID 到是否有子任务的映射（用于显示展开/收缩按钮，使用工具类）
-            final taskIdToHasChildren = <int, bool>{};
+              final taskIdToHasChildren = <String, bool>{};
             for (final tree in taskTrees) {
               TaskListTreeBuilder.populateHasChildrenMap(
                 tree,
@@ -125,7 +125,7 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
             final rootTasks = collectRoots(filteredTasks);
 
             // 创建任务映射：任务 ID -> 根任务索引（仅用于根任务）
-            final taskIdToIndex = <int, int>{};
+              final taskIdToIndex = <String, int>{};
             for (var i = 0; i < rootTasks.length; i++) {
               taskIdToIndex[rootTasks[i].id] = i;
             }
@@ -157,14 +157,14 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                 final taskLevelForDrag = levelMap[task.id] ?? 1;
 
                 // 获取展开状态管理器
-                final expandedNotifier =
-                    ref.read(inboxExpandedTaskIdProvider.notifier);
-                final currentExpanded = Set<int>.from(expandedNotifier.state);
+                  final expandedNotifier =
+                      ref.read(inboxExpandedTaskIdProvider.notifier);
+                  final currentExpanded = Set<String>.from(expandedNotifier.state);
 
                 if (taskLevelForDrag == 1) {
                   // 根任务：收缩所有子任务
-                  final childTaskIds = childrenMap[task.id] ?? <int>{};
-                  final updatedExpanded = Set<int>.from(currentExpanded);
+                    final childTaskIds = childrenMap[task.id] ?? <String>{};
+                    final updatedExpanded = Set<String>.from(currentExpanded);
                   updatedExpanded.removeAll(childTaskIds);
                   expandedNotifier.state = updatedExpanded;
                 } else {
@@ -175,8 +175,8 @@ class _InboxTaskListState extends ConsumerState<InboxTaskList> {
                     return;
                   }
                   // 收缩自己的子任务
-                  final childTaskIds = childrenMap[task.id] ?? <int>{};
-                  final updatedExpanded = Set<int>.from(currentExpanded);
+                    final childTaskIds = childrenMap[task.id] ?? <String>{};
+                    final updatedExpanded = Set<String>.from(currentExpanded);
                   updatedExpanded.removeAll(childTaskIds);
                   expandedNotifier.state = updatedExpanded;
                 }

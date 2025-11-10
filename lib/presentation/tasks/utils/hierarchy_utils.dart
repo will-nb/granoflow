@@ -19,7 +19,7 @@ import '../../../data/repositories/task_repository.dart';
 /// 返回 false 如果不存在循环引用，可以设置为子任务
 Future<bool> hasCircularReference(
   Task task,
-  int targetParentId,
+  String targetParentId,
   TaskRepository repository,
 ) async {
   // 不能将任务设置为自己的子任务
@@ -29,7 +29,7 @@ Future<bool> hasCircularReference(
 
   // 递归检查：目标父任务是否是当前任务的后代（descendant）
   // 即：检查 targetParentId 的所有祖先中是否包含 task.id
-  int? currentParentId = targetParentId;
+  String? currentParentId = targetParentId;
   int depth = 0;
   const maxDepth = 10; // 防止无限循环的保护措施
 
@@ -63,13 +63,13 @@ Future<int> calculateHierarchyDepth(
   Task task,
   TaskRepository repository,
 ) async {
-  // 在新架构下，只通过 parentTaskId 追踪层级
-  if (task.parentTaskId == null) {
+  // 在新架构下，只通过 parentId 追踪层级
+  if (task.parentId == null) {
     return 0;
   }
 
   int depth = 0;
-  int? currentParentId = task.parentTaskId;
+  String? currentParentId = task.parentId;
   const maxDepth = 10; // 防止无限循环的保护措施
 
   while (currentParentId != null && depth < maxDepth) {
@@ -78,9 +78,9 @@ Future<int> calculateHierarchyDepth(
       break;
     }
 
-    // 只追踪普通任务的层级，parentTaskId 确保只指向普通任务
+    // 只追踪普通任务的层级，parentId 确保只指向普通任务
     depth++;
-    currentParentId = parent.parentTaskId;
+    currentParentId = parent.parentId;
   }
 
   return depth;
@@ -120,9 +120,9 @@ bool isProjectOrMilestone(Task task) {
 ///
 /// 返回祖先任务列表（从最远的祖先到最近的父任务）
 /// 最多3级
-/// 只追踪普通任务的层级（通过 parentTaskId）
+/// 只追踪普通任务的层级（通过 parentId）
 Future<List<Task>> buildAncestorChain(
-  int taskId,
+  String taskId,
   TaskRepository repository,
 ) async {
   final ancestors = <Task>[];
@@ -131,7 +131,7 @@ Future<List<Task>> buildAncestorChain(
     return ancestors;
   }
 
-  int? currentParentId = task.parentTaskId;
+  String? currentParentId = task.parentId;
   const maxDepth = 3; // 最多3级
 
   for (int depth = 0; depth < maxDepth && currentParentId != null; depth++) {
@@ -141,7 +141,7 @@ Future<List<Task>> buildAncestorChain(
     }
 
     ancestors.add(parent);
-    currentParentId = parent.parentTaskId;
+    currentParentId = parent.parentId;
   }
 
   // 反转列表，使最远的祖先在最后（符合显示顺序：祖任务→父任务→当前任务）

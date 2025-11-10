@@ -7,10 +7,12 @@ import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/quick_tasks/quick_task_card.dart';
 
 void main() {
-  testWidgets('QuickTaskCard renders execution icon for timed tasks', (tester) async {
+  testWidgets('QuickTaskCard renders execution icon for timed tasks', (
+    tester,
+  ) async {
     final task = Task(
-      id: 1,
-      taskId: 't-1',
+      id: '1',
+
       title: 'Quick timing task',
       status: TaskStatus.pending,
       createdAt: DateTime(2024, 2, 1),
@@ -33,7 +35,7 @@ void main() {
                   TaskTreeNode(task: task, children: const <TaskTreeNode>[]),
                 );
               }
-              final fallback = task.copyWith(id: taskId, taskId: 'task-$taskId');
+              final fallback = task.copyWith(id: taskId);
               return Stream.value(
                 TaskTreeNode(task: fallback, children: const <TaskTreeNode>[]),
               );

@@ -48,7 +48,7 @@ class ProjectFilterSection extends ConsumerWidget {
             projects.isNotEmpty) {
           // 已选项目或里程碑
           final project = projects.firstWhere(
-            (p) => p.projectId == filter.projectId,
+            (p) => p.id == filter.projectId,
             orElse: () => projects.first,
           );
 
@@ -62,7 +62,7 @@ class ProjectFilterSection extends ConsumerWidget {
                 Milestone? milestone;
                 if (milestones.isNotEmpty) {
                   milestone = milestones.firstWhere(
-                    (m) => m.milestoneId == filter.milestoneId,
+                    (m) => m.id == filter.milestoneId,
                     orElse: () => milestones.first,
                   );
                 }
@@ -264,10 +264,10 @@ class _ProjectFilterButton extends ConsumerWidget {
                     ...projects.map(
                       (project) => ProjectFilterTile(
                         project: project,
-                        isSelected: filter.projectId == project.projectId,
+                        isSelected: filter.projectId == project.id,
                         currentMilestoneId: filter.milestoneId,
                         onSelected: (milestoneId) => handleSelection(
-                          projectId: project.projectId,
+                          projectId: project.id,
                           milestoneId: milestoneId,
                         ),
                       ),

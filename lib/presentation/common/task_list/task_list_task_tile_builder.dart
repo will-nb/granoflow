@@ -36,8 +36,8 @@ class TaskListTaskTileBuilder {
     required dynamic dragNotifier,
     required TaskListConfig config,
     required WidgetRef ref,
-    required Set<int> expandedTaskIds,
-    required void Function(Set<int>) onExpandedChanged,
+    required Set<String> expandedTaskIds,
+    required void Function(Set<String>) onExpandedChanged,
     required void Function(Task task) onDragStarted,
     required void Function(DragUpdateDetails details) onDragUpdate,
   }) {
@@ -82,7 +82,7 @@ class TaskListTaskTileBuilder {
                   hoveredTaskId: task.id,
                   hoveredInsertionIndex: null,
                 );
-                _updateTaskSurfaceHover(dragNotifier, task.id);
+                  _updateTaskSurfaceHover(dragNotifier, task.id);
                 // 边缘自动滚动
                 final currentPosition = _getCurrentDragPosition(dragState);
                 if (currentPosition != null) {
@@ -109,7 +109,7 @@ class TaskListTaskTileBuilder {
                     rootTasks: rootTasks,
                     config: config,
                     ref: ref,
-                    expandedTaskIds: expandedTaskIds,
+                      expandedTaskIds: expandedTaskIds,
                     onExpandedChanged: onExpandedChanged,
                   );
                 }
@@ -143,8 +143,8 @@ class TaskListTaskTileBuilder {
     required List<Task> rootTasks,
     required TaskListConfig config,
     required WidgetRef ref,
-    required Set<int> expandedTaskIds,
-    required void Function(Set<int>) onExpandedChanged,
+    required Set<String> expandedTaskIds,
+    required void Function(Set<String>) onExpandedChanged,
   }) {
     return IconButton(
       icon: Icon(
@@ -153,12 +153,12 @@ class TaskListTaskTileBuilder {
       ),
       padding: const EdgeInsets.all(4),
       constraints: const BoxConstraints(),
-      onPressed: () {
-        final currentExpanded = Set<int>.from(expandedTaskIds);
+        onPressed: () {
+          final currentExpanded = Set<String>.from(expandedTaskIds);
         // 层级管理规则：展开一个根任务时，其他根任务收缩（Tasks 页面）
         if (!isExpanded && taskLevel == 1 && config.section != null) {
           // Tasks 页面：收缩所有根任务
-          final rootTaskIds = rootTasks.map((t) => t.id).toSet();
+            final rootTaskIds = rootTasks.map((t) => t.id).toSet();
           currentExpanded.removeAll(rootTaskIds);
           currentExpanded.add(task.id);
         } else {
@@ -180,7 +180,7 @@ class TaskListTaskTileBuilder {
     required dynamic dragNotifier,
     required List<FlattenedTaskNode> flattenedTasks,
     required List<Task> filteredTasks,
-    required int? hoveredTaskId,
+    required String? hoveredTaskId,
     required int? hoveredInsertionIndex,
   }) {
     final draggedTask = dragState?.draggedTask;
@@ -214,7 +214,7 @@ class TaskListTaskTileBuilder {
   }
 
   /// 更新任务表面悬停状态
-  static void _updateTaskSurfaceHover(dynamic dragNotifier, int taskId) {
+    static void _updateTaskSurfaceHover(dynamic dragNotifier, String taskId) {
     dragNotifier.updateTaskSurfaceHover(taskId);
   }
 

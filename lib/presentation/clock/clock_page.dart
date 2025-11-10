@@ -24,7 +24,7 @@ import 'widgets/clock_wave_background.dart';
 class ClockPage extends ConsumerStatefulWidget {
   const ClockPage({super.key, required this.taskId});
 
-  final int taskId;
+  final String taskId;
 
   @override
   ConsumerState<ClockPage> createState() => _ClockPageState();
@@ -359,7 +359,7 @@ class _HeroCluster extends StatelessWidget {
   });
 
   final ClockTimerState timerState;
-  final int taskId;
+  final String taskId;
   final VoidCallback onComplete;
 
   @override
@@ -496,7 +496,7 @@ class _TimerColumn extends StatelessWidget {
   });
 
   final ClockTimerState timerState;
-  final int taskId;
+  final String taskId;
   final VoidCallback onComplete;
 
   @override
@@ -548,7 +548,7 @@ class _TimerCluster extends StatelessWidget {
 }
 
 /// Provider: 获取任务（实时监听）
-final clockTaskProvider = StreamProvider.family<Task?, int>((
+final clockTaskProvider = StreamProvider.family<Task?, String>((
   ref,
   taskId,
 ) async* {

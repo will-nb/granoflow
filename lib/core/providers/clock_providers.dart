@@ -50,8 +50,8 @@ class ClockTimerState {
   /// 原始倒计时时长（秒），用于计算超时百分比
   final int originalCountdownDuration;
   
-  /// FocusSession ID（如果已开始）
-  final int? focusSessionId;
+    /// FocusSession ID（如果已开始）
+    final String? focusSessionId;
 
   ClockTimerState copyWith({
     bool? isStarted,
@@ -62,7 +62,7 @@ class ClockTimerState {
     List<({DateTime start, DateTime end})>? pausePeriods,
     int? countdownDuration,
     int? originalCountdownDuration,
-    int? focusSessionId,
+      String? focusSessionId,
   }) {
     return ClockTimerState(
       isStarted: isStarted ?? this.isStarted,
@@ -177,7 +177,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
 
 
   /// 开始计时
-  Future<void> start(int taskId) async {
+  Future<void> start(String taskId) async {
     if (state.isStarted) {
       return;
     }

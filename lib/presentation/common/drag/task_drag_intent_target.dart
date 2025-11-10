@@ -22,9 +22,9 @@ class TaskDragIntentMeta {
 
   final String page;
   final String targetType;
-  final int? targetId;
+    final String? targetId;
   final String? section;
-  final int? targetTaskId;
+    final String? targetTaskId;
 }
 
 /// 拖拽执行结果
@@ -42,7 +42,7 @@ class TaskDragIntentResult {
   }) : reminderArgs = reminderArgs ?? const {};
 
   const TaskDragIntentResult.success({
-    int? parentId,
+      String? parentId,
     double? sortIndex,
     DateTime? dueDate,
     bool clearParent = false,
@@ -72,7 +72,7 @@ class TaskDragIntentResult {
        );
 
   final bool success;
-  final int? parentId;
+    final String? parentId;
   final double? sortIndex;
   final DateTime? dueDate;
   final bool clearParent;

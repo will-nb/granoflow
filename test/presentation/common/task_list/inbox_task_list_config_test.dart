@@ -102,8 +102,8 @@ void main() {
     testWidgets('should build InboxTaskTile', (tester) async {
       final config = InboxTaskListConfig();
       final task = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Test Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -115,8 +115,12 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            inboxTaskLevelMapProvider.overrideWith((ref) async => <int, int>{1: 1}),
-            inboxTaskChildrenMapProvider.overrideWith((ref) async => <int, Set<int>>{}),
+            inboxTaskLevelMapProvider.overrideWith(
+              (ref) async => <String, int>{'1': 1},
+            ),
+            inboxTaskChildrenMapProvider.overrideWith(
+              (ref) async => <String, Set<String>>{},
+            ),
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
@@ -139,12 +143,14 @@ void main() {
       expect(find.text('Test Task'), findsOneWidget);
     });
 
-    testWidgets('should call reorderTasksForInbox in reorderTasks', (tester) async {
+    testWidgets('should call reorderTasksForInbox in reorderTasks', (
+      tester,
+    ) async {
       final config = InboxTaskListConfig();
       final tasks = [
         Task(
-          id: 1,
-          taskId: 'task-1',
+          id: '1',
+
           title: 'Task 1',
           status: TaskStatus.inbox,
           createdAt: DateTime(2025, 1, 1),
@@ -184,8 +190,8 @@ void main() {
     test('should return null for handleDueDate (no date change)', () {
       final config = InboxTaskListConfig();
       final task = Task(
-        id: 1,
-        taskId: 'task-1',
+        id: '1',
+
         title: 'Test Task',
         status: TaskStatus.inbox,
         createdAt: DateTime(2025, 1, 1),
@@ -237,4 +243,3 @@ void main() {
     });
   });
 }
-

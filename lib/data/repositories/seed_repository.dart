@@ -2,10 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:isar/isar.dart';
-
 import '../models/task.dart';
-import '../isar/seed_import_log_entity.dart';
 
 class SeedPayload {
   const SeedPayload({
@@ -83,42 +80,9 @@ abstract class SeedRepository {
   Future<String?> latestVersion();
 
   Future<void> recordVersion(String version);
-}
 
-class IsarSeedRepository implements SeedRepository {
-  IsarSeedRepository(this._isar);
-
-  final Isar _isar;
-
-  static const int _logId = 1;
-
-  @override
-  Future<bool> wasImported(String version) async {
-    final log = await _isar.seedImportLogEntitys.get(_logId);
-    return log?.version == version;
-  }
-
-  @override
-  Future<void> importSeeds(SeedPayload payload) async {
-    // Seed application handled by SeedImportService; repository persists metadata only.
-  }
-
-  @override
-  Future<String?> latestVersion() async {
-    final log = await _isar.seedImportLogEntitys.get(_logId);
-    return log?.version;
-  }
-
-  @override
-  Future<void> recordVersion(String version) async {
-    await _isar.writeTxn(() async {
-      final entity = SeedImportLogEntity()
-        ..id = _logId
-        ..version = version
-        ..importedAt = DateTime.now();
-      await _isar.seedImportLogEntitys.put(entity);
-    });
-  }
+  /// 清除指定版本的导入记录（用于强制重新导入）
+  Future<void> clearVersion(String version);
 }
 
 Future<SeedPayload> loadSeedPayload(String localeCode) async {

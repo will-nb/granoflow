@@ -80,6 +80,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   /// 用来区分是首次加载还是数据更新后的重建
   bool _hasCompletedInitialBuild = false;
 
+  /// TasksDragNotifier 的引用，用于在 dispose 中清理
+  ///
+  /// 不能在 dispose 中使用 ref，所以需要在 initState 中保存引用
+  TasksDragNotifier? _dragNotifier;
+
   @override
   void initState() {
     super.initState();
@@ -89,8 +94,9 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
       if (mounted) {
         _hasCompletedInitialBuild = true;
         // 设置 ScrollController 到 TasksDragNotifier，用于边缘自动滚动
-        final dragNotifier = ref.read(tasksDragProvider.notifier);
-        dragNotifier.setScrollController(_scrollController);
+        // 同时保存 notifier 引用，以便在 dispose 中使用
+        _dragNotifier = ref.read(tasksDragProvider.notifier);
+        _dragNotifier?.setScrollController(_scrollController);
       }
     });
   }
@@ -98,8 +104,8 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   @override
   void dispose() {
     // 清除 ScrollController 的引用，避免内存泄漏
-    final dragNotifier = ref.read(tasksDragProvider.notifier);
-    dragNotifier.setScrollController(null);
+    // 注意：不能在 dispose 中使用 ref，所以使用保存的引用
+    _dragNotifier?.setScrollController(null);
     // 页面销毁时，释放滚动控制器，避免内存泄漏
     _scrollController.dispose();
     super.dispose();

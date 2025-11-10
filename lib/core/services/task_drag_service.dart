@@ -25,9 +25,9 @@ class TaskDragService {
 
   /// 处理拖拽到任务间（调整sortIndex，支持跨区域）
   Future<void> handleDragBetweenTasks(
-    int draggedTaskId,
-    int beforeTaskId,
-    int afterTaskId,
+    String draggedTaskId,
+    String beforeTaskId,
+    String afterTaskId,
   ) async {
     debugPrint(
       '拖拽排序Between: task=$draggedTaskId between $beforeTaskId/$afterTaskId',
@@ -75,7 +75,7 @@ class TaskDragService {
 
   /// 处理拖拽到区域首位
   Future<void> handleDragToSectionFirst(
-    int draggedTaskId,
+    String draggedTaskId,
     TaskSection section,
   ) async {
     final sectionEndTime = _getSectionEndTime(section);
@@ -109,7 +109,7 @@ class TaskDragService {
 
   /// 处理拖拽到区域末位
   Future<void> handleDragToSectionLast(
-    int draggedTaskId,
+    String draggedTaskId,
     TaskSection section,
   ) async {
     final sectionEndTime = _getSectionEndTime(section);
@@ -118,9 +118,8 @@ class TaskDragService {
     final tasks = await _tasks.listSectionTasks(section);
     final sortIndex = _sortIndex;
     if (sortIndex != null) {
-      final others = tasks
-          .where((t) => t.id != draggedTaskId)
-          .toList(growable: false);
+      final others =
+          tasks.where((t) => t.id != draggedTaskId).toList(growable: false);
       if (others.isEmpty) {
         await _tasks.updateTask(
           draggedTaskId,
@@ -147,9 +146,9 @@ class TaskDragService {
 
   /// 处理 Inbox 任务在两个任务之间拖拽
   Future<void> handleInboxDragBetween(
-    int draggedId,
-    int beforeId,
-    int afterId,
+    String draggedId,
+    String beforeId,
+    String afterId,
   ) async {
     final sortIndex = _sortIndex;
     if (sortIndex == null) return;
@@ -174,7 +173,7 @@ class TaskDragService {
   }
 
   /// 处理 Inbox 任务拖拽到列表开头
-  Future<void> handleInboxDragToFirst(int draggedId) async {
+  Future<void> handleInboxDragToFirst(String draggedId) async {
     final sortIndex = _sortIndex;
     if (sortIndex == null) return;
 
@@ -206,7 +205,7 @@ class TaskDragService {
   }
 
   /// 处理 Inbox 任务拖拽到列表结尾
-  Future<void> handleInboxDragToLast(int draggedId) async {
+  Future<void> handleInboxDragToLast(String draggedId) async {
     final sortIndex = _sortIndex;
     if (sortIndex == null) return;
 

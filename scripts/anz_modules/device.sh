@@ -206,27 +206,41 @@ uninstall_ios_app() {
 # 清空 macOS 应用数据
 clean_macos_app_data() {
   echo -e "${BLUE}清空 macOS 应用数据...${NC}"
-  
+ 
   # macOS - 检查新旧两个可能的路径
   NEW_DB_PATH="$HOME/Library/Containers/com.granoflow.app/Data/Library/Application Support"
   OLD_DB_PATH="$HOME/Library/Containers/com.example.granoflow/Data/Library/Application Support"
-  
+  NEW_DOC_DB_PATH="$HOME/Library/Containers/com.granoflow.app/Data/Documents/objectbox"
+  OLD_DOC_DB_PATH="$HOME/Library/Containers/com.example.granoflow/Data/Documents/objectbox"
+ 
   DB_FOUND=false
-  
+ 
   # 清理新路径
   if [ -d "$NEW_DB_PATH" ]; then
     echo -e "${YELLOW}  - 清理数据库: com.granoflow.app${NC}"
     rm -rf "$NEW_DB_PATH"/*
     DB_FOUND=true
   fi
-  
+
+  if [ -d "$NEW_DOC_DB_PATH" ]; then
+    echo -e "${YELLOW}  - 清理数据库: $NEW_DOC_DB_PATH${NC}"
+    rm -rf "$NEW_DOC_DB_PATH"
+    DB_FOUND=true
+  fi
+ 
   # 清理旧路径（如果存在）
   if [ -d "$OLD_DB_PATH" ]; then
     echo -e "${YELLOW}  - 清理旧数据库: com.example.granoflow${NC}"
     rm -rf "$OLD_DB_PATH"/*
     DB_FOUND=true
   fi
-  
+
+  if [ -d "$OLD_DOC_DB_PATH" ]; then
+    echo -e "${YELLOW}  - 清理旧数据库: $OLD_DOC_DB_PATH${NC}"
+    rm -rf "$OLD_DOC_DB_PATH"
+    DB_FOUND=true
+  fi
+ 
   if [ "$DB_FOUND" = true ]; then
     echo -e "${GREEN}✅ 应用数据已清空，下次启动将重新导入种子数据${NC}"
   else

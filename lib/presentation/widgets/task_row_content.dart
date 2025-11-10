@@ -408,8 +408,8 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
       await taskService.updateDetails(
         taskId: widget.task.id,
         payload: TaskUpdate(
-          projectId: selection?.project?.projectId,
-          milestoneId: selection?.milestone?.milestoneId,
+          projectId: selection?.project?.id,
+          milestoneId: selection?.milestone?.id,
           clearProject: selection == null,
           clearMilestone: selection == null || !selection.hasMilestone,
         ),

@@ -11,7 +11,6 @@ class TaskUpdate {
     this.endedAt,
     this.archivedAt,
     this.parentId,
-    this.parentTaskId,
     this.projectId,
     this.milestoneId,
     this.sortIndex,
@@ -31,8 +30,7 @@ class TaskUpdate {
   final DateTime? startedAt;
   final DateTime? endedAt;
   final DateTime? archivedAt;
-  final int? parentId;
-  final int? parentTaskId;
+  final String? parentId;
   final String? projectId;
   final String? milestoneId;
   final double? sortIndex;

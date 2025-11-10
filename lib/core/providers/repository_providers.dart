@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 
+import '../../data/database/database_adapter.dart';
 import '../../data/repositories/focus_session_repository.dart';
 import '../../data/repositories/metric_repository.dart';
 import '../../data/repositories/preference_repository.dart';
@@ -10,33 +10,41 @@ import '../../data/repositories/seed_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/task_template_repository.dart';
+import '../../data/repositories/objectbox/objectbox_focus_session_repository.dart';
+import '../../data/repositories/objectbox/objectbox_milestone_repository.dart';
+import '../../data/repositories/objectbox/objectbox_preference_repository.dart';
+import '../../data/repositories/objectbox/objectbox_project_repository.dart';
+import '../../data/repositories/objectbox/objectbox_seed_repository.dart';
+import '../../data/repositories/objectbox/objectbox_tag_repository.dart';
+import '../../data/repositories/objectbox/objectbox_task_repository.dart';
+import '../../data/repositories/objectbox/objectbox_task_template_repository.dart';
 
-final isarProvider = Provider<Isar>((ref) {
-  throw UnimplementedError('Isar instance has not been provided');
+final databaseAdapterProvider = Provider<DatabaseAdapter>((ref) {
+  throw UnimplementedError('DatabaseAdapter instance has not been provided');
 });
 
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {
-  return IsarTaskRepository(ref.watch(isarProvider));
+  return ObjectBoxTaskRepository(ref.watch(databaseAdapterProvider));
 });
 
 final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
-  return IsarProjectRepository(ref.watch(isarProvider));
+  return ObjectBoxProjectRepository(ref.watch(databaseAdapterProvider));
 });
 
 final milestoneRepositoryProvider = Provider<MilestoneRepository>((ref) {
-  return IsarMilestoneRepository(ref.watch(isarProvider));
+  return ObjectBoxMilestoneRepository(ref.watch(databaseAdapterProvider));
 });
 
 final focusSessionRepositoryProvider = Provider<FocusSessionRepository>((ref) {
-  return IsarFocusSessionRepository(ref.watch(isarProvider));
+  return ObjectBoxFocusSessionRepository(ref.watch(databaseAdapterProvider));
 });
 
 final tagRepositoryProvider = Provider<TagRepository>((ref) {
-  return IsarTagRepository(ref.watch(isarProvider));
+  return ObjectBoxTagRepository(ref.watch(databaseAdapterProvider));
 });
 
 final preferenceRepositoryProvider = Provider<PreferenceRepository>((ref) {
-  return IsarPreferenceRepository(ref.watch(isarProvider));
+  return ObjectBoxPreferenceRepository(ref.watch(databaseAdapterProvider));
 });
 
 final metricRepositoryProvider = Provider<MetricRepository>((ref) {
@@ -44,9 +52,9 @@ final metricRepositoryProvider = Provider<MetricRepository>((ref) {
 });
 
 final taskTemplateRepositoryProvider = Provider<TaskTemplateRepository>((ref) {
-  return IsarTaskTemplateRepository(ref.watch(isarProvider));
+  return ObjectBoxTaskTemplateRepository(ref.watch(databaseAdapterProvider));
 });
 
 final seedRepositoryProvider = Provider<SeedRepository>((ref) {
-  return IsarSeedRepository(ref.watch(isarProvider));
+  return ObjectBoxSeedRepository(ref.watch(databaseAdapterProvider));
 });

@@ -27,12 +27,13 @@ void main() {
       expect(find.byType(TaskSectionTaskModeList), findsOneWidget);
     });
 
-    testWidgets('should display tasks when provided', (WidgetTester tester) async {
+    testWidgets('should display tasks when provided', (
+      WidgetTester tester,
+    ) async {
       final now = DateTime.now();
       final testTasks = <Task>[
         Task(
-          taskId: '1',
-          id: 1,
+          id: '1',
           title: 'Test Task',
           sortIndex: 1000,
           status: TaskStatus.pending,
@@ -57,7 +58,7 @@ void main() {
           ),
         ),
       );
-      
+
       await tester.pump();
 
       // Should show the task list component

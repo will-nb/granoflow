@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../data/models/review_data.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/focus_session_repository.dart';
@@ -21,26 +23,34 @@ class ReviewDataService {
 
   /// 一次性加载所有回顾数据
   Future<ReviewData> loadAllReviewData() async {
-    // 并行加载所有数据
-    final results = await Future.wait([
-      calculateDayCount(),
-      calculateStats(),
-      getActiveProjects(),
-      getStandaloneTasks(),
-      findLongestCompletedTask(),
-      findLongestArchivedTask(),
-      findMostCompletedDay(),
-    ]);
+    try {
+      debugPrint('ReviewDataService: Starting to load all review data');
+      // 并行加载所有数据
+      final results = await Future.wait([
+        calculateDayCount(),
+        calculateStats(),
+        getActiveProjects(),
+        getStandaloneTasks(),
+        findLongestCompletedTask(),
+        findLongestArchivedTask(),
+        findMostCompletedDay(),
+      ]);
 
-    return ReviewData(
-      welcome: ReviewWelcomeData(dayCount: results[0] as int),
-      stats: results[1] as ReviewStatsData,
-      projects: results[2] as List<ReviewProjectInfo>,
-      standaloneTasks: results[3] as ReviewStandaloneTasksData,
-      longestCompletedTask: results[4] as ReviewLongestTaskInfo?,
-      longestArchivedTask: results[5] as ReviewLongestTaskInfo?,
-      mostCompletedDay: results[6] as ReviewMostCompletedDayInfo?,
-    );
+      debugPrint('ReviewDataService: All data loaded successfully');
+      return ReviewData(
+        welcome: ReviewWelcomeData(dayCount: results[0] as int),
+        stats: results[1] as ReviewStatsData,
+        projects: results[2] as List<ReviewProjectInfo>,
+        standaloneTasks: results[3] as ReviewStandaloneTasksData,
+        longestCompletedTask: results[4] as ReviewLongestTaskInfo?,
+        longestArchivedTask: results[5] as ReviewLongestTaskInfo?,
+        mostCompletedDay: results[6] as ReviewMostCompletedDayInfo?,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('ReviewDataService: Error loading review data: $error');
+      debugPrint('ReviewDataService: Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   /// 计算使用天数
@@ -118,15 +128,15 @@ class ReviewDataService {
     final projectInfos = <ReviewProjectInfo>[];
     for (final project in activeProjects) {
       // 统计该项目下的根任务数量（排除 trashed，只统计根任务）
-      final taskCount = allTasks
-          .where((task) =>
-              task.projectId == project.projectId &&
-              task.status != TaskStatus.trashed &&
-              task.parentId == null)
-          .length;
+        final taskCount = allTasks
+            .where((task) =>
+                task.projectId == project.id &&
+                task.status != TaskStatus.trashed &&
+                task.parentId == null)
+            .length;
 
       projectInfos.add(ReviewProjectInfo(
-        projectId: project.projectId,
+          projectId: project.id,
         name: project.title,
         taskCount: taskCount,
       ));

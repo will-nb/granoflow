@@ -4,12 +4,13 @@ import '../../data/models/task.dart';
 
 final navigationIndexProvider = StateProvider<int>((ref) => 0);
 
-final expandedRootTaskIdProvider = StateProvider<int?>((ref) => null);
+final expandedRootTaskIdProvider = StateProvider<String?>((ref) => null);
 
 /// Provider for managing expanded task ID in task list page
-final taskListExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
-final inboxExpandedTaskIdProvider = StateProvider<Set<int>>((ref) => <int>{});
-final projectsExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
+final taskListExpandedTaskIdProvider = StateProvider<String?>((ref) => null);
+final inboxExpandedTaskIdProvider =
+    StateProvider<Set<String>>((ref) => <String>{});
+final projectsExpandedTaskIdProvider = StateProvider<String?>((ref) => null);
 
 /// Provider for managing expanded task IDs in tasks section (按分区管理)
 ///
@@ -20,15 +21,19 @@ final projectsExpandedTaskIdProvider = StateProvider<int?>((ref) => null);
 /// final expandedTaskIds = ref.watch(tasksSectionExpandedTaskIdProvider(TaskSection.today));
 /// ```
 final tasksSectionExpandedTaskIdProvider =
-    StateProvider.family<Set<int>, TaskSection>((ref, section) => <int>{});
+    StateProvider.family<Set<String>, TaskSection>(
+  (ref, section) => <String>{},
+);
 
 /// Provider for managing quick tasks section expanded state
 /// true = expanded, false = collapsed, defaults to false
 final quickTasksExpandedProvider = StateProvider<bool>((ref) => false);
 
 /// Provider for managing expanded task IDs in completed page
-final completedTasksExpandedProvider = StateProvider<Set<int>>((ref) => <int>{});
+final completedTasksExpandedProvider =
+    StateProvider<Set<String>>((ref) => <String>{});
 
 /// Provider for managing expanded task IDs in archived page
-final archivedTasksExpandedProvider = StateProvider<Set<int>>((ref) => <int>{});
+final archivedTasksExpandedProvider =
+    StateProvider<Set<String>>((ref) => <String>{});
 

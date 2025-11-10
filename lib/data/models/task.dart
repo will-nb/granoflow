@@ -35,7 +35,6 @@ enum TaskSection {
 class Task {
   const Task({
     required this.id,
-    required this.taskId,
     required this.title,
     required this.status,
     required this.createdAt,
@@ -45,7 +44,6 @@ class Task {
     this.endedAt,
     this.archivedAt,
     this.parentId,
-    this.parentTaskId,
     this.projectId,
     this.milestoneId,
     this.sortIndex = 0,
@@ -57,8 +55,7 @@ class Task {
     this.logs = const <TaskLogEntry>[],
   });
 
-  final int id;
-  final String taskId;
+  final String id;
   final String title;
   final TaskStatus status;
   final DateTime? dueAt;
@@ -67,8 +64,7 @@ class Task {
   final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final int? parentId;
-  final int? parentTaskId;
+  final String? parentId;
   final String? projectId;
   final String? milestoneId;
   final double sortIndex;
@@ -80,8 +76,7 @@ class Task {
   final List<TaskLogEntry> logs;
 
   Task copyWith({
-    int? id,
-    String? taskId,
+    String? id,
     String? title,
     TaskStatus? status,
     DateTime? dueAt,
@@ -90,8 +85,7 @@ class Task {
     DateTime? archivedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-    int? parentId,
-    int? parentTaskId,
+    String? parentId,
     String? projectId,
     String? milestoneId,
     double? sortIndex,
@@ -104,7 +98,6 @@ class Task {
   }) {
     return Task(
       id: id ?? this.id,
-      taskId: taskId ?? this.taskId,
       title: title ?? this.title,
       status: status ?? this.status,
       dueAt: dueAt ?? this.dueAt,
@@ -114,7 +107,6 @@ class Task {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       parentId: parentId ?? this.parentId,
-      parentTaskId: parentTaskId ?? this.parentTaskId,
       projectId: projectId ?? this.projectId,
       milestoneId: milestoneId ?? this.milestoneId,
       sortIndex: sortIndex ?? this.sortIndex,
@@ -137,7 +129,6 @@ class Task {
   @override
   int get hashCode => Object.hashAll([
     id,
-    taskId,
     title,
     status,
     dueAt,
@@ -153,7 +144,6 @@ class Task {
     seedSlug,
     allowInstantComplete,
     description,
-    parentTaskId,
     projectId,
     milestoneId,
     const ListEquality<TaskLogEntry>().hash(logs),
@@ -163,7 +153,6 @@ class Task {
   bool operator ==(Object other) {
     return other is Task &&
         other.id == id &&
-        other.taskId == taskId &&
         other.title == title &&
         other.status == status &&
         other.dueAt == dueAt &&
@@ -173,7 +162,6 @@ class Task {
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt &&
         other.parentId == parentId &&
-        other.parentTaskId == parentTaskId &&
         other.projectId == projectId &&
         other.milestoneId == milestoneId &&
         other.sortIndex == sortIndex &&
@@ -186,7 +174,7 @@ class Task {
   }
 
   @override
-  String toString() => 'Task(id: $id, taskId: $taskId, title: $title)';
+  String toString() => 'Task(id: $id, title: $title)';
 }
 
 @immutable
@@ -213,7 +201,6 @@ class TaskDraft {
     required this.status,
     this.dueAt,
     this.parentId,
-    this.parentTaskId,
     this.projectId,
     this.milestoneId,
     this.tags = const <String>[],
@@ -227,8 +214,7 @@ class TaskDraft {
   final String title;
   final TaskStatus status;
   final DateTime? dueAt;
-  final int? parentId;
-  final int? parentTaskId;
+  final String? parentId;
   final String? projectId;
   final String? milestoneId;
   final List<String> tags;

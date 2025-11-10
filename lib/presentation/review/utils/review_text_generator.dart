@@ -1,5 +1,5 @@
-import '../../../../data/models/review_data.dart';
-import '../../../../generated/l10n/app_localizations.dart';
+import '../../../data/models/review_data.dart';
+import '../../../generated/l10n/app_localizations.dart';
 import 'review_date_formatter.dart';
 import 'review_time_formatter.dart';
 

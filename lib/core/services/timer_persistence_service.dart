@@ -27,7 +27,11 @@ class TimerPersistenceService {
     await prefs.setBool(_keyIsPaused, state.isPaused);
     await prefs.setInt(_keyCountdownDuration, state.countdownDuration);
     await prefs.setInt(_keyOriginalCountdownDuration, state.originalCountdownDuration);
-    await prefs.setInt(_keyFocusSessionId, state.focusSessionId ?? -1);
+    if (state.focusSessionId != null) {
+      await prefs.setString(_keyFocusSessionId, state.focusSessionId!);
+    } else {
+      await prefs.remove(_keyFocusSessionId);
+    }
     await prefs.setString(_keyLastUpdated, DateTime.now().toIso8601String());
     
     if (state.startTime != null) {
@@ -60,8 +64,7 @@ class TimerPersistenceService {
     final isPaused = prefs.getBool(_keyIsPaused) ?? false;
     final countdownDuration = prefs.getInt(_keyCountdownDuration) ?? 25 * 60;
     final originalCountdownDuration = prefs.getInt(_keyOriginalCountdownDuration) ?? 25 * 60;
-    final focusSessionIdRaw = prefs.getInt(_keyFocusSessionId) ?? -1;
-    final focusSessionId = focusSessionIdRaw == -1 ? null : focusSessionIdRaw;
+    final focusSessionId = prefs.getString(_keyFocusSessionId);
     final lastUpdatedStr = prefs.getString(_keyLastUpdated);
     
     // 检查状态是否过期（超过 24 小时）

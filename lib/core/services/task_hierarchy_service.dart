@@ -17,7 +17,7 @@ class TaskHierarchyService {
   final MetricOrchestrator _metricOrchestrator;
 
   Future<void> reorderWithinSection({
-    required int taskId,
+    required String taskId,
     required double targetIndex,
     required TaskSection section,
   }) async {
@@ -30,8 +30,8 @@ class TaskHierarchyService {
   }
 
   Future<void> moveToParent({
-    required int taskId,
-    required int? parentId,
+    required String taskId,
+    required String? parentId,
     required double sortIndex,
     DateTime? dueDate,
     bool clearParent = false,
@@ -78,8 +78,8 @@ class TaskHierarchyService {
       
       // 验证层级深度限制（最多3级，不含里程碑和项目）
       // 采用父深度 + 被拖拽子树深度 的合并判断
-      final parentDepth = await calculateHierarchyDepth(parent, _tasks);
-      final draggedSubtreeDepth = await calculateSubtreeDepth(task, _tasks);
+    final parentDepth = await calculateHierarchyDepth(parent, _tasks);
+    final draggedSubtreeDepth = await calculateSubtreeDepth(task, _tasks);
       if (kDebugMode) {
         debugPrint('[DnD] {event: service:depthCheck, taskId: $taskId, parentId: $parentId, parentDepth: $parentDepth, subtreeDepth: $draggedSubtreeDepth}');
       }
@@ -113,7 +113,7 @@ class TaskHierarchyService {
   /// 
   /// 如果父任务已有子任务，插入到第一个子任务之前；
   /// 否则使用默认值
-  Future<double> calculateSortIndexForNewChild(int parentId) async {
+  Future<double> calculateSortIndexForNewChild(String parentId) async {
     final children = await _tasks.listChildren(parentId);
     
     if (children.isEmpty) {
@@ -131,7 +131,7 @@ class TaskHierarchyService {
   }
 
   Future<void> moveAcrossSections({
-    required int taskId,
+    required String taskId,
     required TaskSection section,
     required double sortIndex,
     required DateTime dueDateLocal,

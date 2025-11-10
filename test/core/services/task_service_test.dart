@@ -78,7 +78,7 @@ class _StubMetricOrchestrator extends MetricOrchestrator {
   @override
   Future<MetricSnapshot> requestRecompute(MetricRecomputeReason reason) async {
     return MetricSnapshot(
-      id: 0,
+      id: '0',
       totalCompletedTasks: 0,
       totalFocusMinutes: 0,
       pendingTasks: 0,
@@ -98,7 +98,7 @@ class _FakeMetricRepository implements MetricRepository {
     required int totalFocusMinutes,
   }) async {
     return MetricSnapshot(
-      id: 0,
+      id: '0',
       totalCompletedTasks: 0,
       totalFocusMinutes: totalFocusMinutes,
       pendingTasks: tasks.length,
@@ -114,35 +114,35 @@ class _FakeMetricRepository implements MetricRepository {
 class _FakeFocusSessionRepository implements FocusSessionRepository {
   @override
   Future<void> endSession({
-    required int sessionId,
+    required String sessionId,
     required int actualMinutes,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) async => throw UnimplementedError();
 
   @override
-  Future<FocusSession?> findById(int sessionId) async =>
+  Future<FocusSession?> findById(String sessionId) async =>
       throw UnimplementedError();
 
   @override
   Future<List<FocusSession>> listRecentSessions({
-    required int taskId,
+    required String taskId,
     int limit = 10,
   }) async => throw UnimplementedError();
 
   @override
   Future<FocusSession> startSession({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async => throw UnimplementedError();
 
   @override
-  Future<int> totalMinutesForTask(int taskId) async =>
+  Future<int> totalMinutesForTask(String taskId) async =>
       throw UnimplementedError();
 
   @override
-  Future<Map<int, int>> totalMinutesForTasks(List<int> taskIds) async {
+  Future<Map<String, int>> totalMinutesForTasks(List<String> taskIds) async {
     return {for (final taskId in taskIds) taskId: 0};
   }
 
@@ -150,5 +150,6 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
   Future<int> totalMinutesOverall() async => 0;
 
   @override
-  Stream<FocusSession?> watchActiveSession(int taskId) => const Stream.empty();
+  Stream<FocusSession?> watchActiveSession(String taskId) =>
+      const Stream.empty();
 }

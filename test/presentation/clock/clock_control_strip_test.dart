@@ -44,13 +44,13 @@ class _FakePreferenceService extends Fake implements PreferenceService {
 class _FakeTaskService extends Fake implements TaskService {
   @override
   Future<void> markCompleted({
-    required int taskId,
+    required String taskId,
     bool autoCompleteParent = true,
   }) async {}
 
   @override
   Future<void> updateDetails({
-    required int taskId,
+    required String taskId,
     required TaskUpdate payload,
   }) async {}
 }
@@ -58,34 +58,34 @@ class _FakeTaskService extends Fake implements TaskService {
 class _FakeFocusFlowService implements FocusFlowService {
   @override
   Future<FocusSession> startFocus({
-    required int taskId,
+    required String taskId,
     int? estimateMinutes,
     bool alarmEnabled = false,
   }) async {
-    return FocusSession(id: 1, taskId: taskId, startedAt: DateTime.now());
+    return FocusSession(id: '1', taskId: taskId, startedAt: DateTime.now());
   }
 
   @override
-  Future<void> pauseFocus(int sessionId) async {}
+  Future<void> pauseFocus(String sessionId) async {}
 
   @override
   Future<void> endFocus({
-    required int sessionId,
+    required String sessionId,
     required FocusOutcome outcome,
-    int? transferToTaskId,
+    String? transferToTaskId,
     String? reflectionNote,
   }) async {}
 
   @override
   Future<Task> quickSubtask({
-    required int parentTaskId,
+    required String parentTaskId,
     required String title,
   }) async {
-    return _buildTask(id: 999, title: title, parentId: parentTaskId);
+    return _buildTask(id: '999', title: title, parentId: parentTaskId);
   }
 
   @override
-  Stream<FocusSession?> watchActive(int taskId) => const Stream.empty();
+  Stream<FocusSession?> watchActive(String taskId) => const Stream.empty();
 }
 
 class _FakeClockAudioService implements ClockAudioService {
@@ -116,7 +116,7 @@ class _FakeFocusSessionRepository extends Fake
 
 Preference _buildPreference({required bool sound}) {
   return Preference(
-    id: 1,
+    id: '1',
     localeCode: 'en',
     themeMode: ThemeMode.light,
     fontScaleLevel: FontScaleLevel.medium,
@@ -125,10 +125,10 @@ Preference _buildPreference({required bool sound}) {
   );
 }
 
-Task _buildTask({required int id, required String title, int? parentId}) {
+Task _buildTask({required String id, required String title, String? parentId}) {
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: title,
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
@@ -187,7 +187,7 @@ Future<void> _pumpControlStrip(
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Center(
-            child: ClockControlStrip(taskId: 1, onComplete: () {}),
+            child: ClockControlStrip(taskId: '1', onComplete: () {}),
           ),
         ),
       ),

@@ -63,10 +63,10 @@ class ExportData {
     );
   }
 
-  /// 序列化项目（排除 id 字段）
+  /// 序列化项目
   Map<String, dynamic> _projectToJson(Project project) {
     return {
-      'projectId': project.projectId,
+      'projectId': project.id,
       'title': project.title,
       'status': project.status.name,
       'dueAt': project.dueAt?.toIso8601String(),
@@ -87,8 +87,7 @@ class ExportData {
   /// 反序列化项目
   static Project _projectFromJson(Map<String, dynamic> json) {
     return Project(
-      id: 0, // 导入时会重新分配Isar ID
-      projectId: json['projectId'] as String,
+      id: json['projectId'] as String,
       title: json['title'] as String,
       status: TaskStatus.values.firstWhere(
         (e) => e.name == json['status'] as String,
@@ -116,10 +115,10 @@ class ExportData {
     );
   }
 
-  /// 序列化里程碑（排除 id 字段）
+  /// 序列化里程碑
   Map<String, dynamic> _milestoneToJson(Milestone milestone) {
     return {
-      'milestoneId': milestone.milestoneId,
+      'milestoneId': milestone.id,
       'projectId': milestone.projectId,
       'title': milestone.title,
       'status': milestone.status.name,
@@ -141,8 +140,7 @@ class ExportData {
   /// 反序列化里程碑
   static Milestone _milestoneFromJson(Map<String, dynamic> json) {
     return Milestone(
-      id: 0, // 导入时会重新分配Isar ID
-      milestoneId: json['milestoneId'] as String,
+      id: json['milestoneId'] as String,
       projectId: json['projectId'] as String,
       title: json['title'] as String,
       status: TaskStatus.values.firstWhere(
@@ -171,13 +169,10 @@ class ExportData {
     );
   }
 
-  /// 序列化任务（排除 id、projectIsarId、milestoneIsarId 字段）
-  /// 
-  /// 注意：parentTaskId 需要转换为父任务的 taskId（业务ID），而不是 Isar ID
-  /// 但由于我们无法在这里访问 repository，所以需要在 ExportService 中处理
+  /// 序列化任务
   Map<String, dynamic> _taskToJson(Task task) {
     return {
-      'taskId': task.taskId,
+      'taskId': task.id,
       'title': task.title,
       'status': task.status.name,
       'dueAt': task.dueAt?.toIso8601String(),
@@ -186,8 +181,7 @@ class ExportData {
       'archivedAt': task.archivedAt?.toIso8601String(),
       'createdAt': task.createdAt.toIso8601String(),
       'updatedAt': task.updatedAt.toIso8601String(),
-      // parentTaskId 将在 ExportService 中转换为父任务的 taskId
-      'parentTaskId': null, // 占位符，将在 ExportService 中设置
+      'parentTaskId': task.parentId,
       'projectId': task.projectId,
       'milestoneId': task.milestoneId,
       'sortIndex': task.sortIndex,
@@ -203,8 +197,7 @@ class ExportData {
   /// 反序列化任务
   static Task _taskFromJson(Map<String, dynamic> json) {
     return Task(
-      id: 0, // 导入时会重新分配Isar ID
-      taskId: json['taskId'] as String,
+      id: json['taskId'] as String,
       title: json['title'] as String,
       status: TaskStatus.values.firstWhere(
         (e) => e.name == json['status'] as String,
@@ -223,8 +216,7 @@ class ExportData {
           : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      parentId: null, // 导入时通过parentTaskId查找
-      parentTaskId: null, // 导入时通过parentTaskId（taskId，String）查找并设置
+      parentId: json['parentTaskId'] as String?,
       projectId: json['projectId'] as String?,
       milestoneId: json['milestoneId'] as String?,
       sortIndex: (json['sortIndex'] as num).toDouble(),

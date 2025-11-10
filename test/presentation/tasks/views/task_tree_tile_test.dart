@@ -7,25 +7,28 @@ import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/views/task_tree_tile.dart';
-import 'package:granoflow/presentation/tasks/widgets/parent_task_header.dart' show parentTaskChildrenCountProvider;
-import 'package:granoflow/presentation/tasks/widgets/all_children_list.dart' show parentTaskChildrenProvider, parentTaskChildrenIncludingTrashedProvider;
+import 'package:granoflow/presentation/tasks/widgets/parent_task_header.dart'
+    show parentTaskChildrenCountProvider;
+import 'package:granoflow/presentation/tasks/widgets/all_children_list.dart'
+    show parentTaskChildrenProvider, parentTaskChildrenIncludingTrashedProvider;
 import 'package:granoflow/presentation/tasks/views/task_section_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required int id, int? parentId, DateTime? dueAt}) {
+Task _createTask({required String id, String? parentId, DateTime? dueAt}) {
   // 如果没有指定 dueAt，使用同一个日期，确保父子任务在同一区域
   final taskDueAt = dueAt ?? DateTime(2025, 1, 15); // 使用固定日期，确保在同一区域
+  final idNum = int.tryParse(id) ?? 0;
   return Task(
     id: id,
-    taskId: 'task-$id',
+
     title: 'Task $id',
     status: TaskStatus.pending,
     dueAt: taskDueAt,
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
     parentId: parentId,
-    sortIndex: id.toDouble(),
+    sortIndex: idNum.toDouble(),
     tags: const [],
     templateLockCount: 0,
     allowInstantComplete: false,
@@ -39,16 +42,22 @@ void main() {
   testWidgets('TaskTreeTile renders root and child tasks', (tester) async {
     // 使用今天作为日期，确保任务在 TaskSection.today 区域
     final today = DateTime.now();
-    final root = _createTask(id: 1, dueAt: today);
-    final child = _createTask(id: 2, parentId: 1, dueAt: today);
+    final root = _createTask(id: '1', dueAt: today);
+    final child = _createTask(id: '2', parentId: '1', dueAt: today);
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-          parentTaskChildrenCountProvider.overrideWith((ref, parentId) async => 1),
-          parentTaskChildrenProvider.overrideWith((ref, parentId) async => [child]),
-          parentTaskChildrenIncludingTrashedProvider.overrideWith((ref, parentId) async => [child]),
+          parentTaskChildrenCountProvider.overrideWith(
+            (ref, parentId) async => 1,
+          ),
+          parentTaskChildrenProvider.overrideWith(
+            (ref, parentId) async => [child],
+          ),
+          parentTaskChildrenIncludingTrashedProvider.overrideWith(
+            (ref, parentId) async => [child],
+          ),
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
               if (taskId == root.id) {
@@ -56,14 +65,17 @@ void main() {
                   TaskTreeNode(
                     task: root,
                     children: <TaskTreeNode>[
-                      TaskTreeNode(task: child, children: const <TaskTreeNode>[]),
+                      TaskTreeNode(
+                        task: child,
+                        children: const <TaskTreeNode>[],
+                      ),
                     ],
                   ),
                 );
               }
               return Stream.value(
                 TaskTreeNode(
-                  task: child.copyWith(id: taskId, taskId: 'task-$taskId'),
+                  task: child.copyWith(id: taskId),
                   children: const <TaskTreeNode>[],
                 ),
               );
@@ -74,7 +86,9 @@ void main() {
           urgencyTagOptionsProvider.overrideWith((ref) async => const []),
           importanceTagOptionsProvider.overrideWith((ref) async => const []),
           executionTagOptionsProvider.overrideWith((ref) async => const []),
-          taskProjectHierarchyProvider.overrideWith((ref, taskId) => Stream.value(null)),
+          taskProjectHierarchyProvider.overrideWith(
+            (ref, taskId) => Stream.value(null),
+          ),
           parentTaskProvider.overrideWith((ref, parentId) async {
             if (parentId == root.id) return null;
             return null;
@@ -107,4 +121,3 @@ void main() {
     expect(find.text('Task 2'), findsOneWidget);
   });
 }
-

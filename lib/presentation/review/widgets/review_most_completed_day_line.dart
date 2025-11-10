@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../generated/l10n/app_localizations.dart';
-import '../../../../data/models/review_data.dart';
+import '../../../data/models/review_data.dart';
 import '../utils/review_date_formatter.dart';
 import '../utils/review_time_formatter.dart';
 import 'review_content_line.dart';

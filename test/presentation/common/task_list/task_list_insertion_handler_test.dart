@@ -14,8 +14,8 @@ import 'package:granoflow/presentation/common/task_list/tasks_section_task_list_
 
 class _FakeTaskHierarchyService extends Fake implements TaskHierarchyService {
   bool moveToParentCalled = false;
-  int? moveToParentTaskId;
-  int? moveToParentParentId;
+  String? moveToParentTaskId;
+  String? moveToParentParentId;
   double? moveToParentSortIndex;
   DateTime? moveToParentDueDate;
   bool? moveToParentClearParent;
@@ -23,8 +23,8 @@ class _FakeTaskHierarchyService extends Fake implements TaskHierarchyService {
 
   @override
   Future<void> moveToParent({
-    required int taskId,
-    required int? parentId,
+    required String taskId,
+    required String? parentId,
     required double sortIndex,
     DateTime? dueDate,
     bool clearParent = false,
@@ -45,10 +45,7 @@ class _FakeTaskRepository extends Fake implements TaskRepository {
   final List<Task> allTasks;
   final List<Task> inboxTasks;
 
-  _FakeTaskRepository({
-    this.allTasks = const [],
-    this.inboxTasks = const [],
-  });
+  _FakeTaskRepository({this.allTasks = const [], this.inboxTasks = const []});
 
   @override
   Future<List<Task>> listAll() async => allTasks;
@@ -86,6 +83,7 @@ class _FakeSortIndexService extends Fake implements SortIndexService {
     reorderTasksForSameDateTargetDate = targetDate;
   }
 }
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -101,14 +99,14 @@ void main() {
     });
 
     Task _createTask({
-      required int id,
-      int? parentId,
+      required String id,
+      String? parentId,
       double sortIndex = 1000,
       DateTime? dueAt,
     }) {
       return Task(
         id: id,
-        taskId: 'task-$id',
+
         title: 'Task $id',
         status: TaskStatus.pending,
         createdAt: DateTime(2025, 1, 1),
@@ -122,15 +120,17 @@ void main() {
 
     group('handleInsertionDrop', () {
       testWidgets('should handle first insertion (top)', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -153,22 +153,24 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(fakeTaskHierarchyService.moveToParentParentId, null);
         expect(fakeTaskHierarchyService.moveToParentClearParent, true);
         expect(result.success, true);
       });
 
       testWidgets('should handle last insertion (bottom)', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -191,24 +193,32 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
-        expect(fakeTaskHierarchyService.moveToParentParentId, beforeTask.parentId);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
+        expect(
+          fakeTaskHierarchyService.moveToParentParentId,
+          beforeTask.parentId,
+        );
         // clearParent 只有在 parentId == null 时才为 true（见 handleInsertionDrop 的 clearParent: aboveTaskParentId == null）
-        expect(fakeTaskHierarchyService.moveToParentClearParent, beforeTask.parentId == null);
+        expect(
+          fakeTaskHierarchyService.moveToParentClearParent,
+          beforeTask.parentId == null,
+        );
         expect(result.success, true);
       });
 
       testWidgets('should handle between insertion', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2, sortIndex: 1000);
-        final afterTask = _createTask(id: 3, sortIndex: 2000);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2', sortIndex: 1000);
+        final afterTask = _createTask(id: '3', sortIndex: 2000);
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -231,23 +241,31 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
-        expect(fakeTaskHierarchyService.moveToParentParentId, beforeTask.parentId);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
+        expect(
+          fakeTaskHierarchyService.moveToParentParentId,
+          beforeTask.parentId,
+        );
         // clearParent 只有在 parentId == null 时才为 true
-        expect(fakeTaskHierarchyService.moveToParentClearParent, beforeTask.parentId == null);
+        expect(
+          fakeTaskHierarchyService.moveToParentClearParent,
+          beforeTask.parentId == null,
+        );
         expect(result.success, true);
       });
 
       testWidgets('should handle subtask promotion (Inbox)', (tester) async {
-        final draggedTask = _createTask(id: 1, parentId: 99);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1', parentId: '99');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -270,17 +288,17 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(fakeTaskHierarchyService.moveToParentParentId, null);
         expect(fakeTaskHierarchyService.moveToParentClearParent, true);
         expect(result.success, true);
       });
 
       testWidgets('should call reorderTasks for Inbox config', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
-        final inboxTasks = [_createTask(id: 1), _createTask(id: 2)];
+        final inboxTasks = [_createTask(id: '1'), _createTask(id: '2')];
         WidgetRef? testRef;
 
         fakeTaskRepository = _FakeTaskRepository(
@@ -291,7 +309,9 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -317,12 +337,17 @@ void main() {
         expect(fakeSortIndexService.reorderTasksForInboxTasks, inboxTasks);
       });
 
-      testWidgets('should handle Tasks config with cross-section drag', (tester) async {
+      testWidgets('should handle Tasks config with cross-section drag', (
+        tester,
+      ) async {
         final now = DateTime.now();
-        final draggedTask = _createTask(id: 1, dueAt: now);
+        final draggedTask = _createTask(id: '1', dueAt: now);
         final beforeTask = _createTask(
-          id: 2,
-          dueAt: TaskSectionUtils.getSectionEndTime(TaskSection.tomorrow, now: now),
+          id: '2',
+          dueAt: TaskSectionUtils.getSectionEndTime(
+            TaskSection.tomorrow,
+            now: now,
+          ),
         );
         final config = TasksSectionTaskListConfig(TaskSection.tomorrow);
         WidgetRef? testRef;
@@ -330,7 +355,9 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -354,18 +381,20 @@ void main() {
 
         // 应该使用目标 section 的结束时间作为 dueDate
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
         expect(fakeTaskHierarchyService.moveToParentParentId, null);
         expect(fakeTaskHierarchyService.moveToParentDueDate, isNotNull);
         expect(fakeTaskHierarchyService.moveToParentClearParent, true);
         expect(result.success, true);
       });
 
-      testWidgets('should call reorderTasksForSameDate for Tasks config', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+      testWidgets('should call reorderTasksForSameDate for Tasks config', (
+        tester,
+      ) async {
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = TasksSectionTaskListConfig(TaskSection.today);
-        final allTasks = [_createTask(id: 1), _createTask(id: 2)];
+        final allTasks = [_createTask(id: '1'), _createTask(id: '2')];
         WidgetRef? testRef;
 
         fakeTaskRepository = _FakeTaskRepository(allTasks: allTasks);
@@ -373,7 +402,9 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -397,21 +428,28 @@ void main() {
 
         expect(fakeSortIndexService.reorderTasksForSameDateCalled, true);
         expect(fakeSortIndexService.reorderTasksForSameDateAllTasks, allTasks);
-        expect(fakeSortIndexService.reorderTasksForSameDateTargetDate, isNotNull);
+        expect(
+          fakeSortIndexService.reorderTasksForSameDateTargetDate,
+          isNotNull,
+        );
       });
 
       testWidgets('should return blocked result on error', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
-        fakeTaskHierarchyService.moveToParentException = Exception('Service error');
+        fakeTaskHierarchyService.moveToParentException = Exception(
+          'Service error',
+        );
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -437,16 +475,20 @@ void main() {
         expect(result.blockReasonKey, 'taskMoveBlockedUnknown');
       });
 
-      testWidgets('should handle between insertion with only beforeTask', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final beforeTask = _createTask(id: 2);
+      testWidgets('should handle between insertion with only beforeTask', (
+        tester,
+      ) async {
+        final draggedTask = _createTask(id: '1');
+        final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
+              taskHierarchyServiceProvider.overrideWithValue(
+                fakeTaskHierarchyService,
+              ),
               taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
               sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
             ],
@@ -469,51 +511,67 @@ void main() {
         );
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
-        expect(fakeTaskHierarchyService.moveToParentParentId, beforeTask.parentId);
+        expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
+        expect(
+          fakeTaskHierarchyService.moveToParentParentId,
+          beforeTask.parentId,
+        );
         // clearParent 只有在 parentId == null 时才为 true
-        expect(fakeTaskHierarchyService.moveToParentClearParent, beforeTask.parentId == null);
+        expect(
+          fakeTaskHierarchyService.moveToParentClearParent,
+          beforeTask.parentId == null,
+        );
         expect(result.success, true);
       });
 
-      testWidgets('should handle between insertion with neither beforeTask nor afterTask', (tester) async {
-        final draggedTask = _createTask(id: 1);
-        final config = InboxTaskListConfig();
-        WidgetRef? testRef;
+      testWidgets(
+        'should handle between insertion with neither beforeTask nor afterTask',
+        (tester) async {
+          final draggedTask = _createTask(id: '1');
+          final config = InboxTaskListConfig();
+          WidgetRef? testRef;
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(fakeTaskHierarchyService),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
-            ],
-            child: Consumer(
-              builder: (context, ref, child) {
-                testRef = ref;
-                return const SizedBox.shrink();
-              },
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                taskHierarchyServiceProvider.overrideWithValue(
+                  fakeTaskHierarchyService,
+                ),
+                taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
+                sortIndexServiceProvider.overrideWithValue(
+                  fakeSortIndexService,
+                ),
+              ],
+              child: Consumer(
+                builder: (context, ref, child) {
+                  testRef = ref;
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
-        );
+          );
 
-        final result = await TaskListInsertionHandler.handleInsertionDrop(
-          draggedTask,
-          null,
-          null,
-          'between',
-          config,
-          testRef!,
-        );
+          final result = await TaskListInsertionHandler.handleInsertionDrop(
+            draggedTask,
+            null,
+            null,
+            'between',
+            config,
+            testRef!,
+          );
 
-        // 应该使用默认 sortIndex
-        expect(fakeTaskHierarchyService.moveToParentCalled, true);
-        expect(fakeTaskHierarchyService.moveToParentTaskId, 1);
-        expect(fakeTaskHierarchyService.moveToParentParentId, null);
-        expect(fakeTaskHierarchyService.moveToParentSortIndex, 0.0); // DEFAULT_SORT_INDEX
-        expect(fakeTaskHierarchyService.moveToParentClearParent, true);
-        expect(result.success, true);
-      });
+          // 应该使用默认 sortIndex
+          expect(fakeTaskHierarchyService.moveToParentCalled, true);
+          expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
+          expect(fakeTaskHierarchyService.moveToParentParentId, null);
+          expect(
+            fakeTaskHierarchyService.moveToParentSortIndex,
+            0.0,
+          ); // DEFAULT_SORT_INDEX
+          expect(fakeTaskHierarchyService.moveToParentClearParent, true);
+          expect(result.success, true);
+        },
+      );
     });
   });
 }

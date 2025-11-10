@@ -20,7 +20,7 @@ class TaskListInsertionIndexConverter {
   static int convertFlattenedIndexToRootInsertionIndex(
     int flattenedIndex,
     List<FlattenedTaskNode> flattenedTasks,
-    Map<int, int> taskIdToIndex,
+    Map<String, int> taskIdToIndex,
     List<Task> rootTasks,
     List<Task> filteredTasks,
   ) {
@@ -80,7 +80,7 @@ class TaskListInsertionIndexConverter {
     int insertionIndex,
     List<FlattenedTaskNode> flattenedTasks,
     List<Task> rootTasks,
-    Map<int, int> taskIdToIndex,
+    Map<String, int> taskIdToIndex,
     List<Task> filteredTasks,
   ) {
     // 将扁平化列表索引转换为根任务插入索引
