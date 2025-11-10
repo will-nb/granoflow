@@ -7,7 +7,9 @@ abstract class ProjectRepository {
 
   Stream<List<Project>> watchProjectsByStatus(ProjectFilterStatus status);
 
-  Stream<List<Project>> watchProjectsByStatuses(Set<TaskStatus> allowedStatuses);
+  Stream<List<Project>> watchProjectsByStatuses(
+    Set<TaskStatus> allowedStatuses,
+  );
 
   Future<Project?> findById(String id);
 
@@ -25,3 +27,4 @@ abstract class ProjectRepository {
   Future<void> delete(String id);
 
   Future<List<Project>> listAll();
+}
