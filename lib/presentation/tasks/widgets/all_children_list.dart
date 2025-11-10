@@ -25,7 +25,7 @@ class AllChildrenList extends ConsumerWidget {
     required this.currentSection,
   });
 
-  final int parentTaskId;
+  final String parentTaskId;
   final TaskSection currentSection;
 
   @override

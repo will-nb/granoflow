@@ -27,7 +27,11 @@ class TimerPersistenceService {
     await prefs.setBool(_keyIsPaused, state.isPaused);
     await prefs.setInt(_keyCountdownDuration, state.countdownDuration);
     await prefs.setInt(_keyOriginalCountdownDuration, state.originalCountdownDuration);
-    await prefs.setInt(_keyFocusSessionId, state.focusSessionId ?? -1);
+    if (state.focusSessionId != null) {
+      await prefs.setString(_keyFocusSessionId, state.focusSessionId!);
+    } else {
+      await prefs.remove(_keyFocusSessionId);
+    }
     await prefs.setString(_keyLastUpdated, DateTime.now().toIso8601String());
     
     if (state.startTime != null) {
