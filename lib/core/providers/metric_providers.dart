@@ -16,9 +16,10 @@ class MetricRefreshNotifier extends AsyncNotifier<void> {
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => _orchestrator.requestRecompute(MetricRecomputeReason.task),
-    );
+    state = await AsyncValue.guard(() async {
+      final orchestrator = await _orchestrator;
+      return orchestrator.requestRecompute(MetricRecomputeReason.task);
+    });
   }
 }
 
