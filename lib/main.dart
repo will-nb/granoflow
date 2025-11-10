@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:path_provider/path_provider.dart';
-
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 import 'core/app.dart';
-import 'core/providers/repository_providers.dart';
 import 'core/services/notification_service.dart';
-import 'data/database/database_adapter.dart';
-import 'data/database/objectbox_adapter.dart';
-import 'package:objectbox/objectbox.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
