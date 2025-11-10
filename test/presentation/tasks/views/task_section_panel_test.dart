@@ -59,7 +59,7 @@ void main() {
             (ref, section) async => <String, Set<String>>{},
           ),
           tasksSectionExpandedTaskIdProvider.overrideWith(
-            (ref, section) => <int>{},
+            (ref, section) => <String>{},
           ),
           tasksDragProvider.overrideWith((ref) => TasksDragNotifier()),
         ],

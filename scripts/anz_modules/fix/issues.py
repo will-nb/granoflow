@@ -254,10 +254,11 @@ FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
         return_of_invalid_type_from_closure.apply_return_of_invalid_type_from_closure_fix,
         _is_test_file,
     ),
-    "undefined_getter": (
-        undefined_getter.apply_undefined_getter_fix,
-        lambda _: True,  # Fix in both lib and test files
-    ),
+    # Temporarily disabled - introduces too many new errors
+    # "undefined_getter": (
+    #     undefined_getter.apply_undefined_getter_fix,
+    #     lambda _: True,  # Fix in both lib and test files
+    # ),
   }
 
 

@@ -65,8 +65,39 @@ def apply_return_of_invalid_type_from_closure_fix(
 
         returned_type = returned_type_match.group(1)
 
-        # Check if this is a Map or Set with int keys
+        # Check if this is a Map or Set with int keys/elements
         # Look for patterns like: Map<int, ...>, Map<int?, ...>, Set<int>, Set<int?>
+        if "Set<" in returned_type and "int" in returned_type and "Map<" not in returned_type:
+            # Handle Set<int> -> Set<String>
+            new_type = returned_type
+            # Replace Set<int> with Set<String>
+            new_type = re.sub(r"Set<\s*int\??\s*>", "Set<String>", new_type)
+            
+            if new_type != returned_type:
+                new_line = line
+                
+                # Step 1: Replace type annotations
+                # Replace Set<int> with Set<String> (explicit type)
+                new_line = re.sub(r"Set<\s*int\??\s*>", "Set<String>", new_line)
+                # Replace <int> with <String> (inferred type annotation like <int>{})
+                new_line = re.sub(r"<\s*int\??\s*>", "<String>", new_line)
+                
+                # Step 2: Fix Set literal elements (convert int elements to String)
+                # Pattern: {1, 2, 3} -> {'1', '2', '3'}
+                # Only fix if we have a type annotation that suggests String elements
+                if "<String>" in new_line or "Set<String>" in new_line:
+                    # Pattern to match Set literal elements: {int, or , int, or , int}
+                    set_element_pattern = re.compile(r"([{,]\s*)(\d+)(\s*[,}])")
+                    new_line = set_element_pattern.sub(
+                        lambda m: m.group(1) + f"'{m.group(2)}'" + m.group(3),
+                        new_line
+                    )
+                
+                if new_line != line:
+                    lines[line_idx] = new_line
+                    changed = True
+                    continue
+        
         if "Map<" in returned_type and "int" in returned_type:
             # Replace Map<int, ...> with Map<String, ...>
             # Handle nested structures like Map<int, Set<int>>

@@ -36,7 +36,7 @@ void main() {
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             tasksSectionExpandedTaskIdProvider(
               TaskSection.today,
-            ).overrideWith((ref) => const <int>{}),
+            ).overrideWith((ref) => const <String>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
             ).overrideWith((ref) async => <String, int>{'1': 1}),
@@ -78,7 +78,7 @@ void main() {
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             tasksSectionExpandedTaskIdProvider(
               TaskSection.today,
-            ).overrideWith((ref) => const <int>{}),
+            ).overrideWith((ref) => const <String>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
             ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
@@ -115,7 +115,7 @@ void main() {
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             tasksSectionExpandedTaskIdProvider(
               TaskSection.today,
-            ).overrideWith((ref) => const <int>{}),
+            ).overrideWith((ref) => const <String>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
             ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
@@ -156,7 +156,7 @@ void main() {
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             tasksSectionExpandedTaskIdProvider(
               TaskSection.today,
-            ).overrideWith((ref) => const <int>{}),
+            ).overrideWith((ref) => const <String>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
             ).overrideWith((ref) async => <String, int>{}),
@@ -190,7 +190,7 @@ void main() {
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             tasksSectionExpandedTaskIdProvider(
               TaskSection.today,
-            ).overrideWith((ref) => const <int>{}),
+            ).overrideWith((ref) => const <String>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
             ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
@@ -228,7 +228,7 @@ void main() {
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             tasksSectionExpandedTaskIdProvider(
               TaskSection.today,
-            ).overrideWith((ref) => const <int>{}),
+            ).overrideWith((ref) => const <String>{}),
             tasksSectionTaskLevelMapProvider(
               TaskSection.today,
             ).overrideWith((ref) async => <String, int>{'2': 1, '1': 1}),
