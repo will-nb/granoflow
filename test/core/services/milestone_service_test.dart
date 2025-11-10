@@ -247,7 +247,7 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
     DateTime updatedAt,
   ) async {
     final milestone = Milestone(
-      id: _nextId++,
+      id: milestoneId,
 
       projectId: draft.projectId,
       title: draft.title,
