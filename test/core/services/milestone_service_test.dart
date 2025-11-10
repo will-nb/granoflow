@@ -199,8 +199,8 @@ class _InMemoryMilestoneRepository implements MilestoneRepository {
   }
 
   @override
-  Future<void> delete(int isarId) async {
-    final removed = _milestones.remove(isarId);
+  Future<void> delete(String id) async {
+    final removed = _milestones.remove(id);
     if (removed != null) {
       _emitForProject(removed.projectId);
     }
