@@ -34,6 +34,8 @@ dependencies:
   file_picker: ^8.1.4
   shared_preferences: ^2.3.3
   mask_text_input_formatter: ^2.9.0
+  encrypt: ^5.0.3
+  crypto: ^3.0.5
 
 dev_dependencies:
   flutter_lints: ^6.0.0

@@ -39,23 +39,25 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
       final l10n = AppLocalizations.of(context);
       final fileName = zipFile.path.split('/').last;
 
+      // 读取 ZIP 文件的字节内容（Android 和 iOS 需要）
+      final zipBytes = await zipFile.readAsBytes();
+
       // 获取下载目录作为默认保存位置
       final downloadsDir = await _getDownloadsDirectory();
       final initialDirectory = downloadsDir?.path;
 
       // 使用 file_picker 保存文件
+      // 在 Android 和 iOS 上，必须提供 bytes 参数
       final result = await FilePicker.platform.saveFile(
         dialogTitle: l10n.exportData,
         fileName: fileName,
         initialDirectory: initialDirectory,
+        bytes: zipBytes,
       );
 
       if (result != null) {
-        // 将临时文件复制到用户选择的位置
-        final savedFile = File(result);
-        await zipFile.copy(result);
-
         // 保存选择的目录，供导入时使用
+        final savedFile = File(result);
         await _saveLastImportDirectory(savedFile.parent.path);
 
         if (mounted) {
@@ -89,35 +91,70 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
   Future<void> _handleImport() async {
     if (_isImporting) return;
 
-    // 获取上次选择的目录，如果没有则使用下载目录
-    String? initialDirectory = await _getLastImportDirectory();
-    if (initialDirectory == null) {
-      final downloadsDir = await _getDownloadsDirectory();
-      initialDirectory = downloadsDir?.path;
-    }
-
-    // 选择文件
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['flow.grano'],
-      initialDirectory: initialDirectory,
-    );
-
-    if (result == null || result.files.single.path == null) {
-      return;
-    }
-
-    final filePath = result.files.single.path!;
-    final file = File(filePath);
-
-    // 保存选择的目录
-    await _saveLastImportDirectory(file.parent.path);
-
     setState(() {
       _isImporting = true;
     });
 
     try {
+      // 获取上次选择的目录，如果没有则使用下载目录
+      // 注意：在 Android 上，initialDirectory 可能不被支持
+      String? initialDirectory;
+      if (!Platform.isAndroid && !Platform.isIOS) {
+        // 仅在桌面平台使用 initialDirectory
+        initialDirectory = await _getLastImportDirectory();
+        if (initialDirectory == null) {
+          final downloadsDir = await _getDownloadsDirectory();
+          initialDirectory = downloadsDir?.path;
+        }
+      }
+
+      // 选择文件
+      // 注意：在 Android 上，自定义扩展名（如 flow.grano）可能不被支持
+      // 因此使用 FileType.any，然后手动验证文件扩展名
+      final result = await FilePicker.platform.pickFiles(
+        type: Platform.isAndroid || Platform.isIOS 
+            ? FileType.any 
+            : FileType.custom,
+        allowedExtensions: Platform.isAndroid || Platform.isIOS 
+            ? null 
+            : ['flow.grano'],
+        initialDirectory: initialDirectory,
+        // 在 Android 上，允许读取文件字节
+        withData: Platform.isAndroid || Platform.isIOS,
+      );
+
+      if (result == null || result.files.isEmpty) {
+        // 用户取消了选择
+        return;
+      }
+
+      final pickedFile = result.files.single;
+      
+      // 验证文件扩展名
+      final fileName = pickedFile.name.toLowerCase();
+      if (!fileName.endsWith('.flow.grano')) {
+        throw Exception('请选择 .flow.grano 格式的文件');
+      }
+
+      File file;
+
+      if (pickedFile.path != null) {
+        // 桌面平台：使用文件路径
+        file = File(pickedFile.path!);
+        // 保存选择的目录（仅桌面平台）
+        if (!Platform.isAndroid && !Platform.isIOS) {
+          await _saveLastImportDirectory(file.parent.path);
+        }
+      } else if (pickedFile.bytes != null) {
+        // Android/iOS：使用文件字节，需要先保存到临时文件
+        final tempDir = await getTemporaryDirectory();
+        final tempFile = File('${tempDir.path}/${pickedFile.name}');
+        await tempFile.writeAsBytes(pickedFile.bytes!);
+        file = tempFile;
+      } else {
+        throw Exception('无法获取文件内容');
+      }
+
       final importService = await ref.read(importServiceProvider.future);
       final importResult = await importService.importFromZip(file);
 
