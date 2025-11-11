@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../generated/l10n/app_localizations.dart';
 import '../../widgets/error_banner.dart';
 
 /// 回顾页面错误状态组件
@@ -18,6 +19,7 @@ class ReviewErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -29,7 +31,7 @@ class ReviewErrorState extends StatelessWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: onRetry,
-                child: const Text('重试'),
+                child: Text(l10n.commonRetry),
               ),
             ],
           ],

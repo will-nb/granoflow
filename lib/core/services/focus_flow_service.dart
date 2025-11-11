@@ -45,6 +45,16 @@ class FocusFlowService {
     // Placeholder for pause support; in-memory repository keeps session active.
   }
 
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async {
+    await _focusRepository.updateSessionActualMinutes(
+      sessionId: sessionId,
+      actualMinutes: actualMinutes,
+    );
+  }
+
   Future<void> endFocus({
     required String sessionId,
     required FocusOutcome outcome,

@@ -56,7 +56,7 @@ class MilestoneCard extends ConsumerWidget {
                               children: [
                                 const Icon(Icons.edit_outlined, size: 20),
                                 const SizedBox(width: 12),
-                                const Text('编辑'),
+                                Text(menuL10n.commonEdit),
                               ],
                             ),
                           ),
@@ -133,7 +133,7 @@ class MilestoneCard extends ConsumerWidget {
             children: [
               const Icon(Icons.edit_outlined, size: 20),
               const SizedBox(width: 12),
-              const Text('编辑'),
+              Text(l10n.commonEdit),
             ],
           ),
         ),
@@ -170,6 +170,7 @@ class MilestoneCard extends ConsumerWidget {
   }
 
   Future<void> _editMilestone(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final updated = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -181,7 +182,7 @@ class MilestoneCard extends ConsumerWidget {
     );
     if (updated == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('里程碑已更新')),
+        SnackBar(content: Text(l10n.milestoneUpdated)),
       );
     }
   }
@@ -191,8 +192,8 @@ class MilestoneCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('删除里程碑'),
-        content: const Text('确定要删除这个里程碑吗？此操作无法撤销。'),
+        title: Text(l10n.milestoneDeleteTitle),
+        content: Text(l10n.milestoneDeleteConfirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -217,7 +218,7 @@ class MilestoneCard extends ConsumerWidget {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('里程碑已删除')),
+        SnackBar(content: Text(l10n.milestoneDeleted)),
       );
     } catch (error, stackTrace) {
       debugPrint('Failed to delete milestone: $error\n$stackTrace');
@@ -225,7 +226,7 @@ class MilestoneCard extends ConsumerWidget {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('操作失败')),
+        SnackBar(content: Text(l10n.operationFailed)),
       );
     }
   }

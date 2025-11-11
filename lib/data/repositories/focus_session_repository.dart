@@ -14,6 +14,12 @@ abstract class FocusSessionRepository {
     String? reflectionNote,
   });
 
+  /// 更新session的已用时间（不结束session）
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  });
+
   Stream<FocusSession?> watchActiveSession(String taskId);
 
   Future<List<FocusSession>> listRecentSessions({

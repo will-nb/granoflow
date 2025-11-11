@@ -161,7 +161,7 @@ Future<void> deleteProject(
       return;
     }
     messenger.showSnackBar(
-      const SnackBar(content: Text('项目已永久删除')),
+      SnackBar(content: Text(l10n.projectDeletedPermanent)),
     );
   } catch (error, stackTrace) {
     debugPrint('Failed to delete project: $error\n$stackTrace');

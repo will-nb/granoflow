@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
+import '../services/encryption_key_service.dart';
+import '../services/export_encryption_service.dart';
 import '../services/export_service.dart';
 import '../services/import_service.dart';
 import '../services/focus_flow_service.dart';
@@ -49,12 +51,16 @@ final taskServiceProvider = FutureProvider<TaskService>((ref) async {
   final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
   final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
   final sortIndexService = await ref.read(sortIndexServiceProvider.future);
+  final clockAudioService = await ref.read(clockAudioServiceProvider.future);
+  final preferenceService = await ref.read(preferenceServiceProvider.future);
   return TaskService(
     taskRepository: taskRepository,
     tagRepository: tagRepository,
     metricOrchestrator: metricOrchestrator,
     focusSessionRepository: focusSessionRepository,
     sortIndexService: sortIndexService,
+    clockAudioService: clockAudioService,
+    preferenceService: preferenceService,
   );
 });
 
@@ -165,10 +171,14 @@ final exportServiceProvider = FutureProvider<ExportService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);
   final projectRepository = await ref.read(projectRepositoryProvider.future);
   final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
+  final encryptionService = ref.read(exportEncryptionServiceProvider);
+  final keyService = ref.read(encryptionKeyServiceProvider);
   return ExportService(
     taskRepository: taskRepository,
     projectRepository: projectRepository,
     milestoneRepository: milestoneRepository,
+    encryptionService: encryptionService,
+    encryptionKeyService: keyService,
   );
 });
 
@@ -176,9 +186,21 @@ final importServiceProvider = FutureProvider<ImportService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);
   final projectRepository = await ref.read(projectRepositoryProvider.future);
   final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
+  final encryptionService = ref.read(exportEncryptionServiceProvider);
+  final keyService = ref.read(encryptionKeyServiceProvider);
   return ImportService(
     taskRepository: taskRepository,
     projectRepository: projectRepository,
     milestoneRepository: milestoneRepository,
+    encryptionService: encryptionService,
+    encryptionKeyService: keyService,
   );
+});
+
+final encryptionKeyServiceProvider = Provider<EncryptionKeyService>((ref) {
+  return EncryptionKeyService();
+});
+
+final exportEncryptionServiceProvider = Provider<ExportEncryptionService>((ref) {
+  return ExportEncryptionService();
 });

@@ -59,10 +59,13 @@ class CompletedTaskTile extends ConsumerWidget {
                 child: Text(
                   task.title,
                   style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w400,
                     decoration: isCompleted
                         ? TextDecoration.lineThrough
                         : null,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),

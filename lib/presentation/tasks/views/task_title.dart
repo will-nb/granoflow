@@ -17,11 +17,16 @@ class TaskTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final style = highlight
-        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)
+        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400)
         : theme.textTheme.bodyLarge;
     return Padding(
       padding: EdgeInsets.only(left: depth * 12),
-      child: Text(task.title, style: style),
+      child: Text(
+        task.title,
+        style: style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 }

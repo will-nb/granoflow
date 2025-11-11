@@ -56,7 +56,9 @@ class TaskHeaderRow extends ConsumerWidget {
                     task.title,
                     style: useBodyText
                         ? theme.textTheme.bodyLarge
-                        : theme.textTheme.titleMedium,
+                        : theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -108,10 +110,11 @@ class TaskHeaderRow extends ConsumerWidget {
         content: TextField(
           controller: controller,
           autofocus: true,
-          maxLength: 100,
+          maxLength: 3000,
           decoration: InputDecoration(
             hintText: l10n.taskTitleHint,
             border: const OutlineInputBorder(),
+            counterText: '',
           ),
           onSubmitted: (value) {
             if (value.trim().isNotEmpty) {

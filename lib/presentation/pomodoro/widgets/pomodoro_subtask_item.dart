@@ -15,8 +15,14 @@ class PomodoroSubtaskItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ListTile(
-      title: Text(subtask.title),
+      title: Text(
+        subtask.title,
+        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       trailing: IconButton(
         icon: const Icon(Icons.play_arrow),
         onPressed: onStartTimer,

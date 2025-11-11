@@ -11,15 +11,10 @@
     "completedWeeksAgo",
     "completedYesterday",
     "dragToOverdueNotAllowed",
-    "exportData",
-    "exportDataDescription",
-    "exportFailed",
-    "exportSuccess",
     "datePickerToday",
     "datePickerTomorrow",
     "datePickerThisMonth",
     "datePickerCustom",
-    "noCompletionTime",
     "noProject",
     "taskDragCrossSectionSuccess",
     "projectFilterLabel",
@@ -31,13 +26,6 @@
     "trashRestoreAction"
   ],
 
-  "zh_CN": [
-    "exportData",
-    "exportDataDescription",
-    "exportFailed",
-    "exportSuccess"
-  ],
-
   "zh_HK": [
     "actionPromoteToIndependent",
     "commonConfirm",
@@ -45,10 +33,6 @@
     "dateToday",
     "dateTomorrow",
     "dateYesterday",
-    "exportData",
-    "exportDataDescription",
-    "exportFailed",
-    "exportSuccess",
     "flexibleDescriptionAdd",
     "flexibleDescriptionEdit",
     "flexibleDescriptionHide",

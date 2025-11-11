@@ -70,7 +70,7 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      isEditing ? '编辑里程碑' : '添加里程碑',
+                      isEditing ? l10n.milestoneEditTitle : l10n.milestoneAddTitle,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     IconButton(
@@ -130,7 +130,7 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(isEditing ? '保存' : '添加'),
+                        : Text(isEditing ? l10n.commonSave : l10n.commonAdd),
                   ),
                 ),
               ],

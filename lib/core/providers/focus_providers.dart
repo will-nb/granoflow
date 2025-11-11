@@ -36,6 +36,20 @@ class FocusActionsNotifier extends AsyncNotifier<void> {
       );
     });
   }
+
+  Future<void> updateActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final service = await _focusFlowService;
+      await service.updateSessionActualMinutes(
+        sessionId: sessionId,
+        actualMinutes: actualMinutes,
+      );
+    });
+  }
 }
 
 final focusActionsNotifierProvider =

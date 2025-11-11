@@ -7,6 +7,8 @@ import '../../core/providers/review_providers.dart';
 import '../../data/models/review_data.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 import 'utils/review_date_formatter.dart';
 import 'widgets/review_action_buttons.dart';
 import 'widgets/review_closing_line.dart';
@@ -148,8 +150,13 @@ class _ReviewPageState extends ConsumerState<ReviewPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(reviewPageProvider);
+    final l10n = AppLocalizations.of(context);
 
     return GradientPageScaffold(
+      appBar: PageAppBar(
+        title: l10n.appShellReview,
+      ),
+      drawer: const MainDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
@@ -342,7 +349,7 @@ class _ReviewPageState extends ConsumerState<ReviewPage> {
         // 任务分析（如果有）
         if (taskInfo.task.description != null && taskInfo.task.description!.isNotEmpty)
           ReviewContentLine(
-            text: '任务分析：${taskInfo.task.description}',
+            text: '${l10n.reviewTaskAnalysis}${taskInfo.task.description}',
             fontSize: 18,
             fontWeight: FontWeight.w400,
             topSpacing: 0,
@@ -351,7 +358,7 @@ class _ReviewPageState extends ConsumerState<ReviewPage> {
           ),
         // 子任务列表
         ...taskInfo.subtasks.map((subtask) {
-          final subtaskText = '子任务：${subtask.title}';
+          final subtaskText = '${l10n.reviewSubtask}${subtask.title}';
           final analysisText = subtask.description != null && subtask.description!.isNotEmpty
               ? '：${subtask.description}'
               : '';

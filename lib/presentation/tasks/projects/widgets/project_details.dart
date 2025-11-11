@@ -36,13 +36,14 @@ class ProjectDetails extends ConsumerWidget {
         TextButton.icon(
           onPressed: () => _addMilestone(context, ref),
           icon: const Icon(Icons.add_circle_outline),
-          label: const Text('添加里程碑'),
+          label: Text(l10n.milestoneAddButton),
         ),
       ],
     );
   }
 
   Future<void> _addMilestone(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final created = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -53,7 +54,7 @@ class ProjectDetails extends ConsumerWidget {
     );
     if (created == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('里程碑已添加')),
+        SnackBar(content: Text(l10n.milestoneAdded)),
       );
     }
   }

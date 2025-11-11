@@ -124,7 +124,7 @@ class ProjectHeaderRow extends ConsumerWidget {
           children: [
             const Icon(Icons.edit_outlined, size: 20),
             const SizedBox(width: 12),
-            const Text('编辑项目'),
+            Text(l10n.projectEditAction),
           ],
         ),
       ),
@@ -257,6 +257,7 @@ class ProjectHeaderRow extends ConsumerWidget {
     WidgetRef ref,
     Project project,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final updated = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -265,7 +266,7 @@ class ProjectHeaderRow extends ConsumerWidget {
     );
     if (updated == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('项目已更新')),
+        SnackBar(content: Text(l10n.projectUpdated)),
       );
     }
   }

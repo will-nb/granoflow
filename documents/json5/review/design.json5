@@ -1,0 +1,1046 @@
+{
+  // ===========================================
+  // 日历回顾页面设计文档
+  // 使用 table_calendar 实现日/周/月视图的日历回顾功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：通过日历视图直观展示时间维度的任务完成情况和专注时长分布
+    goal: "提供直观的日历视图，帮助用户回顾和分析时间维度的任务完成情况和专注时长分布，支持日/周/月视图切换，通过热力图可视化展示数据，支持按项目、标签筛选，并提供 Markdown 格式导出功能",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的渐变背景系统（GradientPageScaffold）",
+        "遵循现有的页面布局规范（AppBar、Drawer、SafeArea）",
+        "使用统一的字体样式和间距规范",
+        "保持与现有筛选组件（项目筛选、标签筛选）的交互一致性",
+      ],
+      
+      // 创新点：与现有主题不同的设计突破
+      innovation: [
+        "引入热力图可视化，通过颜色梯度直观展示专注时长分布",
+        "日历视图提供时间维度的数据展示，区别于列表视图",
+        "支持日/周/月视图无缝切换，适应不同查看需求",
+        "懒加载机制优化大量日期数据的性能表现",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "数据可视化：热力图展示时间分布",
+      "响应式设计：适配不同屏幕尺寸",
+      "渐进式加载：优化大数据量场景的性能",
+      "直观交互：点击日期查看详情，滑动切换视图",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：Light 和 Dark 模式下的背景渐变
+    backgroundGradients: {
+      // Light 模式：使用现有的页面背景渐变
+      light: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用现有的渐变定义：AppGradients.seaSaltSky 或 context.gradients.pageBackground
+          colors: [
+            "OceanBreezeColorSchemes.seaSaltBlue",
+            "OceanBreezeColorSchemes.skyWhite",
+          ],
+          stops: [0.0, 1.0],
+          note: "使用 GradientPageScaffold 的默认渐变背景，与现有页面保持一致",
+        },
+      },
+      
+      // Dark 模式：使用深色主题渐变
+      dark: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用深色主题渐变：AppGradients.deepSeaGlow
+          colors: [
+            "OceanBreezeColorSchemes.navyBlue",
+            "OceanBreezeColorSchemes.floatingWater",
+            "OceanBreezeColorSchemes.navyBlue",
+          ],
+          stops: [0.0, 0.5, 1.0],
+          note: "使用深色主题渐变，与现有深色模式页面保持一致",
+        },
+      },
+    },
+    
+    // 专用配色：热力图和日历组件的专用颜色
+    specificColors: {
+      // 热力图颜色梯度（基于专注时长）
+      heatmap: {
+        // 无数据：浅灰色
+        noData: {
+          light: "OceanBreezeColorSchemes.silverGray.withOpacity(0.2)",
+          dark: "OceanBreezeColorSchemes.secondaryText.withOpacity(0.2)",
+        },
+        // 低强度：浅绿色（0-30分钟）
+        low: {
+          light: "OceanBreezeColorSchemes.softGreen.withOpacity(0.3)",
+          dark: "OceanBreezeColorSchemes.softGreen.withOpacity(0.4)",
+        },
+        // 中低强度：中绿色（30-60分钟）
+        mediumLow: {
+          light: "OceanBreezeColorSchemes.softGreen.withOpacity(0.5)",
+          dark: "OceanBreezeColorSchemes.softGreen.withOpacity(0.6)",
+        },
+        // 中强度：绿色（60-120分钟）
+        medium: {
+          light: "OceanBreezeColorSchemes.softGreen.withOpacity(0.7)",
+          dark: "OceanBreezeColorSchemes.softGreen.withOpacity(0.8)",
+        },
+        // 高强度：深绿色（120分钟以上）
+        high: {
+          light: "OceanBreezeColorSchemes.softGreen",
+          dark: "OceanBreezeColorSchemes.softGreen",
+        },
+      },
+      // 日历选中日期
+      selectedDate: {
+        light: "OceanBreezeColorSchemes.lakeCyan",
+        dark: "OceanBreezeColorSchemes.seaSaltBlue",
+      },
+      // 今天日期
+      today: {
+        light: "OceanBreezeColorSchemes.mintCyan",
+        dark: "OceanBreezeColorSchemes.lakeCyan",
+      },
+      // 完成任务标记
+      completedTask: {
+        light: "OceanBreezeColorSchemes.softGreen",
+        dark: "OceanBreezeColorSchemes.softGreen",
+      },
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：不是全屏页面，使用标准布局
+    fullScreen: false,
+    
+    // 隐藏导航栏：不隐藏底部导航栏
+    hideNavigation: false,
+    
+    // 顶部栏配置
+    topBar: {
+      // 显示返回按钮：使用标准 AppBar
+      showBackButton: true,
+      // 背景样式：透明或半透明，与渐变背景融合
+      background: "transparent",
+      // 按钮位置：标准 AppBar 布局
+      position: "topLeft",
+      // AppBar 内容：标题 + 筛选按钮 + 导出按钮
+      actions: [
+        "筛选按钮（项目/标签）",
+        "导出按钮（Markdown）",
+      ],
+    },
+    
+    // 内容区域布局
+    contentLayout: {
+      // 布局方向：垂直布局
+      direction: "vertical",
+      // 主轴对齐：从顶部开始
+      mainAxisAlignment: "start",
+      // 交叉轴对齐：居中对齐
+      crossAxisAlignment: "center",
+      // 使用 SafeArea
+      safeArea: true,
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 8, // dp
+      },
+    },
+    
+    // 区域划分：页面的主要区域
+    sections: [
+      {
+        // 视图切换工具栏
+        name: "viewToggleBar",
+        position: "top",
+        weight: "fixed",
+        height: 48, // dp
+        children: [
+          "日视图按钮",
+          "周视图按钮",
+          "月视图按钮",
+        ],
+      },
+      {
+        // 日历区域
+        name: "calendarArea",
+        position: "middle",
+        weight: "flexible",
+        children: [
+          "TableCalendar 组件",
+        ],
+      },
+      {
+        // 详情区域（根据选中日期和视图模式显示不同内容）
+        name: "detailArea",
+        position: "bottom",
+        weight: "flexible",
+        minHeight: 200, // dp
+        children: [
+          "日视图：当日任务列表和会话详情",
+          "周视图：本周统计摘要",
+          "月视图：本月统计摘要",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 视图切换工具栏
+  viewToggleBar: {
+    // 组件位置：日历上方
+    position: "top",
+    
+    // 布局：水平排列，等宽分布
+    layout: {
+      direction: "horizontal",
+      mainAxisAlignment: "spaceEvenly",
+      crossAxisAlignment: "center",
+    },
+    
+    // 按钮样式
+    buttonStyle: {
+      // 选中状态
+      selected: {
+        background: "OceanBreezeColorSchemes.lakeCyan",
+        textColor: "OceanBreezeColorSchemes.pureWhite",
+        borderRadius: 8, // dp
+        padding: {
+          horizontal: 24, // dp
+          vertical: 12, // dp
+        },
+      },
+      // 未选中状态
+      unselected: {
+        background: "transparent",
+        textColor: "Theme.of(context).colorScheme.onSurface",
+        borderRadius: 8, // dp
+        padding: {
+          horizontal: 24, // dp
+          vertical: 12, // dp
+        },
+      },
+    },
+    
+    // 字体样式
+    typography: {
+      fontSize: 16, // sp
+      fontWeight: "medium",
+    },
+  },
+  
+  // 日历组件（TableCalendar）
+  calendar: {
+    // 组件位置：视图切换工具栏下方
+    position: "middle",
+    
+    // 日历头部样式
+    headerStyle: {
+      // 标题样式
+      titleTextStyle: {
+        fontSize: 20, // sp
+        fontWeight: "semiBold",
+        color: "Theme.of(context).colorScheme.onSurface",
+      },
+      // 格式按钮样式
+      formatButtonTextStyle: {
+        fontSize: 14, // sp
+        fontWeight: "medium",
+        color: "OceanBreezeColorSchemes.lakeCyan",
+      },
+      // 左右箭头样式
+      leftChevronIcon: {
+        color: "Theme.of(context).colorScheme.onSurface",
+        size: 28, // dp
+      },
+      rightChevronIcon: {
+        color: "Theme.of(context).colorScheme.onSurface",
+        size: 28, // dp
+      },
+    },
+    
+    // 星期标题样式
+    daysOfWeekStyle: {
+      weekdayStyle: {
+        fontSize: 14, // sp
+        fontWeight: "medium",
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+      },
+      weekendStyle: {
+        fontSize: 14, // sp
+        fontWeight: "medium",
+        color: "Theme.of(context).colorScheme.error",
+      },
+    },
+    
+    // 日期单元格样式
+    calendarStyle: {
+      // 普通日期
+      defaultTextStyle: {
+        fontSize: 16, // sp
+        fontWeight: "regular",
+        color: "Theme.of(context).colorScheme.onSurface",
+      },
+      // 周末日期
+      weekendTextStyle: {
+        fontSize: 16, // sp
+        fontWeight: "regular",
+        color: "Theme.of(context).colorScheme.error",
+      },
+      // 今天日期装饰
+      todayDecoration: {
+        type: "BoxDecoration",
+        color: "specificColors.today",
+        shape: "BoxShape.circle",
+        border: {
+          width: 2, // dp
+          color: "OceanBreezeColorSchemes.lakeCyan",
+        },
+      },
+      // 选中日期装饰
+      selectedDecoration: {
+        type: "BoxDecoration",
+        color: "specificColors.selectedDate",
+        shape: "BoxShape.circle",
+      },
+      // 范围外日期（上月/下月）
+      outsideDaysVisible: false,
+    },
+    
+    // 热力图单元格自定义渲染
+    customCellBuilder: {
+      // 背景色：根据专注时长使用热力图颜色梯度
+      backgroundColor: "根据 focusMinutes 计算热力图颜色",
+      // 日期数字
+      dateText: {
+        fontSize: 16, // sp
+        fontWeight: "medium",
+        color: "根据背景色自动调整（确保对比度）",
+      },
+      // 完成任务数标记（小圆点或数字）
+      completedTaskMarker: {
+        position: "bottomRight",
+        size: 6, // dp（圆点）或根据数字自适应（数字）
+        color: "specificColors.completedTask",
+        fontSize: 10, // sp（数字模式）
+      },
+      // 专注时长显示（可选，在日视图中显示）
+      focusMinutesText: {
+        position: "bottomCenter",
+        fontSize: 10, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        format: "小时数（如：2.5h）",
+      },
+    },
+  },
+  
+  // 详情区域
+  detailArea: {
+    // 组件位置：日历下方
+    position: "bottom",
+    
+    // 背景样式
+    background: {
+      type: "semi_transparent_card",
+      color: "Theme.of(context).colorScheme.surface.withOpacity(0.8)",
+      borderRadius: 16, // dp
+      padding: 16, // dp
+    },
+    
+    // 日视图详情
+    dayView: {
+      // 标题：日期
+      title: {
+        fontSize: 20, // sp
+        fontWeight: "semiBold",
+        color: "Theme.of(context).colorScheme.onSurface",
+      },
+      // 统计摘要
+      stats: {
+        layout: "horizontal",
+        items: [
+          {
+            label: "专注时长",
+            value: "小时数",
+            icon: "Icons.timer_outlined",
+          },
+          {
+            label: "完成任务",
+            value: "任务数",
+            icon: "Icons.check_circle_outline",
+          },
+          {
+            label: "焦点会话",
+            value: "会话数",
+            icon: "Icons.play_circle_outline",
+          },
+        ],
+      },
+      // 完成任务列表（支持滚动查看所有数据）
+      completedTasksList: {
+        // 列表样式：可滚动列表
+        scrollable: true,
+        // 不限制显示数量，显示所有数据
+        maxItems: null,
+        // 列表项样式
+        itemStyle: {
+          background: "transparent",
+          padding: {
+            horizontal: 8, // dp
+            vertical: 12, // dp
+          },
+          borderRadius: 8, // dp
+        },
+        // 任务标题
+        taskTitle: {
+          fontSize: 16, // sp
+          fontWeight: "medium",
+          color: "Theme.of(context).colorScheme.onSurface",
+        },
+        // 任务时长
+        taskDuration: {
+          fontSize: 14, // sp
+          fontWeight: "regular",
+          color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        },
+      },
+      // 焦点会话列表（支持滚动查看所有数据）
+      sessionsList: {
+        // 列表样式：可滚动列表
+        scrollable: true,
+        // 不限制显示数量，显示所有数据
+        maxItems: null,
+        // 列表项样式
+        itemStyle: {
+          background: "transparent",
+          padding: {
+            horizontal: 8, // dp
+            vertical: 8, // dp
+          },
+          borderRadius: 8, // dp
+        },
+        // 会话时间
+        sessionTime: {
+          fontSize: 14, // sp
+          fontWeight: "regular",
+          color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        },
+        // 会话时长
+        sessionDuration: {
+          fontSize: 14, // sp
+          fontWeight: "medium",
+          color: "Theme.of(context).colorScheme.primary",
+        },
+      },
+    },
+    
+    // 周视图详情
+    weekView: {
+      // 标题：周范围
+      title: {
+        fontSize: 18, // sp
+        fontWeight: "semiBold",
+        color: "Theme.of(context).colorScheme.onSurface",
+      },
+      // 统计摘要
+      stats: {
+        layout: "grid",
+        columns: 2,
+        items: [
+          {
+            label: "总专注时长",
+            value: "小时数",
+            icon: "Icons.timer_outlined",
+          },
+          {
+            label: "完成任务数",
+            value: "任务数",
+            icon: "Icons.check_circle_outline",
+          },
+          {
+            label: "平均每日时长",
+            value: "小时数",
+            icon: "Icons.trending_up_outlined",
+          },
+          {
+            label: "焦点会话数",
+            value: "会话数",
+            icon: "Icons.play_circle_outline",
+          },
+        ],
+      },
+      // 每日统计列表（可选，折叠/展开）
+      dailyStatsList: {
+        collapsible: true,
+        defaultExpanded: false,
+      },
+    },
+    
+    // 月视图详情
+    monthView: {
+      // 标题：月份
+      title: {
+        fontSize: 18, // sp
+        fontWeight: "semiBold",
+        color: "Theme.of(context).colorScheme.onSurface",
+      },
+      // 统计摘要
+      stats: {
+        layout: "grid",
+        columns: 2,
+        items: [
+          {
+            label: "总专注时长",
+            value: "小时数",
+            icon: "Icons.timer_outlined",
+          },
+          {
+            label: "完成任务数",
+            value: "任务数",
+            icon: "Icons.check_circle_outline",
+          },
+          {
+            label: "平均每日时长",
+            value: "小时数",
+            icon: "Icons.trending_up_outlined",
+          },
+          {
+            label: "最活跃日期",
+            value: "日期",
+            icon: "Icons.calendar_today_outlined",
+          },
+        ],
+      },
+      // 热力图图例（可选）
+      heatmapLegend: {
+        visible: true,
+        position: "bottom",
+        items: [
+          { color: "noData", label: "无数据" },
+          { color: "low", label: "0-30分钟" },
+          { color: "mediumLow", label: "30-60分钟" },
+          { color: "medium", label: "60-120分钟" },
+          { color: "high", label: "120分钟以上" },
+        ],
+      },
+    },
+  },
+  
+  // 筛选组件
+  filterSheet: {
+    // 触发方式：点击 AppBar 的筛选按钮，打开底部 Sheet
+    trigger: "AppBar 筛选按钮",
+    
+    // Sheet 样式
+    sheetStyle: {
+      background: "Theme.of(context).colorScheme.surface",
+      borderRadius: {
+        topLeft: 16, // dp
+        topRight: 16, // dp
+      },
+      padding: 16, // dp
+    },
+    
+    // 项目筛选
+    projectFilter: {
+      type: "单选",
+      layout: "列表",
+      itemStyle: {
+        padding: {
+          horizontal: 16, // dp
+          vertical: 12, // dp
+        },
+        borderRadius: 8, // dp
+      },
+      selectedIndicator: {
+        icon: "Icons.check_circle",
+        color: "OceanBreezeColorSchemes.lakeCyan",
+      },
+    },
+    
+    // 标签筛选
+    tagFilter: {
+      type: "多选",
+      layout: "标签云（Chip）",
+      chipStyle: {
+        selected: {
+          background: "OceanBreezeColorSchemes.lakeCyan",
+          textColor: "OceanBreezeColorSchemes.pureWhite",
+        },
+        unselected: {
+          background: "Theme.of(context).colorScheme.surfaceContainerHighest",
+          textColor: "Theme.of(context).colorScheme.onSurface",
+        },
+      },
+    },
+    
+    // 操作按钮
+    actions: {
+      reset: {
+        label: "重置",
+        style: "TextButton",
+      },
+      apply: {
+        label: "应用",
+        style: "ElevatedButton",
+        color: "OceanBreezeColorSchemes.lakeCyan",
+      },
+    },
+  },
+  
+  // 导出功能
+  exportButton: {
+    // 位置：AppBar actions
+    position: "AppBar actions",
+    
+    // 按钮样式
+    buttonStyle: {
+      icon: "Icons.download_outlined",
+      tooltip: "导出为 Markdown",
+    },
+    
+    // 导出格式：Markdown
+    exportFormat: {
+      type: "Markdown",
+      filename: "日历回顾_YYYYMMDD.md",
+      content: {
+        // 包含：时间范围、筛选条件、总体统计、每日详情
+        sections: [
+          "标题和元信息",
+          "筛选条件",
+          "总体统计",
+          "每日详情（任务列表、会话列表）",
+        ],
+      },
+    },
+    
+    // 日期范围选择
+    dateRangeSelection: {
+      // 支持自定义日期范围
+      enabled: true,
+      // 快捷选项
+      quickOptions: [
+        "今日",
+        "本周",
+        "本月",
+        "自定义",
+      ],
+      // 自定义日期范围选择器
+      customRangePicker: {
+        type: "日期范围选择器",
+        startDateLabel: "开始日期",
+        endDateLabel: "结束日期",
+        validation: "结束日期不能早于开始日期",
+      },
+      // 默认使用当前视图范围
+      defaultRange: "当前视图范围",
+    },
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 主流程：查看日历回顾
+        name: "查看日历回顾",
+        steps: [
+          "用户进入回顾页面",
+          "页面加载当前月份的数据（懒加载）",
+          "日历显示热力图，展示每日专注时长",
+          "用户点击日期，查看当日详情",
+          "用户切换视图（日/周/月），查看不同时间范围的数据",
+        ],
+      },
+      {
+        // 筛选流程
+        name: "筛选数据",
+        steps: [
+          "用户点击 AppBar 的筛选按钮",
+          "底部 Sheet 弹出，显示项目列表和标签列表",
+          "用户选择项目（单选）和/或标签（多选）",
+          "用户点击'应用'按钮",
+          "日历重新加载筛选后的数据",
+          "详情区域更新为筛选后的数据",
+        ],
+      },
+      {
+        // 导出流程
+        name: "导出数据",
+        steps: [
+          "用户点击 AppBar 的导出按钮",
+          "弹出日期范围选择对话框，显示快捷选项（今日、本周、本月、自定义）",
+          "用户选择日期范围（快捷选项或自定义）",
+          "用户确认导出",
+          "系统生成 Markdown 格式的导出内容（包含选择的日期范围、筛选条件）",
+          "系统调用分享功能，用户选择保存位置或分享方式",
+          "导出完成，显示成功提示",
+        ],
+      },
+      {
+        // 视图切换流程
+        name: "切换视图",
+        steps: [
+          "用户点击视图切换按钮（日/周/月）",
+          "日历视图切换为对应模式",
+          "详情区域更新为对应视图的内容",
+          "如果切换后的日期范围超出已加载范围，触发懒加载",
+        ],
+      },
+      {
+        // 日期导航流程
+        name: "日期导航",
+        steps: [
+          "用户在日历中点击左右箭头或滑动",
+          "日历切换到上一个月/周/日或下一个月/周/日",
+          "如果新日期范围超出已加载范围，触发懒加载",
+          "详情区域更新为新日期范围的数据",
+        ],
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击日期
+      tap: {
+        action: "选中日期，显示当日详情",
+        feedback: "日期单元格高亮，详情区域更新",
+      },
+      // 长按日期（可选）
+      longPress: {
+        action: "显示快速操作菜单（如：快速导出当日数据）",
+        enabled: false, // 暂不实现
+      },
+      // 滑动日历（TableCalendar 内置支持）
+      swipe: {
+        action: "切换月份/周/日",
+        direction: "horizontal",
+      },
+      // 下拉刷新（可选）
+      pullToRefresh: {
+        action: "重新加载数据",
+        enabled: false, // 暂不实现，数据自动更新
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 页面进入动画
+    pageEnter: {
+      type: "fade_in",
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+    },
+    
+    // 视图切换动画
+    viewSwitch: {
+      type: "fade_in",
+      duration: 200, // 毫秒
+      curve: "Curves.easeInOut",
+    },
+    
+    // 日期选择动画
+    dateSelection: {
+      type: "scale_in",
+      duration: 150, // 毫秒
+      curve: "Curves.easeOut",
+    },
+    
+    // 详情区域更新动画
+    detailUpdate: {
+      type: "fade_in",
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+    },
+    
+    // 筛选 Sheet 弹出动画
+    filterSheetOpen: {
+      type: "slide_up",
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      // 布局方式：垂直布局，日历和详情区域上下排列
+      layout: "vertical",
+      // 日历单元格大小
+      calendarCellSize: 40, // dp
+      // 详情区域最小高度
+      detailAreaMinHeight: 200, // dp
+      // 字体大小
+      fontSize: {
+        title: 20, // sp
+        body: 16, // sp
+        caption: 14, // sp
+      },
+    },
+    
+    // 平板横屏（可选）
+    tabletLandscape: {
+      // 布局方式：可以考虑左右分栏（日历左侧，详情右侧）
+      layout: "horizontal",
+      // 日历宽度
+      calendarWidth: 500, // dp
+      // 详情区域宽度
+      detailAreaWidth: "flexible",
+      // 字体大小
+      fontSize: {
+        title: 24, // sp
+        body: 18, // sp
+        caption: 16, // sp
+      },
+    },
+    
+    // 桌面（可选）
+    desktop: {
+      // 布局方式：居中，最大宽度限制
+      layout: "centered_with_max_width",
+      maxWidth: 1200, // dp
+      // 字体大小
+      fontSize: {
+        title: 24, // sp
+        body: 18, // sp
+        caption: 16, // sp
+      },
+    },
+  },
+
+  // ===========================================
+  // 8. 数据筛选规则（必填）
+  // ===========================================
+  dataFiltering: {
+    // 任务筛选条件
+    taskFilters: {
+      // 只显示根任务
+      rootTasksOnly: true,
+      // 排除的状态
+      excludedStatuses: [
+        "TaskStatus.inbox",      // 收集箱
+        "TaskStatus.trashed",    // 回收站
+        "TaskStatus.pseudoDeleted", // 伪删除
+        "TaskStatus.archived",   // 归档任务（不显示在日历中）
+      ],
+      // 包含的状态（用于统计）
+      includedStatuses: [
+        "TaskStatus.pending",
+        "TaskStatus.doing",
+        "TaskStatus.paused",
+        "TaskStatus.completedActive", // 用于统计完成的任务
+        // 注意：archived 状态已从包含列表中移除，归档任务不显示在日历中
+      ],
+    },
+    
+    // 焦点会话筛选条件
+    sessionFilters: {
+      // 只统计根任务的会话
+      rootTasksOnly: true,
+      // 只统计已结束的会话
+      completedSessionsOnly: true,
+    },
+    
+    // 用户筛选条件（项目、标签）
+    userFilters: {
+      // 项目筛选：单选
+      project: {
+        type: "single",
+        optional: true,
+      },
+      // 标签筛选：多选
+      tags: {
+        type: "multiple",
+        optional: true,
+      },
+    },
+  },
+
+  // ===========================================
+  // 9. 性能优化（必填）
+  // ===========================================
+  performance: {
+    // 懒加载策略
+    lazyLoading: {
+      // 只加载当前可见日期范围的数据
+      enabled: true,
+      // 初始加载范围：当前月份前后各一个月
+      initialRange: {
+        monthsBefore: 1,
+        monthsAfter: 1,
+      },
+      // 预加载范围：当前可见范围前后各扩展一个月
+      preloadRange: {
+        monthsBefore: 1,
+        monthsAfter: 1,
+      },
+      // 触发条件：当用户滑动到接近已加载范围的边界时
+      triggerThreshold: 0.8, // 80% 的位置
+    },
+    
+    // 数据缓存
+    caching: {
+      // 缓存已加载的数据
+      enabled: true,
+      // 缓存策略：按日期范围缓存，避免重复查询
+      strategy: "dateRange",
+      // 缓存过期时间：5分钟（数据可能实时更新）
+      expirationMinutes: 5,
+    },
+    
+    // 渲染优化
+    rendering: {
+      // 使用 ListView.builder 或类似机制，只渲染可见项
+      virtualScrolling: true,
+      // 详情区域支持滚动，不限制显示项数
+      // 使用 ListView 的虚拟滚动机制，只渲染可见项，性能优化
+      maxDetailItems: null,
+      note: "详情区域使用可滚动列表，支持查看所有数据。通过 ListView 的虚拟滚动机制优化性能，只渲染可见项。",
+    },
+  },
+
+  // ===========================================
+  // 10. 边界情况处理（必填）
+  // ===========================================
+  edgeCases: {
+    // 无数据情况
+    noData: {
+      // 日历显示：所有日期使用无数据颜色
+      calendarDisplay: "所有日期单元格显示无数据颜色（浅灰色）",
+      // 详情区域显示
+      detailDisplay: "显示空状态提示：'暂无数据'",
+    },
+    
+    // 加载中状态
+    loading: {
+      // 日历显示：显示加载指示器
+      calendarDisplay: "在日历区域显示 CircularProgressIndicator",
+      // 详情区域显示
+      detailDisplay: "显示加载指示器或骨架屏",
+    },
+    
+    // 加载错误
+    error: {
+      // 错误提示
+      errorMessage: "显示错误提示和重试按钮",
+      // 重试机制
+      retry: "点击重试按钮重新加载数据",
+    },
+    
+    // 日期范围超出
+    dateRangeExceeded: {
+      // 处理方式：自动触发懒加载
+      action: "当用户导航到未加载的日期范围时，自动触发懒加载",
+      // 加载提示
+      loadingIndicator: "显示加载指示器，提示用户正在加载数据",
+    },
+    
+    // 筛选结果为空
+    filterResultEmpty: {
+      // 提示信息
+      message: "显示提示：'当前筛选条件下暂无数据'",
+      // 操作建议
+      suggestion: "提供'清除筛选'按钮，快速重置筛选条件",
+    },
+  },
+
+  // ===========================================
+  // 11. 配置项（必填）
+  // ===========================================
+  configuration: {
+    // 热力图颜色梯度阈值配置
+    // 这些阈值将写在配置文件中，支持手工配置
+    heatmapThresholds: {
+      // 低强度阈值（分钟）
+      low: 30,
+      // 中低强度阈值（分钟）
+      mediumLow: 60,
+      // 中强度阈值（分钟）
+      medium: 120,
+      // 高强度：120分钟以上
+      // 配置位置：将在配置文件中定义，格式待定
+      configLocation: "待定（可能是 assets/config/ 或 documents/config/）",
+      note: "热力图颜色梯度阈值将在配置文件中手工配置，支持运行时读取",
+    },
+  },
+
+  // ===========================================
+  // 12. 已确认的设计决策（必填）
+  // ===========================================
+  confirmedDecisions: [
+    {
+      // 问题描述
+      question: "热力图的颜色梯度阈值是否需要可配置？",
+      // 确认的答案
+      answer: "热力图颜色梯度阈值写在配置文件中，支持手工配置。配置项包括：低强度（30分钟）、中低强度（60分钟）、中强度（120分钟）。",
+      // 实现方式
+      implementation: "在配置文件中定义阈值，运行时读取配置值。配置位置待定（可能是 assets/config/ 或 documents/config/）。",
+    },
+    {
+      // 问题描述
+      question: "详情区域是否支持滚动查看更多历史数据？",
+      // 确认的答案
+      answer: "支持滚动查看更多历史数据。详情区域使用可滚动列表，显示所有数据，不限制数量。",
+      // 实现方式
+      implementation: "使用 ListView 或类似的可滚动组件，支持垂直滚动查看所有任务和会话。",
+    },
+    {
+      // 问题描述
+      question: "导出功能是否需要支持自定义日期范围？",
+      // 确认的答案
+      answer: "支持自定义日期范围导出。提供快捷选项（今日、本周、本月）和自定义日期范围选择。",
+      // 实现方式
+      implementation: "导出时弹出日期范围选择对话框，提供快捷选项按钮和日期选择器，用户可以选择任意日期范围进行导出。",
+    },
+    {
+      // 问题描述
+      question: "周视图的起始日期是周一还是周日？",
+      // 确认的答案
+      answer: "周日作为一周的起始。与现有 TaskSectionUtils 的实现保持一致，该工具类明确说明'一周以周日为第一天，与日历显示保持一致'。",
+      // 实现方式
+      implementation: "使用与 TaskSectionUtils._getThisWeekStart 相同的逻辑，计算周日作为一周的开始。",
+      // 参考代码
+      reference: "lib/core/utils/task_section_utils.dart 第192-198行：_getThisWeekStart 方法使用周日作为一周的开始",
+    },
+    {
+      // 问题描述
+      question: "筛选条件是否需要持久化？",
+      // 确认的答案
+      answer: "筛选条件需要持久化。用户设置的筛选条件（项目、标签）将保存到本地存储，下次进入页面时自动恢复。",
+      // 实现方式
+      implementation: "使用 SharedPreferences 或类似机制保存筛选条件，页面初始化时读取并应用保存的筛选条件。",
+    },
+  ],
+}

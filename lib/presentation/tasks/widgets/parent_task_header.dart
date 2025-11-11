@@ -95,7 +95,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
                 // 跳转到父任务所在区域的按钮
                 IconButton(
                   icon: const Icon(Icons.north_east, size: 18),
-                  tooltip: '跳转到父任务',
+                  tooltip: l10n.tooltipJumpToParentTask,
                   onPressed: () => _jumpToParentTask(context, ref),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -157,7 +157,8 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
       case TaskStatus.pending:
         break;
       case TaskStatus.doing:
-        // 按进行中视为 pending 的同类分区
+      case TaskStatus.paused:
+        // 按进行中和暂停视为 pending 的同类分区
         break;
     }
 

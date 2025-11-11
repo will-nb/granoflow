@@ -29,7 +29,7 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     final tasksAsync = ref.watch(inboxTasksProvider);
 
     return GradientPageScaffold(
-      appBar: const PageAppBar(title: 'Inbox'),
+      appBar: PageAppBar(title: l10n.inboxPageTitle),
       drawer: const MainDrawer(),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),

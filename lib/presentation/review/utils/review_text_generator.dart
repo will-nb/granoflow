@@ -58,13 +58,13 @@ class ReviewTextGenerator {
 
       // 任务分析
       if (task.description != null && task.description!.isNotEmpty) {
-        buffer.writeln('任务分析：${task.description}');
+        buffer.writeln('${l10n.reviewTaskAnalysis}${task.description}');
       }
 
       // 子任务列表
       if (data.longestCompletedTask!.subtasks.isNotEmpty) {
         for (final subtask in data.longestCompletedTask!.subtasks) {
-          final subtaskText = '子任务：${subtask.title}';
+          final subtaskText = '${l10n.reviewSubtask}${subtask.title}';
           final subtaskAnalysis = subtask.description != null &&
                   subtask.description!.isNotEmpty
               ? '：${subtask.description}'

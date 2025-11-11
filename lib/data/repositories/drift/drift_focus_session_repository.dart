@@ -65,6 +65,20 @@ class DriftFocusSessionRepository implements FocusSessionRepository {
   }
 
   @override
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async {
+    await _adapter.writeTransaction(() async {
+      await (_db.update(_db.focusSessions)..where((f) => f.id.equals(sessionId))).write(
+        FocusSessionsCompanion(
+          actualMinutes: Value(actualMinutes),
+        ),
+      );
+    });
+  }
+
+  @override
   Stream<FocusSession?> watchActiveSession(String taskId) {
     final query = _db.select(_db.focusSessions)
       ..where((f) => f.taskId.equals(taskId) & f.endedAt.isNull());

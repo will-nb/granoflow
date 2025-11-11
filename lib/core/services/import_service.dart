@@ -1,5 +1,6 @@
 import 'dart:convert' show jsonDecode, utf8;
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 
@@ -10,6 +11,8 @@ import '../../data/models/task.dart';
 import '../../data/repositories/milestone_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/task_repository.dart';
+import 'encryption_key_service.dart';
+import 'export_encryption_service.dart';
 
 /// 导入结果统计信息
 class ImportResult {
@@ -57,21 +60,27 @@ class ImportService {
     required TaskRepository taskRepository,
     required ProjectRepository projectRepository,
     required MilestoneRepository milestoneRepository,
+    required ExportEncryptionService encryptionService,
+    required EncryptionKeyService encryptionKeyService,
   })  : _taskRepository = taskRepository,
         _projectRepository = projectRepository,
-        _milestoneRepository = milestoneRepository;
+        _milestoneRepository = milestoneRepository,
+        _encryptionService = encryptionService,
+        _encryptionKeyService = encryptionKeyService;
 
   final TaskRepository _taskRepository;
   final ProjectRepository _projectRepository;
   final MilestoneRepository _milestoneRepository;
+  final ExportEncryptionService _encryptionService;
+  final EncryptionKeyService _encryptionKeyService;
 
   /// 从ZIP文件导入数据
   Future<ImportResult> importFromZip(File zipFile) async {
     final errors = <String>[];
 
-    // 解压ZIP并解析JSON
-    final result = await _extractAndParseZip(zipFile, errors);
-    if (result == null) {
+    // 解压ZIP并解析JSON（不解密）
+    final rawJson = await _extractAndParseZip(zipFile, errors);
+    if (rawJson == null) {
       return ImportResult(
         projectsCreated: 0,
         projectsUpdated: 0,
@@ -86,11 +95,8 @@ class ImportService {
       );
     }
 
-    final exportData = result.exportData;
-    final rawJson = result.rawJson;
-
-    // 验证UUID格式
-    if (!_validateUuids(exportData, errors)) {
+    // 验证UUID格式（从原始JSON中提取id进行验证）
+    if (!_validateUuidsFromJson(rawJson, errors)) {
       return ImportResult(
         projectsCreated: 0,
         projectsUpdated: 0,
@@ -105,14 +111,14 @@ class ImportService {
       );
     }
 
-    // 导入数据
-    return await _importData(exportData, rawJson, errors);
+    // 导入数据（延迟解密：只解密需要导入的实体）
+    return await _importData(rawJson, errors);
   }
 
   /// 解压ZIP并解析JSON
   /// 
-  /// 返回 ExportData 和原始 JSON 数据（用于读取 parentTaskId）
-  Future<({ExportData exportData, Map<String, dynamic> rawJson})?> _extractAndParseZip(
+  /// 返回原始 JSON 数据（不解密，延迟解密）
+  Future<Map<String, dynamic>?> _extractAndParseZip(
     File zipFile,
     List<String> errors,
   ) async {
@@ -128,50 +134,146 @@ class ImportService {
         return null;
       }
 
-      // 解析JSON
+      // 解析JSON（不解密）
       final jsonString = utf8.decode(dataFile.content as List<int>);
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
-      final exportData = ExportData.fromJson(jsonData);
-      return (exportData: exportData, rawJson: jsonData);
+      
+      return jsonData;
     } catch (e) {
       errors.add('解析ZIP文件失败: $e');
       return null;
     }
   }
 
-  /// 验证所有业务ID为有效的UUID v4格式
-  bool _validateUuids(ExportData exportData, List<String> errors) {
+  /// 从原始 JSON 解析单个项目（延迟解密）
+  Future<Project?> _parseProjectFromJson(
+    Map<String, dynamic> projectMap,
+    Uint8List encryptionKey,
+    List<String> errors,
+  ) async {
+    try {
+      // 解密 title 和 description
+      final decryptedMap = Map<String, dynamic>.from(projectMap);
+      decryptedMap['title'] = _decryptField(projectMap['title'], encryptionKey);
+      if (projectMap['description'] != null) {
+        decryptedMap['description'] = _decryptField(projectMap['description'], encryptionKey);
+      }
+      
+      return ExportData.projectFromJson(decryptedMap);
+    } catch (e) {
+      errors.add('解析项目失败: $e');
+      return null;
+    }
+  }
+
+  /// 从原始 JSON 解析单个里程碑（延迟解密）
+  Future<Milestone?> _parseMilestoneFromJson(
+    Map<String, dynamic> milestoneMap,
+    Uint8List encryptionKey,
+    List<String> errors,
+  ) async {
+    try {
+      // 解密 title 和 description
+      final decryptedMap = Map<String, dynamic>.from(milestoneMap);
+      decryptedMap['title'] = _decryptField(milestoneMap['title'], encryptionKey);
+      if (milestoneMap['description'] != null) {
+        decryptedMap['description'] = _decryptField(milestoneMap['description'], encryptionKey);
+      }
+      
+      return ExportData.milestoneFromJson(decryptedMap);
+    } catch (e) {
+      errors.add('解析里程碑失败: $e');
+      return null;
+    }
+  }
+
+  /// 从原始 JSON 解析单个任务（延迟解密）
+  Future<Task?> _parseTaskFromJson(
+    Map<String, dynamic> taskMap,
+    Uint8List encryptionKey,
+    List<String> errors,
+  ) async {
+    try {
+      // 解密 title 和 description
+      final decryptedMap = Map<String, dynamic>.from(taskMap);
+      decryptedMap['title'] = _decryptField(taskMap['title'], encryptionKey);
+      if (taskMap['description'] != null) {
+        decryptedMap['description'] = _decryptField(taskMap['description'], encryptionKey);
+      }
+      
+      return ExportData.taskFromJson(decryptedMap);
+    } catch (e) {
+      errors.add('解析任务失败: $e');
+      return null;
+    }
+  }
+
+  /// 解密单个字段
+  /// 
+  /// 字段必须是 Map（加密格式），解密后返回字符串
+  String? _decryptField(dynamic field, Uint8List encryptionKey) {
+    if (field == null) {
+      return null;
+    }
+
+    // 字段必须是 Map（加密格式）
+    if (field is! Map<String, dynamic>) {
+      throw Exception('Field must be encrypted format (Map), got: ${field.runtimeType}');
+    }
+
+    try {
+      final encryptedData = EncryptedData.fromJson(field);
+      return _encryptionService.decrypt(encryptedData, encryptionKey);
+    } catch (e) {
+      throw Exception('Failed to decrypt field: $e');
+    }
+  }
+
+  /// 验证所有业务ID为有效的UUID v4格式（从原始JSON中提取）
+  bool _validateUuidsFromJson(Map<String, dynamic> jsonData, List<String> errors) {
     bool isValid = true;
 
-    for (final project in exportData.projects) {
-      if (!_isValidUuid(project.id)) {
-        errors.add('项目ID格式无效: ${project.id}');
+    final projects = (jsonData['projects'] as List<dynamic>?) ?? [];
+    for (final projectJson in projects) {
+      final projectMap = projectJson as Map<String, dynamic>;
+      final projectId = projectMap['projectId'] as String?;
+      if (projectId == null || !_isValidUuid(projectId)) {
+        errors.add('项目ID格式无效: $projectId');
         isValid = false;
       }
     }
 
-    for (final milestone in exportData.milestones) {
-      if (!_isValidUuid(milestone.id)) {
-        errors.add('里程碑ID格式无效: ${milestone.id}');
+    final milestones = (jsonData['milestones'] as List<dynamic>?) ?? [];
+    for (final milestoneJson in milestones) {
+      final milestoneMap = milestoneJson as Map<String, dynamic>;
+      final milestoneId = milestoneMap['milestoneId'] as String?;
+      final projectId = milestoneMap['projectId'] as String?;
+      if (milestoneId == null || !_isValidUuid(milestoneId)) {
+        errors.add('里程碑ID格式无效: $milestoneId');
         isValid = false;
       }
-      if (!_isValidUuid(milestone.projectId)) {
-        errors.add('里程碑的项目ID格式无效: ${milestone.projectId}');
+      if (projectId == null || !_isValidUuid(projectId)) {
+        errors.add('里程碑的项目ID格式无效: $projectId');
         isValid = false;
       }
     }
 
-    for (final task in exportData.tasks) {
-      if (!_isValidUuid(task.id)) {
-        errors.add('任务ID格式无效: ${task.id}');
+    final tasks = (jsonData['tasks'] as List<dynamic>?) ?? [];
+    for (final taskJson in tasks) {
+      final taskMap = taskJson as Map<String, dynamic>;
+      final taskId = taskMap['taskId'] as String?;
+      final projectId = taskMap['projectId'] as String?;
+      final milestoneId = taskMap['milestoneId'] as String?;
+      if (taskId == null || !_isValidUuid(taskId)) {
+        errors.add('任务ID格式无效: $taskId');
         isValid = false;
       }
-      if (task.projectId != null && !_isValidUuid(task.projectId!)) {
-        errors.add('任务的项目ID格式无效: ${task.projectId}');
+      if (projectId != null && !_isValidUuid(projectId)) {
+        errors.add('任务的项目ID格式无效: $projectId');
         isValid = false;
       }
-      if (task.milestoneId != null && !_isValidUuid(task.milestoneId!)) {
-        errors.add('任务的里程碑ID格式无效: ${task.milestoneId}');
+      if (milestoneId != null && !_isValidUuid(milestoneId)) {
+        errors.add('任务的里程碑ID格式无效: $milestoneId');
         isValid = false;
       }
     }
@@ -191,11 +293,26 @@ class ImportService {
   }
 
   /// 导入数据
+  /// 
+  /// 延迟解密：只解密需要导入的实体（id不存在 或 updatedAt > 数据库中的updatedAt）
   Future<ImportResult> _importData(
-    ExportData exportData,
     Map<String, dynamic> rawJson,
     List<String> errors,
   ) async {
+    // 检查 salt（必须存在）
+    final salt = rawJson['salt'] as String?;
+    if (salt == null) {
+      errors.add('导入失败：导出数据缺少 salt 字段');
+      throw Exception('Salt is missing in export data');
+    }
+
+    // 获取用户密钥并派生加密密钥
+    final userKey = await _encryptionKeyService.loadKey();
+    if (userKey == null) {
+      errors.add('导入失败：未找到加密密钥，无法解密数据');
+      throw Exception('Encryption key is missing');
+    }
+    final encryptionKey = _encryptionService.deriveKey(userKey, salt);
     // 从原始 JSON 中提取任务的 parentTaskId（taskId，String）
     final tasksJson = rawJson['tasks'] as List<dynamic>;
     final taskIdToParentTaskId = <String, String?>{};
@@ -205,6 +322,42 @@ class ImportService {
       final parentTaskId = taskMap['parentTaskId'] as String?;
       taskIdToParentTaskId[taskId] = parentTaskId;
     }
+
+    // 构建 logs 映射（从独立数组按外键分组）
+    // 直接从 rawJson 读取，因为 JSON 中包含外键信息
+    final projectLogsMap = <String, List<ProjectLogEntry>>{};
+    final projectLogsJson = rawJson['projectLogs'] as List<dynamic>? ?? [];
+    for (final logJson in projectLogsJson) {
+      final logMap = logJson as Map<String, dynamic>;
+      final projectId = logMap['projectId'] as String?;
+      if (projectId != null) {
+        final log = ExportData.projectLogEntryFromJson(logMap);
+        projectLogsMap.putIfAbsent(projectId, () => []).add(log);
+      }
+    }
+
+    final taskLogsMap = <String, List<TaskLogEntry>>{};
+    final taskLogsJson = rawJson['taskLogs'] as List<dynamic>? ?? [];
+    for (final logJson in taskLogsJson) {
+      final logMap = logJson as Map<String, dynamic>;
+      final taskId = logMap['taskId'] as String?;
+      if (taskId != null) {
+        final log = ExportData.taskLogEntryFromJson(logMap);
+        taskLogsMap.putIfAbsent(taskId, () => []).add(log);
+      }
+    }
+
+    final milestoneLogsMap = <String, List<MilestoneLogEntry>>{};
+    final milestoneLogsJson = rawJson['milestoneLogs'] as List<dynamic>? ?? [];
+    for (final logJson in milestoneLogsJson) {
+      final logMap = logJson as Map<String, dynamic>;
+      final milestoneId = logMap['milestoneId'] as String?;
+      if (milestoneId != null) {
+        final log = ExportData.milestoneLogEntryFromJson(logMap);
+        milestoneLogsMap.putIfAbsent(milestoneId, () => []).add(log);
+      }
+    }
+
     int projectsCreated = 0;
     int projectsUpdated = 0;
     int projectsSkipped = 0;
@@ -219,10 +372,35 @@ class ImportService {
     final existingProjectIds = <String>{};
     final existingMilestoneIds = <String>{};
 
-    // 第一轮：导入项目
-      for (final project in exportData.projects) {
+    // 第一轮：导入项目（延迟解密）
+    final projectsJson = (rawJson['projects'] as List<dynamic>?) ?? [];
+    for (final projectJson in projectsJson) {
+      final projectMap = projectJson as Map<String, dynamic>;
+      final projectId = projectMap['projectId'] as String;
+      final updatedAtStr = projectMap['updatedAt'] as String;
+      final updatedAt = DateTime.parse(updatedAtStr);
+      
       try {
-          final existing = await _projectRepository.findById(project.id);
+        // 先判断是否需要导入（不需要解密）
+        final existing = await _projectRepository.findById(projectId);
+        final needsImport = existing == null || updatedAt.isAfter(existing.updatedAt);
+        
+        if (!needsImport) {
+          // 不需要导入，跳过（不解密）
+          existingProjectIds.add(projectId);
+          projectsSkipped++;
+          continue;
+        }
+        
+        // 需要导入，解密该实体
+        final project = await _parseProjectFromJson(projectMap, encryptionKey, errors);
+        if (project == null) {
+          continue; // 解密失败，错误已记录
+        }
+        
+        // 从独立数组获取该项目的 logs
+        final projectLogs = projectLogsMap[projectId] ?? [];
+        
         if (existing == null) {
           // 创建新项目
           final created = await _projectRepository.createProjectWithId(
@@ -238,59 +416,78 @@ class ImportService {
               seedSlug: project.seedSlug,
               allowInstantComplete: project.allowInstantComplete,
               description: project.description,
-              logs: project.logs,
+              logs: projectLogs,
             ),
-              project.id,
+            project.id,
             project.createdAt,
             project.updatedAt,
           );
-            existingProjectIds.add(created.id);
+          existingProjectIds.add(created.id);
           projectsCreated++;
         } else {
-          // 比较时间戳
-          if (project.updatedAt.isAfter(existing.updatedAt)) {
-            // 导入数据更新，更新本地数据
-            await _projectRepository.update(
-                project.id,
-              ProjectUpdate(
-                title: project.title,
-                status: project.status,
-                dueAt: project.dueAt,
-                startedAt: project.startedAt,
-                endedAt: project.endedAt,
-                sortIndex: project.sortIndex,
-                tags: project.tags,
-                templateLockDelta: project.templateLockCount -
-                    existing.templateLockCount,
-                allowInstantComplete: project.allowInstantComplete,
-                description: project.description,
-                logs: project.logs,
-              ),
-            );
-              existingProjectIds.add(project.id);
-            projectsUpdated++;
-          } else {
-            // 本地数据更新或相同，跳过
-              existingProjectIds.add(project.id);
-            projectsSkipped++;
-          }
+          // 导入数据更新，更新本地数据
+          await _projectRepository.update(
+            project.id,
+            ProjectUpdate(
+              title: project.title,
+              status: project.status,
+              dueAt: project.dueAt,
+              startedAt: project.startedAt,
+              endedAt: project.endedAt,
+              sortIndex: project.sortIndex,
+              tags: project.tags,
+              templateLockDelta: project.templateLockCount -
+                  existing.templateLockCount,
+              allowInstantComplete: project.allowInstantComplete,
+              description: project.description,
+              logs: projectLogs,
+            ),
+          );
+          existingProjectIds.add(project.id);
+          projectsUpdated++;
         }
       } catch (e) {
-          errors.add('导入项目失败 ${project.id}: $e');
+        errors.add('导入项目失败 $projectId: $e');
       }
     }
 
-    // 第二轮：导入里程碑
-    for (final milestone in exportData.milestones) {
+    // 第二轮：导入里程碑（延迟解密）
+    final milestonesJson = (rawJson['milestones'] as List<dynamic>?) ?? [];
+    for (final milestoneJson in milestonesJson) {
+      final milestoneMap = milestoneJson as Map<String, dynamic>;
+      final milestoneId = milestoneMap['milestoneId'] as String;
+      final projectId = milestoneMap['projectId'] as String;
+      final updatedAtStr = milestoneMap['updatedAt'] as String;
+      final updatedAt = DateTime.parse(updatedAtStr);
+      
       try {
-        if (!existingProjectIds.contains(milestone.projectId)) {
+        if (!existingProjectIds.contains(projectId)) {
           errors.add(
-            '里程碑 ${milestone.id} 引用的项目 ${milestone.projectId} 不存在',
+            '里程碑 $milestoneId 引用的项目 $projectId 不存在',
           );
           continue;
         }
 
-        final existing = await _milestoneRepository.findById(milestone.id);
+        // 先判断是否需要导入（不需要解密）
+        final existing = await _milestoneRepository.findById(milestoneId);
+        final needsImport = existing == null || updatedAt.isAfter(existing.updatedAt);
+        
+        if (!needsImport) {
+          // 不需要导入，跳过（不解密）
+          existingMilestoneIds.add(milestoneId);
+          milestonesSkipped++;
+          continue;
+        }
+        
+        // 需要导入，解密该实体
+        final milestone = await _parseMilestoneFromJson(milestoneMap, encryptionKey, errors);
+        if (milestone == null) {
+          continue; // 解密失败，错误已记录
+        }
+        
+        // 从独立数组获取该里程碑的 logs
+        final milestoneLogs = milestoneLogsMap[milestoneId] ?? [];
+        
         if (existing == null) {
           // 创建新里程碑
           await _milestoneRepository.createMilestoneWithId(
@@ -307,7 +504,7 @@ class ImportService {
               seedSlug: milestone.seedSlug,
               allowInstantComplete: milestone.allowInstantComplete,
               description: milestone.description,
-              logs: milestone.logs,
+              logs: milestoneLogs,
             ),
             milestone.id,
             milestone.createdAt,
@@ -316,62 +513,80 @@ class ImportService {
           existingMilestoneIds.add(milestone.id);
           milestonesCreated++;
         } else {
-          // 比较时间戳
-          if (milestone.updatedAt.isAfter(existing.updatedAt)) {
-            // 导入数据更新，更新本地数据
-            await _milestoneRepository.update(
-              milestone.id,
-              MilestoneUpdate(
-                title: milestone.title,
-                status: milestone.status,
-                dueAt: milestone.dueAt,
-                startedAt: milestone.startedAt,
-                endedAt: milestone.endedAt,
-                sortIndex: milestone.sortIndex,
-                tags: milestone.tags,
-                templateLockDelta:
-                    milestone.templateLockCount - existing.templateLockCount,
-                allowInstantComplete: milestone.allowInstantComplete,
-                description: milestone.description,
-                logs: milestone.logs,
-              ),
-            );
-            existingMilestoneIds.add(milestone.id);
-            milestonesUpdated++;
-          } else {
-            // 本地数据更新或相同，跳过
-            existingMilestoneIds.add(milestone.id);
-            milestonesSkipped++;
-          }
+          // 导入数据更新，更新本地数据
+          await _milestoneRepository.update(
+            milestone.id,
+            MilestoneUpdate(
+              title: milestone.title,
+              status: milestone.status,
+              dueAt: milestone.dueAt,
+              startedAt: milestone.startedAt,
+              endedAt: milestone.endedAt,
+              sortIndex: milestone.sortIndex,
+              tags: milestone.tags,
+              templateLockDelta:
+                  milestone.templateLockCount - existing.templateLockCount,
+              allowInstantComplete: milestone.allowInstantComplete,
+              description: milestone.description,
+              logs: milestoneLogs,
+            ),
+          );
+          existingMilestoneIds.add(milestone.id);
+          milestonesUpdated++;
         }
       } catch (e) {
-        errors.add('导入里程碑失败 ${milestone.id}: $e');
+        errors.add('导入里程碑失败 $milestoneId: $e');
       }
     }
 
-    // 第三轮：导入任务（不设置父子关系）
-    for (final task in exportData.tasks) {
+    // 第三轮：导入任务（延迟解密，不设置父子关系）
+    for (final taskJson in tasksJson) {
+      final taskMap = taskJson as Map<String, dynamic>;
+      final taskId = taskMap['taskId'] as String;
+      final updatedAtStr = taskMap['updatedAt'] as String;
+      final updatedAt = DateTime.parse(updatedAtStr);
+      final projectId = taskMap['projectId'] as String?;
+      final milestoneId = taskMap['milestoneId'] as String?;
+      
       try {
         final hasProject =
-            task.projectId == null || existingProjectIds.contains(task.projectId!);
-        if (!hasProject && task.projectId != null) {
+            projectId == null || existingProjectIds.contains(projectId);
+        if (!hasProject) {
           errors.add(
-            '任务 ${task.id} 引用的项目 ${task.projectId} 不存在',
+            '任务 $taskId 引用的项目 $projectId 不存在',
           );
         }
 
-        final hasMilestone = task.milestoneId == null ||
-            existingMilestoneIds.contains(task.milestoneId!);
-        if (!hasMilestone && task.milestoneId != null) {
+        final hasMilestone = milestoneId == null ||
+            existingMilestoneIds.contains(milestoneId);
+        if (!hasMilestone) {
           errors.add(
-            '任务 ${task.id} 引用的里程碑 ${task.milestoneId} 不存在',
+            '任务 $taskId 引用的里程碑 $milestoneId 不存在',
           );
         }
 
-        final sanitizedProjectId = hasProject ? task.projectId : null;
-        final sanitizedMilestoneId = hasMilestone ? task.milestoneId : null;
+        final sanitizedProjectId = hasProject ? projectId : null;
+        final sanitizedMilestoneId = hasMilestone ? milestoneId : null;
 
-        final existing = await _taskRepository.findById(task.id);
+        // 先判断是否需要导入（不需要解密）
+        final existing = await _taskRepository.findById(taskId);
+        final needsImport = existing == null || updatedAt.isAfter(existing.updatedAt);
+        
+        if (!needsImport) {
+          // 不需要导入，跳过（不解密）
+          tasksSkipped++;
+          continue;
+        }
+        
+        // 需要导入，解密该实体
+        final task = await _parseTaskFromJson(taskMap, encryptionKey, errors);
+        if (task == null) {
+          continue; // 解密失败，错误已记录
+        }
+        
+        // 从独立数组获取该任务的 logs
+        final taskLogs = taskLogsMap[taskId] ?? [];
+        
         if (existing == null) {
           // 创建新任务（不设置 parentId，在第四轮处理）
           await _taskRepository.createTaskWithId(
@@ -387,7 +602,7 @@ class ImportService {
               seedSlug: task.seedSlug,
               allowInstantComplete: task.allowInstantComplete,
               description: task.description,
-              logs: task.logs,
+              logs: taskLogs,
             ),
             task.id,
             task.createdAt,
@@ -395,52 +610,48 @@ class ImportService {
           );
           tasksCreated++;
         } else {
-          // 比较时间戳
-          if (task.updatedAt.isAfter(existing.updatedAt)) {
-            // 导入数据更新，更新本地数据
-            await _taskRepository.updateTask(
-              existing.id,
-              TaskUpdate(
-                title: task.title,
-                status: task.status,
-                dueAt: task.dueAt,
-                startedAt: task.startedAt,
-                endedAt: task.endedAt,
-                archivedAt: task.archivedAt,
-                projectId: sanitizedProjectId,
-                milestoneId: sanitizedMilestoneId,
-                sortIndex: task.sortIndex,
-                tags: task.tags,
-                templateLockDelta:
-                    task.templateLockCount - existing.templateLockCount,
-                allowInstantComplete: task.allowInstantComplete,
-                description: task.description,
-                logs: task.logs,
-                clearProject: sanitizedProjectId == null &&
-                        existing.projectId != null
-                    ? true
-                    : null,
-                clearMilestone: sanitizedMilestoneId == null &&
-                        existing.milestoneId != null
-                    ? true
-                    : null,
-              ),
-            );
-            tasksUpdated++;
-          } else {
-            // 本地数据更新或相同，跳过
-            tasksSkipped++;
-          }
+          // 导入数据更新，更新本地数据
+          await _taskRepository.updateTask(
+            existing.id,
+            TaskUpdate(
+              title: task.title,
+              status: task.status,
+              dueAt: task.dueAt,
+              startedAt: task.startedAt,
+              endedAt: task.endedAt,
+              archivedAt: task.archivedAt,
+              projectId: sanitizedProjectId,
+              milestoneId: sanitizedMilestoneId,
+              sortIndex: task.sortIndex,
+              tags: task.tags,
+              templateLockDelta:
+                  task.templateLockCount - existing.templateLockCount,
+              allowInstantComplete: task.allowInstantComplete,
+              description: task.description,
+              logs: taskLogs,
+              clearProject: sanitizedProjectId == null &&
+                      existing.projectId != null
+                  ? true
+                  : null,
+              clearMilestone: sanitizedMilestoneId == null &&
+                      existing.milestoneId != null
+                  ? true
+                  : null,
+            ),
+          );
+          tasksUpdated++;
         }
       } catch (e) {
-        errors.add('导入任务失败 ${task.id}: $e');
+        errors.add('导入任务失败 $taskId: $e');
       }
     }
 
     // 第四轮：建立任务父子关系
     // 使用从原始 JSON 中提取的 parentTaskId（taskId，String）
-    for (final task in exportData.tasks) {
-      final parentTaskId = taskIdToParentTaskId[task.id];
+    for (final taskJson in tasksJson) {
+      final taskMap = taskJson as Map<String, dynamic>;
+      final taskId = taskMap['taskId'] as String;
+      final parentTaskId = taskIdToParentTaskId[taskId];
       if (parentTaskId == null) {
         continue;
       }
@@ -449,12 +660,12 @@ class ImportService {
         final parentTask = await _taskRepository.findById(parentTaskId);
         if (parentTask == null) {
           errors.add(
-            '任务 ${task.id} 的父任务 $parentTaskId 不存在',
+            '任务 $taskId 的父任务 $parentTaskId 不存在',
           );
           continue;
         }
 
-        final childTask = await _taskRepository.findById(task.id);
+        final childTask = await _taskRepository.findById(taskId);
         if (childTask == null) {
           continue; // 已经在第三轮处理过错误
         }
@@ -464,7 +675,7 @@ class ImportService {
           TaskUpdate(parentId: parentTask.id),
         );
       } catch (e) {
-        errors.add('设置任务父子关系失败 ${task.id}: $e');
+        errors.add('设置任务父子关系失败 $taskId: $e');
       }
     }
 

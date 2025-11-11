@@ -23,7 +23,12 @@ class ProjectNodeHeader extends ConsumerWidget {
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.only(right: 8),
-      title: Text(task.title, style: theme.textTheme.titleMedium),
+      title: Text(
+        task.title,
+        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
         subtitle: Text('ID: ${task.id}'),
       trailing: Wrap(
         spacing: 8,

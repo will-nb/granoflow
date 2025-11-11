@@ -9,7 +9,6 @@ import '../completion_management/completed_page.dart';
 import '../completion_management/archived_page.dart';
 import '../completion_management/trash_page.dart';
 import '../projects/projects_page.dart';
-import '../clock/clock_page.dart';
 
 /// 应用路由配置
 class AppRouter {
@@ -70,19 +69,6 @@ class AppRouter {
             builder: (context, state) => const TrashPage(),
           ),
         ],
-      ),
-      // 计时器页面（不在 ShellRoute 内，全屏沉浸式）
-      GoRoute(
-        path: '/clock/:taskId',
-        name: 'clock',
-        builder: (context, state) {
-          final taskId = state.pathParameters['taskId'];
-          if (taskId == null || taskId.isEmpty) {
-            // 如果 taskId 无效，返回首页
-            return const HomePage();
-          }
-          return ClockPage(taskId: taskId);
-        },
       ),
     ],
   );

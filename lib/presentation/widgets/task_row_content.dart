@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../core/providers/task_action_providers.dart';
 import '../../core/services/project_models.dart';
 import '../../core/services/tag_service.dart';
 import '../../core/utils/task_section_utils.dart';
@@ -17,7 +18,7 @@ import 'project_milestone_picker.dart';
 import 'inline_project_milestone_display.dart';
 import 'task_row_content/task_row_title_editor.dart';
 import 'task_copy_button.dart';
-import 'task_start_timer_button.dart';
+import 'task_timer_widget.dart';
 
 /// 通用的任务行内容组件，支持内联编辑标签和截止日期
 /// 可在Tasks、Inbox、Projects子任务、轻量任务等多个场景复用
@@ -79,6 +80,9 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isTrashed = widget.task.status == TaskStatus.trashed;
+    // 监听当前编辑状态，只有当当前任务处于编辑状态时才显示标签和项目
+    final currentEditingTaskId = ref.watch(currentEditingTaskIdProvider);
+    final isEditing = currentEditingTaskId == widget.task.id;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,9 +101,33 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         ),
 
         // 第二行：标签 + 截止日期（可内联编辑）
-        // trashed 状态不显示标签和截止日期
-        if (!isTrashed)
+        // 只在编辑状态且非 trashed 状态时显示标签和项目
+        if (!isTrashed && isEditing)
           _buildTagsAndDeadlineRow(context, ref, theme),
+        
+        // 第三行：复制按钮 + 计时控件（单独一行，不需要编辑模式）
+        // 只在非 trashed 状态且非子任务时显示
+        if (!isTrashed && (widget.taskLevel == null || widget.taskLevel! <= 1))
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                // 复制按钮
+                TaskCopyButton(
+                  taskTitle: widget.task.title,
+                ),
+                // 计时控件（在pending、doing和paused状态显示）
+                if (widget.task.status == TaskStatus.pending ||
+                    widget.task.status == TaskStatus.doing ||
+                    widget.task.status == TaskStatus.paused)
+                  TaskTimerWidget(
+                    task: widget.task,
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -167,18 +195,6 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
               showIcon: true,
               taskLevel: widget.taskLevel,
             ),
-          // 复制按钮（放在截止日期后面）
-          if (widget.taskLevel == null || widget.taskLevel! <= 1)
-            TaskCopyButton(
-              taskTitle: widget.task.title,
-            ),
-          // 开始计时按钮（放在复制按钮后面）
-          // 只在任务状态为 pending（任务清单页面）时显示
-          if ((widget.taskLevel == null || widget.taskLevel! <= 1) &&
-              widget.task.status == TaskStatus.pending)
-            TaskStartTimerButton(
-              task: widget.task,
-            ),
         ],
       ),
     );
@@ -198,6 +214,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
 
   /// 获取可用的标签组（未选择的标签组）
   List<TagGroup> _getAvailableTagGroups(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final tagGroups = <TagGroup>[];
 
     // 紧急程度组
@@ -210,7 +227,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '紧急程度', // l10n.tag_group_urgency
+              title: l10n.tagGroupUrgency,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),
@@ -230,7 +247,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '重要程度', // l10n.tag_group_importance
+              title: l10n.tagGroupImportance,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),
@@ -250,7 +267,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '执行方式', // l10n.tag_group_execution
+              title: l10n.tagGroupExecution,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),
@@ -270,7 +287,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '上下文', // l10n.tag_group_context
+              title: l10n.tagGroupContext,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),

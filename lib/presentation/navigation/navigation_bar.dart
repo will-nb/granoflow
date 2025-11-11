@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'navigation_destinations.dart';
 
 /// 应用导航栏组件
-/// 用于底部导航栏，显示所有导航目标
+/// 使用 BottomAppBar 实现底部导航栏，中间位置为 FAB 预留缺口
 class AppNavigationBar extends StatelessWidget {
   const AppNavigationBar({
     super.key,
     required this.selectedIndex,
     required this.onDestinationSelected,
-    this.destinations,
   });
 
   /// 当前选中的索引
@@ -16,36 +15,79 @@ class AppNavigationBar extends StatelessWidget {
   
   /// 目标选择回调
   final ValueChanged<int> onDestinationSelected;
-  
-  /// 自定义目标列表，如果为null则使用默认目标
-  final List<NavigationDestination>? destinations;
 
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: selectedIndex,
-      onDestinationSelected: onDestinationSelected,
-      destinations: destinations ?? _getDefaultDestinations(context),
+    // 获取所有导航目标，排除中间的 add（FAB）
+    final destinations = NavigationDestinations.values
+        .where((d) => d != NavigationDestinations.add)
+        .toList();
+
+    return BottomAppBar(
+      height: 50.0, // 保持高度 50dp
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8.0, // FAB 与导航栏的间距，调整以确保 FAB 与其他图标底部对齐
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          // Home (索引 0)
+          _buildIconButton(
+            context: context,
+            destination: destinations[0],
+            index: 0,
+            isSelected: selectedIndex == 0,
+          ),
+          // Tasks (索引 1)
+          _buildIconButton(
+            context: context,
+            destination: destinations[1],
+            index: 1,
+            isSelected: selectedIndex == 1,
+          ),
+          // FAB 占位空间（索引 2 是 add，由 FAB 占据）
+          const SizedBox(width: 48),
+          // Achievements (索引 3)
+          _buildIconButton(
+            context: context,
+            destination: destinations[2],
+            index: 3,
+            isSelected: selectedIndex == 3,
+          ),
+          // Settings (索引 4)
+          _buildIconButton(
+            context: context,
+            destination: destinations[3],
+            index: 4,
+            isSelected: selectedIndex == 4,
+          ),
+        ],
+      ),
     );
   }
 
-  /// 获取默认的导航目标列表
-  /// 包含 5 个目标：[Home, Tasks, Add (FAB), Achievements, Settings]
-  List<NavigationDestination> _getDefaultDestinations(BuildContext context) {
-    return NavigationDestinations.values.map((destination) {
-      final isFabDestination = destination == NavigationDestinations.add;
-
-      return NavigationDestination(
-        icon: isFabDestination
-            ? const SizedBox.shrink()
-            : Icon(destination.icon),
-        selectedIcon: isFabDestination
-            ? const SizedBox.shrink()
-            : Icon(destination.selectedIcon),
-        label: destination.label(context),
-        tooltip: isFabDestination ? '' : null,
-        enabled: !isFabDestination,
-      );
-    }).toList();
+  /// 构建图标按钮
+  Widget _buildIconButton({
+    required BuildContext context,
+    required NavigationDestinations destination,
+    required int index,
+    required bool isSelected,
+  }) {
+    return IconButton(
+      icon: Icon(
+        isSelected ? destination.selectedIcon : destination.icon,
+        size: 24.0, // 明确指定图标大小
+      ),
+      tooltip: destination.label(context),
+      onPressed: () => onDestinationSelected(index),
+      color: isSelected
+          ? Theme.of(context).colorScheme.primary
+          : Theme.of(context).colorScheme.onSurfaceVariant,
+      constraints: const BoxConstraints(
+        minWidth: 40.0, // 减小最小宽度，使 hover 背景更紧凑
+        minHeight: 40.0, // 减小最小高度，使 hover 背景更紧凑
+      ),
+      padding: EdgeInsets.zero, // 移除默认 padding
+      visualDensity: VisualDensity.compact, // 紧凑模式
+    );
   }
 }

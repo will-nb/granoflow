@@ -46,7 +46,8 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final spacing = Theme.of(context).extension<AppSpacingTokens>();
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacingTokens>();
     final spacingTokens = spacing ?? AppSpacingTokens.light;
     if (_nodes.isEmpty) {
       return Padding(
@@ -72,8 +73,13 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
             index: index,
             child: const Icon(Icons.drag_handle),
           ),
-          title: Text(node.task.title),
-            subtitle: Text('ID: ${node.task.id}'),
+          title: Text(
+            node.task.title,
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+            subtitle: Text(l10n.taskIdLabel(node.task.id)),
           trailing: Wrap(
             spacing: 4,
             children: [

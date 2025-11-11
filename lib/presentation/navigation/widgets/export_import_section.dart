@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/providers/service_providers.dart';
 import '../../../core/services/import_service.dart';
 import '../../../generated/l10n/app_localizations.dart';
+import 'encryption_key_input_widget.dart';
 
 /// 导出导入功能组件
 class ExportImportSection extends ConsumerStatefulWidget {
@@ -34,20 +36,38 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
       final exportService = await ref.read(exportServiceProvider.future);
       final zipFile = await exportService.exportToZip();
 
-      // 分享文件
-      await Share.shareXFiles(
-        [XFile(zipFile.path)],
-        text: '导出数据',
-        subject: zipFile.path.split('/').last,
+      final l10n = AppLocalizations.of(context);
+      final fileName = zipFile.path.split('/').last;
+
+      // 读取 ZIP 文件的字节内容（Android 和 iOS 需要）
+      final zipBytes = await zipFile.readAsBytes();
+
+      // 获取下载目录作为默认保存位置
+      final downloadsDir = await _getDownloadsDirectory();
+      final initialDirectory = downloadsDir?.path;
+
+      // 使用 file_picker 保存文件
+      // 在 Android 和 iOS 上，必须提供 bytes 参数
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: l10n.exportData,
+        fileName: fileName,
+        initialDirectory: initialDirectory,
+        bytes: zipBytes,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).exportSuccess),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+      if (result != null) {
+        // 保存选择的目录，供导入时使用
+        final savedFile = File(result);
+        await _saveLastImportDirectory(savedFile.parent.path);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.exportSuccess),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -71,30 +91,76 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
   Future<void> _handleImport() async {
     if (_isImporting) return;
 
-    // 选择文件
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['flow.grano'],
-    );
-
-    if (result == null || result.files.single.path == null) {
-      return;
-    }
-
-    final filePath = result.files.single.path!;
-    final file = File(filePath);
-
     setState(() {
       _isImporting = true;
     });
 
     try {
+      // 获取上次选择的目录，如果没有则使用下载目录
+      // 注意：在 Android 上，initialDirectory 可能不被支持
+      String? initialDirectory;
+      if (!Platform.isAndroid && !Platform.isIOS) {
+        // 仅在桌面平台使用 initialDirectory
+        initialDirectory = await _getLastImportDirectory();
+        if (initialDirectory == null) {
+          final downloadsDir = await _getDownloadsDirectory();
+          initialDirectory = downloadsDir?.path;
+        }
+      }
+
+      // 选择文件
+      // 注意：在 Android 上，自定义扩展名（如 flow.grano）可能不被支持
+      // 因此使用 FileType.any，然后手动验证文件扩展名
+      final result = await FilePicker.platform.pickFiles(
+        type: Platform.isAndroid || Platform.isIOS 
+            ? FileType.any 
+            : FileType.custom,
+        allowedExtensions: Platform.isAndroid || Platform.isIOS 
+            ? null 
+            : ['flow.grano'],
+        initialDirectory: initialDirectory,
+        // 在 Android 上，允许读取文件字节
+        withData: Platform.isAndroid || Platform.isIOS,
+      );
+
+      if (result == null || result.files.isEmpty) {
+        // 用户取消了选择
+        return;
+      }
+
+      final pickedFile = result.files.single;
+      
+      // 验证文件扩展名
+      final fileName = pickedFile.name.toLowerCase();
+      if (!fileName.endsWith('.flow.grano')) {
+        throw Exception('请选择 .flow.grano 格式的文件');
+      }
+
+      File file;
+
+      if (pickedFile.path != null) {
+        // 桌面平台：使用文件路径
+        file = File(pickedFile.path!);
+        // 保存选择的目录（仅桌面平台）
+        if (!Platform.isAndroid && !Platform.isIOS) {
+          await _saveLastImportDirectory(file.parent.path);
+        }
+      } else if (pickedFile.bytes != null) {
+        // Android/iOS：使用文件字节，需要先保存到临时文件
+        final tempDir = await getTemporaryDirectory();
+        final tempFile = File('${tempDir.path}/${pickedFile.name}');
+        await tempFile.writeAsBytes(pickedFile.bytes!);
+        file = tempFile;
+      } else {
+        throw Exception('无法获取文件内容');
+      }
+
       final importService = await ref.read(importServiceProvider.future);
-      final result = await importService.importFromZip(file);
+      final importResult = await importService.importFromZip(file);
 
       if (mounted) {
         // 显示统计信息对话框
-        _showImportResultDialog(result);
+        _showImportResultDialog(importResult);
       }
     } catch (e) {
       if (mounted) {
@@ -217,6 +283,46 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
     );
   }
 
+  /// 获取下载目录（跨平台）
+  /// 
+  /// - Desktop (macOS/Windows/Linux): 使用 path_provider 获取下载目录
+  /// - Android/iOS: 返回 null，让 file_picker 使用系统默认
+  Future<Directory?> _getDownloadsDirectory() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      // 移动平台：file_picker 会使用系统默认位置
+      // Android: 使用 SAF (Storage Access Framework)
+      // iOS: 使用应用文档目录
+      return null;
+    } else {
+      // Desktop 平台：尝试获取下载目录
+      try {
+        return await getDownloadsDirectory();
+      } catch (e) {
+        return null;
+      }
+    }
+  }
+
+  /// 获取上次导入时选择的目录
+  Future<String?> _getLastImportDirectory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('last_import_directory');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 保存上次导入时选择的目录
+  Future<void> _saveLastImportDirectory(String directory) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_import_directory', directory);
+    } catch (e) {
+      // 忽略保存失败，不影响主要功能
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -225,6 +331,10 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
 
     return Column(
       children: [
+        // 加密密钥输入组件
+        const EncryptionKeyInputWidget(),
+        const Divider(),
+        // 导出按钮
         ListTile(
           leading: Icon(
             Icons.upload,

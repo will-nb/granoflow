@@ -62,7 +62,7 @@ class ReviewLongestCompletedTaskSection extends StatelessWidget {
         if (taskInfo.task.description != null &&
             taskInfo.task.description!.isNotEmpty)
           ReviewContentLine(
-            text: '任务分析：${taskInfo.task.description}',
+            text: '${l10n.reviewTaskAnalysis}${taskInfo.task.description}',
             fontSize: 18,
             fontWeight: FontWeight.w400,
             topSpacing: 0,
@@ -73,7 +73,7 @@ class ReviewLongestCompletedTaskSection extends StatelessWidget {
         // 子任务列表
         if (taskInfo.subtasks.isNotEmpty) ...[
           ...taskInfo.subtasks.map((subtask) {
-            final subtaskText = '子任务：${subtask.title}';
+            final subtaskText = '${l10n.reviewSubtask}${subtask.title}';
             final analysisText = subtask.description != null &&
                     subtask.description!.isNotEmpty
                 ? '：${subtask.description}'

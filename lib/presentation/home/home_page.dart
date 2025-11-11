@@ -26,8 +26,8 @@ class HomePage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return GradientPageScaffold(
-      appBar: const PageAppBar(
-        title: 'Home',
+      appBar: PageAppBar(
+        title: l10n.homePageTitle,
       ),
       drawer: const MainDrawer(),
       body: LayoutBuilder(

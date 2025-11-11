@@ -33,10 +33,13 @@
   "childTask": "子任務",
   "commonAdd": "新增",
   "commonCancel": "取消",
+  "commonContinue": "繼續輸入",
   "commonDelete": "刪除",
+  "commonEdit": "編輯",
   "commonLoading": "載入中...",
   "commonLoadFailed": "載入失敗",
   "commonSave": "儲存",
+  "commonRetry": "重試",
   "commonView": "查看",
   "completeCurrentTask": "完成當前任務",
   "completeTask": "完成任務",
@@ -100,7 +103,11 @@
   "completionTime": "完成時間",
   "createSubtask": "建立子任務",
   "dragToOverdueNotAllowed": "無法拖曳到已逾期區域",
+  "drawerExecution": "執行方式",
   "drawerManageProjects": "管理項目",
+  "drawerQuadrant": "四象限",
+  "drawerScenarios": "場景",
+  "drawerTags": "標籤",
   "@drawerManageProjects": {
     "description": "抽屜中管理項目按鈕文字"
   },
@@ -131,6 +138,35 @@
   "endSessionTitle": "專注總結",
   "endSessionWastedNote": "將加入 wasted 標籤以利統計",
   "estimatedTime": "預估時間",
+  "encryptionKey": "加密密鑰",
+  "encryptionKeyAllZeros": "密鑰不能全部為零，請至少包含一個非零字符",
+  "encryptionKeyCopy": "複製密鑰",
+  "encryptionKeyCopySuccess": "密鑰已複製到剪貼板",
+  "encryptionKeyDescription": "導出文件將根據此密鑰加密。忘記該密鑰將無法導入數據，建議抄錄到紙質文件妥善保管。",
+  "encryptionKeyEmpty": "密鑰不能為空",
+  "encryptionKeyIncompleteMessage": "您輸入的密鑰尚未完成，是否要繼續輸入？",
+  "encryptionKeyIncompleteTitle": "輸入未完成",
+  "encryptionKeyHide": "隱藏密鑰",
+  "encryptionKeyInvalid": "密鑰格式無效，請確保格式為 xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx（32個小寫字母和數字）。",
+  "encryptionKeyLoading": "正在載入加密密鑰...",
+  "encryptionKeyProgress": "已輸入 {count}/32 字符",
+  "@encryptionKeyProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "encryptionKeyRegenerate": "重新生成",
+  "encryptionKeyRegenerateConfirmMessage": "如果修改密鑰，之前導出的數據將無法導入。確定要繼續嗎？",
+  "encryptionKeyRegenerateConfirmMessage2": "請再次確認：如果修改密鑰，之前導出的數據將無法導入。確定要繼續嗎？",
+  "encryptionKeyRegenerateConfirmTitle": "確認重新生成密鑰",
+  "encryptionKeyRegenerateConfirmTitle2": "再次確認",
+  "encryptionKeyModifyConfirmTitle": "確認修改密鑰",
+  "encryptionKeyModifyConfirmTitle2": "再次確認",
+  "encryptionKeySaveError": "保存加密密鑰失敗",
+  "encryptionKeyShow": "顯示密鑰",
+  "exportData": "導出數據",
   "filterByDate": "按日期篩選",
   "filterByStatus": "按狀態篩選",
   "focusSession": "專注時段",
@@ -138,6 +174,7 @@
   "globalUniqueId": "全域唯一ID",
   "home": "首頁",
   "homeGreeting": "GranoFlow",
+  "homePageTitle": "首頁",
   "homeTagline": "Stay in flow. Grow in focus.",
   "inbox": "收集箱",
   "inboxAddError": "新增任務失敗",
@@ -172,7 +209,10 @@
   "swipeHintTemplate": "提示：右滑{rightAction}，左滑{leftAction}。",
   "inboxPostponeAction": "推遲",
   "inboxPostponeSuccess": "任務推遲成功",
+  "inboxPageTitle": "收集箱",
   "inboxPostponeError": "推遲任務失敗",
+  "loadFailed": "載入失敗",
+  "loadTagsFailed": "載入標籤失敗",
   "datePickerTitle": "截止日期",
   "datePickerToday": "今天",
   "datePickerTomorrow": "明天",
@@ -183,6 +223,10 @@
   "inboxTemplateApplied": "模板已套用。",
   "inboxTemplateEmpty": "暫時沒有模板推薦。",
   "inboxTemplateError": "套用模板失敗",
+  "exportData": "導出數據",
+  "exportDataDescription": "導出所有項目、里程碑和任務",
+  "exportFailed": "導出失敗",
+  "exportSuccess": "導出成功",
   "importComplete": "導入完成",
   "importData": "導入數據",
   "importDataDescription": "從文件導入項目、里程碑和任務",
@@ -208,6 +252,14 @@
   "language": "語言",
   "leafTask": "葉節點任務",
   "markAsWastedTime": "標記為浪費時間",
+  "milestoneAddButton": "新增里程碑",
+  "milestoneAddTitle": "新增里程碑",
+  "milestoneAdded": "里程碑已新增",
+  "milestoneDeleteConfirmMessage": "確定要刪除這個里程碑嗎？此操作無法撤銷。",
+  "milestoneDeleteTitle": "刪除里程碑",
+  "milestoneDeleted": "里程碑已刪除",
+  "milestoneEditTitle": "編輯里程碑",
+  "milestoneUpdated": "里程碑已更新",
   "navArchivedTitle": "封存",
   "navCompletedTitle": "已完成",
   "navInboxTitle": "收集箱",
@@ -217,6 +269,8 @@
   "navTrashTitle": "垃圾桶",
   "navigationMenu": "導航選單",
   "noCompletionTime": "無完成時間",
+  "noTagsAvailable": "暫無標籤",
+  "operationFailed": "操作失敗",
   "noDueDateSet": "未設置截止日期",
   "noProject": "無項目",
   "pageNavigation": "頁面導航",
@@ -263,6 +317,7 @@
   "clockStart": "開始",
   "clockStartButton": "開始",
   "clockSubtasks": "子任務",
+  "subtaskSectionTitle": "子任務",
   "clockTaskAnalysis": "任務分析",
   "clockTaskAnalysisHint": "輸入任務分析...",
   "clockTaskNotFound": "任務不存在",
@@ -284,6 +339,14 @@
   "reviewCopiedMessage": "文章已複製到剪貼簿",
   "reviewCopyButton": "複製文章",
   "reviewExportButton": "匯出文章",
+  "reviewExportFailed": "匯出失敗：{error}",
+  "@reviewExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "reviewLabelDaily": "日報",
   "reviewLabelMonthly": "月報",
   "reviewLabelQuarterly": "季報",
@@ -324,6 +387,8 @@
   "reviewNoLongCompletedTaskMessage": "恭喜您，您的工作一番風順，至今還沒有遇到必須克服的難題。",
   "reviewNoProjectsMessage": "您目前還沒有建立專案",
   "reviewProjectItemFormat": "{projectName}：包含{taskCount}個任務",
+  "reviewSubtask": "子任務：",
+  "reviewTaskAnalysis": "任務分析：",
   "@reviewProjectItemFormat": {
     "placeholders": {
       "projectName": {
@@ -383,8 +448,8 @@
   "settingsLanguageTraditionalChinese": "繁體中文",
   "settingsSection": "設定",
   "settingsClockSection": "計時器",
-  "settingsClockTickSound": "滴答聲",
-  "settingsClockTickSoundDescription": "在計時期間播放滴答聲和提醒",
+  "settingsClockTickSound": "背景音",
+  "settingsClockTickSoundDescription": "在計時期間播放背景音",
   "settingsExportImportSection": "導出與導入",
   "settingsTaskManagement": "任務管理",
   "settingsThemeDark": "深色",
@@ -417,13 +482,28 @@
     "description": "碎片化任務標籤"
   },
   "tag_wasted": "嘥時間",
+  "tagGroupContext": "上下文",
+  "tagGroupExecution": "執行方式",
+  "tagGroupImportance": "重要程度",
+  "tagGroupUrgency": "緊急程度",
   "taskChain": "任務鏈",
+  "taskClearDeadlineBody": "確定要清除此任務的截止日期嗎？",
+  "taskDepthLimitMessage": "此任務層級過深，無法繼續新增子任務。",
   "taskDetails": "任務詳情",
   "taskDragCrossSectionSuccess": "任務已移動",
   "taskId": "任務ID",
+  "taskIdLabel": "ID：{id}",
+  "@taskIdLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "taskList": "任務",
   "taskListAddError": "新增任務失敗。",
   "taskListAddSubtaskDialogTitle": "新增子任務",
+  "taskListPageTitle": "任務",
   "taskListAddedToast": "任務已加入計畫。",
   "taskListEmptySectionHint": "此區尚無任務，點擊右上角快速新增。",
   "taskListFocusError": "啟動專注失敗。",
@@ -621,6 +701,9 @@
   "@projectArchiveConfirmBody": {
     "description": "封存專案時的對話內容"
   },
+  "projectArchiveConfirmMessage": "專案下還有活躍任務，是否同時封存所有活躍任務及其子任務？",
+  "projectArchiveOnly": "僅封存專案",
+  "projectArchiveWithTasks": "封存專案及活躍任務",
   "projectSnoozeAction": "暫緩",
   "@projectSnoozeAction": {
     "description": "暫緩專案的動作文字"
@@ -638,6 +721,18 @@
     "description": "暫緩專案的確認按鈕"
   },
   "projectSnoozeSuccess": "專案截止日期已順延一年。",
+  "projectCompleteConfirmMessage": "專案下還有活躍任務，是否同時封存所有活躍任務及其子任務？",
+  "projectCompleteOnly": "僅完成專案",
+  "projectCompleteTitle": "完成專案",
+  "projectCompleteWithTasks": "完成專案並封存活躍任務",
+  "projectDeletePermanentMessage": "確定要永久刪除這個專案嗎？此操作無法撤銷。",
+  "projectDeletePermanentTitle": "永久刪除",
+  "projectDeletedPermanent": "專案已永久刪除",
+  "projectEditAction": "編輯專案",
+  "projectEditTitle": "編輯專案",
+  "projectTrashConfirmMessage": "確定要刪除這個專案嗎？專案將被移到回收站，30天後永久刪除。",
+  "projectTrashTitle": "移到回收站",
+  "projectUpdated": "專案已更新",
   "@projectSnoozeSuccess": {
     "description": "暫緩成功時的提示"
   },
@@ -721,5 +816,7 @@
   "trashRestoreError": "復原失敗。",
   "trashRestoreSuccess": "任務已復原。",
   "trashedStatus": "已刪除",
+  "tooltipJumpToParentTask": "跳轉到父任務",
+  "tooltipOpenMainMenu": "打開主選單",
   "viewDetails": "查看詳情"
 }

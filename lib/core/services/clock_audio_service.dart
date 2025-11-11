@@ -6,7 +6,7 @@ import 'preference_service.dart';
 
 /// 计时器音频播放服务
 /// 
-/// 负责播放滴答声和提醒音，所有音频播放都受用户设置控制
+/// 负责播放背景音，所有音频播放都受用户设置控制
 class ClockAudioService {
   ClockAudioService({
     required PreferenceService preferenceService,
@@ -19,15 +19,15 @@ class ClockAudioService {
   final PreferenceService _preferenceService;
   
   // 音频播放器
-  late final AudioPlayer _tickPlayer;  // 滴答声播放器
-  late final AudioPlayer _alertPlayer; // 提醒音播放器
+  late final AudioPlayer _tickPlayer;  // 背景音播放器
+  late final AudioPlayer _alertPlayer; // 提醒音播放器（已废弃，不再使用）
   
-  // 滴答声相关
+  // 背景音相关
   Timer? _tickTimer;
   bool _isTickSoundEnabled = true;
   bool _isTickSoundPlaying = false;
   
-  // 提醒音相关
+  // 提醒音相关（已废弃，不再使用）
   bool _hasPlayed10MinuteWarning = false;
   bool _hasPlayed5MinuteWarning = false;
   bool _hasPlayedCompletionSound = false;
@@ -49,9 +49,9 @@ class ClockAudioService {
     });
   }
 
-  /// 开始播放滴答声
+  /// 开始播放背景音
   /// 
-  /// 每0.5秒播放一次（一秒钟响两次），模拟闹钟滴答声
+  /// 每0.5秒播放一次（一秒钟响两次），模拟闹钟背景音
   /// 只有在用户设置开启时才会播放
   /// 
   /// 直接启动定时器，延迟0.5秒开始，但所有声音之间的间隔都是均匀的0.5秒
@@ -77,7 +77,7 @@ class ClockAudioService {
     });
   }
 
-  /// 停止播放滴答声
+  /// 停止播放背景音
   void stopTickSound() {
     _isTickSoundPlaying = false;
     _tickTimer?.cancel();
@@ -85,7 +85,7 @@ class ClockAudioService {
     _tickPlayer.stop();
   }
 
-  /// 播放滴答声（内部方法）
+  /// 播放背景音（内部方法）
   Future<void> _playTickSound() async {
     if (!_isTickSoundEnabled) {
       return;
@@ -98,10 +98,11 @@ class ClockAudioService {
     }
   }
 
-  /// 播放10分钟提醒音
+  /// 播放10分钟提醒音（已废弃，不再使用）
   /// 
   /// 倒计时还剩10分钟时调用，播放一次 di.wav
   /// 只播放一次（防止重复触发）
+  @Deprecated('提醒音功能已移除，不再使用')
   Future<void> play10MinuteWarning() async {
     if (!_isTickSoundEnabled || _hasPlayed10MinuteWarning) {
       return;
@@ -115,10 +116,11 @@ class ClockAudioService {
     }
   }
 
-  /// 播放5分钟提醒音
+  /// 播放5分钟提醒音（已废弃，不再使用）
   /// 
   /// 倒计时还剩5分钟时调用，连续播放两次 di.wav（间隔500ms）
   /// 只播放一次（防止重复触发）
+  @Deprecated('提醒音功能已移除，不再使用')
   Future<void> play5MinuteWarning() async {
     if (!_isTickSoundEnabled || _hasPlayed5MinuteWarning) {
       return;
@@ -138,10 +140,11 @@ class ClockAudioService {
     }
   }
 
-  /// 播放完成提醒音
+  /// 播放完成提醒音（已废弃，不再使用）
   /// 
   /// 倒计时完成时调用，播放一次 dieline.wav
   /// 只播放一次（防止重复触发）
+  @Deprecated('提醒音功能已移除，不再使用')
   Future<void> playCompletionSound() async {
     if (!_isTickSoundEnabled || _hasPlayedCompletionSound) {
       return;

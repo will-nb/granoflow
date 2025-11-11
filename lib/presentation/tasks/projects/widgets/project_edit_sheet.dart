@@ -65,7 +65,7 @@ class _ProjectEditSheetState extends ConsumerState<ProjectEditSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '编辑项目',
+                      l10n.projectEditTitle,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     IconButton(
@@ -125,7 +125,7 @@ class _ProjectEditSheetState extends ConsumerState<ProjectEditSheet> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('保存'),
+                        : Text(l10n.commonSave),
                   ),
                 ),
               ],

@@ -291,7 +291,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     // 保存状态到持久化存储
     await _saveState();
     
-    // 开始播放滴答声
+    // 开始播放背景音
     _audioServiceOrThrow.resetAlertFlags();
     _audioServiceOrThrow.startTickSound();
   }
@@ -317,7 +317,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     // 保存状态到持久化存储
     await _saveState();
     
-    // 停止播放滴答声
+    // 停止播放背景音
     _audioServiceOrThrow.stopTickSound();
   }
 
@@ -371,7 +371,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     // 保存状态到持久化存储
     await _saveState();
     
-    // 继续播放滴答声
+    // 继续播放背景音
     _audioServiceOrThrow.startTickSound();
   }
 

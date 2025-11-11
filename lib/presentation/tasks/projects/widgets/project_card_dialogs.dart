@@ -31,9 +31,7 @@ Future<bool?> confirmProjectArchive(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(l10n.projectArchiveConfirmTitle),
-      content: const Text(
-        '项目下还有活跃任务，是否同时归档所有活跃任务及其子任务？',
-      ),
+      content: Text(l10n.projectArchiveConfirmMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -41,11 +39,11 @@ Future<bool?> confirmProjectArchive(
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(null),
-          child: const Text('仅归档项目'),
+          child: Text(l10n.projectArchiveOnly),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('归档项目及活跃任务'),
+          child: Text(l10n.projectArchiveWithTasks),
         ),
       ],
     ),
@@ -78,10 +76,8 @@ Future<bool?> confirmProjectComplete(
   final result = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('完成项目'),
-      content: const Text(
-        '项目下还有活跃任务，是否同时归档所有活跃任务及其子任务？',
-      ),
+      title: Text(l10n.projectCompleteTitle),
+      content: Text(l10n.projectCompleteConfirmMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -89,11 +85,11 @@ Future<bool?> confirmProjectComplete(
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(null),
-          child: const Text('仅完成项目'),
+          child: Text(l10n.projectCompleteOnly),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('完成项目并归档活跃任务'),
+          child: Text(l10n.projectCompleteWithTasks),
         ),
       ],
     ),
@@ -110,10 +106,8 @@ Future<bool> confirmProjectTrash(
   final result = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('移到回收站'),
-      content: const Text(
-        '确定要删除这个项目吗？项目将被移到回收站，30天后永久删除。',
-      ),
+      title: Text(l10n.projectTrashTitle),
+      content: Text(l10n.projectTrashConfirmMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -138,10 +132,8 @@ Future<bool> confirmProjectDelete(
   final result = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('永久删除'),
-      content: const Text(
-        '确定要永久删除这个项目吗？此操作无法撤销。',
-      ),
+      title: Text(l10n.projectDeletePermanentTitle),
+      content: Text(l10n.projectDeletePermanentMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),

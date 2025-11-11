@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/app_providers.dart';
+import '../../../../generated/l10n/app_localizations.dart';
 import '../../../widgets/modern_tag.dart';
 import '../../../widgets/modern_tag_group.dart';
 import '../../../widgets/tag_data.dart';
@@ -28,6 +29,7 @@ class ProjectTagsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
     final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
     final executionTagsAsync = ref.watch(executionTagOptionsProvider);
@@ -89,13 +91,13 @@ class ProjectTagsSection extends ConsumerWidget {
             );
           },
           loading: () => const CircularProgressIndicator(),
-          error: (_, __) => const Text('加载标签失败'),
+          error: (_, __) => Text(l10n.loadTagsFailed),
         ),
         loading: () => const CircularProgressIndicator(),
-        error: (_, __) => const Text('加载标签失败'),
+          error: (_, __) => Text(l10n.loadTagsFailed),
       ),
       loading: () => const CircularProgressIndicator(),
-      error: (_, __) => const Text('加载标签失败'),
+          error: (_, __) => Text(l10n.loadTagsFailed),
     );
   }
 }

@@ -8,18 +8,29 @@ import 'task.dart';
 /// 
 /// 用于导出和导入项目、里程碑和任务数据
 /// 所有业务ID（projectId、milestoneId、taskId）使用UUID v4格式
+/// 
+/// 格式说明：
+/// - logs 作为独立数组（记录式格式，符合关系型数据库结构）
 @immutable
 class ExportData {
   const ExportData({
     required this.version,
+    required this.salt,
     required this.exportedAt,
     required this.projects,
     required this.milestones,
     required this.tasks,
+    this.projectLogs = const [],
+    this.taskLogs = const [],
+    this.milestoneLogs = const [],
   });
 
   /// 导出格式版本
   final String version;
+
+  /// 加密 salt（128-bit，16个字符，从62个字符集中选择）
+  /// 用于与用户密钥一起派生加密密钥
+  final String salt;
 
   /// 导出时间（ISO 8601格式）
   final DateTime exportedAt;
@@ -33,37 +44,104 @@ class ExportData {
   /// 任务列表
   final List<Task> tasks;
 
+  /// 项目日志列表（独立数组，记录式格式）
+  final List<ProjectLogEntry> projectLogs;
+
+  /// 任务日志列表（独立数组，记录式格式）
+  final List<TaskLogEntry> taskLogs;
+
+  /// 里程碑日志列表（独立数组，记录式格式）
+  final List<MilestoneLogEntry> milestoneLogs;
+
   /// 序列化为JSON
   /// 
-  /// 排除所有Isar内部ID字段（id、projectIsarId、milestoneIsarId）
+  /// logs 作为独立数组导出（记录式格式）
+  /// 注意：此方法通过匹配实体的 logs 来获取外键，实际导出应使用 ExportService._exportDataToJson
   Map<String, dynamic> toJson() {
+    // 构建外键映射：通过匹配实体的 logs 来获取外键
+    // 由于 projectLogs/taskLogs/milestoneLogs 是从实体的 logs 中提取的，我们通过遍历实体来建立映射
+    final projectLogsJson = <Map<String, dynamic>>[];
+    for (final project in projects) {
+      for (final log in project.logs) {
+        // 检查 log 是否在独立的 projectLogs 数组中
+        if (projectLogs.contains(log)) {
+          projectLogsJson.add(_projectLogEntryToJson(log, projectId: project.id));
+        }
+      }
+    }
+
+    final taskLogsJson = <Map<String, dynamic>>[];
+    for (final task in tasks) {
+      for (final log in task.logs) {
+        if (taskLogs.contains(log)) {
+          taskLogsJson.add(_taskLogEntryToJson(log, taskId: task.id));
+        }
+      }
+    }
+
+    final milestoneLogsJson = <Map<String, dynamic>>[];
+    for (final milestone in milestones) {
+      for (final log in milestone.logs) {
+        if (milestoneLogs.contains(log)) {
+          milestoneLogsJson.add(_milestoneLogEntryToJson(log, milestoneId: milestone.id));
+        }
+      }
+    }
+
     return {
       'version': version,
+      'salt': salt,
       'exportedAt': exportedAt.toIso8601String(),
-      'projects': projects.map(_projectToJson).toList(),
-      'milestones': milestones.map(_milestoneToJson).toList(),
-      'tasks': tasks.map(_taskToJson).toList(),
+      'projects': projects.map((p) => _projectToJson(p)).toList(),
+      'milestones': milestones.map((m) => _milestoneToJson(m)).toList(),
+      'tasks': tasks.map((t) => _taskToJson(t)).toList(),
+      'projectLogs': projectLogsJson,
+      'taskLogs': taskLogsJson,
+      'milestoneLogs': milestoneLogsJson,
     };
   }
 
   /// 从JSON反序列化
+  /// 
+  /// logs 从独立数组读取（记录式格式）
   factory ExportData.fromJson(Map<String, dynamic> json) {
+    final projects = (json['projects'] as List<dynamic>)
+        .map((e) => ExportData.projectFromJson(e as Map<String, dynamic>))
+        .toList();
+    final milestones = (json['milestones'] as List<dynamic>)
+        .map((e) => ExportData.milestoneFromJson(e as Map<String, dynamic>))
+        .toList();
+    final tasks = (json['tasks'] as List<dynamic>)
+        .map((e) => ExportData.taskFromJson(e as Map<String, dynamic>))
+        .toList();
+
+      final projectLogs = (json['projectLogs'] as List<dynamic>?)
+              ?.map((e) => projectLogEntryFromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [];
+      final taskLogs = (json['taskLogs'] as List<dynamic>?)
+              ?.map((e) => taskLogEntryFromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [];
+      final milestoneLogs = (json['milestoneLogs'] as List<dynamic>?)
+              ?.map((e) => milestoneLogEntryFromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [];
+
     return ExportData(
       version: json['version'] as String,
+      salt: json['salt'] as String,
       exportedAt: DateTime.parse(json['exportedAt'] as String),
-      projects: (json['projects'] as List<dynamic>)
-          .map((e) => ExportData._projectFromJson(e as Map<String, dynamic>))
-          .toList(),
-      milestones: (json['milestones'] as List<dynamic>)
-          .map((e) => ExportData._milestoneFromJson(e as Map<String, dynamic>))
-          .toList(),
-      tasks: (json['tasks'] as List<dynamic>)
-          .map((e) => ExportData._taskFromJson(e as Map<String, dynamic>))
-          .toList(),
+      projects: projects,
+      milestones: milestones,
+      tasks: tasks,
+      projectLogs: projectLogs,
+      taskLogs: taskLogs,
+      milestoneLogs: milestoneLogs,
     );
   }
 
-  /// 序列化项目
+  /// 序列化项目（不包含 logs，logs 单独导出）
   Map<String, dynamic> _projectToJson(Project project) {
     return {
       'projectId': project.id,
@@ -80,12 +158,11 @@ class ExportData {
       'seedSlug': project.seedSlug,
       'allowInstantComplete': project.allowInstantComplete,
       'description': project.description,
-      'logs': project.logs.map(_projectLogEntryToJson).toList(),
     };
   }
 
   /// 反序列化项目
-  static Project _projectFromJson(Map<String, dynamic> json) {
+  static Project projectFromJson(Map<String, dynamic> json) {
     return Project(
       id: json['projectId'] as String,
       title: json['title'] as String,
@@ -109,13 +186,14 @@ class ExportData {
       seedSlug: json['seedSlug'] as String?,
       allowInstantComplete: json['allowInstantComplete'] as bool? ?? false,
       description: json['description'] as String?,
-      logs: (json['logs'] as List<dynamic>)
-          .map((e) => _projectLogEntryFromJson(e as Map<String, dynamic>))
-          .toList(),
+      logs: (json['logs'] as List<dynamic>?)
+              ?.map((e) => projectLogEntryFromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
-  /// 序列化里程碑
+  /// 序列化里程碑（不包含 logs，logs 单独导出）
   Map<String, dynamic> _milestoneToJson(Milestone milestone) {
     return {
       'milestoneId': milestone.id,
@@ -133,12 +211,11 @@ class ExportData {
       'seedSlug': milestone.seedSlug,
       'allowInstantComplete': milestone.allowInstantComplete,
       'description': milestone.description,
-      'logs': milestone.logs.map(_milestoneLogEntryToJson).toList(),
     };
   }
 
   /// 反序列化里程碑
-  static Milestone _milestoneFromJson(Map<String, dynamic> json) {
+  static Milestone milestoneFromJson(Map<String, dynamic> json) {
     return Milestone(
       id: json['milestoneId'] as String,
       projectId: json['projectId'] as String,
@@ -163,13 +240,14 @@ class ExportData {
       seedSlug: json['seedSlug'] as String?,
       allowInstantComplete: json['allowInstantComplete'] as bool? ?? false,
       description: json['description'] as String?,
-      logs: (json['logs'] as List<dynamic>)
-          .map((e) => _milestoneLogEntryFromJson(e as Map<String, dynamic>))
-          .toList(),
+      logs: (json['logs'] as List<dynamic>?)
+              ?.map((e) => milestoneLogEntryFromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
-  /// 序列化任务
+  /// 序列化任务（不包含 logs，logs 单独导出）
   Map<String, dynamic> _taskToJson(Task task) {
     return {
       'taskId': task.id,
@@ -190,12 +268,11 @@ class ExportData {
       'seedSlug': task.seedSlug,
       'allowInstantComplete': task.allowInstantComplete,
       'description': task.description,
-      'logs': task.logs.map(_taskLogEntryToJson).toList(),
     };
   }
 
   /// 反序列化任务
-  static Task _taskFromJson(Map<String, dynamic> json) {
+  static Task taskFromJson(Map<String, dynamic> json) {
     return Task(
       id: json['taskId'] as String,
       title: json['title'] as String,
@@ -225,25 +302,30 @@ class ExportData {
       seedSlug: json['seedSlug'] as String?,
       allowInstantComplete: json['allowInstantComplete'] as bool? ?? false,
       description: json['description'] as String?,
-      logs: (json['logs'] as List<dynamic>)
-          .map((e) => _taskLogEntryFromJson(e as Map<String, dynamic>))
-          .toList(),
+      logs: (json['logs'] as List<dynamic>?)
+              ?.map((e) => taskLogEntryFromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
-  /// 序列化项目日志条目
-  Map<String, dynamic> _projectLogEntryToJson(ProjectLogEntry entry) {
-    return {
+  /// 序列化项目日志条目（包含 projectId 外键）
+  Map<String, dynamic> _projectLogEntryToJson(ProjectLogEntry entry, {String? projectId}) {
+    final result = <String, dynamic>{
       'timestamp': entry.timestamp.toIso8601String(),
       'action': entry.action,
       'previous': entry.previous,
       'next': entry.next,
       'actor': entry.actor,
     };
+    if (projectId != null) {
+      result['projectId'] = projectId;
+    }
+    return result;
   }
 
   /// 反序列化项目日志条目
-  static ProjectLogEntry _projectLogEntryFromJson(Map<String, dynamic> json) {
+  static ProjectLogEntry projectLogEntryFromJson(Map<String, dynamic> json) {
     return ProjectLogEntry(
       timestamp: DateTime.parse(json['timestamp'] as String),
       action: json['action'] as String,
@@ -253,19 +335,23 @@ class ExportData {
     );
   }
 
-  /// 序列化里程碑日志条目
-  Map<String, dynamic> _milestoneLogEntryToJson(MilestoneLogEntry entry) {
-    return {
+  /// 序列化里程碑日志条目（包含 milestoneId 外键）
+  Map<String, dynamic> _milestoneLogEntryToJson(MilestoneLogEntry entry, {String? milestoneId}) {
+    final result = <String, dynamic>{
       'timestamp': entry.timestamp.toIso8601String(),
       'action': entry.action,
       'previous': entry.previous,
       'next': entry.next,
       'actor': entry.actor,
     };
+    if (milestoneId != null) {
+      result['milestoneId'] = milestoneId;
+    }
+    return result;
   }
 
   /// 反序列化里程碑日志条目
-  static MilestoneLogEntry _milestoneLogEntryFromJson(Map<String, dynamic> json) {
+  static MilestoneLogEntry milestoneLogEntryFromJson(Map<String, dynamic> json) {
     return MilestoneLogEntry(
       timestamp: DateTime.parse(json['timestamp'] as String),
       action: json['action'] as String,
@@ -275,19 +361,23 @@ class ExportData {
     );
   }
 
-  /// 序列化任务日志条目
-  Map<String, dynamic> _taskLogEntryToJson(TaskLogEntry entry) {
-    return {
+  /// 序列化任务日志条目（包含 taskId 外键）
+  Map<String, dynamic> _taskLogEntryToJson(TaskLogEntry entry, {String? taskId}) {
+    final result = <String, dynamic>{
       'timestamp': entry.timestamp.toIso8601String(),
       'action': entry.action,
       'previous': entry.previous,
       'next': entry.next,
       'actor': entry.actor,
     };
+    if (taskId != null) {
+      result['taskId'] = taskId;
+    }
+    return result;
   }
 
   /// 反序列化任务日志条目
-  static TaskLogEntry _taskLogEntryFromJson(Map<String, dynamic> json) {
+  static TaskLogEntry taskLogEntryFromJson(Map<String, dynamic> json) {
     return TaskLogEntry(
       timestamp: DateTime.parse(json['timestamp'] as String),
       action: json['action'] as String,

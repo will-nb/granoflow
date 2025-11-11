@@ -14,6 +14,7 @@ import '../../generated/l10n/app_localizations.dart';
 /// - inbox: 收集箱
 /// - pending: 列入清单
 /// - doing: 进行中
+/// - paused: 已暂停
 /// - completedActive: 已完成
 /// - archived: 已归档
 /// - trashed: 丢弃到回收站
@@ -29,6 +30,8 @@ String getTaskStatusDisplayText(
       return '列入清单';
     case TaskStatus.doing:
       return '进行中';
+    case TaskStatus.paused:
+      return '已暂停';
     case TaskStatus.completedActive:
       return '已完成';
     case TaskStatus.archived:
