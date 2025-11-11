@@ -28,7 +28,7 @@ class TaskSectionTestHelper {
   }) async {
     final nowTime = now ?? DateTime.now();
     final taskService = container.read(taskServiceProvider);
-    final taskRepository = container.read(taskRepositoryProvider);
+    final taskRepository = await container.read(taskRepositoryProvider.future);
     final tasks = <Task>[];
 
     // 生成测试任务数据
@@ -72,7 +72,7 @@ class TaskSectionTestHelper {
     String taskId,
     TaskSection expectedSection,
   ) async {
-    final taskRepository = container.read(taskRepositoryProvider);
+    final taskRepository = await container.read(taskRepositoryProvider.future);
     final task = await taskRepository.findById(taskId);
     if (task == null) return false;
 
@@ -82,7 +82,7 @@ class TaskSectionTestHelper {
 
   /// 获取 section 内的任务列表
   Future<List<Task>> getSectionTasks(TaskSection section) async {
-    final taskRepository = container.read(taskRepositoryProvider);
+    final taskRepository = await container.read(taskRepositoryProvider.future);
     return await taskRepository.listSectionTasks(section);
   }
 

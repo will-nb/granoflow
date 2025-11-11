@@ -338,13 +338,13 @@ class TaskDragTestHelper {
 
   /// 获取 Inbox 任务列表
   Future<List<Task>> getInboxTasks() async {
-    final taskRepository = container.read(taskRepositoryProvider);
+    final taskRepository = await container.read(taskRepositoryProvider.future);
     return await taskRepository.watchInbox().first;
   }
 
   /// 添加测试任务到 Inbox
   Future<Task> addTestTask(String title) async {
-    final taskService = container.read(taskServiceProvider);
+    final taskService = await container.read(taskServiceProvider.future);
     return await taskService.captureInboxTask(title: title);
   }
 
@@ -354,7 +354,7 @@ class TaskDragTestHelper {
     TaskSection section,
     DateTime now,
   ) async {
-    final taskService = container.read(taskServiceProvider);
+    final taskService = await container.read(taskServiceProvider.future);
     DateTime? dueAt;
 
     // 根据 section 计算对应的 dueAt 日期

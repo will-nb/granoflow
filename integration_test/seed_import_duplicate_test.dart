@@ -34,9 +34,9 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final taskRepository = container.read(taskRepositoryProvider);
-        final projectRepository = container.read(projectRepositoryProvider);
-        final seedImportService = container.read(seedImportServiceProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
+        final projectRepository = await container.read(projectRepositoryProvider.future);
+        final seedImportService = await container.read(seedImportServiceProvider.future);
 
         // 清空数据库（限制清理数量以避免超时）
         final existingTasks = await taskRepository.listAll();
@@ -148,9 +148,9 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final taskRepository = container.read(taskRepositoryProvider);
-        final projectRepository = container.read(projectRepositoryProvider);
-        final seedImportService = container.read(seedImportServiceProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
+        final projectRepository = await container.read(projectRepositoryProvider.future);
+        final seedImportService = await container.read(seedImportServiceProvider.future);
 
         // 清空数据库（限制清理数量以避免超时）
         final existingTasks = await taskRepository.listAll();

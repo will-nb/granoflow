@@ -265,12 +265,12 @@ void main() {
           clockTickSoundEnabledProvider.overrideWith(
             (ref) => Stream<bool>.value(true),
           ),
-          preferenceServiceProvider.overrideWithValue(
-            _FakePreferenceService(initial: preference),
+          preferenceServiceProvider.overrideWith(
+            (ref) async => _FakePreferenceService(initial: preference),
           ),
-          taskServiceProvider.overrideWithValue(_StubTaskService()),
-          taskRepositoryProvider.overrideWithValue(
-            _FakeTaskRepository(parentTask, [childTask]),
+          taskServiceProvider.overrideWith((ref) async => _StubTaskService()),
+          taskRepositoryProvider.overrideWith(
+            (ref) async => _FakeTaskRepository(parentTask, [childTask]),
           ),
           clockTaskProvider.overrideWithProvider(
             (taskId) => StreamProvider((ref) => Stream.value(parentTask)),

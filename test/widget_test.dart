@@ -25,12 +25,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          taskRepositoryProvider.overrideWithValue(taskRepository),
-          focusSessionRepositoryProvider.overrideWithValue(focusRepository),
-          tagRepositoryProvider.overrideWithValue(tagRepository),
-          preferenceRepositoryProvider.overrideWithValue(preferenceRepository),
-          taskTemplateRepositoryProvider.overrideWithValue(templateRepository),
-          seedRepositoryProvider.overrideWithValue(seedRepository),
+          taskRepositoryProvider.overrideWith((ref) async => taskRepository),
+          focusSessionRepositoryProvider.overrideWith((ref) async => focusRepository),
+          tagRepositoryProvider.overrideWith((ref) async => tagRepository),
+          preferenceRepositoryProvider.overrideWith((ref) async => preferenceRepository),
+          taskTemplateRepositoryProvider.overrideWith((ref) async => templateRepository),
+          seedRepositoryProvider.overrideWith((ref) async => seedRepository),
         ],
         child: const GranoFlowApp(),
       ),

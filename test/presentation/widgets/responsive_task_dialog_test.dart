@@ -21,12 +21,12 @@ void main() {
 
       return ProviderScope(
         overrides: [
-          taskRepositoryProvider.overrideWithValue(taskRepository),
-          tagRepositoryProvider.overrideWithValue(tagRepository),
-          focusSessionRepositoryProvider.overrideWithValue(focusRepository),
-          preferenceRepositoryProvider.overrideWithValue(preferenceRepository),
-          taskTemplateRepositoryProvider.overrideWithValue(templateRepository),
-          seedRepositoryProvider.overrideWithValue(seedRepository),
+          taskRepositoryProvider.overrideWith((ref) async => taskRepository),
+          tagRepositoryProvider.overrideWith((ref) async => tagRepository),
+          focusSessionRepositoryProvider.overrideWith((ref) async => focusRepository),
+          preferenceRepositoryProvider.overrideWith((ref) async => preferenceRepository),
+          taskTemplateRepositoryProvider.overrideWith((ref) async => templateRepository),
+          seedRepositoryProvider.overrideWith((ref) async => seedRepository),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),
