@@ -35,9 +35,10 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
       final zipFile = await exportService.exportToZip();
 
       // 分享文件
+      final l10n = AppLocalizations.of(context);
       await Share.shareXFiles(
         [XFile(zipFile.path)],
-        text: '导出数据',
+        text: l10n.exportData,
         subject: zipFile.path.split('/').last,
       );
 
