@@ -128,8 +128,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -168,8 +168,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -216,8 +216,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -263,8 +263,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -309,8 +309,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -355,8 +355,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -402,8 +402,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -447,8 +447,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
@@ -486,8 +486,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              taskHierarchyServiceProvider.overrideWithValue(
-                fakeTaskHierarchyService,
+              taskHierarchyServiceProvider.overrideWith(
+                (ref) async => fakeTaskHierarchyService,
               ),
               taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
               sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),

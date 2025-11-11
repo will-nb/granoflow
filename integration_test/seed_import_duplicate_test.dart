@@ -222,7 +222,7 @@ void main() {
           tester.element(find.byType(MaterialApp).first),
         );
         final taskRepository = await container.read(taskRepositoryProvider.future);
-        final seedImportService = container.read(seedImportServiceProvider);
+        final seedImportService = await container.read(seedImportServiceProvider.future);
 
         // 清空数据库（限制清理数量以避免超时）
         final existingTasks = await taskRepository.listAll();

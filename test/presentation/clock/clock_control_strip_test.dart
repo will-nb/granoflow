@@ -176,8 +176,8 @@ Future<void> _pumpControlStrip(
         clockTickSoundEnabledProvider.overrideWith(
           (ref) => Stream<bool>.value(preference.clockTickSoundEnabled),
         ),
-        preferenceServiceProvider.overrideWithValue(
-          _FakePreferenceService(initial: preference),
+        preferenceServiceProvider.overrideWith(
+          (ref) async => _FakePreferenceService(initial: preference),
         ),
         taskServiceProvider.overrideWith((ref) async => _FakeTaskService()),
       ],
