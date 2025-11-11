@@ -7,6 +7,8 @@ import '../../core/providers/review_providers.dart';
 import '../../data/models/review_data.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import '../widgets/page_app_bar.dart';
+import '../widgets/main_drawer.dart';
 import 'utils/review_date_formatter.dart';
 import 'widgets/review_action_buttons.dart';
 import 'widgets/review_closing_line.dart';
@@ -148,8 +150,13 @@ class _ReviewPageState extends ConsumerState<ReviewPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(reviewPageProvider);
+    final l10n = AppLocalizations.of(context);
 
     return GradientPageScaffold(
+      appBar: PageAppBar(
+        title: l10n.appShellReview,
+      ),
+      drawer: const MainDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
