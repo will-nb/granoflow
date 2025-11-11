@@ -31,6 +31,69 @@
   "archivedTasks": "Archived Tasks",
   "changeFontSize": "Change Font Size",
   "changeLanguage": "Change Language",
+  "calendarReviewDayView": "Day",
+  "calendarReviewEmptyState": "No data for this period",
+  "calendarReviewExport": "Export",
+  "calendarReviewExportDateRange": "Export Date Range",
+  "calendarReviewExportFailed": "Export failed: {error}",
+  "@calendarReviewExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarReviewExportThisMonth": "This Month",
+  "calendarReviewExportThisWeek": "This Week",
+  "calendarReviewExportToday": "Today",
+  "calendarReviewFilter": "Filter",
+  "calendarReviewFilterApply": "Apply",
+  "calendarReviewFilterByProject": "Filter by Project",
+  "calendarReviewFilterByTags": "Filter by Tags",
+  "calendarReviewFilterNoProject": "No Project",
+  "calendarReviewFilterReset": "Reset",
+  "calendarReviewFocusMinutes": "Focus Time",
+  "calendarReviewFocusSessions": "Sessions",
+  "calendarReviewHeatmapLegend": "Heatmap Legend",
+  "calendarReviewHeatmapLegendHigh": "High: {minutes}+ min",
+  "@calendarReviewHeatmapLegendHigh": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarReviewHeatmapLegendLow": "Low: 1-{minutes} min",
+  "@calendarReviewHeatmapLegendLow": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarReviewHeatmapLegendMedium": "Medium: {low}-{high} min",
+  "@calendarReviewHeatmapLegendMedium": {
+    "placeholders": {
+      "low": {
+        "type": "int"
+      },
+      "high": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarReviewHeatmapLegendNone": "No data",
+  "calendarReviewLoadError": "Failed to load data",
+  "calendarReviewMonthView": "Month",
+  "calendarReviewPageTitle": "Calendar Review",
+  "calendarReviewSelectEndDate": "Select End Date",
+  "calendarReviewSelectStartDate": "Select Start Date",
+  "calendarReviewStatsAverageDaily": "Avg Daily",
+  "calendarReviewStatsCompletedTasks": "Completed Tasks",
+  "calendarReviewStatsMostActiveDate": "Most Active",
+  "calendarReviewStatsTotalFocus": "Total Focus",
+  "calendarReviewTaskList": "Completed Tasks",
+  "calendarReviewWeekView": "Week",
   "childTask": "Child Task",
   "commonAdd": "Add",
   "commonCancel": "Cancel",

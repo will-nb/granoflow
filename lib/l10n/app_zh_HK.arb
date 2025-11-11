@@ -30,6 +30,69 @@
   "archivedTasks": "已封存任務",
   "changeFontSize": "更改字體大小",
   "changeLanguage": "更改語言",
+  "calendarReviewDayView": "日",
+  "calendarReviewEmptyState": "此時間段暫無數據",
+  "calendarReviewExport": "匯出",
+  "calendarReviewExportDateRange": "匯出日期範圍",
+  "calendarReviewExportFailed": "匯出失敗：{error}",
+  "@calendarReviewExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarReviewExportThisMonth": "本月",
+  "calendarReviewExportThisWeek": "本週",
+  "calendarReviewExportToday": "今日",
+  "calendarReviewFilter": "篩選",
+  "calendarReviewFilterApply": "應用",
+  "calendarReviewFilterByProject": "按專案篩選",
+  "calendarReviewFilterByTags": "按標籤篩選",
+  "calendarReviewFilterNoProject": "無專案",
+  "calendarReviewFilterReset": "重置",
+  "calendarReviewFocusMinutes": "專注時長",
+  "calendarReviewFocusSessions": "會話數",
+  "calendarReviewHeatmapLegend": "熱力圖圖例",
+  "calendarReviewHeatmapLegendHigh": "高：{minutes}+ 分鐘",
+  "@calendarReviewHeatmapLegendHigh": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarReviewHeatmapLegendLow": "低：1-{minutes} 分鐘",
+  "@calendarReviewHeatmapLegendLow": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarReviewHeatmapLegendMedium": "中：{low}-{high} 分鐘",
+  "@calendarReviewHeatmapLegendMedium": {
+    "placeholders": {
+      "low": {
+        "type": "int"
+      },
+      "high": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarReviewHeatmapLegendNone": "無數據",
+  "calendarReviewLoadError": "載入數據失敗",
+  "calendarReviewMonthView": "月",
+  "calendarReviewPageTitle": "日曆回顧",
+  "calendarReviewSelectEndDate": "選擇結束日期",
+  "calendarReviewSelectStartDate": "選擇開始日期",
+  "calendarReviewStatsAverageDaily": "平均每日",
+  "calendarReviewStatsCompletedTasks": "完成任務",
+  "calendarReviewStatsMostActiveDate": "最活躍日期",
+  "calendarReviewStatsTotalFocus": "總專注時長",
+  "calendarReviewTaskList": "完成任務",
+  "calendarReviewWeekView": "週",
   "childTask": "子任務",
   "commonAdd": "新增",
   "commonCancel": "取消",
