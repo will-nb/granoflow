@@ -215,9 +215,8 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     
     try {
       final section = _sectionForDate(selectedDate);
-      await ref
-          .read(taskServiceProvider)
-          .planTask(taskId: task.id, dueDateLocal: selectedDate, section: section);
+      final taskService = await ref.read(taskServiceProvider.future);
+      await taskService.planTask(taskId: task.id, dueDateLocal: selectedDate, section: section);
       if (!context.mounted) {
         return;
       }
