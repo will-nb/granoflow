@@ -2,7 +2,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift/wasm.dart';
 import 'package:sqlite3/wasm.dart';
-import 'package:sqlite3/sqlite3.dart';
 
 /// Web 平台数据库连接
 LazyDatabase createDatabase() {

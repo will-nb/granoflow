@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 
 // 条件导入：Web 和移动端使用不同的数据库实现
 import 'database_web.dart' if (dart.library.io) 'database_native.dart' as db_impl;
