@@ -1215,4 +1215,85 @@ class DriftTaskRepository implements TaskRepository {
     }).toList();
   }
 
+  /// 应用标签列表过滤条件（任务必须包含所有标签）
+  ///
+  /// [entities] 要过滤的任务实体列表
+  /// [tags] 标签列表
+  /// 返回过滤后的任务实体列表
+  List<drift.Task> _applyTagsFilter(
+    List<drift.Task> entities,
+    List<String> tags,
+  ) {
+    if (tags.isEmpty) {
+      return entities;
+    }
+
+    return entities.where((entity) {
+      final taskTags = entity.tags;
+      // 任务必须包含所有指定的标签
+      return tags.every((tag) => taskTags.contains(tag));
+    }).toList();
+  }
+
+  @override
+  Future<Map<DateTime, List<domain.Task>>> getCompletedRootTasksByDateRange({
+    required DateTime start,
+    required DateTime end,
+    String? projectId,
+    List<String>? tags,
+  }) async {
+    return await _adapter.readTransaction(() async {
+      // 规范化日期：只保留年月日
+      final startDate = DateTime(start.year, start.month, start.day);
+      final endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
+
+      final query = _db.select(_db.tasks)
+        ..where((t) =>
+            t.status.equals(domain.TaskStatus.completedActive.index) &
+            t.parentId.isNull() &
+            t.endedAt.isNotNull() &
+            t.endedAt.isBiggerOrEqualValue(startDate) &
+            t.endedAt.isSmallerOrEqualValue(endDate));
+
+      // 排除指定状态
+      query.where((t) =>
+          t.status.isNotIn([
+            domain.TaskStatus.inbox.index,
+            domain.TaskStatus.trashed.index,
+            domain.TaskStatus.pseudoDeleted.index,
+            domain.TaskStatus.archived.index,
+          ]));
+
+      // 应用项目筛选
+      if (projectId != null) {
+        query.where((t) => t.projectId.equals(projectId));
+      }
+
+      // 获取实体
+      var entities = await query.get();
+
+      // 应用标签过滤（在内存中过滤，因为标签存储在 JSON 中）
+      if (tags != null && tags.isNotEmpty) {
+        entities = _applyTagsFilter(entities, tags);
+      }
+
+      // 转换为领域模型
+      final tasks = await _toTasks(entities);
+
+      // 按完成日期分组
+      final result = <DateTime, List<domain.Task>>{};
+      for (final task in tasks) {
+        if (task.endedAt == null) continue;
+        final date = DateTime(
+          task.endedAt!.year,
+          task.endedAt!.month,
+          task.endedAt!.day,
+        );
+        result.putIfAbsent(date, () => []).add(task);
+      }
+
+      return result;
+    });
+  }
+
 }

@@ -16,6 +16,8 @@ import '../services/task_service.dart';
 import '../services/sort_index_service.dart';
 import '../services/task_template_service.dart';
 import '../services/clock_audio_service.dart';
+import '../services/calendar_review_service.dart';
+import '../services/heatmap_color_service.dart';
 import '../monetization/monetization_service.dart';
 import 'repository_providers.dart';
 
