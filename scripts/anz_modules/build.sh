@@ -212,13 +212,62 @@ clean_project() {
       DB_FOUND=true
     fi
 
-    # 路径7: Drift 数据库文件（如果存在）
-    DRIFT_DB_PATH="$HOME/Library/Application Support/com.granoflow.app/granoflow.db"
-    if [ -f "$DRIFT_DB_PATH" ]; then
-      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH${NC}"
-      rm -f "$DRIFT_DB_PATH"
+    # 路径7: Drift 数据库文件 - 新应用 ID 沙盒 Application Support
+    DRIFT_DB_PATH_NEW_SANDBOX="$HOME/Library/Containers/com.granoflow.app/Data/Library/Application Support/granoflow.db"
+    if [ -f "$DRIFT_DB_PATH_NEW_SANDBOX" ]; then
+      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH_NEW_SANDBOX${NC}"
+      rm -f "$DRIFT_DB_PATH_NEW_SANDBOX"
       DB_FOUND=true
     fi
+
+    # 路径8: Drift 数据库文件 - 新应用 ID 沙盒 Documents
+    DRIFT_DB_PATH_NEW_DOCS="$HOME/Library/Containers/com.granoflow.app/Data/Documents/granoflow.db"
+    if [ -f "$DRIFT_DB_PATH_NEW_DOCS" ]; then
+      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH_NEW_DOCS${NC}"
+      rm -f "$DRIFT_DB_PATH_NEW_DOCS"
+      DB_FOUND=true
+    fi
+
+    # 路径9: Drift 数据库文件 - 旧应用 ID 沙盒 Application Support
+    DRIFT_DB_PATH_OLD_SANDBOX="$HOME/Library/Containers/com.example.granoflow/Data/Library/Application Support/granoflow.db"
+    if [ -f "$DRIFT_DB_PATH_OLD_SANDBOX" ]; then
+      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH_OLD_SANDBOX${NC}"
+      rm -f "$DRIFT_DB_PATH_OLD_SANDBOX"
+      DB_FOUND=true
+    fi
+
+    # 路径10: Drift 数据库文件 - 旧应用 ID 沙盒 Documents
+    DRIFT_DB_PATH_OLD_DOCS="$HOME/Library/Containers/com.example.granoflow/Data/Documents/granoflow.db"
+    if [ -f "$DRIFT_DB_PATH_OLD_DOCS" ]; then
+      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH_OLD_DOCS${NC}"
+      rm -f "$DRIFT_DB_PATH_OLD_DOCS"
+      DB_FOUND=true
+    fi
+
+    # 路径11: Drift 数据库文件 - 非沙盒 Application Support
+    DRIFT_DB_PATH_NON_SANDBOX="$HOME/Library/Application Support/com.granoflow.app/granoflow.db"
+    if [ -f "$DRIFT_DB_PATH_NON_SANDBOX" ]; then
+      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH_NON_SANDBOX${NC}"
+      rm -f "$DRIFT_DB_PATH_NON_SANDBOX"
+      DB_FOUND=true
+    fi
+
+    # 路径12: Drift 数据库文件 - 旧应用 ID 非沙盒 Application Support
+    DRIFT_DB_PATH_OLD_NON_SANDBOX="$HOME/Library/Application Support/com.example.granoflow/granoflow.db"
+    if [ -f "$DRIFT_DB_PATH_OLD_NON_SANDBOX" ]; then
+      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH_OLD_NON_SANDBOX${NC}"
+      rm -f "$DRIFT_DB_PATH_OLD_NON_SANDBOX"
+      DB_FOUND=true
+    fi
+
+    # 路径13: 使用 find 命令查找所有可能的 granoflow.db 文件（兜底方案）
+    while IFS= read -r db_file; do
+      if [ -f "$db_file" ]; then
+        echo -e "${YELLOW}  - 删除找到的数据库文件: $db_file${NC}"
+        rm -f "$db_file"
+        DB_FOUND=true
+      fi
+    done < <(find "$HOME/Library" -name "granoflow.db" -type f 2>/dev/null | grep -E "(com\.granoflow\.app|com\.example\.granoflow)" || true)
     
     if [ "$DB_FOUND" = true ]; then
       echo -e "${GREEN}✅ 数据库已清空，下次启动将重新导入种子数据${NC}"

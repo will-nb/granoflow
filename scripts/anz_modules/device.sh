@@ -240,6 +240,44 @@ clean_macos_app_data() {
     rm -rf "$OLD_DOC_DB_PATH"
     DB_FOUND=true
   fi
+
+  # 清理 Drift 数据库文件
+  # 新应用 ID 沙盒 Application Support
+  if [ -f "$HOME/Library/Containers/com.granoflow.app/Data/Library/Application Support/granoflow.db" ]; then
+    echo -e "${YELLOW}  - 删除 Drift 数据库文件: com.granoflow.app (Application Support)${NC}"
+    rm -f "$HOME/Library/Containers/com.granoflow.app/Data/Library/Application Support/granoflow.db"
+    DB_FOUND=true
+  fi
+
+  # 新应用 ID 沙盒 Documents
+  if [ -f "$HOME/Library/Containers/com.granoflow.app/Data/Documents/granoflow.db" ]; then
+    echo -e "${YELLOW}  - 删除 Drift 数据库文件: com.granoflow.app (Documents)${NC}"
+    rm -f "$HOME/Library/Containers/com.granoflow.app/Data/Documents/granoflow.db"
+    DB_FOUND=true
+  fi
+
+  # 旧应用 ID 沙盒 Application Support
+  if [ -f "$HOME/Library/Containers/com.example.granoflow/Data/Library/Application Support/granoflow.db" ]; then
+    echo -e "${YELLOW}  - 删除 Drift 数据库文件: com.example.granoflow (Application Support)${NC}"
+    rm -f "$HOME/Library/Containers/com.example.granoflow/Data/Library/Application Support/granoflow.db"
+    DB_FOUND=true
+  fi
+
+  # 旧应用 ID 沙盒 Documents
+  if [ -f "$HOME/Library/Containers/com.example.granoflow/Data/Documents/granoflow.db" ]; then
+    echo -e "${YELLOW}  - 删除 Drift 数据库文件: com.example.granoflow (Documents)${NC}"
+    rm -f "$HOME/Library/Containers/com.example.granoflow/Data/Documents/granoflow.db"
+    DB_FOUND=true
+  fi
+
+  # 使用 find 命令查找所有可能的 granoflow.db 文件（兜底方案）
+  while IFS= read -r db_file; do
+    if [ -f "$db_file" ]; then
+      echo -e "${YELLOW}  - 删除找到的数据库文件: $db_file${NC}"
+      rm -f "$db_file"
+      DB_FOUND=true
+    fi
+  done < <(find "$HOME/Library" -name "granoflow.db" -type f 2>/dev/null | grep -E "(com\.granoflow\.app|com\.example\.granoflow)" || true)
  
   if [ "$DB_FOUND" = true ]; then
     echo -e "${GREEN}✅ 应用数据已清空，下次启动将重新导入种子数据${NC}"

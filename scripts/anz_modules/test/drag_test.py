@@ -48,6 +48,47 @@ def clean_database() -> None:
                             shutil.rmtree(item)
                 except Exception as e:
                     pass  # 忽略清理错误
+        
+        # 清理 Drift 数据库文件 - 新应用 ID
+        drift_db_paths = [
+            home / "Library" / "Containers" / "com.granoflow.app" / "Data" / "Library" / "Application Support" / "granoflow.db",
+            home / "Library" / "Containers" / "com.granoflow.app" / "Data" / "Documents" / "granoflow.db",
+            home / "Library" / "Application Support" / "com.granoflow.app" / "granoflow.db",
+        ]
+        
+        # 清理 Drift 数据库文件 - 旧应用 ID
+        old_drift_db_paths = [
+            home / "Library" / "Containers" / "com.example.granoflow" / "Data" / "Library" / "Application Support" / "granoflow.db",
+            home / "Library" / "Containers" / "com.example.granoflow" / "Data" / "Documents" / "granoflow.db",
+            home / "Library" / "Application Support" / "com.example.granoflow" / "granoflow.db",
+        ]
+        
+        # 删除所有找到的数据库文件
+        for db_file in drift_db_paths + old_drift_db_paths:
+            if db_file.exists() and db_file.is_file():
+                try:
+                    db_file.unlink()
+                except Exception as e:
+                    pass  # 忽略清理错误
+        
+        # 使用 find 命令查找所有可能的 granoflow.db 文件（兜底方案）
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["find", str(home / "Library"), "-name", "granoflow.db", "-type", "f"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                for db_file in result.stdout.strip().split("\n"):
+                    if db_file and ("com.granoflow.app" in db_file or "com.example.granoflow" in db_file):
+                        try:
+                            Path(db_file).unlink()
+                        except Exception:
+                            pass
+        except Exception:
+            pass  # 忽略查找错误
     elif platform.system() == "Linux":
         db_path = home / ".local" / "share" / "granoflow"
         if db_path.exists():
