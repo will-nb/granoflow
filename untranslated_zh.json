@@ -11,10 +11,6 @@
     "completedWeeksAgo",
     "completedYesterday",
     "dragToOverdueNotAllowed",
-    "exportData",
-    "exportDataDescription",
-    "exportFailed",
-    "exportSuccess",
     "datePickerToday",
     "datePickerTomorrow",
     "datePickerThisMonth",
@@ -31,13 +27,6 @@
     "trashRestoreAction"
   ],
 
-  "zh_CN": [
-    "exportData",
-    "exportDataDescription",
-    "exportFailed",
-    "exportSuccess"
-  ],
-
   "zh_HK": [
     "actionPromoteToIndependent",
     "commonConfirm",
@@ -45,10 +34,6 @@
     "dateToday",
     "dateTomorrow",
     "dateYesterday",
-    "exportData",
-    "exportDataDescription",
-    "exportFailed",
-    "exportSuccess",
     "flexibleDescriptionAdd",
     "flexibleDescriptionEdit",
     "flexibleDescriptionHide",
