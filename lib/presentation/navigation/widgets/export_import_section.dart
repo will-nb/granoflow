@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/providers/service_providers.dart';
 import '../../../core/services/import_service.dart';
@@ -34,21 +35,36 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
       final exportService = await ref.read(exportServiceProvider.future);
       final zipFile = await exportService.exportToZip();
 
-      // 分享文件
       final l10n = AppLocalizations.of(context);
-      await Share.shareXFiles(
-        [XFile(zipFile.path)],
-        text: l10n.exportData,
-        subject: zipFile.path.split('/').last,
+      final fileName = zipFile.path.split('/').last;
+
+      // 获取下载目录作为默认保存位置
+      final downloadsDir = await _getDownloadsDirectory();
+      final initialDirectory = downloadsDir?.path;
+
+      // 使用 file_picker 保存文件
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: l10n.exportData,
+        fileName: fileName,
+        initialDirectory: initialDirectory,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).exportSuccess),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+      if (result != null) {
+        // 将临时文件复制到用户选择的位置
+        final savedFile = File(result);
+        await zipFile.copy(result);
+
+        // 保存选择的目录，供导入时使用
+        await _saveLastImportDirectory(savedFile.parent.path);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.exportSuccess),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -72,10 +88,18 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
   Future<void> _handleImport() async {
     if (_isImporting) return;
 
+    // 获取上次选择的目录，如果没有则使用下载目录
+    String? initialDirectory = await _getLastImportDirectory();
+    if (initialDirectory == null) {
+      final downloadsDir = await _getDownloadsDirectory();
+      initialDirectory = downloadsDir?.path;
+    }
+
     // 选择文件
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['flow.grano'],
+      initialDirectory: initialDirectory,
     );
 
     if (result == null || result.files.single.path == null) {
@@ -85,17 +109,20 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
     final filePath = result.files.single.path!;
     final file = File(filePath);
 
+    // 保存选择的目录
+    await _saveLastImportDirectory(file.parent.path);
+
     setState(() {
       _isImporting = true;
     });
 
     try {
       final importService = await ref.read(importServiceProvider.future);
-      final result = await importService.importFromZip(file);
+      final importResult = await importService.importFromZip(file);
 
       if (mounted) {
         // 显示统计信息对话框
-        _showImportResultDialog(result);
+        _showImportResultDialog(importResult);
       }
     } catch (e) {
       if (mounted) {
@@ -216,6 +243,46 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
         ],
       ),
     );
+  }
+
+  /// 获取下载目录（跨平台）
+  /// 
+  /// - Desktop (macOS/Windows/Linux): 使用 path_provider 获取下载目录
+  /// - Android/iOS: 返回 null，让 file_picker 使用系统默认
+  Future<Directory?> _getDownloadsDirectory() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      // 移动平台：file_picker 会使用系统默认位置
+      // Android: 使用 SAF (Storage Access Framework)
+      // iOS: 使用应用文档目录
+      return null;
+    } else {
+      // Desktop 平台：尝试获取下载目录
+      try {
+        return await getDownloadsDirectory();
+      } catch (e) {
+        return null;
+      }
+    }
+  }
+
+  /// 获取上次导入时选择的目录
+  Future<String?> _getLastImportDirectory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('last_import_directory');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 保存上次导入时选择的目录
+  Future<void> _saveLastImportDirectory(String directory) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_import_directory', directory);
+    } catch (e) {
+      // 忽略保存失败，不影响主要功能
+    }
   }
 
   @override
