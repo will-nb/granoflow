@@ -489,25 +489,6 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     }
   }
 
-          // 如果计时仍在进行中，恢复后台服务
-          if (_backgroundService != null && state.countdownRemaining.inSeconds > 0) {
-            final now = DateTime.now();
-            final remainingSeconds = state.countdownRemaining.inSeconds;
-            final newEndTime = now.add(Duration(seconds: remainingSeconds));
-            await _backgroundServiceOrThrow.startTimer(
-              endTime: newEndTime,
-              duration: Duration(seconds: remainingSeconds),
-            );
-          }
-        }
-      } catch (e) {
-        // 恢复失败不应该影响应用启动，只记录错误
-        // ignore: avoid_print
-        print('Failed to load timer state: $e');
-      }
-    }
-  }
-
   @override
   void dispose() {
     _timer?.cancel();
