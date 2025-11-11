@@ -37,7 +37,7 @@ void main() {
         repository.setProjects(projects);
 
         final container = ProviderContainer(
-          overrides: [projectRepositoryProvider.overrideWithValue(repository)],
+          overrides: [projectRepositoryProvider.overrideWith((ref) async => repository)],
         );
 
         // 直接读取 repository 的方法来测试
@@ -83,7 +83,7 @@ void main() {
         repository.setProjects(projects);
 
         final container = ProviderContainer(
-          overrides: [projectRepositoryProvider.overrideWithValue(repository)],
+          overrides: [projectRepositoryProvider.overrideWith((ref) async => repository)],
         );
 
         // 直接读取 repository 的方法来测试
