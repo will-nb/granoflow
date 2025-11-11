@@ -230,10 +230,11 @@ void main() {
         for (final task in tasksToDelete) {
           await taskRepository.softDelete(task.id);
         }
-        final existingProjects = await await container.read(projectRepositoryProvider.future).listAll();
+        final projectRepository = await container.read(projectRepositoryProvider.future);
+        final existingProjects = await projectRepository.listAll();
         final projectsToDelete = existingProjects.take(100).toList();
         for (final project in projectsToDelete) {
-          await await container.read(projectRepositoryProvider.future).delete(project.id);
+          await projectRepository.delete(project.id);
         }
 
         // 等待清理完成
