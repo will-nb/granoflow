@@ -158,9 +158,9 @@ clean_project() {
   echo -e "${GREEN}🧹 开始清理项目...${NC}"
   
   # 1. 清空数据库
-  echo -e "${BLUE}1. 清空 ObjectBox 数据库...${NC}"
+  echo -e "${BLUE}1. 清空数据库...${NC}"
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS - ObjectBox 使用默认目录时，数据库存储在 ~/Library/Application Support/<bundle-id>
+    # macOS - Drift 数据库存储在应用支持目录
     # 也可能在沙盒容器中（如果应用是沙盒化的）
     DB_FOUND=false
     
@@ -212,11 +212,11 @@ clean_project() {
       DB_FOUND=true
     fi
 
-    # 路径7: 默认 Documents/objectbox 目录（objectbox 默认 fallback）
-    DOCUMENTS_DB_PATH="$HOME/Documents/objectbox"
-    if [ -d "$DOCUMENTS_DB_PATH" ]; then
-      echo -e "${YELLOW}  - 删除默认 ObjectBox 目录: $DOCUMENTS_DB_PATH${NC}"
-      rm -rf "$DOCUMENTS_DB_PATH"
+    # 路径7: Drift 数据库文件（如果存在）
+    DRIFT_DB_PATH="$HOME/Library/Application Support/com.granoflow.app/granoflow.db"
+    if [ -f "$DRIFT_DB_PATH" ]; then
+      echo -e "${YELLOW}  - 删除 Drift 数据库文件: $DRIFT_DB_PATH${NC}"
+      rm -f "$DRIFT_DB_PATH"
       DB_FOUND=true
     fi
     
@@ -301,10 +301,10 @@ clean_project() {
   run_with_timeout 120 flutter pub get
   echo -e "${GREEN}✅ 依赖包获取完成${NC}"
   
-  # 6. 生成 ObjectBox 代码
-  echo -e "${BLUE}6. 生成 ObjectBox 代码...${NC}"
+  # 6. 生成 Drift 代码
+  echo -e "${BLUE}6. 生成 Drift 代码...${NC}"
   run_with_timeout 180 dart run build_runner build --delete-conflicting-outputs
-  echo -e "${GREEN}✅ ObjectBox 代码生成完成${NC}"
+    echo -e "${GREEN}✅ Drift 代码生成完成${NC}"
   
   # 7. flutter analyze
   echo -e "${BLUE}7. 执行代码分析...${NC}"

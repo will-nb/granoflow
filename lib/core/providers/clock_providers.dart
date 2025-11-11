@@ -169,12 +169,13 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
   /// 异步初始化依赖
   Future<void> _initAsync() async {
     if (_ref == null) return;
+    final ref = _ref as Ref;
     
-    _focusFlowService = await _ref!.read(focusFlowServiceProvider.future);
-    _audioService = await _ref!.read(clockAudioServiceProvider.future);
-    _focusSessionRepository = await _ref!.read(focusSessionRepositoryProvider.future);
-    _backgroundService = _ref!.read(timerBackgroundServiceProvider);
-    _persistenceService = _ref!.read(timerPersistenceServiceProvider);
+    _focusFlowService = await ref.read(focusFlowServiceProvider.future);
+    _audioService = await ref.read(clockAudioServiceProvider.future);
+    _focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
+    _backgroundService = ref.read(timerBackgroundServiceProvider);
+    _persistenceService = ref.read(timerPersistenceServiceProvider);
     
     _initTimer();
     // 可选：尝试从持久化存储恢复状态

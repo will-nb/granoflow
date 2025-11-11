@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -10,7 +8,6 @@ import 'package:granoflow/core/providers/app_config_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/data/models/project.dart';
-import 'package:granoflow/data/models/milestone.dart';
 import 'package:granoflow/core/services/project_models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -92,8 +89,8 @@ void main() {
         // 验证任务已更新
         final retrievedUpdatedTask = await taskRepository.findById(createdTask.id);
         expect(retrievedUpdatedTask, isNotNull);
-        expect(retrievedUpdatedTask!.title, equals('Updated Task'));
-        expect(retrievedUpdatedTask!.description, equals('Updated Description'));
+        expect(retrievedUpdatedTask?.title, equals('Updated Task'));
+        expect(retrievedUpdatedTask?.description, equals('Updated Description'));
 
         // 测试删除任务
         await taskRepository.softDelete(createdTask.id);
@@ -181,8 +178,8 @@ void main() {
         // 验证项目已更新
         final retrievedUpdatedProject = await projectRepository.findById(createdProject.id);
         expect(retrievedUpdatedProject, isNotNull);
-        expect(retrievedUpdatedProject!.title, equals('Updated Project'));
-        expect(retrievedUpdatedProject!.description, equals('Updated Description'));
+        expect(retrievedUpdatedProject?.title, equals('Updated Project'));
+        expect(retrievedUpdatedProject?.description, equals('Updated Description'));
 
         // 测试删除项目
         await projectService.deleteProject(createdProject.id);
@@ -277,8 +274,8 @@ void main() {
         // 验证里程碑已更新
         final retrievedUpdatedMilestone = await milestoneRepository.findById(createdMilestone.id);
         expect(retrievedUpdatedMilestone, isNotNull);
-        expect(retrievedUpdatedMilestone!.title, equals('Updated Milestone'));
-        expect(retrievedUpdatedMilestone!.description, equals('Updated Description'));
+        expect(retrievedUpdatedMilestone?.title, equals('Updated Milestone'));
+        expect(retrievedUpdatedMilestone?.description, equals('Updated Description'));
 
         // 测试删除里程碑
         await milestoneService.delete(createdMilestone.id);
@@ -339,7 +336,6 @@ void main() {
 
         final taskRepository = await container.read(taskRepositoryProvider.future);
         final projectRepository = await container.read(projectRepositoryProvider.future);
-        final taskService = await container.read(taskServiceProvider.future);
         final projectService = await container.read(projectServiceProvider.future);
 
         // 创建一些测试数据
@@ -455,8 +451,6 @@ void main() {
         }
 
         final taskRepository = await container.read(taskRepositoryProvider.future);
-        final projectRepository = await container.read(projectRepositoryProvider.future);
-        final taskService = await container.read(taskServiceProvider.future);
         final projectService = await container.read(projectServiceProvider.future);
 
         // 创建测试项目
