@@ -74,8 +74,8 @@ class ReviewPageNotifier extends StateNotifier<ReviewPageState> {
 
   /// 异步初始化依赖
   Future<void> _initAsync() async {
-    if (_ref == null) return;
-    final ref = _ref as Ref;
+    final ref = _ref;
+    if (ref == null) return;
     _reviewDataService = await ref.read(reviewDataServiceProvider.future);
   }
 

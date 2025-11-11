@@ -168,8 +168,8 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
 
   /// 异步初始化依赖
   Future<void> _initAsync() async {
-    if (_ref == null) return;
-    final ref = _ref as Ref;
+    final ref = _ref;
+    if (ref == null) return;
     
     _focusFlowService = await ref.read(focusFlowServiceProvider.future);
     _audioService = await ref.read(clockAudioServiceProvider.future);
