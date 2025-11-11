@@ -265,7 +265,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     
     // 启动后台服务
     if (_backgroundService != null) {
-      await _backgroundService.startTimer(
+      await _backgroundServiceOrThrow.startTimer(
         endTime: endTime,
         duration: Duration(seconds: state.countdownDuration),
       );
@@ -294,7 +294,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     
     // 暂停后台服务
     if (_backgroundService != null) {
-      await _backgroundService.pauseTimer();
+      await _backgroundServiceOrThrow.pauseTimer();
     }
     
     // 保存状态到持久化存储
@@ -339,11 +339,11 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
       
       // 恢复后台服务
       if (_backgroundService != null) {
-        await _backgroundService.resumeTimer();
+        await _backgroundServiceOrThrow.resumeTimer();
         // 如果 resumeTimer 不支持，重新启动
-        final isRunning = await _backgroundService.isRunning();
+        final isRunning = await _backgroundServiceOrThrow.isRunning();
         if (!isRunning) {
-          await _backgroundService.startTimer(
+          await _backgroundServiceOrThrow.startTimer(
             endTime: newEndTime,
             duration: Duration(seconds: remainingSeconds),
           );
@@ -388,12 +388,12 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     
     // 停止后台服务
     if (_backgroundService != null) {
-      await _backgroundService.stopTimer();
+      await _backgroundServiceOrThrow.stopTimer();
     }
     
     // 清除持久化状态
     if (_persistenceService != null) {
-      await _persistenceService.clearState();
+      await _persistenceServiceOrThrow.clearState();
     }
     
     // 如果有正在进行的 FocusSession，结束它但不记录时间（actualMinutes = 0）
@@ -428,7 +428,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
   Future<void> _saveState() async {
     if (_persistenceService != null) {
       try {
-        await _persistenceService.saveState(state);
+        await _persistenceServiceOrThrow.saveState(state);
       } catch (e) {
         // 持久化失败不应该影响计时功能，只记录错误
         // ignore: avoid_print
@@ -441,7 +441,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
   Future<void> _loadState() async {
     if (_persistenceService != null) {
       try {
-        final savedState = await _persistenceService.loadState();
+        final savedState = await _persistenceServiceOrThrow.loadState();
         if (savedState != null && savedState.isStarted) {
           // 恢复状态
           state = savedState;
@@ -452,9 +452,38 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
             if (remainingSeconds > 0 && savedState.startTime != null) {
               final now = DateTime.now();
               final newEndTime = now.add(Duration(seconds: remainingSeconds));
-              await _backgroundService.startTimer(
+              await _backgroundServiceOrThrow.startTimer(
                 endTime: newEndTime,
                 duration: Duration(seconds: remainingSeconds),
+              );
+            }
+          }
+        }
+      } catch (e) {
+        // 恢复失败不应该影响应用启动，只记录错误
+        // ignore: avoid_print
+        print('Failed to load timer state: $e');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _audioService.stopTickSound();
+    super.dispose();
+  }
+}
+
+/// 计时器 Provider
+/// 注意：由于依赖的 Service 现在是 FutureProvider，我们需要在 StateNotifier 内部异步初始化
+final clockTimerProvider = StateNotifierProvider<ClockTimerNotifier, ClockTimerState>((ref) {
+  // StateNotifierProvider 不能是 async，所以我们需要在 StateNotifier 内部处理异步初始化
+  // ClockTimerNotifier 需要在内部异步获取依赖
+  return ClockTimerNotifier._(ref);
+});
+
+n(seconds: remainingSeconds),
               );
             }
           }
