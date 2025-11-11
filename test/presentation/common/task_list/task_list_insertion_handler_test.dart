@@ -539,8 +539,8 @@ void main() {
                   fakeTaskHierarchyService,
                 ),
                 taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
-                sortIndexServiceProvider.overrideWithValue(
-                  fakeSortIndexService,
+                sortIndexServiceProvider.overrideWith(
+                  (ref) async => fakeSortIndexService,
                 ),
               ],
               child: Consumer(
