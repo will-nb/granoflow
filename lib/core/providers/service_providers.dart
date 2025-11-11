@@ -11,7 +11,6 @@ import '../services/preference_service.dart';
 import '../services/seed_import_service.dart';
 import '../services/milestone_service.dart';
 import '../services/project_service.dart';
-import '../services/review_data_service.dart';
 import '../services/task_hierarchy_service.dart';
 import '../services/task_service.dart';
 import '../services/sort_index_service.dart';
@@ -156,16 +155,15 @@ final clockAudioServiceProvider = FutureProvider<ClockAudioService>((ref) async 
   return service;
 });
 
-final reviewDataServiceProvider = FutureProvider<ReviewDataService>((ref) async {
-  final taskRepository = await ref.read(taskRepositoryProvider.future);
-  final projectRepository = await ref.read(projectRepositoryProvider.future);
-  final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
-  return ReviewDataService(
-    taskRepository: taskRepository,
-    projectRepository: projectRepository,
-    focusSessionRepository: focusSessionRepository,
-  );
-});
+// TODO: 实现新的 CalendarReviewService 后添加对应的 Provider
+// final calendarReviewServiceProvider = FutureProvider<CalendarReviewService>((ref) async {
+//   final taskRepository = await ref.read(taskRepositoryProvider.future);
+//   final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
+//   return CalendarReviewService(
+//     taskRepository: taskRepository,
+//     focusSessionRepository: focusSessionRepository,
+//   );
+// });
 
 final exportServiceProvider = FutureProvider<ExportService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);

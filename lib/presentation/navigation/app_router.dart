@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 import 'app_shell.dart';
 import '../home/home_page.dart';
 import '../tasks/task_list_page.dart';
-import '../review/review_page.dart';
 import 'settings_controls.dart';
 import '../inbox/inbox_page.dart';
 import '../completion_management/completed_page.dart';
@@ -38,11 +37,12 @@ class AppRouter {
             name: 'projects',
             builder: (context, state) => const ProjectsPage(),
           ),
-          GoRoute(
-            path: '/achievements',
-            name: 'achievements',
-            builder: (context, state) => const ReviewPage(),
-          ),
+          // TODO: 实现新的 CalendarReviewPage 后恢复此路由
+          // GoRoute(
+          //   path: '/achievements',
+          //   name: 'achievements',
+          //   builder: (context, state) => const CalendarReviewPage(),
+          // ),
           GoRoute(
             path: '/settings',
             name: 'settings',

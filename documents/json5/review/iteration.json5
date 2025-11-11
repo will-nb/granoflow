@@ -874,8 +874,9 @@
           task: "更新路由配置",
           file: "lib/presentation/navigation/app_router.dart",
           action: [
-            "修改导入：review_page.dart → calendar_review_page.dart",
-            "修改路由 builder：ReviewPage() → CalendarReviewPage()",
+            "恢复 /achievements 路由（当前已注释）",
+            "添加导入：calendar_review_page.dart",
+            "修改路由 builder：CalendarReviewPage()",
           ],
         },
         {
@@ -886,37 +887,7 @@
     },
     {
       step: 9,
-      title: "阶段 9：删除旧文件",
-      description: "删除所有旧的回顾页面相关文件",
-      tasks: [
-        {
-          task: "删除旧的回顾页面文件",
-          action: [
-            "删除 lib/presentation/review/review_page.dart",
-            "删除 lib/core/services/review_data_service.dart",
-            "删除 lib/core/providers/review_providers.dart",
-            "删除 lib/data/models/review_data.dart",
-            "删除所有旧的 widgets 文件（review_*.dart）",
-            "删除所有旧的 utils 文件（review_*.dart）",
-          ],
-        },
-        {
-          task: "运行 flutter analyze 检查",
-          command: "flutter analyze",
-        },
-        {
-          task: "修复可能的导入错误",
-          action: "检查并修复因删除文件导致的导入错误",
-        },
-        {
-          task: "阶段完成：忽略 pre-commit，强行 git commit",
-          command: "git add -A && git commit --no-verify -m 'feat: 阶段 9 完成 - 删除旧文件'",
-        },
-      ],
-    },
-    {
-      step: 10,
-      title: "阶段 10：测试实现",
+      title: "阶段 9：测试实现",
       description: "创建单元测试、Widget 测试和集成测试",
       tasks: [
         {
@@ -966,13 +937,13 @@
         },
         {
           task: "阶段完成：忽略 pre-commit，强行 git commit",
-          command: "git add -A && git commit --no-verify -m 'feat: 阶段 10 完成 - 测试实现'",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 9 完成 - 测试实现'",
         },
       ],
     },
     {
-      step: 11,
-      title: "阶段 11：代码质量检查和优化",
+      step: 10,
+      title: "阶段 10：代码质量检查和优化",
       description: "运行代码分析，修复问题，优化性能",
       tasks: [
         {
@@ -997,7 +968,7 @@
         },
         {
           task: "阶段完成：忽略 pre-commit，强行 git commit",
-          command: "git add -A && git commit --no-verify -m 'feat: 阶段 11 完成 - 代码质量检查和优化'",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 10 完成 - 代码质量检查和优化'",
         },
       ],
     },
@@ -1339,7 +1310,7 @@
       mitigation: "实现懒加载、数据缓存和虚拟滚动，只加载可见范围的数据",
       priority: "high",
       check: "测试加载大量历史数据时的性能，监控内存使用",
-      enforcement: "在阶段 11 进行性能测试和优化",
+      enforcement: "在阶段 10 进行性能测试和优化",
     },
     {
       risk: "筛选条件持久化可能导致数据不一致",
@@ -1360,7 +1331,7 @@
       mitigation: "在删除前检查所有导入，确保没有其他文件依赖旧文件",
       priority: "high",
       check: "运行 flutter analyze 检查导入错误",
-      enforcement: "在阶段 9 删除旧文件后立即运行 flutter analyze",
+      enforcement: "在阶段 8 实现主页面后立即运行 flutter analyze，确保没有导入错误",
     },
   ],
 
