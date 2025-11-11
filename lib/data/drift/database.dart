@@ -1,14 +1,8 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
-// Web 支持：使用条件导入
-// TODO: 在 Web 平台实现时启用
-// import 'package:drift/wasm.dart' if (dart.library.io) 'package:drift/native.dart' as web_impl;
+// 条件导入：Web 和移动端使用不同的数据库实现
+import 'database_web.dart' if (dart.library.io) 'database_native.dart' as db_impl;
 
 import 'tables/tasks.dart';
 import 'tables/projects.dart';
@@ -80,22 +74,10 @@ class AppDatabase extends _$AppDatabase {
 
 /// 创建数据库连接
 LazyDatabase _openConnection() {
+  // 使用条件导入，根据平台自动选择正确的实现
   if (kIsWeb) {
-    // Web 平台：使用 WasmDatabase (IndexedDB)
-    // 注意：WasmDatabase 需要 sqlite3.wasm 文件，这里使用简化的方式
-    // 实际使用时需要确保 sqlite3.wasm 文件已正确加载
-    return LazyDatabase(() async {
-      // ignore: undefined_class, undefined_identifier
-      // WasmDatabase 构造函数需要 path 和 sqlite3 参数
-      // 这里暂时使用占位符，实际使用时需要正确配置
-      throw UnimplementedError('Web platform database connection not yet implemented. Use NativeDatabase for now.');
-    });
+    return createWebDatabase();
   } else {
-    // 移动端：使用 SQLite
-    return LazyDatabase(() async {
-      final dbFolder = await getApplicationSupportDirectory();
-      final file = File(p.join(dbFolder.path, 'granoflow.db'));
-      return NativeDatabase(file);
-    });
+    return createNativeDatabase();
   }
 }
