@@ -10,7 +10,7 @@ import '../../data/repositories/tag_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/task_template_repository.dart';
 import '../utils/id_generator.dart';
-import '../utils/objectbox_diagnostics.dart';
+import '../utils/database_instrumentation.dart';
 import 'metric_orchestrator.dart';
 import 'project_models.dart';
 import 'project_service.dart';

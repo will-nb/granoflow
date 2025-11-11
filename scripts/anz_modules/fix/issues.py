@@ -23,7 +23,6 @@ from typing import Callable, Dict, Iterable, List, Optional, Set
 
 from fixers import (
     import_remap,
-    objectbox_repo_imports,
     id_literals,
     id_types,
     invalid_override,
@@ -204,21 +203,6 @@ def fix_uri_does_not_exist(path: Path, diags: List[Diagnostic]) -> bool:
 Fixer = Callable[[Path, List[Diagnostic]], bool]
 
 
-def _is_objectbox_repository(path: Path) -> bool:
-    try:
-        rel = path.relative_to(REPO_ROOT)
-    except ValueError:
-        return False
-    parts = rel.parts
-    return (
-        len(parts) >= 5
-        and parts[0] == "lib"
-        and parts[1] == "data"
-        and parts[2] == "repositories"
-        and parts[3] == "objectbox"
-    )
-
-
 def _is_test_file(path: Path) -> bool:
     try:
         rel = path.relative_to(REPO_ROOT)
@@ -239,9 +223,6 @@ def _fix_test_ids(path: Path, diagnostics: List[Diagnostic]) -> bool:
 FIXERS: Dict[str, tuple[Fixer, Callable[[Path], bool]]] = {
     "unused_import": (fix_unused_import, lambda _: True),
     "uri_does_not_exist": (fix_uri_does_not_exist, lambda _: True),
-    "undefined_class": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
-    "non_type_as_type_argument": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
-    "undefined_identifier": (objectbox_repo_imports.apply_objectbox_repo_imports, _is_objectbox_repository),
     "argument_type_not_assignable": (
         argument_type_not_assignable.apply_argument_type_not_assignable_fix,
         _is_test_file,

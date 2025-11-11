@@ -75,9 +75,5 @@ class AppDatabase extends _$AppDatabase {
 /// 创建数据库连接
 LazyDatabase _openConnection() {
   // 使用条件导入，根据平台自动选择正确的实现
-  if (kIsWeb) {
-    return createWebDatabase();
-  } else {
-    return createNativeDatabase();
-  }
+  return db_impl.createDatabase();
 }

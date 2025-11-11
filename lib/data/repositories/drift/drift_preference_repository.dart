@@ -8,7 +8,7 @@ import '../../database/database_adapter.dart';
 import '../../drift/database.dart' hide Preference;
 import '../../drift/database.dart' as drift show Preference;
 import '../../models/preference.dart';
-import '../../objectbox/converters.dart';
+import '../../drift/converters.dart';
 import '../preference_repository.dart';
 
 /// Drift 版本的 PreferenceRepository 实现

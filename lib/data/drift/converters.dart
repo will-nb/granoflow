@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/task.dart';
@@ -59,6 +60,16 @@ TaskStatus projectStatusFromIndex(int index) {
     return TaskStatus.inbox;
   }
   return TaskStatus.values[index];
+}
+
+/// ThemeMode 枚举转换器
+int themeModeToIndex(ThemeMode mode) => mode.index;
+
+ThemeMode themeModeFromIndex(int index) {
+  if (index < 0 || index >= ThemeMode.values.length) {
+    return ThemeMode.system;
+  }
+  return ThemeMode.values[index];
 }
 
 /// List<String> 转换器（用于 tags 字段）

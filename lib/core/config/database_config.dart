@@ -3,16 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/database/database_adapter.dart';
 import '../../data/database/drift_adapter.dart';
-import '../../data/database/objectbox_adapter.dart';
-import 'package:objectbox/objectbox.dart';
 
 /// 数据库类型枚举
 enum DatabaseType {
-  objectbox,
   drift,
 }
 
-/// 数据库配置管理，支持在 ObjectBox 和 Drift 之间切换
+/// 数据库配置管理（当前使用 Drift）
 class DatabaseConfig {
   DatabaseConfig._();
 
@@ -32,15 +29,9 @@ class DatabaseConfig {
     // 1. 优先从环境变量读取（开发环境）
     if (kDebugMode) {
       const envType = String.fromEnvironment('DATABASE_TYPE');
-      if (envType.isNotEmpty) {
-        switch (envType.toLowerCase()) {
-          case 'objectbox':
-            _cachedType = DatabaseType.objectbox;
-            return _cachedType!;
-          case 'drift':
-            _cachedType = DatabaseType.drift;
-            return _cachedType!;
-        }
+      if (envType.isNotEmpty && envType.toLowerCase() == 'drift') {
+        _cachedType = DatabaseType.drift;
+        return _cachedType!;
       }
     }
 
@@ -48,15 +39,9 @@ class DatabaseConfig {
     try {
       final prefs = await SharedPreferences.getInstance();
       final storedType = prefs.getString('database_type');
-      if (storedType != null) {
-        switch (storedType.toLowerCase()) {
-          case 'objectbox':
-            _cachedType = DatabaseType.objectbox;
-            return _cachedType!;
-          case 'drift':
-            _cachedType = DatabaseType.drift;
-            return _cachedType!;
-        }
+      if (storedType != null && storedType.toLowerCase() == 'drift') {
+        _cachedType = DatabaseType.drift;
+        return _cachedType!;
       }
     } catch (e) {
       // 如果读取失败，使用默认值
@@ -81,22 +66,11 @@ class DatabaseConfig {
 
   /// 创建对应的 DatabaseAdapter
   ///
-  /// 注意：ObjectBox 需要 Store 实例，Drift 需要数据库实例
-  /// 这个方法返回一个工厂函数，调用者需要提供必要的参数
-  static Future<DatabaseAdapter> createAdapter({
-    Store? objectBoxStore,
-    // Drift 数据库实例将在 DriftAdapter 中创建
-  }) async {
+  /// 注意：Drift 数据库实例将在 DriftAdapter 中创建
+  static Future<DatabaseAdapter> createAdapter() async {
     final type = await current;
 
     switch (type) {
-      case DatabaseType.objectbox:
-        if (objectBoxStore == null) {
-          throw ArgumentError(
-            'ObjectBoxStore is required when using ObjectBox database',
-          );
-        }
-        return ObjectBoxAdapter(objectBoxStore);
       case DatabaseType.drift:
         return DriftAdapter();
     }
