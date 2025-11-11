@@ -84,7 +84,7 @@ void main() {
         // 等待任务数据更新（已在 waitForAnimation 中等待）
 
         // 验证任务已移动到 today 区域（数据库）
-        final taskRepository = container.read(taskRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
         final movedTask = await taskRepository.findById(overdueTasks.first.id);
         expect(movedTask, isNotNull, reason: '任务应该存在');
 
@@ -160,7 +160,7 @@ void main() {
         await helper.waitForAnimation();
 
         // 验证任务已移动到目标区域（数据库）
-        final taskRepository = container.read(taskRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
         final movedTask = await taskRepository.findById(todayTasks.first.id);
         expect(movedTask, isNotNull, reason: '任务应该存在');
 
@@ -232,7 +232,7 @@ void main() {
         await helper.waitForAnimation();
 
         // 验证任务已移动到目标区域（数据库）
-        final taskRepository = container.read(taskRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
         final movedTask = await taskRepository.findById(thisWeekTasks.first.id);
         expect(movedTask, isNotNull, reason: '任务应该存在');
 
@@ -304,7 +304,7 @@ void main() {
         await helper.waitForAnimation();
 
         // 验证任务已移动到目标区域（数据库）
-        final taskRepository = container.read(taskRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
         final movedTask = await taskRepository.findById(thisMonthTasks.first.id);
         expect(movedTask, isNotNull, reason: '任务应该存在');
 
@@ -377,7 +377,7 @@ void main() {
         await helper.waitForAnimation();
 
         // 验证任务已移动到目标区域（数据库）
-        final taskRepository = container.read(taskRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
         final movedTask = await taskRepository.findById(laterTasks.first.id);
         expect(movedTask, isNotNull, reason: '任务应该存在');
 

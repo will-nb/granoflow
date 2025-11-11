@@ -27,7 +27,7 @@ class TaskSectionTestHelper {
     DateTime? now,
   }) async {
     final nowTime = now ?? DateTime.now();
-    final taskService = container.read(taskServiceProvider);
+    final taskService = await container.read(taskServiceProvider.future);
     final taskRepository = await container.read(taskRepositoryProvider.future);
     final tasks = <Task>[];
 

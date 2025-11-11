@@ -188,8 +188,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-            sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+            taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+            sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
           ],
           child: Consumer(
             builder: (context, ref, child) {

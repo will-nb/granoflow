@@ -30,9 +30,9 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final taskRepository = container.read(taskRepositoryProvider);
-        final projectRepository = container.read(projectRepositoryProvider);
-        final milestoneRepository = container.read(milestoneRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
+        final projectRepository = await container.read(projectRepositoryProvider.future);
+        final milestoneRepository = await container.read(milestoneRepositoryProvider.future);
 
         // 注意：不清空数据库，因为这会触发重新导入，可能导致测试超时
         // 如果数据库已有数据，测试会验证现有数据是否符合预期
@@ -192,9 +192,9 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final taskRepository = container.read(taskRepositoryProvider);
-        final projectRepository = container.read(projectRepositoryProvider);
-        final milestoneRepository = container.read(milestoneRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
+        final projectRepository = await container.read(projectRepositoryProvider.future);
+        final milestoneRepository = await container.read(milestoneRepositoryProvider.future);
 
         // 获取第一次导入后的数据数量
         final projectsBefore = await projectRepository.listAll();

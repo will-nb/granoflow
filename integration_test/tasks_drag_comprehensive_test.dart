@@ -66,7 +66,7 @@ void main() {
           await helper.waitForAnimation();
 
           // 验证排序（通过数据库验证）
-          final taskRepository = container.read(taskRepositoryProvider);
+          final taskRepository = await container.read(taskRepositoryProvider.future);
           final updatedTask = await taskRepository.findById(draggedTask.id);
           expect(updatedTask, isNotNull, reason: '任务应该存在');
           expect(updatedTask!.sortIndex, lessThan(firstTask.sortIndex),
@@ -131,7 +131,7 @@ void main() {
           await helper.waitForAnimation();
 
           // 验证排序
-          final taskRepository = container.read(taskRepositoryProvider);
+          final taskRepository = await container.read(taskRepositoryProvider.future);
           final updatedTask = await taskRepository.findById(draggedTask.id);
           expect(updatedTask, isNotNull, reason: '任务应该存在');
           expect(updatedTask!.sortIndex, greaterThan(beforeTask.sortIndex),
@@ -194,7 +194,7 @@ void main() {
           await helper.waitForAnimation();
 
           // 验证排序
-          final taskRepository = container.read(taskRepositoryProvider);
+          final taskRepository = await container.read(taskRepositoryProvider.future);
           final updatedTask = await taskRepository.findById(draggedTask.id);
           expect(updatedTask, isNotNull, reason: '任务应该存在');
           expect(updatedTask!.sortIndex, greaterThan(lastTask.sortIndex),
@@ -253,7 +253,7 @@ void main() {
           await helper.waitForAnimation();
 
           // 验证排序
-          final taskRepository = container.read(taskRepositoryProvider);
+          final taskRepository = await container.read(taskRepositoryProvider.future);
           final updatedTask = await taskRepository.findById(draggedTask.id);
           expect(updatedTask, isNotNull, reason: '任务应该存在');
           expect(updatedTask!.sortIndex, lessThan(targetTask.sortIndex),
@@ -314,7 +314,7 @@ void main() {
           await helper.waitForAnimation();
 
           // 验证层级关系
-          final taskRepository = container.read(taskRepositoryProvider);
+          final taskRepository = await container.read(taskRepositoryProvider.future);
           final updatedTask = await taskRepository.findById(draggedTask.id);
           expect(updatedTask, isNotNull, reason: '任务应该存在');
           expect(updatedTask!.parentId, targetTask.id,
@@ -413,7 +413,7 @@ void main() {
           await helper.waitForAnimation();
 
           // 验证任务没有被移动（sortIndex 不变）
-          final taskRepository = container.read(taskRepositoryProvider);
+          final taskRepository = await container.read(taskRepositoryProvider.future);
           final updatedTask = await taskRepository.findById(draggedTask.id);
           expect(updatedTask, isNotNull, reason: '任务应该存在');
           expect(updatedTask!.sortIndex, draggedTask.sortIndex,
@@ -459,7 +459,7 @@ void main() {
         final targetPosition = tester.getCenter(targetFinder.first);
 
         // 记录拖拽前的状态
-        final taskRepository = container.read(taskRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
         final beforeDrag = await taskRepository.findById(draggedTask.id);
         expect(beforeDrag, isNotNull, reason: '拖拽前的任务应该存在');
 

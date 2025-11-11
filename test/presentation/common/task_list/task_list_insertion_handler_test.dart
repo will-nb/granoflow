@@ -131,8 +131,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -171,8 +171,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -219,8 +219,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -266,8 +266,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -312,8 +312,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -358,8 +358,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -405,8 +405,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -450,8 +450,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -489,8 +489,8 @@ void main() {
               taskHierarchyServiceProvider.overrideWithValue(
                 fakeTaskHierarchyService,
               ),
-              taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
-              sortIndexServiceProvider.overrideWithValue(fakeSortIndexService),
+              taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
+              sortIndexServiceProvider.overrideWith((ref) async => fakeSortIndexService),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -537,7 +537,7 @@ void main() {
                 taskHierarchyServiceProvider.overrideWithValue(
                   fakeTaskHierarchyService,
                 ),
-                taskRepositoryProvider.overrideWithValue(fakeTaskRepository),
+                taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
                 sortIndexServiceProvider.overrideWithValue(
                   fakeSortIndexService,
                 ),

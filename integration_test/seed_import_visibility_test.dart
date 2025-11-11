@@ -26,8 +26,8 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final taskRepository = container.read(taskRepositoryProvider);
-        final projectRepository = container.read(projectRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
+        final projectRepository = await container.read(projectRepositoryProvider.future);
 
         // 等待种子导入完成（使用 pump 而不是 pumpAndSettle，避免无限等待）
         for (int i = 0; i < 10; i++) {

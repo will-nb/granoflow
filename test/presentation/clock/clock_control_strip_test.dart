@@ -179,7 +179,7 @@ Future<void> _pumpControlStrip(
         preferenceServiceProvider.overrideWithValue(
           _FakePreferenceService(initial: preference),
         ),
-        taskServiceProvider.overrideWithValue(_FakeTaskService()),
+        taskServiceProvider.overrideWith((ref) async => _FakeTaskService()),
       ],
       child: MaterialApp(
         locale: const Locale('en'),

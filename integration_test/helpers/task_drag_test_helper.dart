@@ -232,7 +232,7 @@ class TaskDragTestHelper {
     String? expectedParentId,
     double? expectedSortIndex,
   }) async {
-    final taskRepository = container.read(taskRepositoryProvider);
+    final taskRepository = await container.read(taskRepositoryProvider.future);
     final task = await taskRepository.findById(taskId);
     if (task == null) return false;
 

@@ -221,7 +221,7 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
-        final taskRepository = container.read(taskRepositoryProvider);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
         final seedImportService = container.read(seedImportServiceProvider);
 
         // 清空数据库（限制清理数量以避免超时）
@@ -230,10 +230,10 @@ void main() {
         for (final task in tasksToDelete) {
           await taskRepository.softDelete(task.id);
         }
-        final existingProjects = await container.read(projectRepositoryProvider).listAll();
+        final existingProjects = await await container.read(projectRepositoryProvider.future).listAll();
         final projectsToDelete = existingProjects.take(100).toList();
         for (final project in projectsToDelete) {
-          await container.read(projectRepositoryProvider).delete(project.id);
+          await await container.read(projectRepositoryProvider.future).delete(project.id);
         }
 
         // 等待清理完成
