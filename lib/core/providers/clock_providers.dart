@@ -452,11 +452,36 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
             if (remainingSeconds > 0 && savedState.startTime != null) {
               final now = DateTime.now();
               final newEndTime = now.add(Duration(seconds: remainingSeconds));
-              await _backgroundServiceOrThrow.startTimer(
-                endTime: newEndTime,
-                duration: Duration(seconds: remainingSeconds),
-              );
+              try {
+                await _backgroundServiceOrThrow.startTimer(
+                  endTime: newEndTime,
+                  duration: Duration(seconds: remainingSeconds),
+                );
+              } catch (e) {
+                // 恢复后台服务失败不应该影响应用启动，只记录错误
+                // ignore: avoid_print
+                print('Failed to restore background timer: $e');
+              }
             }
+          }
+        }
+      } catch (e) {
+        // 恢复失败不应该影响应用启动，只记录错误
+        // ignore: avoid_print
+        print('Failed to load timer state: $e');
+      }
+    }
+  }
+
+          // 如果计时仍在进行中，恢复后台服务
+          if (_backgroundService != null && state.countdownRemaining.inSeconds > 0) {
+            final now = DateTime.now();
+            final remainingSeconds = state.countdownRemaining.inSeconds;
+            final newEndTime = now.add(Duration(seconds: remainingSeconds));
+            await _backgroundServiceOrThrow.startTimer(
+              endTime: newEndTime,
+              duration: Duration(seconds: remainingSeconds),
+            );
           }
         }
       } catch (e) {
@@ -470,36 +495,7 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
   @override
   void dispose() {
     _timer?.cancel();
-    _audioService.stopTickSound();
-    super.dispose();
-  }
-}
-
-/// 计时器 Provider
-/// 注意：由于依赖的 Service 现在是 FutureProvider，我们需要在 StateNotifier 内部异步初始化
-final clockTimerProvider = StateNotifierProvider<ClockTimerNotifier, ClockTimerState>((ref) {
-  // StateNotifierProvider 不能是 async，所以我们需要在 StateNotifier 内部处理异步初始化
-  // ClockTimerNotifier 需要在内部异步获取依赖
-  return ClockTimerNotifier._(ref);
-});
-
-n(seconds: remainingSeconds),
-              );
-            }
-          }
-        }
-      } catch (e) {
-        // 恢复失败不应该影响应用启动，只记录错误
-        // ignore: avoid_print
-        print('Failed to load timer state: $e');
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _audioService.stopTickSound();
+    _audioService?.stopTickSound();
     super.dispose();
   }
 }
