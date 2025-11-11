@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
+import '../services/encryption_key_service.dart';
 import '../services/export_service.dart';
 import '../services/import_service.dart';
 import '../services/focus_flow_service.dart';
@@ -181,4 +182,8 @@ final importServiceProvider = FutureProvider<ImportService>((ref) async {
     projectRepository: projectRepository,
     milestoneRepository: milestoneRepository,
   );
+});
+
+final encryptionKeyServiceProvider = Provider<EncryptionKeyService>((ref) {
+  return EncryptionKeyService();
 });

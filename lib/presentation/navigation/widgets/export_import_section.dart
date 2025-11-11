@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/services/import_service.dart';
 import '../../../generated/l10n/app_localizations.dart';
+import 'encryption_key_input_widget.dart';
 
 /// 导出导入功能组件
 class ExportImportSection extends ConsumerStatefulWidget {
@@ -293,6 +294,10 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
 
     return Column(
       children: [
+        // 加密密钥输入组件
+        const EncryptionKeyInputWidget(),
+        const Divider(),
+        // 导出按钮
         ListTile(
           leading: Icon(
             Icons.upload,

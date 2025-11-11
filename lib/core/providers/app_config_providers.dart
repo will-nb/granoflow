@@ -71,6 +71,18 @@ final seedInitializerProvider = FutureProvider<void>((ref) async {
         ? '${localeValue.languageCode}_${localeValue.countryCode}'
         : localeValue.languageCode;
     
+    // 在首次导入种子数据时生成加密密钥（如果不存在）
+    debugPrint('🔵 SeedInitializerProvider: Checking encryption key...');
+    final encryptionKeyService = ref.read(encryptionKeyServiceProvider);
+    final hasKey = await encryptionKeyService.hasKey();
+    if (!hasKey) {
+      debugPrint('🔵 SeedInitializerProvider: Encryption key not found, generating new key...');
+      await encryptionKeyService.getOrGenerateKey();
+      debugPrint('🔵 SeedInitializerProvider: Encryption key generated successfully');
+    } else {
+      debugPrint('🔵 SeedInitializerProvider: Encryption key already exists, skipping generation');
+    }
+    
     debugPrint('🔵 SeedInitializerProvider: Calling importIfNeeded with locale: $locale');
     await service.importIfNeeded(locale);
     debugPrint('🔵 SeedInitializerProvider: importIfNeeded completed successfully');
