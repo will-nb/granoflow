@@ -205,6 +205,22 @@ class ClockTimerNotifier extends StateNotifier<ClockTimerState> {
     return _focusSessionRepository!;
   }
   
+  /// 获取 TimerBackgroundService（延迟初始化）
+  TimerBackgroundService get _backgroundServiceOrThrow {
+    if (_backgroundService == null) {
+      throw StateError('ClockTimerNotifier not initialized. Call _initAsync() first.');
+    }
+    return _backgroundService!;
+  }
+  
+  /// 获取 TimerPersistenceService（延迟初始化）
+  TimerPersistenceService get _persistenceServiceOrThrow {
+    if (_persistenceService == null) {
+      throw StateError('ClockTimerNotifier not initialized. Call _initAsync() first.');
+    }
+    return _persistenceService!;
+  }
+  
   Timer? _timer;
   DateTime? _currentPauseStart;
 
