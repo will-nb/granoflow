@@ -125,11 +125,11 @@ class _CalendarFilterSheetState extends ConsumerState<CalendarFilterSheet> {
     );
   }
 
-  Widget _buildTagChips(BuildContext context, tags) {
+  Widget _buildTagChips(BuildContext context, List<dynamic> tags) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: tags.map((tag) {
+      children: tags.map<Widget>((tag) {
         final isSelected = _selectedTags.contains(tag.slug);
         return FilterChip(
           label: Text(tag.slug),

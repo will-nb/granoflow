@@ -77,8 +77,9 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
     }
 
     // 同步视图模式
+    // 日视图不显示日历，只显示时间轴表格
     final calendarFormat = switch (state.viewMode) {
-      CalendarViewMode.day => CalendarFormat.month, // 日视图仍使用月视图显示
+      CalendarViewMode.day => CalendarFormat.month, // 日视图仍使用月视图显示（用于选择日期）
       CalendarViewMode.week => CalendarFormat.week,
       CalendarViewMode.month => CalendarFormat.month,
     };
@@ -108,9 +109,10 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
         children: [
           // 视图切换工具栏
           const ViewToggleBar(),
-          // 日历
-          Expanded(
-            child: TableCalendar(
+          // 日历（日视图时隐藏，只显示时间轴）
+          if (state.viewMode != CalendarViewMode.day)
+            Expanded(
+              child: TableCalendar(
               firstDay: DateTime(2020, 1, 1),
               lastDay: DateTime.now(),
               focusedDay: _focusedDay,
@@ -183,19 +185,25 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
                 ),
               ),
             ),
-          ),
-          // 详情区域
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
+          )
+          else
+            // 日视图：直接显示时间轴表格（全屏）
+            Expanded(
+              child: _buildDetailView(state.viewMode),
             ),
-            child: _buildDetailView(state.viewMode),
-          ),
+          // 详情区域（周/月视图时显示）
+          if (state.viewMode != CalendarViewMode.day)
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: _buildDetailView(state.viewMode),
+            ),
         ],
       ),
     );
