@@ -250,9 +250,8 @@ class _TaskExpandedPanelState extends ConsumerState<TaskExpandedPanel> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
     try {
-      await ref
-          .read(taskServiceProvider)
-          .updateTags(taskId: taskId, contextTag: contextTag, priorityTag: priorityTag);
+      final taskService = await ref.read(taskServiceProvider.future);
+      await taskService.updateTags(taskId: taskId, contextTag: contextTag, priorityTag: priorityTag);
     } catch (error, stackTrace) {
       debugPrint('Failed to update tags: $error\n$stackTrace');
       if (context.mounted) {

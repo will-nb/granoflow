@@ -191,7 +191,8 @@ class TaskHeaderRow extends ConsumerWidget {
     }
 
     try {
-      await ref.read(projectServiceProvider).convertTaskToProject(task.id);
+      final projectService = await ref.read(projectServiceProvider.future);
+      await projectService.convertTaskToProject(task.id);
       if (!context.mounted) {
         return;
       }
