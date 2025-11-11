@@ -9,7 +9,8 @@ final contextTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   try {
     // 依赖种子初始化：导入完成后会刷新本 Provider
     ref.watch(seedInitializerProvider);
-    return await ref.watch(taskServiceProvider).listTagsByKind(TagKind.context);
+    final taskService = await ref.read(taskServiceProvider.future);
+    return await taskService.listTagsByKind(TagKind.context);
   } catch (error) {
     debugPrint('ContextTagOptionsProvider error: $error');
     return <Tag>[]; // 返回空列表而不是抛出错误

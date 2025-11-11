@@ -21,7 +21,7 @@ final templateSuggestionsProvider =
       query,
     ) async {
       try {
-        final service = ref.watch(taskTemplateServiceProvider);
+        final service = await ref.read(taskTemplateServiceProvider.future);
         if (query.text?.isNotEmpty == true) {
           return await service.search(query.text!, limit: query.limit);
         }
@@ -42,7 +42,7 @@ class TemplateActionsNotifier extends AsyncNotifier<void> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final service = await _service;
-      return service.createTemplate(draft);
+      await service.createTemplate(draft);
     });
   }
 
@@ -50,7 +50,7 @@ class TemplateActionsNotifier extends AsyncNotifier<void> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final service = await _service;
-      return service.deleteTemplate(templateId);
+      await service.deleteTemplate(templateId);
     });
   }
 }

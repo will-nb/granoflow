@@ -78,11 +78,10 @@ final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
   }
 });
 
-final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
+final inboxTasksProvider = StreamProvider<List<Task>>((ref) async* {
   final filter = ref.watch(inboxFilterProvider);
-  return ref
-      .watch(taskRepositoryProvider)
-      .watchInboxFiltered(
+  final repository = await ref.read(taskRepositoryProvider.future);
+  yield* repository.watchInboxFiltered(
         contextTag: filter.contextTag,
         priorityTag: null, // priorityTag 已废弃，不再使用
         urgencyTag: filter.urgencyTag,
@@ -94,7 +93,8 @@ final inboxTasksProvider = StreamProvider<List<Task>>((ref) {
 });
 
 final rootTasksProvider = FutureProvider<List<Task>>((ref) async {
-  return ref.watch(taskRepositoryProvider).listRoots();
+  final repository = await ref.read(taskRepositoryProvider.future);
+  return repository.listRoots();
 });
 
 final projectsDomainProvider = StreamProvider<List<Project>>((ref) async* {

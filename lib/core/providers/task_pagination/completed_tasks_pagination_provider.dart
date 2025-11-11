@@ -45,7 +45,7 @@ class CompletedTasksPaginationNotifier
   final Ref ref;
   static const int _pageSize = 30;
 
-  TaskRepository get _repository => ref.read(taskRepositoryProvider);
+  Future<TaskRepository> get _repository async => await ref.read(taskRepositoryProvider.future);
 
   /// 加载初始数据
   Future<void> loadInitial() async {

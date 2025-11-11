@@ -55,12 +55,36 @@ class ReviewPageState {
 
 /// 回顾页面状态管理
 class ReviewPageNotifier extends StateNotifier<ReviewPageState> {
+  /// 私有构造函数，用于从 Provider 创建（异步初始化依赖）
+  ReviewPageNotifier._(this._ref)
+      : _reviewDataService = null,
+        super(const ReviewPageState()) {
+    _initAsync();
+  }
+
+  /// 公共构造函数（用于测试或直接创建）
   ReviewPageNotifier({
     required ReviewDataService reviewDataService,
-  })  : _reviewDataService = reviewDataService,
+  })  : _ref = null,
+        _reviewDataService = reviewDataService,
         super(const ReviewPageState());
 
-  final ReviewDataService _reviewDataService;
+  final Ref? _ref;
+  ReviewDataService? _reviewDataService;
+
+  /// 异步初始化依赖
+  Future<void> _initAsync() async {
+    if (_ref == null) return;
+    _reviewDataService = await _ref!.read(reviewDataServiceProvider.future);
+  }
+
+  /// 获取 ReviewDataService（延迟初始化）
+  ReviewDataService get _reviewDataServiceOrThrow {
+    if (_reviewDataService == null) {
+      throw StateError('ReviewPageNotifier not initialized. Call _initAsync() first.');
+    }
+    return _reviewDataService!;
+  }
 
   /// 加载所有数据
   Future<void> loadData() async {
