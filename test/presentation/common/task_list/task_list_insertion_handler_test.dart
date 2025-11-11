@@ -534,7 +534,8 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
-                taskHierarchyServiceProvider.overrideWithValue(
+                taskHierarchyServiceProvider.overrideWith(
+                (ref) async =>
                   fakeTaskHierarchyService,
                 ),
                 taskRepositoryProvider.overrideWith((ref) async => fakeTaskRepository),
