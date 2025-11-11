@@ -95,7 +95,7 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
                 // 跳转到父任务所在区域的按钮
                 IconButton(
                   icon: const Icon(Icons.north_east, size: 18),
-                  tooltip: '跳转到父任务',
+                  tooltip: l10n.tooltipJumpToParentTask,
                   onPressed: () => _jumpToParentTask(context, ref),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),

@@ -1,856 +1,581 @@
 {
-  // ===========================================
-  // 数据库切换迭代计划 - TodoList
-  // ===========================================
-  // 基于文档：documents/json5/database/drift-migration-iteration.json5
-  // 迭代 ID：251110-database-drift-migration
-  // 状态：pending（待开始）
-  // 
-  // ⚠️ 重要执行说明：
-  // 本次迭代计划应该一口气完成，当中不要停下来交互确认。
-  // AI 开发将完成所有功能，按顺序执行所有阶段，每个阶段完成后自动执行下一阶段。
-  // 只有在遇到无法自动修复的错误（如需要人工决策）时，才记录问题并继续下一个任务。
-  // ===========================================
-  
-  iteration: {
-    id: "251110-database-drift-migration",
-    title: "数据库切换：从 ObjectBox 到 Drift",
-    status: "pending",
-    sourceDocument: "documents/json5/database/drift-migration-iteration.json5",
-    executionMode: "continuous",
-    executionInstructions: "本次迭代计划应该一口气完成，当中不要停下来交互确认。AI 开发将完成所有功能，按顺序执行所有阶段，每个阶段完成后自动执行下一阶段。只有在遇到无法自动修复的错误（如需要人工决策）时，才记录问题并继续下一个任务。",
-  },
-
-  // ===========================================
-  // 阶段 1：基础设施搭建
-  // ===========================================
-  // 对应原文档：implementationSteps[0] (step: 1)
-  // 对应原文档段落：
-  //   - files.dataAdapters (drift_adapter.dart, drift_query_builder.dart, database_config.dart)
-  //   - modifications[0] (pubspec.yaml)
-  //   - additionalTechnicalDetails.connectionManagement (数据库连接管理)
-  //   - additionalTechnicalDetails.batchOperations (批量操作规范)
-  //   - additionalTechnicalDetails.errorHandling (错误处理和日志规范)
-  // ===========================================
-  stage1: {
-    title: "阶段 1：基础设施搭建",
-    status: "pending",
-    sourceSections: [
-      "implementationSteps[0]",
-      "files.dataAdapters",
-      "modifications[0]",
-      "additionalTechnicalDetails.connectionManagement",
-      "additionalTechnicalDetails.batchOperations",
-      "additionalTechnicalDetails.errorHandling",
-    ],
-    tasks: [
-      {
-        id: "1.1",
-        title: "更新 pubspec.yaml，添加 Drift 相关依赖",
-        status: "pending",
-        file: "pubspec.yaml",
-        sourceSections: [
-          "modifications[0]",
-          "files.dataAdapters[0].dependencies",
-        ],
-        details: [
-          "添加 drift: ^2.29.0 和 drift_dev: ^2.29.0 依赖",
-          "添加 sqlite3_flutter_libs: ^0.5.40 依赖（移动端 SQLite）",
-          "添加 drift_web: ^2.29.0 依赖（Web 平台 IndexedDB）",
-          "保留 objectbox 依赖（切换期间需要）",
-        ],
-      },
-      {
-        id: "1.2",
-        title: "运行 flutter pub get，验证依赖安装成功",
-        status: "pending",
-        command: "flutter pub get",
-        sourceSections: ["implementationSteps[0].tasks[1]"],
-      },
-      {
-        id: "1.3",
-        title: "创建 DriftAdapter，实现 DatabaseAdapter 接口",
-        status: "pending",
-        file: "lib/data/database/drift_adapter.dart",
-        sourceSections: [
-          "files.dataAdapters[0]",
-          "additionalTechnicalDetails.batchOperations",
-          "additionalTechnicalDetails.errorHandling",
-          "additionalTechnicalDetails.connectionManagement",
-        ],
-        details: [
-          "实现所有接口方法：readTransaction、writeTransaction、queryBuilder、watch、watchList、put、putMany、remove、removeMany、findById、findAll、count、close",
-          "putMany 和 removeMany 每批 100 条记录（batchOperations.batchSize: 100）",
-          "使用单例模式管理数据库连接（connectionManagement.pattern）",
-          "错误处理：捕获 Drift 异常，封装为 DatabaseAdapterException（errorHandling.errorClassification）",
-          "支持 DatabaseInstrumentation，记录操作日志和性能监控",
-        ],
-      },
-      {
-        id: "1.4",
-        title: "创建 DriftQueryBuilder，实现查询构建逻辑",
-        status: "pending",
-        file: "lib/data/database/drift_query_builder.dart",
-        sourceSections: [
-          "files.dataAdapters[1]",
-          "technicalDetails.codeStandards.typeSafety",
-        ],
-        details: [
-          "实现 DatabaseQueryBuilder 接口的所有方法：filter、sort、limit、offset、findAll、findFirst、descriptor",
-          "将 FieldCondition 转换为 Drift 的 where() 条件，支持所有操作符",
-          "将 OrderDescriptor 转换为 Drift 的 orderBy() 方法",
-          "类型安全：所有查询都是编译时类型检查（codeStandards.typeSafety.rule）",
-        ],
-      },
-      {
-        id: "1.5",
-        title: "创建 DatabaseConfig，支持数据库切换",
-        status: "pending",
-        file: "lib/core/config/database_config.dart",
-        sourceSections: [
-          "files.dataAdapters[2]",
-          "additionalTechnicalDetails.environmentVariables",
-        ],
-        details: [
-          "定义 DatabaseType 枚举（objectbox、drift）",
-          "提供 createAdapter() 工厂方法，根据配置返回对应的 DatabaseAdapter",
-          "配置读取：优先从环境变量读取（DATABASE_TYPE），如果未设置则从 SharedPreferences 读取，默认值 drift",
-          "配置存储：生产环境使用 SharedPreferences 存储（key: 'database_type'）",
-        ],
-      },
-      {
-        id: "1.6",
-        title: "编写单元测试，验证 DriftAdapter 和 DriftQueryBuilder",
-        status: "pending",
-        file: "test/data/database/drift_adapter_test.dart",
-        sourceSections: [
-          "files.tests[0]",
-          "files.tests[1]",
-          "testing.unitTests[0]",
-        ],
-        details: [
-          "测试 CRUD 操作：put、putMany、remove、findById、findAll、count",
-          "测试事务：readTransaction、writeTransaction，验证原子性和隔离性",
-          "测试 Stream/监听：watchList，验证触发规则和去重逻辑",
-          "测试错误处理：验证异常封装和 DatabaseOperationContext",
-          "与 ObjectBoxAdapter 对比测试，确保接口契约一致",
-        ],
-      },
-      {
-        id: "1.7",
-        title: "阶段完成：忽略 pre-commit，强行 git commit",
-        status: "pending",
-        command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 基础设施搭建'",
-        sourceSections: ["implementationSteps[0].tasks[6]"],
-      },
-    ],
-  },
-
-  // ===========================================
-  // 阶段 2：实体定义迁移
-  // ===========================================
-  // 对应原文档：implementationSteps[1] (step: 2)
-  // 对应原文档段落：
-  //   - files.driftDatabase (所有表定义)
-  //   - additionalTechnicalDetails.uuidGeneration (UUID 生成规范)
-  //   - additionalTechnicalDetails.jsonSerialization (JSON 序列化规范)
-  //   - additionalTechnicalDetails.foreignKeyCascade (外键级联删除策略)
-  //   - additionalTechnicalDetails.indexStrategy (索引策略)
-  // ===========================================
-  stage2: {
-    title: "阶段 2：实体定义迁移",
-    status: "pending",
-    sourceSections: [
-      "implementationSteps[1]",
-      "files.driftDatabase",
-      "additionalTechnicalDetails.uuidGeneration",
-      "additionalTechnicalDetails.jsonSerialization",
-      "additionalTechnicalDetails.foreignKeyCascade",
-      "additionalTechnicalDetails.indexStrategy",
-    ],
-    tasks: [
-      {
-        id: "2.1",
-        title: "创建 Drift 数据库文件",
-        status: "pending",
-        file: "lib/data/drift/database.dart",
-        sourceSections: [
-          "files.driftDatabase[0]",
-          "additionalTechnicalDetails.connectionManagement",
-        ],
-        details: [
-          "继承 GeneratedDatabase，使用 @DriftDatabase(version: 1) 注解",
-          "定义所有表：Tasks、Projects、Milestones、TaskLogs、ProjectLogs、MilestoneLogs、Tags、TaskTemplates、FocusSessions、Preferences、SeedImportLogs",
-          "Web 平台初始化：使用 drift_web 的 WebDatabase，数据库名称 'granoflow'，使用 LazyDatabase 延迟初始化",
-          "移动端初始化：使用 path_provider 获取目录，数据库文件名 'granoflow.db'，使用 LazyDatabase 延迟初始化",
-          "外键约束：在数据库打开时执行 PRAGMA foreign_keys = ON",
-          "使用单例模式管理数据库连接（connectionManagement.pattern）",
-        ],
-      },
-      {
-        id: "2.2",
-        title: "定义 Tasks Table 和 Task Data 类",
-        status: "pending",
-        file: "lib/data/drift/tables/tasks.dart",
-        sourceSections: [
-          "files.driftDatabase[1]",
-          "additionalTechnicalDetails.foreignKeyCascade.rules[0-2]",
-          "additionalTechnicalDetails.indexStrategy.tasks",
-        ],
-        details: [
-          "定义 Tasks Table，使用 TextColumn 作为主键（id，String，UUID v4）",
-          "定义所有字段：id、title、status、dueAt、startedAt、endedAt、archivedAt、createdAt、updatedAt、parentId、projectId、milestoneId、sortIndex、tags、templateLockCount、seedSlug、allowInstantComplete、description",
-          "配置外键关系：projectId 引用 Projects（onDelete: ReferenceAction.setNull）、parentId 自引用 Tasks（onDelete: ReferenceAction.cascade）、milestoneId 引用 Milestones（onDelete: ReferenceAction.setNull）",
-          "tags 字段使用 JSON 存储（jsonSerialization.fields[0]）",
-          "添加索引：id、parentId、projectId、milestoneId、status、sortIndex、seedSlug，复合索引 (status, dueAt) 和 (projectId, status)",
-        ],
-      },
-      {
-        id: "2.3",
-        title: "定义 Projects Table 和 Project Data 类",
-        status: "pending",
-        file: "lib/data/drift/tables/projects.dart",
-        sourceSections: [
-          "files.driftDatabase[2]",
-          "additionalTechnicalDetails.indexStrategy.projects",
-        ],
-        details: [
-          "定义 Projects Table，使用 TextColumn 作为主键（id，String，UUID v4）",
-          "定义所有字段：id、title、status、dueAt、startedAt、endedAt、createdAt、updatedAt、sortIndex、tags、templateLockCount、seedSlug、allowInstantComplete、description",
-          "tags 字段使用 JSON 存储",
-          "添加索引：id、status、sortIndex、seedSlug",
-        ],
-      },
-      {
-        id: "2.4",
-        title: "定义 Milestones Table 和 Milestone Data 类",
-        status: "pending",
-        file: "lib/data/drift/tables/milestones.dart",
-        sourceSections: [
-          "files.driftDatabase[3]",
-          "additionalTechnicalDetails.foreignKeyCascade.rules[3]",
-          "additionalTechnicalDetails.indexStrategy.milestones",
-        ],
-        details: [
-          "定义 Milestones Table，使用 TextColumn 作为主键（id，String，UUID v4）",
-          "定义所有字段：id、projectId、title、status、dueAt、startedAt、endedAt、createdAt、updatedAt、sortIndex、tags、templateLockCount、seedSlug、allowInstantComplete、description",
-          "配置外键关系：projectId 引用 Projects（onDelete: ReferenceAction.cascade）",
-          "tags 字段使用 JSON 存储",
-          "添加索引：id、projectId、status、sortIndex、seedSlug",
-        ],
-      },
-      {
-        id: "2.5",
-        title: "定义所有 Log 表（TaskLogs、ProjectLogs、MilestoneLogs）",
-        status: "pending",
-        files: [
-          "lib/data/drift/tables/task_logs.dart",
-          "lib/data/drift/tables/project_logs.dart",
-          "lib/data/drift/tables/milestone_logs.dart",
-        ],
-        sourceSections: [
-          "files.driftDatabase[4-6]",
-          "additionalTechnicalDetails.foreignKeyCascade.rules[4-6]",
-          "additionalTechnicalDetails.indexStrategy.taskLogs",
-          "additionalTechnicalDetails.indexStrategy.projectLogs",
-          "additionalTechnicalDetails.indexStrategy.milestoneLogs",
-        ],
-        details: [
-          "TaskLogs：id（主键）、taskId（外键引用 Tasks，onDelete: ReferenceAction.cascade）、timestamp、action、previous、next、actor",
-          "ProjectLogs：id（主键）、projectId（外键引用 Projects，onDelete: ReferenceAction.cascade）、timestamp、action、previous、next、actor",
-          "MilestoneLogs：id（主键）、milestoneId（外键引用 Milestones，onDelete: ReferenceAction.cascade）、timestamp、action、previous、next、actor",
-          "添加索引：id、taskId/projectId/milestoneId、timestamp，TaskLogs 添加复合索引 (taskId, timestamp)",
-        ],
-      },
-      {
-        id: "2.6",
-        title: "定义其他表（Tags、TaskTemplates、FocusSessions、Preferences、SeedImportLogs）",
-        status: "pending",
-        files: [
-          "lib/data/drift/tables/tags.dart",
-          "lib/data/drift/tables/task_templates.dart",
-          "lib/data/drift/tables/focus_sessions.dart",
-          "lib/data/drift/tables/preferences.dart",
-          "lib/data/drift/tables/seed_import_logs.dart",
-        ],
-        sourceSections: [
-          "files.driftDatabase[7-11]",
-          "additionalTechnicalDetails.foreignKeyCascade.rules[7-8]",
-          "additionalTechnicalDetails.indexStrategy.tags",
-          "additionalTechnicalDetails.indexStrategy.taskTemplates",
-          "additionalTechnicalDetails.indexStrategy.focusSessions",
-          "additionalTechnicalDetails.indexStrategy.preferences",
-          "additionalTechnicalDetails.indexStrategy.seedImportLogs",
-        ],
-        details: [
-          "Tags：id（主键）、slug（唯一索引）、kindIndex、localizedLabelsJson（JSON 存储 Map<String, String>）",
-          "TaskTemplates：id（主键）、title、parentTaskId（外键引用 Tasks，onDelete: ReferenceAction.setNull）、defaultTags（JSON 存储）、createdAt、updatedAt、lastUsedAt、seedSlug、suggestedEstimateMinutes",
-          "FocusSessions：id（主键）、taskId（外键引用 Tasks，onDelete: ReferenceAction.setNull）、transferredToTaskId（外键引用 Tasks，onDelete: ReferenceAction.setNull）、startedAt、endedAt、actualMinutes、estimateMinutes、alarmEnabled、reflectionNote",
-          "Preferences：id（主键，默认值 'default'）、localeCode、themeModeIndex、fontScaleLevel、clockTickSoundEnabled、updatedAt",
-          "SeedImportLogs：id（主键）、version、importedAt",
-          "添加相应索引（参考 indexStrategy）",
-        ],
-      },
-      {
-        id: "2.7",
-        title: "实现类型转换器",
-        status: "pending",
-        file: "lib/data/drift/converters.dart",
-        sourceSections: [
-          "files.driftDatabase[12]",
-          "additionalTechnicalDetails.uuidGeneration",
-          "additionalTechnicalDetails.jsonSerialization",
-        ],
-        details: [
-          "实现 TaskStatus 枚举转换器（intEnum）",
-          "实现 ProjectStatus 枚举转换器（intEnum）",
-          "实现 DateTime 转换器（dateTime）",
-          "实现 List<String> 转换器（tags 字段，使用 dart:convert 的 jsonEncode/jsonDecode）",
-          "实现 Map<String, String> 转换器（localizedLabelsJson 字段）",
-          "UUID 生成：统一使用 Uuid().v4() 生成 UUID v4（uuidGeneration.method）",
-          "提供双向转换方法：Model → Drift Data，Drift Data → Model",
-        ],
-      },
-      {
-        id: "2.8",
-        title: "运行 build_runner，验证代码生成",
-        status: "pending",
-        command: "flutter pub run build_runner build --delete-conflicting-outputs",
-        sourceSections: ["implementationSteps[1].tasks[7]"],
-      },
-      {
-        id: "2.9",
-        title: "验证数据库可以正常创建和连接",
-        status: "pending",
-        action: "在 Web 和移动端测试数据库初始化",
-        sourceSections: ["implementationSteps[1].tasks[8]"],
-      },
-      {
-        id: "2.10",
-        title: "阶段完成：忽略 pre-commit，强行 git commit",
-        status: "pending",
-        command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - 实体定义迁移'",
-        sourceSections: ["implementationSteps[1].tasks[9]"],
-      },
-    ],
-  },
-
-  // ===========================================
-  // 阶段 3：Repository 实现
-  // ===========================================
-  // 对应原文档：implementationSteps[2] (step: 3)
-  // 对应原文档段落：
-  //   - files.repositories (所有 Repository 实现)
-  //   - modifications[1] (repository_providers.dart)
-  //   - additionalTechnicalDetails.uuidGeneration (UUID 生成规范)
-  //   - additionalTechnicalDetails.jsonSerialization (JSON 序列化规范)
-  //   - additionalTechnicalDetails.performanceBenchmarks (性能基准和监控)
-  // ===========================================
-  stage3: {
-    title: "阶段 3：Repository 实现",
-    status: "pending",
-    sourceSections: [
-      "implementationSteps[2]",
-      "files.repositories",
-      "modifications[1]",
-      "additionalTechnicalDetails.uuidGeneration",
-      "additionalTechnicalDetails.jsonSerialization",
-      "additionalTechnicalDetails.performanceBenchmarks",
-    ],
-    tasks: [
-      {
-        id: "3.1",
-        title: "实现 DriftTaskRepository",
-        status: "pending",
-        file: "lib/data/repositories/drift/drift_task_repository.dart",
-        sourceSections: [
-          "files.repositories[0]",
-          "additionalTechnicalDetails.uuidGeneration",
-          "additionalTechnicalDetails.jsonSerialization",
-        ],
-        details: [
-          "实现 TaskRepository 接口的所有方法（共 30+ 个方法）",
-          "Stream/监听方法：watchSection、watchTaskTree、watchInbox、watchQuickTasks、watchTasksByProjectId、watchTasksByMilestoneId、watchInboxFiltered、watchTaskById",
-          "查询方法：listAll、listRoots、listChildren、listSectionTasks、listTasksByMilestoneId、findById、findByTaskId、findBySlug、searchByTitle",
-          "分页查询方法：listCompletedTasks、listArchivedTasks、listTrashedTasks",
-          "写操作方法：createTask、createTaskWithId、updateTask、moveTask、markStatus、archiveTask、softDelete、adjustTemplateLock",
-          "批量操作方法：upsertTasks、batchUpdate、purgeObsolete、clearAllTrashedTasks",
-          "使用 DriftQueryBuilder 构建类型安全的查询",
-          "关系查询策略：Task → Project 使用 JOIN 查询，Task → Milestone 使用 JOIN 查询，Task 自引用使用单独查询",
-          "实现 TaskEntity 到 Task 模型的转换方法（_toTask），使用 converters.dart 中的转换器函数",
-        ],
-      },
-      {
-        id: "3.2",
-        title: "实现 DriftProjectRepository",
-        status: "pending",
-        file: "lib/data/repositories/drift/drift_project_repository.dart",
-        sourceSections: [
-          "files.repositories[1]",
-          "additionalTechnicalDetails.uuidGeneration",
-        ],
-        details: [
-          "实现 ProjectRepository 接口的所有方法：watchActiveProjects、watchProjectsByStatus、watchProjectsByStatuses、findById、create、createProjectWithId、update、delete、listAll",
-          "使用 DriftQueryBuilder 构建类型安全的查询",
-          "关系查询策略：Project 的 logs 使用单独查询（一对多关系）",
-          "实现 ProjectEntity 到 Project 模型的转换方法（_toProject）",
-        ],
-      },
-      {
-        id: "3.3",
-        title: "实现 DriftMilestoneRepository",
-        status: "pending",
-        file: "lib/data/repositories/drift/drift_milestone_repository.dart",
-        sourceSections: [
-          "files.repositories[2]",
-          "additionalTechnicalDetails.uuidGeneration",
-        ],
-        details: [
-          "实现 MilestoneRepository 接口的所有方法：watchByProjectId、listByProjectId、findById、create、createMilestoneWithId、update、delete、listAll",
-          "使用 DriftQueryBuilder 构建类型安全的查询",
-          "关系查询策略：Milestone → Project 使用 JOIN 查询，Milestone 的 logs 使用单独查询",
-          "实现 MilestoneEntity 到 Milestone 模型的转换方法（_toMilestone）",
-        ],
-      },
-      {
-        id: "3.4",
-        title: "实现其他 Repository（Tag、TaskTemplate、FocusSession、Preference、Seed）",
-        status: "pending",
-        files: [
-          "lib/data/repositories/drift/drift_tag_repository.dart",
-          "lib/data/repositories/drift/drift_task_template_repository.dart",
-          "lib/data/repositories/drift/drift_focus_session_repository.dart",
-          "lib/data/repositories/drift/drift_preference_repository.dart",
-          "lib/data/repositories/drift/drift_seed_repository.dart",
-        ],
-        sourceSections: [
-          "files.repositories[3-7]",
-          "additionalTechnicalDetails.uuidGeneration",
-          "additionalTechnicalDetails.jsonSerialization",
-        ],
-        details: [
-          "DriftTagRepository：initializeTags、clearAll、listByKind、findBySlug",
-          "DriftTaskTemplateRepository：listRecent、search、createTemplate、createTemplateWithSeed、updateTemplate、deleteTemplate、markUsed、findBySlug、findById",
-          "DriftFocusSessionRepository：startSession、endSession、watchActiveSession、listRecentSessions、totalMinutesForTask、totalMinutesForTasks、totalMinutesOverall、findById",
-          "DriftPreferenceRepository：watch、load、update",
-          "DriftSeedRepository：wasImported、importSeeds、latestVersion、recordVersion、clearVersion",
-          "使用 DriftQueryBuilder 构建类型安全的查询",
-          "实现相应的实体到模型的转换方法",
-        ],
-      },
-      {
-        id: "3.5",
-        title: "优化查询性能，添加必要的索引",
-        status: "pending",
-        action: "分析慢查询，在 Table 定义中添加索引",
-        sourceSections: [
-          "implementationSteps[2].tasks[4]",
-          "additionalTechnicalDetails.indexStrategy",
-          "additionalTechnicalDetails.performanceBenchmarks",
-        ],
-        details: [
-          "参考 additionalTechnicalDetails.indexStrategy 添加所有必要的索引",
-          "监控查询性能，确保查询耗时 < 50ms（单表查询）",
-          "使用 DatabaseInstrumentation 记录操作耗时",
-        ],
-      },
-      {
-        id: "3.6",
-        title: "编写单元测试，验证所有 Repository 方法",
-        status: "pending",
-        file: "test/data/repositories/drift/drift_task_repository_test.dart",
-        sourceSections: [
-          "files.tests[2]",
-          "testing.unitTests[1]",
-        ],
-        details: [
-          "测试查询方法：listAll、listRoots、listChildren、findById、findBySlug",
-          "测试写操作：create、update、delete、archiveTask、markStatus",
-          "测试 Stream/监听：watchInbox、watchSection、watchTasksByProjectId",
-          "测试关系查询：Task → Project、Task → Milestone",
-          "测试错误处理：验证异常传播和上下文信息",
-        ],
-      },
-      {
-        id: "3.7",
-        title: "更新依赖注入，支持创建 DriftRepository",
-        status: "pending",
-        file: "lib/core/providers/repository_providers.dart",
-        sourceSections: [
-          "modifications[1]",
-          "implementationSteps[2].tasks[6]",
-        ],
-        details: [
-          "引入 DatabaseConfig，在 databaseAdapterProvider 中根据 DatabaseConfig.current 创建对应的 DatabaseAdapter",
-          "更新所有 Repository Provider（taskRepositoryProvider、projectRepositoryProvider 等），根据 DatabaseConfig.current 创建对应的 Repository",
-          "切换期间默认使用 Drift，但保留 ObjectBox 切换能力",
-        ],
-      },
-      {
-        id: "3.8",
-        title: "阶段完成：忽略 pre-commit，强行 git commit",
-        status: "pending",
-        command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - Repository 实现'",
-        sourceSections: ["implementationSteps[2].tasks[7]"],
-      },
-    ],
-  },
-
-  // ===========================================
-  // 阶段 4：代码质量检查和单元测试
-  // ===========================================
-  // 对应原文档：implementationSteps[3] (step: 4)
-  // 对应原文档段落：
-  //   - technicalDetails.codeStandards (代码规范)
-  //   - additionalTechnicalDetails.codeReviewChecklist (代码审查清单)
-  // ===========================================
-  stage4: {
-    title: "阶段 4：代码质量检查和单元测试",
-    status: "pending",
-    sourceSections: [
-      "implementationSteps[3]",
-      "technicalDetails.codeStandards",
-      "additionalTechnicalDetails.codeReviewChecklist",
-    ],
-    tasks: [
-      {
-        id: "4.1",
-        title: "运行 flutter analyze，修复所有 lint 错误",
-        status: "pending",
-        command: "flutter analyze --format=json",
-        sourceSections: [
-          "implementationSteps[3].tasks[0]",
-          "additionalTechnicalDetails.codeReviewChecklist",
-        ],
-        details: [
-          "步骤 1：运行 flutter analyze --format=json，解析 JSON 输出，记录初始 issues 统计",
-          "步骤 2：如果有错误，检查 scripts/anz_modules/fix/issues.py 中的 FIXERS 字典",
-          "步骤 3：如果 FIXERS 中没有对应修复器，分析当前报错，将修复逻辑添加到 fixers.py",
-          "步骤 4：修复后再次运行 flutter analyze --format=json，对比修复前后的 issues 数量",
-          "步骤 5：如果修复有效，执行 git commit",
-          "步骤 6：重复步骤 2-5，直到所有 issues 修复完成或无法继续自动修复",
-        ],
-      },
-      {
-        id: "4.2",
-        title: "运行所有单元测试，确保测试通过",
-        status: "pending",
-        command: "flutter test",
-        sourceSections: ["implementationSteps[3].tasks[1]"],
-        details: [
-          "在 analyze 通过后运行所有单元测试（不包括集成测试）",
-          "确保所有测试通过",
-        ],
-      },
-      {
-        id: "4.3",
-        title: "阶段完成：忽略 pre-commit，强行 git commit",
-        status: "pending",
-        command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - 代码质量检查和单元测试'",
-        sourceSections: ["implementationSteps[3].tasks[2]"],
-      },
-    ],
-  },
-
-  // ===========================================
-  // 阶段 5：集成测试和验证
-  // ===========================================
-  // 对应原文档：implementationSteps[4] (step: 5)
-  // 对应原文档段落：
-  //   - files.tests[3] (drift_integration_test.dart)
-  //   - testing.integrationTests (集成测试用例)
-  //   - additionalTechnicalDetails.webPlatformTesting (Web 平台测试场景)
-  //   - additionalTechnicalDetails.performanceBenchmarks (性能基准和监控)
-  //   - verification (验证清单)
-  // ===========================================
-  stage5: {
-    title: "阶段 5：集成测试和验证",
-    status: "pending",
-    sourceSections: [
-      "implementationSteps[4]",
-      "files.tests[3]",
-      "testing.integrationTests",
-      "additionalTechnicalDetails.webPlatformTesting",
-      "additionalTechnicalDetails.performanceBenchmarks",
-      "verification",
-    ],
-    tasks: [
-      {
-        id: "5.1",
-        title: "清空所有数据（每次集成测试前必须执行）",
-        status: "pending",
-        command: "scripts/anz clean",
-        sourceSections: ["implementationSteps[4].tasks[0]"],
-        details: [
-          "清空全部原有数据，确保测试环境干净",
-          "注意：不需要保存历史数据，每次集成测试前都会清空所有数据",
-        ],
-      },
-      {
-        id: "5.2",
-        title: "运行现有集成测试，修复发现的问题",
-        status: "pending",
-        file: "integration_test/seed_import_test.dart",
-        command: "flutter test integration_test/seed_import_test.dart -d macos",
-        sourceSections: ["implementationSteps[4].tasks[1]"],
-        details: [
-          "确保所有集成测试通过，使用 macOS 平台",
-        ],
-      },
-      {
-        id: "5.3",
-        title: "创建 Drift 集成测试",
-        status: "pending",
-        file: "integration_test/drift_integration_test.dart",
-        command: "flutter test integration_test/drift_integration_test.dart -d macos",
-        sourceSections: [
-          "files.tests[3]",
-          "testing.integrationTests[0]",
-        ],
-        details: [
-          "测试核心功能：创建/编辑/删除任务、项目、里程碑",
-          "测试查询功能：验证所有查询方法正常工作",
-          "测试 Stream/监听：验证数据变化时 Stream 正确触发",
-          "注意：不需要保存历史数据，每次测试前运行 scripts/anz clean 清空所有数据",
-        ],
-      },
-      {
-        id: "5.4",
-        title: "在 Web 平台测试应用",
-        status: "pending",
-        command: "flutter test integration_test -d macos",
-        sourceSections: [
-          "implementationSteps[4].tasks[3]",
-          "additionalTechnicalDetails.webPlatformTesting",
-        ],
-        details: [
-          "验证 Web 平台数据持久化（IndexedDB）正常",
-          "IndexedDB 存储限制测试：创建大量数据（接近浏览器存储限制），验证应用行为",
-          "跨标签页数据同步测试：在多个标签页中打开应用，验证数据同步",
-          "浏览器兼容性测试：在所有支持的浏览器中测试核心功能（Chrome、Firefox、Safari、Edge）",
-          "数据持久化测试：创建数据 → 刷新页面 → 验证数据仍然存在",
-        ],
-      },
-      {
-        id: "5.5",
-        title: "性能测试和优化",
-        status: "pending",
-        action: "测试性能指标，优化慢查询，添加索引",
-        sourceSections: [
-          "implementationSteps[4].tasks[4]",
-          "additionalTechnicalDetails.performanceBenchmarks",
-          "verification.performance",
-        ],
-        details: [
-          "测试性能指标：查询耗时 < 50ms（单表查询）、插入耗时 < 10ms（单条插入）、批量插入耗时 < 100ms（100 条记录）",
-          "使用 DatabaseInstrumentation 记录所有操作耗时",
-          "监控内存使用，确保没有内存泄漏",
-          "验证慢查询已优化（添加索引、优化查询逻辑）",
-        ],
-      },
-      {
-        id: "5.6",
-        title: "在 Android 16KB 页面大小设备上测试",
-        status: "pending",
-        action: "验证 16KB 兼容性正常",
-        sourceSections: [
-          "implementationSteps[4].tasks[5]",
-          "verification.compatibility",
-        ],
-        details: [
-          "验证 Android 16KB 页面大小兼容性正常",
-        ],
-      },
-      {
-        id: "5.7",
-        title: "阶段完成：忽略 pre-commit，强行 git commit",
-        status: "pending",
-        command: "git add -A && git commit --no-verify -m 'feat: 阶段 5 完成 - 集成测试和验证'",
-        sourceSections: ["implementationSteps[4].tasks[6]"],
-      },
-    ],
-  },
-
-  // ===========================================
-  // 阶段 6：文档和清理
-  // ===========================================
-  // 对应原文档：implementationSteps[5] (step: 6)
-  // 对应原文档段落：
-  //   - modifications[2] (main.dart)
-  //   - verification (验证清单)
-  //   - additionalTechnicalDetails.codeReviewChecklist (代码审查清单)
-  // ===========================================
-  stage6: {
-    title: "阶段 6：文档和清理",
-    status: "pending",
-    sourceSections: [
-      "implementationSteps[5]",
-      "modifications[2]",
-      "verification",
-      "additionalTechnicalDetails.codeReviewChecklist",
-    ],
-    tasks: [
-      {
-        id: "6.1",
-        title: "更新架构文档",
-        status: "pending",
-        file: "documents/architecture/",
-        sourceSections: ["implementationSteps[5].tasks[0]"],
-        details: [
-          "记录 Drift 数据库架构和切换过程",
-        ],
-      },
-      {
-        id: "6.2",
-        title: "更新 API 文档",
-        status: "pending",
-        sourceSections: ["implementationSteps[5].tasks[1]"],
-        details: [
-          "更新 Repository 接口文档",
-        ],
-      },
-      {
-        id: "6.3",
-        title: "更新应用初始化，支持 Drift 数据库初始化",
-        status: "pending",
-        file: "lib/main.dart",
-        sourceSections: [
-          "modifications[2]",
-        ],
-        details: [
-          "根据 DatabaseConfig.current 读取配置，调用 DatabaseConfig.createAdapter() 创建对应的 DatabaseAdapter",
-          "Web 平台：使用 drift_web 初始化 Drift 数据库（IndexedDB），移动端使用 sqlite3_flutter_libs 初始化 Drift 数据库（SQLite）",
-          "注意：不需要检测或迁移历史数据，应用启动时直接使用配置的数据库类型（默认 Drift）。首次使用 Drift 时，数据库为空，种子数据会自动导入",
-        ],
-      },
-      {
-        id: "6.4",
-        title: "删除 ObjectBox 相关代码",
-        status: "pending",
-        file: "lib/data/objectbox/",
-        sourceSections: ["implementationSteps[5].tasks[2]"],
-        details: [
-          "步骤 1：迁移 converters.dart 中的通用函数到 drift/converters.dart",
-          "  - 将 themeModeToIndex 和 themeModeFromIndex 从 lib/data/objectbox/converters.dart 移动到 lib/data/drift/converters.dart",
-          "  - 更新 lib/data/repositories/drift/drift_preference_repository.dart，将导入从 '../../objectbox/converters.dart' 改为 '../../drift/converters.dart'",
-          "",
-          "步骤 2：删除 ObjectBox 实体文件（lib/data/objectbox/ 目录下的所有实体文件）",
-          "  - lib/data/objectbox/focus_session_entity.dart",
-          "  - lib/data/objectbox/milestone_entity.dart",
-          "  - lib/data/objectbox/milestone_log_entity.dart",
-          "  - lib/data/objectbox/preference_entity.dart",
-          "  - lib/data/objectbox/project_entity.dart",
-          "  - lib/data/objectbox/project_log_entity.dart",
-          "  - lib/data/objectbox/seed_import_log_entity.dart",
-          "  - lib/data/objectbox/tag_entity.dart",
-          "  - lib/data/objectbox/task_entity.dart",
-          "  - lib/data/objectbox/task_log_entity.dart",
-          "  - lib/data/objectbox/task_template_entity.dart",
-          "  - lib/data/objectbox/converters.dart（迁移 themeMode 函数后删除）",
-          "",
-          "步骤 3：删除 ObjectBox Repository 实现（lib/data/repositories/objectbox/ 目录）",
-          "  - lib/data/repositories/objectbox/objectbox_focus_session_repository.dart",
-          "  - lib/data/repositories/objectbox/objectbox_milestone_repository.dart",
-          "  - lib/data/repositories/objectbox/objectbox_preference_repository.dart",
-          "  - lib/data/repositories/objectbox/objectbox_project_repository.dart",
-          "  - lib/data/repositories/objectbox/objectbox_seed_repository.dart",
-          "  - lib/data/repositories/objectbox/objectbox_tag_repository.dart",
-          "  - lib/data/repositories/objectbox/objectbox_task_repository.dart",
-          "  - lib/data/repositories/objectbox/objectbox_task_template_repository.dart",
-          "",
-          "步骤 4：删除 ObjectBox 适配器和查询构建器",
-          "  - lib/data/database/objectbox_adapter.dart",
-          "  - lib/data/database/objectbox_query_builder.dart",
-          "  - lib/data/repositories/base_objectbox_repository.dart",
-          "",
-          "步骤 5：删除 ObjectBox 生成的代码文件",
-          "  - lib/objectbox.g.dart（ObjectBox 代码生成文件）",
-          "  - lib/objectbox-model.json（ObjectBox 模型定义文件）",
-          "  - lib/objectbox_stub.dart（Web 平台存根文件，ObjectBox 不支持 Web）",
-          "",
-          "步骤 6：更新引用 ObjectBox 的代码文件",
-          "  - lib/core/config/database_config.dart：删除 ObjectBoxAdapter 的导入和引用，删除 ObjectBox 相关的条件导入（import 'package:objectbox/objectbox.dart' if (dart.library.html) 'package:granoflow/objectbox_stub.dart'）",
-          "  - lib/core/providers/repository_providers.dart：删除所有 ObjectBoxRepository 的导入（8 个文件），删除 ObjectBox 相关的条件导入，删除 ObjectBoxRepository 的 Provider 实现，只保留 DriftRepository 的 Provider",
-          "  - lib/main.dart：删除 objectbox.g.dart 的导入（import 'objectbox.g.dart' if (dart.library.html) 'objectbox_stub.dart'）",
-          "  - lib/core/utils/objectbox_diagnostics.dart：重命名为 lib/core/utils/database_instrumentation.dart（因为这是通用的 DatabaseInstrumentation 实现，不是 ObjectBox 专用的），更新 lib/core/services/seed_import_service.dart 中的导入路径",
-          "",
-          "步骤 7：删除 ObjectBox 测试文件",
-          "  - test/data/database/objectbox_adapter_test.dart",
-          "",
-          "步骤 8：检查并清理修复脚本中的 ObjectBox 引用",
-          "  - scripts/anz_modules/fix/fixers/objectbox_repo_imports.py：如果不再需要，删除此文件",
-          "  - 检查 scripts/anz_modules/fix/issues.py 和 scripts/anz_modules/fix/fixers/ 目录下的其他文件，如果包含 ObjectBox 相关的修复逻辑，评估是否需要删除或更新",
-          "  - 检查 scripts/anz_modules/build.sh 和 scripts/anz_modules/device.sh，如果包含 ObjectBox 相关的构建或设备配置，删除相关代码",
-          "",
-          "步骤 9：删除 ObjectBox 目录",
-          "  - 删除整个 lib/data/objectbox/ 目录",
-          "  - 删除整个 lib/data/repositories/objectbox/ 目录",
-          "",
-          "步骤 10：验证清理完成",
-          "  - 运行 grep -r 'objectbox' lib/ 确保没有遗漏的引用（除了注释）",
-          "  - 运行 grep -r 'ObjectBox' lib/ 确保没有遗漏的引用（除了注释）",
-          "  - 运行 flutter analyze 确保没有编译错误",
-        ],
-      },
-      {
-        id: "6.5",
-        title: "清理未使用的依赖",
-        status: "pending",
-        file: "pubspec.yaml",
-        sourceSections: ["implementationSteps[5].tasks[3]"],
-        details: [
-          "步骤 1：删除 pubspec.yaml 中的 ObjectBox 依赖",
-          "  - 删除 dependencies 中的 objectbox: ^4.0.0",
-          "  - 删除 dependencies 中的 objectbox_flutter_libs: ^4.0.0",
-          "  - 删除 dev_dependencies 中的 objectbox_generator: ^4.0.0",
-          "",
-          "步骤 2：运行 flutter pub get 更新依赖",
-          "  - 执行 flutter pub get 确保依赖更新成功",
-          "",
-          "步骤 3：验证依赖清理完成",
-          "  - 检查 pubspec.lock 确保 ObjectBox 相关依赖已移除",
-          "  - 运行 flutter pub deps 验证依赖树中不再包含 ObjectBox",
-        ],
-      },
-      {
-        id: "6.6",
-        title: "最终代码质量检查：运行 flutter analyze",
-        status: "pending",
-        command: "flutter analyze",
-        sourceSections: [
-          "implementationSteps[5].tasks[4]",
-          "verification.codeQuality",
-        ],
-        details: [
-          "最终检查代码质量，确保没有 lint 错误（单元测试已在阶段 4 完成）",
-        ],
-      },
-      {
-        id: "6.7",
-        title: "代码审查",
-        status: "pending",
-        sourceSections: [
-          "implementationSteps[5].tasks[5]",
-          "additionalTechnicalDetails.codeReviewChecklist",
-        ],
-        details: [
-          "类型安全：所有查询使用 Drift 的类型安全 API，避免字符串查询",
-          "错误处理：所有数据库操作都有适当的错误处理和日志记录",
-          "性能优化：为常用查询字段添加索引，使用批量操作",
-          "外键约束：正确配置外键关系和级联删除策略",
-          "事务使用：写操作使用 writeTransaction，读操作使用 readTransaction",
-          "Stream 监听：正确使用 watchList，确保首次订阅时立即触发",
-          "代码规范：符合项目代码规范，通过 flutter analyze",
-          "测试覆盖：关键逻辑有单元测试覆盖",
-        ],
-      },
-      {
-        id: "6.8",
-        title: "阶段完成：忽略 pre-commit，强行 git commit",
-        status: "pending",
-        command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - 文档和清理'",
-        sourceSections: ["implementationSteps[5].tasks[6]"],
-      },
-    ],
-  },
+  // 本地化硬编码文本计划
+  // 按文件归类，列出所有需要修改的硬编码文本
+  files: [
+    {
+      file: 'lib/presentation/widgets/page_app_bar.dart',
+      strings: [
+        {
+          line: 49,
+          original: '打开主菜单',
+          key: 'tooltipOpenMainMenu',
+          type: 'tooltip',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/widgets/parent_task_header.dart',
+      strings: [
+        {
+          line: 98,
+          original: '跳转到父任务',
+          key: 'tooltipJumpToParentTask',
+          type: 'tooltip',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/widgets/project_edit_sheet.dart',
+      strings: [
+        {
+          line: 68,
+          original: '编辑项目',
+          key: 'projectEditTitle',
+          type: 'title',
+        },
+        {
+          line: 128,
+          original: '保存',
+          key: 'commonSave',
+          type: 'button',
+          note: '可能已有此键，需检查',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/widgets/project_card_dialogs.dart',
+      strings: [
+        {
+          line: 35,
+          original: '项目下还有活跃任务，是否同时归档所有活跃任务及其子任务？',
+          key: 'projectArchiveConfirmMessage',
+          type: 'dialog_content',
+        },
+        {
+          line: 44,
+          original: '仅归档项目',
+          key: 'projectArchiveOnly',
+          type: 'button',
+        },
+        {
+          line: 48,
+          original: '归档项目及活跃任务',
+          key: 'projectArchiveWithTasks',
+          type: 'button',
+        },
+        {
+          line: 81,
+          original: '完成项目',
+          key: 'projectCompleteTitle',
+          type: 'dialog_title',
+        },
+        {
+          line: 83,
+          original: '项目下还有活跃任务，是否同时归档所有活跃任务及其子任务？',
+          key: 'projectCompleteConfirmMessage',
+          type: 'dialog_content',
+          note: '与 projectArchiveConfirmMessage 相同',
+        },
+        {
+          line: 92,
+          original: '仅完成项目',
+          key: 'projectCompleteOnly',
+          type: 'button',
+        },
+        {
+          line: 96,
+          original: '完成项目并归档活跃任务',
+          key: 'projectCompleteWithTasks',
+          type: 'button',
+        },
+        {
+          line: 113,
+          original: '移到回收站',
+          key: 'projectTrashTitle',
+          type: 'dialog_title',
+        },
+        {
+          line: 115,
+          original: '确定要删除这个项目吗？项目将被移到回收站，30天后永久删除。',
+          key: 'projectTrashConfirmMessage',
+          type: 'dialog_content',
+        },
+        {
+          line: 141,
+          original: '永久删除',
+          key: 'projectDeletePermanentTitle',
+          type: 'dialog_title',
+        },
+        {
+          line: 143,
+          original: '确定要永久删除这个项目吗？此操作无法撤销。',
+          key: 'projectDeletePermanentMessage',
+          type: 'dialog_content',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/widgets/project_card_actions.dart',
+      strings: [
+        {
+          line: 164,
+          original: '项目已永久删除',
+          key: 'projectDeletedPermanent',
+          type: 'snackbar',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/widgets/project_header_row.dart',
+      strings: [
+        {
+          line: 127,
+          original: '编辑项目',
+          key: 'projectEditAction',
+          type: 'menu_item',
+        },
+        {
+          line: 268,
+          original: '项目已更新',
+          key: 'projectUpdated',
+          type: 'snackbar',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/widgets/project_details.dart',
+      strings: [
+        {
+          line: 39,
+          original: '添加里程碑',
+          key: 'milestoneAddButton',
+          type: 'button',
+        },
+        {
+          line: 56,
+          original: '里程碑已添加',
+          key: 'milestoneAdded',
+          type: 'snackbar',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/widgets/project_tags_section.dart',
+      strings: [
+        {
+          line: 92,
+          original: '加载标签失败',
+          key: 'loadTagsFailed',
+          type: 'error',
+          note: '出现多次，统一使用一个键',
+        },
+        {
+          line: 95,
+          original: '加载标签失败',
+          key: 'loadTagsFailed',
+          type: 'error',
+        },
+        {
+          line: 98,
+          original: '加载标签失败',
+          key: 'loadTagsFailed',
+          type: 'error',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/widgets/milestone_edit_sheet.dart',
+      strings: [
+        {
+          line: 73,
+          original: '编辑里程碑',
+          key: 'milestoneEditTitle',
+          type: 'title',
+        },
+        {
+          line: 73,
+          original: '添加里程碑',
+          key: 'milestoneAddTitle',
+          type: 'title',
+        },
+        {
+          line: 133,
+          original: '保存',
+          key: 'commonSave',
+          type: 'button',
+          note: '可能已有此键，需检查',
+        },
+        {
+          line: 133,
+          original: '添加',
+          key: 'commonAdd',
+          type: 'button',
+          note: '可能已有此键，需检查',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/milestones/milestone_card.dart',
+      strings: [
+        {
+          line: 59,
+          original: '编辑',
+          key: 'commonEdit',
+          type: 'menu_item',
+          note: '可能已有此键，需检查',
+        },
+        {
+          line: 136,
+          original: '编辑',
+          key: 'commonEdit',
+          type: 'menu_item',
+        },
+        {
+          line: 184,
+          original: '里程碑已更新',
+          key: 'milestoneUpdated',
+          type: 'snackbar',
+        },
+        {
+          line: 194,
+          original: '删除里程碑',
+          key: 'milestoneDeleteTitle',
+          type: 'dialog_title',
+        },
+        {
+          line: 195,
+          original: '确定要删除这个里程碑吗？此操作无法撤销。',
+          key: 'milestoneDeleteConfirmMessage',
+          type: 'dialog_content',
+        },
+        {
+          line: 220,
+          original: '里程碑已删除',
+          key: 'milestoneDeleted',
+          type: 'snackbar',
+        },
+        {
+          line: 228,
+          original: '操作失败',
+          key: 'operationFailed',
+          type: 'snackbar',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/review/widgets/review_longest_task_section.dart',
+      strings: [
+        {
+          line: 65,
+          original: '任务分析：',
+          key: 'reviewTaskAnalysis',
+          type: 'label',
+        },
+        {
+          line: 76,
+          original: '子任务：',
+          key: 'reviewSubtask',
+          type: 'label',
+        },
+        {
+          line: 352,
+          original: '任务分析：',
+          key: 'reviewTaskAnalysis',
+          type: 'label',
+        },
+        {
+          line: 361,
+          original: '子任务：',
+          key: 'reviewSubtask',
+          type: 'label',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/review/utils/review_text_generator.dart',
+      strings: [
+        {
+          line: 61,
+          original: '任务分析：',
+          key: 'reviewTaskAnalysis',
+          type: 'label',
+        },
+        {
+          line: 67,
+          original: '子任务：',
+          key: 'reviewSubtask',
+          type: 'label',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/review/widgets/review_action_buttons.dart',
+      strings: [
+        {
+          line: 75,
+          original: '导出失败：$e',
+          key: 'reviewExportFailed',
+          type: 'snackbar',
+          note: '需要支持占位符',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/review/widgets/review_error_state.dart',
+      strings: [
+        {
+          line: 32,
+          original: '重试',
+          key: 'commonRetry',
+          type: 'button',
+          note: '可能已有此键，需检查',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart',
+      strings: [
+        {
+          line: 103,
+          original: '任务过于复杂，需要重新分析拆分。',
+          key: 'clockOvertimeSubtaskTitle',
+          type: 'task_title',
+          note: '可能已有此键，需检查',
+        },
+        {
+          line: 259,
+          original: '子任务',
+          key: 'subtaskSectionTitle',
+          type: 'section_title',
+        },
+        {
+          line: 296,
+          original: '此任务层级过深，无法继续添加子任务。',
+          key: 'taskDepthLimitMessage',
+          type: 'warning',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/widgets/drawer/drawer_tags_section.dart',
+      strings: [
+        {
+          line: 139,
+          original: '加载失败',
+          key: 'loadFailed',
+          type: 'error',
+        },
+        {
+          line: 160,
+          original: '加载失败',
+          key: 'loadFailed',
+          type: 'error',
+        },
+        {
+          line: 209,
+          original: '暂无标签',
+          key: 'noTagsAvailable',
+          type: 'empty_state',
+        },
+        {
+          line: 253,
+          original: '加载失败',
+          key: 'loadFailed',
+          type: 'error',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/widgets/drawer/drawer_projects_section.dart',
+      strings: [
+        {
+          line: 145,
+          original: '加载失败',
+          key: 'loadFailed',
+          type: 'error',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/widgets/task_row_content.dart',
+      strings: [
+        {
+          line: 213,
+          original: '紧急程度',
+          key: 'tagGroupUrgency',
+          type: 'tag_group_title',
+        },
+        {
+          line: 233,
+          original: '重要程度',
+          key: 'tagGroupImportance',
+          type: 'tag_group_title',
+        },
+        {
+          line: 253,
+          original: '执行方式',
+          key: 'tagGroupExecution',
+          type: 'tag_group_title',
+        },
+        {
+          line: 273,
+          original: '上下文',
+          key: 'tagGroupContext',
+          type: 'tag_group_title',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/views/task_tree_tile/task_tree_tile_editor.dart',
+      strings: [
+        {
+          line: 76,
+          original: 'ID: ${node.task.id}',
+          key: 'taskIdLabel',
+          type: 'subtitle',
+          note: '需要支持占位符',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/projects/project_tree_view.dart',
+      strings: [
+        {
+          line: 75,
+          original: 'ID: ${task.id}',
+          key: 'taskIdLabel',
+          type: 'subtitle',
+        },
+        {
+          line: 298,
+          original: 'ID: ${node.task.id}',
+          key: 'taskIdLabel',
+          type: 'subtitle',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/tasks/task_list_page.dart',
+      strings: [
+        {
+          line: 166,
+          original: 'Tasks',
+          key: 'taskListPageTitle',
+          type: 'page_title',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/home/home_page.dart',
+      strings: [
+        {
+          line: 30,
+          original: 'Home',
+          key: 'homePageTitle',
+          type: 'page_title',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/inbox/inbox_page.dart',
+      strings: [
+        {
+          line: 32,
+          original: 'Inbox',
+          key: 'inboxPageTitle',
+          type: 'page_title',
+        },
+      ],
+    },
+    {
+      file: 'lib/presentation/navigation/widgets/encryption_key_input_widget.dart',
+      strings: [
+        {
+          line: 520,
+          original: 'Loading encryption key...',
+          key: 'encryptionKeyLoading',
+          type: 'loading',
+        },
+        {
+          line: 568,
+          original: 'Show key',
+          key: 'encryptionKeyShow',
+          type: 'tooltip',
+        },
+        {
+          line: 568,
+          original: 'Hide key',
+          key: 'encryptionKeyHide',
+          type: 'tooltip',
+        },
+        {
+          line: 610,
+          original: 'Copy key',
+          key: 'encryptionKeyCopy',
+          type: 'tooltip',
+        },
+      ],
+    },
+  ],
+  // 需要检查的现有键（可能已存在）
+  existingKeysToCheck: [
+    'commonSave',
+    'commonAdd',
+    'commonEdit',
+    'commonRetry',
+    'commonDelete',
+    'commonCancel',
+    'clockOvertimeSubtaskTitle',
+  ],
+  // 需要添加的本地化键（按字母顺序）
+  newKeys: [
+    'commonEdit',
+    'commonRetry',
+    'encryptionKeyCopy',
+    'encryptionKeyHide',
+    'encryptionKeyLoading',
+    'encryptionKeyShow',
+    'homePageTitle',
+    'inboxPageTitle',
+    'loadFailed',
+    'loadTagsFailed',
+    'milestoneAddButton',
+    'milestoneAddTitle',
+    'milestoneAdded',
+    'milestoneDeleteConfirmMessage',
+    'milestoneDeleteTitle',
+    'milestoneDeleted',
+    'milestoneEditTitle',
+    'milestoneUpdated',
+    'noTagsAvailable',
+    'operationFailed',
+    'projectArchiveConfirmMessage',
+    'projectArchiveOnly',
+    'projectArchiveWithTasks',
+    'projectCompleteConfirmMessage',
+    'projectCompleteOnly',
+    'projectCompleteTitle',
+    'projectCompleteWithTasks',
+    'projectDeletePermanentMessage',
+    'projectDeletePermanentTitle',
+    'projectDeletedPermanent',
+    'projectEditAction',
+    'projectEditTitle',
+    'projectTrashConfirmMessage',
+    'projectTrashTitle',
+    'projectUpdated',
+    'reviewExportFailed',
+    'reviewSubtask',
+    'reviewTaskAnalysis',
+    'subtaskSectionTitle',
+    'tagGroupContext',
+    'tagGroupExecution',
+    'tagGroupImportance',
+    'tagGroupUrgency',
+    'taskDepthLimitMessage',
+    'taskIdLabel',
+    'taskListPageTitle',
+    'tooltipJumpToParentTask',
+    'tooltipOpenMainMenu',
+  ],
 }

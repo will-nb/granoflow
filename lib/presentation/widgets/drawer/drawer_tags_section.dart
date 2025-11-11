@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/tag_providers.dart';
 import '../../../data/models/tag.dart';
+import '../../../generated/l10n/app_localizations.dart';
 import '../modern_tag.dart';
 import '../tag_data.dart';
 
@@ -13,6 +14,7 @@ class DrawerTagsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
@@ -20,7 +22,7 @@ class DrawerTagsSection extends ConsumerWidget {
         children: [
           // 区域标题
           Text(
-            '标签',
+            l10n.drawerTags,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -33,7 +35,7 @@ class DrawerTagsSection extends ConsumerWidget {
           _buildTagGroup(
             context,
             ref,
-            title: '场景',
+            title: l10n.drawerScenarios,
             kind: TagKind.context,
           ),
           const SizedBox(height: 8),
@@ -46,7 +48,7 @@ class DrawerTagsSection extends ConsumerWidget {
           _buildTagGroup(
             context,
             ref,
-            title: '执行方式',
+            title: l10n.drawerExecution,
             kind: TagKind.execution,
           ),
         ],
@@ -56,6 +58,7 @@ class DrawerTagsSection extends ConsumerWidget {
 
   /// 构建四象限标签组（合并紧急度和重要性）
   Widget _buildQuadrantTagGroup(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -63,7 +66,7 @@ class DrawerTagsSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 4),
           child: Text(
-            '四象限',
+            l10n.drawerQuadrant,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
@@ -80,6 +83,7 @@ class DrawerTagsSection extends ConsumerWidget {
 
   /// 构建四象限标签列表（紧急度 + 重要性）
   Widget _buildQuadrantTagList(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final urgencyTagsAsync = ref.watch(tagsByKindProvider(TagKind.urgency));
     final importanceTagsAsync = ref.watch(tagsByKindProvider(TagKind.importance));
     
@@ -92,7 +96,7 @@ class DrawerTagsSection extends ConsumerWidget {
             return Padding(
               padding: const EdgeInsets.only(left: 4),
               child: Text(
-                '暂无标签',
+                l10n.noTagsAvailable,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                   fontStyle: FontStyle.italic,
@@ -136,7 +140,7 @@ class DrawerTagsSection extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.only(left: 4),
             child: Text(
-              '加载失败',
+              l10n.loadFailed,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.error,
               ),
@@ -157,7 +161,7 @@ class DrawerTagsSection extends ConsumerWidget {
         return Padding(
           padding: const EdgeInsets.only(left: 4),
           child: Text(
-            '加载失败',
+            l10n.loadFailed,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.error,
             ),
@@ -198,6 +202,7 @@ class DrawerTagsSection extends ConsumerWidget {
 
   /// 构建标签列表（使用 Provider）
   Widget _buildTagList(BuildContext context, WidgetRef ref, TagKind kind) {
+    final l10n = AppLocalizations.of(context);
     final tagsAsync = ref.watch(tagsByKindProvider(kind));
     
     return tagsAsync.when(
@@ -206,7 +211,7 @@ class DrawerTagsSection extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.only(left: 4),
             child: Text(
-              '暂无标签',
+              l10n.noTagsAvailable,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                 fontStyle: FontStyle.italic,

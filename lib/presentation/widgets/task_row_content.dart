@@ -198,6 +198,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
 
   /// 获取可用的标签组（未选择的标签组）
   List<TagGroup> _getAvailableTagGroups(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final tagGroups = <TagGroup>[];
 
     // 紧急程度组
@@ -210,7 +211,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '紧急程度', // l10n.tag_group_urgency
+              title: l10n.tagGroupUrgency,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),
@@ -230,7 +231,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '重要程度', // l10n.tag_group_importance
+              title: l10n.tagGroupImportance,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),
@@ -250,7 +251,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '执行方式', // l10n.tag_group_execution
+              title: l10n.tagGroupExecution,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),
@@ -270,7 +271,7 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         if (tags.isNotEmpty) {
           tagGroups.add(
             TagGroup(
-              title: '上下文', // l10n.tag_group_context
+              title: l10n.tagGroupContext,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),

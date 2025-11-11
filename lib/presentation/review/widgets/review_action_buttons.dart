@@ -72,7 +72,7 @@ class ReviewActionButtons extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('导出失败：$e'),
+            content: Text(l10n.reviewExportFailed(e.toString())),
             duration: const Duration(seconds: 3),
           ),
         );

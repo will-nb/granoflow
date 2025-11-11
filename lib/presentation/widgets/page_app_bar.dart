@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../generated/l10n/app_localizations.dart';
+
 /// 统一的页面顶部导航栏组件
 /// 提供主菜单按钮、动态标题和操作按钮
 class PageAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -43,11 +45,14 @@ class PageAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
     if (showMenuButton) {
       return Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-          tooltip: '打开主菜单',
-        ),
+        builder: (context) {
+          final l10n = AppLocalizations.of(context);
+          return IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+            tooltip: l10n.tooltipOpenMainMenu,
+          );
+        },
       );
     }
     return null;

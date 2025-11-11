@@ -37,10 +37,12 @@
   "commonContinue": "Continue",
   "commonConfirm": "Confirm",
   "commonDelete": "Delete",
+  "commonEdit": "Edit",
   "commonLoading": "Loading...",
   "commonLoadFailed": "Load failed",
   "commonOk": "OK",
   "commonSave": "Save",
+  "commonRetry": "Retry",
   "commonView": "View",
   "completeCurrentTask": "Complete Current Task",
   "completeTask": "Complete Task",
@@ -104,11 +106,15 @@
   "completionTime": "Completion Time",
   "createSubtask": "Create Subtask",
   "dragToOverdueNotAllowed": "Cannot drag to overdue section",
+  "drawerExecution": "Execution Style",
   "drawerManageProjects": "Manage Projects",
   "@drawerManageProjects": {
     "description": "Button label to manage projects in drawer"
   },
+  "drawerQuadrant": "Quadrant",
   "drawerRecentProjects": "Recent Projects",
+  "drawerScenarios": "Scenarios",
+  "drawerTags": "Tags",
   "@drawerRecentProjects": {
     "description": "Section title for recent projects in drawer"
   },
@@ -140,12 +146,15 @@
   "estimatedTime": "Estimated Time",
   "encryptionKey": "Encryption Key",
   "encryptionKeyAllZeros": "Key cannot be all zeros, please include at least one non-zero character",
+  "encryptionKeyCopy": "Copy key",
   "encryptionKeyCopySuccess": "Key copied to clipboard",
   "encryptionKeyDescription": "Exported files will be encrypted using this key. If you forget this key, you will not be able to import the data. We recommend writing it down on paper for safekeeping.",
   "encryptionKeyEmpty": "Encryption key cannot be empty",
   "encryptionKeyIncompleteMessage": "The encryption key you entered is incomplete. Do you want to continue entering?",
   "encryptionKeyIncompleteTitle": "Incomplete Input",
+  "encryptionKeyHide": "Hide key",
   "encryptionKeyInvalid": "Invalid key format. Please ensure the format is xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (32 lowercase letters and numbers).",
+  "encryptionKeyLoading": "Loading encryption key...",
   "encryptionKeyProgress": "{count} of 32 characters entered",
   "@encryptionKeyProgress": {
     "placeholders": {
@@ -162,6 +171,7 @@
   "encryptionKeyModifyConfirmTitle": "Confirm Modify Key",
   "encryptionKeyModifyConfirmTitle2": "Confirm Again",
   "encryptionKeySaveError": "Failed to save encryption key",
+  "encryptionKeyShow": "Show key",
   "exportData": "Export Data",
   "exportDataDescription": "Export all projects, milestones, and tasks",
   "exportFailed": "Export failed",
@@ -180,6 +190,7 @@
   "globalUniqueId": "Global Unique ID",
   "home": "Home",
   "homeGreeting": "Hello, GranoFlow",
+  "homePageTitle": "Home",
   "homeTagline": "Stay in flow. Grow in focus.",
   "inbox": "Inbox",
   "inboxAddError": "Add task failed.",
@@ -214,7 +225,10 @@
   "swipeHintTemplate": "Hint: Swipe right to {rightAction}, swipe left to {leftAction}.",
   "inboxPostponeAction": "Postpone",
   "inboxPostponeSuccess": "Task postponed successfully",
+  "inboxPageTitle": "Inbox",
   "inboxPostponeError": "Failed to postpone task",
+  "loadFailed": "Load failed",
+  "loadTagsFailed": "Failed to load tags",
   "promoteToIndependentError": "Failed to promote task.",
   "promoteToIndependentSuccess": "Task promoted to independent.",
   "datePickerMonthEnd": "Month End",
@@ -253,6 +267,14 @@
   "language": "Language",
   "leafTask": "Leaf Task",
   "markAsWastedTime": "Mark as Wasted Time",
+  "milestoneAddButton": "Add Milestone",
+  "milestoneAddTitle": "Add Milestone",
+  "milestoneAdded": "Milestone added",
+  "milestoneDeleteConfirmMessage": "Are you sure you want to delete this milestone? This action cannot be undone.",
+  "milestoneDeleteTitle": "Delete Milestone",
+  "milestoneDeleted": "Milestone deleted",
+  "milestoneEditTitle": "Edit Milestone",
+  "milestoneUpdated": "Milestone updated",
   "navArchivedTitle": "Archived",
   "navCompletedTitle": "Completed",
   "navInboxTitle": "Inbox",
@@ -262,6 +284,8 @@
   "navTrashTitle": "Trash",
   "navigationMenu": "Navigation Menu",
   "noCompletionTime": "No completion time",
+  "noTagsAvailable": "No tags available",
+  "operationFailed": "Operation failed",
   "noDueDateSet": "No due date set",
   "noProject": "No Project",
   "pageNavigation": "Page Navigation",
@@ -308,6 +332,7 @@
   "clockStart": "Start",
   "clockStartButton": "Start",
   "clockSubtasks": "Subtasks",
+  "subtaskSectionTitle": "Subtasks",
   "clockTaskAnalysis": "Task Analysis",
   "clockTaskAnalysisHint": "Enter task analysis...",
   "clockTaskNotFound": "Task not found",
@@ -329,6 +354,14 @@
   "reviewCopiedMessage": "Article copied to clipboard",
   "reviewCopyButton": "Copy Article",
   "reviewExportButton": "Export Article",
+  "reviewExportFailed": "Export failed: {error}",
+  "@reviewExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "reviewLabelDaily": "Daily",
   "reviewLabelMonthly": "Monthly",
   "reviewLabelQuarterly": "Quarterly",
@@ -369,6 +402,8 @@
   "reviewNoLongCompletedTaskMessage": "Congratulations, your work has been smooth, and you have not yet encountered a problem that must be overcome.",
   "reviewNoProjectsMessage": "You have not created any projects yet",
   "reviewProjectItemFormat": "{projectName}: contains {taskCount} tasks",
+  "reviewSubtask": "Subtask: ",
+  "reviewTaskAnalysis": "Task Analysis: ",
   "@reviewProjectItemFormat": {
     "placeholders": {
       "projectName": {
@@ -462,12 +497,26 @@
     "description": "Label for fragmented tasks"
   },
   "tag_wasted": "Wasted time",
+  "tagGroupContext": "Context",
+  "tagGroupExecution": "Execution Style",
+  "tagGroupImportance": "Importance",
+  "tagGroupUrgency": "Urgency",
   "taskChain": "Task Chain",
   "taskDetails": "Task Details",
+  "taskDepthLimitMessage": "This task hierarchy is too deep. Cannot add more subtasks.",
   "taskDragCrossSectionSuccess": "Task moved",
   "taskId": "Task ID",
+  "taskIdLabel": "ID: {id}",
+  "@taskIdLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "taskList": "Tasks",
   "taskListAddError": "Add task failed.",
+  "taskListPageTitle": "Tasks",
   "taskListAddSubtaskDialogTitle": "Add Subtask",
   "taskListAddedToast": "Task added to plan.",
   "taskListEmptySectionHint": "No tasks in this section, click top right to quick add.",
@@ -669,6 +718,18 @@
   "@projectArchiveConfirmBody": {
     "description": "Dialog body explaining project archive action"
   },
+  "projectArchiveConfirmMessage": "This project has active tasks. Do you want to archive all active tasks and their subtasks as well?",
+  "projectArchiveOnly": "Archive Project Only",
+  "projectArchiveWithTasks": "Archive Project and Active Tasks",
+  "projectCompleteConfirmMessage": "This project has active tasks. Do you want to archive all active tasks and their subtasks as well?",
+  "projectCompleteOnly": "Complete Project Only",
+  "projectCompleteTitle": "Complete Project",
+  "projectCompleteWithTasks": "Complete Project and Archive Active Tasks",
+  "projectDeletePermanentMessage": "Are you sure you want to permanently delete this project? This action cannot be undone.",
+  "projectDeletePermanentTitle": "Permanently Delete",
+  "projectDeletedPermanent": "Project permanently deleted",
+  "projectEditAction": "Edit Project",
+  "projectEditTitle": "Edit Project",
   "projectSnoozeAction": "Snooze",
   "@projectSnoozeAction": {
     "description": "Action label for snoozing a project"
@@ -697,6 +758,9 @@
   "@projectStatusOverdue": {
     "description": "Label shown when project or milestone is overdue"
   },
+  "projectTrashConfirmMessage": "Are you sure you want to delete this project? The project will be moved to trash and permanently deleted after 30 days.",
+  "projectTrashTitle": "Move to Trash",
+  "projectUpdated": "Project updated",
   "taskListTaskArchivedError": "Archive task failed.",
   "taskArchiveError": "Failed to archive task",
   "taskArchivedSuccess": "Task archived successfully",
@@ -785,5 +849,7 @@
   "trashRestoreError": "Restore failed.",
   "trashRestoreSuccess": "Task restored.",
   "trashedStatus": "Deleted",
+  "tooltipJumpToParentTask": "Jump to parent task",
+  "tooltipOpenMainMenu": "Open main menu",
   "viewDetails": "View Details"
 }

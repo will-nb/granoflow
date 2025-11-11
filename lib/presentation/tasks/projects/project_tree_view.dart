@@ -72,7 +72,7 @@ class ProjectNodeHeader extends ConsumerWidget {
       dense: true,
       contentPadding: const EdgeInsets.only(right: 8),
       title: Text(task.title, style: theme.textTheme.titleMedium),
-        subtitle: Text('ID: ${task.id}'),
+        subtitle: Text(l10n.taskIdLabel(task.id)),
       trailing: Wrap(
         spacing: 8,
         children: [
@@ -295,7 +295,7 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               title: TaskHeaderRow(task: node.task, useBodyText: true),
-              subtitle: Text('ID: ${node.task.id}'),
+              subtitle: Text(l10n.taskIdLabel(node.task.id)),
             ),
           ),
         );

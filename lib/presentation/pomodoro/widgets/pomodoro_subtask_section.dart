@@ -256,7 +256,7 @@ class _PomodoroSubtaskSectionState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '子任务',
+                  l10n.subtaskSectionTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
@@ -293,7 +293,7 @@ class _PomodoroSubtaskSectionState
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '此任务层级过深，无法继续添加子任务。',
+                        l10n.taskDepthLimitMessage,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,
                         ),

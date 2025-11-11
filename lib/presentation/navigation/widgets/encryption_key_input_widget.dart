@@ -515,9 +515,9 @@ class _EncryptionKeyInputWidgetState
     final colorScheme = theme.colorScheme;
 
     if (_isLoading) {
-      return const ListTile(
-        leading: CircularProgressIndicator(),
-        title: Text('Loading encryption key...'),
+      return ListTile(
+        leading: const CircularProgressIndicator(),
+        title: Text(l10n.encryptionKeyLoading),
       );
     }
 
@@ -565,7 +565,7 @@ class _EncryptionKeyInputWidgetState
                           : Icons.visibility_off,
                     ),
                     onPressed: _toggleVisibility,
-                    tooltip: _obscureText ? 'Show key' : 'Hide key',
+                    tooltip: _obscureText ? l10n.encryptionKeyShow : l10n.encryptionKeyHide,
                   ),
                 ),
                 onChanged: (value) {
@@ -607,7 +607,7 @@ class _EncryptionKeyInputWidgetState
                   IconButton(
                     icon: const Icon(Icons.copy),
                     onPressed: _copyToClipboard,
-                    tooltip: 'Copy key',
+                    tooltip: l10n.encryptionKeyCopy,
                   ),
                 ],
               ),

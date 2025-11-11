@@ -73,7 +73,7 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
             child: const Icon(Icons.drag_handle),
           ),
           title: Text(node.task.title),
-            subtitle: Text('ID: ${node.task.id}'),
+            subtitle: Text(l10n.taskIdLabel(node.task.id)),
           trailing: Wrap(
             spacing: 4,
             children: [

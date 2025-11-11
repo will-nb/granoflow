@@ -163,7 +163,7 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     ];
 
     return GradientPageScaffold(
-      appBar: const PageAppBar(title: 'Tasks'),
+      appBar: PageAppBar(title: l10n.taskListPageTitle),
       drawer: const MainDrawer(),
       body: GestureDetector(
         onTap: () {

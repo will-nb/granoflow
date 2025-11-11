@@ -141,12 +141,12 @@ class DrawerProjectsSection extends ConsumerWidget {
             ),
             error: (error, stack) => Padding(
               padding: const EdgeInsets.only(left: 4),
-              child: Text(
-                '加载失败',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+            child: Text(
+              l10n.loadFailed,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.error,
               ),
+            ),
             ),
           ),
         ],
