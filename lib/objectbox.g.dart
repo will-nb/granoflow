@@ -53,7 +53,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'taskId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(452, 4108812784627704563),
+        indexId: const obx_int.IdUid(462, 3114344301302893661),
         relationTarget: 'TaskEntity',
       ),
       obx_int.ModelProperty(
@@ -91,7 +91,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'transferredToTaskId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(453, 3371543595720462860),
+        indexId: const obx_int.IdUid(463, 7958990375887187766),
         relationTarget: 'TaskEntity',
       ),
       obx_int.ModelProperty(
@@ -128,7 +128,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'projectId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(454, 6193430693004612784),
+        indexId: const obx_int.IdUid(464, 85351858909024844),
         relationTarget: 'ProjectEntity',
       ),
       obx_int.ModelProperty(
@@ -237,7 +237,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'milestoneId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(455, 4178867984899489131),
+        indexId: const obx_int.IdUid(465, 4824587100068936957),
         relationTarget: 'MilestoneEntity',
       ),
       obx_int.ModelProperty(
@@ -452,7 +452,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'projectId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(456, 4644333389951715448),
+        indexId: const obx_int.IdUid(466, 9032131748906922590),
         relationTarget: 'ProjectEntity',
       ),
       obx_int.ModelProperty(
@@ -637,7 +637,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'parentId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(458, 6685122901324730773),
+        indexId: const obx_int.IdUid(468, 917812814853129873),
         relationTarget: 'TaskEntity',
       ),
       obx_int.ModelProperty(
@@ -645,7 +645,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'projectId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(457, 2733710572389722626),
+        indexId: const obx_int.IdUid(467, 2094838251682481630),
         relationTarget: 'ProjectEntity',
       ),
       obx_int.ModelProperty(
@@ -653,7 +653,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'milestoneId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(459, 8234953931424454949),
+        indexId: const obx_int.IdUid(469, 8101997701200419602),
         relationTarget: 'MilestoneEntity',
       ),
       obx_int.ModelProperty(
@@ -726,7 +726,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'taskId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(460, 6147501220896008460),
+        indexId: const obx_int.IdUid(470, 1229739431378121866),
         relationTarget: 'TaskEntity',
       ),
       obx_int.ModelProperty(
@@ -793,7 +793,7 @@ final _entities = <obx_int.ModelEntity>[
         name: 'parentTaskId',
         type: 11,
         flags: 520,
-        indexId: const obx_int.IdUid(461, 5436908769220073402),
+        indexId: const obx_int.IdUid(471, 5594590217454117668),
         relationTarget: 'TaskEntity',
       ),
       obx_int.ModelProperty(
@@ -877,7 +877,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
     lastEntityId: const obx_int.IdUid(11, 4029050251438466927),
-    lastIndexId: const obx_int.IdUid(461, 5436908769220073402),
+    lastIndexId: const obx_int.IdUid(471, 5594590217454117668),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -1322,6 +1322,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
       4955703342639298039,
       7189915064811881574,
       1536007862407431544,
+      4108812784627704563,
+      3371543595720462860,
+      6193430693004612784,
+      4178867984899489131,
+      4644333389951715448,
+      6685122901324730773,
+      2733710572389722626,
+      8234953931424454949,
+      6147501220896008460,
+      5436908769220073402,
     ],
     retiredPropertyUids: const [],
     retiredRelationUids: const [],
