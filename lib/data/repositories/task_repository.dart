@@ -151,4 +151,20 @@ abstract class TaskRepository {
 
   /// 获取已删除任务总数
   Future<int> countTrashedTasks();
+
+  /// 按日期范围查询已完成的根任务
+  /// 
+  /// [start] 开始日期（包含）
+  /// [end] 结束日期（包含）
+  /// [projectId] 可选的项目ID，用于筛选
+  /// [tags] 可选的标签列表，用于筛选（任务必须包含所有标签）
+  /// 返回 Map<完成日期, 任务列表>，日期只包含年月日
+  /// 只统计根任务（parentId == null），状态为 completedActive，有 endedAt
+  /// 排除 inbox/trashed/pseudoDeleted/archived 状态
+  Future<Map<DateTime, List<Task>>> getCompletedRootTasksByDateRange({
+    required DateTime start,
+    required DateTime end,
+    String? projectId,
+    List<String>? tags,
+  });
 }

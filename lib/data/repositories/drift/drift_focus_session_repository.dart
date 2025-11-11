@@ -152,6 +152,74 @@ class DriftFocusSessionRepository implements FocusSessionRepository {
     });
   }
 
+  @override
+  Future<Map<DateTime, int>> getFocusMinutesByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async {
+    return await _adapter.readTransaction(() async {
+      // 规范化日期：只保留年月日
+      final startDate = DateTime(start.year, start.month, start.day);
+      final endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
+
+      final query = _db.select(_db.focusSessions)
+        ..where((f) =>
+            f.endedAt.isNotNull() &
+            f.endedAt.isBiggerOrEqualValue(startDate) &
+            f.endedAt.isSmallerOrEqualValue(endDate));
+
+      // 如果提供了 taskIds，添加筛选条件
+      if (taskIds != null && taskIds.isNotEmpty) {
+        query.where((f) => f.taskId.isIn(taskIds));
+      }
+
+      final entities = await query.get();
+
+      // 按日期分组并汇总分钟数
+      final result = <DateTime, int>{};
+      for (final entity in entities) {
+        if (entity.endedAt == null) continue;
+        final date = DateTime(
+          entity.endedAt!.year,
+          entity.endedAt!.month,
+          entity.endedAt!.day,
+        );
+        result[date] = (result[date] ?? 0) + entity.actualMinutes;
+      }
+
+      return result;
+    });
+  }
+
+  @override
+  Future<List<FocusSession>> listSessionsByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async {
+    return await _adapter.readTransaction(() async {
+      // 规范化日期：只保留年月日
+      final startDate = DateTime(start.year, start.month, start.day);
+      final endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
+
+      final query = _db.select(_db.focusSessions)
+        ..where((f) =>
+            f.endedAt.isNotNull() &
+            f.endedAt.isBiggerOrEqualValue(startDate) &
+            f.endedAt.isSmallerOrEqualValue(endDate))
+        ..orderBy([(f) => OrderingTerm(expression: f.startedAt, mode: OrderingMode.desc)]);
+
+      // 如果提供了 taskIds，添加筛选条件
+      if (taskIds != null && taskIds.isNotEmpty) {
+        query.where((f) => f.taskId.isIn(taskIds));
+      }
+
+      final entities = await query.get();
+      return entities.map(_toFocusSession).toList();
+    });
+  }
+
   /// 将 Drift FocusSession 实体转换为领域模型 FocusSession
   FocusSession _toFocusSession(drift.FocusSession entity) {
     return FocusSession(

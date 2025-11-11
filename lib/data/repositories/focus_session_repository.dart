@@ -36,4 +36,28 @@ abstract class FocusSessionRepository {
   Future<int> totalMinutesOverall();
 
   Future<FocusSession?> findById(String sessionId);
+
+  /// 按日期范围查询每日的专注时长（分钟）
+  /// 
+  /// [start] 开始日期（包含）
+  /// [end] 结束日期（包含）
+  /// [taskIds] 可选的任务ID列表，用于筛选
+  /// 返回 Map<日期, 专注时长（分钟）>，日期只包含年月日
+  Future<Map<DateTime, int>> getFocusMinutesByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  });
+
+  /// 按日期范围查询焦点会话列表
+  /// 
+  /// [start] 开始日期（包含）
+  /// [end] 结束日期（包含）
+  /// [taskIds] 可选的任务ID列表，用于筛选
+  /// 返回已结束的会话列表，按开始时间降序排列
+  Future<List<FocusSession>> listSessionsByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  });
 }
