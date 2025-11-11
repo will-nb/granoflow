@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:granoflow/main.dart' as app;
 
 import 'package:granoflow/core/providers/repository_providers.dart';
+import 'package:granoflow/core/providers/app_config_providers.dart';
+import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
@@ -30,21 +34,89 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
+        
+        // 先确保所有依赖的 provider 已初始化
+        try {
+          print('Waiting for database adapter...');
+          await container.read(databaseAdapterProvider.future);
+          print('Database adapter ready');
+          
+          // 等待 seedRepositoryProvider 完成（seedImportServiceProvider 的依赖）
+          print('Waiting for seed repository...');
+          await container.read(seedRepositoryProvider.future);
+          print('Seed repository ready');
+          
+          // 等待其他必要的 repository
+          print('Waiting for other repositories...');
+          await Future.wait([
+            container.read(tagRepositoryProvider.future),
+            container.read(taskRepositoryProvider.future),
+            container.read(taskTemplateRepositoryProvider.future),
+            container.read(milestoneRepositoryProvider.future),
+            container.read(preferenceRepositoryProvider.future),
+          ]);
+          print('All repositories ready');
+          
+          // 等待 projectServiceProvider 完成
+          print('Waiting for project service...');
+          await container.read(projectServiceProvider.future);
+          print('Project service ready');
+          
+          // 等待 metricOrchestratorProvider 完成
+          print('Waiting for metric orchestrator...');
+          await container.read(metricOrchestratorProvider.future);
+          print('Metric orchestrator ready');
+          
+          // 等待 seedImportServiceProvider 完成
+          print('Waiting for seed import service...');
+          await container.read(seedImportServiceProvider.future);
+          print('Seed import service ready');
+        } catch (e, stack) {
+          print('Error initializing dependencies: $e');
+          print('Stack trace: $stack');
+          rethrow;
+        }
+        
+        // 现在触发并等待种子导入完成
+        try {
+          print('Starting seed import...');
+          // 使用 timeout 来避免无限等待
+          await container.read(seedInitializerProvider.future).timeout(
+            const Duration(seconds: 120),
+            onTimeout: () {
+              throw TimeoutException('Seed import timed out after 120 seconds');
+            },
+          );
+          print('Seed import completed successfully');
+        } catch (e) {
+          if (e is TimeoutException) {
+            print('Seed import timed out: $e');
+            rethrow;
+          }
+          print('Seed import error: $e');
+          rethrow;
+        }
+        
         final taskRepository = await container.read(taskRepositoryProvider.future);
         final projectRepository = await container.read(projectRepositoryProvider.future);
         final milestoneRepository = await container.read(milestoneRepositoryProvider.future);
 
-        // 注意：不清空数据库，因为这会触发重新导入，可能导致测试超时
-        // 如果数据库已有数据，测试会验证现有数据是否符合预期
-        // 如果需要测试导入流程，应该在测试前手动清理数据库
-
-        // 等待界面加载和种子导入完成
-        for (int i = 0; i < 10; i++) {
+        // 等待界面加载完成
+        for (int i = 0; i < 5; i++) {
           await tester.pump(const Duration(seconds: 1));
         }
 
         // 验证项目已导入
         final projects = await projectRepository.listAll();
+        print('Found ${projects.length} projects after seed import');
+        if (projects.isEmpty) {
+          // 如果数据库为空，可能是种子导入没有执行，或者数据库被清空了
+          // 检查种子导入状态
+          final seedRepo = await container.read(seedRepositoryProvider.future);
+          final latestVersion = await seedRepo.latestVersion();
+          print('Latest seed version: $latestVersion');
+          throw Exception('No projects found after seed import. Latest seed version: $latestVersion');
+        }
         expect(projects.length, greaterThan(0), reason: '应该至少导入一个项目');
 
         // 验证里程碑已导入（如果数据库中有里程碑数据）
@@ -192,6 +264,26 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
+        
+        // 等待种子导入完成
+        final seedInitializerAsync = container.read(seedInitializerProvider);
+        await seedInitializerAsync.when(
+          data: (_) => Future.value(),
+          loading: () async {
+            // 如果还在加载，等待最多 30 秒
+            for (int i = 0; i < 30; i++) {
+              await tester.pump(const Duration(seconds: 1));
+              final currentAsync = container.read(seedInitializerProvider);
+              if (currentAsync.hasValue) {
+                break;
+              }
+            }
+          },
+          error: (error, stack) {
+            throw Exception('Seed import failed: $error');
+          },
+        );
+        
         final taskRepository = await container.read(taskRepositoryProvider.future);
         final projectRepository = await container.read(projectRepositoryProvider.future);
         final milestoneRepository = await container.read(milestoneRepositoryProvider.future);
