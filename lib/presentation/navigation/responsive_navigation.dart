@@ -174,7 +174,7 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
                       final screenWidth = MediaQuery.of(context).size.width;
                       final navBarWidth = _navBarWidth ?? screenWidth;
 
-                      const double fabDiameter = 60.0; // FAB 直径 = 图标+文字总高度
+                      const double fabDiameter = 48.0; // FAB 直径（缩小后的尺寸）
                       const int fabSlotIndex = 2; // FAB 在第三个槽位（索引 2）
                       const int totalSlots = 5; // 总共 5 个槽位
                       final double slotWidth = navBarWidth / totalSlots;
@@ -183,9 +183,9 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
                       final double fabX =
                           slotWidth * fabSlotIndex + slotWidth / 2 - fabDiameter / 2;
 
-                      // FAB 顶部与图标顶部对齐（根据之前的测试结果，图标顶部在导航栏顶部 + 17dp）
-                      const double iconTopPadding = 10.0;
-                      final double fabY = iconTopPadding;
+                      // FAB 在导航栏中垂直居中（导航栏高度为 50dp）
+                      // FAB 直径 48dp，所以顶部应该在 (50 - 48) / 2 = 1dp 的位置
+                      const double fabY = 1.0;
 
                       const double fabPadding = 3; // 增加 padding，让按钮视觉上更轻盈
                       final colorScheme = Theme.of(context).colorScheme;

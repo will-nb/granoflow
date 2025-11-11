@@ -22,10 +22,16 @@ class AppNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: selectedIndex,
-      onDestinationSelected: onDestinationSelected,
-      destinations: destinations ?? _getDefaultDestinations(context),
+    // 使用SizedBox限制高度，符合2025年现代设计趋势（48-50dp）
+    // iOS标准约为49px，Android标准约为56px，但现代设计更倾向于更紧凑的48-50dp
+    return SizedBox(
+      height: 50.0, // 设置为50dp，更符合现代设计趋势
+      child: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: onDestinationSelected,
+        destinations: destinations ?? _getDefaultDestinations(context),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide, // 始终隐藏标签
+      ),
     );
   }
 
@@ -42,8 +48,8 @@ class AppNavigationBar extends StatelessWidget {
         selectedIcon: isFabDestination
             ? const SizedBox.shrink()
             : Icon(destination.selectedIcon),
-        label: destination.label(context),
-        tooltip: isFabDestination ? '' : null,
+        label: '', // 去掉所有按钮文字
+        tooltip: isFabDestination ? '' : destination.label(context), // 使用 tooltip 显示文字（悬停时）
         enabled: !isFabDestination,
       );
     }).toList();

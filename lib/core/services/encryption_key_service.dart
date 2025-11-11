@@ -16,9 +16,10 @@ class EncryptionKeyService {
     return prefs.containsKey(_keyEncryptionKey);
   }
 
-  /// 生成新的 UUID v4 密钥
+  /// 生成新的密钥
   /// 
-  /// 返回格式：xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+  /// 返回格式：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  /// 使用UUID v4生成，但验证时只检查格式不检查UUID版本
   String generateKey() {
     return _uuid.v4();
   }
@@ -60,14 +61,15 @@ class EncryptionKeyService {
   /// - 密钥不能为空
   /// - 密钥长度必须恰好是 36 个字符（不能多一位或少一位）
   /// - 密钥不能全为零（即不能是 00000000-0000-0000-0000-000000000000）
-  /// - 密钥必须是有效的 UUID v4 格式（32 个十六进制字符 + 4 个连字符）
+  /// - 密钥格式：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx（32个小写字母和数字 + 4个连字符）
+  /// - 只允许小写字母（a-z）和数字（0-9）
   bool isValidKey(String? key) {
     if (key == null || key.isEmpty) {
       return false;
     }
 
-    // 检查长度：UUID v4 格式必须是恰好 36 个字符
-    // 格式：xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+    // 检查长度：必须是恰好 36 个字符
+    // 格式：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     // 8 + 1 + 4 + 1 + 4 + 1 + 4 + 1 + 12 = 36
     if (key.length != 36) {
       return false;
@@ -79,13 +81,14 @@ class EncryptionKeyService {
       return false;
     }
 
-    // 检查 UUID v4 格式：xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-    // 总共 36 个字符（32 个十六进制字符 + 4 个连字符）
-    final uuidRegex = RegExp(
-      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+    // 检查格式：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    // 总共 36 个字符（32 个小写字母和数字 + 4 个连字符）
+    // 只允许小写字母（a-z）和数字（0-9）
+    final keyRegex = RegExp(
+      r'^[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}$',
     );
     
-    return uuidRegex.hasMatch(key);
+    return keyRegex.hasMatch(key);
   }
 }
 

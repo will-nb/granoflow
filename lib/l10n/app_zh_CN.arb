@@ -194,6 +194,7 @@
   "childTask": "子任务",
   "commonAdd": "添加",
   "commonCancel": "取消",
+  "commonContinue": "继续输入",
   "commonConfirm": "确认",
   "commonDelete": "删除",
   "commonLoading": "加载中...",
@@ -304,14 +305,28 @@
   "endSessionWastedNote": "将添加 wasted 标签用于统计",
   "estimatedTime": "预估时间",
   "encryptionKey": "加密密钥",
+  "encryptionKeyAllZeros": "密钥不能全部为零，请至少包含一个非零字符",
   "encryptionKeyCopySuccess": "密钥已复制到剪贴板",
   "encryptionKeyDescription": "导出文件将根据此密钥加密。忘记该密钥将无法导入数据，建议抄录到纸质文件妥善保管。",
-  "encryptionKeyInvalid": "密钥不能为空或全为零。",
+  "encryptionKeyEmpty": "密钥不能为空",
+  "encryptionKeyIncompleteMessage": "您输入的密钥尚未完成，是否要继续输入？",
+  "encryptionKeyIncompleteTitle": "输入未完成",
+  "encryptionKeyInvalid": "密钥格式无效，请确保格式为 xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx（32个小写字母和数字）。",
+  "encryptionKeyProgress": "已输入 {count}/32 字符",
+  "@encryptionKeyProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "encryptionKeyRegenerate": "重新生成",
   "encryptionKeyRegenerateConfirmMessage": "如果修改密钥，之前导出的数据将无法导入。确定要继续吗？",
   "encryptionKeyRegenerateConfirmMessage2": "请再次确认：如果修改密钥，之前导出的数据将无法导入。确定要继续吗？",
   "encryptionKeyRegenerateConfirmTitle": "确认重新生成密钥",
   "encryptionKeyRegenerateConfirmTitle2": "再次确认",
+  "encryptionKeyModifyConfirmTitle": "确认修改密钥",
+  "encryptionKeyModifyConfirmTitle2": "再次确认",
   "encryptionKeySaveError": "保存加密密钥失败",
   "exportData": "导出数据",
   "filterByDate": "按日期筛选",
@@ -629,8 +644,8 @@
   "settingsLanguageTraditionalChinese": "繁体中文",
   "settingsSection": "设定",
   "settingsClockSection": "计时器",
-  "settingsClockTickSound": "滴答声",
-  "settingsClockTickSoundDescription": "在计时期间播放滴答声和提醒",
+  "settingsClockTickSound": "背景音",
+  "settingsClockTickSoundDescription": "在计时期间播放背景音",
   "settingsExportImportSection": "导出与导入",
   "settingsTaskManagement": "任务管理",
   "settingsThemeDark": "深色",
