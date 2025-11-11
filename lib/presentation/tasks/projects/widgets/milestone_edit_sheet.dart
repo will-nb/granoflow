@@ -201,9 +201,8 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
             );
       } else {
         // 创建新里程碑
-        await ref
-            .read(milestoneServiceProvider)
-            .createMilestone(
+        final milestoneService = await ref.read(milestoneServiceProvider.future);
+        await milestoneService.createMilestone(
               projectId: widget.projectId,
               title: title,
               dueAt: normalizedDeadline,

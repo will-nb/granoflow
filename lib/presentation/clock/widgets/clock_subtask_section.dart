@@ -105,7 +105,7 @@ class _ClockSubtaskSectionState
       );
 
       // 移动到父任务下
-      final hierarchyService = ref.read(taskHierarchyServiceProvider);
+      final hierarchyService = await ref.read(taskHierarchyServiceProvider.future);
       await hierarchyService.moveToParent(
         taskId: overtimeSubtask.id,
         parentId: widget.task.id,

@@ -43,9 +43,8 @@ Future<void> completeProject(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
   try {
-    await ref
-        .read(projectServiceProvider)
-        .completeProject(projectId, archiveActiveTasks: archiveTasks);
+    final projectService = await ref.read(projectServiceProvider.future);
+    await projectService.completeProject(projectId, archiveActiveTasks: archiveTasks);
     if (!context.mounted) {
       return;
     }

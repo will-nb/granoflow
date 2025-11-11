@@ -119,7 +119,8 @@ class ArchivedTasksPaginationNotifier
       // 读取筛选条件
       final filter = ref.read(archivedTasksFilterProvider);
       
-      final tasks = await _repository.listArchivedTasks(
+      final repository = await _repository;
+      final tasks = await repository.listArchivedTasks(
         limit: _pageSize,
         offset: state.tasks.length,
         contextTag: filter.contextTag,
