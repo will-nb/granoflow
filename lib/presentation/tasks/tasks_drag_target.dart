@@ -192,7 +192,7 @@ class TasksPageDragTarget extends ConsumerWidget {
         }
       }
 
-      final taskService = ref.read(taskServiceProvider);
+      final taskService = await ref.read(taskServiceProvider.future);
       await taskService.updateDetails(
         taskId: draggedTask.id,
         payload: TaskUpdate(sortIndex: newSortIndex, dueAt: newDueDate),
@@ -200,8 +200,8 @@ class TasksPageDragTarget extends ConsumerWidget {
 
       // 批量重排目标日期同一天的所有任务的sortIndex
       // 需要从数据库重新查询，因为移动后可能跨日期
-      final taskRepository = ref.read(taskRepositoryProvider);
-      final sortIndexService = ref.read(sortIndexServiceProvider);
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
+      final sortIndexService = await ref.read(sortIndexServiceProvider.future);
 
       // 查询所有pending状态的普通任务（Tasks页面显示的任务）
       // 在新架构下，普通任务没有关联项目或里程碑

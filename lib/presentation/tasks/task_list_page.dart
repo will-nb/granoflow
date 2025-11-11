@@ -384,7 +384,7 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
       return;
     }
 
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     try {
       // 先创建一个新任务，保存到收件箱
       final newTask = await taskService.captureInboxTask(title: result.title);
