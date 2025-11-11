@@ -38,5 +38,19 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
+    
+    # 抑制 SQLite3 的编译警告（来自第三方库的 C 源代码）
+    if target.name == 'sqlite3'
+      target.build_configurations.each do |config|
+        config.build_settings['GCC_WARN_64_TO_32_BIT_CONVERSION'] = 'NO'
+        config.build_settings['GCC_WARN_ABOUT_RETURN_TYPE'] = 'NO'
+        config.build_settings['CLANG_WARN_STRICT_PROTOTYPES'] = 'NO'
+        config.build_settings['CLANG_WARN_COMMA'] = 'NO'
+        config.build_settings['CLANG_WARN_UNREACHABLE_CODE'] = 'NO'
+        # 抑制宏展开歧义警告
+        config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
+        config.build_settings['OTHER_CFLAGS'] << '-Wno-ambiguous-macro'
+      end
+    end
   end
 end
