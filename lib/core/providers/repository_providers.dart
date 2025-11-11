@@ -33,36 +33,31 @@ final taskRepositoryProvider = FutureProvider<TaskRepository>((ref) async {
 
 /// 根据当前数据库类型创建 ProjectRepository
 final projectRepositoryProvider = FutureProvider<ProjectRepository>((ref) async {
-  final adapterAsync = ref.watch(databaseAdapterProvider);
-  final adapter = await adapterAsync.requireValue;
+  final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftProjectRepository(adapter);
 });
 
 /// 根据当前数据库类型创建 MilestoneRepository
 final milestoneRepositoryProvider = FutureProvider<MilestoneRepository>((ref) async {
-  final adapterAsync = ref.watch(databaseAdapterProvider);
-  final adapter = await adapterAsync.requireValue;
+  final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftMilestoneRepository(adapter);
 });
 
 /// 根据当前数据库类型创建 FocusSessionRepository
 final focusSessionRepositoryProvider = FutureProvider<FocusSessionRepository>((ref) async {
-  final adapterAsync = ref.watch(databaseAdapterProvider);
-  final adapter = await adapterAsync.requireValue;
+  final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftFocusSessionRepository(adapter);
 });
 
 /// 根据当前数据库类型创建 TagRepository
 final tagRepositoryProvider = FutureProvider<TagRepository>((ref) async {
-  final adapterAsync = ref.watch(databaseAdapterProvider);
-  final adapter = await adapterAsync.requireValue;
+  final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftTagRepository(adapter);
 });
 
 /// 根据当前数据库类型创建 PreferenceRepository
 final preferenceRepositoryProvider = FutureProvider<PreferenceRepository>((ref) async {
-  final adapterAsync = ref.watch(databaseAdapterProvider);
-  final adapter = await adapterAsync.requireValue;
+  final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftPreferenceRepository(adapter);
 });
 
@@ -73,14 +68,12 @@ final metricRepositoryProvider = Provider<MetricRepository>((ref) {
 
 /// 根据当前数据库类型创建 TaskTemplateRepository
 final taskTemplateRepositoryProvider = FutureProvider<TaskTemplateRepository>((ref) async {
-  final adapterAsync = ref.watch(databaseAdapterProvider);
-  final adapter = await adapterAsync.requireValue;
+  final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftTaskTemplateRepository(adapter);
 });
 
 /// 根据当前数据库类型创建 SeedRepository
 final seedRepositoryProvider = FutureProvider<SeedRepository>((ref) async {
-  final adapterAsync = ref.watch(databaseAdapterProvider);
-  final adapter = await adapterAsync.requireValue;
+  final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftSeedRepository(adapter);
 });

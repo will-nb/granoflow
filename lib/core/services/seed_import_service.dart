@@ -292,6 +292,8 @@ class SeedImportService {
     }
     
     debugPrint('SeedImportService: Processing ${projectTasks.length} project seeds');
+    int createdProjects = 0;
+    int skippedProjects = 0;
     for (final seed in projectTasks) {
       // 检查是否已存在相同 seedSlug 的项目
       if (existingProjectsBySlug.containsKey(seed.slug)) {
@@ -299,12 +301,13 @@ class SeedImportService {
         final existingProject = existingProjectsBySlug[seed.slug]!;
         slugToProjectId[seed.slug] = existingProject.id;
         slugToId[seed.slug] = existingProject.id;
+        skippedProjects++;
         continue;
       }
       
       // 创建新项目
       final dueAt = _parseDueAt(seed.dueAt) ?? DateTime.now();
-      debugPrint('SeedImportService: Creating project with seedSlug "${seed.slug}", title: "${seed.title}"');
+      debugPrint('SeedImportService: Creating project with seedSlug "${seed.slug}", title: "${seed.title}", dueAt: $dueAt');
 
       final project = await _projectService.createProject(
         ProjectBlueprint(
@@ -315,31 +318,41 @@ class SeedImportService {
           milestones: const <ProjectMilestoneBlueprint>[],
         ),
       );
+      debugPrint('SeedImportService: Project created - id: ${project.id}, title: ${project.title}');
       
       // 更新项目的 seedSlug（createProject 不会设置 seedSlug，需要手动更新）
+      debugPrint('SeedImportService: Updating project ${project.id} with seedSlug: ${seed.slug}');
       await _projectService.updateProject(project.id, ProjectUpdate(seedSlug: seed.slug));
+      debugPrint('SeedImportService: Project seedSlug updated successfully');
 
       slugToProjectId[seed.slug] = project.id;
       slugToId[seed.slug] = project.id;
+      createdProjects++;
     }
+    debugPrint('SeedImportService: Projects processing complete - Created: $createdProjects, Skipped: $skippedProjects, Total: ${projectTasks.length}');
 
     // 第二遍：处理所有里程碑（milestone 类型）
     // 使用字符串比较来区分里程碑类型
     final milestoneTasks = tasks
         .where((t) => t.taskKind?.toLowerCase() == 'milestone')
         .toList();
+    debugPrint('SeedImportService: Processing ${milestoneTasks.length} milestone seeds');
+    int createdMilestones = 0;
+    int skippedMilestones = 0;
     for (final seed in milestoneTasks) {
       // 里程碑必须有父项目
       if (seed.parentSlug == null ||
           !slugToProjectId.containsKey(seed.parentSlug)) {
         debugPrint(
-          'SeedImportService: Milestone ${seed.slug} has no valid parent project, skipping',
+          'SeedImportService: Milestone ${seed.slug} has no valid parent project (parentSlug: ${seed.parentSlug}), skipping',
         );
+        skippedMilestones++;
         continue;
       }
 
       final projectId = slugToProjectId[seed.parentSlug]!;
       final dueAt = _parseDueAt(seed.dueAt);
+      debugPrint('SeedImportService: Creating milestone with seedSlug "${seed.slug}", title: "${seed.title}", projectId: $projectId');
 
       // 生成 milestoneId（使用 UUID v4）
       final milestoneId = IdGenerator.generateId();
@@ -367,7 +380,10 @@ class SeedImportService {
 
       slugToMilestoneId[seed.slug] = milestoneId;
       slugToId[seed.slug] = milestoneId;
+      createdMilestones++;
+      debugPrint('SeedImportService: Milestone created successfully - id: $milestoneId, slug: ${seed.slug}');
     }
+    debugPrint('SeedImportService: Milestones processing complete - Created: $createdMilestones, Skipped: $skippedMilestones, Total: ${milestoneTasks.length}');
 
     // 第三遍：处理所有普通任务（regular 类型或未指定类型）
     // 使用字符串比较来区分普通任务
@@ -389,18 +405,21 @@ class SeedImportService {
     }
 
     debugPrint('SeedImportService: Processing ${regularTasks.length} regular task seeds');
+    int createdTasks = 0;
+    int skippedTasks = 0;
     for (final seed in regularTasks) {
       // 检查是否已存在相同 seedSlug 的任务
       if (existingTasksBySlug.containsKey(seed.slug)) {
         debugPrint('SeedImportService: Task with seedSlug "${seed.slug}" already exists, skipping');
         final existingTask = existingTasksBySlug[seed.slug]!;
         slugToId[seed.slug] = existingTask.id;
+        skippedTasks++;
         continue;
       }
 
       // 创建新任务
       final dueAt = _parseDueAt(seed.dueAt);
-      debugPrint('SeedImportService: Creating task with seedSlug "${seed.slug}", title: "${seed.title}"');
+      debugPrint('SeedImportService: Creating task with seedSlug "${seed.slug}", title: "${seed.title}", projectId: ${seed.parentSlug != null && slugToProjectId.containsKey(seed.parentSlug) ? slugToProjectId[seed.parentSlug] : "null"}, milestoneId: ${seed.parentSlug != null && slugToMilestoneId.containsKey(seed.parentSlug) ? slugToMilestoneId[seed.parentSlug] : "null"}');
 
       // 确定任务的 projectId 和 milestoneId
       String? projectId;
@@ -441,7 +460,10 @@ class SeedImportService {
       );
         final task = await _tasks.createTask(draft);
         slugToId[seed.slug] = task.id;
+        createdTasks++;
+        debugPrint('SeedImportService: Task created successfully - id: ${task.id}, slug: ${seed.slug}');
     }
+    debugPrint('SeedImportService: Regular tasks processing complete - Created: $createdTasks, Skipped: $skippedTasks, Total: ${regularTasks.length}');
 
     // 第四遍：处理普通任务的父子关系（parentTaskId）
     for (final seed in regularTasks.where((task) => task.parentSlug != null)) {
@@ -509,7 +531,12 @@ class SeedImportService {
     List<SeedTemplate> templates,
     Map<String, String> slugToId,
   ) async {
+    debugPrint('SeedImportService: Applying ${templates.length} templates...');
+    int createdTemplates = 0;
     for (final seed in templates) {
+      debugPrint('SeedImportService: Creating template with seedSlug "${seed.slug}", title: "${seed.title}", parentSlug: ${seed.parentSlug}');
+      final parentTaskId = seed.parentSlug == null ? null : slugToId[seed.parentSlug!];
+      debugPrint('SeedImportService: Template parentTaskId resolved: $parentTaskId');
       final draft = TaskTemplateDraft(
         title: seed.title,
         parentTaskId: null,
@@ -519,24 +546,30 @@ class SeedImportService {
       );
       final template = await _templates.createTemplateWithSeed(
         draft: draft,
-          parentTaskId:
-              seed.parentSlug == null ? null : slugToId[seed.parentSlug!],
+        parentTaskId: parentTaskId,
       );
+      debugPrint('SeedImportService: Template created successfully - id: ${template.id}, slug: ${seed.slug}');
       if (template.parentTaskId != null) {
+        debugPrint('SeedImportService: Adjusting template lock for task ${template.parentTaskId}');
         await _tasks.adjustTemplateLock(
           taskId: template.parentTaskId!,
           delta: 1,
         );
       }
+      createdTemplates++;
     }
+    debugPrint('SeedImportService: Templates processing complete - Created: $createdTemplates, Total: ${templates.length}');
   }
 
   Future<void> _applyInboxItems(
     List<SeedInboxItem> inboxItems,
     Map<String, String> slugToId,
   ) async {
+    debugPrint('SeedImportService: Applying ${inboxItems.length} inbox items...');
+    int createdInboxItems = 0;
     for (final seed in inboxItems) {
       // 全新安装场景：直接创建 inbox 任务，无需检查重复
+      debugPrint('SeedImportService: Creating inbox item with seedSlug "${seed.slug}", title: "${seed.title}"');
       final draft = TaskDraft(
         title: seed.title,
         status: TaskStatus.inbox,
@@ -545,6 +578,9 @@ class SeedImportService {
       );
       final task = await _tasks.createTask(draft);
       slugToId[seed.slug] = task.id;
+      createdInboxItems++;
+      debugPrint('SeedImportService: Inbox item created successfully - id: ${task.id}, slug: ${seed.slug}');
     }
+    debugPrint('SeedImportService: Inbox items processing complete - Created: $createdInboxItems, Total: ${inboxItems.length}');
   }
 }

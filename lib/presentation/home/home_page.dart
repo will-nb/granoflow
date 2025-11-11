@@ -14,7 +14,14 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 触发种子导入，但不监听状态变化（避免无限重建）
-    ref.read(seedInitializerProvider);
+    debugPrint('🟢 HomePage: build() called, triggering seed import...');
+    try {
+      ref.read(seedInitializerProvider);
+      debugPrint('🟢 HomePage: seedInitializerProvider read successfully');
+    } catch (error, stackTrace) {
+      debugPrint('🔴 HomePage: ERROR - Failed to read seedInitializerProvider: $error');
+      debugPrint('🔴 HomePage: Stack trace: $stackTrace');
+    }
     
     final l10n = AppLocalizations.of(context);
 

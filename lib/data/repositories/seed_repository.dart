@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/task.dart';
 
@@ -86,6 +87,7 @@ abstract class SeedRepository {
 }
 
 Future<SeedPayload> loadSeedPayload(String localeCode) async {
+  debugPrint('🔵 loadSeedPayload: Loading seed data for locale: $localeCode');
   final normalized = switch (localeCode) {
     final code when code.startsWith('zh_HK') => 'zh_HK',
     final code when code.startsWith('zh_CN') => 'zh_CN',
@@ -93,19 +95,31 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
     final code when code.startsWith('en') => 'en',
     _ => 'en',
   };
+  debugPrint('🔵 loadSeedPayload: Normalized locale: $normalized');
 
+  debugPrint('🔵 loadSeedPayload: Loading version.json...');
   final versionJson = await rootBundle
       .loadString('assets/seeds/version.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
+  debugPrint('🔵 loadSeedPayload: Version loaded: ${versionJson['version']}');
+  
+  debugPrint('🔵 loadSeedPayload: Loading tasks.json from assets/seeds/$normalized/tasks.json...');
   final tasksJson = await rootBundle
       .loadString('assets/seeds/$normalized/tasks.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
+  debugPrint('🔵 loadSeedPayload: Tasks loaded: ${(tasksJson['tasks'] as List?)?.length ?? 0} tasks');
+  
+  debugPrint('🔵 loadSeedPayload: Loading templates.json from assets/seeds/$normalized/templates.json...');
   final templatesJson = await rootBundle
       .loadString('assets/seeds/$normalized/templates.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
+  debugPrint('🔵 loadSeedPayload: Templates loaded: ${(templatesJson['templates'] as List?)?.length ?? 0} templates');
+  
+  debugPrint('🔵 loadSeedPayload: Loading inbox.json from assets/seeds/$normalized/inbox.json...');
   final inboxJson = await rootBundle
       .loadString('assets/seeds/$normalized/inbox.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
+  debugPrint('🔵 loadSeedPayload: Inbox items loaded: ${(inboxJson['inbox'] as List?)?.length ?? 0} items');
 
   return SeedPayload(
     version: versionJson['version'] as String,
