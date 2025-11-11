@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/drift.dart';
 
+import '../../../core/utils/task_section_utils.dart';
 import '../../database/database_adapter.dart';
 import '../../drift/database.dart' hide Task, TaskLog;
 import '../../drift/database.dart' as drift show Task, TaskLog;
@@ -23,63 +24,85 @@ class DriftTaskRepository implements TaskRepository {
   Stream<List<domain.Task>> watchSection(domain.TaskSection section) {
     final query = _db.select(_db.tasks);
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
 
+    // 使用 TaskSectionUtils 统一边界定义（严禁修改）
     switch (section) {
       case domain.TaskSection.overdue:
+        // 已逾期：[~, <今天00:00:00)
+        final today = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
         query.where((t) =>
-            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
             t.dueAt.isNotNull() &
             t.dueAt.isSmallerThanValue(today));
         break;
       case domain.TaskSection.today:
-        final tomorrow = today.add(const Duration(days: 1));
+        // 今天：[>=今天00:00:00, <明天00:00:00)
+        final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+        final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
         query.where((t) =>
-            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
             t.dueAt.isNotNull() &
-            t.dueAt.isBiggerOrEqualValue(today) &
-            t.dueAt.isSmallerThanValue(tomorrow));
+            t.dueAt.isBiggerOrEqualValue(startTime) &
+            t.dueAt.isSmallerThanValue(endTime));
         break;
       case domain.TaskSection.tomorrow:
-        final tomorrow = today.add(const Duration(days: 1));
-        final dayAfterTomorrow = tomorrow.add(const Duration(days: 1));
+        // 明天：[>=明天00:00:00, <后天00:00:00)
+        final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+        final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
         query.where((t) =>
-            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
             t.dueAt.isNotNull() &
-            t.dueAt.isBiggerOrEqualValue(tomorrow) &
-            t.dueAt.isSmallerThanValue(dayAfterTomorrow));
+            t.dueAt.isBiggerOrEqualValue(startTime) &
+            t.dueAt.isSmallerThanValue(endTime));
         break;
       case domain.TaskSection.thisWeek:
-        final nextWeek = today.add(const Duration(days: 7));
+        // 本周：[>=后天00:00:00, <下周日00:00:00) （如果今天是周六，则为空范围）
+        final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+        final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
+        // 检查是否为空范围（今天是周六时，startTime >= endTime）
+        if (startTime.isBefore(endTime)) {
         query.where((t) =>
-            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
             t.dueAt.isNotNull() &
-            t.dueAt.isBiggerOrEqualValue(today) &
-            t.dueAt.isSmallerThanValue(nextWeek));
+              t.dueAt.isBiggerOrEqualValue(startTime) &
+              t.dueAt.isSmallerThanValue(endTime));
+        } else {
+          // 空范围，返回空结果
+          query.where((t) => t.id.equals('__empty__'));
+        }
         break;
       case domain.TaskSection.thisMonth:
-        final thisMonth = DateTime(now.year, now.month, 1);
-        final nextMonth = DateTime(now.year, now.month + 1, 1);
+        // 当月：[>=下周日00:00:00, <下月1日00:00:00) （如果本周跨月，则为空范围）
+        final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+        final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
+        // 检查是否为空范围
+        if (startTime.isBefore(endTime)) {
         query.where((t) =>
-            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
             t.dueAt.isNotNull() &
-            t.dueAt.isBiggerOrEqualValue(thisMonth) &
-            t.dueAt.isSmallerThanValue(nextMonth));
+              t.dueAt.isBiggerOrEqualValue(startTime) &
+              t.dueAt.isSmallerThanValue(endTime));
+        } else {
+          // 空范围，返回空结果
+          query.where((t) => t.id.equals('__empty__'));
+        }
         break;
       case domain.TaskSection.nextMonth:
-        final nextMonth = DateTime(now.year, now.month + 1, 1);
-        final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+        // 下月：[>=下月1日00:00:00, <下下月1日00:00:00)
+        final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+        final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
         query.where((t) =>
-            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
             t.dueAt.isNotNull() &
-            t.dueAt.isBiggerOrEqualValue(nextMonth) &
-            t.dueAt.isSmallerThanValue(monthAfterNext));
+            t.dueAt.isBiggerOrEqualValue(startTime) &
+            t.dueAt.isSmallerThanValue(endTime));
         break;
       case domain.TaskSection.later:
-        final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+        // 以后：[>=下下月1日00:00:00, ~)
+        final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
         query.where((t) =>
-            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
-            (t.dueAt.isNull() | t.dueAt.isBiggerOrEqualValue(monthAfterNext)));
+            t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
+            (t.dueAt.isNull() | t.dueAt.isBiggerOrEqualValue(startTime)));
         break;
       case domain.TaskSection.completed:
         query.where((t) => t.status.equals(domain.TaskStatus.completedActive.index));
@@ -310,6 +333,7 @@ class DriftTaskRepository implements TaskRepository {
             domain.TaskStatus.inbox.index,
             domain.TaskStatus.pending.index,
             domain.TaskStatus.doing.index,
+            domain.TaskStatus.paused.index,
           ]));
 
     // 应用项目/里程碑过滤条件
@@ -800,63 +824,85 @@ class DriftTaskRepository implements TaskRepository {
     return await _adapter.readTransaction(() async {
       final query = _db.select(_db.tasks);
       final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
 
+      // 使用 TaskSectionUtils 统一边界定义（严禁修改）
       switch (section) {
         case domain.TaskSection.overdue:
+          // 已逾期：[~, <今天00:00:00)
+          final today = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
           query.where((t) =>
-              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
               t.dueAt.isNotNull() &
               t.dueAt.isSmallerThanValue(today));
           break;
         case domain.TaskSection.today:
-          final tomorrow = today.add(const Duration(days: 1));
+          // 今天：[>=今天00:00:00, <明天00:00:00)
+          final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+          final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
           query.where((t) =>
-              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
               t.dueAt.isNotNull() &
-              t.dueAt.isBiggerOrEqualValue(today) &
-              t.dueAt.isSmallerThanValue(tomorrow));
+              t.dueAt.isBiggerOrEqualValue(startTime) &
+              t.dueAt.isSmallerThanValue(endTime));
           break;
         case domain.TaskSection.tomorrow:
-          final tomorrow = today.add(const Duration(days: 1));
-          final dayAfterTomorrow = tomorrow.add(const Duration(days: 1));
+          // 明天：[>=明天00:00:00, <后天00:00:00)
+          final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+          final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
           query.where((t) =>
-              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
               t.dueAt.isNotNull() &
-              t.dueAt.isBiggerOrEqualValue(tomorrow) &
-              t.dueAt.isSmallerThanValue(dayAfterTomorrow));
+              t.dueAt.isBiggerOrEqualValue(startTime) &
+              t.dueAt.isSmallerThanValue(endTime));
           break;
         case domain.TaskSection.thisWeek:
-          final nextWeek = today.add(const Duration(days: 7));
+          // 本周：[>=后天00:00:00, <下周日00:00:00) （如果今天是周六，则为空范围）
+          final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+          final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
+          // 检查是否为空范围（今天是周六时，startTime >= endTime）
+          if (startTime.isBefore(endTime)) {
           query.where((t) =>
-              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+                t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
               t.dueAt.isNotNull() &
-              t.dueAt.isBiggerOrEqualValue(today) &
-              t.dueAt.isSmallerThanValue(nextWeek));
+                t.dueAt.isBiggerOrEqualValue(startTime) &
+                t.dueAt.isSmallerThanValue(endTime));
+          } else {
+            // 空范围，返回空结果
+            query.where((t) => t.id.equals('__empty__'));
+          }
           break;
         case domain.TaskSection.thisMonth:
-          final thisMonth = DateTime(now.year, now.month, 1);
-          final nextMonth = DateTime(now.year, now.month + 1, 1);
+          // 当月：[>=下周日00:00:00, <下月1日00:00:00) （如果本周跨月，则为空范围）
+          final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+          final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
+          // 检查是否为空范围
+          if (startTime.isBefore(endTime)) {
           query.where((t) =>
-              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+                t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
               t.dueAt.isNotNull() &
-              t.dueAt.isBiggerOrEqualValue(thisMonth) &
-              t.dueAt.isSmallerThanValue(nextMonth));
+                t.dueAt.isBiggerOrEqualValue(startTime) &
+                t.dueAt.isSmallerThanValue(endTime));
+          } else {
+            // 空范围，返回空结果
+            query.where((t) => t.id.equals('__empty__'));
+          }
           break;
         case domain.TaskSection.nextMonth:
-          final nextMonth = DateTime(now.year, now.month + 1, 1);
-          final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+          // 下月：[>=下月1日00:00:00, <下下月1日00:00:00)
+          final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
+          final endTime = TaskSectionUtils.getSectionEndTimeForQuery(section, now: now);
           query.where((t) =>
-              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
               t.dueAt.isNotNull() &
-              t.dueAt.isBiggerOrEqualValue(nextMonth) &
-              t.dueAt.isSmallerThanValue(monthAfterNext));
+              t.dueAt.isBiggerOrEqualValue(startTime) &
+              t.dueAt.isSmallerThanValue(endTime));
           break;
         case domain.TaskSection.later:
-          final monthAfterNext = DateTime(now.year, now.month + 2, 1);
+          // 以后：[>=下下月1日00:00:00, ~)
+          final startTime = TaskSectionUtils.getSectionStartTime(section, now: now);
           query.where((t) =>
-              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index]) &
-              (t.dueAt.isNull() | t.dueAt.isBiggerOrEqualValue(monthAfterNext)));
+              t.status.isIn([domain.TaskStatus.pending.index, domain.TaskStatus.doing.index, domain.TaskStatus.paused.index]) &
+              (t.dueAt.isNull() | t.dueAt.isBiggerOrEqualValue(startTime)));
           break;
         case domain.TaskSection.completed:
           query.where((t) => t.status.equals(domain.TaskStatus.completedActive.index));

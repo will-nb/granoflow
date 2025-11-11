@@ -57,8 +57,11 @@ class ArchivedTaskTile extends ConsumerWidget {
                 child: Text(
                   task.title,
                   style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w400,
                     // 归档任务通常不需要删除线样式
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),

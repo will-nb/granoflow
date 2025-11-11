@@ -157,7 +157,8 @@ class _ParentTaskHeaderState extends ConsumerState<ParentTaskHeader> {
       case TaskStatus.pending:
         break;
       case TaskStatus.doing:
-        // 按进行中视为 pending 的同类分区
+      case TaskStatus.paused:
+        // 按进行中和暂停视为 pending 的同类分区
         break;
     }
 

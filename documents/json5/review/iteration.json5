@@ -1,0 +1,1438 @@
+{
+  // ===========================================
+  // 日历回顾页面迭代蓝图
+  // 基于 design.json5 实现日历回顾功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250115-review-calendar-view",
+    
+    // 迭代标题
+    title: "日历回顾页面重构：使用 table_calendar 实现日/周/月视图",
+    
+    // 迭代描述
+    description: "删除现有文本式回顾页面，使用 table_calendar 实现日历视图，支持日/周/月视图切换、热力图展示专注时长、按项目/标签筛选、懒加载优化、Markdown 导出等功能",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/review/design.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // 数据模型层
+    models: [
+      {
+        path: "lib/data/models/calendar_review_data.dart",
+        purpose: "日历回顾相关的数据模型，包括每日数据、详情数据、筛选条件等",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/data/models/focus_session.dart",
+        ],
+        details: [
+          "DayReviewData 类：每日统计数据（日期、专注时长、完成任务数、会话数）",
+          "DayDetailData 类：指定日期的详细数据（日期、专注时长、完成任务列表、会话列表）",
+          "CalendarFilter 类：筛选条件（项目ID、标签列表）",
+          "WeekReviewData 类：周统计数据（周范围、总时长、完成任务数、平均每日时长、会话数）",
+          "MonthReviewData 类：月统计数据（月份、总时长、完成任务数、平均每日时长、最活跃日期）",
+          "所有类使用 @immutable 注解，提供 copyWith 方法",
+        ],
+      },
+    ],
+    
+    // Repository 层（扩展接口）
+    repositories: [
+      {
+        path: "lib/data/repositories/focus_session_repository.dart",
+        purpose: "扩展 FocusSessionRepository 接口，添加按日期范围查询的方法",
+        action: "modify",
+        estimatedLines: 30,
+        dependencies: [],
+        details: [
+          "添加 getFocusMinutesByDateRange 方法：按日期范围查询每日的专注时长（分钟），支持按任务ID列表筛选",
+          "添加 listSessionsByDateRange 方法：按日期范围查询焦点会话列表，支持按任务ID列表筛选",
+          "方法签名：Future<Map<DateTime, int>> getFocusMinutesByDateRange({required DateTime start, required DateTime end, List<String>? taskIds})",
+          "方法签名：Future<List<FocusSession>> listSessionsByDateRange({required DateTime start, required DateTime end, List<String>? taskIds})",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_focus_session_repository.dart",
+        purpose: "实现 FocusSessionRepository 新增的方法",
+        action: "modify",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/repositories/focus_session_repository.dart",
+        ],
+        details: [
+          "实现 getFocusMinutesByDateRange：查询已结束的会话，按日期分组并汇总分钟数，支持 taskIds 筛选",
+          "实现 listSessionsByDateRange：查询已结束的会话，按开始时间降序排列，支持 taskIds 筛选",
+          "日期处理：提取 endedAt 的年月日部分作为分组键",
+          "性能优化：使用数据库聚合查询，避免在内存中处理大量数据",
+        ],
+      },
+      {
+        path: "lib/data/repositories/task_repository.dart",
+        purpose: "扩展 TaskRepository 接口，添加按日期范围查询已完成根任务的方法",
+        action: "modify",
+        estimatedLines: 20,
+        dependencies: [],
+        details: [
+          "添加 getCompletedRootTasksByDateRange 方法：按日期范围查询已完成的根任务，排除 inbox/trashed/pseudoDeleted/archived 状态",
+          "方法签名：Future<Map<DateTime, List<Task>>> getCompletedRootTasksByDateRange({required DateTime start, required DateTime end, String? projectId, List<String>? tags})",
+          "返回 Map<完成日期, 任务列表>，日期只包含年月日",
+        ],
+      },
+      {
+        path: "lib/data/repositories/drift/drift_task_repository.dart",
+        purpose: "实现 TaskRepository 新增的方法",
+        action: "modify",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/data/repositories/task_repository.dart",
+        ],
+        details: [
+          "实现 getCompletedRootTasksByDateRange：查询根任务（parentId == null），状态为 completedActive，有 endedAt，排除指定状态",
+          "支持项目筛选：如果提供 projectId，只查询该项目下的任务",
+          "支持标签筛选：如果提供 tags，只查询包含这些标签的任务（需要处理 JSON 数组字段）",
+          "按完成日期（endedAt 的年月日）分组返回",
+          "性能优化：使用数据库查询过滤，避免在内存中处理",
+        ],
+      },
+    ],
+    
+    // 服务层
+    services: [
+      {
+        path: "lib/core/services/calendar_review_service.dart",
+        purpose: "日历回顾数据查询服务，封装数据聚合逻辑和筛选逻辑",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/repositories/task_repository.dart",
+          "lib/data/repositories/focus_session_repository.dart",
+          "lib/data/models/calendar_review_data.dart",
+        ],
+        details: [
+          "loadDailyData 方法：获取日期范围内的每日数据（懒加载），应用筛选条件，返回 Map<DateTime, DayReviewData>",
+          "loadDayDetail 方法：获取指定日期的详细数据，包括完成任务列表和会话列表",
+          "loadWeekData 方法：获取周统计数据",
+          "loadMonthData 方法：获取月统计数据",
+          "_getFilteredRootTaskIds 私有方法：根据筛选条件获取符合条件的根任务ID列表（用于筛选焦点会话）",
+          "generateMarkdownExport 方法：生成 Markdown 格式的导出内容",
+          "筛选逻辑：只统计根任务，排除 inbox/trashed/pseudoDeleted/archived 状态",
+          "性能优化：批量查询，避免 N+1 问题",
+        ],
+      },
+      {
+        path: "lib/core/services/heatmap_color_service.dart",
+        purpose: "热力图颜色计算服务，根据专注时长计算对应的颜色",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/core/services/config_service.dart", // 假设有配置服务
+        ],
+        details: [
+          "getHeatmapColor 方法：根据专注时长（分钟）和主题模式（light/dark）返回对应的颜色",
+          "从配置文件读取阈值（low: 30分钟, mediumLow: 60分钟, medium: 120分钟）",
+          "返回颜色梯度：无数据（浅灰）→ 低（浅绿）→ 中低（中绿）→ 中（深绿）→ 高（最深绿）",
+          "支持 Light 和 Dark 模式不同的透明度",
+        ],
+      },
+    ],
+    
+    // Provider 状态管理
+    providers: [
+      {
+        path: "lib/core/providers/calendar_review_providers.dart",
+        purpose: "日历回顾页面的状态管理，包括数据加载、筛选条件、视图模式等",
+        action: "create",
+        estimatedLines: 250,
+        dependencies: [
+          "lib/core/services/calendar_review_service.dart",
+          "lib/data/models/calendar_review_data.dart",
+        ],
+        details: [
+          "CalendarReviewState 类：页面状态（加载中、数据、错误、选中日期、视图模式、筛选条件）",
+          "CalendarReviewNotifier 类：状态管理逻辑",
+          "loadDailyData 方法：加载日期范围的数据（懒加载）",
+          "loadDayDetail 方法：加载指定日期的详情",
+          "setFilter 方法：设置筛选条件并重新加载数据",
+          "setViewMode 方法：切换视图模式（日/周/月）",
+          "selectDate 方法：选择日期并加载详情",
+          "calendarDataProvider：StreamProvider，提供日历数据流",
+          "dayDetailProvider：FutureProvider.family，提供指定日期的详情",
+          "筛选条件持久化：使用 SharedPreferences 保存和恢复筛选条件",
+        ],
+      },
+    ],
+    
+    // 工具类
+    utils: [
+      {
+        path: "lib/core/utils/calendar_review_utils.dart",
+        purpose: "日历回顾相关的工具方法",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [],
+        details: [
+          "getWeekStart 方法：计算周的开始日期（周日）",
+          "getWeekEnd 方法：计算周的结束日期（周六）",
+          "getMonthStart 方法：计算月的开始日期",
+          "getMonthEnd 方法：计算月的结束日期",
+          "formatFocusMinutes 方法：格式化专注时长为小时数（如：2.5h）",
+          "与 TaskSectionUtils 保持一致，使用周日作为一周的开始",
+        ],
+      },
+      {
+        path: "lib/presentation/review/utils/markdown_export_generator.dart",
+        purpose: "生成 Markdown 格式的导出内容",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/models/calendar_review_data.dart",
+          "lib/core/services/calendar_review_service.dart",
+        ],
+        details: [
+          "generateMarkdown 方法：根据日期范围、筛选条件、数据生成 Markdown 内容",
+          "包含标题、元信息（导出时间、时间范围、视图）、筛选条件、总体统计、每日详情",
+          "每日详情包括：日期、专注时长、完成任务数、会话数、完成任务列表、会话列表",
+          "格式化：使用 Markdown 标题、列表、代码块等格式",
+          "国际化支持：使用 AppLocalizations",
+        ],
+      },
+    ],
+    
+    // Widget 组件
+    widgets: [
+      {
+        path: "lib/presentation/review/widgets/view_toggle_bar.dart",
+        purpose: "视图切换工具栏，支持日/周/月视图切换",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [],
+        details: [
+          "三个按钮：日视图、周视图、月视图",
+          "选中状态：使用 lakeCyan 背景色和白色文字",
+          "未选中状态：透明背景",
+          "点击切换视图模式，触发回调",
+        ],
+      },
+      {
+        path: "lib/presentation/review/widgets/calendar_heatmap_cell.dart",
+        purpose: "自定义日历单元格，显示热力图和统计数据",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/core/services/heatmap_color_service.dart",
+          "lib/data/models/calendar_review_data.dart",
+        ],
+        details: [
+          "根据专注时长显示热力图背景色",
+          "显示日期数字",
+          "显示完成任务数标记（小圆点或数字）",
+          "可选显示专注时长文本（日视图）",
+          "支持选中状态和今天状态的样式",
+          "使用 CalendarBuilders.markerBuilder 或 customCellBuilder",
+        ],
+      },
+      {
+        path: "lib/presentation/review/widgets/day_detail_view.dart",
+        purpose: "日视图详情组件，显示当日统计和任务/会话列表",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/models/calendar_review_data.dart",
+        ],
+        details: [
+          "统计摘要：专注时长、完成任务数、会话数（水平排列）",
+          "完成任务列表：可滚动列表，显示任务标题和时长",
+          "焦点会话列表：可滚动列表，显示会话时间和时长",
+          "使用 ListView 支持滚动查看所有数据",
+          "空状态处理：无数据时显示提示",
+        ],
+      },
+      {
+        path: "lib/presentation/review/widgets/week_detail_view.dart",
+        purpose: "周视图详情组件，显示本周统计摘要",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/calendar_review_data.dart",
+        ],
+        details: [
+          "统计摘要：总专注时长、完成任务数、平均每日时长、会话数（2x2 网格）",
+          "可选：每日统计列表（可折叠）",
+          "空状态处理",
+        ],
+      },
+      {
+        path: "lib/presentation/review/widgets/month_detail_view.dart",
+        purpose: "月视图详情组件，显示本月统计摘要和热力图图例",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/calendar_review_data.dart",
+        ],
+        details: [
+          "统计摘要：总专注时长、完成任务数、平均每日时长、最活跃日期（2x2 网格）",
+          "热力图图例：显示颜色梯度对应的时长范围",
+          "空状态处理",
+        ],
+      },
+      {
+        path: "lib/presentation/review/widgets/calendar_filter_sheet.dart",
+        purpose: "筛选底部 Sheet，支持项目选择和标签选择",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/models/calendar_review_data.dart",
+          "lib/core/providers/calendar_review_providers.dart",
+        ],
+        details: [
+          "项目筛选：单选列表，显示所有活跃项目",
+          "标签筛选：多选标签云（Chip），显示所有可用标签",
+          "操作按钮：重置、应用",
+          "使用 showModalBottomSheet 显示",
+          "应用筛选后关闭 Sheet 并触发数据重新加载",
+        ],
+      },
+      {
+        path: "lib/presentation/review/widgets/export_date_range_dialog.dart",
+        purpose: "导出日期范围选择对话框",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [],
+        details: [
+          "快捷选项按钮：今日、本周、本月",
+          "自定义日期范围选择器：开始日期、结束日期",
+          "日期验证：结束日期不能早于开始日期",
+          "确认和取消按钮",
+          "使用 showDialog 显示",
+        ],
+      },
+    ],
+    
+    // 页面文件
+    pages: [
+      {
+        path: "lib/presentation/review/calendar_review_page.dart",
+        purpose: "日历回顾主页面，整合所有组件",
+        action: "create",
+        estimatedLines: 400,
+        dependencies: [
+          "lib/presentation/review/widgets/view_toggle_bar.dart",
+          "lib/presentation/review/widgets/calendar_heatmap_cell.dart",
+          "lib/presentation/review/widgets/day_detail_view.dart",
+          "lib/presentation/review/widgets/week_detail_view.dart",
+          "lib/presentation/review/widgets/month_detail_view.dart",
+          "lib/presentation/review/widgets/calendar_filter_sheet.dart",
+          "lib/presentation/review/widgets/export_date_range_dialog.dart",
+          "lib/core/providers/calendar_review_providers.dart",
+          "package:table_calendar/table_calendar.dart",
+        ],
+        details: [
+          "使用 GradientPageScaffold 作为页面框架",
+          "AppBar：标题、筛选按钮、导出按钮",
+          "视图切换工具栏：日/周/月视图切换",
+          "TableCalendar：集成 table_calendar 包，支持日/周/月视图",
+          "详情区域：根据视图模式显示对应的详情组件",
+          "懒加载：监听日历页面变化，自动加载新日期范围的数据",
+          "筛选条件持久化：页面初始化时读取保存的筛选条件",
+          "导出功能：点击导出按钮，弹出日期范围选择对话框，生成 Markdown 并分享",
+          "错误处理：显示错误状态和重试按钮",
+          "加载状态：显示加载指示器",
+        ],
+      },
+    ],
+    
+    // 配置文件
+    config: [
+      {
+        path: "assets/config/calendar_review_heatmap_thresholds.json",
+        purpose: "热力图颜色梯度阈值配置文件",
+        action: "create",
+        estimatedLines: 20,
+        dependencies: [],
+        details: [
+          "JSON 格式配置文件",
+          "包含阈值：low（30分钟）、mediumLow（60分钟）、medium（120分钟）",
+          "运行时读取配置值",
+        ],
+      },
+    ],
+    
+    // 测试文件
+    tests: [
+      {
+        path: "test/core/services/calendar_review_service_test.dart",
+        purpose: "CalendarReviewService 的单元测试",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [],
+        details: [
+          "测试 loadDailyData：验证数据聚合逻辑、筛选逻辑",
+          "测试 loadDayDetail：验证详情数据加载",
+          "测试筛选条件：验证项目筛选、标签筛选",
+          "测试数据过滤：验证只统计根任务，排除指定状态",
+          "使用 mock 模拟 Repository",
+        ],
+      },
+      {
+        path: "test/core/services/heatmap_color_service_test.dart",
+        purpose: "HeatmapColorService 的单元测试",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [],
+        details: [
+          "测试 getHeatmapColor：验证不同时长返回正确的颜色",
+          "测试阈值边界：验证阈值边界值的颜色",
+          "测试 Light/Dark 模式：验证不同模式返回不同透明度",
+        ],
+      },
+      {
+        path: "test/presentation/review/calendar_review_page_test.dart",
+        purpose: "CalendarReviewPage 的 Widget 测试",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [],
+        details: [
+          "测试页面渲染：验证页面基本结构",
+          "测试视图切换：验证切换视图模式",
+          "测试日期选择：验证选择日期触发详情加载",
+          "测试筛选功能：验证筛选按钮和 Sheet",
+          "测试导出功能：验证导出按钮和对话框",
+        ],
+      },
+      {
+        path: "integration_test/calendar_review_test.dart",
+        purpose: "日历回顾页面的集成测试",
+        action: "create",
+        estimatedLines: 250,
+        dependencies: [],
+        details: [
+          "测试完整流程：进入页面 → 查看日历 → 选择日期 → 查看详情",
+          "测试筛选流程：打开筛选 → 选择项目/标签 → 应用筛选 → 验证数据更新",
+          "测试导出流程：点击导出 → 选择日期范围 → 验证导出内容",
+          "测试懒加载：滑动日历 → 验证自动加载新数据",
+          "使用真实数据库，不 mock",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（可选）
+  // ===========================================
+  modifications: [
+    {
+      file: "pubspec.yaml",
+      purpose: "添加 table_calendar 依赖包",
+      changes: [
+        "在 dependencies 中添加 table_calendar: ^3.0.9（或最新稳定版本）",
+      ],
+      estimatedLines: 1,
+    },
+    {
+      file: "lib/presentation/navigation/app_router.dart",
+      purpose: "更新路由配置，将 ReviewPage 替换为 CalendarReviewPage",
+      changes: [
+        "修改导入：将 review_page.dart 改为 calendar_review_page.dart",
+        "修改路由 builder：将 ReviewPage() 改为 CalendarReviewPage()",
+      ],
+      estimatedLines: 2,
+    },
+    {
+      file: "lib/core/providers/service_providers.dart",
+      purpose: "添加 CalendarReviewService 和 HeatmapColorService 的 Provider",
+      changes: [
+        "添加 calendarReviewServiceProvider：FutureProvider<CalendarReviewService>",
+        "添加 heatmapColorServiceProvider：Provider<HeatmapColorService>",
+        "依赖注入：TaskRepository、FocusSessionRepository、ConfigService",
+      ],
+      estimatedLines: 20,
+    },
+    {
+      file: "lib/core/services/config_service.dart",
+      purpose: "添加读取热力图阈值配置的方法（如果 ConfigService 不存在，需要创建）",
+      changes: [
+        "添加 readHeatmapThresholds 方法：从 assets/config/calendar_review_heatmap_thresholds.json 读取配置",
+        "返回 HeatmapThresholds 对象（包含 low、mediumLow、medium 字段）",
+      ],
+      estimatedLines: 30,
+    },
+  ],
+
+  // ===========================================
+  // 4. 需要删除的文件（必填）
+  // ===========================================
+  deletions: [
+    {
+      file: "lib/presentation/review/review_page.dart",
+      reason: "替换为新的 CalendarReviewPage",
+    },
+    {
+      file: "lib/core/services/review_data_service.dart",
+      reason: "替换为新的 CalendarReviewService",
+    },
+    {
+      file: "lib/core/providers/review_providers.dart",
+      reason: "替换为新的 CalendarReviewProviders",
+    },
+    {
+      file: "lib/data/models/review_data.dart",
+      reason: "替换为新的 CalendarReviewData 模型",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_action_buttons.dart",
+      reason: "导出功能集成到 CalendarReviewPage，不再需要独立组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_closing_line.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_content_line.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_empty_state.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_error_state.dart",
+      reason: "错误状态处理集成到 CalendarReviewPage",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_loading_state.dart",
+      reason: "加载状态处理集成到 CalendarReviewPage",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_longest_task_section.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_most_completed_day_line.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_new_user_hint_line.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_opening_animation.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_projects_section.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_standalone_tasks_line.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_stats_line.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/review_welcome_line.dart",
+      reason: "不再需要文本式回顾组件",
+    },
+    {
+      file: "lib/presentation/review/widgets/explosion_particle_painter.dart",
+      reason: "不再需要动画组件",
+    },
+    {
+      file: "lib/presentation/review/utils/review_date_formatter.dart",
+      reason: "日期格式化功能集成到 CalendarReviewUtils",
+    },
+    {
+      file: "lib/presentation/review/utils/review_text_generator.dart",
+      reason: "替换为新的 MarkdownExportGenerator",
+    },
+    {
+      file: "lib/presentation/review/utils/review_time_formatter.dart",
+      reason: "时间格式化功能集成到 CalendarReviewUtils",
+    },
+  ],
+
+  // ===========================================
+  // 5. 实现步骤（必填）
+  // ===========================================
+  implementationSteps: [
+    {
+      step: 1,
+      title: "阶段 1：依赖和基础结构",
+      description: "添加 table_calendar 依赖，创建基础数据模型和工具类",
+      tasks: [
+        {
+          task: "添加 table_calendar 依赖",
+          file: "pubspec.yaml",
+          action: "在 dependencies 中添加 table_calendar: ^3.0.9",
+        },
+        {
+          task: "运行 flutter pub get",
+          command: "flutter pub get",
+        },
+        {
+          task: "创建数据模型",
+          file: "lib/data/models/calendar_review_data.dart",
+          action: [
+            "创建 DayReviewData 类（日期、专注时长、完成任务数、会话数）",
+            "创建 DayDetailData 类（日期、专注时长、完成任务列表、会话列表）",
+            "创建 CalendarFilter 类（项目ID、标签列表）",
+            "创建 WeekReviewData 和 MonthReviewData 类",
+            "所有类使用 @immutable 注解，提供 copyWith 方法",
+          ],
+        },
+        {
+          task: "创建工具类",
+          file: "lib/core/utils/calendar_review_utils.dart",
+          action: [
+            "实现 getWeekStart、getWeekEnd、getMonthStart、getMonthEnd 方法",
+            "实现 formatFocusMinutes 方法",
+            "使用周日作为一周的开始（与 TaskSectionUtils 保持一致）",
+          ],
+        },
+        {
+          task: "创建热力图阈值配置文件",
+          file: "assets/config/calendar_review_heatmap_thresholds.json",
+          action: "创建 JSON 配置文件，包含 low: 30, mediumLow: 60, medium: 120",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 依赖和基础结构'",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：Repository 层扩展",
+      description: "扩展 Repository 接口和实现，添加按日期范围查询的方法",
+      tasks: [
+        {
+          task: "扩展 FocusSessionRepository 接口",
+          file: "lib/data/repositories/focus_session_repository.dart",
+          action: [
+            "添加 getFocusMinutesByDateRange 方法签名",
+            "添加 listSessionsByDateRange 方法签名",
+          ],
+        },
+        {
+          task: "实现 FocusSessionRepository 新方法",
+          file: "lib/data/repositories/drift/drift_focus_session_repository.dart",
+          action: [
+            "实现 getFocusMinutesByDateRange：查询已结束的会话，按日期分组汇总",
+            "实现 listSessionsByDateRange：查询已结束的会话列表",
+            "支持 taskIds 筛选参数",
+            "日期处理：提取 endedAt 的年月日部分",
+          ],
+        },
+        {
+          task: "扩展 TaskRepository 接口",
+          file: "lib/data/repositories/task_repository.dart",
+          action: "添加 getCompletedRootTasksByDateRange 方法签名",
+        },
+        {
+          task: "实现 TaskRepository 新方法",
+          file: "lib/data/repositories/drift/drift_task_repository.dart",
+          action: [
+            "实现 getCompletedRootTasksByDateRange：查询根任务、completedActive 状态、有 endedAt",
+            "排除 inbox/trashed/pseudoDeleted/archived 状态",
+            "支持 projectId 和 tags 筛选",
+            "按完成日期分组返回",
+          ],
+        },
+        {
+          task: "运行 build_runner（如果需要）",
+          command: "dart run build_runner build --delete-conflicting-outputs",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - Repository 层扩展'",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：服务层实现",
+      description: "创建 CalendarReviewService 和 HeatmapColorService",
+      tasks: [
+        {
+          task: "创建 HeatmapColorService",
+          file: "lib/core/services/heatmap_color_service.dart",
+          action: [
+            "实现 getHeatmapColor 方法：根据专注时长和主题模式返回颜色",
+            "从配置文件读取阈值",
+            "返回颜色梯度（无数据 → 低 → 中低 → 中 → 高）",
+          ],
+        },
+        {
+          task: "创建或扩展 ConfigService",
+          file: "lib/core/services/config_service.dart",
+          action: [
+            "如果 ConfigService 不存在，创建它",
+            "添加 readHeatmapThresholds 方法：读取热力图阈值配置",
+          ],
+        },
+        {
+          task: "创建 CalendarReviewService",
+          file: "lib/core/services/calendar_review_service.dart",
+          action: [
+            "实现 loadDailyData：加载日期范围的每日数据，应用筛选条件",
+            "实现 loadDayDetail：加载指定日期的详情",
+            "实现 loadWeekData 和 loadMonthData",
+            "实现 _getFilteredRootTaskIds：根据筛选条件获取任务ID列表",
+            "实现 generateMarkdownExport：生成 Markdown 导出内容",
+            "筛选逻辑：只统计根任务，排除指定状态",
+          ],
+        },
+        {
+          task: "添加 Service Providers",
+          file: "lib/core/providers/service_providers.dart",
+          action: [
+            "添加 calendarReviewServiceProvider",
+            "添加 heatmapColorServiceProvider",
+            "配置依赖注入",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - 服务层实现'",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：Provider 状态管理",
+      description: "创建 CalendarReviewProviders，实现状态管理和筛选条件持久化",
+      tasks: [
+        {
+          task: "创建 CalendarReviewProviders",
+          file: "lib/core/providers/calendar_review_providers.dart",
+          action: [
+            "创建 CalendarReviewState 类：包含加载状态、数据、错误、选中日期、视图模式、筛选条件",
+            "创建 CalendarReviewNotifier 类：实现状态管理逻辑",
+            "实现 loadDailyData：懒加载日期范围数据",
+            "实现 loadDayDetail：加载日期详情",
+            "实现 setFilter：设置筛选条件并重新加载数据",
+            "实现 setViewMode：切换视图模式",
+            "实现 selectDate：选择日期",
+            "实现筛选条件持久化：使用 SharedPreferences 保存和恢复",
+            "创建 calendarDataProvider 和 dayDetailProvider",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - Provider 状态管理'",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：UI 组件 - 基础组件",
+      description: "创建视图切换工具栏、热力图单元格等基础组件",
+      tasks: [
+        {
+          task: "创建 ViewToggleBar",
+          file: "lib/presentation/review/widgets/view_toggle_bar.dart",
+          action: [
+            "实现三个按钮：日视图、周视图、月视图",
+            "实现选中/未选中状态样式",
+            "实现点击切换回调",
+          ],
+        },
+        {
+          task: "创建 CalendarHeatmapCell",
+          file: "lib/presentation/review/widgets/calendar_heatmap_cell.dart",
+          action: [
+            "实现热力图背景色显示",
+            "实现日期数字显示",
+            "实现完成任务数标记",
+            "实现选中和今天状态样式",
+          ],
+        },
+        {
+          task: "创建 MarkdownExportGenerator",
+          file: "lib/presentation/review/utils/markdown_export_generator.dart",
+          action: [
+            "实现 generateMarkdown 方法",
+            "生成包含标题、元信息、筛选条件、统计、每日详情的 Markdown",
+            "支持国际化",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 5 完成 - UI 组件基础组件'",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：UI 组件 - 详情视图",
+      description: "创建日/周/月视图的详情组件",
+      tasks: [
+        {
+          task: "创建 DayDetailView",
+          file: "lib/presentation/review/widgets/day_detail_view.dart",
+          action: [
+            "实现统计摘要显示（专注时长、完成任务数、会话数）",
+            "实现完成任务列表（可滚动）",
+            "实现焦点会话列表（可滚动）",
+            "实现空状态处理",
+          ],
+        },
+        {
+          task: "创建 WeekDetailView",
+          file: "lib/presentation/review/widgets/week_detail_view.dart",
+          action: [
+            "实现统计摘要显示（2x2 网格）",
+            "实现可选每日统计列表（可折叠）",
+            "实现空状态处理",
+          ],
+        },
+        {
+          task: "创建 MonthDetailView",
+          file: "lib/presentation/review/widgets/month_detail_view.dart",
+          action: [
+            "实现统计摘要显示（2x2 网格）",
+            "实现热力图图例",
+            "实现空状态处理",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - UI 组件详情视图'",
+        },
+      ],
+    },
+    {
+      step: 7,
+      title: "阶段 7：UI 组件 - 筛选和导出",
+      description: "创建筛选 Sheet 和导出对话框",
+      tasks: [
+        {
+          task: "创建 CalendarFilterSheet",
+          file: "lib/presentation/review/widgets/calendar_filter_sheet.dart",
+          action: [
+            "实现项目筛选（单选列表）",
+            "实现标签筛选（多选标签云）",
+            "实现重置和应用按钮",
+            "使用 showModalBottomSheet 显示",
+          ],
+        },
+        {
+          task: "创建 ExportDateRangeDialog",
+          file: "lib/presentation/review/widgets/export_date_range_dialog.dart",
+          action: [
+            "实现快捷选项按钮（今日、本周、本月）",
+            "实现自定义日期范围选择器",
+            "实现日期验证",
+            "使用 showDialog 显示",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 7 完成 - UI 组件筛选和导出'",
+        },
+      ],
+    },
+    {
+      step: 8,
+      title: "阶段 8：主页面实现",
+      description: "创建 CalendarReviewPage，整合所有组件",
+      tasks: [
+        {
+          task: "创建 CalendarReviewPage",
+          file: "lib/presentation/review/calendar_review_page.dart",
+          action: [
+            "使用 GradientPageScaffold 作为页面框架",
+            "实现 AppBar（标题、筛选按钮、导出按钮）",
+            "集成 ViewToggleBar",
+            "集成 TableCalendar（table_calendar 包）",
+            "根据视图模式显示对应的详情组件",
+            "实现懒加载：监听日历页面变化",
+            "实现筛选条件持久化：页面初始化时读取",
+            "实现导出功能：弹出对话框，生成 Markdown，分享",
+            "实现错误处理和加载状态",
+          ],
+        },
+        {
+          task: "更新路由配置",
+          file: "lib/presentation/navigation/app_router.dart",
+          action: [
+            "修改导入：review_page.dart → calendar_review_page.dart",
+            "修改路由 builder：ReviewPage() → CalendarReviewPage()",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 8 完成 - 主页面实现'",
+        },
+      ],
+    },
+    {
+      step: 9,
+      title: "阶段 9：删除旧文件",
+      description: "删除所有旧的回顾页面相关文件",
+      tasks: [
+        {
+          task: "删除旧的回顾页面文件",
+          action: [
+            "删除 lib/presentation/review/review_page.dart",
+            "删除 lib/core/services/review_data_service.dart",
+            "删除 lib/core/providers/review_providers.dart",
+            "删除 lib/data/models/review_data.dart",
+            "删除所有旧的 widgets 文件（review_*.dart）",
+            "删除所有旧的 utils 文件（review_*.dart）",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查",
+          command: "flutter analyze",
+        },
+        {
+          task: "修复可能的导入错误",
+          action: "检查并修复因删除文件导致的导入错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 9 完成 - 删除旧文件'",
+        },
+      ],
+    },
+    {
+      step: 10,
+      title: "阶段 10：测试实现",
+      description: "创建单元测试、Widget 测试和集成测试",
+      tasks: [
+        {
+          task: "创建 CalendarReviewService 单元测试",
+          file: "test/core/services/calendar_review_service_test.dart",
+          action: [
+            "测试 loadDailyData：验证数据聚合和筛选",
+            "测试 loadDayDetail：验证详情加载",
+            "测试筛选条件：验证项目/标签筛选",
+            "测试数据过滤：验证只统计根任务，排除指定状态",
+            "使用 mock 模拟 Repository",
+          ],
+        },
+        {
+          task: "创建 HeatmapColorService 单元测试",
+          file: "test/core/services/heatmap_color_service_test.dart",
+          action: [
+            "测试 getHeatmapColor：验证颜色计算",
+            "测试阈值边界",
+            "测试 Light/Dark 模式",
+          ],
+        },
+        {
+          task: "创建 CalendarReviewPage Widget 测试",
+          file: "test/presentation/review/calendar_review_page_test.dart",
+          action: [
+            "测试页面渲染",
+            "测试视图切换",
+            "测试日期选择",
+            "测试筛选和导出功能",
+          ],
+        },
+        {
+          task: "创建集成测试",
+          file: "integration_test/calendar_review_test.dart",
+          action: [
+            "测试完整流程",
+            "测试筛选流程",
+            "测试导出流程",
+            "测试懒加载",
+            "使用真实数据库",
+          ],
+        },
+        {
+          task: "运行所有测试",
+          command: "flutter test",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 10 完成 - 测试实现'",
+        },
+      ],
+    },
+    {
+      step: 11,
+      title: "阶段 11：代码质量检查和优化",
+      description: "运行代码分析，修复问题，优化性能",
+      tasks: [
+        {
+          task: "运行 flutter analyze",
+          command: "flutter analyze",
+        },
+        {
+          task: "修复所有 lint 错误和警告",
+          action: "根据 analyze 结果修复代码问题",
+        },
+        {
+          task: "运行 flutter test 确保所有测试通过",
+          command: "flutter test",
+        },
+        {
+          task: "性能优化检查",
+          action: [
+            "检查懒加载实现是否正确",
+            "检查数据缓存是否生效",
+            "检查虚拟滚动是否正常工作",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 11 完成 - 代码质量检查和优化'",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 6. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // 库选择
+      libraryChoice: {
+        recommendation: "table_calendar: ^3.0.9",
+        reason: "table_calendar 是 Flutter 生态中最成熟的日历组件，支持月/周/日视图切换，高度可定制，性能良好",
+        alternative: "flutter_calendar_carousel（功能较少，不支持周视图）",
+      },
+      // 实现方案
+      implementation: {
+        method: "使用 table_calendar 的 CalendarBuilders.customCellBuilder 实现热力图单元格",
+        stateManagement: "使用 Riverpod 进行状态管理，StreamProvider 和 FutureProvider 提供响应式数据流",
+        rollback: "如果 table_calendar 不满足需求，可以回退到自定义日历实现，但需要更多开发时间",
+      },
+      // 性能优化
+      performanceOptimization: {
+        method: "懒加载 + 数据缓存 + 虚拟滚动",
+        details: [
+          "懒加载：只加载当前可见日期范围的数据，预加载前后各一个月",
+          "数据缓存：按日期范围缓存，避免重复查询，缓存过期时间 5 分钟",
+          "虚拟滚动：详情列表使用 ListView.builder，只渲染可见项",
+        ],
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 类型安全
+      typeSafety: {
+        rule: "所有数据模型使用 @immutable 注解，提供强类型定义",
+        location: "lib/data/models/calendar_review_data.dart",
+        example: "@immutable class DayReviewData { final DateTime date; final int focusMinutes; ... }",
+        note: "确保数据不可变性，避免意外修改",
+      },
+      // 错误处理
+      errorHandling: {
+        rule: "所有异步操作必须处理错误，显示错误状态和重试按钮",
+        location: "lib/core/providers/calendar_review_providers.dart",
+        example: "try { ... } catch (e) { state = state.copyWith(error: e.toString()); }",
+        note: "用户友好的错误提示，提供重试机制",
+      },
+      // 国际化
+      internationalization: {
+        rule: "所有用户可见文本使用 AppLocalizations",
+        location: "所有 UI 组件",
+        example: "Text(l10n.calendarReviewTitle)",
+        note: "支持多语言，保持一致性",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      optimization: [
+        "懒加载：只加载可见日期范围的数据，减少初始加载时间",
+        "数据缓存：避免重复查询相同日期范围的数据",
+        "虚拟滚动：详情列表只渲染可见项，支持大量数据",
+        "批量查询：使用批量查询方法，避免 N+1 问题",
+        "数据库索引：确保 endedAt、taskId 等字段有索引",
+      ],
+      monitoring: [
+        "监控数据加载时间：记录 loadDailyData 的执行时间",
+        "监控内存使用：检查缓存是否导致内存泄漏",
+        "监控渲染性能：检查日历单元格渲染是否流畅",
+      ],
+    },
+    
+    // 安全考虑
+    security: {
+      concerns: [
+        "筛选条件持久化：使用 SharedPreferences，数据存储在本地，不涉及网络传输",
+        "导出功能：Markdown 文件包含任务信息，用户需要谨慎分享",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 7. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // 数据层依赖
+    dataLayer: [
+      "lib/data/models/calendar_review_data.dart",
+      "lib/data/models/task.dart",
+      "lib/data/models/focus_session.dart",
+    ],
+    
+    // Repository 层依赖
+    repositoryLayer: [
+      "lib/data/repositories/task_repository.dart",
+      "lib/data/repositories/focus_session_repository.dart",
+      "lib/data/repositories/drift/drift_task_repository.dart",
+      "lib/data/repositories/drift/drift_focus_session_repository.dart",
+    ],
+    
+    // 服务层依赖
+    serviceLayer: [
+      "lib/core/services/calendar_review_service.dart",
+      "lib/core/services/heatmap_color_service.dart",
+      "lib/core/services/config_service.dart",
+    ],
+    
+    // Provider 层依赖
+    providerLayer: [
+      "lib/core/providers/calendar_review_providers.dart",
+      "lib/core/providers/service_providers.dart",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/review/calendar_review_page.dart",
+      "lib/presentation/review/widgets/view_toggle_bar.dart",
+      "lib/presentation/review/widgets/calendar_heatmap_cell.dart",
+      "lib/presentation/review/widgets/day_detail_view.dart",
+      "lib/presentation/review/widgets/week_detail_view.dart",
+      "lib/presentation/review/widgets/month_detail_view.dart",
+      "lib/presentation/review/widgets/calendar_filter_sheet.dart",
+      "lib/presentation/review/widgets/export_date_range_dialog.dart",
+    ],
+    
+    // 配置层依赖
+    configLayer: [
+      "assets/config/calendar_review_heatmap_thresholds.json",
+    ],
+    
+    // 外部依赖
+    externalDependencies: [
+      "package:table_calendar/table_calendar.dart",
+      "package:shared_preferences/shared_preferences.dart",
+      "package:share_plus/share_plus.dart",
+    ],
+  },
+
+  // ===========================================
+  // 8. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        file: "test/core/services/calendar_review_service_test.dart",
+        description: "测试 CalendarReviewService 的数据聚合和筛选逻辑",
+        testCases: [
+          {
+            group: "loadDailyData",
+            cases: [
+              {
+                name: "应该正确聚合每日数据",
+                test: "给定日期范围 → 调用 loadDailyData → 验证返回的 Map 包含正确的日期和数据",
+              },
+              {
+                name: "应该应用项目筛选",
+                test: "设置项目筛选 → 调用 loadDailyData → 验证只返回该项目的数据",
+              },
+              {
+                name: "应该应用标签筛选",
+                test: "设置标签筛选 → 调用 loadDailyData → 验证只返回包含这些标签的任务数据",
+              },
+              {
+                name: "应该只统计根任务",
+                test: "包含子任务的数据 → 调用 loadDailyData → 验证子任务被排除",
+              },
+              {
+                name: "应该排除指定状态的任务",
+                test: "包含 inbox/trashed/pseudoDeleted/archived 状态的任务 → 调用 loadDailyData → 验证这些任务被排除",
+              },
+            ],
+          },
+          {
+            group: "loadDayDetail",
+            cases: [
+              {
+                name: "应该返回指定日期的详细数据",
+                test: "给定日期 → 调用 loadDayDetail → 验证返回的任务列表和会话列表",
+              },
+              {
+                name: "应该应用筛选条件",
+                test: "设置筛选条件 → 调用 loadDayDetail → 验证返回的数据符合筛选条件",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/core/services/heatmap_color_service_test.dart",
+        description: "测试 HeatmapColorService 的颜色计算逻辑",
+        testCases: [
+          {
+            group: "getHeatmapColor",
+            cases: [
+              {
+                name: "应该为无数据返回浅灰色",
+                test: "专注时长为 0 → 调用 getHeatmapColor → 验证返回无数据颜色",
+              },
+              {
+                name: "应该为低强度返回浅绿色",
+                test: "专注时长为 15 分钟 → 调用 getHeatmapColor → 验证返回低强度颜色",
+              },
+              {
+                name: "应该为中等强度返回中绿色",
+                test: "专注时长为 45 分钟 → 调用 getHeatmapColor → 验证返回中低强度颜色",
+              },
+              {
+                name: "应该为高强度返回深绿色",
+                test: "专注时长为 150 分钟 → 调用 getHeatmapColor → 验证返回高强度颜色",
+              },
+              {
+                name: "应该根据主题模式返回不同透明度",
+                test: "相同时长，Light 和 Dark 模式 → 调用 getHeatmapColor → 验证返回不同透明度的颜色",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/review/calendar_review_page_test.dart",
+        description: "测试 CalendarReviewPage 的 UI 和交互",
+        testCases: [
+          {
+            group: "页面渲染",
+            cases: [
+              {
+                name: "应该显示日历和详情区域",
+                test: "渲染 CalendarReviewPage → 验证日历和详情区域可见",
+              },
+              {
+                name: "应该显示视图切换工具栏",
+                test: "渲染 CalendarReviewPage → 验证日/周/月视图按钮可见",
+              },
+            ],
+          },
+          {
+            group: "视图切换",
+            cases: [
+              {
+                name: "应该切换视图模式",
+                test: "点击周视图按钮 → 验证日历切换到周视图 → 验证详情区域显示周视图内容",
+              },
+            ],
+          },
+          {
+            group: "日期选择",
+            cases: [
+              {
+                name: "应该选择日期并加载详情",
+                test: "点击日期 → 验证日期被选中 → 验证详情区域显示该日期的数据",
+              },
+            ],
+          },
+          {
+            group: "筛选功能",
+            cases: [
+              {
+                name: "应该打开筛选 Sheet",
+                test: "点击筛选按钮 → 验证筛选 Sheet 显示",
+              },
+              {
+                name: "应该应用筛选条件",
+                test: "选择项目 → 点击应用 → 验证日历数据更新",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        file: "integration_test/calendar_review_test.dart",
+        description: "测试日历回顾页面的完整流程",
+        testCases: [
+          {
+            group: "完整流程",
+            cases: [
+              {
+                name: "应该完成查看日历回顾的完整流程",
+                test: "进入页面 → 验证日历显示 → 选择日期 → 验证详情显示 → 切换视图 → 验证视图切换",
+              },
+            ],
+          },
+          {
+            group: "筛选流程",
+            cases: [
+              {
+                name: "应该完成筛选数据的完整流程",
+                test: "点击筛选按钮 → 选择项目 → 选择标签 → 点击应用 → 验证数据更新 → 验证筛选条件持久化",
+              },
+            ],
+          },
+          {
+            group: "导出流程",
+            cases: [
+              {
+                name: "应该完成导出数据的完整流程",
+                test: "点击导出按钮 → 选择日期范围 → 确认导出 → 验证 Markdown 文件生成 → 验证分享功能",
+              },
+            ],
+          },
+          {
+            group: "懒加载",
+            cases: [
+              {
+                name: "应该自动加载新日期范围的数据",
+                test: "滑动日历到新月份 → 验证自动触发数据加载 → 验证新数据显示",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 9. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "table_calendar 包可能不满足所有定制需求",
+      mitigation: "使用 CalendarBuilders.customCellBuilder 实现自定义单元格，如果仍不满足，考虑 fork 或自定义实现",
+      priority: "medium",
+      check: "验证热力图单元格的显示效果是否符合设计",
+      enforcement: "在阶段 5 实现热力图单元格时进行验证",
+    },
+    {
+      risk: "大量日期数据的性能问题",
+      mitigation: "实现懒加载、数据缓存和虚拟滚动，只加载可见范围的数据",
+      priority: "high",
+      check: "测试加载大量历史数据时的性能，监控内存使用",
+      enforcement: "在阶段 11 进行性能测试和优化",
+    },
+    {
+      risk: "筛选条件持久化可能导致数据不一致",
+      mitigation: "在页面初始化时验证筛选条件（项目/标签是否存在），如果不存在则清除",
+      priority: "medium",
+      check: "测试删除项目/标签后，筛选条件是否正确处理",
+      enforcement: "在阶段 4 实现筛选条件持久化时添加验证逻辑",
+    },
+    {
+      risk: "周视图的起始日期可能与用户习惯不符",
+      mitigation: "使用周日作为起始（与 TaskSectionUtils 保持一致），如果用户反馈强烈，可以考虑配置化",
+      priority: "low",
+      check: "用户测试反馈",
+      enforcement: "在阶段 8 实现主页面时使用周日作为起始",
+    },
+    {
+      risk: "删除旧文件可能导致其他模块的导入错误",
+      mitigation: "在删除前检查所有导入，确保没有其他文件依赖旧文件",
+      priority: "high",
+      check: "运行 flutter analyze 检查导入错误",
+      enforcement: "在阶段 9 删除旧文件后立即运行 flutter analyze",
+    },
+  ],
+
+  // ===========================================
+  // 10. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试通过",
+      "运行 integration_test，确保所有集成测试通过",
+      "代码审查，确保符合代码规范",
+      "检查所有 @immutable 注解和类型安全",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证日历显示：月/周/日视图切换正常",
+      "验证热力图：颜色梯度正确显示专注时长",
+      "验证日期选择：点击日期显示详情",
+      "验证筛选功能：项目/标签筛选正常工作",
+      "验证筛选条件持久化：重新进入页面时筛选条件恢复",
+      "验证导出功能：Markdown 格式正确，分享功能正常",
+      "验证懒加载：滑动日历时自动加载新数据",
+      "验证数据过滤：只显示根任务，排除指定状态",
+      "验证边界情况：无数据、加载中、错误状态",
+    ],
+    
+    // 性能验证
+    performance: [
+      "测试初始加载时间：页面首次加载应在 1 秒内完成",
+      "测试懒加载性能：滑动到新月份时加载时间应在 500ms 内",
+      "测试内存使用：长时间使用不应导致内存泄漏",
+      "测试大量数据渲染：100+ 天的数据应流畅滚动",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "测试 Light/Dark 模式：两种模式下的显示都正常",
+      "测试不同屏幕尺寸：手机、平板、桌面",
+      "测试不同语言：中文、英文",
+    ],
+  },
+
+  // ===========================================
+  // 11. 数据与状态（可选，但建议包含）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "新增 DayReviewData：每日统计数据模型",
+      "新增 DayDetailData：日期详情数据模型",
+      "新增 CalendarFilter：筛选条件模型",
+      "新增 WeekReviewData 和 MonthReviewData：周/月统计数据模型",
+      "删除 ReviewData 及相关模型（review_data.dart）",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "筛选条件持久化：使用 SharedPreferences 保存项目ID和标签列表",
+      "键名：calendar_review_project_id、calendar_review_tags",
+      "热力图阈值配置：新增 assets/config/calendar_review_heatmap_thresholds.json",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "新增 CalendarReviewState：页面状态（加载中、数据、错误、选中日期、视图模式、筛选条件）",
+      "新增 CalendarReviewNotifier：状态管理逻辑",
+      "新增 calendarDataProvider：StreamProvider，提供日历数据流",
+      "新增 dayDetailProvider：FutureProvider.family，提供日期详情",
+      "删除 ReviewPageState 和 ReviewPageNotifier（review_providers.dart）",
+    ],
+  },
+}

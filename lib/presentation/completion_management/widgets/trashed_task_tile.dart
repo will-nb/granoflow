@@ -43,9 +43,12 @@ class TrashedTaskTile extends ConsumerWidget {
                 child: Text(
                   task.title,
                   style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w400,
                     // 回收站任务通常使用较暗的样式
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),

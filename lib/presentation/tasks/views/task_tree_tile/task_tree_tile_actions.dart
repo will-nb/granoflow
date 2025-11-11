@@ -20,8 +20,11 @@ Future<void> showAddSubtaskDialog(
       content: TextField(
         controller: controller,
         autofocus: true,
-        maxLength: 100,
-        decoration: InputDecoration(hintText: l10n.taskTitleHint),
+        maxLength: 3000,
+        decoration: InputDecoration(
+          hintText: l10n.taskTitleHint,
+          counterText: '',
+        ),
       ),
       actions: [
         TextButton(
@@ -80,8 +83,11 @@ Future<void> showRenameDialog(
       content: TextField(
         controller: controller,
         autofocus: true,
-        maxLength: 100,
-        decoration: InputDecoration(hintText: l10n.taskTitleHint),
+        maxLength: 3000,
+        decoration: InputDecoration(
+          hintText: l10n.taskTitleHint,
+          counterText: '',
+        ),
       ),
       actions: [
         TextButton(

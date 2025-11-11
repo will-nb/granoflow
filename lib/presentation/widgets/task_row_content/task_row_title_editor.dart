@@ -152,13 +152,15 @@ class _TaskRowTitleEditorState extends ConsumerState<TaskRowTitleEditor> {
                   focusNode: _titleFocusNode,
                   style: (widget.useBodyText
                       ? theme.textTheme.bodyLarge
-                      : theme.textTheme.titleMedium),
+                      : theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400)),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 4),
                     isDense: true,
+                    counterText: '',
                   ),
                   maxLines: null,
+                  maxLength: 3000,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) {
                     _titleFocusNode.unfocus(); // 这会触发 _onFocusChange，进而调用 _saveTitle
@@ -184,7 +186,7 @@ class _TaskRowTitleEditorState extends ConsumerState<TaskRowTitleEditor> {
                       style:
                           (widget.useBodyText
                                   ? theme.textTheme.bodyLarge
-                                  : theme.textTheme.titleMedium)
+                                  : theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400))
                               ?.copyWith(
                                 decoration: (isCompleted || isTrashed)
                                     ? TextDecoration.lineThrough
@@ -194,6 +196,8 @@ class _TaskRowTitleEditorState extends ConsumerState<TaskRowTitleEditor> {
                                         .withValues(alpha: 0.45)
                                     : null,
                               ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),

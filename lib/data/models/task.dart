@@ -10,6 +10,7 @@ enum TaskStatus {
   inbox,
   pending,
   doing,
+  paused,
   completedActive,
   archived,
   trashed,

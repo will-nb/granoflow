@@ -3,7 +3,9 @@ import '../../data/models/tag.dart';
 import '../../data/repositories/focus_session_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/tag_repository.dart';
+import 'clock_audio_service.dart';
 import 'metric_orchestrator.dart';
+import 'preference_service.dart';
 import 'sort_index_service.dart';
 import 'task_crud_service.dart';
 import 'task_drag_service.dart';
@@ -29,6 +31,8 @@ class TaskService {
     required MetricOrchestrator metricOrchestrator,
     FocusSessionRepository? focusSessionRepository,
     SortIndexService? sortIndexService,
+    ClockAudioService? clockAudioService,
+    PreferenceService? preferenceService,
     DateTime Function()? clock,
   })  : _crudService = TaskCrudService(
           taskRepository: taskRepository,
@@ -40,6 +44,8 @@ class TaskService {
           taskRepository: taskRepository,
           metricOrchestrator: metricOrchestrator,
           focusSessionRepository: focusSessionRepository,
+          clockAudioService: clockAudioService,
+          preferenceService: preferenceService,
           clock: clock,
         ),
         _dragService = TaskDragService(
@@ -114,6 +120,14 @@ class TaskService {
   /// 标记任务为进行中
   Future<void> markInProgress(String taskId) =>
       _statusService.markInProgress(taskId);
+
+  /// 标记任务为已暂停
+  Future<void> markPaused(String taskId) =>
+      _statusService.markPaused(taskId);
+
+  /// 标记任务为恢复（从暂停状态恢复为进行中）
+  Future<void> markResumed(String taskId) =>
+      _statusService.markResumed(taskId);
 
   /// 标记任务为已完成
   Future<void> markCompleted({

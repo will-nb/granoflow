@@ -51,12 +51,16 @@ final taskServiceProvider = FutureProvider<TaskService>((ref) async {
   final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
   final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
   final sortIndexService = await ref.read(sortIndexServiceProvider.future);
+  final clockAudioService = await ref.read(clockAudioServiceProvider.future);
+  final preferenceService = await ref.read(preferenceServiceProvider.future);
   return TaskService(
     taskRepository: taskRepository,
     tagRepository: tagRepository,
     metricOrchestrator: metricOrchestrator,
     focusSessionRepository: focusSessionRepository,
     sortIndexService: sortIndexService,
+    clockAudioService: clockAudioService,
+    preferenceService: preferenceService,
   );
 });
 

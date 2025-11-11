@@ -189,6 +189,7 @@ class _ChildTaskItem extends ConsumerWidget {
         context.go('/tasks${section != null ? '?section=$section' : ''}');
         return;
       case TaskStatus.doing:
+      case TaskStatus.paused:
         final section2 = _locateSectionForTask(task);
         context.go('/tasks${section2 != null ? '?section=$section2' : ''}');
         return;
