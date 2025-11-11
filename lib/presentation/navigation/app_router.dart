@@ -8,6 +8,7 @@ import '../completion_management/completed_page.dart';
 import '../completion_management/archived_page.dart';
 import '../completion_management/trash_page.dart';
 import '../projects/projects_page.dart';
+import '../review/calendar_review_page.dart';
 
 /// 应用路由配置
 class AppRouter {
@@ -37,12 +38,11 @@ class AppRouter {
             name: 'projects',
             builder: (context, state) => const ProjectsPage(),
           ),
-          // TODO: 实现新的 CalendarReviewPage 后恢复此路由
-          // GoRoute(
-          //   path: '/achievements',
-          //   name: 'achievements',
-          //   builder: (context, state) => const CalendarReviewPage(),
-          // ),
+          GoRoute(
+            path: '/achievements',
+            name: 'achievements',
+            builder: (context, state) => const CalendarReviewPage(),
+          ),
           GoRoute(
             path: '/settings',
             name: 'settings',
