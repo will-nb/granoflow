@@ -51,8 +51,8 @@ class TaskDragIntentHelper {
   ) async {
     final effectiveL10n = l10n ?? AppLocalizations.of(context);
     try {
-      final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
-      final taskRepository = ref.read(taskRepositoryProvider);
+      final taskHierarchyService = await ref.read(taskHierarchyServiceProvider.future);
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
 
       // 放手后进行同步规则拦截并提示
       // 1) 不能拖到自身或其直接父任务

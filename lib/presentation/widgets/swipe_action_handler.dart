@@ -57,7 +57,7 @@ class SwipeActionHandler {
 
   /// 处理快速规划动作
   static Future<void> _handleQuickPlan(BuildContext context, WidgetRef ref, Task task) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
@@ -100,7 +100,7 @@ class SwipeActionHandler {
 
   /// 处理智能推迟动作
   static Future<void> _handlePostpone(BuildContext context, WidgetRef ref, Task task) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
@@ -137,7 +137,7 @@ class SwipeActionHandler {
 
   /// 处理完成任务动作
   static Future<void> _handleComplete(BuildContext context, WidgetRef ref, Task task) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
@@ -161,7 +161,7 @@ class SwipeActionHandler {
 
   /// 处理归档动作
   static Future<void> _handleArchive(BuildContext context, WidgetRef ref, Task task) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
@@ -192,7 +192,7 @@ class SwipeActionHandler {
 
   /// 处理删除动作
   static Future<void> _handleDelete(BuildContext context, WidgetRef ref, Task task) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
@@ -243,7 +243,7 @@ class SwipeActionHandler {
     Task task, {
     int? taskLevel,
   }) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
@@ -287,7 +287,7 @@ class SwipeActionHandler {
     WidgetRef ref,
     Task task,
   ) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     
@@ -324,8 +324,8 @@ class SwipeActionHandler {
     WidgetRef ref,
     Task task,
   ) async {
-    final taskService = ref.read(taskServiceProvider);
-    final taskRepository = ref.read(taskRepositoryProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
+    final taskRepository = await ref.read(taskRepositoryProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     

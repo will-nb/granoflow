@@ -211,7 +211,8 @@ class MilestoneCard extends ConsumerWidget {
     }
 
     try {
-      await ref.read(milestoneServiceProvider).delete(milestone.id);
+      final milestoneService = await ref.read(milestoneServiceProvider.future);
+      await milestoneService.delete(milestone.id);
       if (!context.mounted) {
         return;
       }

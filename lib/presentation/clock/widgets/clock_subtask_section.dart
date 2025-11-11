@@ -17,7 +17,8 @@ final clockSubtaskListProvider = StreamProvider.family<List<Task>, String>((
   ref,
   parentId,
 ) async* {
-  final taskRepository = ref.watch(taskRepositoryProvider);
+  final taskRepositoryAsync = ref.watch(taskRepositoryProvider);
+  final taskRepository = await taskRepositoryAsync.requireValue;
   final taskStream = taskRepository.watchTaskById(parentId);
 
   await for (final task in taskStream) {

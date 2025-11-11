@@ -194,7 +194,7 @@ class ProjectNodeHeader extends ConsumerWidget {
       return;
     }
 
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     await taskService.updateDetails(
       taskId: task.id,
       payload: TaskUpdate(title: result),
@@ -315,7 +315,7 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
     });
 
     final targetNode = _nodes[newIndex > oldIndex ? newIndex - 1 : newIndex].task;
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
 

@@ -270,7 +270,8 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
 
     setState(() => _submitting = true);
     try {
-      await ref.read(projectServiceProvider).createProject(blueprint);
+      final projectService = await ref.read(projectServiceProvider.future);
+      await projectService.createProject(blueprint);
       if (!mounted) {
         return;
       }

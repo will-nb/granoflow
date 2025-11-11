@@ -241,7 +241,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   /// 处理清空回收站
   Future<void> _handleClearTrash(BuildContext context) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     

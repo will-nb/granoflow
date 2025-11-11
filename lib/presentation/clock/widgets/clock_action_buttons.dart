@@ -120,7 +120,7 @@ class ClockActionButtons extends ConsumerWidget {
     
     // 如果计时器正在运行，先结束当前会话
     if (timerState.focusSessionId != null) {
-      final focusFlowService = ref.read(focusFlowServiceProvider);
+      final focusFlowService = await ref.read(focusFlowServiceProvider.future);
       
       try {
         await focusFlowService.endFocus(

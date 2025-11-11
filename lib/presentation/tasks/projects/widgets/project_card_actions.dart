@@ -73,7 +73,8 @@ Future<void> trashProject(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
   try {
-    await ref.read(projectServiceProvider).trashProject(projectId);
+    final projectService = await ref.read(projectServiceProvider.future);
+    await projectService.trashProject(projectId);
     if (!context.mounted) {
       return;
     }
@@ -100,7 +101,8 @@ Future<void> restoreProject(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
   try {
-    await ref.read(projectServiceProvider).restoreProject(projectId);
+    final projectService = await ref.read(projectServiceProvider.future);
+    await projectService.restoreProject(projectId);
     if (!context.mounted) {
       return;
     }
@@ -127,7 +129,8 @@ Future<void> reactivateProject(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
   try {
-    await ref.read(projectServiceProvider).reactivateProject(projectId);
+    final projectService = await ref.read(projectServiceProvider.future);
+    await projectService.reactivateProject(projectId);
     if (!context.mounted) {
       return;
     }
@@ -154,7 +157,8 @@ Future<void> deleteProject(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
   try {
-    await ref.read(projectServiceProvider).deleteProject(projectId);
+    final projectService = await ref.read(projectServiceProvider.future);
+    await projectService.deleteProject(projectId);
     if (!context.mounted) {
       return;
     }

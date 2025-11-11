@@ -315,7 +315,7 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
 
   /// 处理快速添加任务的结果
   Future<void> _handleQuickAddResult(BuildContext context, QuickAddResult result) async {
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
 
     try {

@@ -155,7 +155,7 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
       _isSubmitting = true;
     });
 
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     final l10n = AppLocalizations.of(context);
 
     try {

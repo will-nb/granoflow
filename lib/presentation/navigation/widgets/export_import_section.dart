@@ -31,7 +31,7 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
     });
 
     try {
-      final exportService = ref.read(exportServiceProvider);
+      final exportService = await ref.read(exportServiceProvider.future);
       final zipFile = await exportService.exportToZip();
 
       // 分享文件
@@ -89,7 +89,7 @@ class _ExportImportSectionState extends ConsumerState<ExportImportSection> {
     });
 
     try {
-      final importService = ref.read(importServiceProvider);
+      final importService = await ref.read(importServiceProvider.future);
       final result = await importService.importFromZip(file);
 
       if (mounted) {

@@ -108,7 +108,7 @@ class ClockControlStrip extends ConsumerWidget {
       }
     }
 
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     try {
           await taskService.markCompleted(taskId: taskId);
     } catch (error) {

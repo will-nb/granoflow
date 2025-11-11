@@ -43,7 +43,7 @@ class TaskListInsertionHandler {
       );
     }
     try {
-      final taskHierarchyService = ref.read(taskHierarchyServiceProvider);
+      final taskHierarchyService = await ref.read(taskHierarchyServiceProvider.future);
 
       // 确定上方任务的 parentId
         String? aboveTaskParentId;
@@ -105,7 +105,7 @@ class TaskListInsertionHandler {
       );
 
       // 通过 config.reorderTasks 执行重排序（Inbox 和 Tasks 的差异）
-      final taskRepository = ref.read(taskRepositoryProvider);
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
       final allTasks = await taskRepository.listAll();
       await config.reorderTasks(
         ref: ref,

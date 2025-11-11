@@ -60,8 +60,8 @@ class InboxTaskListConfig implements TaskListConfig {
     required List<Task> allTasks,
     DateTime? targetDate,
   }) async {
-    final taskRepository = ref.read(taskRepositoryProvider);
-    final sortIndexService = ref.read(sortIndexServiceProvider);
+    final taskRepository = await ref.read(taskRepositoryProvider.future);
+    final sortIndexService = await ref.read(sortIndexServiceProvider.future);
     final allInboxTasks = await taskRepository.watchInbox().first;
     await sortIndexService.reorderTasksForInbox(tasks: allInboxTasks);
   }

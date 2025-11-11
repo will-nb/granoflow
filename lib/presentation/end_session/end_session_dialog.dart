@@ -247,7 +247,7 @@ class _EndSessionDialogState extends State<_EndSessionDialog> {
             });
             return;
           }
-          final taskService = widget.ref.read(taskServiceProvider);
+          final taskService = await widget.ref.read(taskServiceProvider.future);
           for (final line in lines) {
             await taskService.captureInboxTask(title: line);
           }

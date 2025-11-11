@@ -98,7 +98,7 @@ class _ClockPageState extends ConsumerState<ClockPage>
   Future<void> _handleDescriptionChanged(String description) async {
     // 保存任务分析到 task.description
     try {
-      final taskService = ref.read(taskServiceProvider);
+      final taskService = await ref.read(taskServiceProvider.future);
       await taskService.updateDetails(
         taskId: widget.taskId,
         payload: TaskUpdate(description: description),

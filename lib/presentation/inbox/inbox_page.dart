@@ -177,7 +177,7 @@ class _InboxPageState extends ConsumerState<InboxPage> {
       return;
     }
 
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     try {
       // 创建 inbox 任务，status=inbox, dueDate=null
       await taskService.captureInboxTask(title: title);

@@ -65,8 +65,8 @@ class TasksSectionTaskListConfig implements TaskListConfig {
     required List<Task> allTasks,
     DateTime? targetDate,
   }) async {
-    final taskRepository = ref.read(taskRepositoryProvider);
-    final sortIndexService = ref.read(sortIndexServiceProvider);
+    final taskRepository = await ref.read(taskRepositoryProvider.future);
+    final sortIndexService = await ref.read(sortIndexServiceProvider.future);
     final allTasksList = await taskRepository.listAll();
     await sortIndexService.reorderTasksForSameDate(
       allTasks: allTasksList,
