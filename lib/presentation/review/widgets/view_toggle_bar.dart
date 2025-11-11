@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/calendar_review_providers.dart';
 import '../../../core/theme/ocean_breeze_color_schemes.dart';
 import '../../../generated/l10n/app_localizations.dart';
 
 /// 视图切换工具栏
 /// 支持日/周/月视图切换
-class ViewToggleBar extends StatelessWidget {
+class ViewToggleBar extends ConsumerWidget {
   const ViewToggleBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final state = context.watch(calendarReviewNotifierProvider);
-    final notifier = context.read(calendarReviewNotifierProvider.notifier);
-    final colorScheme = Theme.of(context).colorScheme;
+    final state = ref.watch(calendarReviewNotifierProvider);
+    final notifier = ref.read(calendarReviewNotifierProvider.notifier);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

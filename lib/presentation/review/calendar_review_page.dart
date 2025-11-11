@@ -4,11 +4,10 @@ import 'package:share_plus/share_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/providers/calendar_review_providers.dart';
 import '../../../core/providers/service_providers.dart';
-import '../../../core/services/calendar_review_service.dart';
 import '../../../core/utils/calendar_review_utils.dart';
 import '../../../generated/l10n/app_localizations.dart';
-import '../../widgets/gradient_page_scaffold.dart';
-import '../review/utils/markdown_export_generator.dart';
+import '../widgets/gradient_page_scaffold.dart';
+import 'utils/markdown_export_generator.dart';
 import 'widgets/calendar_filter_sheet.dart';
 import 'widgets/calendar_heatmap_cell.dart';
 import 'widgets/day_detail_view.dart';
@@ -111,7 +110,7 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
           const ViewToggleBar(),
           // 日历
           Expanded(
-            child: TableCalendar<DayReviewData>(
+            child: TableCalendar(
               firstDay: DateTime(2020, 1, 1),
               lastDay: DateTime.now(),
               focusedDay: _focusedDay,
@@ -153,9 +152,9 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
                 },
               ),
               headerStyle: HeaderStyle(
-                titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                titleTextStyle: (Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
-                    ),
+                    ) ?? const TextStyle()),
                 formatButtonVisible: false,
                 leftChevronIcon: const Icon(Icons.chevron_left),
                 rightChevronIcon: const Icon(Icons.chevron_right),
@@ -180,7 +179,7 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
                 ),
                 selectedDecoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -189,7 +188,7 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -280,19 +279,26 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
         l10n: l10n,
       );
 
+      final viewModeName = switch (state.viewMode) {
+        CalendarViewMode.day => 'Day',
+        CalendarViewMode.week => 'Week',
+        CalendarViewMode.month => 'Month',
+      };
+      
       final markdown = await generator.generateMarkdown(
         start: start,
         end: end,
         filter: state.filter,
-        viewMode: state.viewMode.name,
+        viewMode: viewModeName,
       );
 
       await Share.share(markdown);
     } catch (e) {
       if (!context.mounted) return;
+      final errorMessage = l10n.calendarReviewExportFailed(e.toString());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(l10n.calendarReviewExportFailed.replaceAll('{error}', e.toString())),
+          content: Text(errorMessage),
         ),
       );
     }

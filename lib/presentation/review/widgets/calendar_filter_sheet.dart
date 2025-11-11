@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/calendar_review_providers.dart';
-import '../../../core/providers/repository_providers.dart';
-import '../../../core/providers/service_providers.dart';
 import '../../../core/providers/tag_providers.dart';
+import '../../../core/providers/task_query_providers.dart';
 import '../../../data/models/calendar_review_data.dart';
 import '../../../generated/l10n/app_localizations.dart';
 

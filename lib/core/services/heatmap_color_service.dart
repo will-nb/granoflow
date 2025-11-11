@@ -80,27 +80,27 @@ class HeatmapColorService {
     // 低强度：浅绿色
     if (minutes < thresholds.low) {
       return brightness == Brightness.light
-          ? Colors.green.shade100.withOpacity(0.6)
-          : Colors.green.shade900.withOpacity(0.6);
+          ? Colors.green.shade100.withValues(alpha: 0.6)
+          : Colors.green.shade900.withValues(alpha: 0.6);
     }
 
     // 中低强度：中绿色
     if (minutes < thresholds.mediumLow) {
       return brightness == Brightness.light
-          ? Colors.green.shade300.withOpacity(0.7)
-          : Colors.green.shade800.withOpacity(0.7);
+          ? Colors.green.shade300.withValues(alpha: 0.7)
+          : Colors.green.shade800.withValues(alpha: 0.7);
     }
 
     // 中强度：深绿色
     if (minutes < thresholds.medium) {
       return brightness == Brightness.light
-          ? Colors.green.shade500.withOpacity(0.8)
-          : Colors.green.shade700.withOpacity(0.8);
+          ? Colors.green.shade500.withValues(alpha: 0.8)
+          : Colors.green.shade700.withValues(alpha: 0.8);
     }
 
     // 高强度：最深绿色
     return brightness == Brightness.light
-        ? Colors.green.shade700.withOpacity(0.9)
-        : Colors.green.shade600.withOpacity(0.9);
+        ? Colors.green.shade700.withValues(alpha: 0.9)
+        : Colors.green.shade600.withValues(alpha: 0.9);
   }
 }

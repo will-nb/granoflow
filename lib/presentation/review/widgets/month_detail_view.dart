@@ -115,23 +115,19 @@ class MonthDetailView extends ConsumerWidget {
         ),
         _LegendItem(
           color: service.getHeatmapColor(low ~/ 2, brightness),
-          label: l10n.calendarReviewHeatmapLegendLow.replaceAll('{minutes}', '$low'),
+          label: l10n.calendarReviewHeatmapLegendLow(low),
         ),
         _LegendItem(
           color: service.getHeatmapColor((low + mediumLow) ~/ 2, brightness),
-          label: l10n.calendarReviewHeatmapLegendMedium
-              .replaceAll('{low}', '$low')
-              .replaceAll('{high}', '$mediumLow'),
+          label: l10n.calendarReviewHeatmapLegendMedium(low, mediumLow),
         ),
         _LegendItem(
           color: service.getHeatmapColor((mediumLow + medium) ~/ 2, brightness),
-          label: l10n.calendarReviewHeatmapLegendMedium
-              .replaceAll('{low}', '$mediumLow')
-              .replaceAll('{high}', '$medium'),
+          label: l10n.calendarReviewHeatmapLegendMedium(mediumLow, medium),
         ),
         _LegendItem(
           color: service.getHeatmapColor(medium + 10, brightness),
-          label: l10n.calendarReviewHeatmapLegendHigh.replaceAll('{minutes}', '$medium'),
+          label: l10n.calendarReviewHeatmapLegendHigh(medium),
         ),
       ],
     );

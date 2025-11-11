@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/services/heatmap_color_service.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/theme/ocean_breeze_color_schemes.dart';
 import '../../../data/models/calendar_review_data.dart';

@@ -1,6 +1,5 @@
 import '../../data/models/calendar_review_data.dart';
 import '../../data/models/focus_session.dart';
-import '../../data/models/task.dart';
 import '../../data/repositories/focus_session_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../utils/calendar_review_utils.dart';
@@ -56,18 +55,31 @@ class CalendarReviewService {
     // 聚合数据
     final result = <DateTime, DayReviewData>{};
     
+    // 获取所有会话（一次性查询，避免 N+1 问题）
+    final allSessions = await _focusSessionRepository.listSessionsByDateRange(
+      start: startDate,
+      end: DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59),
+      taskIds: filteredTaskIds.isEmpty ? null : filteredTaskIds,
+    );
+    
+    // 按日期分组会话
+    final sessionsByDate = <DateTime, List<FocusSession>>{};
+    for (final session in allSessions) {
+      if (session.endedAt == null) continue;
+      final date = DateTime(
+        session.endedAt!.year,
+        session.endedAt!.month,
+        session.endedAt!.day,
+      );
+      sessionsByDate.putIfAbsent(date, () => []).add(session);
+    }
+    
     // 遍历日期范围
     var currentDate = startDate;
     while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
       final tasks = tasksByDate[currentDate] ?? [];
       final focusMinutes = focusMinutesByDate[currentDate] ?? 0;
-      
-      // 计算该日期的会话数
-      final sessions = await _focusSessionRepository.listSessionsByDateRange(
-        start: currentDate,
-        end: DateTime(currentDate.year, currentDate.month, currentDate.day, 23, 59, 59),
-        taskIds: filteredTaskIds.isEmpty ? null : filteredTaskIds,
-      );
+      final sessions = sessionsByDate[currentDate] ?? [];
 
       result[currentDate] = DayReviewData(
         date: currentDate,
