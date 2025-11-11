@@ -119,7 +119,8 @@ class TrashedTasksPaginationNotifier
       // 读取筛选条件
       final filter = ref.read(trashedTasksFilterProvider);
       
-      final tasks = await _repository.listTrashedTasks(
+      final repository = await _repository;
+      final tasks = await repository.listTrashedTasks(
         limit: _pageSize,
         offset: state.tasks.length,
         contextTag: filter.contextTag,
