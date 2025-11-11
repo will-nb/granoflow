@@ -157,15 +157,18 @@ final clockAudioServiceProvider = FutureProvider<ClockAudioService>((ref) async 
   return service;
 });
 
-// TODO: 实现新的 CalendarReviewService 后添加对应的 Provider
-// final calendarReviewServiceProvider = FutureProvider<CalendarReviewService>((ref) async {
-//   final taskRepository = await ref.read(taskRepositoryProvider.future);
-//   final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
-//   return CalendarReviewService(
-//     taskRepository: taskRepository,
-//     focusSessionRepository: focusSessionRepository,
-//   );
-// });
+final calendarReviewServiceProvider = FutureProvider<CalendarReviewService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
+  return CalendarReviewService(
+    taskRepository: taskRepository,
+    focusSessionRepository: focusSessionRepository,
+  );
+});
+
+final heatmapColorServiceProvider = FutureProvider<HeatmapColorService>((ref) async {
+  return await HeatmapColorService.getInstance();
+});
 
 final exportServiceProvider = FutureProvider<ExportService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);
