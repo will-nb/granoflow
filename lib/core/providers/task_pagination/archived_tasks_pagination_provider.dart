@@ -64,7 +64,6 @@ class ArchivedTasksPaginationNotifier
       final filter = ref.read(archivedTasksFilterProvider);
       
       final repository = await _repository;
-      final repository = await _repository;
       final tasks = await repository.listArchivedTasks(
         limit: _pageSize,
         offset: 0,

@@ -552,7 +552,8 @@ final clockTaskProvider = StreamProvider.family<Task?, String>((
   ref,
   taskId,
 ) async* {
-  final taskRepository = ref.watch(taskRepositoryProvider);
+  final taskRepositoryAsync = ref.watch(taskRepositoryProvider);
+  final taskRepository = await taskRepositoryAsync.requireValue;
   final taskStream = taskRepository.watchTaskById(taskId);
 
   await for (final task in taskStream) {

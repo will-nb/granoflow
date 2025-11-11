@@ -95,7 +95,7 @@ class ClockControlStrip extends ConsumerWidget {
     final timerState = ref.read(clockTimerProvider);
 
     if (timerState.focusSessionId != null) {
-      final focusFlowService = ref.read(focusFlowServiceProvider);
+      final focusFlowService = await ref.read(focusFlowServiceProvider.future);
       try {
         await focusFlowService.endFocus(
           sessionId: timerState.focusSessionId!,

@@ -135,7 +135,7 @@ class ClockActionButtons extends ConsumerWidget {
     }
     
     // 标记任务为已完成（通过 TaskService）
-    final taskService = ref.read(taskServiceProvider);
+    final taskService = await ref.read(taskServiceProvider.future);
     try {
       await taskService.markCompleted(taskId: taskId);
     } catch (e) {
