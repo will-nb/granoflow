@@ -93,9 +93,9 @@ class _PomodoroSubtaskSectionState
 
   Future<void> _createOvertimeSubtask() async {
     try {
-      final taskService = ref.read(taskServiceProvider);
-      final FocusSessionRepository focusSessionRepository = ref.read(
-        focusSessionRepositoryProvider,
+      final taskService = await ref.read(taskServiceProvider.future);
+      final FocusSessionRepository focusSessionRepository = await ref.read(
+        focusSessionRepositoryProvider.future,
       );
 
       // 创建特殊子任务："任务过于复杂，需要重新分析拆分。"

@@ -18,9 +18,8 @@ Future<bool?> confirmProjectArchive(
   Project project,
 ) async {
   final l10n = AppLocalizations.of(context);
-  final hasActiveTasks = await ref
-      .read(projectServiceProvider)
-      .hasActiveTasks(project.id);
+  final projectService = await ref.read(projectServiceProvider.future);
+  final hasActiveTasks = await projectService.hasActiveTasks(project.id);
 
   if (!hasActiveTasks) {
     // 没有活跃任务，直接确认
@@ -67,9 +66,8 @@ Future<bool?> confirmProjectComplete(
   Project project,
 ) async {
   final l10n = AppLocalizations.of(context);
-  final hasActiveTasks = await ref
-      .read(projectServiceProvider)
-      .hasActiveTasks(project.id);
+  final projectService = await ref.read(projectServiceProvider.future);
+  final hasActiveTasks = await projectService.hasActiveTasks(project.id);
 
   if (!hasActiveTasks) {
     // 没有活跃任务，直接确认

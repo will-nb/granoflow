@@ -167,9 +167,9 @@ class _ClockSubtaskSectionState
     // 确保每个父任务的时间都是其所有子任务时间的总和
 
     try {
-      final taskRepository = ref.read(taskRepositoryProvider);
-      final FocusSessionRepository focusSessionRepository = ref.read(
-        focusSessionRepositoryProvider,
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
+      final FocusSessionRepository focusSessionRepository = await ref.read(
+        focusSessionRepositoryProvider.future,
       );
       final task = await taskRepository.findById(taskId);
 

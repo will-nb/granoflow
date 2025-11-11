@@ -194,9 +194,8 @@ class _ProjectEditSheetState extends ConsumerState<ProjectEditSheet> {
 
     setState(() => _submitting = true);
     try {
-      await ref
-          .read(projectServiceProvider)
-          .updateProject(widget.project.id, update);
+      final projectService = await ref.read(projectServiceProvider.future);
+      await projectService.updateProject(widget.project.id, update);
       if (!mounted) {
         return;
       }
