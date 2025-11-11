@@ -23,7 +23,7 @@ final completedTaskChildrenProvider =
 /// 用于在已归档页面展开任务时显示子任务
 final archivedTaskChildrenProvider =
     FutureProvider.family<List<Task>, String>((ref, parentId) async {
-  final taskRepository = ref.read(taskRepositoryProvider);
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
   final children = await taskRepository.listChildrenIncludingTrashed(parentId);
   // 只返回已归档状态的子任务
   return children

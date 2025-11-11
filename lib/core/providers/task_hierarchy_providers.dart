@@ -178,7 +178,8 @@ final taskProjectHierarchyProvider =
       continue;
     }
 
-    final projectService = ref.watch(projectServiceProvider);
+    final projectServiceAsync = ref.watch(projectServiceProvider);
+    final projectService = await projectServiceAsync.requireValue;
     final project = await projectService.findById(projectId);
     if (project == null) {
       yield null;

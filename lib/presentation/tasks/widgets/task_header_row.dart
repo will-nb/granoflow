@@ -141,7 +141,7 @@ class TaskHeaderRow extends ConsumerWidget {
 
     if (newTitle != null && newTitle != task.title) {
       try {
-        final taskService = ref.read(taskServiceProvider);
+        final taskService = await ref.read(taskServiceProvider.future);
         await taskService.updateDetails(
           taskId: task.id,
           payload: TaskUpdate(title: newTitle),

@@ -67,7 +67,7 @@ class ReviewPageNotifier extends StateNotifier<ReviewPageState> {
     state = state.copyWith(loading: true, error: null);
 
     try {
-      final data = await _reviewDataService.loadAllReviewData();
+      final data = await _reviewDataServiceOrThrow.loadAllReviewData();
       state = state.copyWith(
         loading: false,
         data: data,
@@ -178,8 +178,8 @@ class ReviewPageNotifier extends StateNotifier<ReviewPageState> {
 /// 回顾页面状态 Provider
 final reviewPageProvider =
     StateNotifierProvider<ReviewPageNotifier, ReviewPageState>((ref) {
-  return ReviewPageNotifier(
-    reviewDataService: ref.watch(reviewDataServiceProvider),
-  );
+  // 注意：StateNotifierProvider 不能是 async，所以我们需要在 StateNotifier 内部处理异步初始化
+  // ReviewPageNotifier 需要在内部异步获取依赖
+  return ReviewPageNotifier._(ref);
 });
 
