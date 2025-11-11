@@ -63,3 +63,4 @@ flutter:
     - assets/logo/
     - assets/sounds/
     - assets/config/desktop_window.json
+    - assets/config/calendar_review_heatmap_thresholds.json

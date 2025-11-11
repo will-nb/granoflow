@@ -441,7 +441,7 @@
       file: "pubspec.yaml",
       purpose: "添加 table_calendar 依赖包",
       changes: [
-        "在 dependencies 中添加 table_calendar: ^3.0.9（或最新稳定版本）",
+        "在 dependencies 中添加 table_calendar: ^3.2.0（最新稳定版本，2025-01-08 发布）",
       ],
       estimatedLines: 1,
     },
@@ -458,25 +458,15 @@
       file: "lib/core/providers/service_providers.dart",
       purpose: "添加 CalendarReviewService 和 HeatmapColorService 的 Provider",
       changes: [
-        "添加 calendarReviewServiceProvider：FutureProvider<CalendarReviewService>",
-        "添加 heatmapColorServiceProvider：Provider<HeatmapColorService>",
-        "依赖注入：TaskRepository、FocusSessionRepository、ConfigService",
+        "添加 calendarReviewServiceProvider：FutureProvider<CalendarReviewService>，依赖 TaskRepository 和 FocusSessionRepository",
+        "添加 heatmapColorServiceProvider：Provider<HeatmapColorService>（无依赖，可直接创建）",
       ],
       estimatedLines: 20,
-    },
-    {
-      file: "lib/core/services/config_service.dart",
-      purpose: "添加读取热力图阈值配置的方法（如果 ConfigService 不存在，需要创建）",
-      changes: [
-        "添加 readHeatmapThresholds 方法：从 assets/config/calendar_review_heatmap_thresholds.json 读取配置",
-        "返回 HeatmapThresholds 对象（包含 low、mediumLow、medium 字段）",
-      ],
-      estimatedLines: 30,
     },
   ],
 
   // ===========================================
-  // 4. 需要删除的文件（必填）
+  // 4. 需要删除的文件（已完成 - 在提交 4c58f2a 中删除）
   // ===========================================
   deletions: [
     {
@@ -581,7 +571,7 @@
         {
           task: "添加 table_calendar 依赖",
           file: "pubspec.yaml",
-          action: "在 dependencies 中添加 table_calendar: ^3.0.9",
+          action: "在 dependencies 中添加 table_calendar: ^3.2.0",
         },
         {
           task: "运行 flutter pub get",
@@ -603,8 +593,23 @@
           file: "lib/core/utils/calendar_review_utils.dart",
           action: [
             "实现 getWeekStart、getWeekEnd、getMonthStart、getMonthEnd 方法",
-            "实现 formatFocusMinutes 方法",
-            "使用周日作为一周的开始（与 TaskSectionUtils 保持一致）",
+            "实现 formatFocusMinutes 方法：格式化专注时长为小时数（如：2.5h）",
+            "使用周日作为一周的开始：参考 TaskSectionUtils._getThisWeekStart 的实现逻辑",
+            "getWeekStart：计算包含指定日期的周的开始日期（周日）",
+            "getWeekEnd：计算包含指定日期的周的结束日期（周六）",
+          ],
+        },
+        {
+          task: "添加国际化字符串",
+          files: [
+            "lib/l10n/app_en.arb",
+            "lib/l10n/app_zh_CN.arb",
+            "lib/l10n/app_zh_HK.arb",
+          ],
+          action: [
+            "按照 i18nStrings.required 清单添加所有需要的国际化字符串",
+            "注意：必须按字母顺序插入到对应位置",
+            "带占位符的字符串需要添加 @{key} 元数据定义",
           ],
         },
         {
@@ -652,8 +657,10 @@
           action: [
             "实现 getCompletedRootTasksByDateRange：查询根任务、completedActive 状态、有 endedAt",
             "排除 inbox/trashed/pseudoDeleted/archived 状态",
-            "支持 projectId 和 tags 筛选",
-            "按完成日期分组返回",
+            "支持 projectId 筛选：在数据库查询中直接过滤",
+            "支持 tags 筛选：由于标签存储在 JSON 字段中，先查询所有符合条件的任务，然后在内存中使用 _applyTagFilters 方法过滤",
+            "按完成日期分组返回（提取 endedAt 的年月日部分作为分组键）",
+            "参考现有的 listCompletedTasks 方法中的标签筛选实现",
           ],
         },
         {
@@ -676,16 +683,10 @@
           file: "lib/core/services/heatmap_color_service.dart",
           action: [
             "实现 getHeatmapColor 方法：根据专注时长和主题模式返回颜色",
-            "从配置文件读取阈值",
+            "使用 rootBundle.loadString 读取 assets/config/calendar_review_heatmap_thresholds.json",
+            "在服务初始化时读取并缓存阈值配置",
             "返回颜色梯度（无数据 → 低 → 中低 → 中 → 高）",
-          ],
-        },
-        {
-          task: "创建或扩展 ConfigService",
-          file: "lib/core/services/config_service.dart",
-          action: [
-            "如果 ConfigService 不存在，创建它",
-            "添加 readHeatmapThresholds 方法：读取热力图阈值配置",
+            "注意：不创建独立的 ConfigService，直接在服务中读取配置文件",
           ],
         },
         {
@@ -704,8 +705,8 @@
           task: "添加 Service Providers",
           file: "lib/core/providers/service_providers.dart",
           action: [
-            "添加 calendarReviewServiceProvider",
-            "添加 heatmapColorServiceProvider",
+            "添加 calendarReviewServiceProvider：FutureProvider<CalendarReviewService>，依赖 TaskRepository 和 FocusSessionRepository",
+            "添加 heatmapColorServiceProvider：Provider<HeatmapColorService>（无依赖，可直接创建）",
             "配置依赖注入",
           ],
         },
@@ -982,7 +983,7 @@
     keyDecisions: {
       // 库选择
       libraryChoice: {
-        recommendation: "table_calendar: ^3.0.9",
+        recommendation: "table_calendar: ^3.2.0",
         reason: "table_calendar 是 Flutter 生态中最成熟的日历组件，支持月/周/日视图切换，高度可定制，性能良好",
         alternative: "flutter_calendar_carousel（功能较少，不支持周视图）",
       },
@@ -990,6 +991,9 @@
       implementation: {
         method: "使用 table_calendar 的 CalendarBuilders.customCellBuilder 实现热力图单元格",
         stateManagement: "使用 Riverpod 进行状态管理，StreamProvider 和 FutureProvider 提供响应式数据流",
+        configReading: "HeatmapColorService 直接使用 rootBundle.loadString 读取配置文件，不创建独立的 ConfigService",
+        tagFiltering: "标签筛选在内存中进行：先查询符合条件的任务，然后使用 _applyTagFilters 方法过滤（因为标签存储在 JSON 字段中）",
+        weekStart: "使用周日作为一周的开始，与 TaskSectionUtils 保持一致",
         rollback: "如果 table_calendar 不满足需求，可以回退到自定义日历实现，但需要更多开发时间",
       },
       // 性能优化
@@ -1054,7 +1058,7 @@
   },
 
   // ===========================================
-  // 7. 依赖关系图（可选）
+  // 8. 依赖关系图（可选）
   // ===========================================
   dependencies: {
     // 数据层依赖
@@ -1295,7 +1299,7 @@
   },
 
   // ===========================================
-  // 9. 风险点和注意事项（必填）
+  // 10. 风险点和注意事项（必填）
   // ===========================================
   risks: [
     {
@@ -1330,8 +1334,9 @@
       risk: "删除旧文件可能导致其他模块的导入错误",
       mitigation: "在删除前检查所有导入，确保没有其他文件依赖旧文件",
       priority: "high",
+      status: "已解决 - 在提交 4c58f2a 中已删除所有旧文件，并更新了相关引用",
       check: "运行 flutter analyze 检查导入错误",
-      enforcement: "在阶段 8 实现主页面后立即运行 flutter analyze，确保没有导入错误",
+      enforcement: "已完成 - 已运行 flutter analyze 确认无导入错误",
     },
   ],
 
@@ -1378,7 +1383,7 @@
   },
 
   // ===========================================
-  // 11. 数据与状态（可选，但建议包含）
+  // 12. 数据与状态（可选，但建议包含）
   // ===========================================
   dataAndState: {
     // 数据模型变更
@@ -1387,7 +1392,7 @@
       "新增 DayDetailData：日期详情数据模型",
       "新增 CalendarFilter：筛选条件模型",
       "新增 WeekReviewData 和 MonthReviewData：周/月统计数据模型",
-      "删除 ReviewData 及相关模型（review_data.dart）",
+      "删除 ReviewData 及相关模型（review_data.dart）- 已完成（提交 4c58f2a）",
     ],
     
     // 持久化结构变更
@@ -1403,7 +1408,7 @@
       "新增 CalendarReviewNotifier：状态管理逻辑",
       "新增 calendarDataProvider：StreamProvider，提供日历数据流",
       "新增 dayDetailProvider：FutureProvider.family，提供日期详情",
-      "删除 ReviewPageState 和 ReviewPageNotifier（review_providers.dart）",
+      "删除 ReviewPageState 和 ReviewPageNotifier（review_providers.dart）- 已完成（提交 4c58f2a）",
     ],
   },
 }
