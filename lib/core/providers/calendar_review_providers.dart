@@ -215,6 +215,19 @@ final weekDataProvider = FutureProvider.autoDispose.family<WeekReviewData, DateT
   );
 });
 
+/// 周详细数据 Provider（FutureProvider.family）
+/// 
+/// 提供指定日期所在周内每天的详细数据
+final weekDetailProvider = FutureProvider.autoDispose.family<Map<DateTime, DayDetailData>, DateTime>((ref, date) async {
+  final state = ref.watch(calendarReviewNotifierProvider);
+  final service = await ref.read(calendarReviewServiceProvider.future);
+  
+  return service.loadWeekDetail(
+    date: date,
+    filter: state.filter,
+  );
+});
+
 /// 月数据 Provider（FutureProvider.family）
 /// 
 /// 提供指定日期所在月的统计数据

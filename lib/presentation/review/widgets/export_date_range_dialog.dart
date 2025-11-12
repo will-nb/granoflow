@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/calendar_review_utils.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../widgets/custom_date_picker.dart';
 
@@ -80,7 +81,7 @@ class _ExportDateRangeDialogState extends State<ExportDateRangeDialog> {
               title: Text(l10n.calendarReviewSelectStartDate),
               subtitle: Text(
                 _startDate != null
-                    ? '${_startDate!.year}-${_startDate!.month.toString().padLeft(2, '0')}-${_startDate!.day.toString().padLeft(2, '0')}'
+                    ? CalendarReviewUtils.formatDateShort(_startDate!)
                     : '-',
               ),
               trailing: const Icon(Icons.calendar_today),
@@ -106,7 +107,7 @@ class _ExportDateRangeDialogState extends State<ExportDateRangeDialog> {
               title: Text(l10n.calendarReviewSelectEndDate),
               subtitle: Text(
                 _endDate != null
-                    ? '${_endDate!.year}-${_endDate!.month.toString().padLeft(2, '0')}-${_endDate!.day.toString().padLeft(2, '0')}'
+                    ? CalendarReviewUtils.formatDateShort(_endDate!)
                     : '-',
               ),
               trailing: const Icon(Icons.calendar_today),

@@ -524,12 +524,27 @@ class DriftTaskRepository implements TaskRepository {
     required domain.TaskStatus status,
   }) async {
     await _adapter.writeTransaction(() async {
-      await (_db.update(_db.tasks)..where((t) => t.id.equals(taskId))).write(
-        TasksCompanion(
-          status: Value(status),
-          updatedAt: Value(DateTime.now()),
-        ),
+      // 查询当前任务状态
+      final query = _db.select(_db.tasks)..where((t) => t.id.equals(taskId));
+      final existing = await query.getSingleOrNull();
+      
+      if (existing == null) {
+        throw StateError('Task not found: $taskId');
+      }
+
+      // 检查是否从 pending 变为 doing，且还没有 startedAt
+      final wasPending = existing.status == domain.TaskStatus.pending;
+      final isDoing = status == domain.TaskStatus.doing;
+      final shouldSetStartedAt = wasPending && isDoing && existing.startedAt == null;
+
+      // 构建更新对象
+      final companion = TasksCompanion(
+        status: Value(status),
+        updatedAt: Value(DateTime.now()),
+        startedAt: shouldSetStartedAt ? Value(DateTime.now()) : const Value.absent(),
       );
+
+      await (_db.update(_db.tasks)..where((t) => t.id.equals(taskId))).write(companion);
     });
   }
 

@@ -182,9 +182,13 @@ class _TaskDragIntentTargetState extends ConsumerState<TaskDragIntentTarget> {
 
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        final can = widget.canAccept(details.data, ref);
-        _log('onWillAccept', dragged: details.data, extras: {'can': can});
-        return can;
+        // TODO: 临时禁用拖拽生成子任务功能，不显示遮罩
+        return false;
+
+        // 原有逻辑（已注释，保留以备将来使用）：
+        // final can = widget.canAccept(details.data, ref);
+        // _log('onWillAccept', dragged: details.data, extras: {'can': can});
+        // return can;
       },
       onAcceptWithDetails: (details) async {
         await _handleAccept(details.data, context, l10n);

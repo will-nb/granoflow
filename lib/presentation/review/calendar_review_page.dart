@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/providers/calendar_review_providers.dart';
 import '../../../core/providers/service_providers.dart';
+import '../../../core/theme/ocean_breeze_color_schemes.dart';
 import '../../../core/utils/calendar_review_utils.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
@@ -43,13 +44,14 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
     
     // 根据当前视图模式加载数据
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     DateTime start;
     DateTime end;
 
     switch (state.viewMode) {
       case CalendarViewMode.day:
-        start = DateTime(now.year, now.month, now.day);
-        end = start;
+        start = today;
+        end = today;
         break;
       case CalendarViewMode.week:
         start = CalendarReviewUtils.getWeekStart(now);
@@ -61,6 +63,13 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
         break;
     }
 
+    // 如果还没有选中日期，默认选中今天
+    if (state.selectedDate == null) {
+      notifier.selectDate(today);
+      _selectedDay = today;
+      _focusedDay = today;
+    }
+
     notifier.loadDailyData(start: start, end: end);
   }
 
@@ -69,6 +78,7 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(calendarReviewNotifierProvider);
     final notifier = ref.read(calendarReviewNotifierProvider.notifier);
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     // 同步选中日期
     if (state.selectedDate != null && state.selectedDate != _selectedDay) {
@@ -109,10 +119,53 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
         children: [
           // 视图切换工具栏
           const ViewToggleBar(),
-          // 日历（日视图时隐藏，只显示时间轴）
-          if (state.viewMode != CalendarViewMode.day)
-            Expanded(
-              child: TableCalendar(
+          // 根据视图模式和屏幕方向选择布局
+          Expanded(
+            child: _buildMainContent(context, state, notifier, isLandscape),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建主要内容区域
+  /// 根据屏幕方向和视图模式选择布局方式
+  Widget _buildMainContent(
+    BuildContext context,
+    dynamic state,
+    dynamic notifier,
+    bool isLandscape,
+  ) {
+    // 日视图和周视图：直接全屏显示时间轴表格
+    if (state.viewMode == CalendarViewMode.day || 
+        state.viewMode == CalendarViewMode.week) {
+      return _buildDetailView(state.viewMode);
+    }
+
+    // 月视图：根据屏幕方向选择布局（TableCalendar + 详情）
+    if (isLandscape) {
+      // 横屏：左右分栏
+      return _buildLandscapeLayout(context, state, notifier);
+    } else {
+      // 竖屏：上下分栏
+      return _buildPortraitLayout(context, state, notifier);
+    }
+  }
+
+  /// 横屏布局：左右分栏（日历在左，详情在右）
+  Widget _buildLandscapeLayout(
+    BuildContext context,
+    dynamic state,
+    dynamic notifier,
+  ) {
+    return Row(
+      children: [
+        // 左侧：日历（占 55% 宽度，带右侧内边距）
+        Expanded(
+          flex: 55,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: TableCalendar(
               firstDay: DateTime(2020, 1, 1),
               lastDay: DateTime.now(),
               focusedDay: _focusedDay,
@@ -122,13 +175,18 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
               eventLoader: (day) {
                 final date = DateTime(day.year, day.month, day.day);
                 final data = state.dailyData[date];
-                return data != null ? [data] : [];
+                // 只有当有已完成任务时才返回非空列表（显示圆点）
+                if (data != null && (data.completedTaskCount ?? 0) > 0) {
+                  return [data];
+                }
+                return [];
               },
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
                   _selectedDay = selectedDay;
                   _focusedDay = focusedDay;
                 });
+                
                 notifier.selectDate(selectedDay);
               },
               onPageChanged: (focusedDay) {
@@ -172,6 +230,10 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
               ),
               calendarStyle: CalendarStyle(
                 outsideDaysVisible: false,
+                markerDecoration: BoxDecoration(
+                  color: OceanBreezeColorSchemes.lakeCyan,
+                  shape: BoxShape.circle,
+                ),
                 todayDecoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -185,27 +247,145 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
                 ),
               ),
             ),
-          )
-          else
-            // 日视图：直接显示时间轴表格（全屏）
-            Expanded(
-              child: _buildDetailView(state.viewMode),
+          ),
+        ),
+        // 右侧：详情区域（占 45% 宽度，卡片式设计）
+        Expanded(
+          flex: 45,
+          child: Card(
+            margin: EdgeInsets.zero,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+              ),
             ),
-          // 详情区域（周/月视图时显示）
-          if (state.viewMode != CalendarViewMode.day)
-            Container(
-              height: 200,
+            child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-                borderRadius: const BorderRadius.only(
+                // Light 模式使用天际白（tertiaryContainer），Dark 模式使用 surfaceContainerHighest
+                color: Theme.of(context).brightness == Brightness.light
+                    ? Theme.of(context).colorScheme.tertiaryContainer
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
               ),
               child: _buildDetailView(state.viewMode),
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 竖屏布局：上下分栏（日历在上，详情在下）
+  Widget _buildPortraitLayout(
+    BuildContext context,
+    dynamic state,
+    dynamic notifier,
+  ) {
+    return Column(
+      children: [
+        // 日历
+        Expanded(
+          child: TableCalendar(
+            firstDay: DateTime(2020, 1, 1),
+            lastDay: DateTime.now(),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            calendarFormat: _calendarFormat,
+            startingDayOfWeek: StartingDayOfWeek.sunday,
+            eventLoader: (day) {
+              final date = DateTime(day.year, day.month, day.day);
+              final data = state.dailyData[date];
+              // 只有当有已完成任务时才返回非空列表（显示圆点）
+              if (data != null && (data.completedTaskCount ?? 0) > 0) {
+                return [data];
+              }
+              return [];
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+              
+              notifier.selectDate(selectedDay);
+            },
+            onPageChanged: (focusedDay) {
+              setState(() {
+                _focusedDay = focusedDay;
+              });
+              _loadDataForVisibleRange(focusedDay, state.viewMode);
+            },
+            calendarBuilders: CalendarBuilders(
+              defaultBuilder: (context, date, events) {
+                final dateOnly = DateTime(date.year, date.month, date.day);
+                final data = state.dailyData[dateOnly];
+                final isSelected = isSameDay(_selectedDay, date);
+                final isToday = isSameDay(DateTime.now(), date);
+                
+                return CalendarHeatmapCell(
+                  date: dateOnly,
+                  data: data,
+                  isSelected: isSelected,
+                  isToday: isToday,
+                  showFocusMinutes: state.viewMode == CalendarViewMode.day,
+                );
+              },
+            ),
+            headerStyle: HeaderStyle(
+              titleTextStyle: (Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ) ?? const TextStyle()),
+              formatButtonVisible: false,
+              leftChevronIcon: const Icon(Icons.chevron_left),
+              rightChevronIcon: const Icon(Icons.chevron_right),
+            ),
+            daysOfWeekStyle: DaysOfWeekStyle(
+              weekdayStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ) ?? const TextStyle(),
+              weekendStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.error,
+                  ) ?? const TextStyle(),
+            ),
+            calendarStyle: CalendarStyle(
+              outsideDaysVisible: false,
+              markerDecoration: BoxDecoration(
+                color: OceanBreezeColorSchemes.lakeCyan,
+                shape: BoxShape.circle,
+              ),
+              todayDecoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 1.5,
+                ),
+              ),
+              selectedDecoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+              ),
+            ),
+          ),
+        ),
+        // 详情区域
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+          ),
+          child: _buildDetailView(state.viewMode),
+        ),
+      ],
     );
   }
 

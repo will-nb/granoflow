@@ -22,12 +22,47 @@ class MonthDetailView extends ConsumerWidget {
 
     return monthDataAsync.when(
       data: (monthData) {
+        // 获取当日数据
+        final selectedDateNormalized = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+        );
+        final todayData = state.dailyData[selectedDateNormalized];
+        final todayFocusMinutes = todayData?.focusMinutes ?? 0;
+        final todayCompletedTasks = todayData?.completedTaskCount ?? 0;
+
         if (monthData.totalFocusMinutes == 0 &&
             monthData.completedTaskCount == 0) {
           return Center(
-            child: Text(
-              l10n.calendarReviewEmptyState,
-              style: Theme.of(context).textTheme.bodyMedium,
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_view_month_outlined,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.calendarReviewEmptyState,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.calendarReviewEmptyStateDescription,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -46,6 +81,34 @@ class MonthDetailView extends ConsumerWidget {
                 mainAxisSpacing: 16,
                 childAspectRatio: 1.5,
                 children: [
+                  // 第一行：当日统计
+                  _StatCard(
+                    label: l10n.calendarReviewStatsTodayFocus,
+                    value: CalendarReviewUtils.formatFocusMinutes(todayFocusMinutes),
+                    onTap: () {
+                      final notifier = ref.read(calendarReviewNotifierProvider.notifier);
+                      notifier.setViewMode(CalendarViewMode.day);
+                      notifier.selectDate(selectedDateNormalized);
+                      notifier.loadDailyData(
+                        start: selectedDateNormalized,
+                        end: selectedDateNormalized,
+                      );
+                    },
+                  ),
+                  _StatCard(
+                    label: l10n.calendarReviewStatsTodayTasks,
+                    value: '$todayCompletedTasks',
+                    onTap: () {
+                      final notifier = ref.read(calendarReviewNotifierProvider.notifier);
+                      notifier.setViewMode(CalendarViewMode.day);
+                      notifier.selectDate(selectedDateNormalized);
+                      notifier.loadDailyData(
+                        start: selectedDateNormalized,
+                        end: selectedDateNormalized,
+                      );
+                    },
+                  ),
+                  // 第二行：月度总计
                   _StatCard(
                     label: l10n.calendarReviewStatsTotalFocus,
                     value: CalendarReviewUtils.formatFocusMinutes(
@@ -56,6 +119,7 @@ class MonthDetailView extends ConsumerWidget {
                     label: l10n.calendarReviewStatsCompletedTasks,
                     value: '${monthData.completedTaskCount}',
                   ),
+                  // 第三行：月度平均和最活跃日期
                   _StatCard(
                     label: l10n.calendarReviewStatsAverageDaily,
                     value: CalendarReviewUtils.formatFocusMinutes(
@@ -138,14 +202,20 @@ class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final theme = Theme.of(context);
+    // 如果有点击回调，使用主题链接颜色；否则使用默认颜色
+    final textColor = onTap != null ? theme.colorScheme.primary : null;
+    
+    final card = Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -153,20 +223,34 @@ class _StatCard extends StatelessWidget {
           children: [
             Text(
               value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: textColor,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: theme.textTheme.bodySmall?.copyWith(
+                    color: textColor,
+                  ),
               textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
     );
+
+    // 如果有点击回调，包装为可点击的链接样式
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: card,
+      );
+    }
+
+    return card;
   }
 }
 

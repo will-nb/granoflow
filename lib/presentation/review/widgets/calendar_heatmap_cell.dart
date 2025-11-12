@@ -46,6 +46,8 @@ class CalendarHeatmapCell extends ConsumerWidget {
     ColorScheme colorScheme,
     Color backgroundColor,
   ) {
+    // 保留此变量以备将来使用（例如：显示任务数量标记）
+    // ignore: unused_local_variable
     final completedCount = data?.completedTaskCount ?? 0;
     final focusMinutes = data?.focusMinutes ?? 0;
 
@@ -79,20 +81,6 @@ class CalendarHeatmapCell extends ConsumerWidget {
               ),
             ),
           ),
-          // 完成任务数标记（右上角）
-          if (completedCount > 0)
-            Positioned(
-              top: 2,
-              right: 2,
-              child: Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: OceanBreezeColorSchemes.lakeCyan,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
           // 专注时长文本（日视图时显示）
           if (showFocusMinutes && focusMinutes > 0)
             Positioned(

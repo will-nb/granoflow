@@ -39,4 +39,9 @@ class CalendarReviewUtils {
     }
     return '${hours.toStringAsFixed(1)}h';
   }
+
+  /// 格式化日期为 mm-dd 格式（如：11-12）
+  static String formatDateShort(DateTime date) {
+    return '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
 }

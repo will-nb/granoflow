@@ -85,7 +85,7 @@ class TaskStatusService {
       await _tasks.batchUpdate(updates);
     }
     
-    // 将当前任务标记为doing
+    // 将当前任务标记为doing（markStatus 会自动处理从 pending 到 doing 时设置 startedAt）
     await _tasks.markStatus(taskId: taskId, status: TaskStatus.doing);
     
     // 更新背景音状态（当前任务变为doing，应该开始播放）
@@ -129,8 +129,21 @@ class TaskStatusService {
       await _tasks.batchUpdate(updates);
     }
     
-    // 将当前任务标记为doing
-    await _tasks.markStatus(taskId: taskId, status: TaskStatus.doing);
+    // 检查任务是否已经有 startedAt，如果没有则设置（保留首次开始时间）
+    final task = await _tasks.findById(taskId);
+    if (task != null && task.startedAt == null) {
+      // 任务还没有 startedAt，设置它（首次开始）
+      await _tasks.updateTask(
+        taskId,
+        TaskUpdate(
+          status: TaskStatus.doing,
+          startedAt: _clock(),
+        ),
+      );
+    } else {
+      // 任务已经有 startedAt，只更新状态（保留首次开始时间）
+      await _tasks.markStatus(taskId: taskId, status: TaskStatus.doing);
+    }
     
     // 更新背景音状态（当前任务变为doing，应该开始播放）
     await _updateBackgroundSound();
