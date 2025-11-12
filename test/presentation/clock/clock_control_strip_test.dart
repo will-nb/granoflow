@@ -86,6 +86,12 @@ class _FakeFocusFlowService implements FocusFlowService {
 
   @override
   Stream<FocusSession?> watchActive(String taskId) => const Stream.empty();
+
+  @override
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async {}
 }
 
 class _FakeClockAudioService implements ClockAudioService {

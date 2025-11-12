@@ -674,6 +674,51 @@ class StubTaskRepository implements TaskRepository {
     final sequenceStr = sequence.toString().padLeft(4, '0');
     return '$secondsSinceEpoch$sequenceStr';
   }
+
+  @override
+  Future<Map<DateTime, List<Task>>> getCompletedRootTasksByDateRange({
+    required DateTime start,
+    required DateTime end,
+    String? projectId,
+    List<String>? tags,
+  }) async {
+    final startDate = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    
+    var filtered = _tasks.values.where((task) =>
+        task.parentId == null &&
+        task.status == TaskStatus.completedActive &&
+        task.endedAt != null &&
+        task.endedAt!.isAfter(startDate.subtract(const Duration(milliseconds: 1))) &&
+        task.endedAt!.isBefore(endDate.add(const Duration(milliseconds: 1))) &&
+        task.status != TaskStatus.inbox &&
+        task.status != TaskStatus.trashed &&
+        task.status != TaskStatus.pseudoDeleted &&
+        task.status != TaskStatus.archived);
+    
+    if (projectId != null) {
+      filtered = filtered.where((task) => task.projectId == projectId);
+    }
+    
+    if (tags != null && tags.isNotEmpty) {
+      filtered = filtered.where((task) {
+        return tags.every((tag) => task.tags.contains(tag));
+      });
+    }
+    
+    final result = <DateTime, List<Task>>{};
+    for (final task in filtered) {
+      if (task.endedAt == null) continue;
+      final date = DateTime(
+        task.endedAt!.year,
+        task.endedAt!.month,
+        task.endedAt!.day,
+      );
+      result.putIfAbsent(date, () => []).add(task);
+    }
+    
+    return result;
+  }
 }
 
 class StubFocusSessionRepository implements FocusSessionRepository {
@@ -761,6 +806,72 @@ class StubFocusSessionRepository implements FocusSessionRepository {
   @override
   Future<FocusSession?> findById(String sessionId) async =>
       _sessions[sessionId];
+
+  @override
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async {
+    final session = _sessions[sessionId];
+    if (session == null) return;
+    _sessions[sessionId] = session.copyWith(actualMinutes: actualMinutes);
+  }
+
+  @override
+  Future<Map<DateTime, int>> getFocusMinutesByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async {
+    final startDate = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    
+    var filtered = _sessions.values.where((session) =>
+        session.endedAt != null &&
+        session.endedAt!.isAfter(startDate.subtract(const Duration(milliseconds: 1))) &&
+        session.endedAt!.isBefore(endDate.add(const Duration(milliseconds: 1))));
+    
+    if (taskIds != null && taskIds.isNotEmpty) {
+      filtered = filtered.where((session) => taskIds.contains(session.taskId));
+    }
+    
+    final result = <DateTime, int>{};
+    for (final session in filtered) {
+      if (session.endedAt == null) continue;
+      final date = DateTime(
+        session.endedAt!.year,
+        session.endedAt!.month,
+        session.endedAt!.day,
+      );
+      result[date] = (result[date] ?? 0) + session.actualMinutes;
+    }
+    
+    return result;
+  }
+
+  @override
+  Future<List<FocusSession>> listSessionsByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async {
+    final startDate = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    
+    var filtered = _sessions.values.where((session) =>
+        session.endedAt != null &&
+        session.endedAt!.isAfter(startDate.subtract(const Duration(milliseconds: 1))) &&
+        session.endedAt!.isBefore(endDate.add(const Duration(milliseconds: 1))));
+    
+    if (taskIds != null && taskIds.isNotEmpty) {
+      filtered = filtered.where((session) => taskIds.contains(session.taskId));
+    }
+    
+    return filtered
+        .sortedBy((session) => session.startedAt)
+        .reversed
+        .toList(growable: false);
+  }
 }
 
 class StubTagRepository implements TagRepository {

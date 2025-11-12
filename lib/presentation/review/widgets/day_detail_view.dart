@@ -224,7 +224,7 @@ class DayDetailView extends ConsumerWidget {
                                         color: Theme.of(context).colorScheme.secondary,
                                       ),
                                 ),
-                                if (session.taskId != null) ...[
+                                if (session.taskId.isNotEmpty) ...[
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(

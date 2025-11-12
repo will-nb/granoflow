@@ -313,6 +313,14 @@ class _TestTaskRepository extends TaskRepository {
   ) async {
     // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
   }
+
+  @override
+  Future<Map<DateTime, List<Task>>> getCompletedRootTasksByDateRange({
+    required DateTime start,
+    required DateTime end,
+    String? projectId,
+    List<String>? tags,
+  }) async => throw UnimplementedError();
 }
 
 class _StubMetricRepository implements MetricRepository {
@@ -376,4 +384,24 @@ class _StubFocusSessionRepository implements FocusSessionRepository {
   @override
   Future<FocusSession?> findById(String sessionId) =>
       throw UnimplementedError();
+
+  @override
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<Map<DateTime, int>> getFocusMinutesByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<List<FocusSession>> listSessionsByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async => throw UnimplementedError();
 }

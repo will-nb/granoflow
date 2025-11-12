@@ -281,4 +281,24 @@ class _FakeFocusSessionRepository implements FocusSessionRepository {
   @override
   Stream<FocusSession?> watchActiveSession(String taskId) =>
       const Stream.empty();
+
+  @override
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<Map<DateTime, int>> getFocusMinutesByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<List<FocusSession>> listSessionsByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async => throw UnimplementedError();
 }

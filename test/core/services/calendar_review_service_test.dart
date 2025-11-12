@@ -13,7 +13,6 @@ void main() {
     late StubTaskRepository taskRepository;
     late StubFocusSessionRepository focusSessionRepository;
     late CalendarReviewService service;
-    final fixedNow = DateTime(2024, 2, 10, 9, 0, 0);
 
     setUp(() {
       taskRepository = StubTaskRepository();
@@ -56,38 +55,4 @@ void main() {
       });
     });
   });
-}
-
-// 扩展 StubFocusSessionRepository 以支持新方法
-extension on StubFocusSessionRepository {
-  Future<Map<DateTime, int>> getFocusMinutesByDateRange({
-    required DateTime start,
-    required DateTime end,
-    List<String>? taskIds,
-  }) async {
-    // TODO: 实现 stub
-    return {};
-  }
-
-  Future<List<FocusSession>> listSessionsByDateRange({
-    required DateTime start,
-    required DateTime end,
-    List<String>? taskIds,
-  }) async {
-    // TODO: 实现 stub
-    return [];
-  }
-}
-
-// 扩展 StubTaskRepository 以支持新方法
-extension on StubTaskRepository {
-  Future<Map<DateTime, List<Task>>> getCompletedRootTasksByDateRange({
-    required DateTime start,
-    required DateTime end,
-    String? projectId,
-    List<String>? tags,
-  }) async {
-    // TODO: 实现 stub
-    return {};
-  }
 }

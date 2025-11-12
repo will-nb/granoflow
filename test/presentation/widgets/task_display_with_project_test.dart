@@ -446,4 +446,12 @@ class _TestTaskRepository implements TaskRepository {
   ) async {
     // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
   }
+
+  @override
+  Future<Map<DateTime, List<Task>>> getCompletedRootTasksByDateRange({
+    required DateTime start,
+    required DateTime end,
+    String? projectId,
+    List<String>? tags,
+  }) async => throw UnimplementedError();
 }

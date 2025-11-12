@@ -612,4 +612,24 @@ class _NoopFocusSessionRepository implements FocusSessionRepository {
   Stream<FocusSession?> watchActiveSession(String taskId) async* {
     yield null;
   }
+
+  @override
+  Future<void> updateSessionActualMinutes({
+    required String sessionId,
+    required int actualMinutes,
+  }) async {}
+
+  @override
+  Future<Map<DateTime, int>> getFocusMinutesByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async => {};
+
+  @override
+  Future<List<FocusSession>> listSessionsByDateRange({
+    required DateTime start,
+    required DateTime end,
+    List<String>? taskIds,
+  }) async => [];
 }
