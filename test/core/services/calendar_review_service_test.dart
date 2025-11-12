@@ -1,10 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/core/services/calendar_review_service.dart';
-import 'package:granoflow/data/models/calendar_review_data.dart';
-import 'package:granoflow/data/models/focus_session.dart';
-import 'package:granoflow/data/models/task.dart';
-import 'package:granoflow/data/repositories/focus_session_repository.dart';
-import 'package:granoflow/data/repositories/task_repository.dart';
 
 import '../../presentation/test_support/fakes.dart';
 
@@ -12,12 +7,13 @@ void main() {
   group('CalendarReviewService', () {
     late StubTaskRepository taskRepository;
     late StubFocusSessionRepository focusSessionRepository;
-    late CalendarReviewService service;
 
     setUp(() {
       taskRepository = StubTaskRepository();
       focusSessionRepository = StubFocusSessionRepository();
-      service = CalendarReviewService(
+      // service 将在测试实现时使用
+      // ignore: unused_local_variable
+      final service = CalendarReviewService(
         taskRepository: taskRepository,
         focusSessionRepository: focusSessionRepository,
       );

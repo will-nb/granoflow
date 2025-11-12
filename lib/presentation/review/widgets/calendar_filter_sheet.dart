@@ -93,35 +93,31 @@ class _CalendarFilterSheetState extends ConsumerState<CalendarFilterSheet> {
 
   Widget _buildProjectList(projects) {
     final l10n = AppLocalizations.of(context);
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: projects.length + 1, // +1 for "No Project"
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return RadioListTile<String?>(
-            title: Text(l10n.calendarReviewFilterNoProject),
-            value: null,
-            groupValue: _selectedProjectId,
-            onChanged: (value) {
-              setState(() {
-                _selectedProjectId = value;
-              });
-            },
-          );
-        }
-        final project = projects[index - 1];
-        return RadioListTile<String?>(
-          title: Text(project.title),
-          value: project.id,
-          groupValue: _selectedProjectId,
-          onChanged: (value) {
-            setState(() {
-              _selectedProjectId = value;
-            });
-          },
-        );
+    return RadioGroup<String?>(
+      value: _selectedProjectId,
+      onChanged: (value) {
+        setState(() {
+          _selectedProjectId = value;
+        });
       },
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: projects.length + 1, // +1 for "No Project"
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return RadioListTile<String?>(
+              title: Text(l10n.calendarReviewFilterNoProject),
+              value: null,
+            );
+          }
+          final project = projects[index - 1];
+          return RadioListTile<String?>(
+            title: Text(project.title),
+            value: project.id,
+          );
+        },
+      ),
     );
   }
 

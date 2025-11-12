@@ -26,20 +26,24 @@ void main() {
         final color = service.getHeatmapColor(15, Brightness.light);
         expect(color, isA<Color>());
         // 检查是否为绿色系
-        expect(color.red, lessThan(color.green));
-        expect(color.blue, lessThan(color.green));
+        // ignore: deprecated_member_use
+        expect((color.red * 255.0).round() & 0xff, lessThan((color.green * 255.0).round() & 0xff));
+        // ignore: deprecated_member_use
+        expect((color.blue * 255.0).round() & 0xff, lessThan((color.green * 255.0).round() & 0xff));
       });
 
       test('应该为中等强度返回中绿色', () {
         final color = service.getHeatmapColor(45, Brightness.light);
         expect(color, isA<Color>());
-        expect(color.red, lessThan(color.green));
+        // ignore: deprecated_member_use
+        expect((color.red * 255.0).round() & 0xff, lessThan((color.green * 255.0).round() & 0xff));
       });
 
       test('应该为高强度返回深绿色', () {
         final color = service.getHeatmapColor(150, Brightness.light);
         expect(color, isA<Color>());
-        expect(color.red, lessThan(color.green));
+        // ignore: deprecated_member_use
+        expect((color.red * 255.0).round() & 0xff, lessThan((color.green * 255.0).round() & 0xff));
       });
 
       test('应该根据主题模式返回不同透明度', () {

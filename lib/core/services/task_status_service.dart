@@ -51,12 +51,15 @@ class TaskStatusService {
       limit: 10000,
     );
 
-    if (doingTasks.isNotEmpty) {
-      // 有doing状态的任务，开始播放背景音
-      _clockAudioService!.startTickSound();
-    } else {
-      // 没有doing状态的任务，停止播放背景音
-      _clockAudioService!.stopTickSound();
+    final clockAudioService = _clockAudioService;
+    if (clockAudioService != null) {
+      if (doingTasks.isNotEmpty) {
+        // 有doing状态的任务，开始播放背景音
+        clockAudioService.startTickSound();
+      } else {
+        // 没有doing状态的任务，停止播放背景音
+        clockAudioService.stopTickSound();
+      }
     }
   }
 
