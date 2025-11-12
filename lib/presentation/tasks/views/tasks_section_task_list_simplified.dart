@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/providers/tasks_drag_provider.dart';
 import '../../../data/models/task.dart';
 import '../../widgets/simplified_task_row.dart';
 import '../../widgets/reorderable_proxy_decorator.dart';
@@ -11,7 +10,8 @@ import '../utils/task_collection_utils.dart';
 import '../utils/tree_flattening_utils.dart';
 import '../../common/task_list/task_list_tree_builder.dart';
 import '../../common/task_list/tasks_section_task_list_config.dart';
-import '../../common/drag/standard_draggable.dart';
+import '../tasks_drag_target.dart';
+import '../tasks_drag_target_type.dart';
 
 /// Tasks Section 页面的任务列表组件（简化版）
 ///
@@ -60,9 +60,27 @@ class _TasksSectionTaskListSimplifiedState
     }
 
     // 过滤掉 trashed 状态的任务
-    final filteredTasks = _tasks
-        .where((task) => task.status != TaskStatus.trashed)
-        .toList();
+    // 今日区域：包含 pending、doing、paused、inbox、completedActive 状态的任务
+    // 其他区域：只包含 pending、doing、paused、inbox 状态的任务
+    final filteredTasks = _tasks.where((task) {
+      if (task.status == TaskStatus.trashed) {
+        return false;
+      }
+      if (widget.section == TaskSection.today) {
+        // 今日区域包含已完成任务
+        return task.status == TaskStatus.pending ||
+            task.status == TaskStatus.doing ||
+            task.status == TaskStatus.paused ||
+            task.status == TaskStatus.inbox ||
+            task.status == TaskStatus.completedActive;
+      } else {
+        // 其他区域不包含已完成任务
+        return task.status == TaskStatus.pending ||
+            task.status == TaskStatus.doing ||
+            task.status == TaskStatus.paused ||
+            task.status == TaskStatus.inbox;
+      }
+    }).toList();
 
     // 构建任务层级树（用于获取所有任务，包括子任务）
     final taskTrees = TaskListTreeBuilder.buildTaskTree(filteredTasks);
@@ -78,11 +96,13 @@ class _TasksSectionTaskListSimplifiedState
       return const SizedBox.shrink();
     }
 
+    // 按 sortIndex 升序排序（已完成任务的 sortIndex 小于未完成任务的 sortIndex）
+    allTasks.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
     // 获取根任务列表（用于拖拽排序）
     final rootTasks = collectRoots(filteredTasks);
-
-    // 获取拖拽状态
-    final dragNotifier = ref.read(tasksDragProvider.notifier);
+    // 根任务也需要按 sortIndex 排序
+    rootTasks.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
 
     // 使用 ReorderableListView 实现拖拽排序（只对根任务排序）
     return ReorderableListView.builder(
@@ -104,12 +124,23 @@ class _TasksSectionTaskListSimplifiedState
         );
         final flattened = flattenTree(rootTaskTree);
 
+        // 构建插入目标列表
+        final insertionTargets = <Widget>[];
+
+        // 第一个根任务之前：添加顶部插入目标
+        if (index == 0) {
+          insertionTargets.add(
+            TasksPageDragTarget(
+              targetType: TasksDragTargetType.first,
+              afterTask: rootTask,
+              section: widget.section,
+            ),
+          );
+        }
+
         // 显示根任务及其所有子任务
-        return Column(
-          key: ValueKey('root-${rootTask.id}'),
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: flattened.map((node) {
+        insertionTargets.addAll(
+          flattened.map((node) {
             final task = node.task;
             final taskLevel = node.depth + 1; // depth 从 0 开始，level 从 1 开始
             
@@ -120,50 +151,67 @@ class _TasksSectionTaskListSimplifiedState
                 ? (taskLevel > 1 ? SwipeConfigs.tasksSubtaskConfig : SwipeConfigs.tasksConfig)
                 : (taskLevel > 1 ? SwipeConfigs.tasksNonTodaySubtaskConfig : SwipeConfigs.tasksNonTodayConfig);
 
-            return DismissibleTaskTile(
-                key: ValueKey('tasks-section-${task.id}-${task.updatedAt.millisecondsSinceEpoch}'),
+            // 移除拖拽手柄，使用长按拖拽
+            final taskRow = DismissibleTaskTile(
+              key: ValueKey('tasks-section-${task.id}-${task.updatedAt.millisecondsSinceEpoch}'),
+              task: task,
+              config: config,
+              onLeftAction: (task) {
+                SwipeActionHandler.handleAction(
+                  context,
+                  ref,
+                  config.leftAction,
+                  task,
+                  taskLevel: taskLevel,
+                );
+              },
+              onRightAction: (task) {
+                SwipeActionHandler.handleAction(
+                  context,
+                  ref,
+                  config.rightAction,
+                  task,
+                );
+              },
+              child: SimplifiedTaskRow(
+                key: ValueKey('simplified-${task.id}'),
                 task: task,
-                config: config,
-                onLeftAction: (task) {
-                  SwipeActionHandler.handleAction(
-                    context,
-                    ref,
-                    config.leftAction,
-                    task,
-                    taskLevel: taskLevel,
-                  );
-                },
-                onRightAction: (task) {
-                  SwipeActionHandler.handleAction(
-                    context,
-                    ref,
-                    config.rightAction,
-                    task,
-                  );
-                },
-                child: StandardDraggable<Task>(
-                  data: task,
-                  handle: const Padding(
-                    padding: EdgeInsets.only(right: 12, top: 4),
-                    child: Icon(Icons.drag_indicator, size: 20),
-                  ),
-                  enabled: task.id == rootTask.id, // 只有根任务可以拖拽排序
-                  onDragStarted: () {
-                    dragNotifier.startDrag(task, Offset.zero);
-                  },
-                  onDragUpdate: (details) {
-                    dragNotifier.updateDragPosition(details.globalPosition);
-                  },
-                  onDragEnd: () {
-                    dragNotifier.endDrag();
-                  },
-                  child: SimplifiedTaskRow(
-                    key: ValueKey('simplified-${task.id}'),
-                    task: task,
-                  ),
-                ),
-              );
-          }).toList(),
+                section: widget.section,
+              ),
+            );
+
+            return taskRow;
+          }),
+        );
+
+        // 每个根任务之后：添加中间插入目标（最后一个根任务之后添加底部插入目标）
+        if (index < rootTasks.length - 1) {
+          // 中间插入目标
+          insertionTargets.add(
+            TasksPageDragTarget(
+              targetType: TasksDragTargetType.between,
+              beforeTask: rootTask,
+              afterTask: rootTasks[index + 1],
+              section: widget.section,
+            ),
+          );
+        } else {
+          // 最后一个根任务之后：添加底部插入目标
+          insertionTargets.add(
+            TasksPageDragTarget(
+              targetType: TasksDragTargetType.last,
+              beforeTask: rootTask,
+              section: widget.section,
+            ),
+          );
+        }
+
+        // 显示根任务及其所有子任务和插入目标
+        return Column(
+          key: ValueKey('root-${rootTask.id}'),
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: insertionTargets,
         );
       },
     );

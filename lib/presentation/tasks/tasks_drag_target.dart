@@ -38,8 +38,12 @@ class TasksPageDragTarget extends ConsumerWidget {
     // 根据不同类型计算唯一ID
     String? getTargetId() {
       switch (targetType) {
+        case TasksDragTargetType.first:
+          return 'first';
         case TasksDragTargetType.between:
           return beforeTask?.id;
+        case TasksDragTargetType.last:
+          return 'last';
       }
     }
 
@@ -49,9 +53,11 @@ class TasksPageDragTarget extends ConsumerWidget {
       meta: TaskDragIntentMeta(
         page: 'Tasks',
         targetType: targetType.name,
-          targetId: targetId,
+        targetId: targetId,
         section: section?.name,
-        targetTaskId: afterTask?.id ?? beforeTask?.id,
+        targetTaskId: targetType == TasksDragTargetType.first
+            ? afterTask?.id
+            : (afterTask?.id ?? beforeTask?.id),
       ),
       insertionType: _mapToInsertionType(targetType),
       showWhenIdle: false,
@@ -87,8 +93,12 @@ class TasksPageDragTarget extends ConsumerWidget {
 
   InsertionType _mapToInsertionType(TasksDragTargetType type) {
     switch (type) {
+      case TasksDragTargetType.first:
+        return InsertionType.first;
       case TasksDragTargetType.between:
         return InsertionType.between;
+      case TasksDragTargetType.last:
+        return InsertionType.last;
     }
   }
 
@@ -104,6 +114,24 @@ class TasksPageDragTarget extends ConsumerWidget {
     }
 
     switch (targetType) {
+      case TasksDragTargetType.first:
+        // 不能拖拽到自己原来的位置
+        if (afterTask?.id == draggedTask.id) {
+          if (kDebugMode) {
+            debugPrint(
+              '[DnD] {event: block, page: Tasks, reason: selfFirst, src: ${draggedTask.id}, after: ${afterTask?.id}}',
+            );
+          }
+          return false;
+        }
+        // 需要 afterTask 存在（列表不为空）
+        final ok = afterTask != null;
+        if (kDebugMode) {
+          debugPrint(
+            '[DnD] {event: rule, page: Tasks, rule: firstNeighborPresent, src: ${draggedTask.id}, ok: $ok, after: ${afterTask?.id}}',
+          );
+        }
+        return ok;
       case TasksDragTargetType.between:
         // 不能拖拽到自己上方或下方
         if (beforeTask?.id == draggedTask.id ||
@@ -120,6 +148,24 @@ class TasksPageDragTarget extends ConsumerWidget {
         if (kDebugMode) {
           debugPrint(
             '[DnD] {event: rule, page: Tasks, rule: betweenNeighborsPresent, src: ${draggedTask.id}, ok: $ok, before: ${beforeTask?.id}, after: ${afterTask?.id}}',
+          );
+        }
+        return ok;
+      case TasksDragTargetType.last:
+        // 不能拖拽到自己原来的位置
+        if (beforeTask?.id == draggedTask.id) {
+          if (kDebugMode) {
+            debugPrint(
+              '[DnD] {event: block, page: Tasks, reason: selfLast, src: ${draggedTask.id}, before: ${beforeTask?.id}}',
+            );
+          }
+          return false;
+        }
+        // 需要 beforeTask 存在（列表不为空）
+        final ok = beforeTask != null;
+        if (kDebugMode) {
+          debugPrint(
+            '[DnD] {event: rule, page: Tasks, rule: lastNeighborPresent, src: ${draggedTask.id}, ok: $ok, before: ${beforeTask?.id}}',
           );
         }
         return ok;
@@ -290,6 +336,15 @@ class TasksPageDragTarget extends ConsumerWidget {
       );
     }
     switch (targetType) {
+      case TasksDragTargetType.first:
+        return _SortContext(
+          sortIndex: calculateSortIndex(
+            null,
+            afterTask?.sortIndex,
+          ),
+          previous: null,
+          next: afterTask,
+        );
       case TasksDragTargetType.between:
         return _SortContext(
           sortIndex: calculateSortIndex(
@@ -298,6 +353,15 @@ class TasksPageDragTarget extends ConsumerWidget {
           ),
           previous: beforeTask,
           next: afterTask,
+        );
+      case TasksDragTargetType.last:
+        return _SortContext(
+          sortIndex: calculateSortIndex(
+            beforeTask?.sortIndex,
+            null,
+          ),
+          previous: beforeTask,
+          next: null,
         );
     }
   }
