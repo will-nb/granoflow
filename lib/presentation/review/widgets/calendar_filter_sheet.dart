@@ -94,7 +94,7 @@ class _CalendarFilterSheetState extends ConsumerState<CalendarFilterSheet> {
   Widget _buildProjectList(projects) {
     final l10n = AppLocalizations.of(context);
     return RadioGroup<String?>(
-      value: _selectedProjectId,
+      groupValue: _selectedProjectId,
       onChanged: (value) {
         setState(() {
           _selectedProjectId = value;
