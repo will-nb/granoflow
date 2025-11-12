@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
+// import 'package:share_plus/share_plus.dart'; // TODO: 图片分享
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/providers/calendar_review_providers.dart';
-import '../../../core/providers/service_providers.dart';
+// import '../../../core/providers/service_providers.dart'; // TODO: 图片分享
 import '../../../core/theme/ocean_breeze_color_schemes.dart';
 import '../../../core/utils/calendar_review_utils.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../widgets/gradient_page_scaffold.dart';
-import 'utils/markdown_export_generator.dart';
-import 'widgets/calendar_filter_sheet.dart';
+import '../widgets/main_drawer.dart';
+import '../widgets/page_app_bar.dart';
+// import 'utils/markdown_export_generator.dart'; // TODO: 图片分享
+// import 'widgets/calendar_filter_sheet.dart'; // 筛选功能（当前版本禁用）
 import 'widgets/calendar_heatmap_cell.dart';
 import 'widgets/day_detail_view.dart';
-import 'widgets/export_date_range_dialog.dart';
+// import 'widgets/export_date_range_dialog.dart'; // TODO: 图片分享
 import 'widgets/month_detail_view.dart';
 import 'widgets/view_toggle_bar.dart';
 import 'widgets/week_detail_view.dart';
@@ -98,23 +100,25 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
     }
 
     return GradientPageScaffold(
-      appBar: AppBar(
-        title: Text(l10n.calendarReviewPageTitle),
+      appBar: PageAppBar(
+        title: l10n.calendarReviewPageTitle,
         actions: [
-          // 筛选按钮
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterSheet(context),
-            tooltip: l10n.calendarReviewFilter,
-          ),
-          // 导出按钮
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () => _showExportDialog(context),
-            tooltip: l10n.calendarReviewExport,
-          ),
+          // 筛选按钮（当前版本禁用）
+          // IconButton(
+          //   icon: const Icon(Icons.filter_list),
+          //   onPressed: () => _showFilterSheet(context),
+          //   tooltip: l10n.calendarReviewFilter,
+          // ),
+          // TODO: 图片分享
+          // 导出按钮（当前版本禁用）
+          // IconButton(
+          //   icon: const Icon(Icons.share),
+          //   onPressed: () => _showExportDialog(context),
+          //   tooltip: l10n.calendarReviewExport,
+          // ),
         ],
       ),
+      drawer: const MainDrawer(),
       body: Column(
         children: [
           // 视图切换工具栏
@@ -428,67 +432,70 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
     notifier.loadDailyData(start: start, end: end);
   }
 
-  void _showFilterSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: const CalendarFilterSheet(),
-      ),
-    );
-  }
+  // 筛选功能（当前版本禁用）
+  // void _showFilterSheet(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (context) => Container(
+  //       decoration: BoxDecoration(
+  //         color: Theme.of(context).colorScheme.surface,
+  //         borderRadius: const BorderRadius.only(
+  //           topLeft: Radius.circular(20),
+  //           topRight: Radius.circular(20),
+  //         ),
+  //       ),
+  //       child: const CalendarFilterSheet(),
+  //     ),
+  //   );
+  // }
 
-  Future<void> _showExportDialog(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final result = await showDialog<Map<String, DateTime?>>(
-      context: context,
-      builder: (context) => const ExportDateRangeDialog(),
-    );
-
-    if (result == null || !context.mounted) return;
-
-    final start = result['start'];
-    final end = result['end'];
-    if (start == null || end == null) return;
-
-    try {
-      final state = ref.read(calendarReviewNotifierProvider);
-      final service = await ref.read(calendarReviewServiceProvider.future);
-      final generator = MarkdownExportGenerator(
-        service: service,
-        l10n: l10n,
-      );
-
-      final viewModeName = switch (state.viewMode) {
-        CalendarViewMode.day => 'Day',
-        CalendarViewMode.week => 'Week',
-        CalendarViewMode.month => 'Month',
-      };
-      
-      final markdown = await generator.generateMarkdown(
-        start: start,
-        end: end,
-        filter: state.filter,
-        viewMode: viewModeName,
-      );
-
-      await Share.share(markdown);
-    } catch (e) {
-      if (!context.mounted) return;
-      final errorMessage = l10n.calendarReviewExportFailed(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-        ),
-      );
-    }
-  }
+  // TODO: 图片分享
+  // 导出功能（当前版本禁用）
+  // Future<void> _showExportDialog(BuildContext context) async {
+  //   final l10n = AppLocalizations.of(context);
+  //   final result = await showDialog<Map<String, DateTime?>>(
+  //     context: context,
+  //     builder: (context) => const ExportDateRangeDialog(),
+  //   );
+  //
+  //   if (result == null || !context.mounted) return;
+  //
+  //   final start = result['start'];
+  //   final end = result['end'];
+  //   if (start == null || end == null) return;
+  //
+  //   try {
+  //     final state = ref.read(calendarReviewNotifierProvider);
+  //     final service = await ref.read(calendarReviewServiceProvider.future);
+  //     final generator = MarkdownExportGenerator(
+  //       service: service,
+  //       l10n: l10n,
+  //     );
+  //
+  //     final viewModeName = switch (state.viewMode) {
+  //       CalendarViewMode.day => 'Day',
+  //       CalendarViewMode.week => 'Week',
+  //       CalendarViewMode.month => 'Month',
+  //     };
+  //     
+  //     final markdown = await generator.generateMarkdown(
+  //       start: start,
+  //       end: end,
+  //       filter: state.filter,
+  //       viewMode: viewModeName,
+  //     );
+  //
+  //     await Share.share(markdown);
+  //   } catch (e) {
+  //     if (!context.mounted) return;
+  //     final errorMessage = l10n.calendarReviewExportFailed(e.toString());
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(errorMessage),
+  //       ),
+  //     );
+  //   }
+  // }
 }
