@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/milestone.dart';
 import '../../data/models/project.dart';
 import '../../data/models/task.dart';
 import '../services/tag_service.dart';
+import '../utils/task_section_utils.dart';
 import 'project_filter_providers.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
@@ -17,8 +19,36 @@ final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
   final repository = await ref.read(taskRepositoryProvider.future);
   
   await for (final tasks in repository.watchSection(section)) {
+    // 对于 today section，需要额外查询已完成任务
+    List<Task> allTasks = List<Task>.from(tasks);
+    if (section == TaskSection.today) {
+      // 查询已完成任务（使用 completed section 的查询逻辑，但按 dueAt 筛选）
+      try {
+        final completed = await repository.listSectionTasks(TaskSection.completed);
+        // 筛选出今日的已完成任务
+        final now = DateTime.now();
+        final todayStart = TaskSectionUtils.getSectionStartTime(TaskSection.today, now: now);
+        final todayEnd = TaskSectionUtils.getSectionEndTimeForQuery(TaskSection.today, now: now);
+        final todayCompleted = completed.where((task) {
+          if (task.dueAt == null) return false;
+          final dueDate = DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day);
+          final startDate = DateTime(todayStart.year, todayStart.month, todayStart.day);
+          final endDate = DateTime(todayEnd.year, todayEnd.month, todayEnd.day);
+          return (dueDate.isAtSameMomentAs(startDate) || dueDate.isAfter(startDate)) &&
+              dueDate.isBefore(endDate);
+        }).toList();
+        // 合并已完成任务，避免重复
+        final existingIds = allTasks.map((t) => t.id).toSet();
+        final newCompleted = todayCompleted.where((t) => !existingIds.contains(t.id)).toList();
+        allTasks = [...allTasks, ...newCompleted];
+      } catch (e) {
+        // 如果查询失败，继续使用原始任务列表
+        debugPrint('Failed to load completed tasks for today: $e');
+      }
+    }
+    
     // 应用筛选逻辑（内存筛选，参考 watchInboxFiltered 的实现）
-    final filtered = tasks.where((task) {
+    final filtered = allTasks.where((task) {
       final tags = task.tags;
       
       // 场景标签筛选

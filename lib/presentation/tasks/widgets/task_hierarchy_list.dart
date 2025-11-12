@@ -55,6 +55,7 @@ class TaskHierarchyList extends ConsumerWidget {
               child: SimplifiedTaskRow(
                 key: ValueKey(node.task.id),
                 task: node.task,
+                verticalPadding: 8.0,
               ),
             );
           })

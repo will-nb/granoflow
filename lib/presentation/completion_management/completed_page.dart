@@ -164,6 +164,7 @@ class _CompletedPageState extends ConsumerState<CompletedPage> {
                             child: SimplifiedTaskRow(
                               key: ValueKey(task.id),
                               task: task,
+                              verticalPadding: 8.0,
                             ),
                           );
                         }),

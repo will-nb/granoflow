@@ -1,0 +1,1020 @@
+{
+  // ===========================================
+  // 项目详情页设计文档
+  // 显示项目下的所有任务，按里程碑分区展示
+  // 支持查看项目和里程碑的详情（通过底部弹窗）
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：提供项目维度的任务管理视图，按里程碑组织任务，支持查看项目和里程碑的完整信息
+    goal: "创建项目详情页，以项目为单位展示任务，按里程碑分区组织任务列表，提供与任务清单页面一致的交互体验，支持通过底部弹窗查看项目和里程碑的完整详情信息",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的渐变背景系统（GradientPageScaffold）",
+        "遵循现有的页面布局规范（AppBar、Drawer、SafeArea）",
+        "使用统一的字体样式和间距规范",
+        "保持与任务清单页面一致的视觉风格和交互模式",
+        "复用任务列表的简化展示方式（只显示任务标题和状态图标）",
+        "使用与任务详情弹窗一致的底部弹窗样式",
+      ],
+      
+      // 创新点：与现有主题不同的设计突破
+      innovation: [
+        "项目维度视图：从项目角度组织任务，区别于时间维度的任务清单",
+        "里程碑分区：按里程碑组织任务，提供项目结构化的任务管理体验",
+        "项目/里程碑详情弹窗：通过底部弹窗展示项目和里程碑的完整信息，保持界面简洁",
+        "统一交互模式：项目详情页与任务清单页面的交互保持一致，降低学习成本",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "项目化管理：按项目组织任务，提供结构化的任务管理体验（参考 Notion、Asana）",
+      "底部弹窗模式：移动端广泛采用底部弹窗展示详情和操作（参考 Things 3、Todoist、TickTick）",
+      "渐进式披露：列表简洁，详情丰富，按需展示",
+      "一致性设计：不同页面保持一致的交互模式，降低学习成本",
+      "信息层次化：通过分区和弹窗分层展示信息，保持界面简洁",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：Light 和 Dark 模式下的背景渐变
+    backgroundGradients: {
+      // Light 模式：使用现有的页面背景渐变
+      light: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用现有的渐变定义：AppGradients.seaSaltSky 或 context.gradients.pageBackground
+          colors: [
+            "OceanBreezeColorSchemes.seaSaltBlue",
+            "OceanBreezeColorSchemes.skyWhite",
+          ],
+          stops: [0.0, 1.0],
+          note: "使用 GradientPageScaffold 的默认渐变背景，与现有页面保持一致",
+        },
+      },
+      
+      // Dark 模式：使用深色主题渐变
+      dark: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用深色主题渐变：AppGradients.deepSeaGlow
+          colors: [
+            "OceanBreezeColorSchemes.navyBlue",
+            "OceanBreezeColorSchemes.floatingWater",
+            "OceanBreezeColorSchemes.navyBlue",
+          ],
+          stops: [0.0, 0.5, 1.0],
+          note: "使用深色主题渐变，与现有深色模式页面保持一致",
+        },
+      },
+    },
+    
+    // 专用配色：项目详情页的专用颜色
+    specificColors: {
+      // 项目标题文字颜色
+      projectTitle: {
+        light: "Theme.of(context).colorScheme.onSurface",
+        dark: "Theme.of(context).colorScheme.onSurface",
+        note: "使用主题的 onSurface 颜色，确保在不同模式下都有良好的可读性",
+      },
+      // 里程碑标题文字颜色
+      milestoneTitle: {
+        light: "Theme.of(context).colorScheme.onSurface",
+        dark: "Theme.of(context).colorScheme.onSurface",
+        note: "使用主题的 onSurface 颜色，与项目标题保持一致",
+      },
+      // 任务标题文字颜色（与任务清单页面一致）
+      taskTitle: {
+        light: "Theme.of(context).colorScheme.onSurface",
+        dark: "Theme.of(context).colorScheme.onSurface",
+        note: "使用主题的 onSurface 颜色，与任务清单页面保持一致",
+      },
+      // 信息图标颜色
+      infoIcon: {
+        light: "Theme.of(context).colorScheme.primary",
+        dark: "Theme.of(context).colorScheme.primary",
+        note: "使用主题的主色，表示可点击查看详情",
+      },
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：是否为全屏页面
+    fullScreen: false,
+    
+    // 隐藏导航栏：是否隐藏底部导航栏
+    hideNavigation: false,
+    
+    // 顶部栏配置
+    topBar: {
+      // 显示返回按钮
+      showBackButton: true,
+      // 背景样式
+      background: "Theme.of(context).colorScheme.surface",
+      // 使用 PageAppBar 组件
+      component: "PageAppBar",
+      // AppBar 标题：显示项目标题
+      title: "项目标题（可点击）",
+      // AppBar 操作按钮
+      actions: [
+        "项目详情按钮（信息图标，点击显示项目详情弹窗）",
+      ],
+      note: "AppBar 标题显示项目标题，标题旁或操作区域添加信息图标按钮，点击显示项目详情弹窗",
+    },
+    
+    // 内容区域布局
+    contentLayout: {
+      // 布局方向
+      direction: "vertical",
+      // 主轴对齐
+      mainAxisAlignment: "start",
+      // 交叉轴对齐
+      crossAxisAlignment: "stretch",
+      // 使用 SafeArea
+      safeArea: true,
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 8, // dp
+      },
+    },
+    
+    // 区域划分：页面的主要区域
+    sections: [
+      {
+        // 项目信息区域（显示项目基本信息）
+        name: "projectInfoSection",
+        position: "top",
+        weight: "fixed",
+        children: [
+          "项目标题（可点击，显示项目详情弹窗）",
+          "项目基本信息（截止日期、状态等）",
+        ],
+        note: "在页面头部显示项目标题和基本信息（截止日期、状态等）。项目标题可点击，显示项目详情弹窗",
+      },
+      {
+        // 里程碑分区列表区域
+        name: "milestoneSections",
+        position: "middle",
+        weight: "flexible",
+        children: [
+          "MilestoneSectionPanel (多个，按里程碑分区)",
+          "未分配里程碑分区（可选，显示没有里程碑的任务）",
+        ],
+        note: "里程碑分区列表区域，每个里程碑作为一个分区，按 sortIndex 排序。如果项目中有任务没有分配到里程碑，可以显示一个'未分配里程碑'分区",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 项目详情弹窗组件
+  projectDetailBottomSheet: {
+    // 组件位置
+    position: "bottomSheet",
+    
+    // 触发方式
+    trigger: {
+      // 方式1：点击 AppBar 标题旁的信息图标
+      appBarInfoIcon: {
+        enabled: true,
+        icon: "Icons.info_outline",
+        position: "AppBar actions",
+        note: "在 AppBar 的操作区域添加信息图标按钮",
+      },
+      // 方式2：点击 AppBar 标题（可选）
+      appBarTitle: {
+        enabled: false, // 默认不启用，避免与返回按钮冲突
+        note: "可选：如果启用，点击 AppBar 标题也可以显示项目详情弹窗",
+      },
+      // 方式3：点击页面头部的项目标题（如果显示）
+      pageHeaderTitle: {
+        enabled: true, // 如果页面头部显示项目标题，则启用
+        note: "如果页面头部显示项目标题，点击标题可以显示项目详情弹窗",
+      },
+    },
+    
+    // 弹窗内容
+    content: {
+      // 项目标题（大标题）
+      title: {
+        fontSize: 24, // sp
+        fontWeight: "bold",
+        color: "Theme.of(context).colorScheme.onSurface",
+        note: "显示项目标题，使用大标题样式",
+      },
+      // 项目描述（如果有）
+      description: {
+        enabled: true,
+        fontSize: 16, // sp
+        fontWeight: "regular",
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "如果项目有描述，显示项目描述",
+      },
+      // 截止日期
+      dueDate: {
+        enabled: true,
+        icon: "Icons.calendar_today_outlined",
+        fontSize: 14, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "如果项目有截止日期，显示截止日期（格式化显示）",
+      },
+      // 项目状态
+      status: {
+        enabled: true,
+        fontSize: 14, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "显示项目状态（活跃/已完成/已归档等）",
+      },
+      // 标签列表
+      tags: {
+        enabled: true,
+        display: "Wrap with ModernTag",
+        note: "如果项目有标签，显示标签列表（使用 ModernTag 组件）",
+      },
+      // 创建时间
+      createdAt: {
+        enabled: true,
+        fontSize: 12, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)",
+        note: "显示项目创建时间（可选，如果需要）",
+      },
+      // 更新时间
+      updatedAt: {
+        enabled: true,
+        fontSize: 12, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)",
+        note: "显示项目最后更新时间（可选，如果需要）",
+      },
+      // 里程碑数量统计（可选）
+      milestoneCount: {
+        enabled: true,
+        fontSize: 14, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "显示项目下的里程碑数量（可选，如果需要）",
+      },
+      // 编辑链接
+      editLink: {
+        enabled: true,
+        label: "编辑项目",
+        icon: "Icons.edit_outline",
+        action: "跳转到项目管理页面（/projects）",
+        note: "提供编辑链接，点击后跳转到现有的项目管理页面，用户可以在那里编辑项目信息",
+      },
+    },
+    
+    // 弹窗交互特性（与任务详情弹窗一致）
+    interactionFeatures: {
+      gestureDismiss: {
+        enabled: true,
+        gestures: ["swipeDown", "tapOutside"],
+      },
+      scrollable: {
+        enabled: true,
+        physics: "ClampingScrollPhysics",
+      },
+      animations: {
+        enter: {
+          type: "slideUp",
+          duration: 300,
+          curve: "Curves.easeOut",
+        },
+        exit: {
+          type: "slideDown",
+          duration: 250,
+          curve: "Curves.easeIn",
+        },
+      },
+      dragIndicator: {
+        enabled: true,
+        style: {
+          width: 40,
+          height: 4,
+          color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.4)",
+          borderRadius: 2,
+        },
+      },
+    },
+    note: "参考 TaskDetailBottomSheet 的实现，保持一致的交互体验",
+  },
+  
+  // 里程碑详情弹窗组件
+  milestoneDetailBottomSheet: {
+    // 组件位置
+    position: "bottomSheet",
+    
+    // 触发方式
+    trigger: {
+      // 方式1：点击里程碑分区标题
+      sectionTitle: {
+        enabled: true,
+        target: "里程碑分区标题文字",
+        note: "点击里程碑分区的标题文字，显示里程碑详情弹窗",
+      },
+      // 方式2：点击里程碑分区标题旁的信息图标（可选）
+      sectionInfoIcon: {
+        enabled: true,
+        icon: "Icons.info_outline",
+        position: "里程碑分区标题右侧",
+        note: "在里程碑分区标题右侧添加信息图标，点击显示里程碑详情弹窗",
+      },
+    },
+    
+    // 弹窗内容
+    content: {
+      // 里程碑标题（大标题）
+      title: {
+        fontSize: 24, // sp
+        fontWeight: "bold",
+        color: "Theme.of(context).colorScheme.onSurface",
+        note: "显示里程碑标题，使用大标题样式",
+      },
+      // 里程碑描述（如果有）
+      description: {
+        enabled: true,
+        fontSize: 16, // sp
+        fontWeight: "regular",
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "如果里程碑有描述，显示里程碑描述",
+      },
+      // 截止日期
+      dueDate: {
+        enabled: true,
+        icon: "Icons.calendar_today_outlined",
+        fontSize: 14, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "如果里程碑有截止日期，显示截止日期（格式化显示）",
+      },
+      // 里程碑状态
+      status: {
+        enabled: true,
+        fontSize: 14, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "显示里程碑状态（活跃/已完成等）",
+      },
+      // 标签列表
+      tags: {
+        enabled: true,
+        display: "Wrap with ModernTag",
+        note: "如果里程碑有标签，显示标签列表（使用 ModernTag 组件）",
+      },
+      // 创建时间
+      createdAt: {
+        enabled: true,
+        fontSize: 12, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)",
+        note: "显示里程碑创建时间（可选，如果需要）",
+      },
+      // 更新时间
+      updatedAt: {
+        enabled: true,
+        fontSize: 12, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)",
+        note: "显示里程碑最后更新时间（可选，如果需要）",
+      },
+      // 任务数量统计（可选）
+      taskCount: {
+        enabled: true,
+        fontSize: 14, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        note: "显示里程碑下的任务数量（可选，如果需要）",
+      },
+      // 编辑链接
+      editLink: {
+        enabled: true,
+        label: "编辑里程碑",
+        icon: "Icons.edit_outline",
+        action: "跳转到项目管理页面（/projects），并展开对应的项目卡片",
+        note: "提供编辑链接，点击后跳转到现有的项目管理页面，用户可以在那里编辑里程碑信息",
+      },
+    },
+    
+    // 弹窗交互特性（与项目详情弹窗一致）
+    interactionFeatures: {
+      gestureDismiss: {
+        enabled: true,
+        gestures: ["swipeDown", "tapOutside"],
+      },
+      scrollable: {
+        enabled: true,
+        physics: "ClampingScrollPhysics",
+      },
+      animations: {
+        enter: {
+          type: "slideUp",
+          duration: 300,
+          curve: "Curves.easeOut",
+        },
+        exit: {
+          type: "slideDown",
+          duration: 250,
+          curve: "Curves.easeIn",
+        },
+      },
+      dragIndicator: {
+        enabled: true,
+        style: {
+          width: 40,
+          height: 4,
+          color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.4)",
+          borderRadius: 2,
+        },
+      },
+    },
+    note: "参考 TaskDetailBottomSheet 和 ProjectDetailBottomSheet 的实现，保持一致的交互体验",
+  },
+  
+  // 里程碑分区面板组件
+  milestoneSectionPanel: {
+    // 组件位置
+    position: "milestoneSections",
+    
+    // 布局结构
+    structure: {
+      // 使用 Card 组件包裹
+      container: "Card",
+      // Card 样式
+      cardStyle: {
+        margin: "EdgeInsets.only(bottom: 16)",
+        elevation: 0,
+        borderRadius: 16, // dp
+        note: "与 TaskSectionPanel 的 Card 样式保持一致",
+      },
+      // 内边距
+      padding: {
+        horizontal: 16, // dp（使用 AppSpacingTokens）
+        vertical: 12, // dp（使用 AppSpacingTokens）
+      },
+    },
+    
+    // 分区标题区域
+    header: {
+      // 布局：水平布局
+      direction: "horizontal",
+      // 标题文字（可点击）
+      title: {
+        fontSize: 18, // sp
+        fontWeight: "medium",
+        color: "Theme.of(context).colorScheme.onSurface",
+        clickable: true,
+        action: "显示里程碑详情弹窗",
+        note: "里程碑标题文字可点击，点击显示里程碑详情弹窗",
+      },
+      // 信息图标（可选）
+      infoIcon: {
+        enabled: true,
+        icon: "Icons.info_outline",
+        size: 20, // dp
+        color: "Theme.of(context).colorScheme.primary",
+        clickable: true,
+        action: "显示里程碑详情弹窗",
+        position: "标题右侧",
+        note: "在标题右侧添加信息图标，点击显示里程碑详情弹窗",
+      },
+      // 快速添加按钮
+      quickAddButton: {
+        enabled: true,
+        icon: "Icons.add_task_outlined",
+        position: "标题右侧（信息图标左侧）",
+        action: "快速添加任务到该里程碑",
+        tooltip: "快速添加任务",
+        note: "与 TaskSectionPanel 的快速添加按钮保持一致",
+      },
+    },
+    
+    // 任务列表区域
+    taskList: {
+      // 使用 TasksSectionTaskListSimplified 组件
+      component: "TasksSectionTaskListSimplified",
+      // 任务列表配置
+      config: {
+        // 显示方式：简化版（只显示任务标题和状态图标）
+        displayMode: "simplified",
+        // 支持拖拽排序
+        dragAndDrop: true,
+        // 支持滑动操作（与任务清单页面一致）
+        swipeActions: true,
+        note: "复用任务清单页面的任务列表组件，保持一致的交互体验",
+      },
+      // 空状态
+      emptyState: {
+        enabled: true,
+        message: "该里程碑暂无任务",
+        component: "EmptySectionHint",
+        note: "当里程碑没有任务时，显示空状态提示",
+      },
+    },
+    
+    note: "参考 TaskSectionPanel 的实现，但标题区域支持点击显示里程碑详情弹窗",
+  },
+  
+  // 任务行组件（复用任务清单页面的简化版）
+  taskRow: {
+    // 组件位置
+    position: "milestoneSectionPanel.taskList",
+    
+    // 布局结构（与任务清单页面一致）
+    structure: {
+      // 水平布局：状态图标 + 标题
+      direction: "horizontal",
+      mainAxisAlignment: "start",
+      crossAxisAlignment: "center",
+      // 内边距
+      padding: {
+        horizontal: 0, // dp
+        vertical: 12, // dp
+      },
+      // 间距
+      spacing: 12, // dp（状态图标和标题之间的间距）
+    },
+    
+    // 状态图标
+    statusIcon: {
+      enabled: true,
+      icon: "Icons.check_circle_outline (未完成) / Icons.check_circle (已完成)",
+      size: 24, // dp
+      color: "Theme.of(context).colorScheme.primary",
+      clickable: true,
+      action: "切换任务状态",
+      note: "与任务清单页面的状态图标保持一致",
+    },
+    
+    // 任务标题
+    title: {
+      fontSize: 16, // sp
+      fontWeight: "regular",
+      color: "Theme.of(context).colorScheme.onSurface",
+      // 已完成任务的样式
+      completedStyle: {
+        decoration: "TextDecoration.lineThrough",
+        color: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+      },
+      clickable: true,
+      action: "根据任务状态显示操作弹窗或详情弹窗",
+      note: "与任务清单页面的任务标题保持一致，点击行为也一致",
+    },
+    
+    note: "完全复用任务清单页面的 SimplifiedTaskRow 组件，保持一致的交互体验",
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程名称
+        name: "进入项目详情页",
+        // 步骤列表
+        steps: [
+          "用户从抽屉（MainDrawer）点击项目列表中的某个项目",
+          "页面跳转到项目详情页（/projects/:id）",
+          "页面显示项目标题（在 AppBar）和里程碑分区列表",
+          "每个里程碑分区显示该里程碑下的任务列表",
+        ],
+      },
+      {
+        // 流程名称
+        name: "查看项目详情",
+        // 步骤列表
+        steps: [
+          "用户点击 AppBar 标题旁的信息图标（或点击 AppBar 标题/页面头部的项目标题）",
+          "显示项目详情底部弹窗（ProjectDetailBottomSheet）",
+          "弹窗显示项目的完整信息：标题、描述、截止日期、状态、标签、创建时间、更新时间、里程碑数量等",
+          "用户可以通过向下滑动或点击外部区域关闭弹窗",
+        ],
+        note: "项目详情弹窗为只读模式，不提供编辑功能。编辑功能通过项目卡片的操作菜单提供",
+      },
+      {
+        // 流程名称
+        name: "查看里程碑详情",
+        // 步骤列表
+        steps: [
+          "用户点击里程碑分区的标题文字或标题旁的信息图标",
+          "显示里程碑详情底部弹窗（MilestoneDetailBottomSheet）",
+          "弹窗显示里程碑的完整信息：标题、描述、截止日期、状态、标签、创建时间、更新时间、任务数量等",
+          "用户可以通过向下滑动或点击外部区域关闭弹窗",
+        ],
+        note: "里程碑详情弹窗为只读模式，不提供编辑功能。编辑功能通过里程碑卡片的操作菜单提供",
+      },
+      {
+        // 流程名称
+        name: "查看任务详情/操作",
+        // 步骤列表
+        steps: [
+          "用户点击里程碑分区中的某个任务",
+          "根据任务状态显示不同的弹窗：",
+          "  - 活跃任务（inbox/pending/doing/paused）：显示任务操作弹窗（TaskActionBottomSheet）",
+          "  - 非活跃任务（completed/archived/trashed）：显示任务详情弹窗（TaskDetailBottomSheet）",
+          "用户可以在弹窗中执行各种操作或查看详情",
+          "用户可以通过向下滑动或点击外部区域关闭弹窗",
+        ],
+        note: "任务交互与任务清单页面完全一致，保持统一的用户体验",
+      },
+      {
+        // 流程名称
+        name: "快速添加任务到里程碑",
+        // 步骤列表
+        steps: [
+          "用户点击里程碑分区标题旁的快速添加按钮",
+          "显示快速添加任务底部弹窗（QuickAddSheet）",
+          "用户输入任务标题和选择截止日期",
+          "创建新任务并分配到该里程碑",
+          "任务自动添加到该里程碑分区的任务列表中",
+        ],
+        note: "快速添加功能与任务清单页面一致，但新任务会自动分配到对应的里程碑",
+      },
+      {
+        // 流程名称
+        name: "拖拽排序任务",
+        // 步骤列表
+        steps: [
+          "用户在里程碑分区内拖拽任务",
+          "任务在里程碑内重新排序",
+          "任务的 sortIndex 更新",
+        ],
+        note: "拖拽排序功能与任务清单页面一致，支持跨里程碑拖拽",
+      },
+      {
+        // 流程名称
+        name: "跨里程碑拖拽任务",
+        // 步骤列表
+        steps: [
+          "用户在某个里程碑分区内拖拽任务",
+          "将任务拖拽到另一个里程碑分区",
+          "任务的 milestoneId 自动更新为目标里程碑的ID",
+          "任务从原里程碑分区移除，添加到目标里程碑分区",
+        ],
+        note: "支持跨里程碑拖拽，拖拽到其他里程碑分区时自动更新任务的 milestoneId",
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击项目标题/信息图标
+      tapProjectInfo: {
+        action: "显示项目详情弹窗",
+        target: "AppBar 标题旁的信息图标 / AppBar 标题 / 页面头部的项目标题",
+        note: "提供多种触发方式，用户可以根据习惯选择",
+      },
+      // 点击里程碑标题/信息图标
+      tapMilestoneInfo: {
+        action: "显示里程碑详情弹窗",
+        target: "里程碑分区标题文字 / 里程碑分区标题旁的信息图标",
+        note: "提供多种触发方式，用户可以根据习惯选择",
+      },
+      // 点击任务（与任务清单页面一致）
+      tapTask: {
+        action: "根据任务状态显示操作弹窗或详情弹窗",
+        target: "任务标题或任务行",
+        note: "与任务清单页面的点击行为完全一致",
+      },
+      // 点击任务状态图标（与任务清单页面一致）
+      tapTaskStatusIcon: {
+        action: "切换任务状态",
+        target: "状态图标（checkbox）",
+        note: "与任务清单页面的状态切换行为完全一致",
+      },
+      // 拖拽任务（与任务清单页面一致）
+      dragTask: {
+        action: "在里程碑内重新排序任务或跨里程碑拖拽",
+        target: "任务行（通过拖拽手柄）",
+        note: "支持在里程碑内排序和跨里程碑拖拽。跨里程碑拖拽时，自动更新任务的 milestoneId",
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 页面进入动画
+    pageEnter: {
+      type: "fade_in",
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+      note: "与任务清单页面的进入动画保持一致",
+    },
+    
+    // 项目详情弹窗动画
+    projectDetailSheet: {
+      enter: {
+        type: "slideUp",
+        duration: 300, // 毫秒
+        curve: "Curves.easeOut",
+        note: "弹窗从底部滑入",
+      },
+      exit: {
+        type: "slideDown",
+        duration: 250, // 毫秒
+        curve: "Curves.easeIn",
+        note: "弹窗向下滑出",
+      },
+    },
+    
+    // 里程碑详情弹窗动画
+    milestoneDetailSheet: {
+      enter: {
+        type: "slideUp",
+        duration: 300, // 毫秒
+        curve: "Curves.easeOut",
+        note: "弹窗从底部滑入",
+      },
+      exit: {
+        type: "slideDown",
+        duration: 250, // 毫秒
+        curve: "Curves.easeIn",
+        note: "弹窗向下滑出",
+      },
+    },
+    
+    // 任务交互动画（与任务清单页面一致）
+    taskInteraction: {
+      statusToggle: {
+        type: "scale",
+        duration: 200, // 毫秒
+        curve: "Curves.easeInOut",
+        note: "状态图标切换时的缩放动画",
+      },
+      bottomSheet: {
+        enter: {
+          type: "slideUp",
+          duration: 300, // 毫秒
+          curve: "Curves.easeOut",
+        },
+        exit: {
+          type: "slideDown",
+          duration: 250, // 毫秒
+          curve: "Curves.easeIn",
+        },
+      },
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      // 布局方式
+      layout: "vertical_scrollable",
+      // AppBar 配置
+      appBar: {
+        titleMaxLines: 1,
+        titleOverflow: "ellipsis",
+      },
+      // 里程碑分区配置
+      milestoneSection: {
+        cardPadding: {
+          horizontal: 16,
+          vertical: 12,
+        },
+      },
+      // 任务行配置
+      taskRow: {
+        padding: {
+          horizontal: 0,
+          vertical: 12,
+        },
+      },
+    },
+    
+    // 平板横屏（可选）
+    tabletLandscape: {
+      layout: "vertical_scrollable",
+      // 可以调整内边距和字体大小
+      milestoneSection: {
+        cardPadding: {
+          horizontal: 24,
+          vertical: 16,
+        },
+      },
+    },
+  },
+
+  // ===========================================
+  // 8. 边界情况处理（必填）
+  // ===========================================
+  edgeCases: {
+    // 项目没有里程碑
+    noMilestones: {
+      scenario: "项目下没有任何里程碑",
+      handling: {
+        display: "项目不出现在项目列表中（过滤掉）",
+        action: "在项目列表的 Provider 中过滤掉没有里程碑的项目",
+        note: "每个项目必须至少有一个里程碑，否则不出现在项目列表中。这个过滤逻辑应该在项目列表的 Provider 中实现",
+        implementation: {
+          location: "projectsDomainProvider 或 projectsByStatusProvider",
+          logic: "在获取项目列表后，过滤掉没有里程碑的项目（通过 projectMilestonesDomainProvider 检查）",
+        },
+      },
+    },
+    
+    // 里程碑没有任务
+    noTasksInMilestone: {
+      scenario: "某个里程碑下没有任何任务",
+      handling: {
+        display: "在里程碑分区内显示空状态提示：'该里程碑暂无任务'",
+        action: "提供快速添加按钮，允许用户快速添加任务",
+        note: "与任务清单页面的空状态处理保持一致",
+      },
+    },
+    
+    // 任务没有分配到里程碑（数据一致性保证）
+    tasksWithoutMilestone: {
+      scenario: "项目中有任务没有分配到任何里程碑",
+      handling: {
+        display: "不显示这些任务（因为数据一致性保证）",
+        action: "在数据访问层自动修复：强制将这些任务的 milestoneId 设置为项目的第一个里程碑",
+        note: "这是一个数据一致性保证机制，确保所有属于项目的任务都有里程碑",
+        implementation: {
+          location: "数据访问层（Repository 或 Service）",
+          trigger: "在获取项目任务时检查，如果发现任务没有里程碑，自动修复",
+          logic: [
+            "获取项目的所有里程碑，按截止日期和 sortIndex 排序",
+            "获取第一个里程碑（如果存在）",
+            "查找项目中 milestoneId 为 null 的任务",
+            "批量更新这些任务的 milestoneId 为第一个里程碑的ID",
+            "记录日志（可选，用于调试）",
+          ],
+          note: "这个修复逻辑应该在以下场景触发：1) 获取项目任务列表时；2) 项目详情页加载时。可以考虑在 ProjectService 或 TaskRepository 中实现一个修复方法",
+        },
+      },
+    },
+    
+    // 项目不存在或已删除
+    projectNotFound: {
+      scenario: "项目ID无效或项目已被删除",
+      handling: {
+        display: "显示错误提示：'项目不存在'",
+        action: "自动返回项目列表页或显示404页面",
+      },
+    },
+    
+    // 加载状态
+    loading: {
+      scenario: "正在加载项目或里程碑数据",
+      handling: {
+        display: "显示加载指示器（CircularProgressIndicator）",
+        note: "使用 AsyncValue 的 loading 状态处理",
+      },
+    },
+    
+    // 加载错误
+    loadingError: {
+      scenario: "加载项目或里程碑数据失败",
+      handling: {
+        display: "显示错误提示（ErrorBanner）",
+        action: "提供重试按钮",
+        note: "使用 AsyncValue 的 error 状态处理",
+      },
+    },
+  },
+
+  // ===========================================
+  // 9. 已确认的设计决策（必填）
+  // ===========================================
+  confirmedDecisions: [
+    {
+      // 问题描述
+      question: "项目详情页是否需要在页面头部显示项目基本信息？",
+      // 确认的答案
+      answer: "是，需要在页面头部显示项目基本信息（项目标题、截止日期、状态等）",
+      // 实现细节
+      implementation: {
+        location: "项目详情页的 projectInfoSection 区域",
+        content: [
+          "项目标题（可点击，显示项目详情弹窗）",
+          "项目截止日期",
+          "项目状态",
+          "其他基本信息（可选）",
+        ],
+      },
+    },
+    {
+      // 问题描述
+      question: "如何处理没有分配到里程碑的任务？",
+      // 确认的答案
+      answer: "每个项目必须至少有一个里程碑，否则不出现在项目列表中。如果有任务在项目里，却不属于任何一个里程碑，强制在数据库里设置为属于第一个里程碑",
+      // 实现细节
+      implementation: {
+        projectListFilter: {
+          location: "projectsDomainProvider 或 projectsByStatusProvider",
+          logic: "在获取项目列表后，过滤掉没有里程碑的项目",
+          method: "通过 projectMilestonesDomainProvider 检查每个项目是否有里程碑，如果没有则过滤掉",
+        },
+        taskMilestoneFix: {
+          location: "数据访问层（Repository 或 Service）",
+          trigger: [
+            "获取项目任务列表时",
+            "项目详情页加载时",
+            "任务创建/更新时（如果任务属于项目但没有里程碑）",
+          ],
+          logic: [
+            "获取项目的所有里程碑，按截止日期（第一优先）和 sortIndex（第二优先）排序",
+            "获取第一个里程碑（如果存在）",
+            "查找项目中 milestoneId 为 null 的任务",
+            "批量更新这些任务的 milestoneId 为第一个里程碑的ID",
+            "使用 TaskUpdate 更新任务的 milestoneId",
+            "记录日志（可选，用于调试）",
+          ],
+          method: "在 ProjectService 或 TaskRepository 中实现一个修复方法，例如 `ensureTasksHaveMilestone(String projectId)`",
+          note: "这个修复逻辑应该在数据访问层实现，确保数据一致性。可以考虑在 ProjectService 中添加一个方法，在获取项目详情时自动调用",
+        },
+      },
+    },
+    {
+      // 问题描述
+      question: "里程碑分区的排序规则是什么？",
+      // 确认的答案
+      answer: "截止日期第一优先，sortIndex 在同一日期内排序。拖拽排序可能需要同时改变两者",
+      // 实现细节
+      implementation: {
+        sortRule: {
+          primary: "截止日期（dueAt）升序排序",
+          secondary: "同一截止日期内，按 sortIndex 升序排序",
+          tertiary: "没有截止日期的里程碑排在最后，按 sortIndex 排序",
+        },
+        dragSort: {
+          logic: [
+            "当用户拖拽里程碑改变顺序时，需要同时更新里程碑的 dueAt 和 sortIndex",
+            "如果拖拽到有截止日期的里程碑附近，更新 dueAt 为目标位置的截止日期",
+            "更新 sortIndex 以反映新的位置",
+            "如果拖拽到没有截止日期的里程碑附近，只更新 sortIndex",
+          ],
+          note: "里程碑的拖拽排序功能可能需要单独实现，因为需要同时更新 dueAt 和 sortIndex。可以参考任务清单页面的拖拽排序实现",
+        },
+      },
+    },
+    {
+      // 问题描述
+      question: "项目详情弹窗和里程碑详情弹窗是否需要提供编辑功能？",
+      // 确认的答案
+      answer: "不提供编辑功能，但提供编辑链接，跳转到现有的项目管理页面",
+      // 实现细节
+      implementation: {
+        projectDetailSheet: {
+          editLink: {
+            label: "编辑项目",
+            icon: "Icons.edit_outline",
+            action: "跳转到项目管理页面（/projects）",
+            note: "点击编辑链接后，跳转到 /projects 页面，用户可以在那里编辑项目信息",
+          },
+        },
+        milestoneDetailSheet: {
+          editLink: {
+            label: "编辑里程碑",
+            icon: "Icons.edit_outline",
+            action: "跳转到项目管理页面（/projects），并展开对应的项目卡片",
+            note: "点击编辑链接后，跳转到 /projects 页面，并自动展开对应的项目卡片，显示里程碑列表，用户可以在那里编辑里程碑信息",
+          },
+        },
+      },
+    },
+    {
+      // 问题描述
+      question: "任务在项目详情页中的拖拽排序范围是什么？",
+      // 确认的答案
+      answer: "支持跨里程碑拖拽",
+      // 实现细节
+      implementation: {
+        dragScope: {
+          withinMilestone: "支持在里程碑内拖拽排序",
+          crossMilestone: "支持跨里程碑拖拽，拖拽到其他里程碑分区时自动更新任务的 milestoneId",
+        },
+        crossMilestoneLogic: {
+          steps: [
+            "用户在某个里程碑分区内拖拽任务",
+            "将任务拖拽到另一个里程碑分区的插入目标",
+            "检测到跨里程碑拖拽",
+            "使用 TaskUpdate 更新任务的 milestoneId 为目标里程碑的ID",
+            "任务的 sortIndex 根据目标位置更新",
+            "任务从原里程碑分区移除，添加到目标里程碑分区",
+          ],
+          method: "参考任务清单页面的跨区域拖拽实现，使用插入目标（TasksPageDragTarget）和 TaskListInsertionHandler 处理跨里程碑拖拽",
+        },
+      },
+    },
+  ],
+}
+

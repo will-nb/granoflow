@@ -164,6 +164,7 @@ class _ArchivedPageState extends ConsumerState<ArchivedPage> {
                             child: SimplifiedTaskRow(
                               key: ValueKey(task.id),
                               task: task,
+                              verticalPadding: 8.0,
                             ),
                           );
                         }),
