@@ -19,7 +19,7 @@ import 'tag_data.dart';
 import 'tag_grouped_menu.dart';
 import 'task_copy_button.dart';
 import 'task_timer_widget.dart';
-import '../../core/providers/task_hierarchy_providers.dart';
+import '../../core/providers/repository_providers.dart';
 
 /// 任务操作底部弹窗
 /// 
@@ -211,14 +211,12 @@ class _TaskActionBottomSheetState
                   // 项目/里程碑选择 - 传递最新的任务数据
                   _buildProjectMilestoneSection(context, ref, theme, task),
                   const SizedBox(height: 16),
-                  // 截止日期编辑 - 传递最新的任务数据
-                  _buildDeadlineSection(context, ref, theme, task),
-                  const SizedBox(height: 16),
-                  // 复制按钮和计时控件 - 使用最新的任务数据
+                  // 截止日期编辑、复制按钮和计时控件 - 使用最新的任务数据，在同一排显示
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      _buildDeadlineSection(context, ref, theme, task),
                       TaskCopyButton(taskTitle: task.title),
                       if (canShowTimer) TaskTimerWidget(task: task),
                     ],
@@ -318,6 +316,24 @@ class _TaskActionBottomSheetState
     return true;
   }
 
+  // 刷新任务列表相关的 providers
+  void _refreshTaskListProviders(WidgetRef ref) {
+    if (!mounted) return;
+    
+    final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+    final currentTask = taskAsync.value ?? widget.task;
+    
+    if (currentTask.status == TaskStatus.inbox) {
+      ref.invalidate(inboxTasksProvider);
+    }
+    if (currentTask.status == TaskStatus.pending && currentTask.dueAt != null) {
+      final section = TaskSectionUtils.getSectionForDate(currentTask.dueAt);
+      ref.invalidate(taskSectionsProvider(section));
+      ref.invalidate(tasksSectionTaskLevelMapProvider(section));
+      ref.invalidate(tasksSectionTaskChildrenMapProvider(section));
+    }
+  }
+
   Widget _buildProjectMilestoneSection(
     BuildContext context,
     WidgetRef ref,
@@ -347,12 +363,14 @@ class _TaskActionBottomSheetState
         }
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => ProjectMilestonePicker(
-        onSelected: (selection) =>
-            _handleProjectMilestoneChanged(ref, selection),
-        currentProjectId: null,
-        currentMilestoneId: null,
-      ),
+      error: (error, stackTrace) {
+        return ProjectMilestonePicker(
+          onSelected: (selection) =>
+              _handleProjectMilestoneChanged(ref, selection),
+          currentProjectId: null,
+          currentMilestoneId: null,
+        );
+      },
     );
   }
 
@@ -438,19 +456,18 @@ class _TaskActionBottomSheetState
     final hasUrgencyTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.urgency,
     );
-    if (!hasUrgencyTag) {
-      urgencyTagsAsync.whenData((tags) {
-        if (tags.isNotEmpty) {
-          tagGroups.add(
-            TagGroup(
-              title: l10n.tagGroupUrgency,
-              tags: tags
-                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                  .toList(),
-            ),
-          );
-        }
-      });
+    if (!hasUrgencyTag && urgencyTagsAsync.hasValue) {
+      final tags = urgencyTagsAsync.value!;
+      if (tags.isNotEmpty) {
+        tagGroups.add(
+          TagGroup(
+            title: l10n.tagGroupUrgency,
+            tags: tags
+                .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                .toList(),
+          ),
+        );
+      }
     }
 
     // 重要程度组
@@ -458,19 +475,18 @@ class _TaskActionBottomSheetState
     final hasImportanceTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.importance,
     );
-    if (!hasImportanceTag) {
-      importanceTagsAsync.whenData((tags) {
-        if (tags.isNotEmpty) {
-          tagGroups.add(
-            TagGroup(
-              title: l10n.tagGroupImportance,
-              tags: tags
-                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                  .toList(),
-            ),
-          );
-        }
-      });
+    if (!hasImportanceTag && importanceTagsAsync.hasValue) {
+      final tags = importanceTagsAsync.value!;
+      if (tags.isNotEmpty) {
+        tagGroups.add(
+          TagGroup(
+            title: l10n.tagGroupImportance,
+            tags: tags
+                .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                .toList(),
+          ),
+        );
+      }
     }
 
     // 执行方式组
@@ -478,19 +494,18 @@ class _TaskActionBottomSheetState
     final hasExecutionTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.execution,
     );
-    if (!hasExecutionTag) {
-      executionTagsAsync.whenData((tags) {
-        if (tags.isNotEmpty) {
-          tagGroups.add(
-            TagGroup(
-              title: l10n.tagGroupExecution,
-              tags: tags
-                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                  .toList(),
-            ),
-          );
-        }
-      });
+    if (!hasExecutionTag && executionTagsAsync.hasValue) {
+      final tags = executionTagsAsync.value!;
+      if (tags.isNotEmpty) {
+        tagGroups.add(
+          TagGroup(
+            title: l10n.tagGroupExecution,
+            tags: tags
+                .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                .toList(),
+          ),
+        );
+      }
     }
 
     // 上下文组
@@ -498,19 +513,18 @@ class _TaskActionBottomSheetState
     final hasContextTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.context,
     );
-    if (!hasContextTag) {
-      contextTagsAsync.whenData((tags) {
-        if (tags.isNotEmpty) {
-          tagGroups.add(
-            TagGroup(
-              title: l10n.tagGroupContext,
-              tags: tags
-                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                  .toList(),
-            ),
-          );
-        }
-      });
+    if (!hasContextTag && contextTagsAsync.hasValue) {
+      final tags = contextTagsAsync.value!;
+      if (tags.isNotEmpty) {
+        tagGroups.add(
+          TagGroup(
+            title: l10n.tagGroupContext,
+            tags: tags
+                .map((tag) => TagData.fromTagWithLocalization(tag, context))
+                .toList(),
+          ),
+        );
+      }
     }
 
     return tagGroups;
@@ -520,20 +534,9 @@ class _TaskActionBottomSheetState
     final normalizedSlug = TagService.normalizeSlug(slug);
     
     // 立即添加到本地状态，这样布局会立即更新
+    // 注意：菜单已经过滤了同组标签，所以这里不需要检查同组冲突
     if (_localTags != null) {
       setState(() {
-        // 检查是否是同组标签，如果是则先删除同组的旧标签
-        String? tagToRemove;
-        for (final existingTag in _localTags!) {
-          if (TagService.areInSameGroup(slug, existingTag)) {
-            tagToRemove = existingTag;
-            break;
-          }
-        }
-        if (tagToRemove != null) {
-          _localTags = _localTags!.where((t) => t != tagToRemove).toList();
-        }
-        // 检查标签是否已存在，避免重复添加
         if (!_localTags!.any((t) => TagService.normalizeSlug(t) == normalizedSlug)) {
           _localTags!.add(normalizedSlug);
         }
@@ -543,32 +546,13 @@ class _TaskActionBottomSheetState
     try {
       final taskService = await ref.read(taskServiceProvider.future);
       
-      // 使用 taskByIdProvider 获取最新任务数据作为基础
+      // 使用本地标签列表（如果存在）或最新任务数据的标签作为基础
       final taskAsync = ref.read(taskByIdProvider(widget.task.id));
       final currentTask = taskAsync.value ?? widget.task;
-      
-      // 使用本地标签列表（如果存在）或最新任务数据的标签作为基础
-      // 注意：如果本地状态已更新，baseTags 可能已经包含新标签
       final baseTags = _localTags ?? currentTask.tags;
       
-      // 检查是否是同组标签，如果是则先删除同组的旧标签
-      String? tagToRemove;
-      for (final existingTag in baseTags) {
-        if (TagService.areInSameGroup(slug, existingTag)) {
-          tagToRemove = existingTag;
-          break;
-        }
-      }
-
-      // 构建新的标签列表
-      List<String> updatedTags = List.from(baseTags);
-
-      // 先删除同组标签
-      if (tagToRemove != null && tagToRemove.isNotEmpty) {
-        updatedTags = updatedTags.where((t) => t != tagToRemove).toList();
-      }
-
-      // 检查标签是否已存在，避免重复添加
+      // 构建新的标签列表（菜单已过滤同组标签，所以直接添加即可）
+      final updatedTags = List<String>.from(baseTags);
       if (!updatedTags.any((t) => TagService.normalizeSlug(t) == normalizedSlug)) {
         updatedTags.add(normalizedSlug);
       }
@@ -578,24 +562,11 @@ class _TaskActionBottomSheetState
         payload: TaskUpdate(tags: updatedTags),
       );
       
-      // taskByIdProvider 是 StreamProvider，会自动响应数据库变化
-      // 当数据库更新完成后，会同步到本地状态
-      if (mounted) {
-        final latestTaskAsync = ref.read(taskByIdProvider(widget.task.id));
-        final latestTask = latestTaskAsync.value ?? widget.task;
-        if (latestTask.status == TaskStatus.inbox) {
-          ref.invalidate(inboxTasksProvider);
-        }
-        if (latestTask.status == TaskStatus.pending && latestTask.dueAt != null) {
-          final section = TaskSectionUtils.getSectionForDate(latestTask.dueAt);
-          ref.invalidate(taskSectionsProvider(section));
-        }
-      }
+      // 刷新相关的列表 providers
+      _refreshTaskListProviders(ref);
     } catch (e) {
-      debugPrint('Failed to add tag: $e');
       // 如果添加失败，恢复本地状态
       if (mounted && _localTags != null) {
-        // 获取最新任务数据来恢复
         final taskAsync = ref.read(taskByIdProvider(widget.task.id));
         final currentTask = taskAsync.value ?? widget.task;
         setState(() {
@@ -639,21 +610,9 @@ class _TaskActionBottomSheetState
         payload: TaskUpdate(tags: updatedTags),
       );
       
-      // taskByIdProvider 是 StreamProvider，会自动响应数据库变化
-      // 当数据库更新完成后，会同步到本地状态
-      if (mounted) {
-        final latestTaskAsync = ref.read(taskByIdProvider(widget.task.id));
-        final latestTask = latestTaskAsync.value ?? widget.task;
-        if (latestTask.status == TaskStatus.inbox) {
-          ref.invalidate(inboxTasksProvider);
-        }
-        if (latestTask.status == TaskStatus.pending && latestTask.dueAt != null) {
-          final section = TaskSectionUtils.getSectionForDate(latestTask.dueAt);
-          ref.invalidate(taskSectionsProvider(section));
-        }
-      }
+      // 刷新相关的列表 providers
+      _refreshTaskListProviders(ref);
     } catch (e) {
-      debugPrint('Failed to remove tag: $e');
       // 如果删除失败，恢复本地状态
       if (mounted && _localTags != null) {
         // 获取最新任务数据来恢复
@@ -681,33 +640,23 @@ class _TaskActionBottomSheetState
   ) async {
     try {
       final taskService = await ref.read(taskServiceProvider.future);
+      final updatePayload = TaskUpdate(
+        projectId: selection?.project?.id,
+        milestoneId: selection?.milestone?.id,
+        clearProject: selection == null,
+        clearMilestone: selection == null || !selection.hasMilestone,
+      );
       await taskService.updateDetails(
         taskId: widget.task.id,
-        payload: TaskUpdate(
-          projectId: selection?.project?.id,
-          milestoneId: selection?.milestone?.id,
-          clearProject: selection == null,
-          clearMilestone: selection == null || !selection.hasMilestone,
-        ),
+        payload: updatePayload,
       );
 
       if (mounted) {
-        // 使用 taskByIdProvider 获取最新任务数据
-        final taskAsync = ref.read(taskByIdProvider(widget.task.id));
-        final currentTask = taskAsync.value ?? widget.task;
-        if (currentTask.status == TaskStatus.inbox) {
-          ref.invalidate(inboxTasksProvider);
-        }
-        if (currentTask.status == TaskStatus.pending &&
-            currentTask.dueAt != null) {
-          final section = TaskSectionUtils.getSectionForDate(currentTask.dueAt);
-          ref.invalidate(taskSectionsProvider(section));
-          ref.invalidate(tasksSectionTaskLevelMapProvider(section));
-          ref.invalidate(tasksSectionTaskChildrenMapProvider(section));
-        }
+        // 刷新相关 providers，确保 UI 更新
+        ref.invalidate(taskProjectHierarchyProvider(widget.task.id));
+        _refreshTaskListProviders(ref);
       }
     } catch (e) {
-      debugPrint('Failed to update project/milestone: $e');
       if (mounted) {
         final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -731,7 +680,7 @@ class _TaskActionBottomSheetState
         payload: TaskUpdate(dueAt: newDeadline),
       );
     } catch (e) {
-      debugPrint('Failed to update deadline: $e');
+      // 静默失败，截止日期更新失败不影响用户体验
     }
   }
 

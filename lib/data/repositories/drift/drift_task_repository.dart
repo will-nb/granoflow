@@ -432,6 +432,14 @@ class DriftTaskRepository implements TaskRepository {
         throw StateError('Task not found: $taskId');
       }
 
+      // 计算 projectId 和 milestoneId 的值
+      final projectIdValue = payload.projectId != null 
+          ? Value<String?>(payload.projectId!) 
+          : (payload.clearProject == true ? Value<String?>(null) : const Value<String?>.absent());
+      final milestoneIdValue = payload.milestoneId != null 
+          ? Value<String?>(payload.milestoneId) 
+          : (payload.clearMilestone == true ? Value<String?>(null) : const Value<String?>.absent());
+
       final companion = TasksCompanion(
         id: const Value.absent(),
         title: payload.title != null ? Value(payload.title!) : const Value.absent(),
@@ -441,9 +449,9 @@ class DriftTaskRepository implements TaskRepository {
         endedAt: payload.endedAt != null ? Value(payload.endedAt) : const Value.absent(),
         archivedAt: payload.archivedAt != null ? Value(payload.archivedAt) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
-        parentId: payload.parentId != null ? Value(payload.parentId) : (payload.clearParent == true ? const Value.absent() : const Value.absent()),
-        projectId: payload.projectId != null ? Value(payload.projectId) : (payload.clearProject == true ? const Value.absent() : const Value.absent()),
-        milestoneId: payload.milestoneId != null ? Value(payload.milestoneId) : (payload.clearMilestone == true ? const Value.absent() : const Value.absent()),
+        parentId: payload.parentId != null ? Value(payload.parentId) : (payload.clearParent == true ? Value<String?>(null) : const Value.absent()),
+        projectId: projectIdValue,
+        milestoneId: milestoneIdValue,
         sortIndex: payload.sortIndex != null ? Value(payload.sortIndex!) : const Value.absent(),
         tags: payload.tags != null ? Value(payload.tags!) : const Value.absent(),
         templateLockCount: payload.templateLockDelta != 0 ? Value(existing.templateLockCount + payload.templateLockDelta) : const Value.absent(),
@@ -806,9 +814,9 @@ class DriftTaskRepository implements TaskRepository {
           endedAt: payload.endedAt != null ? Value(payload.endedAt) : const Value.absent(),
           archivedAt: payload.archivedAt != null ? Value(payload.archivedAt) : const Value.absent(),
           updatedAt: Value(DateTime.now()),
-          parentId: payload.parentId != null ? Value(payload.parentId) : (payload.clearParent == true ? const Value.absent() : const Value.absent()),
-          projectId: payload.projectId != null ? Value(payload.projectId) : (payload.clearProject == true ? const Value.absent() : const Value.absent()),
-          milestoneId: payload.milestoneId != null ? Value(payload.milestoneId) : (payload.clearMilestone == true ? const Value.absent() : const Value.absent()),
+          parentId: payload.parentId != null ? Value(payload.parentId) : (payload.clearParent == true ? Value<String?>(null) : const Value.absent()),
+          projectId: payload.projectId != null ? Value(payload.projectId) : (payload.clearProject == true ? Value<String?>(null) : const Value.absent()),
+          milestoneId: payload.milestoneId != null ? Value(payload.milestoneId) : (payload.clearMilestone == true ? Value<String?>(null) : const Value.absent()),
           sortIndex: payload.sortIndex != null ? Value(payload.sortIndex!) : const Value.absent(),
           tags: payload.tags != null ? Value(payload.tags!) : const Value.absent(),
           templateLockCount: payload.templateLockDelta != 0 ? Value(existing.templateLockCount + payload.templateLockDelta) : const Value.absent(),
