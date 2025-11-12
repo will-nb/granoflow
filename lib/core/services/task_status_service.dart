@@ -33,13 +33,15 @@ class TaskStatusService {
 
   /// 检查是否有doing状态的任务，并控制背景音
   Future<void> _updateBackgroundSound() async {
-    if (_clockAudioService == null || _preferenceService == null) {
+    final clockAudioService = _clockAudioService;
+    final preferenceService = _preferenceService;
+    if (clockAudioService == null || preferenceService == null) {
       return;
     }
 
     // 检查设置是否允许播放背景音
     // 使用watch().first获取当前preference值
-    final preference = await _preferenceService.watch().first;
+    final preference = await preferenceService.watch().first;
     if (!preference.clockTickSoundEnabled) {
       return;
     }
@@ -51,8 +53,6 @@ class TaskStatusService {
       limit: 10000,
     );
 
-    // _clockAudioService 已在方法开头检查过，这里不会为 null
-    final clockAudioService = _clockAudioService!;
     if (doingTasks.isNotEmpty) {
       // 有doing状态的任务，开始播放背景音
       clockAudioService.startTickSound();
