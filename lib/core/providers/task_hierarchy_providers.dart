@@ -274,3 +274,15 @@ final tasksSectionTaskChildrenMapProvider =
   return childrenMap;
 });
 
+/// Provider for watching a single task by ID
+/// 
+/// 监听指定任务的变化，当任务更新时自动刷新
+final taskByIdProvider = StreamProvider.family<Task?, String>((ref, taskId) {
+  final taskRepositoryAsync = ref.watch(taskRepositoryProvider);
+  return taskRepositoryAsync.when(
+    data: (repository) => repository.watchTaskById(taskId),
+    loading: () => Stream.value(null),
+    error: (_, __) => Stream.value(null),
+  );
+});
+

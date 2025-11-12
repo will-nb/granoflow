@@ -46,8 +46,13 @@ class TaskBottomSheetHelper {
       enableDrag: true,
       isDismissible: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => TaskActionBottomSheet(
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: TaskActionBottomSheet(
         task: task,
+        ),
       ),
     );
   }

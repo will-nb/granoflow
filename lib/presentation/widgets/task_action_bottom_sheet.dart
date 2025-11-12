@@ -19,6 +19,7 @@ import 'tag_data.dart';
 import 'tag_grouped_menu.dart';
 import 'task_copy_button.dart';
 import 'task_timer_widget.dart';
+import '../../core/providers/task_hierarchy_providers.dart';
 
 /// 任务操作底部弹窗
 /// 
@@ -43,6 +44,8 @@ class _TaskActionBottomSheetState
   late TextEditingController _titleController;
   late FocusNode _titleFocusNode;
   bool _isEditingTitle = false;
+  // 添加本地状态来跟踪标签列表，用于立即更新布局
+  List<String>? _localTags;
 
   @override
   void initState() {
@@ -50,6 +53,8 @@ class _TaskActionBottomSheetState
     _titleController = TextEditingController(text: widget.task.title);
     _titleFocusNode = FocusNode();
     _titleFocusNode.addListener(_onFocusChange);
+    // 初始化本地标签列表
+    _localTags = List.from(widget.task.tags);
     // 自动进入编辑状态
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _titleFocusNode.requestFocus();
@@ -116,7 +121,36 @@ class _TaskActionBottomSheetState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final task = widget.task;
+    
+    // 使用 taskByIdProvider 获取最新的任务数据
+    final taskAsync = ref.watch(taskByIdProvider(widget.task.id));
+    
+    // 处理异步状态，获取当前任务
+    return taskAsync.when(
+      data: (task) {
+        // 使用最新的任务数据，如果不存在则使用初始任务数据
+        final currentTask = task ?? widget.task;
+        return _buildContent(context, ref, theme, l10n, currentTask);
+      },
+      loading: () {
+        // 加载中时使用初始任务数据
+        return _buildContent(context, ref, theme, l10n, widget.task);
+      },
+      error: (_, __) {
+        // 错误时使用初始任务数据
+        return _buildContent(context, ref, theme, l10n, widget.task);
+      },
+    );
+  }
+
+  // 将原来的 build 方法内容提取到这个方法中
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+    AppLocalizations l10n,
+    Task task, // 使用传入的任务数据，而不是 widget.task
+  ) {
     final isInbox = task.status == TaskStatus.inbox;
     final canShowTimer = !isInbox &&
         (task.status == TaskStatus.pending ||
@@ -149,8 +183,7 @@ class _TaskActionBottomSheetState
             ),
           ),
           // 可滚动内容
-          Flexible(
-            child: SingleChildScrollView(
+          SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,16 +205,16 @@ class _TaskActionBottomSheetState
                     onSubmitted: (_) => _saveTitle(),
                   ),
                   const SizedBox(height: 24),
-                  // 标签管理
-                  _buildTagsSection(context, ref, theme),
+                  // 标签管理 - 传递最新的任务数据
+                  _buildTagsSection(context, ref, theme, task),
                   const SizedBox(height: 16),
-                  // 项目/里程碑选择
-                  _buildProjectMilestoneSection(context, ref, theme),
+                  // 项目/里程碑选择 - 传递最新的任务数据
+                  _buildProjectMilestoneSection(context, ref, theme, task),
                   const SizedBox(height: 16),
-                  // 截止日期编辑
-                  _buildDeadlineSection(context, ref, theme),
+                  // 截止日期编辑 - 传递最新的任务数据
+                  _buildDeadlineSection(context, ref, theme, task),
                   const SizedBox(height: 16),
-                  // 复制按钮和计时控件
+                  // 复制按钮和计时控件 - 使用最新的任务数据
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -193,15 +226,14 @@ class _TaskActionBottomSheetState
                   const SizedBox(height: 16),
                   // 转换为项目（如果适用）
                   if (widget.showConvertAction) ...[
-                    _buildConvertToProjectButton(context, ref, theme, l10n),
+                    _buildConvertToProjectButton(context, ref, theme, l10n, task),
                     const SizedBox(height: 16),
                   ],
-                  // 操作按钮区域
-                  _buildActionButtons(context, ref, theme, l10n),
+                  // 操作按钮区域 - 传递最新的任务数据
+                  _buildActionButtons(context, ref, theme, l10n, task),
                   // 底部安全区域
                   SizedBox(height: MediaQuery.of(context).viewPadding.bottom),
                 ],
-              ),
             ),
           ),
         ],
@@ -213,9 +245,34 @@ class _TaskActionBottomSheetState
     BuildContext context,
     WidgetRef ref,
     ThemeData theme,
+    Task task, // 接收最新的任务数据
   ) {
-    final task = widget.task;
-    final tagGroups = _getAvailableTagGroups(context, ref);
+    // 如果数据库中的标签列表更新了，同步到本地状态
+    if (_localTags != null && !_listEquals(_localTags!, task.tags)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _localTags = List.from(task.tags);
+          });
+        }
+      });
+    }
+    // 使用本地标签列表来构建 UI，这样删除时可以立即更新
+    final tagsToDisplay = _localTags ?? task.tags;
+    // 传递 task 给 _buildTagsSectionContent，这样 _getAvailableTagGroups 可以使用最新的任务数据
+    return _buildTagsSectionContent(context, ref, theme, task, tagsToDisplay);
+  }
+
+  /// 构建标签部分的内容
+  Widget _buildTagsSectionContent(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+    Task task, // 这个 task 应该是最新的任务数据（从 taskByIdProvider 获取）
+    List<String> tagsToDisplay,
+  ) {
+    // 传递 task 给 _getAvailableTagGroups，使用最新的任务数据
+    final tagGroups = _getAvailableTagGroups(context, ref, task);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,12 +282,13 @@ class _TaskActionBottomSheetState
           runSpacing: 8,
           children: [
             // 已选中的标签（可删除）
-            ...task.tags.map((slug) {
+            ...tagsToDisplay.map((slug) {
               final tagData = TagService.getTagData(context, slug);
               if (tagData == null) {
                 return const SizedBox.shrink();
               }
               return InlineEditableTag(
+                key: ValueKey('tag-${task.id}-$slug'),
                 label: tagData.label,
                 slug: tagData.slug,
                 color: tagData.color,
@@ -251,13 +309,23 @@ class _TaskActionBottomSheetState
     );
   }
 
+  // 添加辅助方法比较列表
+  bool _listEquals<T>(List<T> a, List<T> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   Widget _buildProjectMilestoneSection(
     BuildContext context,
     WidgetRef ref,
     ThemeData theme,
+    Task task, // 接收最新的任务数据
   ) {
     final hierarchyAsync = ref.watch(
-      taskProjectHierarchyProvider(widget.task.id),
+      taskProjectHierarchyProvider(task.id),
     );
 
     return hierarchyAsync.when(
@@ -292,9 +360,10 @@ class _TaskActionBottomSheetState
     BuildContext context,
     WidgetRef ref,
     ThemeData theme,
+    Task task, // 接收最新的任务数据
   ) {
     return InlineDeadlineEditor(
-      deadline: widget.task.dueAt,
+      deadline: task.dueAt,
       onDeadlineChanged: (newDeadline) =>
           _handleDeadlineChanged(ref, newDeadline),
       showIcon: true,
@@ -306,9 +375,10 @@ class _TaskActionBottomSheetState
     WidgetRef ref,
     ThemeData theme,
     AppLocalizations l10n,
+    Task task, // 接收最新的任务数据
   ) {
     return OutlinedButton.icon(
-      onPressed: () => _handleConvertToProject(context, ref),
+      onPressed: () => _handleConvertToProject(context, ref, task),
       icon: const Icon(Icons.autorenew),
       label: Text(l10n.projectConvertTooltip),
     );
@@ -319,8 +389,8 @@ class _TaskActionBottomSheetState
     WidgetRef ref,
     ThemeData theme,
     AppLocalizations l10n,
+    Task task, // 接收最新的任务数据
   ) {
-    final task = widget.task;
     final isCompleted = task.status == TaskStatus.completedActive;
 
     return Column(
@@ -329,21 +399,21 @@ class _TaskActionBottomSheetState
         // 完成任务按钮（仅未完成状态显示）
         if (!isCompleted)
           FilledButton.icon(
-            onPressed: () => _handleComplete(context, ref),
+            onPressed: () => _handleComplete(context, ref, task),
             icon: const Icon(Icons.check),
             label: Text(l10n.actionMarkCompleted),
           ),
         if (!isCompleted) const SizedBox(height: 8),
         // 归档按钮
         OutlinedButton.icon(
-          onPressed: () => _handleArchive(context, ref),
+          onPressed: () => _handleArchive(context, ref, task),
           icon: const Icon(Icons.archive_outlined),
           label: Text(l10n.actionArchive),
         ),
         const SizedBox(height: 8),
         // 删除按钮
         OutlinedButton.icon(
-          onPressed: () => _handleDelete(context, ref),
+          onPressed: () => _handleDelete(context, ref, task),
           icon: const Icon(Icons.delete_outline),
           label: Text(l10n.actionDelete),
           style: OutlinedButton.styleFrom(
@@ -354,13 +424,18 @@ class _TaskActionBottomSheetState
     );
   }
 
-  List<TagGroup> _getAvailableTagGroups(BuildContext context, WidgetRef ref) {
+  // 修改 _getAvailableTagGroups，接收 task 参数
+  List<TagGroup> _getAvailableTagGroups(
+    BuildContext context,
+    WidgetRef ref,
+    Task task, // 使用传入的任务数据，而不是 widget.task
+  ) {
     final l10n = AppLocalizations.of(context);
     final tagGroups = <TagGroup>[];
 
     // 紧急程度组
     final urgencyTagsAsync = ref.watch(urgencyTagOptionsProvider);
-    final hasUrgencyTag = widget.task.tags.any(
+    final hasUrgencyTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.urgency,
     );
     if (!hasUrgencyTag) {
@@ -380,7 +455,7 @@ class _TaskActionBottomSheetState
 
     // 重要程度组
     final importanceTagsAsync = ref.watch(importanceTagOptionsProvider);
-    final hasImportanceTag = widget.task.tags.any(
+    final hasImportanceTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.importance,
     );
     if (!hasImportanceTag) {
@@ -400,7 +475,7 @@ class _TaskActionBottomSheetState
 
     // 执行方式组
     final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-    final hasExecutionTag = widget.task.tags.any(
+    final hasExecutionTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.execution,
     );
     if (!hasExecutionTag) {
@@ -420,7 +495,7 @@ class _TaskActionBottomSheetState
 
     // 上下文组
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
-    final hasContextTag = widget.task.tags.any(
+    final hasContextTag = task.tags.any(
       (t) => TagService.getKind(t) == TagKind.context,
     );
     if (!hasContextTag) {
@@ -442,46 +517,161 @@ class _TaskActionBottomSheetState
   }
 
   Future<void> _handleAddTag(WidgetRef ref, String slug) async {
+    final normalizedSlug = TagService.normalizeSlug(slug);
+    
+    // 立即添加到本地状态，这样布局会立即更新
+    if (_localTags != null) {
+      setState(() {
+        // 检查是否是同组标签，如果是则先删除同组的旧标签
+        String? tagToRemove;
+        for (final existingTag in _localTags!) {
+          if (TagService.areInSameGroup(slug, existingTag)) {
+            tagToRemove = existingTag;
+            break;
+          }
+        }
+        if (tagToRemove != null) {
+          _localTags = _localTags!.where((t) => t != tagToRemove).toList();
+        }
+        // 检查标签是否已存在，避免重复添加
+        if (!_localTags!.any((t) => TagService.normalizeSlug(t) == normalizedSlug)) {
+          _localTags!.add(normalizedSlug);
+        }
+      });
+    }
+    
     try {
       final taskService = await ref.read(taskServiceProvider.future);
+      
+      // 使用 taskByIdProvider 获取最新任务数据作为基础
+      final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+      final currentTask = taskAsync.value ?? widget.task;
+      
+      // 使用本地标签列表（如果存在）或最新任务数据的标签作为基础
+      // 注意：如果本地状态已更新，baseTags 可能已经包含新标签
+      final baseTags = _localTags ?? currentTask.tags;
+      
+      // 检查是否是同组标签，如果是则先删除同组的旧标签
       String? tagToRemove;
-      for (final existingTag in widget.task.tags) {
+      for (final existingTag in baseTags) {
         if (TagService.areInSameGroup(slug, existingTag)) {
           tagToRemove = existingTag;
           break;
         }
       }
 
-      List<String> updatedTags = List.from(widget.task.tags);
+      // 构建新的标签列表
+      List<String> updatedTags = List.from(baseTags);
+
+      // 先删除同组标签
       if (tagToRemove != null && tagToRemove.isNotEmpty) {
         updatedTags = updatedTags.where((t) => t != tagToRemove).toList();
       }
 
-      final normalizedSlug = TagService.normalizeSlug(slug);
-      updatedTags.add(normalizedSlug);
+      // 检查标签是否已存在，避免重复添加
+      if (!updatedTags.any((t) => TagService.normalizeSlug(t) == normalizedSlug)) {
+        updatedTags.add(normalizedSlug);
+      }
 
       await taskService.updateDetails(
         taskId: widget.task.id,
         payload: TaskUpdate(tags: updatedTags),
       );
+      
+      // taskByIdProvider 是 StreamProvider，会自动响应数据库变化
+      // 当数据库更新完成后，会同步到本地状态
+      if (mounted) {
+        final latestTaskAsync = ref.read(taskByIdProvider(widget.task.id));
+        final latestTask = latestTaskAsync.value ?? widget.task;
+        if (latestTask.status == TaskStatus.inbox) {
+          ref.invalidate(inboxTasksProvider);
+        }
+        if (latestTask.status == TaskStatus.pending && latestTask.dueAt != null) {
+          final section = TaskSectionUtils.getSectionForDate(latestTask.dueAt);
+          ref.invalidate(taskSectionsProvider(section));
+        }
+      }
     } catch (e) {
       debugPrint('Failed to add tag: $e');
+      // 如果添加失败，恢复本地状态
+      if (mounted && _localTags != null) {
+        // 获取最新任务数据来恢复
+        final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+        final currentTask = taskAsync.value ?? widget.task;
+        setState(() {
+          _localTags = List.from(currentTask.tags);
+        });
+      }
+      if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.taskUpdateError}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _handleRemoveTag(WidgetRef ref, String slug) async {
+    // 立即从本地状态中移除标签，这样布局会立即更新
+    if (_localTags != null) {
+      setState(() {
+        final normalizedSlug = TagService.normalizeSlug(slug);
+        _localTags = _localTags!.where((t) => TagService.normalizeSlug(t) != normalizedSlug).toList();
+      });
+    }
+    
     try {
       final taskService = await ref.read(taskServiceProvider.future);
+      
+      // 使用 taskByIdProvider 获取最新任务数据作为基础
+      final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+      final currentTask = taskAsync.value ?? widget.task;
+      
       final normalizedSlug = TagService.normalizeSlug(slug);
-      final updatedTags = widget.task.tags
+      final updatedTags = currentTask.tags
           .where((t) => TagService.normalizeSlug(t) != normalizedSlug)
           .toList();
       await taskService.updateDetails(
         taskId: widget.task.id,
         payload: TaskUpdate(tags: updatedTags),
       );
+      
+      // taskByIdProvider 是 StreamProvider，会自动响应数据库变化
+      // 当数据库更新完成后，会同步到本地状态
+      if (mounted) {
+        final latestTaskAsync = ref.read(taskByIdProvider(widget.task.id));
+        final latestTask = latestTaskAsync.value ?? widget.task;
+        if (latestTask.status == TaskStatus.inbox) {
+          ref.invalidate(inboxTasksProvider);
+        }
+        if (latestTask.status == TaskStatus.pending && latestTask.dueAt != null) {
+          final section = TaskSectionUtils.getSectionForDate(latestTask.dueAt);
+          ref.invalidate(taskSectionsProvider(section));
+        }
+      }
     } catch (e) {
       debugPrint('Failed to remove tag: $e');
+      // 如果删除失败，恢复本地状态
+      if (mounted && _localTags != null) {
+        // 获取最新任务数据来恢复
+        final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+        final currentTask = taskAsync.value ?? widget.task;
+        setState(() {
+          _localTags = List.from(currentTask.tags);
+        });
+      }
+      if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.taskUpdateError}: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
@@ -502,12 +692,15 @@ class _TaskActionBottomSheetState
       );
 
       if (mounted) {
-        if (widget.task.status == TaskStatus.inbox) {
+        // 使用 taskByIdProvider 获取最新任务数据
+        final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+        final currentTask = taskAsync.value ?? widget.task;
+        if (currentTask.status == TaskStatus.inbox) {
           ref.invalidate(inboxTasksProvider);
         }
-        if (widget.task.status == TaskStatus.pending &&
-            widget.task.dueAt != null) {
-          final section = TaskSectionUtils.getSectionForDate(widget.task.dueAt);
+        if (currentTask.status == TaskStatus.pending &&
+            currentTask.dueAt != null) {
+          final section = TaskSectionUtils.getSectionForDate(currentTask.dueAt);
           ref.invalidate(taskSectionsProvider(section));
           ref.invalidate(tasksSectionTaskLevelMapProvider(section));
           ref.invalidate(tasksSectionTaskChildrenMapProvider(section));
@@ -545,6 +738,7 @@ class _TaskActionBottomSheetState
   Future<void> _handleConvertToProject(
     BuildContext context,
     WidgetRef ref,
+    Task task, // 接收最新的任务数据
   ) async {
     final l10n = AppLocalizations.of(context);
     final result = await showDialog<bool>(
@@ -570,7 +764,7 @@ class _TaskActionBottomSheetState
 
     try {
       final projectService = await ref.read(projectServiceProvider.future);
-      await projectService.convertTaskToProject(widget.task.id);
+      await projectService.convertTaskToProject(task.id);
       if (!mounted) return;
       Navigator.of(context).pop(); // 关闭弹窗
       ScaffoldMessenger.of(context).showSnackBar(
@@ -584,36 +778,36 @@ class _TaskActionBottomSheetState
     }
   }
 
-  Future<void> _handleComplete(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleComplete(BuildContext context, WidgetRef ref, Task task) async {
     await SwipeActionHandler.handleAction(
       context,
       ref,
       SwipeActionType.complete,
-      widget.task,
+      task,
     );
     if (mounted) {
       Navigator.of(context).pop(); // 关闭弹窗
     }
   }
 
-  Future<void> _handleArchive(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleArchive(BuildContext context, WidgetRef ref, Task task) async {
     await SwipeActionHandler.handleAction(
       context,
       ref,
       SwipeActionType.archive,
-      widget.task,
+      task,
     );
     if (mounted) {
       Navigator.of(context).pop(); // 关闭弹窗
     }
   }
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref, Task task) async {
     await SwipeActionHandler.handleAction(
       context,
       ref,
       SwipeActionType.delete,
-      widget.task,
+      task,
     );
     if (mounted) {
       Navigator.of(context).pop(); // 关闭弹窗
