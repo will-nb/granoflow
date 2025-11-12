@@ -9,7 +9,7 @@ import '../utils/task_collection_utils.dart';
 import '../widgets/empty_section_hint.dart';
 import '../widgets/error_banner.dart';
 import 'task_section_list.dart';
-import 'tasks_section_task_list.dart';
+import 'tasks_section_task_list_simplified.dart';
 
 class TaskSectionPanel extends ConsumerWidget {
   const TaskSectionPanel({
@@ -80,7 +80,7 @@ class TaskSectionPanel extends ConsumerWidget {
                     roots: roots,
                   );
                 }
-                return TasksSectionTaskList(section: section, tasks: tasks);
+                return TasksSectionTaskListSimplified(section: section, tasks: tasks);
               },
               loading: () => const Padding(
                 padding: EdgeInsets.all(12),

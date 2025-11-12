@@ -83,12 +83,13 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
           trailing: Wrap(
             spacing: 4,
             children: [
-              IconButton(
-                tooltip: l10n.actionAddSubtask,
-                icon: const Icon(Icons.add),
-                onPressed: () =>
-                    showAddSubtaskDialog(context, ref, node.task.id),
-              ),
+              // 子任务功能已禁用
+              // IconButton(
+              //   tooltip: l10n.actionAddSubtask,
+              //   icon: const Icon(Icons.add),
+              //   onPressed: () =>
+              //       showAddSubtaskDialog(context, ref, node.task.id),
+              // ),
               IconButton(
                 tooltip: l10n.taskListRenameDialogTitle,
                 icon: const Icon(Icons.edit_outlined),

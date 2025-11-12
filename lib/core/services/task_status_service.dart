@@ -142,7 +142,7 @@ class TaskStatusService {
       );
     } else {
       // 任务已经有 startedAt，只更新状态（保留首次开始时间）
-      await _tasks.markStatus(taskId: taskId, status: TaskStatus.doing);
+    await _tasks.markStatus(taskId: taskId, status: TaskStatus.doing);
     }
     
     // 更新背景音状态（当前任务变为doing，应该开始播放）
@@ -188,9 +188,15 @@ class TaskStatusService {
     // 检查任务是否是doing状态
     final wasDoing = task.status == TaskStatus.doing;
     
+    // 获取完成时间，同步设置 dueAt 为完成时间
+    final completedTime = _clock();
     await _tasks.updateTask(
       taskId,
-      TaskUpdate(status: TaskStatus.completedActive, endedAt: _clock()),
+      TaskUpdate(
+        status: TaskStatus.completedActive, 
+        endedAt: completedTime,
+        dueAt: completedTime,  // 同步设置 dueAt 为完成时间
+      ),
     );
     if (autoCompleteParent && task.parentId != null) {
         final siblings = await _tasks.listChildren(task.parentId!);
@@ -198,9 +204,14 @@ class TaskStatusService {
         (sibling) => sibling.status == TaskStatus.completedActive,
       );
       if (allCompleted) {
+          final parentCompletedTime = _clock();
           await _tasks.updateTask(
             task.parentId!,
-            TaskUpdate(status: TaskStatus.completedActive, endedAt: _clock()),
+            TaskUpdate(
+              status: TaskStatus.completedActive, 
+              endedAt: parentCompletedTime,
+              dueAt: parentCompletedTime,  // 同步设置 dueAt 为完成时间
+            ),
           );
       }
     }

@@ -7,7 +7,7 @@ import '../../../core/utils/calendar_review_utils.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/week_view_event_converter.dart';
-import 'task_detail_bottom_sheet.dart';
+import '../../widgets/utils/task_bottom_sheet_helper.dart';
 
 /// 周视图详情组件，显示本周统计摘要
 class WeekDetailView extends ConsumerWidget {
@@ -49,7 +49,7 @@ class WeekDetailView extends ConsumerWidget {
                 final sessionEvents = WeekViewEventConverter.sessionsToEvents(
                   dayDetail.sessions,
                   context,
-                );
+          );
                 allEvents.addAll(sessionEvents);
               }
             }
@@ -60,7 +60,7 @@ class WeekDetailView extends ConsumerWidget {
               children: [
                 // 统计摘要（带导航按钮）
                 Container(
-                  padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
                   child: _buildStatsSummary(
                     context,
                     l10n,
@@ -72,7 +72,7 @@ class WeekDetailView extends ConsumerWidget {
                 const Divider(height: 1),
                 // WeekView 时间轴网格（即使没有数据也显示空白日程表）
                 Expanded(
-                  child: _buildWeekView(context, dates, allEvents, eventToTaskMap),
+                  child: _buildWeekView(context, ref, dates, allEvents, eventToTaskMap),
                 ),
               ],
             );
@@ -83,7 +83,7 @@ class WeekDetailView extends ConsumerWidget {
               '${l10n.calendarReviewLoadError}: $error',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.error,
-                  ),
+              ),
             ),
           ),
         );
@@ -199,6 +199,7 @@ class WeekDetailView extends ConsumerWidget {
   /// 构建 WeekView 时间轴网格
   Widget _buildWeekView(
     BuildContext context,
+    WidgetRef ref,
     List<DateTime> dates,
     List<FlutterWeekViewEvent> events,
     Map<FlutterWeekViewEvent, Task> eventToTaskMap,
@@ -241,12 +242,7 @@ class WeekDetailView extends ConsumerWidget {
             final task = eventToTaskMap[event];
             if (task != null) {
               // 显示任务详情弹窗
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (sheetContext) => TaskDetailBottomSheet(task: task),
-              );
+              TaskBottomSheetHelper.showTaskDetailBottomSheet(context, ref, task);
             }
           },
           child: FlutterWeekViewEventWidget(
@@ -277,17 +273,17 @@ class _StatItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
-        Text(
-          value,
+          children: [
+            Text(
+              value,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );

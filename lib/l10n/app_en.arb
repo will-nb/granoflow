@@ -873,6 +873,46 @@
   "taskListTaskArchivedToast": "Task archived.",
   "taskListTaskCompletedError": "Complete task failed.",
   "taskListTaskCompletedToast": "Task completed.",
+  "taskListTaskUncompletedToast": "Task restored to uncompleted.",
+  "@taskListTaskUncompletedToast": {
+    "description": "Toast message when a task is restored to uncompleted status"
+  },
+  "taskListTaskStatusLabel": "Task completion status",
+  "@taskListTaskStatusLabel": {
+    "description": "Accessibility label for task status icon"
+  },
+  "taskListTaskStatusCompletedHint": "Tap to mark as uncompleted",
+  "@taskListTaskStatusCompletedHint": {
+    "description": "Accessibility hint for completed task status icon"
+  },
+  "taskListTaskStatusUncompletedHint": "Tap to mark as completed",
+  "@taskListTaskStatusUncompletedHint": {
+    "description": "Accessibility hint for uncompleted task status icon"
+  },
+  "taskListTaskDueDateLabel": "Due date",
+  "@taskListTaskDueDateLabel": {
+    "description": "Accessibility label for due date icon"
+  },
+  "taskListTaskDueDateHint": "This task has a due date",
+  "@taskListTaskDueDateHint": {
+    "description": "Accessibility hint for due date icon"
+  },
+  "taskActionSheetTitle": "Task Actions",
+  "@taskActionSheetTitle": {
+    "description": "Title for task action bottom sheet"
+  },
+  "taskDetailSheetTitle": "Task Details",
+  "@taskDetailSheetTitle": {
+    "description": "Title for task detail bottom sheet"
+  },
+  "taskListSimplifiedTip": "Tap a task to view details and perform actions",
+  "@taskListSimplifiedTip": {
+    "description": "First-time tip for simplified task list"
+  },
+  "taskActionSheetTip": "In the sheet, you can edit the task, manage tags, set due dates, etc.",
+  "@taskActionSheetTip": {
+    "description": "First-time tip for task action sheet"
+  },
   "taskListTitle": "Task List",
   "taskListTitleEdit": "Task List ? Edit Mode",
   "taskMoveBlockedCycle": "Cannot create subtask: would create a cyclic relationship.",

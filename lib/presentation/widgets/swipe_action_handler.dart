@@ -43,8 +43,9 @@ class SwipeActionHandler {
       case SwipeActionType.delete:
         await _handleDelete(context, ref, task);
         break;
+      // promoteToIndependent 功能已禁用
       case SwipeActionType.promoteToIndependent:
-        await _handlePromoteToIndependent(context, ref, task, taskLevel: taskLevel);
+        // 子任务功能已禁用，不再支持提升为独立任务
         break;
       case SwipeActionType.restore:
         await _handleRestore(context, ref, task);
@@ -233,53 +234,7 @@ class SwipeActionHandler {
 
   // 日期工具方法已移至 swipe_action_handler_date_utils.dart
 
-  /// 处理提升为独立任务动作（滑动触发）
-  /// 
-  /// 使用专门的方法 promoteSubtaskToRoot，直接设置 parentId = null
-  /// 与拖拽的 handlePromoteToIndependent 不同，不依赖偏移量检查
-  static Future<void> _handlePromoteToIndependent(
-    BuildContext context,
-    WidgetRef ref,
-    Task task, {
-    int? taskLevel,
-  }) async {
-    final taskService = await ref.read(taskServiceProvider.future);
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    
-    try {
-      // 调用滑动专用的提升方法，直接设置 parentId = null
-      final success = await taskService.promoteSubtaskToRoot(
-        task.id,
-        taskLevel: taskLevel, // 传递 taskLevel，避免重复计算
-      );
-      
-      if (!success) {
-        // 如果提升失败（可能是任务不是子任务或其他原因）
-        if (!context.mounted) return;
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.promoteToIndependentError)),
-        );
-        return;
-      }
-      
-      if (!context.mounted) return;
-      
-      // 显示详细的成功反馈
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.promoteToIndependentSuccess),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } catch (error, stackTrace) {
-      debugPrint('Failed to promote task to independent: $error\n$stackTrace');
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text('${l10n.promoteToIndependentError}: $error')),
-      );
-    }
-  }
+  // _handlePromoteToIndependent 方法已移除：子任务功能已禁用
 
   /// 处理恢复动作（从回收站恢复到待办状态）
   static Future<void> _handleRestore(

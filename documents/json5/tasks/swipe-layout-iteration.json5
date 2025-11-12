@@ -1,0 +1,302 @@
+{
+  // ===========================================
+  // 任务列表滑动布局统一迭代蓝图
+  // 统一所有任务列表页面的包裹结构，实现正确的滑动背景显示
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250115-swipe-layout-unification",
+    
+    // 迭代标题
+    title: "任务列表滑动布局统一：包裹结构标准化 + 移除 Inbox 拖拽排序",
+    
+    // 迭代描述
+    description: "统一所有任务列表页面（任务清单、收集箱、已完成、已收纳、回收站、项目子任务）的包裹结构，确保滑动背景正确覆盖整行。移除 Inbox 页面的拖拽排序功能，只保留任务清单页面的拖拽排序功能。",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/tasks/design.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // UI 组件层 - 修改组件
+    widgets: [
+      {
+        path: "lib/presentation/widgets/simplified_task_row.dart",
+        purpose: "修改 SimplifiedTaskRow，让根 widget 占据整行宽度，确保滑动背景正确覆盖",
+        action: "modify",
+        estimatedLines: 70,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/generated/l10n/app_localizations.dart",
+          "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart",
+        ],
+        details: [
+          "在 Semantics 外层包裹一个 Container，设置 width: double.infinity",
+          "或者使用 SizedBox.expand() 包裹，让组件占据整行宽度",
+          "确保滑动背景能够正确覆盖整个任务行，而不仅仅是文本部分",
+          "保持现有的点击和可访问性功能不变",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（必填）
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/presentation/tasks/views/tasks_section_task_list_simplified.dart",
+      purpose: "调整结构顺序，让 DismissibleTaskTile 包裹 StandardDraggable，确保滑动背景覆盖整个行（包括手柄）",
+      action: "modify",
+      details: [
+        "当前结构：StandardDraggable -> DismissibleTaskTile -> SimplifiedTaskRow",
+        "问题：DismissibleTaskTile 在 StandardDraggable 的 Row 的 Expanded 中，滑动背景只覆盖手柄右侧",
+        "目标结构：DismissibleTaskTile -> StandardDraggable -> SimplifiedTaskRow",
+        "修改步骤：",
+        "  1. 将 DismissibleTaskTile 移到 StandardDraggable 外层",
+        "  2. StandardDraggable 作为 DismissibleTaskTile 的 child",
+        "  3. SimplifiedTaskRow 作为 StandardDraggable 的 child",
+        "  4. 保持 handle 参数不变，StandardDraggable 内部会创建 Row（handle + Expanded(content)）",
+        "  5. 这样 DismissibleTaskTile 的滑动背景会覆盖整个 Row（包括手柄）",
+      ],
+    },
+    {
+      file: "lib/presentation/inbox/views/inbox_task_list.dart",
+      purpose: "移除 Inbox 页面的拖拽排序功能，只保留滑动操作",
+      action: "modify",
+      details: [
+        "移除所有与拖拽相关的代码和导入",
+        "移除 StandardDraggable、TaskDragIntentTarget 等拖拽组件",
+        "简化结构为：DismissibleTaskTile -> SimplifiedTaskRow",
+        "保持滑动操作功能不变（右滑快速规划，左滑删除）",
+        "确保 SimplifiedTaskRow 占据整行宽度（通过修改 SimplifiedTaskRow 本身实现）",
+      ],
+    },
+    {
+      file: "lib/presentation/completion_management/completed_page.dart",
+      purpose: "确保 Completed 页面的滑动背景正确覆盖整行",
+      action: "modify",
+      details: [
+        "当前结构：DismissibleTaskTile -> SimplifiedTaskRow",
+        "确保 SimplifiedTaskRow 占据整行宽度（通过修改 SimplifiedTaskRow 本身实现）",
+        "保持滑动操作功能不变（右滑快速规划，左滑删除）",
+      ],
+    },
+    {
+      file: "lib/presentation/completion_management/archived_page.dart",
+      purpose: "确保 Archived 页面的滑动背景正确覆盖整行",
+      action: "modify",
+      details: [
+        "当前结构：DismissibleTaskTile -> SimplifiedTaskRow",
+        "确保 SimplifiedTaskRow 占据整行宽度（通过修改 SimplifiedTaskRow 本身实现）",
+        "保持滑动操作功能不变（右滑快速规划，左滑删除）",
+      ],
+    },
+    {
+      file: "lib/presentation/completion_management/trash_page.dart",
+      purpose: "确保 Trash 页面的滑动背景正确覆盖整行",
+      action: "modify",
+      details: [
+        "当前结构：DismissibleTaskTile -> SimplifiedTaskRow",
+        "确保 SimplifiedTaskRow 占据整行宽度（通过修改 SimplifiedTaskRow 本身实现）",
+        "保持滑动操作功能不变（右滑恢复，左滑永久删除）",
+      ],
+    },
+    {
+      file: "lib/presentation/tasks/widgets/task_hierarchy_list.dart",
+      purpose: "确保项目子任务列表的滑动背景正确覆盖整行",
+      action: "modify",
+      details: [
+        "当前结构：DismissibleTaskTile -> SimplifiedTaskRow",
+        "确保 SimplifiedTaskRow 占据整行宽度（通过修改 SimplifiedTaskRow 本身实现）",
+        "保持滑动操作功能不变（右滑完成，左滑删除）",
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  implementationSteps: [
+    {
+      step: 1,
+      title: "修改 SimplifiedTaskRow，让根 widget 占据整行宽度",
+      description: "在 SimplifiedTaskRow 的根 widget 外层包裹 Container 或 SizedBox，设置 width: double.infinity",
+      files: [
+        "lib/presentation/widgets/simplified_task_row.dart",
+      ],
+      action: [
+        "在 Semantics 外层包裹 Container(width: double.infinity)",
+        "或者使用 SizedBox.expand() 包裹",
+        "确保组件占据整行宽度，滑动背景能够正确覆盖",
+      ],
+    },
+    {
+      step: 2,
+      title: "调整 Tasks 页面的结构顺序",
+      description: "将 DismissibleTaskTile 移到 StandardDraggable 外层，确保滑动背景覆盖整个行（包括手柄）",
+      files: [
+        "lib/presentation/tasks/views/tasks_section_task_list_simplified.dart",
+      ],
+      action: [
+        "将 DismissibleTaskTile 移到 StandardDraggable 外层",
+        "StandardDraggable 作为 DismissibleTaskTile 的 child",
+        "SimplifiedTaskRow 作为 StandardDraggable 的 child",
+        "保持 handle 参数不变",
+      ],
+    },
+    {
+      step: 3,
+      title: "移除 Inbox 页面的拖拽排序功能",
+      description: "移除所有拖拽相关代码，简化结构为 DismissibleTaskTile -> SimplifiedTaskRow",
+      files: [
+        "lib/presentation/inbox/views/inbox_task_list.dart",
+      ],
+      action: [
+        "移除 StandardDraggable、TaskDragIntentTarget 等拖拽组件",
+        "移除拖拽相关的导入",
+        "简化结构为：DismissibleTaskTile -> SimplifiedTaskRow",
+        "保持滑动操作功能不变",
+      ],
+    },
+    {
+      step: 4,
+      title: "验证所有页面的滑动背景显示",
+      description: "测试所有任务列表页面，确保滑动背景正确覆盖整行",
+      files: [
+        "lib/presentation/completion_management/completed_page.dart",
+        "lib/presentation/completion_management/archived_page.dart",
+        "lib/presentation/completion_management/trash_page.dart",
+        "lib/presentation/tasks/widgets/task_hierarchy_list.dart",
+      ],
+      action: [
+        "运行应用，测试每个页面的滑动操作",
+        "验证滑动背景是否覆盖整行（包括手柄，如果有）",
+        "验证滑动操作功能是否正常",
+        "修复任何显示问题",
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 测试策略（必填）
+  // ===========================================
+  testing: {
+    unitTests: [],
+    widgetTests: [],
+    integrationTests: [],
+    manualTests: [
+      {
+        description: "测试 Tasks 页面的滑动操作",
+        steps: [
+          "打开 Tasks 页面",
+          "右滑一个任务，验证滑动背景覆盖整行（包括手柄）",
+          "左滑一个任务，验证滑动背景覆盖整行（包括手柄）",
+          "验证滑动操作功能正常（右滑完成，左滑归档）",
+        ],
+      },
+      {
+        description: "测试 Inbox 页面的滑动操作（无拖拽）",
+        steps: [
+          "打开 Inbox 页面",
+          "验证没有拖拽手柄图标",
+          "右滑一个任务，验证滑动背景覆盖整行",
+          "左滑一个任务，验证滑动背景覆盖整行",
+          "验证滑动操作功能正常（右滑快速规划，左滑删除）",
+        ],
+      },
+      {
+        description: "测试 Completed 页面的滑动操作",
+        steps: [
+          "打开 Completed 页面",
+          "右滑一个任务，验证滑动背景覆盖整行",
+          "左滑一个任务，验证滑动背景覆盖整行",
+          "验证滑动操作功能正常（右滑快速规划，左滑删除）",
+        ],
+      },
+      {
+        description: "测试 Archived 页面的滑动操作",
+        steps: [
+          "打开 Archived 页面",
+          "右滑一个任务，验证滑动背景覆盖整行",
+          "左滑一个任务，验证滑动背景覆盖整行",
+          "验证滑动操作功能正常（右滑快速规划，左滑删除）",
+        ],
+      },
+      {
+        description: "测试 Trash 页面的滑动操作",
+        steps: [
+          "打开 Trash 页面",
+          "右滑一个任务，验证滑动背景覆盖整行",
+          "左滑一个任务，验证滑动背景覆盖整行",
+          "验证滑动操作功能正常（右滑恢复，左滑永久删除）",
+        ],
+      },
+      {
+        description: "测试项目子任务列表的滑动操作",
+        steps: [
+          "打开项目详情页面",
+          "查看子任务列表",
+          "右滑一个子任务，验证滑动背景覆盖整行",
+          "左滑一个子任务，验证滑动背景覆盖整行",
+          "验证滑动操作功能正常（右滑完成，左滑删除）",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 6. 风险和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      name: "Tasks 页面结构调整可能影响拖拽功能",
+      severity: "medium",
+      mitigation: "仔细测试拖拽排序功能，确保 StandardDraggable 的 handle 仍然正常工作",
+    },
+    {
+      name: "移除 Inbox 拖拽功能可能影响用户体验",
+      severity: "low",
+      mitigation: "Inbox 页面仍然保留滑动操作，用户可以通过滑动快速规划或删除任务",
+    },
+    {
+      name: "SimplifiedTaskRow 占据整行可能影响布局",
+      severity: "low",
+      mitigation: "使用 Container 或 SizedBox 包裹，确保不影响其他布局",
+    },
+  ],
+
+  // ===========================================
+  // 7. 成功标准（必填）
+  // ===========================================
+  successCriteria: [
+    "所有任务列表页面的滑动背景正确覆盖整行（包括手柄，如果有）",
+    "Tasks 页面的拖拽排序功能正常工作",
+    "Inbox 页面没有拖拽手柄，只有滑动操作",
+    "所有页面的滑动操作功能正常",
+    "代码通过 lint 检查，没有错误和警告",
+  ],
+
+  // ===========================================
+  // 8. 后续优化（可选）
+  // ===========================================
+  futureImprovements: [
+    "考虑为没有拖拽功能的页面添加视觉提示，说明可以通过滑动进行操作",
+    "考虑统一所有页面的滑动动画效果",
+    "考虑添加滑动操作的触觉反馈",
+  ],
+}
+

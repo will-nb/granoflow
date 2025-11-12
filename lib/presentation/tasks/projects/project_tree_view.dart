@@ -81,11 +81,12 @@ class ProjectNodeHeader extends ConsumerWidget {
       trailing: Wrap(
         spacing: 8,
         children: [
-          IconButton(
-            tooltip: l10n.actionAddSubtask,
-            icon: const Icon(Icons.subdirectory_arrow_right),
-            onPressed: () => _showAddSubtaskDialog(context, ref, task.id),
-          ),
+          // 子任务功能已禁用
+          // IconButton(
+          //   tooltip: l10n.actionAddSubtask,
+          //   icon: const Icon(Icons.subdirectory_arrow_right),
+          //   onPressed: () => _showAddSubtaskDialog(context, ref, task.id),
+          // ),
           IconButton(
             tooltip: l10n.taskListRenameDialogTitle,
             icon: const Icon(Icons.edit_outlined),
@@ -101,67 +102,68 @@ class ProjectNodeHeader extends ConsumerWidget {
     );
   }
 
-  Future<void> _showAddSubtaskDialog(
-    BuildContext context,
-      WidgetRef ref,
-      String parentId,
-    ) async {
-    final l10n = AppLocalizations.of(context);
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.actionAddSubtask),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 3000,
-          decoration: InputDecoration(
-            hintText: l10n.taskTitleHint,
-            counterText: '',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isNotEmpty) {
-                Navigator.of(dialogContext).pop(value);
-              }
-            },
-            child: Text(l10n.commonAdd),
-          ),
-        ],
-      ),
-    );
+  // 子任务功能已禁用
+  // Future<void> _showAddSubtaskDialog(
+  //   BuildContext context,
+  //     WidgetRef ref,
+  //     String parentId,
+  //   ) async {
+  //   final l10n = AppLocalizations.of(context);
+  //   final controller = TextEditingController();
+  //   final result = await showDialog<String>(
+  //     context: context,
+  //     builder: (dialogContext) => AlertDialog(
+  //       title: Text(l10n.actionAddSubtask),
+  //       content: TextField(
+  //         controller: controller,
+  //         autofocus: true,
+  //         maxLength: 3000,
+  //         decoration: InputDecoration(
+  //           hintText: l10n.taskTitleHint,
+  //           counterText: '',
+  //         ),
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.of(dialogContext).pop(),
+  //           child: Text(l10n.commonCancel),
+  //         ),
+  //         FilledButton(
+  //           onPressed: () {
+  //             final value = controller.text.trim();
+  //             if (value.isNotEmpty) {
+  //               Navigator.of(dialogContext).pop(value);
+  //             }
+  //           },
+  //           child: Text(l10n.commonAdd),
+  //         ),
+  //       ],
+  //     ),
+  //   );
 
-    if (result == null || result.isEmpty) {
-      return;
-    }
+  //   if (result == null || result.isEmpty) {
+  //     return;
+  //   }
 
-    final notifier = ref.read(taskEditActionsNotifierProvider.notifier);
-    try {
-      await notifier.addSubtask(parentId: parentId, title: result);
-      if (!context.mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.taskListSubtaskCreatedToast)),
-      );
-    } catch (error, stackTrace) {
-      debugPrint('Failed to create subtask: $error\n$stackTrace');
-      if (!context.mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.taskListSubtaskError)),
-      );
-    }
-  }
+  //   final notifier = ref.read(taskEditActionsNotifierProvider.notifier);
+  //   try {
+  //     await notifier.addSubtask(parentId: parentId, title: result);
+  //     if (!context.mounted) {
+  //       return;
+  //     }
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text(l10n.taskListSubtaskCreatedToast)),
+  //     );
+  //   } catch (error, stackTrace) {
+  //     debugPrint('Failed to create subtask: $error\n$stackTrace');
+  //     if (!context.mounted) {
+  //       return;
+  //     }
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text(l10n.taskListSubtaskError)),
+  //     );
+  //   }
+  // }
 
   Future<void> _showRenameDialog(
     BuildContext context,

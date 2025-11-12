@@ -840,6 +840,54 @@
   "taskListTaskArchivedToast": "任務已封存。",
   "taskListTaskCompletedError": "完成任務失敗。",
   "taskListTaskCompletedToast": "任務已完成。",
+  "taskListTaskUncompletedToast": "任務已恢復為未完成。",
+  "@taskListTaskUncompletedToast": {
+    "description": "任務恢復為未完成狀態的提示"
+  },
+  "taskListTaskStatusToggleHint": "點擊切換任務完成狀態",
+  "@taskListTaskStatusToggleHint": {
+    "description": "任務狀態切換的可訪問性提示"
+  },
+  "taskListTaskStatusLabel": "任務完成狀態",
+  "@taskListTaskStatusLabel": {
+    "description": "任務狀態圖標的可訪問性標籤"
+  },
+  "taskListTaskStatusCompletedHint": "點擊切換為未完成",
+  "@taskListTaskStatusCompletedHint": {
+    "description": "已完成任務狀態圖標的可訪問性提示"
+  },
+  "taskListTaskStatusUncompletedHint": "點擊切換為完成",
+  "@taskListTaskStatusUncompletedHint": {
+    "description": "未完成任務狀態圖標的可訪問性提示"
+  },
+  "taskListTaskDueDateLabel": "截止日期",
+  "@taskListTaskDueDateLabel": {
+    "description": "截止日期圖標的可訪問性標籤"
+  },
+  "taskListTaskDueDate": "截止日期",
+  "@taskListTaskDueDate": {
+    "description": "截止日期的可訪問性標籤"
+  },
+  "taskListTaskDueDateHint": "此任務有截止日期",
+  "@taskListTaskDueDateHint": {
+    "description": "截止日期圖標的可訪問性提示"
+  },
+  "taskActionSheetTitle": "任務操作",
+  "@taskActionSheetTitle": {
+    "description": "任務操作彈窗的標題"
+  },
+  "taskDetailSheetTitle": "任務詳情",
+  "@taskDetailSheetTitle": {
+    "description": "任務詳情彈窗的標題"
+  },
+  "taskListSimplifiedTip": "點擊任務可以查看詳情和進行操作",
+  "@taskListSimplifiedTip": {
+    "description": "任務列表簡化後的首次使用提示"
+  },
+  "taskActionSheetTip": "在彈窗中可以編輯任務、管理標籤、設置截止日期等",
+  "@taskActionSheetTip": {
+    "description": "任務操作彈窗的首次使用提示"
+  },
   "taskListTitle": "任務",
   "taskListTitleEdit": "任務清單 · 編輯模式",
   "taskMoveBlockedCycle": "無法建立子任務：將會形成循環關係。",

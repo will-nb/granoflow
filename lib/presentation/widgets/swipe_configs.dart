@@ -54,6 +54,34 @@ class SwipeConfigs {
     rightColor: OceanBreezeColorSchemes.errorDark,
   );
 
+  /// Tasks页面非今日区域的滑动配置
+  /// 左滑：移动到今日（quickPlan，安全操作），右滑：归档任务（警告操作）
+  /// 用于非今日区域的根任务（本周、本月、下月、以后、已逾期）
+  static const SwipeActionConfig tasksNonTodayConfig = SwipeActionConfig(
+    leftAction: SwipeActionType.quickPlan,
+    rightAction: SwipeActionType.archive,
+    leftHintKey: 'inboxQuickPlanAction',
+    rightHintKey: 'taskArchiveAction',
+    leftIcon: Icons.today,
+    rightIcon: Icons.archive,
+    leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.softPink,
+  );
+
+  /// Tasks页面非今日区域子任务的滑动配置
+  /// 左滑：移动到今日（quickPlan，安全操作），右滑：移动到回收站（删除操作）
+  /// 用于非今日区域的子任务（level > 1）
+  static const SwipeActionConfig tasksNonTodaySubtaskConfig = SwipeActionConfig(
+    leftAction: SwipeActionType.quickPlan,
+    rightAction: SwipeActionType.delete,
+    leftHintKey: 'inboxQuickPlanAction',
+    rightHintKey: 'inboxDeleteAction',
+    leftIcon: Icons.today,
+    rightIcon: Icons.delete,
+    leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark,
+  );
+
   /// 已完成/已归档页面的滑动配置
   /// 方向规范：与 inboxConfig 保持一致
   /// - 右滑（startToEnd，常用/安全）= 加入今日任务（quickPlan，绿色）
@@ -71,14 +99,15 @@ class SwipeConfigs {
 
   /// Inbox页面子任务的滑动配置
   /// 方向规范：与 inboxConfig 保持一致
-  /// - 右滑（startToEnd，常用/安全）= 提升为独立任务（promoteToIndependent，绿色）
+  /// - 右滑（startToEnd，常用/安全）= 快速加入今日（quickPlan，绿色）
   /// - 左滑（endToStart，危险）= 移动到回收站（delete，红色）
+  /// 注意：子任务功能已禁用，此配置与 inboxConfig 相同
   static const SwipeActionConfig inboxSubtaskConfig = SwipeActionConfig(
-    leftAction: SwipeActionType.promoteToIndependent,
+    leftAction: SwipeActionType.quickPlan,
     rightAction: SwipeActionType.delete,
-    leftHintKey: 'actionPromoteToIndependent',
+    leftHintKey: 'inboxQuickPlanAction',
     rightHintKey: 'inboxDeleteAction',
-    leftIcon: Icons.arrow_upward,
+    leftIcon: Icons.today,
     rightIcon: Icons.delete,
     leftColor: OceanBreezeColorSchemes.softGreen,
     rightColor: OceanBreezeColorSchemes.errorDark,

@@ -12,8 +12,6 @@ import '../utils/sort_index_utils.dart';
 import '../widgets/ancestor_task_chain.dart';
 import '../widgets/parent_task_header.dart';
 import '../../widgets/reorderable_proxy_decorator.dart';
-import '../../widgets/task_drag_intent_helper.dart';
-import '../../common/drag/task_drag_intent_target.dart';
 import 'task_tree_tile.dart';
 import 'task_tree_tile/task_tree_tile_header.dart';
 
@@ -102,31 +100,11 @@ class _TaskSectionTaskModeListState
       proxyDecorator: ReorderableProxyDecorator.build,
       itemBuilder: (context, index) {
         final task = _roots[index];
-        return TaskDragIntentTarget.surface(
+        return TaskWithParentChain(
           key: ValueKey('task-${task.id}'),
-          meta: TaskDragIntentMeta(
-            page: 'Tasks',
-            targetType: 'taskSurface',
-            targetId: task.id,
-            targetTaskId: task.id,
-          ),
-          canAccept: (draggedTask, _) =>
-              TaskDragIntentHelper.canAcceptAsChild(draggedTask, task),
-          onPerform: (draggedTask, ref, context, l10n) async {
-            return TaskDragIntentHelper.handleDropOnTask(
-              draggedTask,
-              task,
-              context,
-              ref,
-              l10n,
-            );
-          },
-          // 已移除 ReorderableDragStartListener，改用 StandardDraggable 启动拖拽
-          child: TaskWithParentChain(
-            section: widget.section,
-            task: task,
-            displayedParentIds: _getDisplayedParentIdsUpTo(index),
-          ),
+          section: widget.section,
+          task: task,
+          displayedParentIds: _getDisplayedParentIdsUpTo(index),
         );
       },
     );

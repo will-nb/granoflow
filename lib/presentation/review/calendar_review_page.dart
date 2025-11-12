@@ -363,33 +363,33 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
                 color: OceanBreezeColorSchemes.lakeCyan,
                 shape: BoxShape.circle,
               ),
-              todayDecoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.5,
+                todayDecoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 1.5,
+                  ),
+                ),
+                selectedDecoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                 ),
               ),
-              selectedDecoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            ),
+          ),
+          // 详情区域
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
             ),
+            child: _buildDetailView(state.viewMode),
           ),
-        ),
-        // 详情区域
-        Container(
-          height: 200,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-            ),
-          ),
-          child: _buildDetailView(state.viewMode),
-        ),
-      ],
+        ],
     );
   }
 

@@ -492,9 +492,12 @@ class DriftTaskRepository implements TaskRepository {
       TasksCompanion finalCompanion;
       switch (targetSection) {
         case domain.TaskSection.completed:
+          // 获取完成时间，同步设置 dueAt 为完成时间
+          final completedTime = DateTime.now();
           finalCompanion = companion.copyWith(
             status: Value(domain.TaskStatus.completedActive),
-            endedAt: Value(DateTime.now()),
+            endedAt: Value(completedTime),
+            dueAt: Value(completedTime),  // 同步设置 dueAt 为完成时间
           );
           break;
         case domain.TaskSection.archived:
@@ -539,8 +542,8 @@ class DriftTaskRepository implements TaskRepository {
 
       // 构建更新对象
       final companion = TasksCompanion(
-        status: Value(status),
-        updatedAt: Value(DateTime.now()),
+          status: Value(status),
+          updatedAt: Value(DateTime.now()),
         startedAt: shouldSetStartedAt ? Value(DateTime.now()) : const Value.absent(),
       );
 
