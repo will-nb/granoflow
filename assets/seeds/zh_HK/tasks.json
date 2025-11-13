@@ -1,78 +1,1219 @@
 {
   "tasks": [
     {
-      "slug": "task_archive",
-      "title": "歸檔這個任務",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_archive_to_trash",
-      "title": "把這個任務歸檔，然後丟進垃圾箱",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_trash_to_delete",
-      "title": "把這個任務丟進垃圾箱，然後刪除",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_activate_from_inbox",
-      "title": "從收集箱激活一條任務",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_timer_and_complete",
-      "title": "為這個任務計時，然後選擇完成",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "project_new_concept_english_3",
-      "title": "學習《新概念英語》第三冊",
+      "slug": "project_learn_how_to_use",
+      "title": "學習如何使用",
       "status": "pending",
       "taskKind": "project",
       "allowInstantComplete": false,
-      "tags": [],
-      "dueAt": 168
+      "tags": []
     },
     {
-      "slug": "milestone_unit1",
-      "title": "學習第一單元",
+      "slug": "milestone_navigation",
+      "title": "導航操作",
       "status": "pending",
       "taskKind": "milestone",
-      "parentSlug": "project_new_concept_english_3",
+      "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": [],
-      "dueAt": 56
+      "tags": []
     },
     {
-      "slug": "milestone_unit2",
-      "title": "學習第二單元",
+      "slug": "milestone_task_creation",
+      "title": "任務創建",
       "status": "pending",
       "taskKind": "milestone",
-      "parentSlug": "project_new_concept_english_3",
+      "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": [],
-      "dueAt": 112
+      "tags": []
     },
     {
-      "slug": "milestone_unit3",
-      "title": "學習第三單元",
+      "slug": "milestone_task_editing",
+      "title": "任務編輯",
       "status": "pending",
       "taskKind": "milestone",
-      "parentSlug": "project_new_concept_english_3",
+      "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_task_actions",
+      "title": "任務操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_swipe_actions",
+      "title": "滑動操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_drag_operations",
+      "title": "拖拽操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_project_operations",
+      "title": "項目操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_tag_operations",
+      "title": "標籤操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_search_operations",
+      "title": "搜索操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_calendar_review",
+      "title": "日曆回顧",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_timer_operations",
+      "title": "定時器操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_filter_operations",
+      "title": "篩選操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_other_operations",
+      "title": "其他操作",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "nav_001",
+      "title": "打開抽屜菜單",
+      "status": "pending",
+      "allowInstantComplete": true,
       "tags": [],
-      "dueAt": 168
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_001_node_1",
+          "title": "檢查菜單圖標是否可見",
+          "status": "finished",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_001_node_2",
+          "title": "點擊菜單圖標",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_001_node_3",
+          "title": "驗證菜單是否從左側滑出",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "nav_002",
+      "title": "關閉抽屜菜單",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_003",
+      "title": "導航到首頁",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_004",
+      "title": "導航到收件箱",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_005",
+      "title": "導航到任務列表",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_006",
+      "title": "導航到項目",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_007",
+      "title": "導航到定時器",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_008",
+      "title": "導航到回顧",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_009",
+      "title": "導航到搜索",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_010",
+      "title": "導航到成就",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_011",
+      "title": "底部導航欄切換",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "task_create_001",
+      "title": "通過對話框創建任務（無日期）",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_002",
+      "title": "通過對話框創建任務（有日期）",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_003",
+      "title": "在收件箱快速添加任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_004",
+      "title": "在任務列表快速添加任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_005",
+      "title": "在項目詳情頁快速添加任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_edit_001",
+      "title": "編輯任務標題",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_001_node_1",
+          "title": "打開任務操作彈窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_001_node_2",
+          "title": "定位到標題輸入框",
+          "status": "finished",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_001_node_3",
+          "title": "修改標題內容",
+          "status": "pending",
+          "parentSlug": "task_edit_001_node_2"
+        },
+        {
+          "slug": "task_edit_001_node_4",
+          "title": "驗證標題更新成功",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_edit_002",
+      "title": "編輯任務描述",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_002_node_1",
+          "title": "打開任務操作彈窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_002_node_2",
+          "title": "點擊描述按鈕",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_002_node_3",
+          "title": "在富文本編輯器中編輯",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_002_node_4",
+          "title": "保存描述",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_edit_003",
+      "title": "添加標籤",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_004",
+      "title": "刪除標籤",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_005",
+      "title": "設置截止日期",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_006",
+      "title": "清除截止日期",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_007",
+      "title": "分配項目",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_008",
+      "title": "分配里程碑",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_009",
+      "title": "清除項目分配",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_010",
+      "title": "管理任務節點",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_010_node_1",
+          "title": "打開任務操作彈窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_010_node_2",
+          "title": "點擊節點按鈕",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_010_node_3",
+          "title": "在節點管理對話框中添加節點",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_010_node_4",
+          "title": "驗證節點列表更新",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_action_001",
+      "title": "完成任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_001_node_1",
+          "title": "打開任務操作彈窗或右滑任務",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_001_node_2",
+          "title": "點擊完成按鈕",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_001_node_3",
+          "title": "驗證任務狀態變為已完成",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_action_002",
+      "title": "歸檔任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_003",
+      "title": "刪除任務到回收站",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_004",
+      "title": "恢復任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_005",
+      "title": "永久刪除任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_006",
+      "title": "快速規劃到今日",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_007",
+      "title": "智能推遲任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_008",
+      "title": "開始計時",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_008_node_1",
+          "title": "打開任務操作彈窗或導航到定時器頁面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_008_node_2",
+          "title": "選擇要計時的任務",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_008_node_3",
+          "title": "點擊開始計時按鈕",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_008_node_4",
+          "title": "驗證計時開始，任務置頂",
+          "status": "pending",
+          "parentSlug": "task_action_008_node_3"
+        }
+      ]
+    },
+    {
+      "slug": "task_action_009",
+      "title": "結束計時",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_010",
+      "title": "結束會話-完成任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_011",
+      "title": "結束會話-記錄多個任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_012",
+      "title": "結束會話-標記為浪費",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_013",
+      "title": "轉換為項目",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_014",
+      "title": "置頂任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_015",
+      "title": "取消置頂",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "swipe_001",
+      "title": "收件箱-右滑快速規劃",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_001_node_1",
+          "title": "導航到收件箱頁面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_001_node_2",
+          "title": "在任務上向右滑動",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_001_node_3",
+          "title": "驗證任務快速規劃到今日",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "swipe_002",
+      "title": "收件箱-左滑刪除",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_003",
+      "title": "任務列表-右滑完成",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_004",
+      "title": "任務列表-左滑歸檔",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_005",
+      "title": "任務列表非今日-右滑快速規劃",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_006",
+      "title": "已完成-右滑快速規劃",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_007",
+      "title": "已完成-左滑刪除",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_008",
+      "title": "已歸檔-右滑快速規劃",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_009",
+      "title": "已歸檔-左滑刪除",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_010",
+      "title": "回收站-右滑恢復",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_011",
+      "title": "回收站-左滑永久刪除",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "drag_001",
+      "title": "拖拽任務重新排序",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations",
+      "nodes": [
+        {
+          "slug": "drag_001_node_1",
+          "title": "長按任務",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_001_node_2",
+          "title": "拖拽任務到新位置",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_001_node_3",
+          "title": "釋放任務",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_001_node_4",
+          "title": "驗證任務順序更新",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "drag_002",
+      "title": "拖拽任務到不同分區",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "drag_003",
+      "title": "拖拽任務到收件箱",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "drag_004",
+      "title": "拖拽任務到項目里程碑",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "drag_005",
+      "title": "禁止拖拽到逾期分區",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "project_001",
+      "title": "創建項目",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_001_node_1",
+          "title": "導航到項目列表頁面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_001_node_2",
+          "title": "點擊創建項目按鈕",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_001_node_3",
+          "title": "輸入項目信息",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_001_node_4",
+          "title": "保存項目",
+          "status": "pending",
+          "parentSlug": "project_001_node_3"
+        }
+      ]
+    },
+    {
+      "slug": "project_002",
+      "title": "編輯項目",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_003",
+      "title": "刪除項目",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_004",
+      "title": "查看項目詳情",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_005",
+      "title": "創建里程碑",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_005_node_1",
+          "title": "打開項目詳情頁面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_005_node_2",
+          "title": "點擊創建里程碑按鈕",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_005_node_3",
+          "title": "輸入里程碑信息",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_005_node_4",
+          "title": "保存里程碑",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "project_006",
+      "title": "編輯里程碑",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_007",
+      "title": "刪除里程碑",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_008",
+      "title": "查看里程碑詳情",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "tag_001",
+      "title": "按標籤篩選任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_tag_operations"
+    },
+    {
+      "slug": "tag_002",
+      "title": "清除標籤篩選",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_tag_operations"
+    },
+    {
+      "slug": "tag_003",
+      "title": "多標籤篩選",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_tag_operations"
+    },
+    {
+      "slug": "search_001",
+      "title": "輸入搜索關鍵詞",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "search_002",
+      "title": "點擊搜索結果",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "search_003",
+      "title": "清空搜索",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "search_004",
+      "title": "搜索最少字符限制",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "calendar_001",
+      "title": "選擇日期",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review",
+      "nodes": [
+        {
+          "slug": "calendar_001_node_1",
+          "title": "導航到日曆回顧頁面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_001_node_2",
+          "title": "在日曆中點擊日期",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_001_node_3",
+          "title": "驗證顯示該日期的詳情",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "calendar_002",
+      "title": "切換到日視圖",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_003",
+      "title": "切換到周視圖",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_004",
+      "title": "切換到月視圖",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_005",
+      "title": "翻頁查看其他月份",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_006",
+      "title": "查看日期詳情",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "timer_001",
+      "title": "選擇任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_002",
+      "title": "開始計時",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations",
+      "nodes": [
+        {
+          "slug": "timer_002_node_1",
+          "title": "導航到定時器頁面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_002_node_2",
+          "title": "在下拉菜單中選擇任務",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_002_node_3",
+          "title": "點擊開始計時按鈕",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "timer_003",
+      "title": "結束計時",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_004",
+      "title": "搜索模板",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_005",
+      "title": "應用模板",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_006",
+      "title": "查看活躍會話",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "filter_001",
+      "title": "展開篩選器",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_002",
+      "title": "收起篩選器",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_003",
+      "title": "按項目篩選",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_004",
+      "title": "清除項目篩選",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_005",
+      "title": "組合篩選",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "other_001",
+      "title": "下拉刷新",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_002",
+      "title": "點擊空白區域收起鍵盤",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_003",
+      "title": "展開任務詳情",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_004",
+      "title": "收起任務詳情",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_005",
+      "title": "打開任務操作彈窗",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_006",
+      "title": "關閉任務操作彈窗",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_007",
+      "title": "滾動到置頂任務",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_008",
+      "title": "滾動到指定分區",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_009",
+      "title": "加載更多（分頁）",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_010",
+      "title": "清空回收站",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_011",
+      "title": "查看任務描述預覽",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_012",
+      "title": "查看任務節點列表",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
     }
   ]
 }

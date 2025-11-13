@@ -1,4 +1,4 @@
 {
-  "version": "2025.01.20.1",
-  "notes": "项目/里程碑架构变更：已拆分到独立表。种子数据格式保持兼容（仍使用 taskKind 字段），seed_import_service 会自动创建对应的 Project/Milestone 实体。"
+  "version": "2025.01.20.2",
+  "notes": "添加节点（nodes）支持：种子数据格式扩展，支持在任务中定义节点（nodes）字段。节点支持嵌套结构（通过 parentSlug 引用同级节点），支持状态定义（pending, finished, deleted）。生成新的\"学习如何使用\"项目，包含13个里程碑和101个任务，部分任务包含节点用于测试节点功能。"
 }

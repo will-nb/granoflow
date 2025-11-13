@@ -1,78 +1,1219 @@
 {
   "tasks": [
     {
-      "slug": "task_archive",
-      "title": "Archive this task",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_archive_to_trash",
-      "title": "Archive this task, then move to trash",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_trash_to_delete",
-      "title": "Move this task to trash, then delete",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_activate_from_inbox",
-      "title": "Activate a task from inbox",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "task_timer_and_complete",
-      "title": "Time this task, then choose to complete",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": ["home", "not_urgent", "important"]
-    },
-    {
-      "slug": "project_new_concept_english_3",
-      "title": "Learn New Concept English Book 3",
+      "slug": "project_learn_how_to_use",
+      "title": "Learn How to Use",
       "status": "pending",
       "taskKind": "project",
       "allowInstantComplete": false,
-      "tags": [],
-      "dueAt": 168
+      "tags": []
     },
     {
-      "slug": "milestone_unit1",
-      "title": "Learn Unit 1",
+      "slug": "milestone_navigation",
+      "title": "Navigation Operations",
       "status": "pending",
       "taskKind": "milestone",
-      "parentSlug": "project_new_concept_english_3",
+      "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": [],
-      "dueAt": 56
+      "tags": []
     },
     {
-      "slug": "milestone_unit2",
-      "title": "Learn Unit 2",
+      "slug": "milestone_task_creation",
+      "title": "Task Creation",
       "status": "pending",
       "taskKind": "milestone",
-      "parentSlug": "project_new_concept_english_3",
+      "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": [],
-      "dueAt": 112
+      "tags": []
     },
     {
-      "slug": "milestone_unit3",
-      "title": "Learn Unit 3",
+      "slug": "milestone_task_editing",
+      "title": "Task Editing",
       "status": "pending",
       "taskKind": "milestone",
-      "parentSlug": "project_new_concept_english_3",
+      "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_task_actions",
+      "title": "Task Actions",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_swipe_actions",
+      "title": "Swipe Actions",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_drag_operations",
+      "title": "Drag Operations",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_project_operations",
+      "title": "Project Operations",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_tag_operations",
+      "title": "Tag Operations",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_search_operations",
+      "title": "Search Operations",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_calendar_review",
+      "title": "Calendar Review",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_timer_operations",
+      "title": "Timer Operations",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_filter_operations",
+      "title": "Filter Operations",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "milestone_other_operations",
+      "title": "Other Operations",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
+      "slug": "nav_001",
+      "title": "Open drawer menu",
+      "status": "pending",
+      "allowInstantComplete": true,
       "tags": [],
-      "dueAt": 168
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_001_node_1",
+          "title": "Check if menu icon is visible",
+          "status": "finished",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_001_node_2",
+          "title": "Tap menu icon",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_001_node_3",
+          "title": "Verify menu slides out from left",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "nav_002",
+      "title": "Close drawer menu",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_003",
+      "title": "Navigate to home",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_004",
+      "title": "Navigate to inbox",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_005",
+      "title": "Navigate to task list",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_006",
+      "title": "Navigate to projects",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_007",
+      "title": "Navigate to timer",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_008",
+      "title": "Navigate to review",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_009",
+      "title": "Navigate to search",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_010",
+      "title": "Navigate to achievements",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "nav_011",
+      "title": "Bottom navigation bar switch",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_navigation"
+    },
+    {
+      "slug": "task_create_001",
+      "title": "Create task via dialog (no date)",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_002",
+      "title": "Create task via dialog (with date)",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_003",
+      "title": "Quick add task in inbox",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_004",
+      "title": "Quick add task in task list",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_create_005",
+      "title": "Quick add task in project detail",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_creation"
+    },
+    {
+      "slug": "task_edit_001",
+      "title": "Edit task title",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_001_node_1",
+          "title": "Open task action sheet",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_001_node_2",
+          "title": "Locate title input field",
+          "status": "finished",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_001_node_3",
+          "title": "Modify title content",
+          "status": "pending",
+          "parentSlug": "task_edit_001_node_2"
+        },
+        {
+          "slug": "task_edit_001_node_4",
+          "title": "Verify title updated successfully",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_edit_002",
+      "title": "Edit task description",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_002_node_1",
+          "title": "Open task action sheet",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_002_node_2",
+          "title": "Tap description button",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_002_node_3",
+          "title": "Edit in rich text editor",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_002_node_4",
+          "title": "Save description",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_edit_003",
+      "title": "Add tag",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_004",
+      "title": "Remove tag",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_005",
+      "title": "Set due date",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_006",
+      "title": "Clear due date",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_007",
+      "title": "Assign project",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_008",
+      "title": "Assign milestone",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_009",
+      "title": "Clear project assignment",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing"
+    },
+    {
+      "slug": "task_edit_010",
+      "title": "Manage task nodes",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_010_node_1",
+          "title": "Open task action sheet",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_010_node_2",
+          "title": "Tap node button",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_010_node_3",
+          "title": "Add node in node manager dialog",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_010_node_4",
+          "title": "Verify node list updated",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_action_001",
+      "title": "Complete task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_001_node_1",
+          "title": "Open task action sheet or swipe right",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_001_node_2",
+          "title": "Tap complete button",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_001_node_3",
+          "title": "Verify task status changed to completed",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "task_action_002",
+      "title": "Archive task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_003",
+      "title": "Delete task to trash",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_004",
+      "title": "Restore task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_005",
+      "title": "Permanently delete task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_006",
+      "title": "Quick plan to today",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_007",
+      "title": "Smart postpone task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_008",
+      "title": "Start timer",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_008_node_1",
+          "title": "Open task action sheet or navigate to timer page",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_008_node_2",
+          "title": "Select task to time",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_008_node_3",
+          "title": "Tap start timer button",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_008_node_4",
+          "title": "Verify timer started and task pinned",
+          "status": "pending",
+          "parentSlug": "task_action_008_node_3"
+        }
+      ]
+    },
+    {
+      "slug": "task_action_009",
+      "title": "End timer",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_010",
+      "title": "End session - complete task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_011",
+      "title": "End session - record multiple tasks",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_012",
+      "title": "End session - mark as waste",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_013",
+      "title": "Convert to project",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_014",
+      "title": "Pin task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "task_action_015",
+      "title": "Unpin task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_task_actions"
+    },
+    {
+      "slug": "swipe_001",
+      "title": "Inbox - swipe right to quick plan",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_001_node_1",
+          "title": "Navigate to inbox page",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_001_node_2",
+          "title": "Swipe right on task",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_001_node_3",
+          "title": "Verify task quick planned to today",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "swipe_002",
+      "title": "Inbox - swipe left to delete",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_003",
+      "title": "Task list - swipe right to complete",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_004",
+      "title": "Task list - swipe left to archive",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_005",
+      "title": "Task list non-today - swipe right to quick plan",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_006",
+      "title": "Completed - swipe right to quick plan",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_007",
+      "title": "Completed - swipe left to delete",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_008",
+      "title": "Archived - swipe right to quick plan",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_009",
+      "title": "Archived - swipe left to delete",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_010",
+      "title": "Trash - swipe right to restore",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "swipe_011",
+      "title": "Trash - swipe left to permanently delete",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_swipe_actions"
+    },
+    {
+      "slug": "drag_001",
+      "title": "Drag task to reorder",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations",
+      "nodes": [
+        {
+          "slug": "drag_001_node_1",
+          "title": "Long press task",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_001_node_2",
+          "title": "Drag task to new position",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_001_node_3",
+          "title": "Release task",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_001_node_4",
+          "title": "Verify task order updated",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "drag_002",
+      "title": "Drag task to different section",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "drag_003",
+      "title": "Drag task to inbox",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "drag_004",
+      "title": "Drag task to project milestone",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "drag_005",
+      "title": "Prevent drag to overdue section",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_drag_operations"
+    },
+    {
+      "slug": "project_001",
+      "title": "Create project",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_001_node_1",
+          "title": "Navigate to project list page",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_001_node_2",
+          "title": "Tap create project button",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_001_node_3",
+          "title": "Enter project information",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_001_node_4",
+          "title": "Save project",
+          "status": "pending",
+          "parentSlug": "project_001_node_3"
+        }
+      ]
+    },
+    {
+      "slug": "project_002",
+      "title": "Edit project",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_003",
+      "title": "Delete project",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_004",
+      "title": "View project details",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_005",
+      "title": "Create milestone",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_005_node_1",
+          "title": "Open project detail page",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_005_node_2",
+          "title": "Tap create milestone button",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_005_node_3",
+          "title": "Enter milestone information",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_005_node_4",
+          "title": "Save milestone",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "project_006",
+      "title": "Edit milestone",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_007",
+      "title": "Delete milestone",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "project_008",
+      "title": "View milestone details",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_project_operations"
+    },
+    {
+      "slug": "tag_001",
+      "title": "Filter tasks by tag",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_tag_operations"
+    },
+    {
+      "slug": "tag_002",
+      "title": "Clear tag filter",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_tag_operations"
+    },
+    {
+      "slug": "tag_003",
+      "title": "Multi-tag filter",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_tag_operations"
+    },
+    {
+      "slug": "search_001",
+      "title": "Enter search keyword",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "search_002",
+      "title": "Click search result",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "search_003",
+      "title": "Clear search",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "search_004",
+      "title": "Search minimum character limit",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_search_operations"
+    },
+    {
+      "slug": "calendar_001",
+      "title": "Select date",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review",
+      "nodes": [
+        {
+          "slug": "calendar_001_node_1",
+          "title": "Navigate to calendar review page",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_001_node_2",
+          "title": "Tap date in calendar",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_001_node_3",
+          "title": "Verify date details displayed",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "calendar_002",
+      "title": "Switch to day view",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_003",
+      "title": "Switch to week view",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_004",
+      "title": "Switch to month view",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_005",
+      "title": "Navigate to other months",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "calendar_006",
+      "title": "View date details",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_calendar_review"
+    },
+    {
+      "slug": "timer_001",
+      "title": "Select task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_002",
+      "title": "Start timer",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations",
+      "nodes": [
+        {
+          "slug": "timer_002_node_1",
+          "title": "Navigate to timer page",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_002_node_2",
+          "title": "Select task from dropdown",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_002_node_3",
+          "title": "Tap start timer button",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
+    },
+    {
+      "slug": "timer_003",
+      "title": "End timer",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_004",
+      "title": "Search template",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_005",
+      "title": "Apply template",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "timer_006",
+      "title": "View active session",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_timer_operations"
+    },
+    {
+      "slug": "filter_001",
+      "title": "Expand filter",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_002",
+      "title": "Collapse filter",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_003",
+      "title": "Filter by project",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_004",
+      "title": "Clear project filter",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "filter_005",
+      "title": "Combined filter",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_filter_operations"
+    },
+    {
+      "slug": "other_001",
+      "title": "Pull to refresh",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_002",
+      "title": "Tap blank area to dismiss keyboard",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_003",
+      "title": "Expand task details",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_004",
+      "title": "Collapse task details",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_005",
+      "title": "Open task action sheet",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_006",
+      "title": "Close task action sheet",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_007",
+      "title": "Scroll to pinned task",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_008",
+      "title": "Scroll to specified section",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_009",
+      "title": "Load more (pagination)",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_010",
+      "title": "Empty trash",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_011",
+      "title": "View task description preview",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "other_012",
+      "title": "View task node list",
+      "status": "pending",
+      "allowInstantComplete": true,
+      "tags": [],
+      "parentSlug": "milestone_other_operations"
     }
   ]
 }
