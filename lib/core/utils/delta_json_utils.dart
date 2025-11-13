@@ -106,5 +106,22 @@ class DeltaJsonUtils {
       return false;
     }
   }
+
+  /// 检查 Document 是否为空（只包含空白字符）
+  /// 
+  /// [document] Document 对象
+  /// 返回 true 如果 Document 为空或只包含空白字符（空格、中文空格、换行符、制表符等），否则返回 false
+  static bool isDocumentEmpty(Document document) {
+    final plainText = document.toPlainText();
+    
+    // 检查是否只包含空白字符
+    // 使用正则表达式匹配所有 Unicode 空白字符，包括：
+    // - 普通空格 (U+0020)
+    // - 中文全角空格 (U+3000)
+    // - 换行符 (\n, \r)
+    // - 制表符 (\t)
+    // - 其他 Unicode 空白字符
+    return plainText.trim().isEmpty;
+  }
 }
 

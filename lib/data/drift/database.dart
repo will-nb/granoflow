@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:flutter/foundation.dart';
 
 // 条件导入：Web 和移动端使用不同的数据库实现
 import 'database_web.dart' if (dart.library.io) 'database_native.dart' as db_impl;
+// 条件导入：测试数据库实现
+import 'database_test_web.dart' if (dart.library.io) 'database_test_native.dart' as test_db_impl;
 
 import 'tables/tasks.dart';
 import 'tables/projects.dart';
@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
   /// 测试构造函数，使用内存数据库
-  AppDatabase.test() : super(NativeDatabase.memory());
+  AppDatabase.test() : super(test_db_impl.createTestDatabase());
 
   /// 单例实例
   static AppDatabase? _instance;
@@ -56,7 +56,6 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// 设置测试实例（仅用于测试）
-  @visibleForTesting
   static void setTestInstance(AppDatabase? testInstance) {
     _instance = testInstance;
   }

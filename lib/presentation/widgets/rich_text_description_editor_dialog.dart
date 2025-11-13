@@ -40,7 +40,6 @@ class _RichTextDescriptionEditorDialogState
   bool _saveSuccess = false;
   bool _saveFailed = false;
   String? _lastSavedContent;
-  RichTextEditorConfig? _config;
   int _debounceDelay = 300;
 
   @override
@@ -62,7 +61,6 @@ class _RichTextDescriptionEditorDialogState
     final configService = await RichTextEditorConfigService.getInstance();
     final config = await configService.getConfig();
     setState(() {
-      _config = config;
       _debounceDelay = config.autoSaveDebounce;
     });
   }
@@ -91,7 +89,11 @@ class _RichTextDescriptionEditorDialogState
   Future<void> _performSave() async {
     if (_isSaving) return;
 
-    final currentContent = DeltaJsonUtils.documentToJson(_controller.document);
+    // 检查内容是否为空（只包含空白字符）
+    final isEmpty = DeltaJsonUtils.isDocumentEmpty(_controller.document);
+    
+    // 如果内容为空，保存 null，否则保存 JSON 字符串
+    final currentContent = isEmpty ? null : DeltaJsonUtils.documentToJson(_controller.document);
     
     // 如果内容没有变化，不保存
     if (currentContent == _lastSavedContent) {
@@ -281,48 +283,58 @@ class _RichTextDescriptionEditorDialogState
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final toolbarMode = _config?.toolbarMode ?? 'full';
-
-    // 使用 QuillSimpleToolbar
-    // 根据 toolbarMode 配置工具栏按钮
+    // 自定义工具栏：手动构建按钮列表，完全控制布局，无分隔符
+    // 按钮顺序：文本格式（加粗、倾斜、下划线）-> 颜色 -> 列表 -> 引用 -> 链接
     return Container(
       color: colorScheme.surface,
-      child: QuillSimpleToolbar(
-        controller: _controller,
-        config: QuillSimpleToolbarConfig(
-          // basic 模式：只显示基本按钮
-          // full 模式：显示所有按钮（但不包括图片和附件，通过 embedButtons 控制）
-          showUndo: toolbarMode == 'full',
-          showRedo: toolbarMode == 'full',
-          showBoldButton: true,
-          showItalicButton: true,
-          showUnderLineButton: true,
-          showStrikeThrough: toolbarMode == 'full',
-          showInlineCode: toolbarMode == 'full',
-          showColorButton: toolbarMode == 'full',
-          showBackgroundColorButton: toolbarMode == 'full',
-          showClearFormat: toolbarMode == 'full',
-          showAlignmentButtons: toolbarMode == 'full',
-          showLeftAlignment: toolbarMode == 'full',
-          showCenterAlignment: toolbarMode == 'full',
-          showRightAlignment: toolbarMode == 'full',
-          showJustifyAlignment: toolbarMode == 'full',
-          showHeaderStyle: toolbarMode == 'full',
-          showListNumbers: true,
-          showListBullets: true,
-          showListCheck: toolbarMode == 'full',
-          showCodeBlock: toolbarMode == 'full',
-          showQuote: toolbarMode == 'full',
-          showIndent: toolbarMode == 'full',
-          showLink: true,
-          showDirection: toolbarMode == 'full',
-          showSearchButton: toolbarMode == 'full',
-          showSubscript: toolbarMode == 'full',
-          showSuperscript: toolbarMode == 'full',
-          showFontFamily: toolbarMode == 'full',
-          showFontSize: toolbarMode == 'full',
-          // 不显示图片和附件按钮
-          embedButtons: const [],
+      height: 48,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 文本格式按钮组（加粗、倾斜、下划线）
+              QuillToolbarToggleStyleButton(
+                controller: _controller,
+                attribute: Attribute.bold,
+              ),
+              const SizedBox(width: 4),
+              QuillToolbarToggleStyleButton(
+                controller: _controller,
+                attribute: Attribute.italic,
+              ),
+              const SizedBox(width: 4),
+              QuillToolbarToggleStyleButton(
+                controller: _controller,
+                attribute: Attribute.underline,
+              ),
+              const SizedBox(width: 8),
+              // 颜色按钮
+              QuillToolbarColorButton(
+                controller: _controller,
+                isBackground: false,
+              ),
+              const SizedBox(width: 8),
+              // 列表按钮
+              QuillToolbarToggleStyleButton(
+                controller: _controller,
+                attribute: Attribute.ul,
+              ),
+              const SizedBox(width: 8),
+              // 引用按钮
+              QuillToolbarToggleStyleButton(
+                controller: _controller,
+                attribute: Attribute.blockQuote,
+              ),
+              const SizedBox(width: 8),
+              // 链接按钮
+              QuillToolbarLinkStyleButton(
+                controller: _controller,
+              ),
+            ],
+          ),
         ),
       ),
     );
