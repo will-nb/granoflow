@@ -30,6 +30,7 @@ class SeedTask {
     this.sortIndex = 0,
     this.dueAt,
     this.taskKind,
+    this.nodes = const [],
   });
 
   final String slug;
@@ -41,6 +42,7 @@ class SeedTask {
   final double sortIndex;
   final dynamic dueAt;
   final String? taskKind; // 从种子文件中读取的字符串，用于区分项目/里程碑/普通任务
+  final List<SeedNode> nodes; // 节点列表
 }
 
 class SeedTemplate {
@@ -84,6 +86,28 @@ abstract class SeedRepository {
 
   /// 清除指定版本的导入记录（用于强制重新导入）
   Future<void> clearVersion(String version);
+}
+
+/// 种子节点数据模型
+class SeedNode {
+  const SeedNode({
+    required this.slug,
+    required this.title,
+    this.parentSlug,
+    this.status = 'pending',
+  });
+
+  /// 节点唯一标识
+  final String slug;
+
+  /// 节点标题
+  final String title;
+
+  /// 父节点 slug（用于嵌套，null 表示根节点）
+  final String? parentSlug;
+
+  /// 节点状态（'pending', 'finished', 'deleted'），默认 'pending'
+  final String status;
 }
 
 Future<SeedPayload> loadSeedPayload(String localeCode) async {
@@ -145,6 +169,17 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
             sortIndex: (raw['sortIndex'] as num?)?.toDouble() ?? 0,
             dueAt: raw['dueAt'],
             taskKind: raw['taskKind'] as String?,
+            nodes: ((raw['nodes'] as List<dynamic>?) ?? const <dynamic>[])
+                .map((nodeRaw) {
+                  final nodeMap = nodeRaw as Map<String, dynamic>;
+                  return SeedNode(
+                    slug: nodeMap['slug'] as String,
+                    title: nodeMap['title'] as String,
+                    parentSlug: nodeMap['parentSlug'] as String?,
+                    status: (nodeMap['status'] as String?) ?? 'pending',
+                  );
+                })
+                .toList(),
           );
         })
         .toList(),

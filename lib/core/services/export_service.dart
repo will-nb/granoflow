@@ -7,9 +7,11 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../data/models/export_data.dart';
 import '../../data/models/milestone.dart';
+import '../../data/models/node.dart';
 import '../../data/models/project.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/milestone_repository.dart';
+import '../../data/repositories/node_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import 'encryption_key_service.dart';
@@ -23,12 +25,14 @@ class ExportService {
     required TaskRepository taskRepository,
     required ProjectRepository projectRepository,
     required MilestoneRepository milestoneRepository,
+    required NodeRepository nodeRepository,
     required ExportEncryptionService encryptionService,
     required EncryptionKeyService encryptionKeyService,
     DateTime Function()? clock,
   })  : _taskRepository = taskRepository,
         _projectRepository = projectRepository,
         _milestoneRepository = milestoneRepository,
+        _nodeRepository = nodeRepository,
         _encryptionService = encryptionService,
         _encryptionKeyService = encryptionKeyService,
         _clock = clock ?? DateTime.now;
@@ -36,6 +40,7 @@ class ExportService {
   final TaskRepository _taskRepository;
   final ProjectRepository _projectRepository;
   final MilestoneRepository _milestoneRepository;
+  final NodeRepository _nodeRepository;
   final ExportEncryptionService _encryptionService;
   final EncryptionKeyService _encryptionKeyService;
   final DateTime Function() _clock;
@@ -86,6 +91,13 @@ class ExportService {
       }
     }
 
+    // 收集所有节点（通过遍历任务）
+    final nodes = <Node>[];
+    for (final task in tasks) {
+      final taskNodes = await _nodeRepository.listNodesByTaskId(task.id);
+      nodes.addAll(taskNodes);
+    }
+
     // 生成 salt
     final salt = _encryptionService.generateSalt();
 
@@ -99,6 +111,7 @@ class ExportService {
       projectLogs: projectLogs,
       taskLogs: taskLogs,
       milestoneLogs: milestoneLogs,
+      nodes: nodes,
     );
   }
 
@@ -223,6 +236,9 @@ class ExportService {
       ),
       'tasks': await Future.wait(
         exportData.tasks.map((t) => _taskToJson(t, encryptionKey)),
+      ),
+      'nodes': await Future.wait(
+        exportData.nodes.map((n) => _nodeToJson(n, encryptionKey)),
       ),
       'projectLogs': projectLogsJson,
       'taskLogs': taskLogsJson,
@@ -367,6 +383,27 @@ class ExportService {
       'previous': entry.previous,
       'next': entry.next,
       'actor': entry.actor,
+    };
+  }
+
+  /// 序列化节点
+  /// title 会被加密
+  Future<Map<String, dynamic>> _nodeToJson(Node node, Uint8List encryptionKey) async {
+    // 加密 title
+    final encryptedTitle = _encryptionService.encrypt(
+      node.title,
+      encryptionKey,
+    );
+
+    return {
+      'nodeId': node.id,
+      'taskId': node.taskId,
+      'parentId': node.parentId,
+      'title': encryptedTitle.toJson(),
+      'status': node.status.name,
+      'sortIndex': node.sortIndex,
+      'createdAt': node.createdAt.toIso8601String(),
+      'updatedAt': node.updatedAt.toIso8601String(),
     };
   }
 

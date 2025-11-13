@@ -6,9 +6,11 @@ import 'package:archive/archive.dart';
 
 import '../../data/models/export_data.dart';
 import '../../data/models/milestone.dart';
+import '../../data/models/node.dart';
 import '../../data/models/project.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/milestone_repository.dart';
+import '../../data/repositories/node_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import 'encryption_key_service.dart';
@@ -26,6 +28,9 @@ class ImportResult {
     required this.tasksCreated,
     required this.tasksUpdated,
     required this.tasksSkipped,
+    required this.nodesCreated,
+    required this.nodesUpdated,
+    required this.nodesSkipped,
     required this.errors,
   });
 
@@ -38,6 +43,9 @@ class ImportResult {
   final int tasksCreated;
   final int tasksUpdated;
   final int tasksSkipped;
+  final int nodesCreated;
+  final int nodesUpdated;
+  final int nodesSkipped;
   final List<String> errors;
 
   int get totalProcessed =>
@@ -49,7 +57,10 @@ class ImportResult {
       milestonesSkipped +
       tasksCreated +
       tasksUpdated +
-      tasksSkipped;
+      tasksSkipped +
+      nodesCreated +
+      nodesUpdated +
+      nodesSkipped;
 }
 
 /// 导入服务
@@ -60,17 +71,20 @@ class ImportService {
     required TaskRepository taskRepository,
     required ProjectRepository projectRepository,
     required MilestoneRepository milestoneRepository,
+    required NodeRepository nodeRepository,
     required ExportEncryptionService encryptionService,
     required EncryptionKeyService encryptionKeyService,
   })  : _taskRepository = taskRepository,
         _projectRepository = projectRepository,
         _milestoneRepository = milestoneRepository,
+        _nodeRepository = nodeRepository,
         _encryptionService = encryptionService,
         _encryptionKeyService = encryptionKeyService;
 
   final TaskRepository _taskRepository;
   final ProjectRepository _projectRepository;
   final MilestoneRepository _milestoneRepository;
+  final NodeRepository _nodeRepository;
   final ExportEncryptionService _encryptionService;
   final EncryptionKeyService _encryptionKeyService;
 
@@ -91,6 +105,9 @@ class ImportService {
         tasksCreated: 0,
         tasksUpdated: 0,
         tasksSkipped: 0,
+        nodesCreated: 0,
+        nodesUpdated: 0,
+        nodesSkipped: 0,
         errors: errors,
       );
     }
@@ -107,6 +124,9 @@ class ImportService {
         tasksCreated: 0,
         tasksUpdated: 0,
         tasksSkipped: 0,
+        nodesCreated: 0,
+        nodesUpdated: 0,
+        nodesSkipped: 0,
         errors: errors,
       );
     }
@@ -208,6 +228,24 @@ class ImportService {
     }
   }
 
+  /// 从原始 JSON 解析单个节点（延迟解密）
+  Future<Node?> _parseNodeFromJson(
+    Map<String, dynamic> nodeMap,
+    Uint8List encryptionKey,
+    List<String> errors,
+  ) async {
+    try {
+      // 解密 title
+      final decryptedMap = Map<String, dynamic>.from(nodeMap);
+      decryptedMap['title'] = _decryptField(nodeMap['title'], encryptionKey);
+      
+      return ExportData.nodeFromJson(decryptedMap);
+    } catch (e) {
+      errors.add('解析节点失败: $e');
+      return null;
+    }
+  }
+
   /// 解密单个字段
   /// 
   /// 字段必须是 Map（加密格式），解密后返回字符串
@@ -274,6 +312,26 @@ class ImportService {
       }
       if (milestoneId != null && !_isValidUuid(milestoneId)) {
         errors.add('任务的里程碑ID格式无效: $milestoneId');
+        isValid = false;
+      }
+    }
+
+    final nodes = (jsonData['nodes'] as List<dynamic>?) ?? [];
+    for (final nodeJson in nodes) {
+      final nodeMap = nodeJson as Map<String, dynamic>;
+      final nodeId = nodeMap['nodeId'] as String?;
+      final taskId = nodeMap['taskId'] as String?;
+      final parentId = nodeMap['parentId'] as String?;
+      if (nodeId == null || !_isValidUuid(nodeId)) {
+        errors.add('节点ID格式无效: $nodeId');
+        isValid = false;
+      }
+      if (taskId == null || !_isValidUuid(taskId)) {
+        errors.add('节点的任务ID格式无效: $taskId');
+        isValid = false;
+      }
+      if (parentId != null && !_isValidUuid(parentId)) {
+        errors.add('节点的父节点ID格式无效: $parentId');
         isValid = false;
       }
     }
