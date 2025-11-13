@@ -20,6 +20,7 @@ import '../services/calendar_review_service.dart';
 import '../services/heatmap_color_service.dart';
 import '../services/home_statistics_service.dart';
 import '../services/task_query_service.dart';
+import '../services/node_service.dart';
 import '../monetization/monetization_service.dart';
 import 'repository_providers.dart';
 
@@ -230,4 +231,9 @@ final encryptionKeyServiceProvider = Provider<EncryptionKeyService>((ref) {
 
 final exportEncryptionServiceProvider = Provider<ExportEncryptionService>((ref) {
   return ExportEncryptionService();
+});
+
+final nodeServiceProvider = FutureProvider<NodeService>((ref) async {
+  final nodeRepository = await ref.read(nodeRepositoryProvider.future);
+  return NodeService(nodeRepository: nodeRepository);
 });
