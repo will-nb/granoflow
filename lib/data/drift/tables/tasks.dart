@@ -17,7 +17,6 @@ class Tasks extends Table {
   DateTimeColumn get archivedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
-  TextColumn get parentId => text().nullable()();
   TextColumn get projectId => text().nullable()();
   TextColumn get milestoneId => text().nullable()();
   RealColumn get sortIndex => real()();

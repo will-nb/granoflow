@@ -12,10 +12,10 @@
     id: "250115-projects-rich-text-description",
     
     // 迭代标题
-    title: "项目和里程碑富文本描述编辑器",
+    title: "项目、里程碑和任务富文本描述编辑器",
     
     // 迭代描述
-    description: "为项目和里程碑的 description 字段实现富文本编辑和显示功能，使用 flutter_quill 实现所见即所得的编辑体验。当 description 为空时显示编辑按钮，有内容时显示只读预览（最多三行），点击后进入全屏编辑弹窗进行编辑。支持自动保存、配置文件控制工具栏功能和预览行数。不考虑数据迁移，老数据全部废弃。",
+    description: "为项目、里程碑和任务的 description 字段实现富文本编辑和显示功能，使用 flutter_quill 实现所见即所得的编辑体验。当 description 为空时显示编辑按钮，有内容时显示只读预览（最多三行），点击后进入全屏编辑弹窗进行编辑。支持自动保存、配置文件控制工具栏功能和预览行数。详情页面为只读模式，不可编辑。不考虑数据迁移，老数据全部废弃。",
     
     // 状态
     status: "planning",
@@ -51,6 +51,28 @@
     
     // 工具类/服务
     utils: [
+      {
+        path: "lib/presentation/widgets/utils/rich_text_description_editor_helper.dart",
+        purpose: "富文本描述编辑工具类，提供统一的打开编辑弹窗的方法",
+        action: "create",
+        estimatedLines: 60,
+        dependencies: [
+          "lib/presentation/widgets/rich_text_description_editor_dialog.dart",
+          "lib/generated/l10n/app_localizations.dart",
+        ],
+        details: [
+          "RichTextDescriptionEditorHelper 类：富文本描述编辑工具类（静态方法）",
+          "参考 TaskBottomSheetHelper 的模式，提供统一的弹窗显示逻辑",
+          "  - showRichTextDescriptionEditor(BuildContext context, {required String? initialDescription, required ValueChanged<String?> onSave, String? title}) 方法：",
+          "    - 统一的打开编辑弹窗的方法",
+          "    - initialDescription: 初始 description 值（Delta JSON 字符串或 null）",
+          "    - onSave: 保存回调（返回 Delta JSON 字符串或 null）",
+          "    - title: 弹窗标题（可选，默认从本地化文本读取）",
+          "    - 使用 showDialog 显示 RichTextDescriptionEditorDialog",
+          "    - 处理弹窗的显示逻辑（全屏、动画等）",
+          "    - 这样各个界面就不需要重复实现打开弹窗的逻辑",
+        ],
+      },
       {
         path: "lib/core/utils/rich_text_editor_config.dart",
         purpose: "富文本编辑器配置加载服务，负责加载和解析配置文件",
@@ -119,19 +141,23 @@
           "RichTextDescriptionPreview 组件：富文本描述预览组件（StatefulWidget）",
           "属性：",
           "  - description: String? - description 字段值（Delta JSON 字符串或 null）",
-          "  - onTap: VoidCallback - 点击回调（打开编辑弹窗）",
+          "  - onTap: VoidCallback? - 点击回调（打开编辑弹窗），如果为 null 则不可点击（只读模式）",
           "  - maxLines: int? - 最大行数（可选，默认从配置文件读取）",
+          "  - readOnly: bool - 是否只读模式（默认 false），只读模式下不可点击",
           "功能：",
-          "  - 如果 description 为 null 或空，显示\"添加描述\"按钮（TextButton，图标 notes_outlined）",
+          "  - 如果 description 为 null 或空：",
+          "    - 如果 readOnly 为 false 且 onTap 不为 null，显示\"添加描述\"按钮（TextButton，图标 notes_outlined）",
+          "    - 如果 readOnly 为 true 或 onTap 为 null，不显示任何内容",
           "  - 如果 description 有值，使用 QuillEditor 只读模式显示预览",
           "    - 使用 DeltaJsonUtils.jsonToDocument 解析 description",
           "    - 设置 readOnly: true",
           "    - 设置 maxLines（从配置文件读取，默认 3）",
           "    - 设置 overflow: TextOverflow.ellipsis",
-          "    - 整个预览区域可点击（使用 InkWell 或 GestureDetector）",
-          "    - 点击反馈：轻微高亮效果",
+          "    - 如果 readOnly 为 false 且 onTap 不为 null，整个预览区域可点击（使用 InkWell 或 GestureDetector）",
+          "    - 如果 readOnly 为 true 或 onTap 为 null，预览区域不可点击",
+          "    - 点击反馈：轻微高亮效果（仅在可点击时）",
           "  - 样式：使用 bodyMedium 字体样式，颜色 onSurfaceVariant",
-          "  - 错误处理：如果 Delta JSON 解析失败，显示\"添加描述\"按钮（老数据废弃）",
+          "  - 错误处理：如果 Delta JSON 解析失败，显示\"添加描述\"按钮（readOnly 为 false 时）或不显示（readOnly 为 true 时）（老数据废弃）",
         ],
       },
       {
@@ -303,7 +329,7 @@
       file: "pubspec.yaml",
       purpose: "添加 flutter_quill 依赖和配置文件到 assets",
       changes: [
-        "在 dependencies 中添加 flutter_quill: ^latest_stable",
+        "在 dependencies 中添加 flutter_quill: ^11.0.0（使用最新稳定版本，需要查询 pub.dev 确认具体版本号）",
         "在 flutter.assets 中添加 assets/config/rich_text_editor.json",
       ],
       estimatedLines: 2,
@@ -314,14 +340,15 @@
       changes: [
         "移除 FlexibleDescriptionInput 的导入和使用",
         "添加 RichTextDescriptionPreview 的导入",
-        "添加 RichTextDescriptionEditorDialog 的导入",
+        "添加 RichTextDescriptionEditorHelper 的导入（使用 Helper 工具类，而不是直接导入 Dialog）",
         "移除 _descriptionController（不再需要）",
-        "在 initState 中移除 _descriptionController 的初始化",
+        "添加 _description 状态变量（String?）管理 description 值",
+        "在 initState 中移除 _descriptionController 的初始化，初始化 _description 为项目的 description",
         "在 dispose 中移除 _descriptionController 的销毁",
         "在 UI 中替换 FlexibleDescriptionInput 为 RichTextDescriptionPreview",
-        "实现点击预览/按钮打开全屏编辑弹窗的逻辑",
-        "在 _submit 方法中，description 字段从编辑弹窗的保存回调中获取（需要状态管理）",
-        "注意：由于自动保存，description 值需要在打开弹窗时传入，保存时更新状态",
+        "实现点击预览/按钮打开全屏编辑弹窗的逻辑：使用 RichTextDescriptionEditorHelper.showRichTextDescriptionEditor",
+        "在保存回调中更新 _description 状态",
+        "在 _submit 方法中，使用 _description 作为 description 字段值",
       ],
       estimatedLines: 50,
     },
@@ -331,13 +358,15 @@
       changes: [
         "移除 FlexibleDescriptionInput 的导入和使用",
         "添加 RichTextDescriptionPreview 的导入",
-        "添加 RichTextDescriptionEditorDialog 的导入",
+        "添加 RichTextDescriptionEditorHelper 的导入（使用 Helper 工具类，而不是直接导入 Dialog）",
         "移除 _descriptionController（不再需要）",
-        "在 initState 中移除 _descriptionController 的初始化",
+        "添加 _description 状态变量（String?）管理 description 值",
+        "在 initState 中移除 _descriptionController 的初始化，初始化 _description 为里程碑的 description",
         "在 dispose 中移除 _descriptionController 的销毁",
         "在 UI 中替换 FlexibleDescriptionInput 为 RichTextDescriptionPreview",
-        "实现点击预览/按钮打开全屏编辑弹窗的逻辑",
-        "在 _submit 方法中，description 字段从编辑弹窗的保存回调中获取（需要状态管理）",
+        "实现点击预览/按钮打开全屏编辑弹窗的逻辑：使用 RichTextDescriptionEditorHelper.showRichTextDescriptionEditor",
+        "在保存回调中更新 _description 状态",
+        "在 _submit 方法中，使用 _description 作为 description 字段值",
       ],
       estimatedLines: 50,
     },
@@ -347,13 +376,15 @@
       changes: [
         "移除 FlexibleDescriptionInput 的导入和使用",
         "添加 RichTextDescriptionPreview 的导入",
-        "添加 RichTextDescriptionEditorDialog 的导入",
+        "添加 RichTextDescriptionEditorHelper 的导入（使用 Helper 工具类，而不是直接导入 Dialog）",
         "移除 _descriptionController（不再需要）",
+        "添加 _description 状态变量（String?）管理 description 值，初始化为 null",
         "在 initState 中移除 _descriptionController 的初始化",
         "在 dispose 中移除 _descriptionController 的销毁",
         "在 UI 中替换 FlexibleDescriptionInput 为 RichTextDescriptionPreview",
-        "实现点击预览/按钮打开全屏编辑弹窗的逻辑",
-        "在创建项目时，description 字段从编辑弹窗的保存回调中获取（需要状态管理）",
+        "实现点击预览/按钮打开全屏编辑弹窗的逻辑：使用 RichTextDescriptionEditorHelper.showRichTextDescriptionEditor",
+        "在保存回调中更新 _description 状态",
+        "在创建项目时，使用 _description 作为 description 字段值",
       ],
       estimatedLines: 50,
     },
@@ -363,11 +394,11 @@
       changes: [
         "移除 FlexibleDescriptionInput 的导入和使用",
         "添加 RichTextDescriptionPreview 的导入",
-        "添加 RichTextDescriptionEditorDialog 的导入",
+        "添加 RichTextDescriptionEditorHelper 的导入（使用 Helper 工具类，而不是直接导入 Dialog）",
         "在 MilestoneDraft 模型中，descriptionController 改为 description（String?）",
         "在 UI 中替换 FlexibleDescriptionInput 为 RichTextDescriptionPreview",
-        "实现点击预览/按钮打开全屏编辑弹窗的逻辑",
-        "更新 onChanged 回调，传递 description 值",
+        "实现点击预览/按钮打开全屏编辑弹窗的逻辑：使用 RichTextDescriptionEditorHelper.showRichTextDescriptionEditor",
+        "在保存回调中更新 MilestoneDraft 的 description 字段，并调用 onChanged 回调",
       ],
       estimatedLines: 50,
     },
@@ -385,28 +416,55 @@
     },
     {
       file: "lib/presentation/projects/widgets/project_detail_bottom_sheet.dart",
-      purpose: "替换 Text widget 为 RichTextDescriptionPreview 组件",
+      purpose: "替换 Text widget 为 RichTextDescriptionPreview 组件（只读模式）",
       changes: [
         "移除 Text widget 显示 description 的代码",
         "添加 RichTextDescriptionPreview 的导入",
-        "添加 RichTextDescriptionEditorDialog 的导入",
-        "使用 RichTextDescriptionPreview 显示 description",
-        "实现点击预览打开全屏编辑弹窗的逻辑",
-        "注意：详情页面是只读的，但点击预览可以编辑（需要权限检查）",
+        "使用 RichTextDescriptionPreview 显示 description（只读模式，不可点击编辑）",
+        "注意：详情页面是只读的，description 字段也不可编辑，只显示预览",
       ],
-      estimatedLines: 30,
+      estimatedLines: 20,
     },
     {
       file: "lib/presentation/projects/widgets/milestone_detail_bottom_sheet.dart",
-      purpose: "替换 Text widget 为 RichTextDescriptionPreview 组件",
+      purpose: "替换 Text widget 为 RichTextDescriptionPreview 组件（只读模式）",
       changes: [
         "移除 Text widget 显示 description 的代码",
         "添加 RichTextDescriptionPreview 的导入",
-        "添加 RichTextDescriptionEditorDialog 的导入",
-        "使用 RichTextDescriptionPreview 显示 description",
-        "实现点击预览打开全屏编辑弹窗的逻辑",
+        "使用 RichTextDescriptionPreview 显示 description（只读模式，不可点击编辑）",
+        "注意：详情页面是只读的，description 字段也不可编辑，只显示预览",
       ],
-      estimatedLines: 30,
+      estimatedLines: 20,
+    },
+    {
+      file: "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+      purpose: "添加富文本描述显示和编辑功能",
+      changes: [
+        "添加 RichTextDescriptionPreview 的导入",
+        "添加 RichTextDescriptionEditorHelper 的导入（使用 Helper 工具类，而不是直接导入 Dialog）",
+        "在任务标题下方添加 description 显示区域（使用 RichTextDescriptionPreview）",
+        "添加 _description 状态变量（String?）管理 description 值，在 initState 中初始化为任务的 description",
+        "实现点击预览/按钮打开全屏编辑弹窗的逻辑：使用 RichTextDescriptionEditorHelper.showRichTextDescriptionEditor",
+        "在保存回调中更新 _description 状态",
+        "在保存任务时，使用 _description 作为 description 字段值",
+        "注意：任务详情弹窗支持编辑，与项目和里程碑编辑界面保持一致",
+      ],
+      estimatedLines: 50,
+    },
+    {
+      file: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+      purpose: "添加富文本描述显示和编辑功能",
+      changes: [
+        "添加 RichTextDescriptionPreview 的导入",
+        "添加 RichTextDescriptionEditorHelper 的导入（使用 Helper 工具类，而不是直接导入 Dialog）",
+        "在任务标题下方添加 description 显示区域（使用 RichTextDescriptionPreview）",
+        "添加 _description 状态变量（String?）管理 description 值，在 initState 中初始化为任务的 description",
+        "实现点击预览/按钮打开全屏编辑弹窗的逻辑：使用 RichTextDescriptionEditorHelper.showRichTextDescriptionEditor",
+        "在保存回调中更新 _description 状态",
+        "在保存任务时，使用 _description 作为 description 字段值",
+        "注意：任务操作弹窗支持编辑，与项目和里程碑编辑界面保持一致",
+      ],
+      estimatedLines: 50,
     },
     {
       file: "lib/data/repositories/drift/drift_project_repository.dart",
@@ -430,13 +488,43 @@
     },
     {
       file: "lib/data/repositories/drift/drift_task_repository.dart",
-      purpose: "更新 description 字段的读取逻辑，处理旧数据废弃（如果任务也有 description 字段）",
+      purpose: "更新 description 字段的读取逻辑，处理旧数据废弃",
       changes: [
-        "检查任务模型是否有 description 字段",
-        "如果有，在 _toTask 方法中，读取 description 字段时使用 DeltaJsonUtils.parseDeltaJson",
+        "在 _toTask 方法中，读取 description 字段时使用 DeltaJsonUtils.parseDeltaJson",
         "如果解析失败（返回 null），直接使用 null（不进行任何转换）",
+        "这是设计决策：不考虑数据迁移，老数据全部废弃",
       ],
       estimatedLines: 10,
+    },
+    {
+      file: "lib/l10n/app_zh_CN.arb",
+      purpose: "添加富文本编辑器相关的本地化文本",
+      changes: [
+        "添加 richTextDescriptionEditorTitle: \"编辑描述\"",
+        "添加 richTextDescriptionEditorTitleAdd: \"添加描述\"",
+        "添加 richTextDescriptionAutoSaveSuccess: \"已保存\"",
+        "添加 richTextDescriptionAutoSaveFailed: \"自动保存失败，请检查您的网络连接或稍后重试。\"",
+        "添加 richTextDescriptionAutoSaveFailedRetry: \"重试\"",
+        "添加 richTextDescriptionAutoSaveFailedCancel: \"取消\"",
+        "添加 richTextDescriptionUnsavedChanges: \"有未保存的更改，确定要放弃吗？\"",
+      ],
+      estimatedLines: 20,
+    },
+    {
+      file: "lib/l10n/app_en.arb",
+      purpose: "添加富文本编辑器相关的本地化文本（英文）",
+      changes: [
+        "添加对应的英文翻译",
+      ],
+      estimatedLines: 20,
+    },
+    {
+      file: "lib/l10n/app_zh_HK.arb",
+      purpose: "添加富文本编辑器相关的本地化文本（繁体中文）",
+      changes: [
+        "添加对应的繁体中文翻译",
+      ],
+      estimatedLines: 20,
     },
   ],
 
@@ -459,9 +547,14 @@
       description: "添加 flutter_quill 依赖，创建配置文件",
       tasks: [
         {
+          task: "查询 flutter_quill 最新稳定版本",
+          command: "flutter pub outdated flutter_quill || echo '需要手动查询 pub.dev'",
+          action: "查询 flutter_quill 的最新稳定版本号",
+        },
+        {
           task: "添加 flutter_quill 依赖到 pubspec.yaml",
           file: "pubspec.yaml",
-          action: "在 dependencies 中添加 flutter_quill: ^latest_stable（查找最新稳定版本）",
+          action: "在 dependencies 中添加 flutter_quill: ^11.0.0（根据查询结果更新为最新稳定版本，如果查询失败则使用 ^11.0.0）",
         },
         {
           task: "创建配置文件 rich_text_editor.json",
@@ -537,12 +630,28 @@
           file: "lib/presentation/widgets/rich_text_description_preview.dart",
           action: [
             "实现 RichTextDescriptionPreview StatefulWidget",
-            "如果 description 为 null 或空，显示\"添加描述\"按钮（TextButton，图标 notes_outlined）",
+            "添加属性：description（String?）、onTap（VoidCallback?）、maxLines（int?）、readOnly（bool，默认 false）",
+            "如果 description 为 null 或空：",
+            "  - 如果 readOnly 为 false 且 onTap 不为 null，显示\"添加描述\"按钮（TextButton，图标 notes_outlined）",
+            "  - 如果 readOnly 为 true 或 onTap 为 null，不显示任何内容",
             "如果 description 有值，使用 QuillEditor 只读模式显示预览",
             "使用 DeltaJsonUtils.jsonToDocument 解析 description",
             "设置 maxLines（从配置文件读取，默认 3）",
-            "整个预览区域可点击，点击反馈：轻微高亮效果",
-            "错误处理：如果 Delta JSON 解析失败，显示\"添加描述\"按钮（老数据废弃）",
+            "如果 readOnly 为 false 且 onTap 不为 null，整个预览区域可点击，点击反馈：轻微高亮效果",
+            "如果 readOnly 为 true 或 onTap 为 null，预览区域不可点击",
+            "错误处理：如果 Delta JSON 解析失败，显示\"添加描述\"按钮（readOnly 为 false 时）或不显示（readOnly 为 true 时）（老数据废弃）",
+          ],
+        },
+        {
+          task: "创建 RichTextDescriptionEditorHelper 工具类",
+          file: "lib/presentation/widgets/utils/rich_text_description_editor_helper.dart",
+          action: [
+            "实现 RichTextDescriptionEditorHelper 类（静态方法）",
+            "实现 showRichTextDescriptionEditor 方法：统一的打开编辑弹窗的方法",
+            "参数：context, initialDescription, onSave, title（可选）",
+            "使用 showDialog 显示 RichTextDescriptionEditorDialog",
+            "处理弹窗的显示逻辑（全屏、动画等）",
+            "参考 TaskBottomSheetHelper 的实现模式",
           ],
         },
         {
@@ -551,15 +660,20 @@
           action: [
             "实现 RichTextDescriptionEditorDialog StatefulWidget",
             "全屏 Dialog（使用 showDialog 和 MaterialPageRoute）",
-            "顶部栏：关闭按钮、标题、保存按钮（自动保存模式下可隐藏）",
+            "顶部栏：关闭按钮、标题、保存按钮（自动保存模式下可隐藏或显示\"已保存\"状态）",
             "工具栏：QuillToolbar.simple，根据配置文件中的 toolbarMode 动态生成按钮",
             "编辑器：QuillEditor，使用 QuillController.basic()",
             "初始内容：使用 DeltaJsonUtils.jsonToDocument 解析 initialDescription",
             "自动保存功能：监听 QuillController.document.changes 流，使用防抖机制",
             "防抖延迟从配置文件读取（默认 300ms）",
             "保存时调用 onSave 回调，传入 Delta JSON 字符串",
-            "显示保存状态（加载指示器或\"已保存\"提示）",
-            "关闭逻辑：直接关闭（自动保存模式下无需确认）",
+            "显示保存状态：",
+            "  - 保存中：显示加载指示器",
+            "  - 保存成功：显示\"已保存\"提示（使用本地化文本 richTextDescriptionAutoSaveSuccess）",
+            "  - 保存失败：显示错误提示（使用本地化文本 richTextDescriptionAutoSaveFailed），提供\"重试\"和\"取消\"按钮",
+            "关闭逻辑：",
+            "  - 如果自动保存成功：直接关闭（无需确认）",
+            "  - 如果自动保存失败：显示确认对话框（使用本地化文本 richTextDescriptionUnsavedChanges），用户确认后才关闭",
             "动画：从底部滑入，300ms，Curves.easeOut",
             "背景：使用 GradientPageScaffold 的渐变背景",
           ],
@@ -649,13 +763,62 @@
           ],
         },
         {
-          task: "更新 MilestoneDetailBottomSheet",
+          task: "更新 MilestoneDetailBottomSheet（只读模式）",
           file: "lib/presentation/projects/widgets/milestone_detail_bottom_sheet.dart",
           action: [
             "移除 Text widget 显示 description 的代码",
+            "添加 RichTextDescriptionPreview 的导入",
+            "使用 RichTextDescriptionPreview 显示 description，设置 readOnly: true，onTap: null",
+            "注意：详情页面是只读的，description 字段也不可编辑，只显示预览",
+          ],
+        },
+        {
+          task: "更新 TaskDetailBottomSheet",
+          file: "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+          action: [
             "添加 RichTextDescriptionPreview 和 RichTextDescriptionEditorDialog 的导入",
-            "使用 RichTextDescriptionPreview 显示 description",
-            "实现点击预览打开全屏编辑弹窗的逻辑",
+            "在任务标题下方添加 description 显示区域（使用 RichTextDescriptionPreview）",
+            "实现点击预览/按钮打开全屏编辑弹窗的逻辑",
+            "添加 _description 状态变量（String?）管理 description 值",
+            "在保存任务时，使用 _description 作为 description 字段值",
+          ],
+        },
+        {
+          task: "更新 TaskActionBottomSheet",
+          file: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+          action: [
+            "添加 RichTextDescriptionPreview 和 RichTextDescriptionEditorDialog 的导入",
+            "在任务标题下方添加 description 显示区域（使用 RichTextDescriptionPreview）",
+            "实现点击预览/按钮打开全屏编辑弹窗的逻辑",
+            "添加 _description 状态变量（String?）管理 description 值",
+            "在保存任务时，使用 _description 作为 description 字段值",
+          ],
+        },
+        {
+          task: "添加本地化文本",
+          file: "lib/l10n/app_zh_CN.arb",
+          action: [
+            "添加 richTextDescriptionEditorTitle: \"编辑描述\"",
+            "添加 richTextDescriptionEditorTitleAdd: \"添加描述\"",
+            "添加 richTextDescriptionAutoSaveSuccess: \"已保存\"",
+            "添加 richTextDescriptionAutoSaveFailed: \"自动保存失败，请检查您的网络连接或稍后重试。\"",
+            "添加 richTextDescriptionAutoSaveFailedRetry: \"重试\"",
+            "添加 richTextDescriptionAutoSaveFailedCancel: \"取消\"",
+            "添加 richTextDescriptionUnsavedChanges: \"有未保存的更改，确定要放弃吗？\"",
+          ],
+        },
+        {
+          task: "添加英文本地化文本",
+          file: "lib/l10n/app_en.arb",
+          action: [
+            "添加对应的英文翻译",
+          ],
+        },
+        {
+          task: "添加繁体中文本地化文本",
+          file: "lib/l10n/app_zh_HK.arb",
+          action: [
+            "添加对应的繁体中文翻译",
           ],
         },
         {
@@ -1010,12 +1173,16 @@
             group: "空状态",
             cases: [
               {
-                name: "description 为 null 时显示\"添加描述\"按钮",
-                test: "测试步骤：创建组件，description 为 null → 验证显示\"添加描述\"按钮",
+                name: "description 为 null 时显示\"添加描述\"按钮（readOnly 为 false）",
+                test: "测试步骤：创建组件，description 为 null，readOnly 为 false，onTap 不为 null → 验证显示\"添加描述\"按钮",
+              },
+              {
+                name: "description 为 null 时不显示内容（readOnly 为 true）",
+                test: "测试步骤：创建组件，description 为 null，readOnly 为 true → 验证不显示任何内容",
               },
               {
                 name: "点击按钮触发 onTap 回调",
-                test: "测试步骤：创建组件，description 为 null → 点击按钮 → 验证 onTap 回调被调用",
+                test: "测试步骤：创建组件，description 为 null，readOnly 为 false，onTap 不为 null → 点击按钮 → 验证 onTap 回调被调用",
               },
             ],
           },
@@ -1031,8 +1198,12 @@
                 test: "测试步骤：创建组件，传入长文本 Delta JSON → 验证预览限制在最大行数内",
               },
               {
-                name: "点击预览区域触发 onTap 回调",
-                test: "测试步骤：创建组件，传入有效的 Delta JSON → 点击预览区域 → 验证 onTap 回调被调用",
+                name: "点击预览区域触发 onTap 回调（readOnly 为 false）",
+                test: "测试步骤：创建组件，传入有效的 Delta JSON，readOnly 为 false，onTap 不为 null → 点击预览区域 → 验证 onTap 回调被调用",
+              },
+              {
+                name: "预览区域不可点击（readOnly 为 true）",
+                test: "测试步骤：创建组件，传入有效的 Delta JSON，readOnly 为 true → 验证预览区域不可点击",
               },
             ],
           },
@@ -1132,28 +1303,6 @@
       },
     ],
     
-    // 集成测试（可选）
-    integrationTests: [
-      {
-        file: "integration_test/rich_text_description_test.dart",
-        description: "集成测试：测试完整的富文本编辑流程",
-        testCases: [
-          {
-            group: "完整编辑流程",
-            cases: [
-              {
-                name: "添加描述流程",
-                test: "测试步骤：打开项目编辑界面 → 点击\"添加描述\"按钮 → 输入内容 → 验证内容保存 → 验证预览显示",
-              },
-              {
-                name: "编辑描述流程",
-                test: "测试步骤：打开项目详情界面 → 点击描述预览 → 编辑内容 → 验证内容保存 → 验证预览更新",
-              },
-            ],
-          },
-        ],
-      },
-    ],
   },
 
   // ===========================================
@@ -1214,7 +1363,9 @@
       "验证关闭弹窗功能正确",
       "验证旧格式数据正确显示\"添加描述\"按钮（不显示错误）",
       "验证配置文件加载和解析正确",
-      "验证所有界面（项目编辑、里程碑编辑、项目详情、里程碑详情等）正确更新",
+      "验证所有界面（项目编辑、里程碑编辑、项目详情、里程碑详情、任务详情弹窗、任务操作弹窗等）正确更新",
+      "验证详情页面（项目详情、里程碑详情）为只读模式，description 不可编辑",
+      "验证任务弹窗（TaskDetailBottomSheet、TaskActionBottomSheet）支持编辑 description",
     ],
     
     // 性能验证
@@ -1256,7 +1407,7 @@
     
     // 状态管理变更
     stateManagementChanges: [
-      "项目/里程碑编辑界面：使用 String? _description 状态变量替代 TextEditingController _descriptionController",
+      "项目/里程碑/任务编辑界面：使用 String? _description 状态变量替代 TextEditingController _descriptionController",
       "全屏编辑弹窗：使用 QuillController 管理编辑器状态",
       "自动保存：使用 Stream 监听 QuillController.document.changes，防抖后触发保存",
       "配置服务：使用单例模式管理配置状态",

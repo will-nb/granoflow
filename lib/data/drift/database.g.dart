@@ -99,17 +99,6 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _parentIdMeta = const VerificationMeta(
-    'parentId',
-  );
-  @override
-  late final GeneratedColumn<String> parentId = GeneratedColumn<String>(
-    'parent_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _projectIdMeta = const VerificationMeta(
     'projectId',
   );
@@ -209,7 +198,6 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     archivedAt,
     createdAt,
     updatedAt,
-    parentId,
     projectId,
     milestoneId,
     sortIndex,
@@ -283,12 +271,6 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       );
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
-    }
-    if (data.containsKey('parent_id')) {
-      context.handle(
-        _parentIdMeta,
-        parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
-      );
     }
     if (data.containsKey('project_id')) {
       context.handle(
@@ -397,10 +379,6 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
-      parentId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}parent_id'],
-      ),
       projectId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}project_id'],
@@ -459,7 +437,6 @@ class Task extends DataClass implements Insertable<Task> {
   final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String? parentId;
   final String? projectId;
   final String? milestoneId;
   final double sortIndex;
@@ -478,7 +455,6 @@ class Task extends DataClass implements Insertable<Task> {
     this.archivedAt,
     required this.createdAt,
     required this.updatedAt,
-    this.parentId,
     this.projectId,
     this.milestoneId,
     required this.sortIndex,
@@ -510,9 +486,6 @@ class Task extends DataClass implements Insertable<Task> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
-    if (!nullToAbsent || parentId != null) {
-      map['parent_id'] = Variable<String>(parentId);
-    }
     if (!nullToAbsent || projectId != null) {
       map['project_id'] = Variable<String>(projectId);
     }
@@ -553,9 +526,6 @@ class Task extends DataClass implements Insertable<Task> {
           : Value(archivedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
-      parentId: parentId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(parentId),
       projectId: projectId == null && nullToAbsent
           ? const Value.absent()
           : Value(projectId),
@@ -592,7 +562,6 @@ class Task extends DataClass implements Insertable<Task> {
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      parentId: serializer.fromJson<String?>(json['parentId']),
       projectId: serializer.fromJson<String?>(json['projectId']),
       milestoneId: serializer.fromJson<String?>(json['milestoneId']),
       sortIndex: serializer.fromJson<double>(json['sortIndex']),
@@ -620,7 +589,6 @@ class Task extends DataClass implements Insertable<Task> {
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'parentId': serializer.toJson<String?>(parentId),
       'projectId': serializer.toJson<String?>(projectId),
       'milestoneId': serializer.toJson<String?>(milestoneId),
       'sortIndex': serializer.toJson<double>(sortIndex),
@@ -642,7 +610,6 @@ class Task extends DataClass implements Insertable<Task> {
     Value<DateTime?> archivedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
-    Value<String?> parentId = const Value.absent(),
     Value<String?> projectId = const Value.absent(),
     Value<String?> milestoneId = const Value.absent(),
     double? sortIndex,
@@ -661,7 +628,6 @@ class Task extends DataClass implements Insertable<Task> {
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
-    parentId: parentId.present ? parentId.value : this.parentId,
     projectId: projectId.present ? projectId.value : this.projectId,
     milestoneId: milestoneId.present ? milestoneId.value : this.milestoneId,
     sortIndex: sortIndex ?? this.sortIndex,
@@ -684,7 +650,6 @@ class Task extends DataClass implements Insertable<Task> {
           : this.archivedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-      parentId: data.parentId.present ? data.parentId.value : this.parentId,
       projectId: data.projectId.present ? data.projectId.value : this.projectId,
       milestoneId: data.milestoneId.present
           ? data.milestoneId.value
@@ -716,7 +681,6 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('parentId: $parentId, ')
           ..write('projectId: $projectId, ')
           ..write('milestoneId: $milestoneId, ')
           ..write('sortIndex: $sortIndex, ')
@@ -740,7 +704,6 @@ class Task extends DataClass implements Insertable<Task> {
     archivedAt,
     createdAt,
     updatedAt,
-    parentId,
     projectId,
     milestoneId,
     sortIndex,
@@ -763,7 +726,6 @@ class Task extends DataClass implements Insertable<Task> {
           other.archivedAt == this.archivedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.parentId == this.parentId &&
           other.projectId == this.projectId &&
           other.milestoneId == this.milestoneId &&
           other.sortIndex == this.sortIndex &&
@@ -784,7 +746,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<DateTime?> archivedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<String?> parentId;
   final Value<String?> projectId;
   final Value<String?> milestoneId;
   final Value<double> sortIndex;
@@ -804,7 +765,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.archivedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-    this.parentId = const Value.absent(),
     this.projectId = const Value.absent(),
     this.milestoneId = const Value.absent(),
     this.sortIndex = const Value.absent(),
@@ -825,7 +785,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.archivedAt = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
-    this.parentId = const Value.absent(),
     this.projectId = const Value.absent(),
     this.milestoneId = const Value.absent(),
     required double sortIndex,
@@ -854,7 +813,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<DateTime>? archivedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
-    Expression<String>? parentId,
     Expression<String>? projectId,
     Expression<String>? milestoneId,
     Expression<double>? sortIndex,
@@ -875,7 +833,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (archivedAt != null) 'archived_at': archivedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
-      if (parentId != null) 'parent_id': parentId,
       if (projectId != null) 'project_id': projectId,
       if (milestoneId != null) 'milestone_id': milestoneId,
       if (sortIndex != null) 'sort_index': sortIndex,
@@ -899,7 +856,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<DateTime?>? archivedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
-    Value<String?>? parentId,
     Value<String?>? projectId,
     Value<String?>? milestoneId,
     Value<double>? sortIndex,
@@ -920,7 +876,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
       archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      parentId: parentId ?? this.parentId,
       projectId: projectId ?? this.projectId,
       milestoneId: milestoneId ?? this.milestoneId,
       sortIndex: sortIndex ?? this.sortIndex,
@@ -964,9 +919,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
-    if (parentId.present) {
-      map['parent_id'] = Variable<String>(parentId.value);
     }
     if (projectId.present) {
       map['project_id'] = Variable<String>(projectId.value);
@@ -1014,7 +966,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('parentId: $parentId, ')
           ..write('projectId: $projectId, ')
           ..write('milestoneId: $milestoneId, ')
           ..write('sortIndex: $sortIndex, ')
@@ -6362,7 +6313,6 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<DateTime?> archivedAt,
       required DateTime createdAt,
       required DateTime updatedAt,
-      Value<String?> parentId,
       Value<String?> projectId,
       Value<String?> milestoneId,
       required double sortIndex,
@@ -6384,7 +6334,6 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<DateTime?> archivedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<String?> parentId,
       Value<String?> projectId,
       Value<String?> milestoneId,
       Value<double> sortIndex,
@@ -6447,11 +6396,6 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get parentId => $composableBuilder(
-    column: $table.parentId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6551,11 +6495,6 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get parentId => $composableBuilder(
-    column: $table.parentId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get projectId => $composableBuilder(
     column: $table.projectId,
     builder: (column) => ColumnOrderings(column),
@@ -6635,9 +6574,6 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<String> get parentId =>
-      $composableBuilder(column: $table.parentId, builder: (column) => column);
-
   GeneratedColumn<String> get projectId =>
       $composableBuilder(column: $table.projectId, builder: (column) => column);
 
@@ -6708,7 +6644,6 @@ class $$TasksTableTableManager
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-                Value<String?> parentId = const Value.absent(),
                 Value<String?> projectId = const Value.absent(),
                 Value<String?> milestoneId = const Value.absent(),
                 Value<double> sortIndex = const Value.absent(),
@@ -6728,7 +6663,6 @@ class $$TasksTableTableManager
                 archivedAt: archivedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                parentId: parentId,
                 projectId: projectId,
                 milestoneId: milestoneId,
                 sortIndex: sortIndex,
@@ -6750,7 +6684,6 @@ class $$TasksTableTableManager
                 Value<DateTime?> archivedAt = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
-                Value<String?> parentId = const Value.absent(),
                 Value<String?> projectId = const Value.absent(),
                 Value<String?> milestoneId = const Value.absent(),
                 required double sortIndex,
@@ -6770,7 +6703,6 @@ class $$TasksTableTableManager
                 archivedAt: archivedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                parentId: parentId,
                 projectId: projectId,
                 milestoneId: milestoneId,
                 sortIndex: sortIndex,

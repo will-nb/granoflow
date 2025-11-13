@@ -231,7 +231,7 @@ class DriftTaskRepository implements TaskRepository {
     // 状态为 inbox、pending 或 doing
     final query = _db.select(_db.tasks)
       ..where((t) =>
-          t.parentId.isNull() &
+          // 层级功能已移除，不再需要检查 parentId
           t.projectId.isNull() &
           t.milestoneId.isNull() &
           t.status.isIn([
@@ -365,7 +365,7 @@ class DriftTaskRepository implements TaskRepository {
         archivedAt: null,
         createdAt: createdAt,
         updatedAt: updatedAt,
-        parentId: null, // 层级功能已移除，数据库列仍存在但不再使用
+        // 层级功能已移除，parentId 字段已从数据库表中移除
         projectId: draft.projectId,
         milestoneId: draft.milestoneId,
         sortIndex: draft.sortIndex,
@@ -436,7 +436,7 @@ class DriftTaskRepository implements TaskRepository {
         endedAt: payload.endedAt != null ? Value(payload.endedAt) : const Value.absent(),
         archivedAt: payload.archivedAt != null ? Value(payload.archivedAt) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
-        parentId: const Value<String?>.absent(), // 层级功能已移除，数据库列仍存在但不再使用
+        // 层级功能已移除，parentId 字段已从数据库表中移除
         projectId: projectIdValue,
         milestoneId: milestoneIdValue,
         sortIndex: payload.sortIndex != null ? Value(payload.sortIndex!) : const Value.absent(),
@@ -484,7 +484,7 @@ class DriftTaskRepository implements TaskRepository {
       }
 
       var companion = TasksCompanion(
-        parentId: const Value<String?>.absent(), // 层级功能已移除，数据库列仍存在但不再使用
+        // 层级功能已移除，parentId 字段已从数据库表中移除
         sortIndex: Value(sortIndex),
         dueAt: dueAt != null ? Value(dueAt) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
@@ -688,9 +688,9 @@ class DriftTaskRepository implements TaskRepository {
 
   @override
   Future<List<domain.Task>> listRoots() async {
+    // 层级功能已移除，所有任务都是根任务，直接返回所有任务
     return await _adapter.readTransaction(() async {
-      final query = _db.select(_db.tasks)
-        ..where((t) => t.parentId.isNull());
+      final query = _db.select(_db.tasks);
       final entities = await query.get();
       return await _toTasks(entities);
     });
@@ -713,7 +713,7 @@ class DriftTaskRepository implements TaskRepository {
           archivedAt: task.archivedAt,
           createdAt: task.createdAt,
           updatedAt: task.updatedAt,
-          parentId: null, // 层级功能已移除
+          // 层级功能已移除，parentId 字段已从 Task 模型中移除
           projectId: task.projectId,
           milestoneId: task.milestoneId,
           sortIndex: task.sortIndex,
@@ -797,7 +797,7 @@ class DriftTaskRepository implements TaskRepository {
           endedAt: payload.endedAt != null ? Value(payload.endedAt) : const Value.absent(),
           archivedAt: payload.archivedAt != null ? Value(payload.archivedAt) : const Value.absent(),
           updatedAt: Value(DateTime.now()),
-          parentId: const Value<String?>.absent(), // 层级功能已移除，数据库列仍存在但不再使用
+          // 层级功能已移除，parentId 字段已从数据库表中移除
           projectId: payload.projectId != null ? Value(payload.projectId) : (payload.clearProject == true ? Value<String?>(null) : const Value.absent()),
           milestoneId: payload.milestoneId != null ? Value(payload.milestoneId) : (payload.clearMilestone == true ? Value<String?>(null) : const Value.absent()),
           sortIndex: payload.sortIndex != null ? Value(payload.sortIndex!) : const Value.absent(),
@@ -1259,7 +1259,7 @@ class DriftTaskRepository implements TaskRepository {
       final query = _db.select(_db.tasks)
         ..where((t) =>
             t.status.equals(domain.TaskStatus.completedActive.index) &
-            t.parentId.isNull() &
+            // 层级功能已移除，不再需要检查 parentId
             t.endedAt.isNotNull() &
             t.endedAt.isBiggerOrEqualValue(startDate) &
             t.endedAt.isSmallerOrEqualValue(endDate));
