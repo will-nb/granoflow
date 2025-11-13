@@ -19,6 +19,7 @@ import 'tag_add_button.dart';
 import 'tag_data.dart';
 import 'tag_grouped_menu.dart';
 import 'task_copy_button.dart';
+import 'task_nodes_list.dart';
 import '../widgets/rich_text_description_preview.dart';
 import '../widgets/utils/rich_text_description_editor_helper.dart';
 
@@ -252,6 +253,9 @@ class _TaskActionBottomSheetState
                     _buildConvertToProjectButton(context, ref, theme, l10n, task),
                     const SizedBox(height: 16),
                   ],
+                  // 任务节点列表
+                  TaskNodesList(task: task),
+                  const SizedBox(height: 16),
                   // 操作按钮区域 - 传递最新的任务数据
                   _buildActionButtons(context, ref, theme, l10n, task),
                   // 底部安全区域
