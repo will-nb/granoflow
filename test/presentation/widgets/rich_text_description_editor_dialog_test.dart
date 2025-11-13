@@ -9,7 +9,10 @@ void main() {
   group('RichTextDescriptionEditorDialog', () {
     Widget createTestWidget(Widget child) {
       return MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: const [
+          ...AppLocalizations.localizationsDelegates,
+          FlutterQuillLocalizations.delegate,
+        ],
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('zh', 'CN'),
         home: Scaffold(

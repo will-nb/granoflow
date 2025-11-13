@@ -4,6 +4,7 @@ import '../../data/models/node.dart';
 import '../../data/models/task.dart';
 import '../../core/providers/node_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../generated/l10n/app_localizations.dart';
 import 'dismissible_node_tile.dart';
 
 /// 任务节点列表组件
@@ -215,7 +216,7 @@ class _TaskNodesListState extends ConsumerState<TaskNodesList> {
           });
         },
         icon: const Icon(Icons.add, size: 20),
-        label: const Text('Add Node'), // TODO: 使用 l10n.nodeAddButton（阶段 7 添加）
+        label: Text(AppLocalizations.of(context).nodeAddButton),
       ),
     );
   }

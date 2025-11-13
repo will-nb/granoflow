@@ -393,6 +393,10 @@
     }
   },
   "navArchivedTitle": "封存",
+  "nodeAddButton": "添加節點",
+  "nodeDeleteConfirm": "刪除此節點？",
+  "nodeRestoreAction": "恢復",
+  "nodeTitleHint": "節點標題",
   "navCompletedTitle": "已完成",
   "navInboxTitle": "收集箱",
   "navOverviewTitle": "總覽",

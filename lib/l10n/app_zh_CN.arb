@@ -567,6 +567,10 @@
     }
   },
   "navArchivedTitle": "归档",
+  "nodeAddButton": "添加节点",
+  "nodeDeleteConfirm": "删除此节点？",
+  "nodeRestoreAction": "恢复",
+  "nodeTitleHint": "节点标题",
   "navCompletedTitle": "已完成",
   "navInboxTitle": "收集箱",
   "navOverviewTitle": "总览",

@@ -88,7 +88,7 @@ class DismissibleNodeTile extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.add, size: 20),
                 onPressed: onAddChild,
-                tooltip: 'Add Node', // TODO: 使用 l10n.nodeAddButton（阶段 7 添加）
+                tooltip: l10n.nodeAddButton,
               ),
             ],
           ),
