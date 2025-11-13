@@ -10,6 +10,7 @@ import '../../data/repositories/seed_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/task_template_repository.dart';
+import '../../data/repositories/node_repository.dart';
 import '../../data/repositories/drift/drift_focus_session_repository.dart';
 import '../../data/repositories/drift/drift_milestone_repository.dart';
 import '../../data/repositories/drift/drift_preference_repository.dart';
@@ -18,6 +19,7 @@ import '../../data/repositories/drift/drift_seed_repository.dart';
 import '../../data/repositories/drift/drift_tag_repository.dart';
 import '../../data/repositories/drift/drift_task_repository.dart';
 import '../../data/repositories/drift/drift_task_template_repository.dart';
+import '../../data/repositories/drift/drift_node_repository.dart';
 import '../../core/config/database_config.dart';
 
 /// DatabaseAdapter Provider，根据 DatabaseConfig.current 创建对应的 adapter
@@ -76,4 +78,10 @@ final taskTemplateRepositoryProvider = FutureProvider<TaskTemplateRepository>((r
 final seedRepositoryProvider = FutureProvider<SeedRepository>((ref) async {
   final adapter = await ref.read(databaseAdapterProvider.future);
   return DriftSeedRepository(adapter);
+});
+
+/// 根据当前数据库类型创建 NodeRepository
+final nodeRepositoryProvider = FutureProvider<NodeRepository>((ref) async {
+  final adapter = await ref.read(databaseAdapterProvider.future);
+  return DriftNodeRepository(adapter);
 });

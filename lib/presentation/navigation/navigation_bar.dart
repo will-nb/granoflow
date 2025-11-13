@@ -24,9 +24,9 @@ class AppNavigationBar extends StatelessWidget {
         .toList();
 
     final colorScheme = Theme.of(context).colorScheme;
-    // 浅色模式使用 surfaceContainerHighest 增强对比度，深色模式使用 surface
+    // 浅色模式使用 tertiaryContainer（天际白）提供更好的对比度，深色模式使用 surface
     final backgroundColor = colorScheme.brightness == Brightness.light
-        ? colorScheme.surfaceContainerHighest
+        ? colorScheme.tertiaryContainer
         : colorScheme.surface;
 
     return BottomAppBar(
