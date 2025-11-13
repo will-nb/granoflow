@@ -5,8 +5,9 @@ import '../../../../core/providers/service_providers.dart';
 import '../../../../data/models/milestone.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 import '../../utils/date_utils.dart';
-import '../../../widgets/flexible_description_input.dart';
 import '../../../widgets/flexible_text_input.dart';
+import '../../../widgets/rich_text_description_preview.dart';
+import '../../../widgets/utils/rich_text_description_editor_helper.dart';
 
 class MilestoneEditSheet extends ConsumerStatefulWidget {
   const MilestoneEditSheet({
@@ -25,7 +26,7 @@ class MilestoneEditSheet extends ConsumerStatefulWidget {
 class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
-  late final TextEditingController _descriptionController;
+  String? _description;
   bool _submitting = false;
   late DateTime? _deadline;
   String? _deadlineError;
@@ -36,16 +37,13 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
     _titleController = TextEditingController(
       text: widget.milestone?.title ?? '',
     );
-    _descriptionController = TextEditingController(
-      text: widget.milestone?.description ?? '',
-    );
+    _description = widget.milestone?.description;
     _deadline = widget.milestone?.dueAt;
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -110,14 +108,20 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
                     ),
                   ),
                 const SizedBox(height: 16),
-                FlexibleDescriptionInput(
-                  controller: _descriptionController,
-                  softLimit: 200,
-                  hardLimit: 60000,
-                  hintText: l10n.projectSheetDescriptionHint,
-                  labelText: l10n.flexibleDescriptionLabel,
-                  onChanged: (_) => setState(() {}),
-                  showCounter: false,
+                RichTextDescriptionPreview(
+                  description: _description,
+                  onTap: () async {
+                    await RichTextDescriptionEditorHelper
+                        .showRichTextDescriptionEditor(
+                      context,
+                      initialDescription: _description,
+                      onSave: (savedDescription) {
+                        setState(() {
+                          _description = savedDescription;
+                        });
+                      },
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -181,12 +185,7 @@ class _MilestoneEditSheetState extends ConsumerState<MilestoneEditSheet> {
       );
     }
 
-    final description = _descriptionController.text.trim().isEmpty
-        ? null
-        : _descriptionController.text.trim();
-    final sanitizedDescription = description != null && description.isNotEmpty
-        ? description
-        : null;
+    final sanitizedDescription = _description;
 
     setState(() => _submitting = true);
     try {

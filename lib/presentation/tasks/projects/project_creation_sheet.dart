@@ -5,8 +5,9 @@ import '../../../core/providers/service_providers.dart';
 import '../../../core/services/project_models.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/date_utils.dart';
-import '../../widgets/flexible_description_input.dart';
 import '../../widgets/flexible_text_input.dart';
+import '../../widgets/rich_text_description_preview.dart';
+import '../../widgets/utils/rich_text_description_editor_helper.dart';
 import 'models/milestone_draft.dart';
 import 'widgets/milestone_draft_tile.dart';
 
@@ -21,7 +22,7 @@ class ProjectCreationSheet extends ConsumerStatefulWidget {
 class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  String? _description;
   final List<MilestoneDraft> _milestones = <MilestoneDraft>[];
   bool _submitting = false;
   DateTime? _projectDeadline;
@@ -30,7 +31,6 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
   @override
   void dispose() {
     _titleController.dispose();
-    _descriptionController.dispose();
     for (final milestone in _milestones) {
       milestone.dispose();
     }
@@ -97,14 +97,20 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
                     ),
                   ),
                 const SizedBox(height: 16),
-                FlexibleDescriptionInput(
-                  controller: _descriptionController,
-                  softLimit: 200,
-                  hardLimit: 60000,
-                  hintText: l10n.projectSheetDescriptionHint,
-                  labelText: l10n.flexibleDescriptionLabel,
-                  onChanged: (_) => setState(() {}),
-                  showCounter: false,
+                RichTextDescriptionPreview(
+                  description: _description,
+                  onTap: () async {
+                    await RichTextDescriptionEditorHelper
+                        .showRichTextDescriptionEditor(
+                      context,
+                      initialDescription: _description,
+                      onSave: (savedDescription) {
+                        setState(() {
+                          _description = savedDescription;
+                        });
+                      },
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 _buildMilestoneSection(context),
@@ -229,9 +235,7 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
             title: draft.titleController.text.trim(),
             dueDate: draft.deadline,
             tags: draft.buildTags(),
-            description: draft.descriptionController.text.trim().isEmpty
-                ? null
-                : draft.descriptionController.text.trim(),
+            description: draft.description,
           ),
         )
         .toList(growable: false);
@@ -253,9 +257,7 @@ class _ProjectCreationSheetState extends ConsumerState<ProjectCreationSheet> {
     if (title.isEmpty) {
       return;
     }
-    final description = _descriptionController.text.trim().isEmpty
-        ? null
-        : _descriptionController.text.trim();
+    final description = _description;
     final sanitizedDescription = description != null && description.isNotEmpty
         ? description
         : null;

@@ -19,6 +19,8 @@ import 'tag_add_button.dart';
 import 'tag_data.dart';
 import 'tag_grouped_menu.dart';
 import 'task_copy_button.dart';
+import '../widgets/rich_text_description_preview.dart';
+import '../widgets/utils/rich_text_description_editor_helper.dart';
 
 /// 任务操作底部弹窗
 /// 
@@ -45,6 +47,7 @@ class _TaskActionBottomSheetState
   bool _isEditingTitle = false;
   // 添加本地状态来跟踪标签列表，用于立即更新布局
   List<String>? _localTags;
+  String? _description;
 
   @override
   void initState() {
@@ -54,6 +57,8 @@ class _TaskActionBottomSheetState
     _titleFocusNode.addListener(_onFocusChange);
     // 初始化本地标签列表
     _localTags = List.from(widget.task.tags);
+    // 初始化 description
+    _description = widget.task.description;
     // 自动进入编辑状态
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _titleFocusNode.requestFocus();
@@ -196,6 +201,41 @@ class _TaskActionBottomSheetState
                     maxLines: null,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _saveTitle(),
+                  ),
+                  const SizedBox(height: 16),
+                  // 任务描述
+                  RichTextDescriptionPreview(
+                    description: _description,
+                    onTap: () async {
+                      await RichTextDescriptionEditorHelper
+                          .showRichTextDescriptionEditor(
+                        context,
+                        initialDescription: _description,
+                        onSave: (savedDescription) async {
+                          setState(() {
+                            _description = savedDescription;
+                          });
+                          // 保存到数据库
+                          try {
+                            final taskService = await ref.read(taskServiceProvider.future);
+                            await taskService.updateDetails(
+                              taskId: task.id,
+                              payload: TaskUpdate(description: savedDescription),
+                            );
+                          } catch (error) {
+                            if (mounted) {
+                              final l10n = AppLocalizations.of(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${l10n.taskUpdateError}: $error'),
+                                  backgroundColor: Theme.of(context).colorScheme.error,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   // 标签管理 - 传递最新的任务数据

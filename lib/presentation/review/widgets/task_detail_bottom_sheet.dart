@@ -16,6 +16,8 @@ import '../../widgets/project_milestone_picker.dart';
 import '../../widgets/tag_add_button.dart';
 import '../../widgets/tag_data.dart';
 import '../../widgets/tag_grouped_menu.dart';
+import '../../widgets/rich_text_description_preview.dart';
+import '../../widgets/utils/rich_text_description_editor_helper.dart';
 
 /// 任务详情底部弹窗
 /// 
@@ -42,6 +44,7 @@ class _TaskDetailBottomSheetState
   bool _isEditingTitle = false;
   // 添加本地状态来跟踪标签列表，用于立即更新布局
   List<String>? _localTags;
+  String? _description;
 
   @override
   void initState() {
@@ -51,6 +54,8 @@ class _TaskDetailBottomSheetState
     _titleFocusNode.addListener(_onFocusChange);
     // 初始化本地标签列表
     _localTags = List.from(widget.task.tags);
+    // 初始化 description
+    _description = widget.task.description;
   }
 
   @override
@@ -190,6 +195,41 @@ class _TaskDetailBottomSheetState
                       setState(() {
                         _isEditingTitle = true;
                       });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // 任务描述
+                  RichTextDescriptionPreview(
+                    description: _description,
+                    onTap: () async {
+                      await RichTextDescriptionEditorHelper
+                          .showRichTextDescriptionEditor(
+                        context,
+                        initialDescription: _description,
+                        onSave: (savedDescription) async {
+                          setState(() {
+                            _description = savedDescription;
+                          });
+                          // 保存到数据库
+                          try {
+                            final taskService = await ref.read(taskServiceProvider.future);
+                            await taskService.updateDetails(
+                              taskId: task.id,
+                              payload: TaskUpdate(description: savedDescription),
+                            );
+                          } catch (error) {
+                            if (mounted) {
+                              final l10n = AppLocalizations.of(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${l10n.taskUpdateError}: $error'),
+                                  backgroundColor: Theme.of(context).colorScheme.error,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      );
                     },
                   ),
                   const SizedBox(height: 24),

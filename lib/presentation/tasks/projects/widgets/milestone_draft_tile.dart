@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/flexible_description_input.dart';
 import '../../../widgets/flexible_text_input.dart';
+import '../../../widgets/rich_text_description_preview.dart';
+import '../../../widgets/utils/rich_text_description_editor_helper.dart';
 import '../../utils/date_utils.dart';
 import '../models/milestone_draft.dart';
 import '../../../../generated/l10n/app_localizations.dart';
@@ -70,13 +71,19 @@ class MilestoneDraftTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            FlexibleDescriptionInput(
-              controller: draft.descriptionController,
-              softLimit: 200,
-              hardLimit: 60000,
-              hintText: l10n.projectSheetDescriptionHint,
-              labelText: l10n.flexibleDescriptionLabel,
-              onChanged: (_) => onChanged(),
+            RichTextDescriptionPreview(
+              description: draft.description,
+              onTap: () async {
+                await RichTextDescriptionEditorHelper
+                    .showRichTextDescriptionEditor(
+                  context,
+                  initialDescription: draft.description,
+                  onSave: (savedDescription) {
+                    draft.description = savedDescription;
+                    onChanged();
+                  },
+                );
+              },
             ),
           ],
         ),

@@ -194,14 +194,15 @@ void main() {
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
         expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
+        // 层级功能已移除，不再检查 parentId
         expect(
           fakeTaskHierarchyService.moveToParentParentId,
-          beforeTask.parentId,
+          null,
         );
-        // clearParent 只有在 parentId == null 时才为 true（见 handleInsertionDrop 的 clearParent: aboveTaskParentId == null）
+        // 层级功能已移除，clearParent 不再使用
         expect(
           fakeTaskHierarchyService.moveToParentClearParent,
-          beforeTask.parentId == null,
+          false,
         );
         expect(result.success, true);
       });
@@ -242,20 +243,21 @@ void main() {
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
         expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
+        // 层级功能已移除，不再检查 parentId
         expect(
           fakeTaskHierarchyService.moveToParentParentId,
-          beforeTask.parentId,
+          null,
         );
-        // clearParent 只有在 parentId == null 时才为 true
+        // 层级功能已移除，clearParent 不再使用
         expect(
           fakeTaskHierarchyService.moveToParentClearParent,
-          beforeTask.parentId == null,
+          false,
         );
         expect(result.success, true);
       });
 
       testWidgets('should handle subtask promotion (Inbox)', (tester) async {
-        final draggedTask = _createTask(id: '1', ;
+        final draggedTask = _createTask(id: '1');
         final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;
@@ -512,14 +514,15 @@ void main() {
 
         expect(fakeTaskHierarchyService.moveToParentCalled, true);
         expect(fakeTaskHierarchyService.moveToParentTaskId, '1');
+        // 层级功能已移除，不再检查 parentId
         expect(
           fakeTaskHierarchyService.moveToParentParentId,
-          beforeTask.parentId,
+          null,
         );
-        // clearParent 只有在 parentId == null 时才为 true
+        // 层级功能已移除，clearParent 不再使用
         expect(
           fakeTaskHierarchyService.moveToParentClearParent,
-          beforeTask.parentId == null,
+          false,
         );
         expect(result.success, true);
       });

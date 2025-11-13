@@ -9,6 +9,7 @@ import '../../../data/models/milestone.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../tasks/utils/date_utils.dart';
 import '../../widgets/modern_tag.dart';
+import '../../widgets/rich_text_description_preview.dart';
 import '../../../core/services/tag_service.dart';
 
 /// 里程碑详情底部弹窗
@@ -73,15 +74,12 @@ class MilestoneDetailBottomSheet extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   // 里程碑描述
-                  if (milestone.description != null && milestone.description!.isNotEmpty) ...[
-                    Text(
-                      milestone.description!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                  RichTextDescriptionPreview(
+                    description: milestone.description,
+                    readOnly: true,
+                    onTap: null,
+                  ),
+                  const SizedBox(height: 16),
                   // 截止日期
                   if (milestone.dueAt != null) ...[
                     Row(

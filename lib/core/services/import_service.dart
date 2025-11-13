@@ -313,15 +313,8 @@ class ImportService {
       throw Exception('Encryption key is missing');
     }
     final encryptionKey = _encryptionService.deriveKey(userKey, salt);
-    // 从原始 JSON 中提取任务的 parentTaskId（taskId，String）
+    // 层级功能已移除，不再需要提取或建立父子关系
     final tasksJson = rawJson['tasks'] as List<dynamic>;
-    final taskIdToParentTaskId = <String, String?>{};
-    for (final taskJson in tasksJson) {
-      final taskMap = taskJson as Map<String, dynamic>;
-      final taskId = taskMap['taskId'] as String;
-      final parentTaskId = taskMap['parentTaskId'] as String?;
-      taskIdToParentTaskId[taskId] = parentTaskId;
-    }
 
     // 构建 logs 映射（从独立数组按外键分组）
     // 直接从 rawJson 读取，因为 JSON 中包含外键信息

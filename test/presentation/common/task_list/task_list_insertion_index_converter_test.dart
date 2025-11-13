@@ -92,7 +92,7 @@ void main() {
 
       test('should find root parent for subtask', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ;
+        final task2 = _createTask(id: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1), // 子任务
@@ -115,8 +115,8 @@ void main() {
 
       test('should handle nested subtask (three levels)', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ;
-        final task3 = _createTask(id: '3', ;
+        final task2 = _createTask(id: '2');
+        final task3 = _createTask(id: '3');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1),
@@ -158,7 +158,7 @@ void main() {
 
       test('should throw StateError when parent task not found', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ; // 父任务不存在
+        final task2 = _createTask(id: '2'); // 父任务不存在
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1), // 子任务，但父任务不在 filteredTasks 中
@@ -281,7 +281,7 @@ void main() {
 
       test('should handle insertion at subtask position', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ;
+        final task2 = _createTask(id: '2');
         final flattenedTasks = [
           FlattenedTaskNode(task1, 0),
           FlattenedTaskNode(task2, 1),

@@ -5,11 +5,10 @@ import '../../utils/tag_utils.dart';
 /// 用于在创建项目时临时存储里程碑信息
 class MilestoneDraft {
   MilestoneDraft()
-    : titleController = TextEditingController(),
-      descriptionController = TextEditingController();
+    : titleController = TextEditingController();
 
   final TextEditingController titleController;
-  final TextEditingController descriptionController;
+  String? description;
   DateTime? deadline;
   String? urgencyTag;
   String? importanceTag;
@@ -33,7 +32,6 @@ class MilestoneDraft {
       titleController.removeListener(titleListener!);
     }
     titleController.dispose();
-    descriptionController.dispose();
   }
 }
 

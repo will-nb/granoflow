@@ -5,7 +5,6 @@ import 'package:granoflow/presentation/common/task_list/task_list_tree_builder.d
 /// 创建测试任务辅助函数
 Task _createTask({
   required String id,
-  String? parentId,
   double sortIndex = 1000,
   String? projectId,
   String? milestoneId,
@@ -46,41 +45,47 @@ void main() {
         expect(trees[2].children, isEmpty);
       });
 
-      test('should build tree with parent-child relationships', () {
+      test('should build tree without parent-child relationships (hierarchy removed)', () {
         final tasks = [
           _createTask(id: '1'),
-          _createTask(id: '2', 
-          _createTask(id: '3', 
+          _createTask(id: '2'),
+          _createTask(id: '3'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
-        expect(trees.length, 1);
+        // 层级功能已移除，所有任务都是根任务
+        expect(trees.length, 3);
         expect(trees[0].task.id, '1');
-        expect(trees[0].children.length, 2);
-        expect(trees[0].children[0].task.id, '2');
-        expect(trees[0].children[1].task.id, '3');
+        expect(trees[0].children, isEmpty);
+        expect(trees[1].task.id, '2');
+        expect(trees[1].children, isEmpty);
+        expect(trees[2].task.id, '3');
+        expect(trees[2].children, isEmpty);
       });
 
       test('should build tree with multiple root tasks and children', () {
         final tasks = [
           _createTask(id: '1'),
-          _createTask(id: '2', 
+          _createTask(id: '2'),
           _createTask(id: '3'),
-          _createTask(id: '4', 
-          _createTask(id: '5', 
+          _createTask(id: '4'),
+          _createTask(id: '5'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
 
-        expect(trees.length, 2);
+        // 层级功能已移除，所有任务都是根任务
+        expect(trees.length, 5);
         expect(trees[0].task.id, '1');
-        expect(trees[1].task.id, '3');
-        expect(trees[0].children.length, 1);
-        expect(trees[1].children.length, 2);
-        expect(trees[0].children[0].task.id, '2');
-        expect(trees[1].children[0].task.id, '4');
-        expect(trees[1].children[1].task.id, '5');
+        expect(trees[1].task.id, '2');
+        expect(trees[2].task.id, '3');
+        expect(trees[3].task.id, '4');
+        expect(trees[4].task.id, '5');
+        // 所有任务都没有子任务
+        for (final tree in trees) {
+          expect(tree.children, isEmpty);
+        }
       });
 
       test('should exclude project tasks from children', () {
@@ -133,21 +138,23 @@ void main() {
         expect(trees, isEmpty);
       });
 
-      test('should handle deep nesting (three levels)', () {
+      test('should handle tasks without nesting (hierarchy removed)', () {
         final tasks = [
           _createTask(id: '1'),
-          _createTask(id: '2', 
-          _createTask(id: '3', 
+          _createTask(id: '2'),
+          _createTask(id: '3'),
         ];
 
         final trees = TaskListTreeBuilder.buildTaskTree(tasks);
-
-        expect(trees.length, 1);
+        
+        // 层级功能已移除，所有任务都是根任务
+        expect(trees.length, 3);
         expect(trees[0].task.id, '1');
-        expect(trees[0].children.length, 1);
-        expect(trees[0].children[0].task.id, '2');
-        expect(trees[0].children[0].children.length, 1);
-        expect(trees[0].children[0].children[0].task.id, '3');
+        expect(trees[0].children, isEmpty);
+        expect(trees[1].task.id, '2');
+        expect(trees[1].children, isEmpty);
+        expect(trees[2].task.id, '3');
+        expect(trees[2].children, isEmpty);
       });
     });
 
@@ -162,40 +169,37 @@ void main() {
         expect(node.children, isEmpty);
       });
 
-      test('should build subtree with children', () {
+      test('should build subtree without children (hierarchy removed)', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ;
-        final task3 = _createTask(id: '3', ;
+        final task2 = _createTask(id: '2');
+        final task3 = _createTask(id: '3');
         final byId = {'1': task1, '2': task2, '3': task3};
 
         final node = TaskListTreeBuilder.buildSubtree(task1, byId);
 
+        // 层级功能已移除，不再有子任务
         expect(node.task.id, '1');
-        expect(node.children.length, 2);
-        expect(node.children[0].task.id, '2');
-        expect(node.children[1].task.id, '3');
+        expect(node.children, isEmpty);
       });
 
-      test('should recursively build nested subtrees', () {
+      test('should build subtree without nested children (hierarchy removed)', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ;
-        final task3 = _createTask(id: '3', ;
+        final task2 = _createTask(id: '2');
+        final task3 = _createTask(id: '3');
         final byId = {'1': task1, '2': task2, '3': task3};
 
         final node = TaskListTreeBuilder.buildSubtree(task1, byId);
 
+        // 层级功能已移除，不再有嵌套子任务
         expect(node.task.id, '1');
-        expect(node.children.length, 1);
-        expect(node.children[0].task.id, '2');
-        expect(node.children[0].children.length, 1);
-        expect(node.children[0].children[0].task.id, '3');
+        expect(node.children, isEmpty);
       });
     });
 
     group('populateHasChildrenMap', () {
       test('should mark task with children as true', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ;
+        final task2 = _createTask(id: '2');
         final node = TaskTreeNode(
           task: task1,
           children: [TaskTreeNode(task: task2, children: const [])],
@@ -222,8 +226,8 @@ void main() {
 
       test('should recursively populate map for nested trees', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', ;
-        final task3 = _createTask(id: '3', ;
+        final task2 = _createTask(id: '2');
+        final task3 = _createTask(id: '3');
         final node = TaskTreeNode(
           task: task1,
           children: [

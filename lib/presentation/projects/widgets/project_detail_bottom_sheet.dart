@@ -9,6 +9,7 @@ import '../../../data/models/project.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../tasks/utils/date_utils.dart';
 import '../../widgets/modern_tag.dart';
+import '../../widgets/rich_text_description_preview.dart';
 import '../../../core/services/tag_service.dart';
 
 /// 项目详情底部弹窗
@@ -76,15 +77,12 @@ class ProjectDetailBottomSheet extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   // 项目描述
-                  if (project.description != null && project.description!.isNotEmpty) ...[
-                    Text(
-                      project.description!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                  RichTextDescriptionPreview(
+                    description: project.description,
+                    readOnly: true,
+                    onTap: null,
+                  ),
+                  const SizedBox(height: 16),
                   // 截止日期
                   if (project.dueAt != null) ...[
                     Row(

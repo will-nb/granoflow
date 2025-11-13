@@ -110,8 +110,8 @@ void main() {
         'should only expand immediate children when nested parent is collapsed',
         () {
           final task1 = _createTask(id: '1');
-          final task2 = _createTask(id: '2', ;
-          final task3 = _createTask(id: '3', ;
+          final task2 = _createTask(id: '2');
+          final task3 = _createTask(id: '3');
           final node = _createNode(task1, [
             _createNode(task2, [_createNode(task3, [])]),
           ]);
@@ -174,7 +174,7 @@ void main() {
         final task1 = _createTask(id: '1');
         final task2 = _createTask(id: '2');
         final task3 = _createTask(id: '3');
-        final task4 = _createTask(id: '4', ;
+        final task4 = _createTask(id: '4');
         final node = _createNode(task1, [
           _createNode(task2, [_createNode(task4, [])]),
           _createNode(task3, []),
