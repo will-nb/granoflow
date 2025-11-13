@@ -30,7 +30,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   void _handleTaskTap(Task task) {
-    // 根据任务状态跳转
+    // 如果任务有截止日期，跳转到该日期的日视图
+    if (task.dueAt != null) {
+      final date = task.dueAt!;
+      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      context.go('/achievements?date=$dateStr&viewMode=day');
+      return;
+    }
+    
+    // 如果没有截止日期，根据任务状态跳转
     switch (task.status) {
       case TaskStatus.inbox:
         context.go('/inbox');

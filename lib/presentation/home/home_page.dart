@@ -12,22 +12,102 @@ import '../widgets/gradient_page_scaffold.dart';
 import 'widgets/home_statistics_widget.dart';
 import 'widgets/task_search_bar.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  bool _hasLoadedInitial = false;
+  String? _lastLocation;
+  DateTime? _lastRefreshTime;
+
+  @override
+  void initState() {
+    super.initState();
     // 触发种子导入，但不监听状态变化（避免无限重建）
-    debugPrint('🟢 HomePage: build() called, triggering seed import...');
-    try {
-      ref.read(seedInitializerProvider);
-      debugPrint('🟢 HomePage: seedInitializerProvider read successfully');
-    } catch (error, stackTrace) {
-      debugPrint('🔴 HomePage: ERROR - Failed to read seedInitializerProvider: $error');
-      debugPrint('🔴 HomePage: Stack trace: $stackTrace');
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('🟢 HomePage: initState: triggering seed import...');
+      try {
+        ref.read(seedInitializerProvider);
+        debugPrint('🟢 HomePage: seedInitializerProvider read successfully');
+      } catch (error, stackTrace) {
+        debugPrint('🔴 HomePage: ERROR - Failed to read seedInitializerProvider: $error');
+        debugPrint('🔴 HomePage: Stack trace: $stackTrace');
+      }
+      _hasLoadedInitial = true;
+      // 初始化时刷新一次统计数据
+      _refreshStatistics();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 检查路由是否变化，如果变化则刷新统计数据
+    final route = ModalRoute.of(context);
+    final isCurrentRoute = route?.isCurrent ?? false;
     
+    if (_hasLoadedInitial && isCurrentRoute) {
+      // 使用 GoRouter 获取当前路由路径
+      final router = GoRouter.of(context);
+      final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+      
+      // 如果路由路径变化，说明进入了新页面
+      if (currentLocation == '/' && currentLocation != _lastLocation) {
+        _lastLocation = currentLocation;
+        debugPrint('[HomePage] Route changed to: $currentLocation, refreshing statistics');
+        _refreshStatistics();
+      }
+    }
+  }
+
+  void _refreshStatistics() {
+    if (!mounted) return;
+    
+    // 防止频繁刷新：如果距离上次刷新不到 500ms，则跳过
+    final now = DateTime.now();
+    if (_lastRefreshTime != null && now.difference(_lastRefreshTime!).inMilliseconds < 500) {
+      return;
+    }
+    _lastRefreshTime = now;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        debugPrint('[HomePage] Refreshing all statistics providers');
+        ref.invalidate(todayStatisticsProvider);
+        ref.invalidate(thisWeekStatisticsProvider);
+        ref.invalidate(thisMonthStatisticsProvider);
+        ref.invalidate(totalStatisticsProvider);
+        ref.invalidate(thisMonthTopCompletedDateProvider);
+        ref.invalidate(thisMonthTopFocusDateProvider);
+        ref.invalidate(totalTopCompletedDateProvider);
+        ref.invalidate(totalTopFocusDateProvider);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    
+    // 在 build 方法中检查路由状态，确保每次进入首页时刷新数据
+    if (_hasLoadedInitial) {
+      final router = GoRouter.of(context);
+      final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+      
+      // 如果当前是首页且路由路径变化，刷新统计数据
+      if (currentLocation == '/' && currentLocation != _lastLocation) {
+        _lastLocation = currentLocation;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _refreshStatistics();
+          }
+        });
+      }
+    }
 
     return GradientPageScaffold(
       appBar: PageAppBar(
@@ -157,8 +237,10 @@ class HomePage extends ConsumerWidget {
                 ref.invalidate(thisWeekStatisticsProvider);
                 ref.invalidate(thisMonthStatisticsProvider);
                 ref.invalidate(totalStatisticsProvider);
-                ref.invalidate(topCompletedDateProvider);
-                ref.invalidate(topFocusDateProvider);
+                ref.invalidate(thisMonthTopCompletedDateProvider);
+                ref.invalidate(thisMonthTopFocusDateProvider);
+                ref.invalidate(totalTopCompletedDateProvider);
+                ref.invalidate(totalTopFocusDateProvider);
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),

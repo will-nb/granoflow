@@ -133,7 +133,7 @@ class HomeStatisticsService {
     }
   }
 
-  /// 获取总计的完成数量和专注时间
+  /// 获取全部的完成数量和专注时间（所有历史数据）
   Future<HomeStatistics> getTotalStatistics() async {
     try {
       // 查询所有历史数据（使用一个很大的日期范围）
@@ -170,14 +170,16 @@ class HomeStatisticsService {
     }
   }
 
-  /// 获取三个月内完成任务数量最多的日期
-  Future<TopDateStatistics?> getTopCompletedDate() async {
+  /// 获取当月完成任务数量最多的日期
+  Future<TopDateStatistics?> getThisMonthTopCompletedDate() async {
     try {
       final now = DateTime.now();
-      // 计算三个月前的第一天
-      final threeMonthsAgo = DateTime(now.year, now.month - 3, 1);
-      final startDate = DateTime(threeMonthsAgo.year, threeMonthsAgo.month, threeMonthsAgo.day);
-      final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      // 使用 CalendarReviewUtils 计算当月的开始和结束时间
+      final monthStart = CalendarReviewUtils.getMonthStart(now);
+      final monthEnd = CalendarReviewUtils.getMonthEnd(now);
+
+      final startDate = DateTime(monthStart.year, monthStart.month, monthStart.day);
+      final endDate = DateTime(monthEnd.year, monthEnd.month, monthEnd.day, 23, 59, 59);
 
       final tasksByDate = await _taskRepository.getCompletedRootTasksByDateRange(
         start: startDate,
@@ -214,14 +216,16 @@ class HomeStatisticsService {
     }
   }
 
-  /// 获取三个月内专注时间最长的日期
-  Future<TopDateStatistics?> getTopFocusDate() async {
+  /// 获取当月专注时间最长的日期
+  Future<TopDateStatistics?> getThisMonthTopFocusDate() async {
     try {
       final now = DateTime.now();
-      // 计算三个月前的第一天
-      final threeMonthsAgo = DateTime(now.year, now.month - 3, 1);
-      final startDate = DateTime(threeMonthsAgo.year, threeMonthsAgo.month, threeMonthsAgo.day);
-      final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      // 使用 CalendarReviewUtils 计算当月的开始和结束时间
+      final monthStart = CalendarReviewUtils.getMonthStart(now);
+      final monthEnd = CalendarReviewUtils.getMonthEnd(now);
+
+      final startDate = DateTime(monthStart.year, monthStart.month, monthStart.day);
+      final endDate = DateTime(monthEnd.year, monthEnd.month, monthEnd.day, 23, 59, 59);
 
       final focusMinutesByDate = await _focusSessionRepository.getFocusMinutesByDateRange(
         start: startDate,
@@ -234,7 +238,91 @@ class HomeStatisticsService {
 
       // 找到专注时间最长的日期
       DateTime? topDate;
-      int maxMinutes = 0;
+      int maxMinutes = -1; // 初始化为 -1，确保即使专注时间为 0 也能找到日期
+
+      for (final entry in focusMinutesByDate.entries) {
+        final minutes = entry.value;
+        if (minutes > maxMinutes) {
+          maxMinutes = minutes;
+          topDate = entry.key;
+        }
+      }
+
+      if (topDate == null) {
+        return null;
+      }
+
+      return TopDateStatistics(
+        date: topDate,
+        focusMinutes: maxMinutes,
+      );
+    } catch (e) {
+      // 错误处理：返回 null
+      return null;
+    }
+  }
+
+  /// 获取历史完成任务数量最多的日期
+  Future<TopDateStatistics?> getTotalTopCompletedDate() async {
+    try {
+      // 查询所有历史数据（使用一个很大的日期范围）
+      final startDate = DateTime(1970, 1, 1);
+      final endDate = DateTime(2100, 1, 1);
+
+      final tasksByDate = await _taskRepository.getCompletedRootTasksByDateRange(
+        start: startDate,
+        end: endDate,
+      );
+
+      if (tasksByDate.isEmpty) {
+        return null;
+      }
+
+      // 找到完成数量最多的日期
+      DateTime? topDate;
+      int maxCount = 0;
+
+      for (final entry in tasksByDate.entries) {
+        final count = entry.value.length;
+        if (count > maxCount) {
+          maxCount = count;
+          topDate = entry.key;
+        }
+      }
+
+      if (topDate == null) {
+        return null;
+      }
+
+      return TopDateStatistics(
+        date: topDate,
+        completedCount: maxCount,
+      );
+    } catch (e) {
+      // 错误处理：返回 null
+      return null;
+    }
+  }
+
+  /// 获取历史专注时间最长的日期
+  Future<TopDateStatistics?> getTotalTopFocusDate() async {
+    try {
+      // 查询所有历史数据（使用一个很大的日期范围）
+      final startDate = DateTime(1970, 1, 1);
+      final endDate = DateTime(2100, 1, 1);
+
+      final focusMinutesByDate = await _focusSessionRepository.getFocusMinutesByDateRange(
+        start: startDate,
+        end: endDate,
+      );
+
+      if (focusMinutesByDate.isEmpty) {
+        return null;
+      }
+
+      // 找到专注时间最长的日期
+      DateTime? topDate;
+      int maxMinutes = -1; // 初始化为 -1，确保即使专注时间为 0 也能找到日期
 
       for (final entry in focusMinutesByDate.entries) {
         final minutes = entry.value;

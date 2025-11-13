@@ -21,7 +21,14 @@ import 'widgets/week_detail_view.dart';
 
 /// 日历回顾主页面
 class CalendarReviewPage extends ConsumerStatefulWidget {
-  const CalendarReviewPage({super.key});
+  const CalendarReviewPage({
+    super.key,
+    this.initialDate,
+    this.initialViewMode,
+  });
+
+  final String? initialDate; // ISO 8601 格式：'2024-01-01'
+  final String? initialViewMode; // 'day', 'week', 'month'
 
   @override
   ConsumerState<CalendarReviewPage> createState() => _CalendarReviewPageState();
@@ -44,13 +51,53 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
     final state = ref.read(calendarReviewNotifierProvider);
     final notifier = ref.read(calendarReviewNotifierProvider.notifier);
     
+    // 解析初始日期
+    DateTime? targetDate;
+    if (widget.initialDate != null) {
+      try {
+        // 解析 ISO 8601 日期格式：'2024-01-01'
+        final parts = widget.initialDate!.split('-');
+        if (parts.length == 3) {
+          targetDate = DateTime(
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+            int.parse(parts[2]),
+          );
+        }
+      } catch (e) {
+        debugPrint('Failed to parse initial date: $e');
+      }
+    }
+    
+    // 解析初始视图模式
+    CalendarViewMode? targetViewMode;
+    if (widget.initialViewMode != null) {
+      switch (widget.initialViewMode) {
+        case 'day':
+          targetViewMode = CalendarViewMode.day;
+          break;
+        case 'week':
+          targetViewMode = CalendarViewMode.week;
+          break;
+        case 'month':
+          targetViewMode = CalendarViewMode.month;
+          break;
+      }
+    }
+    
+    // 设置视图模式
+    if (targetViewMode != null) {
+      notifier.setViewMode(targetViewMode);
+    }
+    
     // 根据当前视图模式加载数据
-    final now = DateTime.now();
+    final now = targetDate ?? DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     DateTime start;
     DateTime end;
 
-    switch (state.viewMode) {
+    final viewMode = targetViewMode ?? state.viewMode;
+    switch (viewMode) {
       case CalendarViewMode.day:
         start = today;
         end = today;
@@ -65,8 +112,12 @@ class _CalendarReviewPageState extends ConsumerState<CalendarReviewPage> {
         break;
     }
 
-    // 如果还没有选中日期，默认选中今天
-    if (state.selectedDate == null) {
+    // 设置选中日期
+    if (targetDate != null) {
+      notifier.selectDate(today);
+      _selectedDay = today;
+      _focusedDay = today;
+    } else if (state.selectedDate == null) {
       notifier.selectDate(today);
       _selectedDay = today;
       _focusedDay = today;

@@ -248,12 +248,12 @@ void main() {
       });
     });
 
-    group('getTopCompletedDate', () {
-      test('找到完成数量最多的日期', () async {
-        // 创建三个月内的任务（使用固定日期，确保在三个月范围内）
-        // fixedNow 是 2024年1月15日，三个月前是 2023年10月15日
-        final date1 = DateTime(2023, 12, 10); // 在三个月范围内
-        final date2 = DateTime(2023, 12, 12); // 在三个月范围内
+    group('getThisMonthTopCompletedDate', () {
+      test('找到当月完成数量最多的日期', () async {
+        // 创建当月的任务
+        // fixedNow 是 2024年1月15日
+        final date1 = DateTime(2024, 1, 10); // 在当月范围内
+        final date2 = DateTime(2024, 1, 12); // 在当月范围内
 
         // date1 完成 2 个任务
         for (int i = 0; i < 2; i++) {
@@ -289,26 +289,26 @@ void main() {
           ),
         );
 
-        final topDate = await service.getTopCompletedDate();
+        final topDate = await service.getThisMonthTopCompletedDate();
 
         // 注意：由于服务使用 DateTime.now() 而测试使用固定时间，
         // 日期范围可能不匹配。这里只验证服务不会抛出异常
-        // 如果数据在三个月范围内，应该能找到；否则为 null
+        // 如果数据在当月范围内，应该能找到；否则为 null
         if (topDate != null) {
           expect(topDate.completedCount, greaterThan(0));
         }
       });
 
       test('没有数据时返回 null', () async {
-        final topDate = await service.getTopCompletedDate();
+        final topDate = await service.getThisMonthTopCompletedDate();
 
         expect(topDate, isNull);
       });
     });
 
-    group('getTopFocusDate', () {
-      test('找到专注时间最长的日期', () async {
-        // 创建今天的专注会话
+    group('getThisMonthTopFocusDate', () {
+      test('找到当月专注时间最长的日期', () async {
+        // 创建当月的专注会话
         final task1 = await taskRepository.createTask(
           TaskDraft(
             title: 'Task 1',
@@ -324,7 +324,7 @@ void main() {
           actualMinutes: 120,
         );
 
-        final topDate = await service.getTopFocusDate();
+        final topDate = await service.getThisMonthTopFocusDate();
 
         // 由于 StubFocusSessionRepository 使用 DateTime.now() 作为 endedAt，
         // 而我们的 fixedNow 是今天，所以应该能找到数据
@@ -333,7 +333,94 @@ void main() {
       });
 
       test('没有数据时返回 null', () async {
-        final topDate = await service.getTopFocusDate();
+        final topDate = await service.getThisMonthTopFocusDate();
+
+        expect(topDate, isNull);
+      });
+    });
+
+    group('getTotalTopCompletedDate', () {
+      test('找到历史完成数量最多的日期', () async {
+        // 创建历史任务
+        final date1 = DateTime(2023, 12, 10);
+        final date2 = DateTime(2023, 12, 12);
+
+        // date1 完成 2 个任务
+        for (int i = 0; i < 2; i++) {
+          final task = await taskRepository.createTask(
+            TaskDraft(
+              title: 'Task $i',
+              status: TaskStatus.pending,
+              dueAt: date1,
+            ),
+          );
+          await taskRepository.updateTask(
+            task.id,
+            TaskUpdate(
+              status: TaskStatus.completedActive,
+              endedAt: date1,
+            ),
+          );
+        }
+
+        // date2 完成 1 个任务
+        final task2 = await taskRepository.createTask(
+          TaskDraft(
+            title: 'Task 2',
+            status: TaskStatus.pending,
+            dueAt: date2,
+          ),
+        );
+        await taskRepository.updateTask(
+          task2.id,
+          TaskUpdate(
+            status: TaskStatus.completedActive,
+            endedAt: date2,
+          ),
+        );
+
+        final topDate = await service.getTotalTopCompletedDate();
+
+        // 历史数据应该能找到
+        if (topDate != null) {
+          expect(topDate.completedCount, greaterThan(0));
+        }
+      });
+
+      test('没有数据时返回 null', () async {
+        final topDate = await service.getTotalTopCompletedDate();
+
+        expect(topDate, isNull);
+      });
+    });
+
+    group('getTotalTopFocusDate', () {
+      test('找到历史专注时间最长的日期', () async {
+        // 创建历史专注会话
+        final task1 = await taskRepository.createTask(
+          TaskDraft(
+            title: 'Task 1',
+            status: TaskStatus.pending,
+            dueAt: fixedNow,
+          ),
+        );
+        final session1 = await focusSessionRepository.startSession(
+          taskId: task1.id,
+        );
+        await focusSessionRepository.endSession(
+          sessionId: session1.id,
+          actualMinutes: 120,
+        );
+
+        final topDate = await service.getTotalTopFocusDate();
+
+        // 历史数据应该能找到
+        expect(topDate, isNotNull);
+        expect(topDate!.focusMinutes, 120);
+      });
+
+      test('没有数据时返回 null', () async {
+        final topDate = await service.getTotalTopFocusDate();
 
         expect(topDate, isNull);
       });

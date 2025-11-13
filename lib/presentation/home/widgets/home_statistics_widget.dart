@@ -128,30 +128,62 @@ class HomeStatisticsWidget extends ConsumerWidget {
       ),
     ];
 
-    // 最佳完成日
-    if (allStatistics.topCompletedDate != null) {
+    // 当月最佳完成日
+    if (allStatistics.thisMonthTopCompletedDate != null) {
       rows.add(
         _buildTopDateRow(
           context,
           theme,
-          l10n.homeStatisticsTopCompletedDate,
-          allStatistics.topCompletedDate!.date,
-          allStatistics.topCompletedDate!.completedCount,
+          l10n.homeStatisticsThisMonthTopCompletedDate,
+          allStatistics.thisMonthTopCompletedDate!.date,
+          allStatistics.thisMonthTopCompletedDate!.completedCount,
           null,
+          isThisMonth: true,
         ),
       );
     }
 
-    // 最佳专注日
-    if (allStatistics.topFocusDate != null) {
+    // 当月最佳专注日
+    if (allStatistics.thisMonthTopFocusDate != null) {
       rows.add(
         _buildTopDateRow(
           context,
           theme,
-          l10n.homeStatisticsTopFocusDate,
-          allStatistics.topFocusDate!.date,
+          l10n.homeStatisticsThisMonthTopFocusDate,
+          allStatistics.thisMonthTopFocusDate!.date,
           null,
-          allStatistics.topFocusDate!.focusMinutes,
+          allStatistics.thisMonthTopFocusDate!.focusMinutes,
+          isThisMonth: true,
+        ),
+      );
+    }
+
+    // 历史最佳完成日
+    if (allStatistics.totalTopCompletedDate != null) {
+      rows.add(
+        _buildTopDateRow(
+          context,
+          theme,
+          l10n.homeStatisticsTotalTopCompletedDate,
+          allStatistics.totalTopCompletedDate!.date,
+          allStatistics.totalTopCompletedDate!.completedCount,
+          null,
+          isThisMonth: false,
+        ),
+      );
+    }
+
+    // 历史最佳专注日
+    if (allStatistics.totalTopFocusDate != null) {
+      rows.add(
+        _buildTopDateRow(
+          context,
+          theme,
+          l10n.homeStatisticsTotalTopFocusDate,
+          allStatistics.totalTopFocusDate!.date,
+          null,
+          allStatistics.totalTopFocusDate!.focusMinutes,
+          isThisMonth: false,
         ),
       );
     }
@@ -233,10 +265,11 @@ class HomeStatisticsWidget extends ConsumerWidget {
     String label,
     DateTime date,
     int? completedCount,
-    int? focusMinutes,
-  ) {
+    int? focusMinutes, {
+    required bool isThisMonth,
+  }) {
     final colorScheme = theme.colorScheme;
-    final formattedDate = HomeStatisticsUtils.formatTopDate(context, date);
+    final formattedDate = HomeStatisticsUtils.formatTopDate(context, date, isThisMonth: isThisMonth);
     final value = completedCount != null
         ? '$completedCount'
         : HomeStatisticsUtils.formatFocusMinutes(focusMinutes!);

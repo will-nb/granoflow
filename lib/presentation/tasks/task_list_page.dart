@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/pinned_task_bar.dart';
 
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/pinned_task_provider.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/providers/tasks_drag_provider.dart';
 import '../../data/models/task.dart';
@@ -118,6 +119,10 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         // 同时保存 notifier 引用，以便在 dispose 中使用
         _dragNotifier = ref.read(tasksDragProvider.notifier);
         _dragNotifier?.setScrollController(_scrollController);
+        
+        // 检查并恢复 doing 状态的任务为置顶
+        // 主要用于应用被强制退出后重新进入时，自动恢复 doing 任务的置顶状态
+        ref.read(pinnedTaskIdProvider.notifier).checkAndRestoreDoingTask();
         
         // 检查是否需要滚动到置顶任务
         if (widget.scrollToPinned && !_didScrollToPinned) {

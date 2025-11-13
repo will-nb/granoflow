@@ -159,7 +159,7 @@ class _MilestoneTaskListSimplifiedState
           task: task,
           section: null, // 里程碑不是基于 section 的
           showCheckbox: true,
-          verticalPadding: 8.0,
+          verticalPadding: 4.0,
         ),
       );
 

@@ -10,6 +10,7 @@ import '../services/pinned_task_persistence_service.dart';
 import 'app_providers.dart';
 import 'pinned_task_background_service_provider.dart';
 import 'pinned_task_persistence_service_provider.dart';
+import 'repository_providers.dart';
 import 'service_providers.dart';
 
 /// 置顶任务ID状态管理 Notifier
@@ -248,6 +249,45 @@ class PinnedTaskIdNotifier extends StateNotifier<String?> {
       // 恢复失败不应该影响应用启动，只记录错误
       // ignore: avoid_print
       print('Failed to load pinned task state: $e');
+    }
+  }
+
+  /// 检查并恢复 doing 状态的任务为置顶
+  ///
+  /// 如果当前没有置顶任务，且存在 doing 状态的任务，则自动置顶第一个 doing 任务。
+  /// 这个方法主要用于应用被强制退出后重新进入时，自动恢复 doing 任务的置顶状态。
+  Future<void> checkAndRestoreDoingTask() async {
+    // 如果已经有置顶任务，不需要检查
+    if (state != null) {
+      return;
+    }
+
+    try {
+      // 获取 TaskRepository
+      final taskRepository = await _ref.read(taskRepositoryProvider.future);
+      
+      // 查询第一个 doing 状态的任务
+      final doingTasks = await taskRepository.searchByTitle(
+        '',
+        status: TaskStatus.doing,
+        limit: 1,
+      );
+
+      if (doingTasks.isNotEmpty) {
+        final doingTask = doingTasks.first;
+        
+        // 验证任务有效性
+        if (doingTask.status != TaskStatus.completedActive &&
+            doingTask.status != TaskStatus.trashed &&
+            doingTask.status != TaskStatus.archived) {
+          // 任务有效，设置为置顶
+          await setPinnedTaskId(doingTask.id);
+        }
+      }
+    } catch (e) {
+      // 检查失败不应该影响功能，只记录错误
+      // ignore: avoid_print
+      print('Failed to check and restore doing task: $e');
     }
   }
 

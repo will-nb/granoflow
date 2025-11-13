@@ -16,31 +16,51 @@ class PinnedTaskHandler extends TaskHandler {
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    // 从存储中读取任务信息
-    final allData = await FlutterForegroundTask.getAllData();
-    _taskTitle = allData['taskTitle'] as String? ?? '';
-    _startEpochMs = allData['startEpochMs'] as int? ?? 
-        DateTime.now().millisecondsSinceEpoch;
+    try {
+      // 从存储中读取任务信息
+      final allData = await FlutterForegroundTask.getAllData();
+      _taskTitle = allData['taskTitle'] as String? ?? '';
+      _startEpochMs = allData['startEpochMs'] as int? ?? 
+          DateTime.now().millisecondsSinceEpoch;
+    } catch (e) {
+      // JNI 调用可能失败，使用默认值
+      // ignore: avoid_print
+      print('Failed to get data in pinned task handler onStart: $e');
+      _taskTitle = '';
+      _startEpochMs = DateTime.now().millisecondsSinceEpoch;
+    }
   }
 
   @override
   void onRepeatEvent(DateTime timestamp) {
-    // 注意：onRepeatEvent 的调用频率由 FlutterForegroundTask.init 中的 eventAction 配置决定
-    // 由于我们使用相同的 FlutterForegroundTask.init（每秒调用一次），
-    // 我们需要在这里检查是否到了更新间隔（每分钟）
-    // 但为了简化，我们每次都更新（每秒更新一次时间也是合理的）
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final elapsedMs = now - _startEpochMs;
-    final elapsed = Duration(milliseconds: elapsedMs);
-    
-    // 格式化时间（使用紧凑格式）
-    final timeText = _formatElapsedTimeCompact(elapsed);
-    
-    // 更新通知内容
-    FlutterForegroundTask.updateService(
-      notificationTitle: _taskTitle.isEmpty ? '置顶任务' : _taskTitle,
-      notificationText: timeText,
-    );
+    try {
+      // 注意：onRepeatEvent 的调用频率由 FlutterForegroundTask.init 中的 eventAction 配置决定
+      // 由于我们使用相同的 FlutterForegroundTask.init（每秒调用一次），
+      // 我们需要在这里检查是否到了更新间隔（每分钟）
+      // 但为了简化，我们每次都更新（每秒更新一次时间也是合理的）
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final elapsedMs = now - _startEpochMs;
+      final elapsed = Duration(milliseconds: elapsedMs);
+      
+      // 格式化时间（使用紧凑格式）
+      final timeText = _formatElapsedTimeCompact(elapsed);
+      
+      // 更新通知内容
+      try {
+        FlutterForegroundTask.updateService(
+          notificationTitle: _taskTitle.isEmpty ? '置顶任务' : _taskTitle,
+          notificationText: timeText,
+        );
+      } catch (e) {
+        // 更新失败可能表示服务已停止，记录错误但不抛出
+        // ignore: avoid_print
+        print('Failed to update service in pinned task handler: $e');
+      }
+    } catch (e) {
+      // 捕获所有未预期的异常，避免崩溃
+      // ignore: avoid_print
+      print('Unexpected error in pinned task handler onRepeatEvent: $e');
+    }
   }
 
   @override
@@ -52,13 +72,19 @@ class PinnedTaskHandler extends TaskHandler {
   void onNotificationButtonPressed(String id) {
     // 处理通知按钮点击
     if (id == 'complete') {
-      // 保存完成标记到存储，然后停止服务
-      // 主 Isolate 会在服务停止时检查这个标记并完成任务
-      FlutterForegroundTask.saveData(
-        key: 'shouldComplete',
-        value: true,
-      );
-      FlutterForegroundTask.stopService();
+      try {
+        // 保存完成标记到存储，然后停止服务
+        // 主 Isolate 会在服务停止时检查这个标记并完成任务
+        FlutterForegroundTask.saveData(
+          key: 'shouldComplete',
+          value: true,
+        );
+        FlutterForegroundTask.stopService();
+      } catch (e) {
+        // JNI 调用可能失败，记录错误但不抛出异常
+        // ignore: avoid_print
+        print('Failed to handle notification button press: $e');
+      }
     }
   }
 

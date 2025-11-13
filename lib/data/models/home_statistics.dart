@@ -104,8 +104,10 @@ class AllStatistics {
     required this.thisWeek,
     required this.thisMonth,
     required this.total,
-    this.topCompletedDate,
-    this.topFocusDate,
+    this.thisMonthTopCompletedDate,
+    this.thisMonthTopFocusDate,
+    this.totalTopCompletedDate,
+    this.totalTopFocusDate,
   });
 
   /// 今天的统计数据
@@ -117,36 +119,46 @@ class AllStatistics {
   /// 当月的统计数据
   final HomeStatistics thisMonth;
 
-  /// 总计的统计数据
+  /// 全部的统计数据（所有历史数据）
   final HomeStatistics total;
 
-  /// 最佳完成日（可为 null）
-  final TopDateStatistics? topCompletedDate;
+  /// 当月最佳完成日（可为 null）
+  final TopDateStatistics? thisMonthTopCompletedDate;
 
-  /// 最佳专注日（可为 null）
-  final TopDateStatistics? topFocusDate;
+  /// 当月最佳专注日（可为 null）
+  final TopDateStatistics? thisMonthTopFocusDate;
+
+  /// 历史最佳完成日（可为 null）
+  final TopDateStatistics? totalTopCompletedDate;
+
+  /// 历史最佳专注日（可为 null）
+  final TopDateStatistics? totalTopFocusDate;
 
   AllStatistics copyWith({
     HomeStatistics? today,
     HomeStatistics? thisWeek,
     HomeStatistics? thisMonth,
     HomeStatistics? total,
-    TopDateStatistics? topCompletedDate,
-    TopDateStatistics? topFocusDate,
+    TopDateStatistics? thisMonthTopCompletedDate,
+    TopDateStatistics? thisMonthTopFocusDate,
+    TopDateStatistics? totalTopCompletedDate,
+    TopDateStatistics? totalTopFocusDate,
   }) {
     return AllStatistics(
       today: today ?? this.today,
       thisWeek: thisWeek ?? this.thisWeek,
       thisMonth: thisMonth ?? this.thisMonth,
       total: total ?? this.total,
-      topCompletedDate: topCompletedDate ?? this.topCompletedDate,
-      topFocusDate: topFocusDate ?? this.topFocusDate,
+      thisMonthTopCompletedDate: thisMonthTopCompletedDate ?? this.thisMonthTopCompletedDate,
+      thisMonthTopFocusDate: thisMonthTopFocusDate ?? this.thisMonthTopFocusDate,
+      totalTopCompletedDate: totalTopCompletedDate ?? this.totalTopCompletedDate,
+      totalTopFocusDate: totalTopFocusDate ?? this.totalTopFocusDate,
     );
   }
 
   @override
   String toString() {
-    return 'AllStatistics(today: $today, thisWeek: $thisWeek, thisMonth: $thisMonth, total: $total, topCompletedDate: $topCompletedDate, topFocusDate: $topFocusDate)';
+    return 'AllStatistics(today: $today, thisWeek: $thisWeek, thisMonth: $thisMonth, total: $total, thisMonthTopCompletedDate: $thisMonthTopCompletedDate, thisMonthTopFocusDate: $thisMonthTopFocusDate, totalTopCompletedDate: $totalTopCompletedDate, totalTopFocusDate: $totalTopFocusDate)';
   }
 
   @override
@@ -157,8 +169,10 @@ class AllStatistics {
         other.thisWeek == thisWeek &&
         other.thisMonth == thisMonth &&
         other.total == total &&
-        other.topCompletedDate == topCompletedDate &&
-        other.topFocusDate == topFocusDate;
+        other.thisMonthTopCompletedDate == thisMonthTopCompletedDate &&
+        other.thisMonthTopFocusDate == thisMonthTopFocusDate &&
+        other.totalTopCompletedDate == totalTopCompletedDate &&
+        other.totalTopFocusDate == totalTopFocusDate;
   }
 
   @override
@@ -167,7 +181,9 @@ class AllStatistics {
       thisWeek.hashCode ^
       thisMonth.hashCode ^
       total.hashCode ^
-      topCompletedDate.hashCode ^
-      topFocusDate.hashCode;
+      thisMonthTopCompletedDate.hashCode ^
+      thisMonthTopFocusDate.hashCode ^
+      totalTopCompletedDate.hashCode ^
+      totalTopFocusDate.hashCode;
 }
 

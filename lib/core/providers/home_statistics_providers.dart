@@ -20,22 +20,34 @@ final thisMonthStatisticsProvider = FutureProvider<HomeStatistics>((ref) async {
   return service.getThisMonthStatistics();
 });
 
-/// 总计的统计数据
+/// 全部的统计数据（所有历史数据）
 final totalStatisticsProvider = FutureProvider<HomeStatistics>((ref) async {
   final service = await ref.read(homeStatisticsServiceProvider.future);
   return service.getTotalStatistics();
 });
 
-/// 最佳完成日（三个月内完成任务数量最多的日期）
-final topCompletedDateProvider = FutureProvider<TopDateStatistics?>((ref) async {
+/// 当月最佳完成日（当月完成任务数量最多的日期）
+final thisMonthTopCompletedDateProvider = FutureProvider<TopDateStatistics?>((ref) async {
   final service = await ref.read(homeStatisticsServiceProvider.future);
-  return service.getTopCompletedDate();
+  return service.getThisMonthTopCompletedDate();
 });
 
-/// 最佳专注日（三个月内专注时间最长的日期）
-final topFocusDateProvider = FutureProvider<TopDateStatistics?>((ref) async {
+/// 当月最佳专注日（当月专注时间最长的日期）
+final thisMonthTopFocusDateProvider = FutureProvider<TopDateStatistics?>((ref) async {
   final service = await ref.read(homeStatisticsServiceProvider.future);
-  return service.getTopFocusDate();
+  return service.getThisMonthTopFocusDate();
+});
+
+/// 历史最佳完成日（历史完成任务数量最多的日期）
+final totalTopCompletedDateProvider = FutureProvider<TopDateStatistics?>((ref) async {
+  final service = await ref.read(homeStatisticsServiceProvider.future);
+  return service.getTotalTopCompletedDate();
+});
+
+/// 历史最佳专注日（历史专注时间最长的日期）
+final totalTopFocusDateProvider = FutureProvider<TopDateStatistics?>((ref) async {
+  final service = await ref.read(homeStatisticsServiceProvider.future);
+  return service.getTotalTopFocusDate();
 });
 
 /// 所有统计数据的组合 Provider
@@ -45,16 +57,20 @@ final allStatisticsProvider = FutureProvider<AllStatistics>((ref) async {
   final thisWeek = await ref.watch(thisWeekStatisticsProvider.future);
   final thisMonth = await ref.watch(thisMonthStatisticsProvider.future);
   final total = await ref.watch(totalStatisticsProvider.future);
-  final topCompletedDate = await ref.watch(topCompletedDateProvider.future);
-  final topFocusDate = await ref.watch(topFocusDateProvider.future);
+  final thisMonthTopCompletedDate = await ref.watch(thisMonthTopCompletedDateProvider.future);
+  final thisMonthTopFocusDate = await ref.watch(thisMonthTopFocusDateProvider.future);
+  final totalTopCompletedDate = await ref.watch(totalTopCompletedDateProvider.future);
+  final totalTopFocusDate = await ref.watch(totalTopFocusDateProvider.future);
 
   return AllStatistics(
     today: today,
     thisWeek: thisWeek,
     thisMonth: thisMonth,
     total: total,
-    topCompletedDate: topCompletedDate,
-    topFocusDate: topFocusDate,
+    thisMonthTopCompletedDate: thisMonthTopCompletedDate,
+    thisMonthTopFocusDate: thisMonthTopFocusDate,
+    totalTopCompletedDate: totalTopCompletedDate,
+    totalTopFocusDate: totalTopFocusDate,
   );
 });
 

@@ -169,7 +169,7 @@ class _TasksSectionTaskListSimplifiedState
           task: task,
           section: widget.section,
           showCheckbox: true,
-          verticalPadding: 8.0,
+          verticalPadding: 4.0,
         ),
       );
 

@@ -24,20 +24,18 @@ class HomeStatisticsUtils {
 
   /// 格式化最佳日期
   /// 
-  /// - 如果是本月：返回简短格式（如：'1月15日'）
-  /// - 如果是其他月份：返回完整格式（如：'2023年12月25日'）
+  /// - [isThisMonth] 为 true 时：返回简短格式（如：'1月15日'），不显示年份
+  /// - [isThisMonth] 为 false 时：返回完整格式（如：'2023年12月25日'），显示年份
   /// - 使用 intl 包的 DateFormat 和本地化支持
-  static String formatTopDate(BuildContext context, DateTime date) {
+  static String formatTopDate(BuildContext context, DateTime date, {required bool isThisMonth}) {
     final locale = Localizations.localeOf(context);
-    final now = DateTime.now();
 
-    // 如果是本月，显示简短格式
-    if (date.year == now.year && date.month == now.month) {
-      // 使用 MMMd 格式（如：'1月15日' 或 'Jan 15'）
+    if (isThisMonth) {
+      // 当月最佳：只显示月日（如：'1月15日' 或 'Jan 15'）
       final formatter = DateFormat.MMMd(locale.toString());
       return formatter.format(date);
     } else {
-      // 其他月份，显示完整格式（如：'2023年12月25日' 或 'Dec 25, 2023'）
+      // 历史最佳：显示年月日（如：'2023年12月25日' 或 'Dec 25, 2023'）
       final formatter = DateFormat.yMMMd(locale.toString());
       return formatter.format(date);
     }

@@ -55,7 +55,14 @@ class AppRouter {
           GoRoute(
             path: '/achievements',
             name: 'achievements',
-            builder: (context, state) => const CalendarReviewPage(),
+            builder: (context, state) {
+              final dateParam = state.uri.queryParameters['date'];
+              final viewModeParam = state.uri.queryParameters['viewMode'];
+              return CalendarReviewPage(
+                initialDate: dateParam,
+                initialViewMode: viewModeParam,
+              );
+            },
           ),
           GoRoute(
             path: '/settings',

@@ -2,15 +2,130 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/providers/repository_providers.dart';
+import '../../../core/providers/app_providers.dart';
 import '../../../data/models/task.dart';
+import '../../../data/repositories/task_repository.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../../core/utils/task_section_utils.dart';
-import '../../tasks/utils/sort_index_calculator.dart';
 
 /// 任务状态切换工具类
 /// 
 /// 统一处理任务状态切换逻辑
 class TaskStatusToggleHelper {
+  /// 重新分配 section 内所有任务的 sortIndex
+  /// 
+  /// 将所有 completedActive 的任务分配靠前的 sortIndex（从 -1000 开始）
+  /// 将所有其他 status 的任务分配靠后的 sortIndex（从 1000 开始）
+  /// 在每个组内，保持原有的相对顺序
+  static Future<void> _reassignSortIndexesForSection(
+    TaskRepository taskRepository,
+    TaskSection section,
+  ) async {
+    // 获取 section 内所有任务
+    List<Task> sectionTasks;
+    if (section == TaskSection.today) {
+      // 对于 today section，需要查询所有状态的任务（包括 completedActive）
+      // 先查询未完成任务
+      final uncompleted = await taskRepository.listSectionTasks(section);
+      // 再查询已完成任务（使用 completed section 的查询逻辑，但按 dueAt 筛选）
+      final completed = await taskRepository.listSectionTasks(TaskSection.completed);
+      // 筛选出今日的已完成任务
+      final now = DateTime.now();
+      final todayStart = TaskSectionUtils.getSectionStartTime(TaskSection.today, now: now);
+      final todayEnd = TaskSectionUtils.getSectionEndTimeForQuery(TaskSection.today, now: now);
+      final todayCompleted = completed.where((t) {
+        if (t.dueAt == null) return false;
+        final dueDate = DateTime(t.dueAt!.year, t.dueAt!.month, t.dueAt!.day);
+        final startDate = DateTime(todayStart.year, todayStart.month, todayStart.day);
+        final endDate = DateTime(todayEnd.year, todayEnd.month, todayEnd.day);
+        return (dueDate.isAtSameMomentAs(startDate) || dueDate.isAfter(startDate)) &&
+            dueDate.isBefore(endDate);
+      }).toList();
+      // 合并任务，避免重复（使用 Set 来去重）
+      final taskIds = <String>{};
+      sectionTasks = <Task>[];
+      for (final task in uncompleted) {
+        if (taskIds.add(task.id)) {
+          sectionTasks.add(task);
+        }
+      }
+      for (final task in todayCompleted) {
+        if (taskIds.add(task.id)) {
+          sectionTasks.add(task);
+        }
+      }
+    } else {
+      sectionTasks = await taskRepository.listSectionTasks(section);
+    }
+
+    if (sectionTasks.isEmpty) return;
+
+    // 按 status 分组
+    final completedTasks = sectionTasks
+        .where((t) => t.status == TaskStatus.completedActive)
+        .toList();
+    final otherTasks = sectionTasks
+        .where((t) => t.status != TaskStatus.completedActive)
+        .toList();
+
+    // 调试日志
+    debugPrint(
+      '[TaskStatusToggleHelper] Reassigning sortIndexes for section: $section, '
+      'total tasks: ${sectionTasks.length}, '
+      'completed: ${completedTasks.length}, '
+      'other: ${otherTasks.length}',
+    );
+
+    // 在每个组内按当前 sortIndex 排序（保持原有顺序）
+    completedTasks.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+    otherTasks.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+    // 重新分配 sortIndex
+    // 确保已完成任务的 sortIndex 都小于未完成任务的 sortIndex
+    // 使用负数范围给已完成任务，正数范围给未完成任务
+    const double step = 1000.0;
+    // 从 -100000 开始，给已完成任务足够的空间
+    const double completedStart = -100000.0;
+    // 从 0 开始，给未完成任务
+    const double otherStart = 0.0;
+
+    final updates = <String, TaskUpdate>{};
+
+    // completedActive 组：从 -100000 开始
+    for (var i = 0; i < completedTasks.length; i++) {
+      final newSortIndex = completedStart + i * step;
+      updates[completedTasks[i].id] = TaskUpdate(
+        sortIndex: newSortIndex,
+      );
+      debugPrint(
+        '[TaskStatusToggleHelper] Completed task ${completedTasks[i].id}: '
+        'old sortIndex=${completedTasks[i].sortIndex}, new sortIndex=$newSortIndex',
+      );
+    }
+
+    // 其他组：从 0 开始
+    for (var i = 0; i < otherTasks.length; i++) {
+      final newSortIndex = otherStart + i * step;
+      updates[otherTasks[i].id] = TaskUpdate(
+        sortIndex: newSortIndex,
+      );
+      debugPrint(
+        '[TaskStatusToggleHelper] Other task ${otherTasks[i].id}: '
+        'old sortIndex=${otherTasks[i].sortIndex}, new sortIndex=$newSortIndex',
+      );
+    }
+
+    // 批量更新
+    if (updates.isNotEmpty) {
+      debugPrint(
+        '[TaskStatusToggleHelper] Batch updating ${updates.length} tasks with new sortIndexes',
+      );
+      await taskRepository.batchUpdate(updates);
+      debugPrint('[TaskStatusToggleHelper] Batch update completed');
+    } else {
+      debugPrint('[TaskStatusToggleHelper] No updates needed');
+    }
+  }
   /// 切换任务的完成/未完成状态
   /// 
   /// [context] BuildContext
@@ -28,7 +143,6 @@ class TaskStatusToggleHelper {
     try {
       final taskService = await ref.read(taskServiceProvider.future);
       final taskRepository = await ref.read(taskRepositoryProvider.future);
-      final sortIndexService = await ref.read(sortIndexServiceProvider.future);
       final l10n = AppLocalizations.of(context);
       final messenger = ScaffoldMessenger.of(context);
 
@@ -37,86 +151,19 @@ class TaskStatusToggleHelper {
 
       // 如果任务已完成，恢复为 pending 状态
       if (task.status == TaskStatus.completedActive) {
-        // 计算新的 sortIndex：移动到未完成任务区域最后面
-        double? newSortIndex;
-        try {
-          // 查询同一区域的所有任务
-          // 注意：listSectionTasks 在 today section 不包含 completedActive，需要手动查询
-          List<Task> sectionTasks;
-          if (taskSection == TaskSection.today) {
-            // 对于 today section，需要查询所有状态的任务（包括 completedActive）
-            // 先查询未完成任务
-            final uncompleted = await taskRepository.listSectionTasks(taskSection);
-            // 再查询已完成任务（使用 completed section 的查询逻辑，但按 dueAt 筛选）
-            final completed = await taskRepository.listSectionTasks(TaskSection.completed);
-            // 筛选出今日的已完成任务
-            final now = DateTime.now();
-            final todayStart = TaskSectionUtils.getSectionStartTime(TaskSection.today, now: now);
-            final todayEnd = TaskSectionUtils.getSectionEndTimeForQuery(TaskSection.today, now: now);
-            final todayCompleted = completed.where((t) {
-              if (t.dueAt == null) return false;
-              final dueDate = DateTime(t.dueAt!.year, t.dueAt!.month, t.dueAt!.day);
-              final startDate = DateTime(todayStart.year, todayStart.month, todayStart.day);
-              final endDate = DateTime(todayEnd.year, todayEnd.month, todayEnd.day);
-              return (dueDate.isAtSameMomentAs(startDate) || dueDate.isAfter(startDate)) &&
-                  dueDate.isBefore(endDate);
-            }).toList();
-            sectionTasks = [...uncompleted, ...todayCompleted];
-          } else {
-            sectionTasks = await taskRepository.listSectionTasks(taskSection);
-          }
-          
-          // 筛选出未完成任务（status != completedActive）
-          final uncompletedTasks = sectionTasks
-              .where((t) => t.status != TaskStatus.completedActive && t.id != task.id)
-              .toList();
-          
-          if (uncompletedTasks.isNotEmpty) {
-            // 找到最大 sortIndex
-            final maxUncompletedSortIndex = uncompletedTasks
-                .map((t) => t.sortIndex)
-                .reduce((a, b) => a > b ? a : b);
-            
-            // 使用 SortIndexCalculator.insertAtLast 计算新 sortIndex
-            newSortIndex = SortIndexCalculator.insertAtLast(maxUncompletedSortIndex);
-            
-            // 检查间隙是否足够
-            if ((newSortIndex - maxUncompletedSortIndex).abs() < 2.0) {
-              // 间隙不足，先规范化未完成任务区域
-              await sortIndexService.normalizeSection(section: taskSection);
-              // 重新查询并计算
-              final updatedTasks = await taskRepository.listSectionTasks(taskSection);
-              final updatedUncompleted = updatedTasks
-                  .where((t) => t.status != TaskStatus.completedActive && t.id != task.id)
-                  .toList();
-              if (updatedUncompleted.isNotEmpty) {
-                final updatedMax = updatedUncompleted
-                    .map((t) => t.sortIndex)
-                    .reduce((a, b) => a > b ? a : b);
-                newSortIndex = SortIndexCalculator.insertAtLast(updatedMax);
-              } else {
-                newSortIndex = SortIndexCalculator.insertAtLast(null);
-              }
-            }
-          } else {
-            // 不存在未完成任务，使用默认值
-            newSortIndex = SortIndexCalculator.insertAtLast(null);
-          }
-        } catch (e) {
-          debugPrint('Failed to calculate sortIndex for uncompleted: $e');
-          // 如果计算失败，使用默认值
-          newSortIndex = 1000.0;
-        }
-
-        // 更新状态和 sortIndex
+        // 先更新状态
         await taskService.updateDetails(
           taskId: task.id,
-          payload: TaskUpdate(
-            status: TaskStatus.pending,
-            sortIndex: newSortIndex,
-          ),
+          payload: TaskUpdate(status: TaskStatus.pending),
         );
+
+        // 重新分配整个 section 的 sortIndex
+        await _reassignSortIndexesForSection(taskRepository, taskSection);
+
         if (context.mounted) {
+          // 手动刷新相关 provider，确保 UI 立即更新
+          ref.invalidate(taskSectionsProvider(taskSection));
+          
           messenger.showSnackBar(
             SnackBar(
               content: Text(l10n.taskListTaskUncompletedToast),
@@ -131,90 +178,16 @@ class TaskStatusToggleHelper {
           task.status == TaskStatus.pending ||
           task.status == TaskStatus.doing ||
           task.status == TaskStatus.paused) {
-        // 计算新的 sortIndex：移动到已完成任务区域最前面
-        double? newSortIndex;
-        try {
-          // 查询同一区域的所有任务
-          // 注意：listSectionTasks 在 today section 不包含 completedActive，需要手动查询
-          List<Task> sectionTasks;
-          if (taskSection == TaskSection.today) {
-            // 对于 today section，需要查询所有状态的任务（包括 completedActive）
-            // 先查询未完成任务
-            final uncompleted = await taskRepository.listSectionTasks(taskSection);
-            // 再查询已完成任务（使用 completed section 的查询逻辑，但按 dueAt 筛选）
-            final completed = await taskRepository.listSectionTasks(TaskSection.completed);
-            // 筛选出今日的已完成任务
-            final now = DateTime.now();
-            final todayStart = TaskSectionUtils.getSectionStartTime(TaskSection.today, now: now);
-            final todayEnd = TaskSectionUtils.getSectionEndTimeForQuery(TaskSection.today, now: now);
-            final todayCompleted = completed.where((t) {
-              if (t.dueAt == null) return false;
-              final dueDate = DateTime(t.dueAt!.year, t.dueAt!.month, t.dueAt!.day);
-              final startDate = DateTime(todayStart.year, todayStart.month, todayStart.day);
-              final endDate = DateTime(todayEnd.year, todayEnd.month, todayEnd.day);
-              return (dueDate.isAtSameMomentAs(startDate) || dueDate.isAfter(startDate)) &&
-                  dueDate.isBefore(endDate);
-            }).toList();
-            sectionTasks = [...uncompleted, ...todayCompleted];
-          } else {
-            sectionTasks = await taskRepository.listSectionTasks(taskSection);
-          }
-          
-          // 筛选出已完成任务（status == completedActive）
-          final completedTasks = sectionTasks
-              .where((t) => t.status == TaskStatus.completedActive && t.id != task.id)
-              .toList();
-          
-          if (completedTasks.isNotEmpty) {
-            // 找到最小 sortIndex
-            final minCompletedSortIndex = completedTasks
-                .map((t) => t.sortIndex)
-                .reduce((a, b) => a < b ? a : b);
-            
-            // 使用 SortIndexCalculator.insertAtFirst 计算新 sortIndex
-            newSortIndex = SortIndexCalculator.insertAtFirst(minCompletedSortIndex);
-            
-            // 检查间隙是否足够
-            if ((minCompletedSortIndex - newSortIndex).abs() < 2.0) {
-              // 间隙不足，先规范化已完成任务区域
-              // 注意：这里需要规范化已完成任务，但 normalizeSection 会规范化整个区域
-              // 为了只规范化已完成任务，我们需要先筛选已完成任务，然后规范化
-              // 但 normalizeSection 不支持按状态筛选，所以这里先规范化整个区域
-              await sortIndexService.normalizeSection(section: taskSection);
-              // 重新查询并计算
-              final updatedTasks = await taskRepository.listSectionTasks(taskSection);
-              final updatedCompleted = updatedTasks
-                  .where((t) => t.status == TaskStatus.completedActive && t.id != task.id)
-                  .toList();
-              if (updatedCompleted.isNotEmpty) {
-                final updatedMin = updatedCompleted
-                    .map((t) => t.sortIndex)
-                    .reduce((a, b) => a < b ? a : b);
-                newSortIndex = SortIndexCalculator.insertAtFirst(updatedMin);
-              } else {
-                newSortIndex = SortIndexCalculator.insertAtFirst(null);
-              }
-            }
-          } else {
-            // 不存在已完成任务，使用默认值
-            newSortIndex = SortIndexCalculator.insertAtFirst(null);
-          }
-        } catch (e) {
-          debugPrint('Failed to calculate sortIndex for completed: $e');
-          // 如果计算失败，使用默认值
-          newSortIndex = -1000.0;
-        }
-
-        // 先调用 markCompleted 更新状态（不支持 sortIndex）
+        // 先更新状态
         await taskService.markCompleted(taskId: task.id);
-        
-        // 立即调用 updateDetails 更新 sortIndex（两步更新）
-        await taskService.updateDetails(
-          taskId: task.id,
-          payload: TaskUpdate(sortIndex: newSortIndex),
-        );
+
+        // 重新分配整个 section 的 sortIndex
+        await _reassignSortIndexesForSection(taskRepository, taskSection);
         
         if (context.mounted) {
+          // 手动刷新相关 provider，确保 UI 立即更新
+          ref.invalidate(taskSectionsProvider(taskSection));
+          
           messenger.showSnackBar(
             SnackBar(
               content: Text(l10n.taskListTaskCompletedToast),
