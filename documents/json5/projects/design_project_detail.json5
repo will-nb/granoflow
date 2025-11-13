@@ -31,6 +31,8 @@
         "里程碑分区：按里程碑组织任务，提供项目结构化的任务管理体验",
         "项目/里程碑详情弹窗：通过底部弹窗展示项目和里程碑的完整信息，保持界面简洁",
         "统一交互模式：项目详情页与任务清单页面的交互保持一致，降低学习成本",
+        "增强的视觉反馈：通过平滑动画和微交互提升用户体验（进度条动画、数字计数动画、拖拽反馈等）",
+        "增强的数据可视化：通过进度条、状态图标、可选环形图等直观展示项目进度",
       ],
     },
     
@@ -41,6 +43,9 @@
       "渐进式披露：列表简洁，详情丰富，按需展示",
       "一致性设计：不同页面保持一致的交互模式，降低学习成本",
       "信息层次化：通过分区和弹窗分层展示信息，保持界面简洁",
+      "微交互设计：通过细微的动画和反馈提升用户体验（2025年趋势）",
+      "数据可视化：通过进度条、状态图标等直观展示项目进度（2025年趋势）",
+      "平滑动画：使用流畅的过渡动画增强视觉体验（2025年趋势）",
     ],
   },
 
@@ -165,8 +170,9 @@
         children: [
           "项目标题（可点击，显示项目详情弹窗）",
           "项目基本信息（截止日期、状态等）",
+          "项目进度可视化（进度条 + 进度文字）",
         ],
-        note: "在页面头部显示项目标题和基本信息（截止日期、状态等）。项目标题可点击，显示项目详情弹窗",
+        note: "在页面头部显示项目标题和基本信息（截止日期、状态等）。项目标题可点击，显示项目详情弹窗。显示项目整体进度（基于任务完成情况）",
       },
       {
         // 里程碑分区列表区域
@@ -314,6 +320,122 @@
       },
     },
     note: "参考 TaskDetailBottomSheet 的实现，保持一致的交互体验",
+  },
+  
+  // 项目信息头部组件
+  projectInfoHeader: {
+    // 组件位置
+    position: "projectInfoSection",
+    
+    // 布局结构
+    structure: {
+      direction: "vertical",
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+      spacing: 8, // dp（各元素之间的间距）
+    },
+    
+    // 项目标题
+    title: {
+      fontSize: 20, // sp
+      fontWeight: "semibold",
+      color: "Theme.of(context).colorScheme.onSurface",
+      clickable: true,
+      action: "显示项目详情弹窗",
+      note: "项目标题可点击，显示项目详情弹窗",
+    },
+    
+    // 项目基本信息（截止日期、状态等）
+    basicInfo: {
+      enabled: true,
+      layout: "horizontal",
+      items: [
+        {
+          type: "dueDate",
+          icon: "Icons.calendar_today_outlined",
+          fontSize: 14, // sp
+          color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        },
+        {
+          type: "status",
+          fontSize: 14, // sp
+          color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        },
+      ],
+    },
+    
+    // 项目进度可视化
+    progressVisualization: {
+      enabled: true,
+      
+      // 进度条（主要显示方式）
+      progressBar: {
+        component: "LinearProgressIndicator",
+        height: 6, // dp
+        borderRadius: 3, // dp
+        color: "Theme.of(context).colorScheme.primary",
+        backgroundColor: "Theme.of(context).colorScheme.surfaceVariant",
+        note: "显示项目整体进度（已完成任务数 / 总任务数）",
+        // 增强：进度条动画
+        animation: {
+          enabled: true,
+          duration: 300, // 毫秒
+          curve: "Curves.easeOut",
+          note: "进度变化时使用平滑过渡动画，提升视觉体验",
+        },
+      },
+      
+      // 进度文字
+      progressText: {
+        enabled: true,
+        format: "进度：已完成 X / 总计 Y 个任务（Z%）",
+        fontSize: 12, // sp
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        position: "进度条下方",
+        note: "显示具体的完成情况和百分比",
+        // 增强：数字变化动画
+        animation: {
+          enabled: true,
+          type: "countUp",
+          duration: 500, // 毫秒
+          curve: "Curves.easeOut",
+          note: "数字变化时使用计数动画，增强视觉反馈",
+        },
+      },
+      
+      // 增强：可选进度环形图（未来扩展）
+      progressRing: {
+        enabled: false, // 默认不启用，未来可扩展
+        component: "CircularProgressIndicator",
+        size: 64, // dp
+        strokeWidth: 6, // dp
+        color: "Theme.of(context).colorScheme.primary",
+        backgroundColor: "Theme.of(context).colorScheme.surfaceVariant",
+        note: "可选：使用环形图显示进度，提供更直观的视觉体验。当前使用进度条，未来可考虑添加此选项",
+        animation: {
+          enabled: true,
+          duration: 600, // 毫秒
+          curve: "Curves.easeOut",
+        },
+      },
+      
+      // 增强：进度状态图标
+      statusIcon: {
+        enabled: true,
+        icons: {
+          completed: "Icons.check_circle",
+          inProgress: "Icons.trending_up",
+          notStarted: "Icons.radio_button_unchecked",
+        },
+        size: 16, // dp
+        position: "进度文字右侧",
+        note: "根据进度状态显示不同的图标：已完成（100%）、进行中（0-99%）、未开始（0%）",
+      },
+    },
+    
+    note: "项目信息头部组件，显示项目标题、基本信息和整体进度",
   },
   
   // 里程碑详情弹窗组件
@@ -497,6 +619,57 @@
         action: "快速添加任务到该里程碑",
         tooltip: "快速添加任务",
         note: "与 TaskSectionPanel 的快速添加按钮保持一致",
+      },
+      // 里程碑进度指示器
+      progressIndicator: {
+        enabled: true,
+        component: "LinearProgressIndicator",
+        position: "标题下方，占满整行",
+        height: 4, // dp
+        color: "Theme.of(context).colorScheme.primary",
+        backgroundColor: "Theme.of(context).colorScheme.surfaceVariant",
+        note: "显示里程碑的任务完成进度（已完成任务数 / 总任务数）",
+        // 增强：进度条动画
+        animation: {
+          enabled: true,
+          duration: 300, // 毫秒
+          curve: "Curves.easeOut",
+          note: "进度变化时使用平滑过渡动画",
+        },
+        progressText: {
+          enabled: true,
+          format: "已完成 X / 总计 Y",
+          fontSize: 12, // sp
+          color: "Theme.of(context).colorScheme.onSurfaceVariant",
+          position: "进度条右侧或下方",
+          // 增强：数字变化动画
+          animation: {
+            enabled: true,
+            type: "countUp",
+            duration: 500, // 毫秒
+            curve: "Curves.easeOut",
+            note: "数字变化时使用计数动画",
+          },
+        },
+        // 增强：里程碑状态图标
+        statusIcon: {
+          enabled: true,
+          icons: {
+            completed: "Icons.check_circle",
+            inProgress: "Icons.trending_up",
+            notStarted: "Icons.radio_button_unchecked",
+            overdue: "Icons.warning",
+          },
+          size: 14, // dp
+          position: "里程碑标题右侧",
+          note: "根据里程碑状态显示图标：已完成、进行中、未开始、已逾期",
+          logic: {
+            completed: "进度 = 100%",
+            inProgress: "进度 > 0% && 进度 < 100%",
+            notStarted: "进度 = 0%",
+            overdue: "进度 < 100% && 截止日期 < 今天",
+          },
+        },
       },
     },
     
@@ -768,6 +941,105 @@
         },
       },
     },
+    
+    // 增强：进度可视化动画
+    progressVisualization: {
+      // 进度条动画
+      progressBar: {
+        type: "smoothTransition",
+        duration: 300, // 毫秒
+        curve: "Curves.easeOut",
+        note: "进度条数值变化时使用平滑过渡动画，提升视觉体验",
+        implementation: "使用 AnimatedSwitcher 或 AnimationController 实现",
+      },
+      // 数字计数动画
+      numberCountUp: {
+        type: "countUp",
+        duration: 500, // 毫秒
+        curve: "Curves.easeOut",
+        note: "进度数字变化时使用计数动画（从旧值平滑过渡到新值）",
+        implementation: "使用 TweenAnimationBuilder 或 AnimatedSwitcher 实现",
+      },
+      // 状态图标切换动画
+      statusIconTransition: {
+        type: "fadeScale",
+        duration: 200, // 毫秒
+        curve: "Curves.easeInOut",
+        note: "进度状态图标切换时使用淡入淡出和缩放动画",
+        implementation: "使用 AnimatedSwitcher 实现",
+      },
+    },
+    
+    // 增强：拖拽反馈动画
+    dragFeedback: {
+      // 拖拽开始动画
+      dragStart: {
+        type: "scale",
+        scale: 1.05,
+        duration: 150, // 毫秒
+        curve: "Curves.easeOut",
+        note: "拖拽开始时，被拖拽的任务行轻微放大，提供视觉反馈",
+      },
+      // 拖拽悬停动画
+      dragHover: {
+        type: "highlight",
+        color: "Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)",
+        duration: 200, // 毫秒
+        curve: "Curves.easeInOut",
+        note: "拖拽到目标位置时，目标区域高亮显示，提示用户可以放置",
+      },
+      // 拖拽结束动画
+      dragEnd: {
+        type: "scale",
+        scale: 1.0,
+        duration: 200, // 毫秒
+        curve: "Curves.easeIn",
+        note: "拖拽结束时，任务行恢复原始大小",
+      },
+      // 跨里程碑拖拽动画
+      crossMilestoneDrag: {
+        type: "slideFade",
+        duration: 300, // 毫秒
+        curve: "Curves.easeOut",
+        note: "跨里程碑拖拽时，任务从原位置淡出，在新位置淡入",
+      },
+    },
+    
+    // 增强：里程碑分区展开/收起动画（未来扩展）
+    milestoneExpandCollapse: {
+      enabled: false, // 默认不启用，未来可扩展
+      expand: {
+        type: "slideDown",
+        duration: 250, // 毫秒
+        curve: "Curves.easeOut",
+        note: "里程碑分区展开时，任务列表向下滑出",
+      },
+      collapse: {
+        type: "slideUp",
+        duration: 200, // 毫秒
+        curve: "Curves.easeIn",
+        note: "里程碑分区收起时，任务列表向上收起",
+      },
+    },
+    
+    // 增强：页面加载动画
+    pageLoading: {
+      // 骨架屏动画
+      skeleton: {
+        enabled: true,
+        type: "shimmer",
+        duration: 1500, // 毫秒
+        curve: "Curves.easeInOut",
+        note: "页面加载时显示骨架屏，使用闪烁动画提示加载状态",
+      },
+      // 内容淡入动画
+      contentFadeIn: {
+        type: "fadeIn",
+        duration: 300, // 毫秒
+        curve: "Curves.easeOut",
+        note: "内容加载完成后淡入显示",
+      },
+    },
   },
 
   // ===========================================
@@ -813,7 +1085,72 @@
   },
 
   // ===========================================
-  // 8. 边界情况处理（必填）
+  // 8. 数据规则与统计规则（必填）
+  // ===========================================
+  dataRules: {
+    // 任务统计规则（用于项目和里程碑的进度计算）
+    taskStatistics: {
+      // 总任务数统计规则
+      totalTasks: {
+        include: ["pending", "doing", "paused", "completedActive", "archived"],
+        exclude: ["inbox", "trashed", "pseudoDeleted"],
+        reasoning: "总任务数包括已规划的任务（pending、doing、paused）和已完成的任务（completedActive、archived）。不包括收集箱任务（inbox，未规划）、回收站任务（trashed）和伪删除任务（pseudoDeleted）",
+        note: "收集箱任务未规划，回收站和伪删除任务已移除，都不应计入项目/里程碑的工作量统计",
+      },
+      
+      // 已完成任务数统计规则
+      completedTasks: {
+        include: ["completedActive", "archived"],
+        reasoning: "已完成任务数包括已完成-活跃（completedActive）和已归档（archived）的任务。归档任务是已完成的任务，应该计入完成数",
+        note: "归档任务视为已完成，计入完成数",
+      },
+      
+      // 进度计算公式
+      progressCalculation: {
+        formula: "progress = completedTasks / totalTasks",
+        displayFormat: "已完成 X / 总计 Y 个任务（Z%）",
+        note: "进度 = 已完成任务数 / 总任务数，以百分比形式显示",
+      },
+    },
+    
+    // 数据一致性规则
+    dataConsistency: {
+      // 收集箱任务分配里程碑时的自动处理规则
+      inboxTaskMilestoneAssignment: {
+        scenario: "用户为收集箱（inbox）任务分配里程碑",
+        automaticActions: [
+          {
+            action: "自动设置任务截止日期",
+            condition: "里程碑有截止日期（milestone.dueAt != null）且任务当前没有截止日期（task.dueAt == null）且用户未在此次更新中手动设置截止日期",
+            result: "任务的截止日期自动设置为里程碑的截止日期",
+            note: "如果用户同时手动设置了截止日期，以用户设置为准，不自动覆盖",
+          },
+          {
+            action: "自动转换任务状态",
+            condition: "任务当前状态为 inbox 且截止日期被设置（无论是自动设置还是用户手动设置）",
+            result: "任务状态从 inbox 自动转换为 pending",
+            note: "这个转换由现有的'设置截止日期时自动将 inbox 转为 pending'逻辑触发",
+          },
+        ],
+        userBenefit: [
+          "简化用户操作：用户只需分配里程碑，系统自动完成后续设置",
+          "数据一致性：确保里程碑内的任务都有合理的截止日期和状态",
+          "统计准确性：inbox 任务分配里程碑后自动转为 pending，会被计入项目/里程碑的总任务数",
+          "符合业务逻辑：分配里程碑意味着任务已被规划，应该从收集箱转移到待办",
+        ],
+        boundaryConditions: [
+          "如果用户同时手动设置了截止日期，以用户设置为准，不自动覆盖",
+          "如果里程碑没有截止日期，不自动设置任务截止日期",
+          "如果任务已有截止日期，不覆盖现有截止日期",
+          "如果任务当前不是 inbox 状态，不触发状态转换",
+        ],
+        note: "这是一个数据层的自动绑定逻辑，确保收集箱任务分配里程碑后能够自动完成规划，无需用户额外操作",
+      },
+    },
+  },
+
+  // ===========================================
+  // 9. 边界情况处理（必填）
   // ===========================================
   edgeCases: {
     // 项目没有里程碑
@@ -892,7 +1229,7 @@
   },
 
   // ===========================================
-  // 9. 已确认的设计决策（必填）
+  // 10. 已确认的设计决策（必填）
   // ===========================================
   confirmedDecisions: [
     {
@@ -1013,6 +1350,76 @@
           ],
           method: "参考任务清单页面的跨区域拖拽实现，使用插入目标（TasksPageDragTarget）和 TaskListInsertionHandler 处理跨里程碑拖拽",
         },
+      },
+    },
+    {
+      // 问题描述
+      question: "项目和里程碑的进度可视化如何统计任务？",
+      // 确认的答案
+      answer: "总任务数包括 pending、doing、paused、completedActive、archived，不包括 inbox（收集箱）、trashed（回收站）、pseudoDeleted（伪删除）。已完成任务数包括 completedActive 和 archived。归档任务视为已完成",
+      // 实现细节
+      implementation: {
+        statisticsRules: {
+          totalTasks: {
+            include: ["pending", "doing", "paused", "completedActive", "archived"],
+            exclude: ["inbox", "trashed", "pseudoDeleted"],
+            reasoning: "收集箱任务未规划，回收站和伪删除任务已移除，都不应计入项目/里程碑的工作量统计",
+          },
+          completedTasks: {
+            include: ["completedActive", "archived"],
+            reasoning: "归档任务是已完成的任务，应该计入完成数",
+          },
+          calculation: {
+            formula: "progress = completedTasks / totalTasks",
+            displayFormat: "已完成 X / 总计 Y 个任务（Z%）",
+          },
+        },
+        projectProgress: {
+          location: "项目信息头部（projectInfoHeader）",
+          component: "LinearProgressIndicator + 进度文字",
+          dataSource: "统计项目下所有符合规则的任务",
+        },
+        milestoneProgress: {
+          location: "里程碑分区面板的标题区域（milestoneSectionPanel.header）",
+          component: "LinearProgressIndicator + 进度文字",
+          dataSource: "统计该里程碑下所有符合规则的任务",
+        },
+      },
+    },
+    {
+      // 问题描述
+      question: "收集箱任务分配里程碑后如何处理？",
+      // 确认的答案
+      answer: "当用户为收集箱任务分配里程碑时，系统自动将任务的截止日期设置为里程碑的截止日期（如果里程碑有截止日期且任务没有截止日期），并自动将任务状态从 inbox 转换为 pending",
+      // 实现细节
+      implementation: {
+        automaticActions: [
+          {
+            action: "自动设置任务截止日期",
+            condition: "里程碑有截止日期且任务当前没有截止日期且用户未手动设置截止日期",
+            result: "任务的截止日期自动设置为里程碑的截止日期",
+            note: "如果用户同时手动设置了截止日期，以用户设置为准",
+          },
+          {
+            action: "自动转换任务状态",
+            condition: "任务当前状态为 inbox 且截止日期被设置",
+            result: "任务状态从 inbox 自动转换为 pending",
+            note: "这个转换由现有的'设置截止日期时自动将 inbox 转为 pending'逻辑触发",
+          },
+        ],
+        userBenefit: [
+          "简化用户操作：用户只需分配里程碑，系统自动完成后续设置",
+          "数据一致性：确保里程碑内的任务都有合理的截止日期和状态",
+          "统计准确性：inbox 任务分配里程碑后自动转为 pending，会被计入项目/里程碑的总任务数",
+          "符合业务逻辑：分配里程碑意味着任务已被规划，应该从收集箱转移到待办",
+        ],
+        boundaryConditions: [
+          "如果用户同时手动设置了截止日期，以用户设置为准，不自动覆盖",
+          "如果里程碑没有截止日期，不自动设置任务截止日期",
+          "如果任务已有截止日期，不覆盖现有截止日期",
+          "如果任务当前不是 inbox 状态，不触发状态转换",
+        ],
+        note: "这是一个数据层的自动绑定逻辑，确保收集箱任务分配里程碑后能够自动完成规划，无需用户额外操作。详细规则见 dataRules.dataConsistency.inboxTaskMilestoneAssignment",
       },
     },
   ],

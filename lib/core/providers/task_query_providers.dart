@@ -5,6 +5,7 @@ import '../../data/models/milestone.dart';
 import '../../data/models/project.dart';
 import '../../data/models/task.dart';
 import '../services/tag_service.dart';
+import '../utils/project_statistics_utils.dart' show ProgressStatistics, ProjectStatisticsUtils;
 import '../utils/task_section_utils.dart';
 import 'project_filter_providers.dart';
 import 'repository_providers.dart';
@@ -184,5 +185,63 @@ final milestoneTasksProvider = StreamProvider.family<List<Task>, String>((
 final quickTasksProvider = StreamProvider<List<Task>>((ref) async* {
   final repository = await ref.read(taskRepositoryProvider.future);
   yield* repository.watchQuickTasks();
+});
+
+/// 项目任务统计 Provider
+///
+/// 输入：项目ID
+/// 输出：进度统计（已完成数、总数、进度百分比）
+final projectTasksStatisticsProvider =
+    StreamProvider.family<ProgressStatistics, String>((
+  ref,
+  projectId,
+) async* {
+  try {
+    final repository = await ref.read(taskRepositoryProvider.future);
+    await for (final tasks in repository.watchTasksByProjectId(projectId)) {
+      yield ProjectStatisticsUtils.calculateProjectProgress(projectId, tasks);
+    }
+  } catch (e, stackTrace) {
+    if (kDebugMode) {
+      debugPrint(
+        '[projectTasksStatisticsProvider] {event: error, projectId: $projectId, error: $e, stackTrace: $stackTrace}',
+      );
+    }
+    // 返回默认值
+    yield const ProgressStatistics(
+      completedCount: 0,
+      totalCount: 0,
+      progress: 0.0,
+    );
+  }
+});
+
+/// 里程碑任务统计 Provider
+///
+/// 输入：里程碑ID
+/// 输出：进度统计（已完成数、总数、进度百分比）
+final milestoneTasksStatisticsProvider =
+    StreamProvider.family<ProgressStatistics, String>((
+  ref,
+  milestoneId,
+) async* {
+  try {
+    final repository = await ref.read(taskRepositoryProvider.future);
+    await for (final tasks in repository.watchTasksByMilestoneId(milestoneId)) {
+      yield ProjectStatisticsUtils.calculateMilestoneProgress(milestoneId, tasks);
+    }
+  } catch (e, stackTrace) {
+    if (kDebugMode) {
+      debugPrint(
+        '[milestoneTasksStatisticsProvider] {event: error, milestoneId: $milestoneId, error: $e, stackTrace: $stackTrace}',
+      );
+    }
+    // 返回默认值
+    yield const ProgressStatistics(
+      completedCount: 0,
+      totalCount: 0,
+      progress: 0.0,
+    );
+  }
 });
 
