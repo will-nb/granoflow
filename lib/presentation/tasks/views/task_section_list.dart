@@ -6,7 +6,6 @@ import '../../../core/providers/repository_providers.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/theme/app_spacing_tokens.dart';
 import '../../../data/models/task.dart';
-import '../utils/hierarchy_utils.dart';
 import '../utils/list_comparison_utils.dart' as task_list_utils;
 import '../utils/sort_index_utils.dart';
 import '../../widgets/reorderable_proxy_decorator.dart';
@@ -316,7 +315,8 @@ class TaskWithParentChain extends ConsumerWidget {
 
     return parentAsync.when(
       data: (parent) {
-        if (parent == null || isProjectOrMilestone(parent)) {
+        // 层级功能已移除，不再需要检查父任务
+        if (parent == null || parent.projectId != null || parent.milestoneId != null) {
           // 父任务不存在或是项目/里程碑，直接显示任务
           return TaskTreeTile(
             section: section,

@@ -6,7 +6,6 @@ import '../../data/models/task.dart';
 import '../../core/providers/inbox_drag_provider.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/providers/repository_providers.dart';
-import '../../presentation/tasks/utils/hierarchy_utils.dart';
 import '../common/drag/standard_drag_target.dart';
 import '../common/drag/task_drag_intent_target.dart';
 
@@ -117,7 +116,7 @@ class InboxDragTarget extends ConsumerWidget {
   bool _canAcceptDrop(Task draggedTask) {
     // 统一接受根任务和子任务，都使用"成为兄弟"的逻辑
     // 检查任务是否可移动
-    final movable = canMoveTask(draggedTask);
+    final movable = draggedTask.canEditStructure;
     
     if (kDebugMode) {
       // 根据不同类型计算唯一ID
@@ -180,43 +179,10 @@ class InboxDragTarget extends ConsumerWidget {
           break;
           
         case InboxDragTargetType.between:
-          // 中间插入目标：需要判断 beforeTask 和 afterTask 是否是兄弟
+          // 层级功能已移除，所有任务都作为平级任务处理
           if (beforeTask != null && afterTask != null) {
-            // 判断是否是兄弟（同一 parentId）
-            final areSiblings = beforeTask!.parentId == afterTask!.parentId;
-            
-            if (areSiblings) {
-              // 是兄弟：成为 beforeTask 的兄弟
-              aboveTaskParentId = beforeTask!.parentId;
-            } else {
-              // 不是兄弟（不同级别）：根据向右拖动情况决定
-              // 使用异步方法计算层级深度
-                final beforeDepth = await calculateHierarchyDepth(beforeTask!, taskRepository);
-                final afterDepth = await calculateHierarchyDepth(afterTask!, taskRepository);
-              
-              // 从 dragState 获取水平位移
-              final horizontalOffset = dragState.horizontalOffset ?? 0.0;
-              final isRightDrag = horizontalOffset > 30.0;
-              
-              if (kDebugMode) {
-                debugPrint(
-                  '[DnD] {event: betweenNotSiblings, page: Inbox, before: ${beforeTask!.id} (depth: $beforeDepth), after: ${afterTask!.id} (depth: $afterDepth), horizontalOffset: $horizontalOffset, isRightDrag: $isRightDrag}',
-                );
-              }
-              
-              if (isRightDrag) {
-                // 向右拖动：成为层级较深的那个任务的兄弟
-                aboveTaskParentId = beforeDepth > afterDepth 
-                    ? beforeTask!.parentId 
-                    : afterTask!.parentId;
-              } else {
-                // 没有向右拖动：成为层级较浅的那个任务的兄弟
-                aboveTaskParentId = beforeDepth < afterDepth 
-                    ? beforeTask!.parentId 
-                    : afterTask!.parentId;
-              }
-            }
-            
+            // 使用 beforeTask 的 parentId（如果存在）
+            aboveTaskParentId = beforeTask!.parentId;
             // 计算 sortIndex
             newSortIndex = (beforeTask!.sortIndex + afterTask!.sortIndex) / 2;
           } else {

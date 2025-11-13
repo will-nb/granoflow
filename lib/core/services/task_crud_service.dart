@@ -40,12 +40,6 @@ class TaskCrudService {
   final TaskCrudServiceHelpers _helpers;
   final TaskCrudServiceUpdate _update;
 
-  /// 递归获取所有后代任务（包括子任务的子任务）
-  ///
-  /// [taskId] 起始任务 ID
-  /// 返回所有后代任务的列表（排除 project 和 milestone）
-  Future<List<Task>> getAllDescendantTasks(String taskId) =>
-      _helpers.getAllDescendantTasks(taskId);
 
   /// 在 Inbox 中创建任务
   Future<Task> captureInboxTask({
@@ -130,21 +124,7 @@ class TaskCrudService {
       // 忽略排序错误，保证主流程
     }
 
-    // 如果任务有子任务，同步更新所有子任务的截止日期和状态
-    // 子任务的状态会通过 batchUpdate 中的状态转换逻辑自动变为 pending
-    final allChildren = await _helpers.getAllDescendantTasks(taskId);
-    if (allChildren.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          '[TaskCrudService.planTask] 同步子任务截止日期: taskId=$taskId, childrenCount=${allChildren.length}, newDueAt=$normalizedDue, section=$section',
-        );
-      }
-      final updates = <String, TaskUpdate>{};
-      for (final child in allChildren) {
-        updates[child.id] = TaskUpdate(dueAt: normalizedDue);
-      }
-      await _tasks.batchUpdate(updates);
-    }
+    // 层级功能已移除，不再需要同步子任务截止日期和状态
 
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }

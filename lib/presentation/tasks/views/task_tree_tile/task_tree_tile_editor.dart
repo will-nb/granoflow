@@ -137,13 +137,7 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
       );
 
       // 批量重排该父任务的所有子任务的sortIndex
-      final taskRepository = await ref.read(taskRepositoryProvider.future);
-      final sortIndexService = await ref.read(sortIndexServiceProvider.future);
-      final parentId = updatedNode.task.parentId;
-      if (parentId != null) {
-        final allChildren = await taskRepository.listChildren(parentId);
-        await sortIndexService.reorderChildrenTasks(children: allChildren);
-      }
+      // 层级功能已移除，不再需要重排子任务
     } catch (error, stackTrace) {
       debugPrint('Failed to update child sort: $error\n$stackTrace');
       if (!mounted) {

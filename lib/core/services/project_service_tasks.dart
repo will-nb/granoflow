@@ -25,15 +25,10 @@ class ProjectServiceTasks {
         task.status == TaskStatus.pending || task.status == TaskStatus.doing);
   }
 
-  /// 递归获取任务的所有后代任务（包括子任务的子任务）
+  /// 层级功能已移除，不再有后代任务
   Future<List<Task>> getAllDescendants(String taskId) async {
-    final result = <Task>[];
-    final children = await _tasks.listChildren(taskId);
-    for (final child in children) {
-      result.add(child);
-      result.addAll(await getAllDescendants(child.id));
-    }
-    return result;
+    // 层级功能已移除，返回空列表
+    return <Task>[];
   }
 
   /// 归档项目下所有活跃任务及其子任务
@@ -79,12 +74,9 @@ class ProjectServiceTasks {
     await _tasks.purgeObsolete(DateTime.now());
   }
 
+  /// 层级功能已移除，不再需要递归分配项目给后代任务
   Future<void> assignProjectToDescendants(String taskId, String projectId) async {
-    final children = await _tasks.listChildren(taskId);
-    for (final child in children) {
-      await _tasks.updateTask(child.id, TaskUpdate(projectId: projectId));
-      await assignProjectToDescendants(child.id, projectId);
-    }
+    // 层级功能已移除，不再有后代任务
   }
 }
 

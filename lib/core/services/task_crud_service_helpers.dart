@@ -1,6 +1,5 @@
 import '../../data/models/task.dart';
 import '../../data/repositories/task_repository.dart';
-import '../../presentation/tasks/utils/hierarchy_utils.dart';
 
 /// TaskCrudService 辅助方法
 /// 
@@ -12,22 +11,10 @@ class TaskCrudServiceHelpers {
 
   final TaskRepository _tasks;
 
-  /// 递归获取所有后代任务（包括子任务的子任务）。
+  /// 层级功能已移除，不再有后代任务
   Future<List<Task>> getAllDescendantTasks(String taskId) async {
-    final result = <Task>[];
-    final children = await _tasks.listChildren(taskId);
-
-    // 只处理普通任务，排除 project 和 milestone
-    final normalChildren = children.where((t) => !isProjectOrMilestone(t)).toList();
-
-    for (final child in normalChildren) {
-      result.add(child);
-      // 递归获取子任务的子任务
-      final grandchildren = await getAllDescendantTasks(child.id);
-      result.addAll(grandchildren);
-    }
-
-    return result;
+    // 层级功能已移除，返回空列表
+    return <Task>[];
   }
 
   /// 标准化截止日期为当天的 23:59:59

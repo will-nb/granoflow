@@ -161,39 +161,16 @@ class DriftTaskRepository implements TaskRepository {
     return await _buildTaskTreeFromRoot(rootTask);
   }
 
-  /// 从根任务构建任务树（递归）
+  /// 从根任务构建任务树（层级功能已移除，只返回单个任务）
   ///
   /// [rootTask] 根任务
-  /// 返回包含根任务及其所有子任务的 TaskTreeNode
+  /// 返回只包含根任务的 TaskTreeNode（没有子任务）
   Future<domain.TaskTreeNode> _buildTaskTreeFromRoot(domain.Task rootTask) async {
-    // 递归获取所有子任务
-    final children = await _buildChildrenTree(rootTask.id);
-
+    // 层级功能已移除，不再有子任务
     return domain.TaskTreeNode(
       task: rootTask,
-      children: children,
+      children: const <domain.TaskTreeNode>[],
     );
-  }
-
-  /// 递归构建子任务树
-  ///
-  /// [parentId] 父任务 ID
-  /// 返回子任务的 TaskTreeNode 列表
-  Future<List<domain.TaskTreeNode>> _buildChildrenTree(String parentId) async {
-    // 获取直接子任务（包括已删除的，用于显示）
-    final children = await listChildrenIncludingTrashed(parentId);
-
-    // 递归构建每个子任务的子树
-    final childrenTrees = <domain.TaskTreeNode>[];
-    for (final child in children) {
-      final childTree = domain.TaskTreeNode(
-        task: child,
-        children: await _buildChildrenTree(child.id),
-      );
-      childrenTrees.add(childTree);
-    }
-
-    return childrenTrees;
   }
 
   /// 比较两个任务树是否相等
@@ -719,25 +696,6 @@ class DriftTaskRepository implements TaskRepository {
     });
   }
 
-  @override
-  Future<List<domain.Task>> listChildren(String parentId) async {
-    return await _adapter.readTransaction(() async {
-      final query = _db.select(_db.tasks)
-        ..where((t) => t.parentId.equals(parentId) & t.status.isNotValue(domain.TaskStatus.trashed.index));
-      final entities = await query.get();
-      return await _toTasks(entities);
-    });
-  }
-
-  @override
-  Future<List<domain.Task>> listChildrenIncludingTrashed(String parentId) async {
-    return await _adapter.readTransaction(() async {
-      final query = _db.select(_db.tasks)
-        ..where((t) => t.parentId.equals(parentId));
-      final entities = await query.get();
-      return await _toTasks(entities);
-    });
-  }
 
   @override
   Future<void> upsertTasks(List<domain.Task> tasks) async {

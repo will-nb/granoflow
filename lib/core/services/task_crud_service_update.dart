@@ -180,76 +180,11 @@ class TaskCrudServiceUpdate {
     // 在新架构下，里程碑是独立的模型，截止日期更新由 MilestoneService 处理
     // 这里不再需要检查 taskKind.milestone 并更新父项目
 
-    // 如果截止日期变化，同步更新所有子任务的截止日期
-    if (dueChanged) {
-      final allChildren = await _helpers.getAllDescendantTasks(taskId);
-      if (allChildren.isNotEmpty) {
-        if (kDebugMode) {
-          debugPrint(
-            '[TaskCrudService.updateDetails] 同步子任务截止日期: taskId=$taskId, childrenCount=${allChildren.length}, newDueAt=$dueForUpdate',
-          );
-        }
-        final updates = <String, TaskUpdate>{};
-        for (final child in allChildren) {
-          updates[child.id] = TaskUpdate(dueAt: dueForUpdate);
-        }
-        await _tasks.batchUpdate(updates);
-      }
-    }
+    // 层级功能已移除，不再需要同步子任务截止日期
 
-    // 如果标签变化，同步更新所有子任务的标签
-    if (payload.tags != null) {
-      final tagsChanged =
-          !TaskCrudServiceHelpers.areTagsEqual(payload.tags!, existing.tags);
-      if (tagsChanged) {
-        final allChildren = await _helpers.getAllDescendantTasks(taskId);
-        if (allChildren.isNotEmpty) {
-          if (kDebugMode) {
-            debugPrint(
-              '[TaskCrudService.updateDetails] 同步子任务标签: taskId=$taskId, childrenCount=${allChildren.length}, newTags=${payload.tags}',
-            );
-          }
-          final updates = <String, TaskUpdate>{};
-          for (final child in allChildren) {
-            updates[child.id] = TaskUpdate(tags: payload.tags);
-          }
-          await _tasks.batchUpdate(updates);
-        }
-      }
-    }
+    // 层级功能已移除，不再需要同步子任务标签
 
-    // 如果项目/里程碑变化，同步更新所有子任务的项目/里程碑关联
-    final projectIdChanged = (payload.projectId != existing.projectId) ||
-        (payload.clearProject == true && existing.projectId != null);
-
-    if (projectIdChanged || milestoneIdChanged) {
-      final allChildren = await _helpers.getAllDescendantTasks(taskId);
-      if (allChildren.isNotEmpty) {
-        final newProjectId = payload.clearProject == true
-            ? null
-            : (payload.projectId ?? existing.projectId);
-        final newMilestoneId = payload.clearMilestone == true
-            ? null
-            : (payload.milestoneId ?? existing.milestoneId);
-
-        if (kDebugMode) {
-          debugPrint(
-            '[TaskCrudService.updateDetails] 同步子任务项目/里程碑: taskId=$taskId, childrenCount=${allChildren.length}, newProjectId=$newProjectId, newMilestoneId=$newMilestoneId',
-          );
-        }
-
-        final updates = <String, TaskUpdate>{};
-        for (final child in allChildren) {
-          updates[child.id] = TaskUpdate(
-            projectId: newProjectId,
-            milestoneId: newMilestoneId,
-            clearProject: payload.clearProject,
-            clearMilestone: payload.clearMilestone,
-          );
-        }
-        await _tasks.batchUpdate(updates);
-      }
-    }
+    // 层级功能已移除，不再需要同步子任务项目/里程碑关联
 
     // 如果任务属于项目但没有里程碑，确保任务有里程碑
     final finalProjectId = payload.projectId ?? existing.projectId;
@@ -301,20 +236,7 @@ class TaskCrudServiceUpdate {
     }
     await _tasks.updateTask(taskId, TaskUpdate(tags: normalized));
 
-    // 同步更新所有子任务的标签
-    final allChildren = await _helpers.getAllDescendantTasks(taskId);
-    if (allChildren.isNotEmpty) {
-      if (kDebugMode) {
-        debugPrint(
-          '[TaskCrudService.updateTags] 同步子任务标签: taskId=$taskId, childrenCount=${allChildren.length}, newTags=$normalized',
-        );
-      }
-      final updates = <String, TaskUpdate>{};
-      for (final child in allChildren) {
-        updates[child.id] = TaskUpdate(tags: normalized);
-      }
-      await _tasks.batchUpdate(updates);
-    }
+    // 层级功能已移除，不再需要同步子任务标签
 
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }

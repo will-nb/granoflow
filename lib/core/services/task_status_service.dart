@@ -198,23 +198,7 @@ class TaskStatusService {
         dueAt: completedTime,  // 同步设置 dueAt 为完成时间
       ),
     );
-    if (autoCompleteParent && task.parentId != null) {
-        final siblings = await _tasks.listChildren(task.parentId!);
-      final allCompleted = siblings.every(
-        (sibling) => sibling.status == TaskStatus.completedActive,
-      );
-      if (allCompleted) {
-          final parentCompletedTime = _clock();
-          await _tasks.updateTask(
-            task.parentId!,
-            TaskUpdate(
-              status: TaskStatus.completedActive, 
-              endedAt: parentCompletedTime,
-              dueAt: parentCompletedTime,  // 同步设置 dueAt 为完成时间
-            ),
-          );
-      }
-    }
+    // 层级功能已移除，不再需要自动完成父任务
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
     
     // 如果任务从doing变为completed，需要检查是否还有其他doing任务

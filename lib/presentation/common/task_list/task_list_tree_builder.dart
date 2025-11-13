@@ -1,6 +1,5 @@
 import '../../../../data/models/task.dart';
 import '../../../../core/services/sort_index_service.dart';
-import '../../tasks/utils/hierarchy_utils.dart';
 import '../../tasks/utils/task_collection_utils.dart';
 
 /// 任务列表树构建工具类
@@ -34,16 +33,8 @@ class TaskListTreeBuilder {
   /// [byId] 任务 ID 到任务的映射
   /// 返回包含当前任务及其所有子任务的树节点
   static TaskTreeNode buildSubtree(Task task, Map<String, Task> byId) {
-    final children =
-        byId.values
-            .where((t) => t.parentId == task.id && !isProjectOrMilestone(t))
-            .toList();
-    // 使用统一的排序函数：sortIndex升序 → createdAt降序
-    SortIndexService.sortChildrenTasks(children);
-    final childNodes = children
-        .map((child) => buildSubtree(child, byId))
-        .toList();
-    return TaskTreeNode(task: task, children: childNodes);
+    // 层级功能已移除，不再有子任务
+    return TaskTreeNode(task: task, children: const <TaskTreeNode>[]);
   }
 
   /// 填充任务 ID 到是否有子任务的映射

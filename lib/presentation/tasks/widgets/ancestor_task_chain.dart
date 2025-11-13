@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/task.dart';
 import '../../../core/providers/repository_providers.dart';
-import '../../tasks/utils/hierarchy_utils.dart';
 
 /// 祖先任务链组件
 /// 
@@ -37,9 +36,9 @@ class AncestorTaskChain extends ConsumerWidget {
   }
 }
 
-/// Provider: 获取任务的祖先任务链
+/// Provider: 获取任务的祖先任务链（层级功能已移除，返回空列表）
 final ancestorChainProvider = FutureProvider.family<List<Task>, String>((ref, taskId) async {
-  final taskRepository = await ref.read(taskRepositoryProvider.future);
-  return buildAncestorChain(taskId, taskRepository);
+  // 层级功能已移除，不再有祖先任务链
+  return <Task>[];
 });
 

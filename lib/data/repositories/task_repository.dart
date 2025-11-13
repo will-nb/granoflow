@@ -82,12 +82,6 @@ abstract class TaskRepository {
 
   Future<List<Task>> listRoots();
 
-  Future<List<Task>> listChildren(String parentId);
-
-  /// 列出父任务的所有子任务（包括 trashed 状态）
-  /// 用于在父任务展开时显示已删除的子任务
-  Future<List<Task>> listChildrenIncludingTrashed(String parentId);
-
   Future<void> upsertTasks(List<Task> tasks);
 
   Future<List<Task>> listAll();

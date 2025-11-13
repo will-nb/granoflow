@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../data/models/task.dart';
 import '../../tasks/utils/tree_flattening_utils.dart';
-import '../../tasks/utils/hierarchy_utils.dart';
 import '../drag/task_drag_intent_target.dart';
 import '../drag/standard_drag_target.dart';
 import 'task_list_config.dart';
@@ -42,7 +41,7 @@ class TaskListInsertionTargetBuilder {
       insertionType: InsertionType.first,
       showWhenIdle: false,
       canAccept: (draggedTask, _) {
-        final movable = canMoveTask(draggedTask);
+        final movable = draggedTask.canEditStructure;
         if (flattenedTasks.isEmpty) return false;
         return movable && draggedTask.id != flattenedTasks[0].task.id;
       },
@@ -101,7 +100,7 @@ class TaskListInsertionTargetBuilder {
       insertionType: InsertionType.between,
       showWhenIdle: false,
       canAccept: (draggedTask, _) {
-        final movable = canMoveTask(draggedTask);
+        final movable = draggedTask.canEditStructure;
         // 不能拖到自己原来的位置
         return movable &&
             draggedTask.id != beforeTask.id &&
@@ -159,7 +158,7 @@ class TaskListInsertionTargetBuilder {
       insertionType: InsertionType.last,
       showWhenIdle: false,
       canAccept: (draggedTask, _) {
-        final movable = canMoveTask(draggedTask);
+        final movable = draggedTask.canEditStructure;
         // 不能拖到自己原来的位置
         return movable && draggedTask.id != lastTask.id;
       },

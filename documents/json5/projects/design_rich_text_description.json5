@@ -1,0 +1,865 @@
+{
+  // ===========================================
+  // 项目和里程碑富文本描述编辑器设计文档
+  // 使用 flutter_quill 实现富文本编辑和显示功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：为项目和里程碑的 description 字段提供富文本编辑能力，支持格式化文本、列表、链接等，
+    // 同时保持简洁的界面交互，通过全屏编辑弹窗提供沉浸式编辑体验
+    goal: "为项目和里程碑的 description 字段提供富文本编辑和显示功能，使用 flutter_quill 实现所见即所得的编辑体验。当 description 为空时显示编辑按钮，有内容时显示只读预览（最多三行），点击后进入全屏编辑弹窗进行编辑。",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的弹窗样式和交互模式（全屏弹窗、底部弹窗）",
+        "遵循现有的按钮样式和间距规范",
+        "使用统一的字体样式和颜色规范",
+        "保持与现有编辑界面（ProjectEditSheet、MilestoneEditSheet）的布局一致性",
+      ],
+      
+      // 创新点：与现有主题不同的设计突破
+      innovation: [
+        "引入富文本编辑器，支持格式化文本、列表、链接等富文本功能",
+        "全屏编辑弹窗提供沉浸式编辑体验，区别于现有的底部弹窗编辑",
+        "只读预览模式限制显示行数，保持界面简洁",
+        "使用 Delta JSON 格式存储富文本数据，便于后续扩展和协同编辑",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "全屏沉浸式编辑：全屏弹窗提供专注的编辑环境",
+      "渐进式展示：空状态显示按钮，有内容时显示预览，点击进入编辑",
+      "所见即所得：使用 WYSIWYG 编辑器，实时预览编辑效果",
+      "响应式设计：适配不同屏幕尺寸，确保编辑体验一致",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：全屏编辑弹窗使用主题背景
+    backgroundGradients: {
+      // Light 模式：使用页面背景渐变
+      light: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.seaSaltBlue",
+            "OceanBreezeColorSchemes.skyWhite",
+          ],
+          stops: [0.0, 1.0],
+          note: "全屏编辑弹窗使用与页面一致的渐变背景，保持视觉一致性",
+        },
+      },
+      
+      // Dark 模式：使用深色主题渐变
+      dark: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.navyBlue",
+            "OceanBreezeColorSchemes.floatingWater",
+            "OceanBreezeColorSchemes.navyBlue",
+          ],
+          stops: [0.0, 0.5, 1.0],
+          note: "深色模式下使用深色主题渐变，与现有深色模式页面保持一致",
+        },
+      },
+    },
+    
+    // 专用配色：编辑器和按钮的专用颜色
+    specificColors: {
+      // 编辑按钮
+      editButton: {
+        primary: "OceanBreezeColorSchemes.primaryColor",
+        text: "OceanBreezeColorSchemes.onPrimary",
+      },
+      // 工具栏背景
+      toolbarBackground: {
+        light: "OceanBreezeColorSchemes.surface",
+        dark: "OceanBreezeColorSchemes.surface",
+      },
+      // 编辑器背景
+      editorBackground: {
+        light: "OceanBreezeColorSchemes.surface",
+        dark: "OceanBreezeColorSchemes.surface",
+      },
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：全屏编辑弹窗为全屏页面
+    fullScreen: true,
+    
+    // 隐藏导航栏：全屏编辑时隐藏底部导航栏
+    hideNavigation: true,
+    
+    // 顶部栏配置：全屏编辑弹窗的顶部栏
+    topBar: {
+      // 显示返回/关闭按钮
+      showBackButton: true,
+      // 背景样式：半透明或透明
+      background: "semi_transparent",
+      // 按钮位置：左上角
+      position: "topLeft",
+      // 显示标题：显示"编辑描述"或"添加描述"
+      showTitle: true,
+      // 显示保存按钮：右上角显示保存按钮
+      showSaveButton: true,
+    },
+    
+    // 内容区域布局：全屏编辑弹窗的内容区域
+    contentLayout: {
+      // 布局方向：垂直布局
+      direction: "vertical",
+      // 主轴对齐：顶部对齐
+      mainAxisAlignment: "start",
+      // 交叉轴对齐：拉伸
+      crossAxisAlignment: "stretch",
+      // 使用 SafeArea：确保内容不被系统 UI 遮挡
+      safeArea: true,
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 8, // dp
+      },
+    },
+    
+    // 区域划分：全屏编辑弹窗的主要区域
+    sections: [
+      {
+        // 工具栏区域
+        name: "toolbar",
+        position: "top",
+        weight: "fixed",
+        height: 56, // dp，工具栏固定高度
+        children: [
+          "QuillToolbar",
+        ],
+      },
+      {
+        // 编辑器区域
+        name: "editor",
+        position: "middle",
+        weight: "flexible",
+        children: [
+          "QuillEditor",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 编辑按钮组件（当 description 为空时显示）
+  editButton: {
+    // 组件位置：在项目/里程碑编辑界面中，位于其他字段下方
+    position: "below_other_fields",
+    
+    // 按钮样式
+    buttonStyle: {
+      // 按钮类型：TextButton 或 OutlinedButton
+      type: "TextButton",
+      // 图标：notes_outlined
+      icon: "Icons.notes_outlined",
+      // 文本：使用本地化文本 "flexibleDescriptionAdd" 或 "projectSheetAddDescription"
+      text: "本地化文本：添加描述",
+      // 颜色：使用主题主色
+      color: "OceanBreezeColorSchemes.primaryColor",
+      // 内边距
+      padding: {
+        horizontal: 8,
+        vertical: 12,
+      },
+    },
+  },
+  
+  // 只读预览组件（当 description 有内容时显示）
+  readOnlyPreview: {
+    // 组件位置：在项目/里程碑详情或编辑界面中，位于标题下方
+    position: "below_title",
+    
+    // 预览样式
+    previewStyle: {
+      // 最大行数：通过配置文件 assets/config/rich_text_editor.json 中的 "previewMaxLines" 字段配置
+      // 默认值：3 行
+      maxLines: "从配置文件读取（默认 3）",
+      // 溢出处理：显示省略号
+      overflow: "ellipsis",
+      // 字体样式：使用 bodyMedium
+      typography: {
+        fontSize: 14, // sp
+        fontWeight: "regular",
+        color: {
+          light: "OceanBreezeColorSchemes.onSurfaceVariant",
+          dark: "OceanBreezeColorSchemes.onSurfaceVariant",
+        },
+      },
+      // 背景：透明
+      background: {
+        type: "transparent",
+      },
+      // 内边距
+      padding: {
+        horizontal: 0,
+        vertical: 8,
+      },
+      // 可点击：整个预览区域可点击进入编辑
+      clickable: true,
+      // 点击反馈：显示视觉反馈（如轻微高亮）
+      clickFeedback: "highlight",
+    },
+  },
+  
+  // 全屏编辑弹窗组件
+  fullScreenEditor: {
+    // 弹窗类型：全屏 Dialog 或 PageRoute
+    type: "fullScreenDialog",
+    
+    // 顶部栏组件
+    topBar: {
+      // 左侧：关闭按钮
+      left: {
+        type: "IconButton",
+        icon: "Icons.close",
+        action: "close_without_save",
+        // 关闭前检查：如果有未保存的更改，显示确认对话框
+        confirmOnUnsavedChanges: true,
+      },
+      // 中间：标题文本
+      center: {
+        type: "Text",
+        text: "本地化文本：编辑描述 或 添加描述",
+        style: "titleMedium",
+      },
+      // 右侧：保存按钮（自动保存模式下可隐藏或显示为"已保存"状态）
+      right: {
+        type: "TextButton",
+        text: "本地化文本：保存（自动保存模式下可隐藏）",
+        action: "save_and_close",
+        // 保存状态：显示加载指示器或"已保存"状态
+        showLoadingState: true,
+        // 自动保存：启用自动保存功能，编辑后自动保存（无需手动点击保存按钮）
+        autoSave: true,
+      },
+    },
+    
+    // 工具栏组件（QuillToolbar）
+    toolbar: {
+      // 工具栏类型：使用 QuillToolbar.simple 或 QuillToolbar
+      type: "QuillToolbar.simple",
+      // 工具栏配置：通过配置文件 assets/config/rich_text_editor.json 控制
+      configurations: {
+        // 工具栏模式：通过配置文件中的 "toolbarMode" 字段控制
+        // 可选值："basic"（基础功能）、"full"（完整功能）
+        // 默认值："full"（完整功能）
+        // 基础功能包括：加粗、斜体、下划线、列表、链接
+        // 完整功能包括：所有 QuillToolbar 支持的功能（但不包括图片和附件）
+        toolbarMode: "从配置文件读取",
+        // 显示的功能按钮：根据 toolbarMode 动态生成
+        // 注意：不支持图片和附件功能
+        showButtons: [
+          "bold", // 加粗
+          "italic", // 斜体
+          "underline", // 下划线
+          "strikeThrough", // 删除线
+          "color", // 文字颜色
+          "background", // 背景色
+          "clearFormat", // 清除格式
+          "headerStyle", // 标题样式
+          "listBullet", // 无序列表
+          "listOrdered", // 有序列表
+          "listCheck", // 待办列表
+          "codeBlock", // 代码块
+          "quote", // 引用
+          "indent", // 缩进
+          "link", // 链接
+          "direction", // 文字方向
+          "align", // 对齐方式
+          "size", // 字体大小
+          "font", // 字体
+          "search", // 搜索
+          "undo", // 撤销
+          "redo", // 重做
+          // 注意：不包含 "image"（图片）和 "video"（视频）等附件功能
+        ],
+        // 工具栏背景色
+        backgroundColor: "OceanBreezeColorSchemes.surface",
+        // 工具栏图标颜色
+        iconColor: "OceanBreezeColorSchemes.onSurface",
+        // 工具栏图标选中颜色
+        iconSelectedColor: "OceanBreezeColorSchemes.primaryColor",
+      },
+      // 工具栏位置：固定在顶部（工具栏区域下方）
+      position: "fixed_top",
+      // 工具栏高度：56 dp
+      height: 56,
+    },
+    
+    // 编辑器组件（QuillEditor）
+    editor: {
+      // 编辑器类型：QuillEditor
+      type: "QuillEditor",
+      // 编辑器配置
+      configurations: {
+        // 只读模式：false（编辑模式）
+        readOnly: false,
+        // 占位符文本：使用本地化文本 "projectSheetDescriptionHint"
+        placeholder: "本地化文本：可选备注",
+        // 自动聚焦：进入弹窗后自动聚焦到编辑器
+        autoFocus: true,
+        // 滚动：可滚动
+        scrollable: true,
+        // 内边距
+        padding: {
+          horizontal: 16,
+          vertical: 16,
+        },
+        // 字体样式：使用 bodyLarge
+        textStyle: {
+          fontSize: 16, // sp
+          fontWeight: "regular",
+          color: {
+            light: "OceanBreezeColorSchemes.onSurface",
+            dark: "OceanBreezeColorSchemes.onSurface",
+          },
+        },
+        // 背景色：使用 surface 颜色
+        backgroundColor: "OceanBreezeColorSchemes.surface",
+      },
+      // 编辑器位置：工具栏下方，占据剩余空间
+      position: "below_toolbar",
+      // 编辑器高度：flexible（占据剩余空间）
+      height: "flexible",
+    },
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程名称：添加描述（description 为空时）
+        name: "添加描述流程",
+        // 步骤列表
+        steps: [
+          "用户在项目/里程碑编辑界面看到'添加描述'按钮",
+          "用户点击'添加描述'按钮",
+          "系统打开全屏编辑弹窗，显示 QuillToolbar 和 QuillEditor",
+          "编辑器自动聚焦，用户可以开始输入",
+          "用户使用工具栏进行格式化操作（加粗、列表等）",
+          "系统自动保存（编辑后自动保存到数据库，无需手动点击保存按钮）",
+          "用户点击左上角关闭按钮或系统返回键",
+          "系统关闭弹窗，返回编辑界面",
+          "编辑界面显示只读预览（新添加的内容）",
+        ],
+      },
+      {
+        // 流程名称：编辑描述（description 有内容时）
+        name: "编辑描述流程",
+        // 步骤列表
+        steps: [
+          "用户在项目/里程碑详情或编辑界面看到描述预览（最多三行）",
+          "用户点击描述预览区域",
+          "系统打开全屏编辑弹窗，加载现有内容到 QuillEditor",
+          "编辑器自动聚焦，用户可以开始编辑",
+          "用户使用工具栏进行格式化操作",
+          "系统自动保存（编辑后自动保存到数据库，无需手动点击保存按钮）",
+          "用户点击左上角关闭按钮或系统返回键",
+          "系统关闭弹窗，返回原界面",
+          "原界面更新显示新的描述预览",
+        ],
+      },
+      {
+        // 流程名称：取消编辑（自动保存模式下）
+        name: "取消编辑流程",
+        // 步骤列表
+        steps: [
+          "用户在全屏编辑弹窗中进行编辑",
+          "系统自动保存编辑内容（编辑后自动保存）",
+          "用户点击左上角关闭按钮或系统返回键",
+          "系统直接关闭弹窗（由于已自动保存，无需确认）",
+        ],
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击编辑按钮：打开全屏编辑弹窗
+      tapEditButton: {
+        action: "open_fullscreen_editor",
+      },
+      // 点击预览区域：打开全屏编辑弹窗
+      tapPreview: {
+        action: "open_fullscreen_editor",
+      },
+      // 点击关闭按钮：关闭弹窗（自动保存模式下直接关闭）
+      tapCloseButton: {
+        action: "close_directly",
+        note: "自动保存模式下，内容已自动保存，无需确认直接关闭",
+      },
+      // 系统返回键（Android）：关闭弹窗（自动保存模式下直接关闭）
+      systemBackButton: {
+        action: "close_directly",
+        note: "自动保存模式下，内容已自动保存，无需确认直接关闭",
+      },
+      // 自动保存触发：编辑内容变化时自动保存
+      autoSaveTrigger: {
+        action: "auto_save_on_change",
+        debounce: "300ms", // 防抖延迟，避免频繁保存
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 全屏编辑弹窗进入动画
+    editorEnter: {
+      type: "slide_in_from_bottom", // 从底部滑入
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+    },
+    
+    // 全屏编辑弹窗退出动画
+    editorExit: {
+      type: "slide_out_to_bottom", // 向底部滑出
+      duration: 300, // 毫秒
+      curve: "Curves.easeIn",
+    },
+    
+    // 预览区域点击反馈动画
+    previewTapFeedback: {
+      type: "scale", // 轻微缩放
+      duration: 150, // 毫秒
+      curve: "Curves.easeOut",
+      scale: 0.98, // 缩放到 98%
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      // 布局方式：垂直布局，全屏弹窗
+      layout: "vertical_fullscreen",
+      // 工具栏：固定在顶部
+      toolbarPosition: "fixed_top",
+      // 编辑器：占据剩余空间
+      editorHeight: "flexible",
+      // 字体大小
+      fontSize: 16, // sp
+    },
+    
+    // 平板横屏（可选）
+    tabletLandscape: {
+      // 布局方式：垂直布局，全屏弹窗
+      layout: "vertical_fullscreen",
+      // 工具栏：固定在顶部
+      toolbarPosition: "fixed_top",
+      // 编辑器：占据剩余空间，但限制最大宽度
+      editorHeight: "flexible",
+      editorMaxWidth: 800, // dp
+      // 字体大小
+      fontSize: 18, // sp
+    },
+    
+    // 桌面（可选）
+    desktop: {
+      // 布局方式：居中布局，限制最大宽度
+      layout: "centered_with_max_width",
+      maxWidth: 1000, // dp
+      // 工具栏：固定在顶部
+      toolbarPosition: "fixed_top",
+      // 编辑器：占据剩余空间
+      editorHeight: "flexible",
+      // 字体大小
+      fontSize: 18, // sp
+    },
+  },
+
+  // ===========================================
+  // 8. 数据格式（必填）
+  // ===========================================
+  dataFormat: {
+    // 存储格式：Delta JSON（基于 Quill.js 的 Delta 格式）
+    storageFormat: "Delta JSON",
+    
+    // 数据示例
+    example: {
+      // 空内容
+      empty: null,
+      // 简单文本
+      simpleText: {
+        ops: [
+          { insert: "这是一个简单的描述文本\n" },
+        ],
+      },
+      // 格式化文本
+      formattedText: {
+        ops: [
+          { insert: "这是" },
+          { insert: "加粗", attributes: { bold: true } },
+          { insert: "和" },
+          { insert: "斜体", attributes: { italic: true } },
+          { insert: "的文本\n" },
+        ],
+      },
+      // 列表
+      list: {
+        ops: [
+          { insert: "第一项\n", attributes: { list: "bullet" } },
+          { insert: "第二项\n", attributes: { list: "bullet" } },
+          { insert: "第三项\n", attributes: { list: "bullet" } },
+        ],
+      },
+    },
+    
+    // 数据库字段：description 字段（TextColumn），存储 JSON 字符串
+    databaseField: {
+      type: "TextColumn",
+      nullable: true,
+      note: "存储 Delta JSON 的字符串形式，使用 jsonEncode 序列化，jsonDecode 反序列化",
+    },
+    
+    // 配置文件：assets/config/rich_text_editor.json
+    configFile: {
+      path: "assets/config/rich_text_editor.json",
+      structure: {
+        // 工具栏模式：控制工具栏显示的功能
+        toolbarMode: {
+          type: "string",
+          allowed: ["basic", "full"],
+          default: "full",
+          description: "工具栏模式：basic（基础功能）或 full（完整功能）",
+        },
+        // 预览最大行数：控制只读预览显示的行数
+        previewMaxLines: {
+          type: "integer",
+          default: 3,
+          min: 1,
+          max: 10,
+          description: "只读预览最大显示行数",
+        },
+        // 自动保存延迟：编辑后自动保存的防抖延迟（毫秒）
+        autoSaveDebounce: {
+          type: "integer",
+          default: 300,
+          min: 100,
+          max: 2000,
+          description: "自动保存防抖延迟（毫秒），避免频繁保存",
+        },
+      },
+      example: {
+        toolbarMode: "full",
+        previewMaxLines: 3,
+        autoSaveDebounce: 300,
+      },
+    },
+  },
+
+  // ===========================================
+  // 9. 应用场景（必填）
+  // ===========================================
+  scenarios: [
+    {
+      // 场景名称：项目编辑界面
+      name: "项目编辑界面",
+      // 位置：ProjectEditSheet
+      location: "lib/presentation/tasks/projects/widgets/project_edit_sheet.dart",
+      // 描述：在项目编辑界面中，替换现有的 FlexibleDescriptionInput 组件
+      description: "在项目编辑界面（ProjectEditSheet）中，将现有的 FlexibleDescriptionInput 组件替换为新的富文本描述组件。如果 description 为空，显示'添加描述'按钮；如果有内容，显示只读预览（最多三行）。点击后打开全屏编辑弹窗。",
+    },
+    {
+      // 场景名称：里程碑编辑界面
+      name: "里程碑编辑界面",
+      // 位置：MilestoneEditSheet
+      location: "lib/presentation/tasks/projects/widgets/milestone_edit_sheet.dart",
+      // 描述：在里程碑编辑界面中，替换现有的 FlexibleDescriptionInput 组件
+      description: "在里程碑编辑界面（MilestoneEditSheet）中，将现有的 FlexibleDescriptionInput 组件替换为新的富文本描述组件。如果 description 为空，显示'添加描述'按钮；如果有内容，显示只读预览（最多三行）。点击后打开全屏编辑弹窗。",
+    },
+    {
+      // 场景名称：项目详情界面
+      name: "项目详情界面",
+      // 位置：ProjectDetailBottomSheet
+      location: "lib/presentation/projects/widgets/project_detail_bottom_sheet.dart",
+      // 描述：在项目详情界面中，将现有的 Text widget 替换为 QuillEditor 只读预览
+      description: "在项目详情界面（ProjectDetailBottomSheet）中，将现有的 Text widget 替换为 QuillEditor 只读预览（最多三行）。点击预览区域后打开全屏编辑弹窗。",
+    },
+    {
+      // 场景名称：里程碑详情界面
+      name: "里程碑详情界面",
+      // 位置：MilestoneDetailBottomSheet
+      location: "lib/presentation/projects/widgets/milestone_detail_bottom_sheet.dart",
+      // 描述：在里程碑详情界面中，将现有的 Text widget 替换为 QuillEditor 只读预览
+      description: "在里程碑详情界面（MilestoneDetailBottomSheet）中，将现有的 Text widget 替换为 QuillEditor 只读预览（最多三行）。点击预览区域后打开全屏编辑弹窗。",
+    },
+    {
+      // 场景名称：项目创建界面
+      name: "项目创建界面",
+      // 位置：ProjectCreationSheet
+      location: "lib/presentation/tasks/projects/project_creation_sheet.dart",
+      // 描述：在项目创建界面中，替换现有的 FlexibleDescriptionInput 组件
+      description: "在项目创建界面（ProjectCreationSheet）中，将现有的 FlexibleDescriptionInput 组件替换为新的富文本描述组件。如果 description 为空，显示'添加描述'按钮；如果有内容，显示只读预览（最多三行）。点击后打开全屏编辑弹窗。",
+    },
+    {
+      // 场景名称：里程碑草稿界面
+      name: "里程碑草稿界面",
+      // 位置：MilestoneDraftTile
+      location: "lib/presentation/tasks/projects/widgets/milestone_draft_tile.dart",
+      // 描述：在里程碑草稿界面中，替换现有的 FlexibleDescriptionInput 组件
+      description: "在里程碑草稿界面（MilestoneDraftTile）中，将现有的 FlexibleDescriptionInput 组件替换为新的富文本描述组件。如果 description 为空，显示'添加描述'按钮；如果有内容，显示只读预览（最多三行）。点击后打开全屏编辑弹窗。",
+    },
+  ],
+
+  // ===========================================
+  // 10. 边界情况处理（必填）
+  // ===========================================
+  edgeCases: [
+    {
+      // 情况：description 为空
+      case: "description 为空",
+      // 处理方式：显示"添加描述"按钮
+      handling: "显示'添加描述'按钮，点击后打开全屏编辑弹窗（空内容）",
+    },
+    {
+      // 情况：Delta JSON 格式错误
+      case: "Delta JSON 格式错误",
+      // 处理方式：显示错误提示，使用空内容初始化编辑器
+      handling: "捕获 JSON 解析错误，显示错误提示，使用空内容初始化编辑器，允许用户重新编辑",
+    },
+    {
+      // 情况：自动保存失败
+      case: "自动保存失败",
+      // 处理方式：显示错误提示，保持编辑界面打开，允许用户继续编辑
+      handling: "捕获自动保存错误，显示错误提示（SnackBar），保持编辑界面打开。如果用户关闭弹窗，提示用户有未保存的更改，询问是否放弃更改。",
+    },
+    {
+      // 情况：网络断开（如果未来支持同步）
+      case: "网络断开（未来场景）",
+      // 处理方式：本地保存，网络恢复后同步
+      handling: "本地保存成功，网络恢复后自动同步到服务器（未来功能）",
+    },
+    {
+      // 情况：内容过长
+      case: "内容过长",
+      // 处理方式：编辑器支持滚动，预览限制三行
+      handling: "编辑器支持滚动，预览限制显示三行（使用 maxLines: 3），超出部分显示省略号",
+    },
+    {
+      // 情况：只读预览内容为空（理论上不应该出现）
+      case: "只读预览内容为空",
+      // 处理方式：不显示预览，显示"添加描述"按钮
+      handling: "检测到内容为空，不显示预览，显示'添加描述'按钮",
+    },
+  ],
+
+  // ===========================================
+  // 11. 非功能需求（必填）
+  // ===========================================
+  nonFunctionalRequirements: {
+    // 性能要求
+    performance: {
+      // 编辑器加载时间：< 200ms
+      editorLoadTime: "< 200ms",
+      // 保存响应时间：< 500ms
+      saveResponseTime: "< 500ms",
+      // 预览渲染时间：< 100ms
+      previewRenderTime: "< 100ms",
+      // 大数据量处理：支持 60KB 的 Delta JSON 数据（约 60000 字符的纯文本）
+      largeDataSupport: "支持 60KB 的 Delta JSON 数据",
+    },
+    
+    // 可访问性要求
+    accessibility: {
+      // 屏幕阅读器支持：编辑器内容可被屏幕阅读器读取
+      screenReaderSupport: true,
+      // 键盘导航：支持键盘导航和操作
+      keyboardNavigation: true,
+      // 语义化标签：使用语义化的 Widget 和标签
+      semanticLabels: true,
+    },
+    
+    // 兼容性要求
+    compatibility: {
+      // 平台支持：Android、iOS、Web、桌面
+      platforms: ["Android", "iOS", "Web", "Desktop"],
+      // Flutter 版本：>= 3.8.0
+      flutterVersion: ">= 3.8.0",
+    },
+    
+    // 安全性要求
+    security: {
+      // XSS 防护：Delta JSON 格式本身相对安全，但渲染时仍需注意
+      xssProtection: "Delta JSON 格式相对安全，渲染时使用 QuillEditor 的安全渲染机制",
+      // 数据验证：保存前验证 Delta JSON 格式
+      dataValidation: "保存前验证 Delta JSON 格式，防止恶意数据",
+    },
+  },
+
+  // ===========================================
+  // 12. 依赖与风险（必填）
+  // ===========================================
+  dependencies: {
+    // 外部依赖
+    external: [
+      {
+        // 依赖名称：flutter_quill
+        name: "flutter_quill",
+        // 版本要求：最新稳定版
+        version: "latest_stable",
+        // 用途：提供富文本编辑器和工具栏组件
+        purpose: "提供 QuillEditor 和 QuillToolbar 组件，以及 Delta JSON 数据格式支持",
+        // 风险：低（成熟稳定的库）
+        risk: "low",
+      },
+    ],
+    
+    // 内部依赖
+    internal: [
+      {
+        // 依赖名称：项目/里程碑数据模型
+        name: "Project/Milestone models",
+        // 用途：description 字段的数据模型
+        purpose: "description 字段的数据模型和更新逻辑",
+        // 风险：低（现有模型）
+        risk: "low",
+      },
+      {
+        // 依赖名称：项目/里程碑服务
+        name: "Project/Milestone services",
+        // 用途：保存 description 的服务方法
+        purpose: "保存和更新 description 字段的服务方法",
+        // 风险：低（现有服务）
+        risk: "low",
+      },
+      {
+        // 依赖名称：本地化文本
+        name: "Localization",
+        // 用途：按钮和提示文本的本地化
+        purpose: "编辑按钮、保存按钮、提示文本的本地化支持",
+        // 风险：低（现有本地化系统）
+        risk: "low",
+      },
+    ],
+  },
+  
+  risks: [
+    {
+      // 风险名称：性能风险
+      name: "性能风险",
+      // 风险描述：大量富文本内容可能影响编辑器加载和渲染性能
+      description: "如果 description 内容很大（接近 60KB 限制），可能影响编辑器加载和渲染性能，特别是在低端设备上。",
+      // 风险等级：低
+      level: "low",
+      // 缓解措施：限制最大内容大小（60KB）；使用懒加载；优化渲染性能
+      mitigation: "限制最大内容大小（60KB）；使用懒加载；优化渲染性能；在低端设备上测试",
+    },
+    {
+      // 风险名称：用户体验风险
+      name: "用户体验风险",
+      // 风险描述：全屏编辑弹窗可能不符合用户习惯
+      description: "全屏编辑弹窗可能不符合部分用户的习惯，他们可能更习惯在现有界面中直接编辑。",
+      // 风险等级：低
+      level: "low",
+      // 缓解措施：提供清晰的交互反馈；确保编辑体验流畅；收集用户反馈
+      mitigation: "提供清晰的交互反馈；确保编辑体验流畅；收集用户反馈，必要时调整交互方式",
+    },
+  ],
+
+  // ===========================================
+  // 13. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      // 问题描述：工具栏功能范围
+      question: "工具栏应该包含哪些功能按钮？",
+      // 问题详细说明
+      description: "通过配置文件 assets/config/rich_text_editor.json 中的 toolbarMode 字段控制。支持 basic（基础功能）和 full（完整功能）两种模式。",
+      // 可选方案列表
+      options: [
+        "方案1：基础功能（加粗、斜体、下划线、列表、链接）",
+        "方案2：完整功能（所有 QuillToolbar 支持的功能，但不包括图片和附件）",
+      ],
+      // 推荐方案
+      recommendation: "方案2：使用完整功能（full 模式），通过配置文件控制，默认使用完整功能。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "通过配置文件控制，默认使用完整功能（full 模式），但不支持图片和附件。",
+    },
+    {
+      // 问题描述：图片和附件支持
+      question: "是否需要支持插入图片和附件？",
+      // 问题详细说明
+      description: "flutter_quill 支持插入图片，但需要处理图片存储（本地存储或云存储）。如果支持图片，需要考虑存储方案、大小限制、上传方式等。",
+      // 可选方案列表
+      options: [
+        "方案1：不支持图片和附件（仅文本和格式化）",
+        "方案2：支持图片（需要实现图片存储方案）",
+        "方案3：支持图片和附件（需要实现完整的文件管理方案）",
+      ],
+      // 推荐方案
+      recommendation: "方案1：不支持图片和附件，仅支持文本和格式化。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "不支持图片和附件，仅支持文本和格式化功能。",
+    },
+    {
+      // 问题描述：只读预览的行数限制
+      question: "只读预览应该显示多少行？",
+      // 问题详细说明
+      description: "通过配置文件 assets/config/rich_text_editor.json 中的 previewMaxLines 字段配置，默认值为 3 行。",
+      // 可选方案列表
+      options: [
+        "方案1：固定三行（默认值）",
+        "方案2：通过配置文件可配置行数（1-10 行）",
+      ],
+      // 推荐方案
+      recommendation: "方案2：通过配置文件可配置，默认值为 3 行，允许在 1-10 行之间调整。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "通过配置文件可配置，默认值为 3 行，允许在 1-10 行之间调整。",
+    },
+    {
+      // 问题描述：保存确认机制
+      question: "是否需要自动保存功能？",
+      // 问题详细说明
+      description: "编辑后自动保存，无需手动点击保存按钮。通过防抖机制避免频繁保存。",
+      // 可选方案列表
+      options: [
+        "方案1：仅手动保存（用户点击保存按钮）",
+        "方案2：自动保存（编辑后自动保存，无需手动保存按钮）",
+      ],
+      // 推荐方案
+      recommendation: "方案2：自动保存，编辑后自动保存到数据库，无需手动点击保存按钮。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "启用自动保存功能，编辑后自动保存（防抖延迟 300ms，可通过配置文件调整）。",
+    },
+  ],
+}
+
