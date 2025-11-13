@@ -397,21 +397,6 @@ class ExportData {
     );
   }
 
-  /// 序列化节点（不加密，用于 ExportData 内部）
-  /// 注意：实际导出应使用 ExportService._nodeToJson（会加密 title）
-  Map<String, dynamic> _nodeToJson(Node node) {
-    return {
-      'nodeId': node.id,
-      'taskId': node.taskId,
-      'parentId': node.parentId,
-      'title': node.title,
-      'status': node.status.name,
-      'sortIndex': node.sortIndex,
-      'createdAt': node.createdAt.toIso8601String(),
-      'updatedAt': node.updatedAt.toIso8601String(),
-    };
-  }
-
   /// 反序列化节点
   static Node nodeFromJson(Map<String, dynamic> json) {
     return Node(

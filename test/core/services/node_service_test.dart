@@ -30,6 +30,32 @@ class MockNodeRepository implements NodeRepository {
   }
 
   @override
+  Future<Node> createNodeWithId({
+    required String nodeId,
+    required String taskId,
+    required String title,
+    String? parentId,
+    required NodeStatus status,
+    required double sortIndex,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) async {
+    final node = Node(
+      id: nodeId,
+      taskId: taskId,
+      title: title,
+      status: status,
+      sortIndex: sortIndex,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      parentId: parentId,
+    );
+    _nodes[node.id] = node;
+    _allNodes.add(node);
+    return node;
+  }
+
+  @override
   Future<void> updateNode(
     String nodeId, {
     String? title,
