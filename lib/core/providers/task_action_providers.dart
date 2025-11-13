@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/task.dart';
-import '../constants/task_constants.dart';
-import '../services/task_hierarchy_service.dart';
 import '../services/task_service.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
@@ -36,28 +34,7 @@ class TaskEditActionsNotifier extends AsyncNotifier<void> {
   Future<void> build() async {}
 
   Future<TaskService> get _taskService async => await ref.read(taskServiceProvider.future);
-  Future<TaskHierarchyService> get _hierarchyService async => await ref.read(taskHierarchyServiceProvider.future);
 
-  Future<void> addSubtask({
-    required String parentId,
-    required String title,
-  }) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      final taskService = await _taskService;
-      final hierarchyService = await _hierarchyService;
-      final subtask = await taskService.captureInboxTask(title: title);
-      await hierarchyService.moveToParent(
-        taskId: subtask.id,
-        parentId: parentId,
-        sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
-      );
-      await taskService.updateDetails(
-        taskId: subtask.id,
-        payload: const TaskUpdate(status: TaskStatus.pending),
-      );
-    });
-  }
 
   Future<void> editTitle({required String taskId, required String title}) async {
     state = const AsyncLoading();

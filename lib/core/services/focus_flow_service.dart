@@ -8,7 +8,6 @@ import 'task_service.dart';
 enum FocusOutcome {
   complete,
   completeWithoutTimer,
-  addSubtask,
   logMultiple,
   markWasted,
 }
@@ -84,8 +83,6 @@ class FocusFlowService {
       case FocusOutcome.completeWithoutTimer:
         await _taskService.markCompleted(taskId: effectiveTaskId);
         break;
-      case FocusOutcome.addSubtask:
-        break;
       case FocusOutcome.logMultiple:
         break;
       case FocusOutcome.markWasted:
@@ -101,20 +98,6 @@ class FocusFlowService {
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.session);
   }
 
-  Future<Task> quickSubtask({
-    required String parentTaskId,
-    required String title,
-  }) async {
-    final draft = TaskDraft(
-      title: title,
-      status: TaskStatus.pending,
-      parentId: parentTaskId,
-      allowInstantComplete: false,
-    );
-    final task = await _taskRepository.createTask(draft);
-    await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
-    return task;
-  }
 
   Stream<FocusSession?> watchActive(String taskId) =>
       _focusRepository.watchActiveSession(taskId);

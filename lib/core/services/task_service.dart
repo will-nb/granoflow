@@ -11,10 +11,8 @@ import 'project_service.dart';
 import 'sort_index_service.dart';
 import 'task_crud_service.dart';
 import 'task_drag_service.dart';
-import 'task_promotion_service.dart';
 import 'task_query_service.dart';
 import 'task_status_service.dart';
-import 'task_hierarchy_service.dart';
 
 /// TaskService - 任务服务组合类（Facade 模式）
 ///
@@ -22,7 +20,6 @@ import 'task_hierarchy_service.dart';
 /// - TaskCrudService: CRUD 操作
 /// - TaskStatusService: 状态管理
 /// - TaskDragService: 拖拽操作
-/// - TaskPromotionService: 任务提升
 /// - TaskQueryService: 查询操作
 ///
 /// 保持向后兼容的 API，所有现有代码无需修改
@@ -60,12 +57,6 @@ class TaskService {
           sortIndexService: sortIndexService,
           clock: clock,
         ),
-        _promotionService = TaskPromotionService(
-          taskRepository: taskRepository,
-          metricOrchestrator: metricOrchestrator,
-          sortIndexService: sortIndexService,
-          clock: clock,
-        ),
         _queryService = TaskQueryService(
           taskRepository: taskRepository,
           tagRepository: tagRepository,
@@ -74,7 +65,6 @@ class TaskService {
   final TaskCrudService _crudService;
   final TaskStatusService _statusService;
   final TaskDragService _dragService;
-  final TaskPromotionService _promotionService;
   final TaskQueryService _queryService;
 
   // ===== CRUD 操作 =====
@@ -196,29 +186,6 @@ class TaskService {
   Future<void> handleInboxDragToLast(String draggedId) =>
       _dragService.handleInboxDragToLast(draggedId);
 
-  // ===== 任务提升操作 =====
-
-  /// 处理子任务向左拖拽升级为根任务
-  Future<bool> handlePromoteToIndependent(
-    String taskId,
-    TaskHierarchyService taskHierarchyService, {
-    required double? horizontalOffset,
-    required double? verticalOffset,
-    double leftDragThreshold = -30.0,
-    double verticalThreshold = 50.0,
-  }) =>
-      _promotionService.handlePromoteToIndependent(
-        taskId,
-        taskHierarchyService,
-        horizontalOffset: horizontalOffset,
-        verticalOffset: verticalOffset,
-        leftDragThreshold: leftDragThreshold,
-        verticalThreshold: verticalThreshold,
-      );
-
-  /// 将子任务提升为根任务（用于滑动动作）
-  Future<bool> promoteSubtaskToRoot(String taskId, {int? taskLevel}) =>
-      _promotionService.promoteSubtaskToRoot(taskId, taskLevel: taskLevel);
 
   // ===== 查询操作 =====
 

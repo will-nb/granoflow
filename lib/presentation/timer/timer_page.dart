@@ -189,9 +189,6 @@ class _TimerPageState extends ConsumerState<TimerPage> {
       case FocusOutcome.completeWithoutTimer:
         message = l10n.timerEndSessionSuccess;
         break;
-      case FocusOutcome.addSubtask:
-        message = l10n.timerEndSessionAddSubtask;
-        break;
       case FocusOutcome.logMultiple:
         message = l10n.timerEndSessionAddMultiple;
         break;
