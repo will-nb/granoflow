@@ -56,13 +56,6 @@ class InlineDeadlineEditor extends StatelessWidget {
     return deadline.isBefore(DateTime.now());
   }
 
-  /// 检查是否即将到期（24小时内）
-  bool _isDueSoon(DateTime deadline) {
-    final now = DateTime.now();
-    final diff = deadline.difference(now);
-    return !_isOverdue(deadline) && diff.inHours <= 24 && diff.inHours > 0;
-  }
-
   Future<void> _pickDateTime(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
@@ -164,8 +157,13 @@ class InlineDeadlineEditor extends StatelessWidget {
 
     // 有截止日期 - Minimal 风格
     final isOverdue = _isOverdue(deadline!);
-    final isDueSoon = _isDueSoon(deadline!);
     final formattedDeadline = _formatDeadline(context, deadline!);
+
+    // 检查是否是今天
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final deadlineDate = DateTime(deadline!.year, deadline!.month, deadline!.day);
+    final isToday = deadlineDate == today;
 
     Color color;
     String displayText;
@@ -175,11 +173,13 @@ class InlineDeadlineEditor extends StatelessWidget {
       color = theme.colorScheme.error;
       displayText = l10n.taskDeadlineOverdue;
       iconData = Icons.warning_outlined;
-    } else if (isDueSoon) {
-      color = theme.colorScheme.tertiary;
-      displayText = l10n.taskDeadlineSoon;
-      iconData = Icons.alarm_outlined;
+    } else if (isToday) {
+      // 显示"今天"
+      color = theme.colorScheme.secondary;
+      displayText = l10n.dateToday;
+      iconData = Icons.calendar_today_outlined;
     } else {
+      // 其他情况（包括明天和其他日期）使用格式化显示
       color = theme.colorScheme.secondary;
       displayText = formattedDeadline;
       iconData = Icons.calendar_today_outlined;

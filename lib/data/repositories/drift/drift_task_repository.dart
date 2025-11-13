@@ -440,10 +440,20 @@ class DriftTaskRepository implements TaskRepository {
           ? Value<String?>(payload.milestoneId) 
           : (payload.clearMilestone == true ? Value<String?>(null) : const Value<String?>.absent());
 
+      // 计算最终的 dueAt 值
+      final finalDueAt = payload.dueAt ?? existing.dueAt;
+      
+      // 底层规则：如果任务有截止日期，状态一定不是 inbox
+      // 如果最终有截止日期，且当前状态是 inbox，且 payload 没有明确指定状态，则自动改为 pending
+      final finalStatus = payload.status ??
+          (finalDueAt != null && existing.status == domain.TaskStatus.inbox
+              ? domain.TaskStatus.pending
+              : null);
+
       final companion = TasksCompanion(
         id: const Value.absent(),
         title: payload.title != null ? Value(payload.title!) : const Value.absent(),
-        status: payload.status != null ? Value(payload.status!) : const Value.absent(),
+        status: finalStatus != null ? Value(finalStatus) : const Value.absent(),
         dueAt: payload.dueAt != null ? Value(payload.dueAt) : const Value.absent(),
         startedAt: payload.startedAt != null ? Value(payload.startedAt) : const Value.absent(),
         endedAt: payload.endedAt != null ? Value(payload.endedAt) : const Value.absent(),
@@ -489,6 +499,13 @@ class DriftTaskRepository implements TaskRepository {
     DateTime? dueAt,
   }) async {
     await _adapter.writeTransaction(() async {
+      // 查询当前任务状态，用于状态转换逻辑
+      final query = _db.select(_db.tasks)..where((t) => t.id.equals(taskId));
+      final existing = await query.getSingleOrNull();
+      if (existing == null) {
+        throw StateError('Task not found: $taskId');
+      }
+
       var companion = TasksCompanion(
         parentId: targetParentId != null ? Value(targetParentId) : const Value.absent(),
         sortIndex: Value(sortIndex),
@@ -522,6 +539,14 @@ class DriftTaskRepository implements TaskRepository {
         default:
           // 其他 section 保持当前状态
           finalCompanion = companion;
+          // 底层规则：如果任务有截止日期，状态一定不是 inbox
+          // 如果设置了 dueAt 且当前状态是 inbox，则自动改为 pending
+          final finalDueAt = dueAt ?? existing.dueAt;
+          if (finalDueAt != null && existing.status == domain.TaskStatus.inbox) {
+            finalCompanion = finalCompanion.copyWith(
+              status: Value(domain.TaskStatus.pending),
+            );
+          }
           break;
       }
 

@@ -211,12 +211,11 @@ class _TaskActionBottomSheetState
                   // 项目/里程碑选择 - 传递最新的任务数据
                   _buildProjectMilestoneSection(context, ref, theme, task),
                   const SizedBox(height: 16),
-                  // 截止日期编辑、复制按钮和计时控件 - 使用最新的任务数据，在同一排显示
+                  // 复制按钮和计时控件 - 使用最新的任务数据，在同一排显示
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _buildDeadlineSection(context, ref, theme, task),
                       TaskCopyButton(taskTitle: task.title),
                       if (canShowTimer) TaskTimerWidget(task: task),
                     ],
@@ -410,35 +409,112 @@ class _TaskActionBottomSheetState
     Task task, // 接收最新的任务数据
   ) {
     final isCompleted = task.status == TaskStatus.completedActive;
+    final isInbox = task.status == TaskStatus.inbox;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 完成任务按钮（仅未完成状态显示）
+        // 主要操作按钮（大按钮）
         if (!isCompleted)
           FilledButton.icon(
-            onPressed: () => _handleComplete(context, ref, task),
-            icon: const Icon(Icons.check),
-            label: Text(l10n.actionMarkCompleted),
+            onPressed: () {
+              if (isInbox) {
+                _handleQuickPlan(context, ref, task);
+              } else {
+                _handleComplete(context, ref, task);
+              }
+            },
+            icon: Icon(isInbox ? Icons.today : Icons.check),
+            label: Text(isInbox ? l10n.inboxQuickPlanAction : l10n.actionMarkCompleted),
           ),
         if (!isCompleted) const SizedBox(height: 8),
-        // 归档按钮
-        OutlinedButton.icon(
-          onPressed: () => _handleArchive(context, ref, task),
-          icon: const Icon(Icons.archive_outlined),
-          label: Text(l10n.actionArchive),
-        ),
-        const SizedBox(height: 8),
-        // 删除按钮
-        OutlinedButton.icon(
-          onPressed: () => _handleDelete(context, ref, task),
-          icon: const Icon(Icons.delete_outline),
-          label: Text(l10n.actionDelete),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: theme.colorScheme.error,
-          ),
+        // 日期按钮、归档和删除按钮（小按钮，同一行）
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildDeadlineSection(context, ref, theme, task),
+            _buildArchiveButton(context, ref, theme, l10n, task),
+            _buildDeleteButton(context, ref, theme, l10n, task),
+          ],
         ),
       ],
+    );
+  }
+
+  /// 构建归档小按钮
+  Widget _buildArchiveButton(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+    AppLocalizations l10n,
+    Task task,
+  ) {
+    final color = theme.colorScheme.onSurfaceVariant;
+
+    return InkWell(
+      onTap: () => _handleArchive(context, ref, task),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.archive_outlined,
+              size: 14,
+              color: color,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              l10n.actionArchive,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建删除小按钮
+  Widget _buildDeleteButton(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+    AppLocalizations l10n,
+    Task task,
+  ) {
+    final color = theme.colorScheme.error;
+
+    return InkWell(
+      onTap: () => _handleDelete(context, ref, task),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.delete_outline,
+              size: 14,
+              color: color,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              l10n.actionDelete,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -675,10 +751,30 @@ class _TaskActionBottomSheetState
   ) async {
     try {
       final taskService = await ref.read(taskServiceProvider.future);
-      await taskService.updateDetails(
-        taskId: widget.task.id,
-        payload: TaskUpdate(dueAt: newDeadline),
-      );
+      
+      // 获取当前任务状态
+      final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+      final currentTask = taskAsync.value ?? widget.task;
+      
+      // 如果任务状态是 inbox 且设置了截止日期，使用 planTask 来设置截止日期和 section
+      // planTask 和 updateDetails 都会在底层自动将 inbox 状态改为 pending
+      if (currentTask.status == TaskStatus.inbox && newDeadline != null) {
+        final section = TaskSectionUtils.getSectionForDate(newDeadline);
+        await taskService.planTask(
+          taskId: widget.task.id,
+          dueDateLocal: newDeadline,
+          section: section,
+        );
+      } else {
+        // 其他情况使用 updateDetails，底层会自动处理状态转换
+        await taskService.updateDetails(
+          taskId: widget.task.id,
+          payload: TaskUpdate(dueAt: newDeadline),
+        );
+      }
+      
+      // 刷新相关的列表 providers
+      _refreshTaskListProviders(ref);
     } catch (e) {
       // 静默失败，截止日期更新失败不影响用户体验
     }
@@ -724,6 +820,18 @@ class _TaskActionBottomSheetState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${l10n.projectConvertError}: $error')),
       );
+    }
+  }
+
+  Future<void> _handleQuickPlan(BuildContext context, WidgetRef ref, Task task) async {
+    await SwipeActionHandler.handleAction(
+      context,
+      ref,
+      SwipeActionType.quickPlan,
+      task,
+    );
+    if (mounted) {
+      Navigator.of(context).pop(); // 关闭弹窗
     }
   }
 

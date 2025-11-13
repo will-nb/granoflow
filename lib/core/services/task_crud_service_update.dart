@@ -70,11 +70,21 @@ class TaskCrudServiceUpdate {
       );
     }
 
+    // 计算最终的 dueAt 值
+    final finalDueAt = dueForUpdate ?? payload.dueAt ?? existing.dueAt;
+    
+    // 底层规则：如果任务有截止日期，状态一定不是 inbox
+    // 如果最终有截止日期，且当前状态是 inbox，且 payload 没有明确指定状态，则自动改为 pending
+    final finalStatus = payload.status ??
+        (finalDueAt != null && existing.status == TaskStatus.inbox
+            ? TaskStatus.pending
+            : null);
+
     await _tasks.updateTask(
       taskId,
       TaskUpdate(
         title: payload.title,
-        status: payload.status,
+        status: finalStatus,
         dueAt: dueForUpdate ?? payload.dueAt,
         startedAt: payload.startedAt,
         endedAt: payload.endedAt,
