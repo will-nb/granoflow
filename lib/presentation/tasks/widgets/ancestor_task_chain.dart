@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/task.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../tasks/utils/hierarchy_utils.dart';
-import 'parent_task_header.dart';
 
 /// 祖先任务链组件
 /// 
@@ -29,18 +28,8 @@ class AncestorTaskChain extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        // 从最远的祖先到最近的父任务显示（已经是 reversed 的顺序）
-        return Column(
-          children: ancestors.asMap().entries.map((entry) {
-            final index = entry.key;
-            final ancestor = entry.value;
-            return ParentTaskHeader(
-              parentTask: ancestor,
-              currentSection: currentSection,
-              depth: index,
-            );
-          }).toList(),
-        );
+        // 不再显示祖先任务链
+        return const SizedBox.shrink();
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),

@@ -1,0 +1,1607 @@
+{
+  // ===========================================
+  // 移除任务层级关系迭代蓝图
+  // 清理所有子任务相关代码，移除任务层级关系功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250201-remove-task-hierarchy",
+    
+    // 迭代标题
+    title: "移除任务层级关系：清理所有子任务相关代码",
+    
+    // 迭代描述
+    description: "移除任务系统中的层级关系功能，清理所有与 parentId、子任务、任务层级相关的代码。包括数据模型、仓库层、服务层、UI 组件、Provider、测试等所有相关代码。",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档（本次为重构，无设计文档）
+    basedOnDesign: null,
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // 注意：不需要创建数据库迁移文件，因为会删除 app 不留存老数据
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（必填）
+  // ===========================================
+  modifications: [
+    // ===========================================
+    // 数据模型层
+    // ===========================================
+    {
+      file: "lib/data/models/task.dart",
+      purpose: "移除 parentId 字段及相关逻辑",
+      changes: [
+        "移除 parentId 字段（第47、68、89、110行）",
+        "移除 isLeaf getter（第128行，基于 parentId）",
+        "移除 copyWith 中的 parentId 参数",
+        "从 hashCode 和 == 中移除 parentId",
+        "移除所有与 parentId 相关的注释",
+      ],
+      estimatedLines: -50,
+    },
+    {
+      file: "lib/data/models/task_update.dart",
+      purpose: "移除 parentId 和 clearParent 字段",
+      changes: [
+        "移除 parentId 字段（第13、33行）",
+        "移除 clearParent 字段（第22、45行）",
+        "移除相关注释",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "lib/data/models/task_draft.dart",
+      purpose: "移除 parentId 字段（如果存在）",
+      changes: [
+        "移除 parentId 字段",
+        "移除相关注释",
+      ],
+      estimatedLines: -10,
+    },
+    {
+      file: "lib/data/drift/tables/tasks.dart",
+      purpose: "移除 parentId 列定义",
+      changes: [
+        "移除 TextColumn get parentId 定义（第20行）",
+        "移除相关注释",
+      ],
+      estimatedLines: -5,
+    },
+    {
+      file: "lib/data/drift/database.g.dart",
+      purpose: "重新生成数据库代码（移除 parentId 相关代码）",
+      changes: [
+        "运行 build_runner 重新生成代码",
+        "验证生成的代码中不再包含 parentId",
+      ],
+      estimatedLines: -200,
+    },
+    
+    // ===========================================
+    // 仓库层
+    // ===========================================
+    {
+      file: "lib/data/repositories/task_repository.dart",
+      purpose: "移除层级相关方法",
+      changes: [
+        "移除 listChildren(String parentId) 方法",
+        "移除 listChildrenIncludingTrashed(String parentId) 方法",
+        "移除相关注释和文档",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "lib/data/repositories/drift/drift_task_repository.dart",
+      purpose: "移除层级相关实现",
+      changes: [
+        "移除 listChildren 方法实现",
+        "移除 listChildrenIncludingTrashed 方法实现",
+        "移除 _buildChildrenTree 方法",
+        "移除所有查询中使用 parentId 的地方",
+        "移除所有与层级相关的辅助方法",
+      ],
+      estimatedLines: -150,
+    },
+    
+    // ===========================================
+    // 服务层
+    // ===========================================
+    {
+      file: "lib/core/services/task_hierarchy_service.dart",
+      purpose: "删除整个文件（如果只处理层级关系）",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+      ],
+      estimatedLines: -500,
+    },
+    {
+      file: "lib/core/services/task_promotion_service.dart",
+      purpose: "移除层级相关方法",
+      changes: [
+        "移除 promoteSubtaskToRoot 方法",
+        "移除 promoteSubtaskByDrag 方法",
+        "移除所有层级相关的逻辑",
+        "如果文件只包含层级相关方法，考虑删除整个文件",
+      ],
+      estimatedLines: -200,
+    },
+    {
+      file: "lib/core/services/task_crud_service.dart",
+      purpose: "移除层级相关方法",
+      changes: [
+        "移除 getAllDescendantTasks 方法（第47-48行）",
+        "移除 moveToParent 相关调用（第91行）",
+        "移除所有使用 getAllDescendantTasks 的地方",
+      ],
+      estimatedLines: -50,
+    },
+    {
+      file: "lib/core/services/task_crud_service_update.dart",
+      purpose: "移除层级相关逻辑",
+      changes: [
+        "移除所有 getAllDescendantTasks 的调用（第185、205、226、305行）",
+        "移除 parentId 更新逻辑（第166行）",
+        "移除所有与层级相关的批量更新逻辑",
+      ],
+      estimatedLines: -100,
+    },
+    {
+      file: "lib/core/services/task_crud_service_helpers.dart",
+      purpose: "移除层级相关辅助方法",
+      changes: [
+        "移除 getAllDescendantTasks 方法实现",
+        "移除所有层级相关的辅助方法",
+      ],
+      estimatedLines: -80,
+    },
+    {
+      file: "lib/core/services/task_status_service.dart",
+      purpose: "移除使用 listChildren 的地方",
+      changes: [
+        "移除使用 listChildren 的代码（第202行）",
+        "更新相关逻辑，不再依赖子任务",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "lib/core/services/sort_index_service.dart",
+      purpose: "移除子任务排序方法",
+      changes: [
+        "移除 sortChildrenTasks 方法（第48-49行）",
+        "移除 reorderChildrenTasks 方法（第104-109行）",
+        "移除相关注释",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "lib/core/services/sort_index_service_reorder.dart",
+      purpose: "移除子任务重排序实现",
+      changes: [
+        "移除 reorderChildrenTasks 实现（第83-90行）",
+        "移除相关注释",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "lib/core/services/focus_flow_service.dart",
+      purpose: "移除子任务相关枚举和方法",
+      changes: [
+        "移除 FocusOutcome.addSubtask 枚举值（第11行）",
+        "移除 quickSubtask 方法（第104-117行）",
+        "移除 addSubtask case 处理（第87-88行）",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "lib/core/services/task_service.dart",
+      purpose: "移除 promoteSubtaskToRoot 方法",
+      changes: [
+        "移除 promoteSubtaskToRoot 方法（第220-221行）",
+        "移除相关注释",
+      ],
+      estimatedLines: -5,
+    },
+    
+    // ===========================================
+    // Provider 层
+    // ===========================================
+    {
+      file: "lib/core/providers/task_hierarchy_providers.dart",
+      purpose: "删除整个文件（如果只处理层级关系）",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+        "包括以下 Provider：",
+        "  - inboxTaskLevelMapProvider",
+        "  - tasksSectionTaskLevelMapProvider",
+        "  - milestoneTaskChildrenMapProvider",
+        "  - completedTaskChildrenProvider",
+        "  - archivedTaskChildrenProvider",
+        "  - parentTaskChildrenProvider",
+        "  - parentTaskChildrenIncludingTrashedProvider",
+        "  - parentTaskChildrenCountProvider",
+      ],
+      estimatedLines: -400,
+    },
+    {
+      file: "lib/core/providers/task_action_providers.dart",
+      purpose: "移除 addSubtask 方法",
+      changes: [
+        "移除 addSubtask 方法（第41-60行）",
+        "移除相关注释",
+      ],
+      estimatedLines: -25,
+    },
+    {
+      file: "lib/core/providers/home_statistics_providers.dart",
+      purpose: "移除统计中过滤 parentId == null 的逻辑",
+      changes: [
+        "移除所有统计中过滤 parentId == null 的逻辑",
+        "更新统计逻辑，不再区分根任务和子任务",
+      ],
+      estimatedLines: -20,
+    },
+    
+    // ===========================================
+    // UI 组件层 - 层级工具函数
+    // ===========================================
+    {
+      file: "lib/presentation/tasks/utils/hierarchy_utils.dart",
+      purpose: "删除整个文件",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+        "包括以下函数：",
+        "  - hasCircularReference",
+        "  - calculateHierarchyDepth",
+        "  - calculateSubtreeDepth",
+        "  - buildAncestorChain",
+        "  - canAcceptChildren",
+        "  - canMoveTask",
+        "  - getTaskLevel",
+      ],
+      estimatedLines: -200,
+    },
+    {
+      file: "lib/presentation/tasks/utils/task_collection_utils.dart",
+      purpose: "重构 collectRoots 函数，移除根任务判断逻辑",
+      changes: [
+        "重构 collectRoots 函数：不再通过 parentId == null 判断根任务",
+        "由于不再有层级关系，所有任务都是'根任务'，直接返回所有任务",
+        "简化函数逻辑：移除 parentId 判断，直接返回输入的任务列表（保持排序）",
+        "更新函数注释，说明不再区分根任务和子任务",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "lib/presentation/common/task_list/task_list_tree_builder.dart",
+      purpose: "重构或删除任务树构建逻辑",
+      changes: [
+        "由于不再有层级关系，任务树构建逻辑需要重构",
+        "如果不再需要树结构，可以简化 buildTaskTree 直接返回扁平列表",
+        "移除 buildSubtree 方法（不再需要递归构建子树）",
+        "移除所有使用 parentId 构建层级关系的逻辑",
+        "更新 populateHasChildrenMap 方法，或直接删除（不再有子任务）",
+        "如果整个文件不再需要，考虑删除",
+      ],
+      estimatedLines: -70,
+    },
+    {
+      file: "lib/presentation/common/task_list/task_list_insertion_target_builder.dart",
+      purpose: "移除 canMoveTask 的使用",
+      changes: [
+        "移除所有 canMoveTask 的调用（第45、104、162行）",
+        "简化 canAccept 逻辑，不再检查任务是否可以移动（或使用其他判断方式）",
+        "更新相关注释",
+      ],
+      estimatedLines: -10,
+    },
+    {
+      file: "lib/presentation/inbox/inbox_drag_target.dart",
+      purpose: "移除层级相关的拖拽逻辑",
+      changes: [
+        "移除 canMoveTask 的使用（第120行）",
+        "移除 calculateHierarchyDepth 的使用（第194-195行）",
+        "移除所有判断 parentId 的逻辑（第141、170、186、190、210、211、214、216、224、232行）",
+        "简化 _handleDrop 方法：不再需要判断层级关系",
+        "移除所有与 parentId 相关的拖拽逻辑",
+        "简化拖拽处理，所有任务都作为平级任务处理",
+        "移除 onPromoteToRoot 回调（不再需要提升为根任务）",
+        "更新相关注释和日志",
+      ],
+      estimatedLines: -150,
+    },
+    
+    // ===========================================
+    // UI 组件层 - 子任务相关组件（删除）
+    // ===========================================
+    {
+      file: "lib/presentation/clock/widgets/clock_subtask_section.dart",
+      purpose: "删除整个文件",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+      ],
+      estimatedLines: -350,
+    },
+    {
+      file: "lib/presentation/clock/widgets/clock_subtask_item.dart",
+      purpose: "删除整个文件",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+      ],
+      estimatedLines: -64,
+    },
+    {
+      file: "lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart",
+      purpose: "删除整个文件",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+      ],
+      estimatedLines: -348,
+    },
+    {
+      file: "lib/presentation/pomodoro/widgets/pomodoro_subtask_item.dart",
+      purpose: "删除整个文件",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+      ],
+      estimatedLines: -34,
+    },
+    {
+      file: "lib/presentation/tasks/widgets/all_children_list.dart",
+      purpose: "删除整个文件（如果只用于显示子任务）",
+      changes: [
+        "删除整个文件",
+        "移除 _ChildTaskItem 组件",
+        "移除所有引用此文件的地方",
+      ],
+      estimatedLines: -100,
+    },
+    {
+      file: "lib/presentation/tasks/widgets/parent_task_header.dart",
+      purpose: "删除整个文件",
+      changes: [
+        "删除整个文件",
+        "移除所有引用此文件的地方",
+      ],
+      estimatedLines: -200,
+    },
+    
+    // ===========================================
+    // UI 组件层 - 任务列表组件
+    // ===========================================
+    {
+      file: "lib/presentation/inbox/views/inbox_task_list.dart",
+      purpose: "移除 isSubtask 和 taskLevel 相关代码",
+      changes: [
+        "移除 isSubtask 判断（第39-47行）",
+        "移除 taskLevel 计算（第47行）",
+        "移除基于 taskLevel 的配置选择逻辑",
+        "统一使用 inboxConfig（不再区分子任务和根任务）",
+        "移除 taskLevel 参数传递",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "lib/presentation/tasks/views/tasks_section_task_list_simplified.dart",
+      purpose: "移除 taskLevel 相关代码",
+      changes: [
+        "移除 taskLevel 计算（第132行）",
+        "移除基于 taskLevel 的配置选择（第142-143行）",
+        "统一使用 tasksConfig 或 tasksNonTodayConfig",
+        "移除 taskLevel 参数传递（第156行）",
+      ],
+      estimatedLines: -15,
+    },
+    {
+      file: "lib/presentation/tasks/widgets/task_hierarchy_list.dart",
+      purpose: "删除整个文件或重构为普通任务列表",
+      changes: [
+        "如果只用于层级显示，删除整个文件",
+        "如果还有其他用途，移除所有层级相关逻辑",
+        "移除 taskLevel 计算和使用（第32、37、42、51行）",
+        "移除 tasksSubtaskConfig 的使用",
+      ],
+      estimatedLines: -130,
+    },
+    {
+      file: "lib/presentation/projects/widgets/milestone_task_list_simplified.dart",
+      purpose: "移除 taskLevel 相关代码",
+      changes: [
+        "移除 taskLevel 计算（第124行）",
+        "移除基于 taskLevel 的配置选择（第131行）",
+        "统一使用 tasksNonTodayConfig",
+        "移除 taskLevel 参数传递（第146行）",
+      ],
+      estimatedLines: -15,
+    },
+    
+    // ===========================================
+    // UI 组件层 - 任务显示组件
+    // ===========================================
+    {
+      file: "lib/presentation/widgets/task_row_content.dart",
+      purpose: "移除 taskLevel 参数和相关逻辑",
+      changes: [
+        "移除 taskLevel 参数（第33、46行）",
+        "移除 isSubtask 判断（第132、148行）",
+        "移除基于 taskLevel 的条件逻辑（第108、180行）",
+        "移除 tasksSectionTaskLevelMapProvider 的使用（第424行）",
+        "简化组件逻辑，不再区分层级",
+      ],
+      estimatedLines: -50,
+    },
+    {
+      file: "lib/presentation/tasks/views/tasks_section_task_tile.dart",
+      purpose: "移除 taskLevel 使用",
+      changes: [
+        "移除 taskLevel 参数传递",
+        "移除基于 taskLevel 的配置选择",
+        "统一使用 tasksConfig",
+      ],
+      estimatedLines: -10,
+    },
+    {
+      file: "lib/presentation/tasks/views/task_leaf_tile.dart",
+      purpose: "移除 taskLevel 使用",
+      changes: [
+        "移除 taskLevel 参数传递",
+        "移除基于 taskLevel 的配置选择",
+        "统一使用 tasksConfig",
+      ],
+      estimatedLines: -10,
+    },
+    {
+      file: "lib/presentation/inbox/widgets/inbox_task_tile.dart",
+      purpose: "移除 taskLevel 使用",
+      changes: [
+        "移除 taskLevel 参数传递（第58-59行）",
+        "移除基于 taskLevel 的配置选择",
+        "统一使用 inboxConfig",
+      ],
+      estimatedLines: -10,
+    },
+    
+    // ===========================================
+    // UI 组件层 - 拖拽和插入处理
+    // ===========================================
+    {
+      file: "lib/presentation/common/task_list/task_list_insertion_handler.dart",
+      purpose: "移除 isSubtaskPromotion 相关逻辑",
+      changes: [
+        "移除 isSubtaskPromotion 判断（第39行）",
+        "移除 subtaskPromotion 相关日志（第89-91行）",
+        "简化拖拽插入逻辑，不再处理子任务提升",
+      ],
+      estimatedLines: -15,
+    },
+    {
+      file: "lib/presentation/widgets/task_drag_intent_helper.dart",
+      purpose: "移除 canAcceptAsChild 方法",
+      changes: [
+        "移除 canAcceptAsChild 方法（第16行）",
+        "移除所有调用此方法的地方",
+        "简化拖拽逻辑，不再检查是否可以接受为子任务",
+      ],
+      estimatedLines: -50,
+    },
+    
+    // ===========================================
+    // UI 组件层 - 滑动配置
+    // ===========================================
+    {
+      file: "lib/presentation/widgets/swipe_configs.dart",
+      purpose: "移除子任务相关配置",
+      changes: [
+        "移除 inboxSubtaskConfig（第100-114行）",
+        "移除 tasksSubtaskConfig（第43-55行）",
+        "移除 tasksNonTodaySubtaskConfig（第71-83行）",
+        "更新相关注释，说明不再区分子任务",
+      ],
+      estimatedLines: -50,
+    },
+    
+    // ===========================================
+    // UI 组件层 - 已注释的代码（删除）
+    // ===========================================
+    {
+      file: "lib/presentation/tasks/views/task_tree_tile/task_tree_tile_actions.dart",
+      purpose: "删除已注释的 showAddSubtaskDialog 函数",
+      changes: [
+        "删除整个已注释的 showAddSubtaskDialog 函数（第8-60行）",
+        "移除相关注释",
+      ],
+      estimatedLines: -60,
+    },
+    {
+      file: "lib/presentation/tasks/projects/project_tree_view.dart",
+      purpose: "删除已注释的 _showAddSubtaskDialog 方法",
+      changes: [
+        "删除整个已注释的 _showAddSubtaskDialog 方法（第105-166行）",
+        "移除相关注释（第86-88行）",
+      ],
+      estimatedLines: -85,
+    },
+    {
+      file: "lib/presentation/tasks/views/task_tree_tile/task_tree_tile_editor.dart",
+      purpose: "删除子任务相关注释代码",
+      changes: [
+        "删除已注释的添加子任务按钮代码（第86-92行）",
+        "移除 taskListNoSubtasks 的使用（如果不再需要）",
+      ],
+      estimatedLines: -15,
+    },
+    {
+      file: "lib/presentation/tasks/views/task_tree_tile/task_tree_tile_header.dart",
+      purpose: "删除子任务相关注释代码",
+      changes: [
+        "删除已注释的添加子任务按钮代码（第36-41行）",
+      ],
+      estimatedLines: -10,
+    },
+    {
+      file: "lib/presentation/end_session/end_session_dialog.dart",
+      purpose: "删除子任务相关注释代码",
+      changes: [
+        "删除 EndSessionSelection.addSubtask 相关注释（第10行）",
+        "删除 _subtaskController（第39行）",
+        "删除已注释的子任务选项代码（第90-106行）",
+        "删除已注释的 addSubtask case 处理（第219-238行）",
+        "清理 dispose 中的 _subtaskController.dispose()（第47行）",
+      ],
+      estimatedLines: -60,
+    },
+    {
+      file: "lib/presentation/timer/timer_page.dart",
+      purpose: "移除 FocusOutcome.addSubtask 的处理",
+      changes: [
+        "移除 addSubtask case 处理（第192-194行）",
+        "移除相关消息（l10n.timerEndSessionAddSubtask）",
+      ],
+      estimatedLines: -5,
+    },
+    
+    // ===========================================
+    // 国际化文件
+    // ===========================================
+    {
+      file: "lib/l10n/app_en.arb",
+      purpose: "移除所有子任务相关的翻译键",
+      changes: [
+        "移除 actionAddSubtask",
+        "移除 createSubtask",
+        "移除 endSessionAddSubtask",
+        "移除 endSessionSubtaskTitleLabel",
+        "移除 endSessionSubtaskValidation",
+        "移除 clockOvertimeSubtaskTitle",
+        "移除 clockSubtasks",
+        "移除 subtaskSectionTitle",
+        "移除 reviewSubtask",
+        "移除 showAllSubtasks",
+        "移除 taskListAddSubtaskDialogTitle",
+        "移除 taskListNoSubtasks",
+        "移除 taskListSubtaskCreatedToast",
+        "移除 taskListSubtaskError",
+        "移除 timerEndSessionAddSubtask",
+        "移除 timerQuickSubtask",
+        "移除 childTask（如果不再使用）",
+        "移除 taskDepthLimitMessage（如果不再使用）",
+        "移除所有与层级相关的错误消息",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "lib/l10n/app_zh_CN.arb",
+      purpose: "移除所有子任务相关的翻译键（中文简体）",
+      changes: [
+        "移除所有与 app_en.arb 对应的中文翻译键",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "lib/l10n/app_zh_HK.arb",
+      purpose: "移除所有子任务相关的翻译键（中文繁体）",
+      changes: [
+        "移除所有与 app_en.arb 对应的繁体中文翻译键",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "lib/l10n/app_zh.arb",
+      purpose: "移除所有子任务相关的翻译键（如果存在）",
+      changes: [
+        "移除所有子任务相关的翻译键",
+      ],
+      estimatedLines: -20,
+    },
+    
+    // ===========================================
+    // 测试文件
+    // ===========================================
+    {
+      file: "test/core/services/home_statistics_service_test.dart",
+      purpose: "移除子任务相关测试代码",
+      changes: [
+        "移除创建子任务的测试代码（第79-97行）",
+        "更新测试用例，不再测试子任务相关逻辑",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "test/presentation/projects/projects_page_test.dart",
+      purpose: "移除 addSubtask 辅助方法",
+      changes: [
+        "移除 addSubtask 辅助方法（第28行）",
+        "更新相关测试用例",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "test/presentation/tasks/projects/project_tree_view_test.dart",
+      purpose: "移除 addSubtask 辅助方法",
+      changes: [
+        "移除 addSubtask 辅助方法（第18行）",
+        "更新相关测试用例",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "test/presentation/clock/clock_control_strip_test.dart",
+      purpose: "移除 quickSubtask 方法",
+      changes: [
+        "移除 quickSubtask 方法（第80行）",
+        "更新相关测试用例",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "test/presentation/inbox/views/inbox_task_list_test.dart",
+      purpose: "移除 parentId 相关测试",
+      changes: [
+        "移除所有使用 parentId 创建任务的测试",
+        "移除所有测试子任务的用例",
+        "更新测试用例，不再测试层级关系",
+      ],
+      estimatedLines: -50,
+    },
+    {
+      file: "test/presentation/tasks/views/task_tree_tile_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除所有测试子任务的用例",
+        "移除 _createTask 中的 parentId 参数（第18行）",
+        "移除所有层级相关的测试逻辑",
+      ],
+      estimatedLines: -100,
+    },
+    {
+      file: "test/presentation/tasks/widgets/task_hierarchy_list_test.dart",
+      purpose: "删除整个测试文件或重构",
+      changes: [
+        "如果文件只测试层级功能，删除整个文件",
+        "如果还有其他测试，移除所有层级相关的测试用例",
+      ],
+      estimatedLines: -100,
+    },
+    {
+      file: "test/presentation/common/task_list/tasks_section_task_list_config_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除 tasksSectionTaskLevelMapProvider 相关测试（第93、138行）",
+        "更新测试用例",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "test/presentation/common/task_list/inbox_task_list_config_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除 inboxTaskLevelMapProvider 相关测试（第80、118行）",
+        "更新测试用例",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "test/presentation/widgets/task_display_with_project_debug_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除 parentId 相关测试（第40、51行）",
+        "移除 listChildren 相关测试（第461、464行）",
+        "移除 inboxTaskLevelMapProvider 相关测试（第122行）",
+        "移除 tasksSectionTaskLevelMapProvider 相关测试（第241行）",
+      ],
+      estimatedLines: -50,
+    },
+    {
+      file: "test/presentation/widgets/task_display_with_project_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除 inboxTaskLevelMapProvider 相关测试（第86行）",
+        "移除 tasksSectionTaskLevelMapProvider 相关测试（第161行）",
+        "移除 listChildren 相关测试（第363、366行）",
+        "移除 targetParentId 相关测试（第312行）",
+      ],
+      estimatedLines: -50,
+    },
+    {
+      file: "test/presentation/inbox/inbox_page_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除 inboxTaskLevelMapProvider 相关测试（第52、97行）",
+        "更新测试用例",
+      ],
+      estimatedLines: -20,
+    },
+    {
+      file: "test/presentation/common/task_list/task_list_task_tile_builder_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除所有 inboxTaskLevelMapProvider 相关测试",
+        "移除所有 tasksSectionTaskLevelMapProvider 相关测试",
+        "移除所有 taskLevel 参数相关的测试",
+        "更新所有测试用例",
+      ],
+      estimatedLines: -100,
+    },
+    {
+      file: "test/core/services/task_hierarchy_service_test.dart",
+      purpose: "删除整个测试文件（如果存在）",
+      changes: [
+        "删除整个测试文件",
+      ],
+      estimatedLines: -200,
+    },
+    {
+      file: "test/core/services/project_service_test.dart",
+      purpose: "移除层级相关测试",
+      changes: [
+        "移除创建子任务的测试（第117行）",
+        "移除 parentId 相关测试（第132行）",
+        "更新测试用例",
+      ],
+      estimatedLines: -30,
+    },
+    
+    // ===========================================
+    // 文档文件
+    // ===========================================
+    {
+      file: "documents/architecture/widgets/swipe_configs.yaml",
+      purpose: "更新文档，移除子任务配置说明",
+      changes: [
+        "移除 inboxSubtaskConfig 的文档（第68-76行）",
+        "移除 tasksSubtaskConfig 的文档（第51-58行）",
+        "移除 tasksNonTodaySubtaskConfig 的文档（如果存在）",
+        "更新相关说明，不再区分子任务",
+      ],
+      estimatedLines: -30,
+    },
+    {
+      file: "documents/json5/home/design_home_page_refactor.json5",
+      purpose: "更新文档，移除层级相关说明",
+      changes: [
+        "移除所有提到 parentId 或子任务的说明",
+        "更新统计逻辑说明，不再区分根任务和子任务",
+      ],
+      estimatedLines: -10,
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  implementationSteps: [
+    {
+      step: 1,
+      title: "阶段 1：删除子任务相关 UI 组件",
+      description: "删除所有子任务相关的 UI 组件文件，包括 clock_subtask_section、pomodoro_subtask_section 等",
+      tasks: [
+        {
+          task: "删除子任务 UI 组件文件",
+          action: [
+            "删除 lib/presentation/clock/widgets/clock_subtask_section.dart",
+            "删除 lib/presentation/clock/widgets/clock_subtask_item.dart",
+            "删除 lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart",
+            "删除 lib/presentation/pomodoro/widgets/pomodoro_subtask_item.dart",
+            "删除 lib/presentation/tasks/widgets/all_children_list.dart",
+            "删除 lib/presentation/tasks/widgets/parent_task_header.dart",
+          ],
+        },
+        {
+          task: "移除对这些组件的引用",
+          action: [
+            "搜索所有引用这些组件的文件",
+            "移除所有 import 语句",
+            "移除所有使用这些组件的地方",
+            "如果导致编译错误，先注释掉相关代码，后续阶段处理",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误，记录需要修复的问题",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 1 完成 - 删除子任务相关 UI 组件'",
+          action: "提交阶段 1 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：清理服务层子任务相关代码",
+      description: "移除服务层中所有与子任务相关的方法和逻辑",
+      tasks: [
+        {
+          task: "清理 focus_flow_service.dart",
+          action: [
+            "移除 FocusOutcome.addSubtask 枚举值",
+            "移除 quickSubtask 方法",
+            "移除 addSubtask case 处理",
+          ],
+        },
+        {
+          task: "清理 task_action_providers.dart",
+          action: [
+            "移除 addSubtask 方法",
+            "移除相关注释",
+          ],
+        },
+        {
+          task: "清理 task_service.dart",
+          action: [
+            "移除 promoteSubtaskToRoot 方法",
+          ],
+        },
+        {
+          task: "清理 task_promotion_service.dart",
+          action: [
+            "移除 promoteSubtaskToRoot 方法",
+            "移除 promoteSubtaskByDrag 方法",
+            "如果文件只包含层级相关方法，删除整个文件",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 2 完成 - 清理服务层子任务相关代码'",
+          action: "提交阶段 2 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：清理 Provider 层层级相关代码",
+      description: "移除 Provider 层中所有与任务层级相关的 Provider",
+      tasks: [
+        {
+          task: "删除 task_hierarchy_providers.dart",
+          action: [
+            "删除整个文件",
+            "搜索所有引用此文件的地方",
+            "移除所有 import 语句",
+            "移除所有使用这些 Provider 的地方",
+          ],
+        },
+        {
+          task: "清理 home_statistics_providers.dart",
+          action: [
+            "移除所有统计中过滤 parentId == null 的逻辑",
+            "更新统计逻辑，不再区分根任务和子任务",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误，修复所有引用错误",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 3 完成 - 清理 Provider 层层级相关代码'",
+          action: "提交阶段 3 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：清理 UI 层层级相关逻辑",
+      description: "移除 UI 组件中所有与 taskLevel、isSubtask 相关的逻辑",
+      tasks: [
+        {
+          task: "删除 hierarchy_utils.dart",
+          action: [
+            "删除整个文件",
+            "移除所有引用此文件的地方",
+          ],
+        },
+        {
+          task: "重构任务集合工具函数",
+          action: [
+            "重构 task_collection_utils.dart 中的 collectRoots 函数",
+            "移除通过 parentId == null 判断根任务的逻辑",
+            "简化函数，直接返回所有任务（不再区分根任务和子任务）",
+          ],
+        },
+        {
+          task: "重构或删除任务树构建器",
+          action: [
+            "重构 task_list_tree_builder.dart：移除层级树构建逻辑",
+            "如果不再需要树结构，简化 buildTaskTree 直接返回扁平列表",
+            "移除所有使用 parentId 构建层级关系的代码",
+          ],
+        },
+        {
+          task: "清理拖拽相关组件",
+          action: [
+            "清理 task_list_insertion_target_builder.dart：移除 canMoveTask 的使用",
+            "清理 inbox_drag_target.dart：移除所有层级相关的拖拽逻辑",
+            "移除所有判断 parentId 的代码",
+            "简化拖拽处理，所有任务都作为平级任务处理",
+          ],
+        },
+        {
+          task: "清理任务列表组件",
+          action: [
+            "清理 inbox_task_list.dart：移除 isSubtask 和 taskLevel 相关代码",
+            "清理 tasks_section_task_list_simplified.dart：移除 taskLevel 相关代码",
+            "清理 milestone_task_list_simplified.dart：移除 taskLevel 相关代码",
+            "清理 task_hierarchy_list.dart：删除或重构",
+          ],
+        },
+        {
+          task: "清理任务显示组件",
+          action: [
+            "清理 task_row_content.dart：移除 taskLevel 参数和相关逻辑",
+            "清理 tasks_section_task_tile.dart：移除 taskLevel 使用",
+            "清理 task_leaf_tile.dart：移除 taskLevel 使用",
+            "清理 inbox_task_tile.dart：移除 taskLevel 使用",
+          ],
+        },
+        {
+          task: "清理拖拽相关组件",
+          action: [
+            "清理 task_list_insertion_handler.dart：移除 isSubtaskPromotion 相关逻辑",
+            "清理 task_drag_intent_helper.dart：移除 canAcceptAsChild 方法",
+          ],
+        },
+        {
+          task: "清理滑动配置",
+          action: [
+            "清理 swipe_configs.dart：移除子任务相关配置",
+            "更新所有使用这些配置的地方，统一使用非子任务配置",
+          ],
+        },
+        {
+          task: "删除已注释的代码",
+          action: [
+            "删除 task_tree_tile_actions.dart 中已注释的 showAddSubtaskDialog",
+            "删除 project_tree_view.dart 中已注释的 _showAddSubtaskDialog",
+            "删除 task_tree_tile_editor.dart 中已注释的子任务相关代码",
+            "删除 task_tree_tile_header.dart 中已注释的子任务相关代码",
+            "清理 end_session_dialog.dart 中已注释的子任务相关代码",
+            "清理 timer_page.dart 中的 addSubtask case 处理",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误，修复所有问题",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 4 完成 - 清理 UI 层层级相关逻辑'",
+          action: "提交阶段 4 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：清理仓库层层级相关代码",
+      description: "移除仓库层中所有与层级相关的方法",
+      tasks: [
+        {
+          task: "清理 task_repository.dart 接口",
+          action: [
+            "移除 listChildren 方法",
+            "移除 listChildrenIncludingTrashed 方法",
+          ],
+        },
+        {
+          task: "清理 drift_task_repository.dart 实现",
+          action: [
+            "移除 listChildren 方法实现",
+            "移除 listChildrenIncludingTrashed 方法实现",
+            "移除 _buildChildrenTree 方法",
+            "移除所有查询中使用 parentId 的地方",
+          ],
+        },
+        {
+          task: "清理 task_crud_service 相关文件",
+          action: [
+            "清理 task_crud_service.dart：移除 getAllDescendantTasks 和 moveToParent 相关调用",
+            "清理 task_crud_service_update.dart：移除所有 getAllDescendantTasks 调用和 parentId 更新逻辑",
+            "清理 task_crud_service_helpers.dart：移除 getAllDescendantTasks 方法实现",
+          ],
+        },
+        {
+          task: "清理其他服务文件",
+          action: [
+            "清理 task_status_service.dart：移除使用 listChildren 的地方",
+            "清理 sort_index_service.dart：移除子任务排序方法",
+            "清理 sort_index_service_reorder.dart：移除子任务重排序实现",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误，修复所有问题",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 5 完成 - 清理仓库层层级相关代码'",
+          action: "提交阶段 5 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：移除数据模型中的 parentId 字段",
+      description: "从数据模型中移除 parentId 字段，包括 Task、TaskUpdate、TaskDraft 等",
+      tasks: [
+        {
+          task: "清理 task.dart 模型",
+          action: [
+            "移除 parentId 字段",
+            "移除 isLeaf getter",
+            "移除 copyWith 中的 parentId 参数",
+            "从 hashCode 和 == 中移除 parentId",
+          ],
+        },
+        {
+          task: "清理 task_update.dart",
+          action: [
+            "移除 parentId 字段",
+            "移除 clearParent 字段",
+          ],
+        },
+        {
+          task: "清理 task_draft.dart",
+          action: [
+            "移除 parentId 字段（如果存在）",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误，修复所有问题",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 6 完成 - 移除数据模型中的 parentId 字段'",
+          action: "提交阶段 6 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 7,
+      title: "阶段 7：更新数据库层",
+      description: "移除数据库表中的 parentId 列定义（不需要迁移，会删除 app 不留存老数据）",
+      tasks: [
+        {
+          task: "清理 tasks.dart 表定义",
+          action: [
+            "移除 TextColumn get parentId 定义",
+          ],
+        },
+        {
+          task: "重新生成数据库代码",
+          command: "flutter pub run build_runner build --delete-conflicting-outputs",
+          action: "重新生成 database.g.dart，移除所有 parentId 相关代码",
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 7 完成 - 更新数据库层，移除 parentId 列'",
+          action: "提交阶段 7 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 8,
+      title: "阶段 8：清理国际化文件",
+      description: "移除所有子任务相关的翻译键",
+      tasks: [
+        {
+          task: "清理 app_en.arb",
+          action: [
+            "移除所有子任务相关的翻译键",
+            "包括：actionAddSubtask、createSubtask、endSessionAddSubtask 等",
+          ],
+        },
+        {
+          task: "清理 app_zh_CN.arb",
+          action: [
+            "移除所有对应的中文简体翻译键",
+          ],
+        },
+        {
+          task: "清理 app_zh_HK.arb",
+          action: [
+            "移除所有对应的繁体中文翻译键",
+          ],
+        },
+        {
+          task: "清理 app_zh.arb（如果存在）",
+          action: [
+            "移除所有子任务相关的翻译键",
+          ],
+        },
+        {
+          task: "重新生成国际化代码",
+          command: "flutter gen-l10n",
+          action: "重新生成国际化代码",
+        },
+        {
+          task: "运行 flutter analyze 检查错误",
+          command: "flutter analyze",
+          action: "检查是否有编译错误",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 8 完成 - 清理国际化文件'",
+          action: "提交阶段 8 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 9,
+      title: "阶段 9：更新测试文件",
+      description: "更新或删除所有与层级相关的测试",
+      tasks: [
+        {
+          task: "删除层级服务测试文件",
+          action: [
+            "删除 test/core/services/task_hierarchy_service_test.dart（如果存在）",
+          ],
+        },
+        {
+          task: "更新服务测试",
+          action: [
+            "更新 home_statistics_service_test.dart：移除子任务相关测试",
+            "更新 project_service_test.dart：移除层级相关测试",
+          ],
+        },
+        {
+          task: "更新 UI 测试",
+          action: [
+            "更新 inbox_task_list_test.dart：移除 parentId 相关测试",
+            "更新 task_tree_tile_test.dart：移除层级相关测试",
+            "删除或重构 task_hierarchy_list_test.dart",
+            "更新所有 task_list 相关测试：移除层级相关测试",
+          ],
+        },
+        {
+          task: "更新项目测试",
+          action: [
+            "更新 projects_page_test.dart：移除 addSubtask 辅助方法",
+            "更新 project_tree_view_test.dart：移除 addSubtask 辅助方法",
+          ],
+        },
+        {
+          task: "更新其他测试",
+          action: [
+            "更新 clock_control_strip_test.dart：移除 quickSubtask 方法",
+            "更新所有使用 parentId 或层级相关的测试",
+          ],
+        },
+        {
+          task: "运行测试",
+          command: "flutter test",
+          action: "运行所有测试，确保测试通过",
+        },
+        {
+          task: "阶段完成：提交更改",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 9 完成 - 更新测试文件'",
+          action: "提交阶段 9 的所有更改",
+        },
+      ],
+    },
+    {
+      step: 10,
+      title: "阶段 10：更新文档和最终验证",
+      description: "更新相关文档，进行最终验证",
+      tasks: [
+        {
+          task: "更新架构文档",
+          action: [
+            "更新 documents/architecture/widgets/swipe_configs.yaml：移除子任务配置说明",
+            "更新 documents/json5/home/design_home_page_refactor.json5：移除层级相关说明",
+          ],
+        },
+        {
+          task: "最终代码检查",
+          command: "flutter analyze",
+          action: "运行完整的代码分析，确保没有错误",
+        },
+        {
+          task: "运行所有测试",
+          command: "flutter test",
+          action: "运行所有测试，确保全部通过",
+        },
+        {
+          task: "搜索残留代码",
+          action: [
+            "搜索代码库中是否还有 parentId、listChildren、subtask、taskLevel 等关键词",
+            "检查是否还有遗漏的引用",
+            "清理所有残留代码",
+          ],
+        },
+        {
+          task: "最终提交",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 10 完成 - 更新文档和最终验证'",
+          action: "提交最终更改",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // 数据库更新策略
+      databaseUpdate: {
+        method: "直接移除 parent_id 列定义，重新生成数据库代码",
+        reason: "会删除 app 不留存老数据，因此不需要数据库迁移脚本",
+        alternative: "无需考虑数据迁移，直接更新表结构定义即可",
+        rollback: "如果需要回滚，可以恢复代码到之前版本",
+      },
+      // 代码清理策略
+      codeCleanup: {
+        method: "分阶段逐步清理，从 UI 层到数据层",
+        reason: "避免一次性修改过多导致难以定位问题，分阶段可以更好地验证和测试",
+        stateManagement: "移除所有层级相关的 Provider，简化状态管理",
+        rollback: "每个阶段都有独立的 commit，可以按阶段回滚",
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 移除字段后的处理
+      fieldRemoval: {
+        rule: "移除字段后，必须同时移除所有使用该字段的地方",
+        location: "所有涉及 parentId 的文件",
+        example: "移除 Task 模型中的 parentId 字段后，必须移除所有访问 task.parentId 的代码",
+        note: "使用 IDE 的全局搜索功能确保没有遗漏",
+      },
+      // 方法移除后的处理
+      methodRemoval: {
+        rule: "移除方法后，必须同时移除所有调用该方法的地方",
+        location: "所有涉及层级相关方法的文件",
+        example: "移除 listChildren 方法后，必须移除所有调用 repository.listChildren 的代码",
+        note: "使用 IDE 的全局搜索和重构功能",
+      },
+      // 类型安全
+      typeSafety: {
+        rule: "移除字段和方法后，确保类型检查通过",
+        location: "所有相关文件",
+        example: "移除 parentId 字段后，确保所有使用该字段的地方都已更新",
+        note: "运行 flutter analyze 确保没有类型错误",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      optimization: [
+        "移除层级关系后，任务查询将更简单，性能可能有所提升",
+        "不再需要递归查询子任务，减少数据库查询次数",
+        "简化状态管理，减少不必要的 Provider 监听",
+      ],
+      monitoring: [
+        "验证移除层级关系后，任务列表加载性能是否有提升",
+        "监控数据库查询性能变化",
+      ],
+    },
+    
+    // 安全考虑
+    security: {
+      concerns: [
+        "移除字段后，确保没有遗留的敏感数据访问",
+        "确保数据库结构更新后，应用可以正常初始化数据库",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 6. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // 数据层依赖
+    dataLayer: [
+      "lib/data/models/task.dart",
+      "lib/data/models/task_update.dart",
+      "lib/data/models/task_draft.dart",
+      "lib/data/drift/tables/tasks.dart",
+      "lib/data/drift/database.g.dart",
+    ],
+    
+    // Repository 层依赖
+    repositoryLayer: [
+      "lib/data/repositories/task_repository.dart",
+      "lib/data/repositories/drift/drift_task_repository.dart",
+    ],
+    
+    // 服务层依赖
+    serviceLayer: [
+      "lib/core/services/task_hierarchy_service.dart",
+      "lib/core/services/task_promotion_service.dart",
+      "lib/core/services/task_crud_service.dart",
+      "lib/core/services/task_crud_service_update.dart",
+      "lib/core/services/task_crud_service_helpers.dart",
+      "lib/core/services/task_status_service.dart",
+      "lib/core/services/sort_index_service.dart",
+      "lib/core/services/sort_index_service_reorder.dart",
+      "lib/core/services/focus_flow_service.dart",
+      "lib/core/services/task_service.dart",
+    ],
+    
+    // Provider 层依赖
+    providerLayer: [
+      "lib/core/providers/task_hierarchy_providers.dart",
+      "lib/core/providers/task_action_providers.dart",
+      "lib/core/providers/home_statistics_providers.dart",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/tasks/utils/hierarchy_utils.dart",
+      "lib/presentation/tasks/utils/task_collection_utils.dart",
+      "lib/presentation/common/task_list/task_list_tree_builder.dart",
+      "lib/presentation/common/task_list/task_list_insertion_target_builder.dart",
+      "lib/presentation/inbox/inbox_drag_target.dart",
+      "lib/presentation/clock/widgets/clock_subtask_section.dart",
+      "lib/presentation/clock/widgets/clock_subtask_item.dart",
+      "lib/presentation/pomodoro/widgets/pomodoro_subtask_section.dart",
+      "lib/presentation/pomodoro/widgets/pomodoro_subtask_item.dart",
+      "lib/presentation/tasks/widgets/all_children_list.dart",
+      "lib/presentation/tasks/widgets/parent_task_header.dart",
+      "lib/presentation/inbox/views/inbox_task_list.dart",
+      "lib/presentation/tasks/views/tasks_section_task_list_simplified.dart",
+      "lib/presentation/tasks/widgets/task_hierarchy_list.dart",
+      "lib/presentation/projects/widgets/milestone_task_list_simplified.dart",
+      "lib/presentation/widgets/task_row_content.dart",
+      "lib/presentation/tasks/views/tasks_section_task_tile.dart",
+      "lib/presentation/tasks/views/task_leaf_tile.dart",
+      "lib/presentation/inbox/widgets/inbox_task_tile.dart",
+      "lib/presentation/common/task_list/task_list_insertion_handler.dart",
+      "lib/presentation/widgets/task_drag_intent_helper.dart",
+      "lib/presentation/widgets/swipe_configs.dart",
+    ],
+  },
+
+  // ===========================================
+  // 7. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        file: "test/core/services/home_statistics_service_test.dart",
+        description: "更新统计服务测试，移除子任务相关测试",
+        testCases: [
+          {
+            group: "统计计算",
+            cases: [
+              {
+                name: "统计不再区分根任务和子任务",
+                test: "创建多个任务（不再设置 parentId）→ 验证统计结果正确",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/core/services/task_crud_service_test.dart",
+        description: "更新 CRUD 服务测试，移除层级相关测试",
+        testCases: [
+          {
+            group: "任务创建和更新",
+            cases: [
+              {
+                name: "创建任务不再需要 parentId",
+                test: "创建任务时不提供 parentId → 验证任务创建成功",
+              },
+              {
+                name: "更新任务不再支持 parentId",
+                test: "尝试更新 parentId → 验证更新失败或忽略",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/inbox/views/inbox_task_list_test.dart",
+        description: "更新收集箱列表测试，移除层级相关测试",
+        testCases: [
+          {
+            group: "任务列表显示",
+            cases: [
+              {
+                name: "任务列表不再区分层级",
+                test: "创建多个任务 → 验证所有任务都显示在列表中，不再有层级区分",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/presentation/tasks/views/tasks_section_task_list_test.dart",
+        description: "更新任务列表测试，移除层级相关测试",
+        testCases: [
+          {
+            group: "任务列表显示",
+            cases: [
+              {
+                name: "任务列表不再区分层级",
+                test: "创建多个任务 → 验证所有任务都显示在列表中",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        file: "integration_test/tasks_drag_basic_test.dart",
+        description: "更新拖拽测试，移除层级相关测试",
+        testCases: [
+          {
+            group: "任务拖拽",
+            cases: [
+              {
+                name: "任务拖拽不再检查层级关系",
+                test: "拖拽任务到其他位置 → 验证拖拽成功，不再检查是否可以接受为子任务",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 8. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "遗漏某些引用导致编译错误",
+      mitigation: "使用全局搜索功能（grep）搜索所有 parentId、listChildren、subtask、taskLevel 等关键词，确保没有遗漏",
+      priority: "high",
+      check: "运行 flutter analyze 确保没有编译错误",
+      enforcement: "每个阶段完成后都运行 flutter analyze 检查",
+    },
+    {
+      risk: "测试用例更新不完整导致测试失败",
+      mitigation: "系统性地更新所有测试文件，移除所有层级相关的测试用例，更新测试逻辑",
+      priority: "medium",
+      check: "运行 flutter test 确保所有测试通过",
+      enforcement: "每个阶段完成后都运行测试验证",
+    },
+    {
+      risk: "UI 组件移除后导致功能缺失",
+      mitigation: "确认移除的组件确实不再需要，如果还有其他用途，需要重构而不是删除",
+      priority: "medium",
+      check: "手动测试所有相关功能，确保没有功能缺失",
+      enforcement: "在阶段 10 进行完整的功能验证",
+    },
+    {
+      risk: "国际化键移除后导致运行时错误",
+      mitigation: "确保移除国际化键后，代码中不再引用这些键，重新生成国际化代码",
+      priority: "medium",
+      check: "运行应用，确保没有国际化相关的运行时错误",
+      enforcement: "移除国际化键后立即运行 flutter gen-l10n 重新生成",
+    },
+  ],
+
+  // ===========================================
+  // 9. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试通过",
+      "运行集成测试，确保功能正常",
+      "代码审查，确保符合代码规范",
+      "全局搜索 parentId、listChildren、subtask、taskLevel 等关键词，确保没有残留",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证任务列表正常显示，不再区分层级",
+      "验证任务创建和更新功能正常",
+      "验证任务拖拽功能正常（不再检查层级关系）",
+      "验证任务搜索功能正常",
+      "验证任务统计功能正常（不再区分根任务和子任务）",
+      "验证所有页面（收集箱、任务清单、已完成、已收纳、回收站）功能正常",
+    ],
+    
+    // 性能验证
+    performance: [
+      "验证任务列表加载性能是否有提升",
+      "验证数据库查询性能变化",
+      "验证状态管理性能（Provider 监听数量减少）",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "验证数据库结构更新后，应用可以正常启动",
+      "验证新安装的应用可以正常使用（不需要考虑老数据兼容性）",
+    ],
+  },
+
+  // ===========================================
+  // 10. 数据与状态（必填）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "Task 模型：移除 parentId 字段",
+      "Task 模型：移除 isLeaf getter",
+      "TaskUpdate 模型：移除 parentId 和 clearParent 字段",
+      "TaskDraft 模型：移除 parentId 字段（如果存在）",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "数据库表 tasks：移除 parent_id 列定义",
+      "重新生成数据库代码：运行 build_runner 生成新的 database.g.dart",
+      "注意：不需要数据库迁移，因为会删除 app 不留存老数据",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "移除 task_hierarchy_providers.dart 中的所有 Provider",
+      "移除所有层级相关的状态管理逻辑",
+      "简化任务列表的状态管理，不再需要层级映射",
+      "更新统计 Provider，不再区分根任务和子任务",
+    ],
+  },
+}
+

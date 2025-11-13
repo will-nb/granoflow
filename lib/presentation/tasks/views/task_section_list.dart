@@ -9,8 +9,6 @@ import '../../../data/models/task.dart';
 import '../utils/hierarchy_utils.dart';
 import '../utils/list_comparison_utils.dart' as task_list_utils;
 import '../utils/sort_index_utils.dart';
-import '../widgets/ancestor_task_chain.dart';
-import '../widgets/parent_task_header.dart';
 import '../../widgets/reorderable_proxy_decorator.dart';
 import 'task_tree_tile.dart';
 import 'task_tree_tile/task_tree_tile_header.dart';
@@ -327,25 +325,8 @@ class TaskWithParentChain extends ConsumerWidget {
           );
         }
 
-        // 检查父任务是否已经显示过（避免重复显示）
-        final parentAlreadyDisplayed = displayedParentIds.contains(parent.id);
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 显示祖先任务链
-            AncestorTaskChain(taskId: task.id, currentSection: section),
-            // 显示父任务（如果还没有显示过）
-            if (!parentAlreadyDisplayed)
-              ParentTaskHeader(
-                parentTask: parent,
-                currentSection: section,
-                depth: 0,
-              ),
-            // 显示当前任务
-            TaskTreeTile(section: section, rootTask: task, editMode: false),
-          ],
-        );
+        // 不再显示父任务和祖先任务链，直接显示当前任务
+        return TaskTreeTile(section: section, rootTask: task, editMode: false);
       },
       loading: () =>
           TaskTreeTile(section: section, rootTask: task, editMode: false),
