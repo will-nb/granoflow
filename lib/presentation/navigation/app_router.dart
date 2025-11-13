@@ -10,6 +10,7 @@ import '../completion_management/trash_page.dart';
 import '../projects/projects_page.dart';
 import '../projects/project_detail_page.dart';
 import '../review/calendar_review_page.dart';
+import '../search/search_page.dart';
 
 /// 应用路由配置
 class AppRouter {
@@ -80,6 +81,11 @@ class AppRouter {
             path: '/trash',
             name: 'trash',
             builder: (context, state) => const TrashPage(),
+          ),
+          GoRoute(
+            path: '/search',
+            name: 'search',
+            builder: (context, state) => const SearchPage(),
           ),
         ],
       ),
