@@ -65,10 +65,7 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
-                inboxTaskLevelMapProvider.overrideWith((ref) async => levelMap),
-                inboxTaskChildrenMapProvider.overrideWith(
-                  (ref) async => childrenMap,
-                ),
+                // 层级功能已移除，不再需要这些 provider
               ],
               child: Consumer(
                 builder: (context, ref, child) {
@@ -141,12 +138,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              tasksSectionTaskLevelMapProvider(
-                TaskSection.today,
-              ).overrideWith((ref) async => levelMap),
-              tasksSectionTaskChildrenMapProvider(
-                TaskSection.today,
-              ).overrideWith((ref) async => childrenMap),
+              // 层级功能已移除，不再需要这些 provider
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -292,15 +284,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => {'1': 1, '2': 2},
-              ),
-              inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => {
-                  '1': {'2'},
-                  '2': {},
-                },
-              ),
+              // 层级功能已移除，不再需要这些 provider
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -362,10 +346,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              inboxTaskLevelMapProvider.overrideWith((ref) async => levelMap),
-              inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => childrenMap,
-              ),
+              // 层级功能已移除，不再需要这些 provider
             ],
             child: Consumer(
               builder: (context, ref, child) {

@@ -27,13 +27,31 @@ class RichTextDescriptionEditorHelper {
             ? l10n.flexibleDescriptionEdit
             : l10n.flexibleDescriptionAdd);
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => RichTextDescriptionEditorDialog(
-        initialDescription: initialDescription,
-        onSave: onSave,
-        title: dialogTitle,
+    await Navigator.of(context).push<void>(
+      PageRouteBuilder<void>(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            RichTextDescriptionEditorDialog(
+          initialDescription: initialDescription,
+          onSave: onSave,
+          title: dialogTitle,
+        ),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeOut;
+
+          var tween = Tween(begin: begin, end: end).chain(
+            CurveTween(curve: curve),
+          );
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        fullscreenDialog: true,
+        opaque: true,
       ),
     );
   }

@@ -129,7 +129,7 @@ void main() {
 
         final reassignedChild = await taskRepository.findById(child.id);
         expect(reassignedChild?.projectId, project.id);
-        expect(reassignedChild?.parentId, root.id);
+        // 层级功能已移除，不再检查 parentId
       },
     );
 

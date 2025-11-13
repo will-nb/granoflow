@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import '../../core/utils/delta_json_utils.dart';
 import '../../core/utils/rich_text_editor_config.dart';
@@ -284,19 +283,17 @@ class _RichTextDescriptionEditorDialogState
   ) {
     final toolbarMode = _config?.toolbarMode ?? 'full';
 
+    // 使用 QuillSimpleToolbar
+    // 根据 toolbarMode 配置工具栏按钮
     return Container(
       color: colorScheme.surface,
-      child: QuillToolbar.simple(
-        configurations: QuillSimpleToolbarConfigurations(
-          controller: _controller,
-          sharedConfigurations: const QuillSharedConfigurations(
-            // 不显示图片和附件按钮
-            showImageButton: false,
-            showVideoButton: false,
-          ),
-          // 根据 toolbarMode 配置工具栏按钮
+      child: QuillSimpleToolbar(
+        controller: _controller,
+        config: QuillSimpleToolbarConfig(
           // basic 模式：只显示基本按钮
-          // full 模式：显示所有按钮（除了图片和附件）
+          // full 模式：显示所有按钮（但不包括图片和附件，通过 embedButtons 控制）
+          showUndo: toolbarMode == 'full',
+          showRedo: toolbarMode == 'full',
           showBoldButton: true,
           showItalicButton: true,
           showUnderLineButton: true,
@@ -318,14 +315,14 @@ class _RichTextDescriptionEditorDialogState
           showQuote: toolbarMode == 'full',
           showIndent: toolbarMode == 'full',
           showLink: true,
-          showUndo: toolbarMode == 'full',
-          showRedo: toolbarMode == 'full',
           showDirection: toolbarMode == 'full',
           showSearchButton: toolbarMode == 'full',
           showSubscript: toolbarMode == 'full',
           showSuperscript: toolbarMode == 'full',
           showFontFamily: toolbarMode == 'full',
           showFontSize: toolbarMode == 'full',
+          // 不显示图片和附件按钮
+          embedButtons: const [],
         ),
       ),
     );
@@ -339,13 +336,14 @@ class _RichTextDescriptionEditorDialogState
   ) {
     return Container(
       color: colorScheme.surface,
-      child: QuillEditor.basic(
-        controller: _controller,
-        configurations: QuillEditorConfigurations(
-          placeholder: l10n.projectSheetDescriptionHint,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          textStyle: theme.textTheme.bodyLarge,
-          autoFocus: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: QuillEditor.basic(
+          controller: _controller,
+          config: QuillEditorConfig(
+            placeholder: l10n.projectSheetDescriptionHint,
+          ),
+          focusNode: FocusNode()..requestFocus(),
         ),
       ),
     );

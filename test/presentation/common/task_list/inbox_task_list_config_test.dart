@@ -77,7 +77,8 @@ void main() {
       );
 
       final levelMapProvider = config.getLevelMapProvider(testRef!);
-      expect(levelMapProvider, inboxTaskLevelMapProvider);
+      // 层级功能已移除，getLevelMapProvider 返回空的 FutureProvider
+      expect(levelMapProvider, isA<FutureProvider<Map<String, int>>>());
     });
 
     testWidgets('should return correct childrenMapProvider', (tester) async {
@@ -96,7 +97,8 @@ void main() {
       );
 
       final childrenMapProvider = config.getChildrenMapProvider(testRef!);
-      expect(childrenMapProvider, inboxTaskChildrenMapProvider);
+      // 层级功能已移除，getChildrenMapProvider 返回空的 FutureProvider
+      expect(childrenMapProvider, isA<FutureProvider<Map<String, Set<String>>>>());
     });
 
     testWidgets('should build InboxTaskTile', (tester) async {
@@ -115,12 +117,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => <String, int>{'1': 1},
-            ),
-            inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <String, Set<String>>{},
-            ),
+            // 层级功能已移除，不再需要这些 provider
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),

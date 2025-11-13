@@ -646,35 +646,7 @@ class ImportService {
       }
     }
 
-    // 第四轮：建立任务父子关系
-    // 使用从原始 JSON 中提取的 parentTaskId（taskId，String）
-    for (final taskJson in tasksJson) {
-      final taskMap = taskJson as Map<String, dynamic>;
-      final taskId = taskMap['taskId'] as String;
-      final parentTaskId = taskIdToParentTaskId[taskId];
-      if (parentTaskId == null) {
-        continue;
-      }
-
-      try {
-        final parentTask = await _taskRepository.findById(parentTaskId);
-        if (parentTask == null) {
-          errors.add(
-            '任务 $taskId 的父任务 $parentTaskId 不存在',
-          );
-          continue;
-        }
-
-        final childTask = await _taskRepository.findById(taskId);
-        if (childTask == null) {
-          continue; // 已经在第三轮处理过错误
-        }
-
-        // 层级功能已移除，不再设置父子关系
-      } catch (e) {
-        errors.add('设置任务父子关系失败 $taskId: $e');
-      }
-    }
+    // 层级功能已移除，不再需要建立任务父子关系
 
     return ImportResult(
       projectsCreated: projectsCreated,

@@ -76,13 +76,9 @@ class _FakeFocusFlowService implements FocusFlowService {
     String? reflectionNote,
   }) async {}
 
-  @override
-  Future<Task> quickSubtask({
-    required String parentTaskId,
-    required String title,
-  }) async {
-    return _buildTask(id: '999', title: title, ;
-  }
+  // 层级功能已移除，quickSubtask 方法已删除
+  // @override
+  // Future<Task> quickSubtask({...}) async => ...;
 
   @override
   Stream<FocusSession?> watchActive(String taskId) => const Stream.empty();

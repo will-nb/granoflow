@@ -75,7 +75,7 @@ class _RichTextDescriptionPreviewState
     _controller = QuillController(
       document: document,
       selection: const TextSelection.collapsed(offset: 0),
-    );
+    )..readOnly = true;
   }
 
   @override
@@ -109,13 +109,7 @@ class _RichTextDescriptionPreviewState
     // 如果 description 有值，使用 QuillEditor 只读模式显示预览
     final previewWidget = QuillEditor.basic(
       controller: _controller!,
-      configurations: QuillEditorConfigurations(
-        readOnly: true,
-        padding: EdgeInsets.zero,
-        textStyle: theme.textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
+      config: const QuillEditorConfig(),
     );
 
     // 如果 readOnly 为 false 且 onTap 不为 null，整个预览区域可点击
