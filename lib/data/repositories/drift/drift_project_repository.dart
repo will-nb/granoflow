@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 
 import '../../../core/providers/project_filter_providers.dart';
+import '../../../core/utils/delta_json_utils.dart';
 import '../../database/database_adapter.dart';
 import '../../drift/database.dart' hide Project, ProjectLog;
 import '../../drift/database.dart' as drift show Project, ProjectLog;
@@ -215,7 +216,7 @@ class DriftProjectRepository implements ProjectRepository {
       templateLockCount: entity.templateLockCount,
       seedSlug: entity.seedSlug,
       allowInstantComplete: entity.allowInstantComplete,
-      description: entity.description,
+      description: DeltaJsonUtils.parseDeltaJson(entity.description),
       logs: List<ProjectLogEntry>.unmodifiable(projectLogs),
     );
   }
@@ -243,7 +244,7 @@ class DriftProjectRepository implements ProjectRepository {
         templateLockCount: entity.templateLockCount,
         seedSlug: entity.seedSlug,
         allowInstantComplete: entity.allowInstantComplete,
-        description: entity.description,
+        description: DeltaJsonUtils.parseDeltaJson(entity.description),
         logs: List<ProjectLogEntry>.unmodifiable(logs),
       );
     }).toList();

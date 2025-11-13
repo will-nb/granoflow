@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 
 import '../../../core/utils/task_section_utils.dart';
+import '../../../core/utils/delta_json_utils.dart';
 import '../../database/database_adapter.dart';
 import '../../drift/database.dart' hide Task, TaskLog;
 import '../../drift/database.dart' as drift show Task, TaskLog;
@@ -1118,7 +1119,7 @@ class DriftTaskRepository implements TaskRepository {
       templateLockCount: entity.templateLockCount,
       seedSlug: entity.seedSlug,
       allowInstantComplete: entity.allowInstantComplete,
-      description: entity.description,
+      description: DeltaJsonUtils.parseDeltaJson(entity.description),
       logs: List<TaskLogEntry>.unmodifiable(taskLogs),
     );
   }
@@ -1150,7 +1151,7 @@ class DriftTaskRepository implements TaskRepository {
         templateLockCount: entity.templateLockCount,
         seedSlug: entity.seedSlug,
         allowInstantComplete: entity.allowInstantComplete,
-        description: entity.description,
+        description: DeltaJsonUtils.parseDeltaJson(entity.description),
         logs: List<TaskLogEntry>.unmodifiable(logs),
       );
     }).toList();

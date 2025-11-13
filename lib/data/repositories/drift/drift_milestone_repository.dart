@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/drift.dart';
 
+import '../../../core/utils/delta_json_utils.dart';
 import '../../database/database_adapter.dart';
 import '../../drift/database.dart' hide Milestone, MilestoneLog;
 import '../../drift/database.dart' as drift show Milestone, MilestoneLog;
@@ -185,7 +186,7 @@ class DriftMilestoneRepository implements MilestoneRepository {
       templateLockCount: entity.templateLockCount,
       seedSlug: entity.seedSlug,
       allowInstantComplete: entity.allowInstantComplete,
-      description: entity.description,
+      description: DeltaJsonUtils.parseDeltaJson(entity.description),
       logs: List<MilestoneLogEntry>.unmodifiable(milestoneLogs),
     );
   }
@@ -214,7 +215,7 @@ class DriftMilestoneRepository implements MilestoneRepository {
         templateLockCount: entity.templateLockCount,
         seedSlug: entity.seedSlug,
         allowInstantComplete: entity.allowInstantComplete,
-        description: entity.description,
+        description: DeltaJsonUtils.parseDeltaJson(entity.description),
         logs: List<MilestoneLogEntry>.unmodifiable(logs),
       );
     }).toList();
