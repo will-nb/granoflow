@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/core/services/home_statistics_service.dart';
 import 'package:granoflow/core/utils/calendar_review_utils.dart';
-import 'package:granoflow/data/models/focus_session.dart';
 import 'package:granoflow/data/models/task.dart';
 
 import '../../presentation/test_support/fakes.dart';
@@ -112,7 +111,7 @@ void main() {
       test('只统计 completedActive 状态', () async {
         // 创建不同状态的任务
         final todayStart = DateTime(fixedNow.year, fixedNow.month, fixedNow.day);
-        final pendingTask = await taskRepository.createTask(
+        await taskRepository.createTask(
           TaskDraft(
             title: 'Pending Task',
             status: TaskStatus.pending,
@@ -146,7 +145,6 @@ void main() {
       test('本周范围计算正确', () async {
         // 本周日是 2024年1月14日，本周六是 2024年1月20日
         final weekStart = CalendarReviewUtils.getWeekStart(fixedNow);
-        final weekEnd = CalendarReviewUtils.getWeekEnd(fixedNow);
 
         // 创建本周完成的任务（使用本周中间的日期）
         final weekMiddle = DateTime(
@@ -181,7 +179,6 @@ void main() {
       test('当月范围计算正确', () async {
         // 当月1日到31日
         final monthStart = CalendarReviewUtils.getMonthStart(fixedNow);
-        final monthEnd = CalendarReviewUtils.getMonthEnd(fixedNow);
 
         // 创建当月完成的任务（使用月中日期）
         final monthMiddle = DateTime(
