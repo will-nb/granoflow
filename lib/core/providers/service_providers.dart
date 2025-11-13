@@ -144,6 +144,7 @@ final seedImportServiceProvider = FutureProvider<SeedImportService>((ref) async 
   final projectService = await ref.read(projectServiceProvider.future);
   final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
   final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
+  final nodeService = await ref.read(nodeServiceProvider.future);
   return SeedImportService(
     seedRepository: seedRepository,
     tagRepository: tagRepository,
@@ -152,6 +153,7 @@ final seedImportServiceProvider = FutureProvider<SeedImportService>((ref) async 
     projectService: projectService,
     milestoneRepository: milestoneRepository,
     metricOrchestrator: metricOrchestrator,
+    nodeService: nodeService,
   );
 });
 
@@ -199,12 +201,14 @@ final exportServiceProvider = FutureProvider<ExportService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);
   final projectRepository = await ref.read(projectRepositoryProvider.future);
   final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
+  final nodeRepository = await ref.read(nodeRepositoryProvider.future);
   final encryptionService = ref.read(exportEncryptionServiceProvider);
   final keyService = ref.read(encryptionKeyServiceProvider);
   return ExportService(
     taskRepository: taskRepository,
     projectRepository: projectRepository,
     milestoneRepository: milestoneRepository,
+    nodeRepository: nodeRepository,
     encryptionService: encryptionService,
     encryptionKeyService: keyService,
   );
@@ -214,12 +218,14 @@ final importServiceProvider = FutureProvider<ImportService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);
   final projectRepository = await ref.read(projectRepositoryProvider.future);
   final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
+  final nodeRepository = await ref.read(nodeRepositoryProvider.future);
   final encryptionService = ref.read(exportEncryptionServiceProvider);
   final keyService = ref.read(encryptionKeyServiceProvider);
   return ImportService(
     taskRepository: taskRepository,
     projectRepository: projectRepository,
     milestoneRepository: milestoneRepository,
+    nodeRepository: nodeRepository,
     encryptionService: encryptionService,
     encryptionKeyService: keyService,
   );

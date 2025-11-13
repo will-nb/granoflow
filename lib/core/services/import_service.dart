@@ -418,10 +418,14 @@ class ImportService {
     int tasksCreated = 0;
     int tasksUpdated = 0;
     int tasksSkipped = 0;
+    int nodesCreated = 0;
+    int nodesUpdated = 0;
+    int nodesSkipped = 0;
 
     // 记录在导入过程中已存在或新建的实体 ID
     final existingProjectIds = <String>{};
     final existingMilestoneIds = <String>{};
+    final existingTaskIds = <String>{};
 
     // 第一轮：导入项目（延迟解密）
     final projectsJson = (rawJson['projects'] as List<dynamic>?) ?? [];
@@ -659,6 +663,7 @@ class ImportService {
             task.createdAt,
             task.updatedAt,
           );
+          existingTaskIds.add(task.id);
           tasksCreated++;
         } else {
           // 导入数据更新，更新本地数据
@@ -690,6 +695,7 @@ class ImportService {
                   : null,
             ),
           );
+          existingTaskIds.add(task.id);
           tasksUpdated++;
         }
       } catch (e) {
@@ -697,7 +703,67 @@ class ImportService {
       }
     }
 
-    // 层级功能已移除，不再需要建立任务父子关系
+    // 第四轮：导入节点（延迟解密）
+    final nodesJson = (rawJson['nodes'] as List<dynamic>?) ?? [];
+    for (final nodeJson in nodesJson) {
+      final nodeMap = nodeJson as Map<String, dynamic>;
+      final nodeId = nodeMap['nodeId'] as String;
+      final taskId = nodeMap['taskId'] as String;
+      final updatedAtStr = nodeMap['updatedAt'] as String;
+      final updatedAt = DateTime.parse(updatedAtStr);
+      
+      try {
+        // 验证节点引用的 taskId 是否存在
+        if (!existingTaskIds.contains(taskId)) {
+          errors.add(
+            '节点 $nodeId 引用的任务 $taskId 不存在',
+          );
+          continue;
+        }
+
+        // 先判断是否需要导入（不需要解密）
+        final existing = await _nodeRepository.findById(nodeId);
+        final needsImport = existing == null || updatedAt.isAfter(existing.updatedAt);
+        
+        if (!needsImport) {
+          // 不需要导入，跳过（不解密）
+          nodesSkipped++;
+          continue;
+        }
+        
+        // 需要导入，解密该实体
+        final node = await _parseNodeFromJson(nodeMap, encryptionKey, errors);
+        if (node == null) {
+          continue; // 解密失败，错误已记录
+        }
+        
+        if (existing == null) {
+          // 创建新节点
+          await _nodeRepository.createNodeWithId(
+            nodeId: node.id,
+            taskId: node.taskId,
+            title: node.title,
+            parentId: node.parentId,
+            status: node.status,
+            sortIndex: node.sortIndex,
+            createdAt: node.createdAt,
+            updatedAt: node.updatedAt,
+          );
+          nodesCreated++;
+        } else {
+          // 导入数据更新，更新本地数据
+          await _nodeRepository.updateNode(
+            node.id,
+            title: node.title,
+            status: node.status,
+            sortIndex: node.sortIndex,
+          );
+          nodesUpdated++;
+        }
+      } catch (e) {
+        errors.add('导入节点失败 $nodeId: $e');
+      }
+    }
 
     return ImportResult(
       projectsCreated: projectsCreated,
@@ -709,6 +775,9 @@ class ImportService {
       tasksCreated: tasksCreated,
       tasksUpdated: tasksUpdated,
       tasksSkipped: tasksSkipped,
+      nodesCreated: nodesCreated,
+      nodesUpdated: nodesUpdated,
+      nodesSkipped: nodesSkipped,
       errors: errors,
     );
   }

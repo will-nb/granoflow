@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../data/models/milestone.dart';
+import '../../data/models/node.dart';
 import '../../data/models/project.dart';
 import '../../data/models/task.dart';
 import '../../data/models/task_template.dart';
@@ -12,6 +13,7 @@ import '../../data/repositories/task_template_repository.dart';
 import '../utils/id_generator.dart';
 import '../utils/database_instrumentation.dart';
 import 'metric_orchestrator.dart';
+import 'node_service.dart';
 import 'project_models.dart';
 import 'project_service.dart';
 import 'sort_index_reset_service.dart';
@@ -25,6 +27,7 @@ class SeedImportService {
     required ProjectService projectService,
     required MilestoneRepository milestoneRepository,
     required MetricOrchestrator metricOrchestrator,
+    required NodeService nodeService,
   }) : _seedRepository = seedRepository,
        _tags = tagRepository,
        _tasks = taskRepository,
@@ -32,6 +35,7 @@ class SeedImportService {
        _projectService = projectService,
        _milestones = milestoneRepository,
        _metricOrchestrator = metricOrchestrator,
+       _nodeService = nodeService,
        _sortIndexResetService = SortIndexResetService(
          taskRepository: taskRepository,
        );
@@ -43,6 +47,7 @@ class SeedImportService {
   final ProjectService _projectService;
   final MilestoneRepository _milestones;
   final MetricOrchestrator _metricOrchestrator;
+  final NodeService _nodeService;
   final SortIndexResetService _sortIndexResetService;
 
   // 防止重复导入的标志
@@ -462,6 +467,11 @@ class SeedImportService {
         slugToId[seed.slug] = task.id;
         createdTasks++;
         debugPrint('SeedImportService: Task created successfully - id: ${task.id}, slug: ${seed.slug}');
+        
+        // 导入节点（如果有）
+        if (seed.nodes.isNotEmpty) {
+          await _applyNodesForTask(task.id, seed.nodes, seed.slug);
+        }
     }
     debugPrint('SeedImportService: Regular tasks processing complete - Created: $createdTasks, Skipped: $skippedTasks, Total: ${regularTasks.length}');
 
@@ -554,5 +564,95 @@ class SeedImportService {
       debugPrint('SeedImportService: Inbox item created successfully - id: ${task.id}, slug: ${seed.slug}');
     }
     debugPrint('SeedImportService: Inbox items processing complete - Created: $createdInboxItems, Total: ${inboxItems.length}');
+  }
+
+  /// 为任务导入节点
+  Future<void> _applyNodesForTask(
+    String taskId,
+    List<SeedNode> nodes,
+    String taskSlug,
+  ) async {
+    debugPrint('SeedImportService: Applying ${nodes.length} nodes for task $taskSlug');
+    
+    // 第一遍：创建所有根节点（parentSlug 为 null）
+    final Map<String, String> nodeSlugToId = {};
+    for (final seedNode in nodes) {
+      if (seedNode.parentSlug == null) {
+        final node = await _nodeService.createNode(
+          taskId: taskId,
+          title: seedNode.title,
+          parentId: null,
+        );
+        nodeSlugToId[seedNode.slug] = node.id;
+        debugPrint('SeedImportService: Root node created - id: ${node.id}, slug: ${seedNode.slug}');
+        
+        // 如果节点状态不是 'pending'，更新状态
+        if (seedNode.status != 'pending') {
+          final status = _parseNodeStatus(seedNode.status);
+          if (status != null) {
+            await _nodeService.updateNodeStatus(node.id, status);
+          }
+        }
+      }
+    }
+    
+    // 第二遍：创建所有子节点（parentSlug 不为 null）
+    // 需要递归处理，因为可能有多层嵌套
+    bool hasMoreNodes = true;
+    while (hasMoreNodes) {
+      hasMoreNodes = false;
+      for (final seedNode in nodes) {
+        if (seedNode.parentSlug != null && !nodeSlugToId.containsKey(seedNode.slug)) {
+          // 检查父节点是否已创建
+          if (nodeSlugToId.containsKey(seedNode.parentSlug)) {
+            final parentNodeId = nodeSlugToId[seedNode.parentSlug]!;
+            final node = await _nodeService.createNode(
+              taskId: taskId,
+              title: seedNode.title,
+              parentId: parentNodeId,
+            );
+            nodeSlugToId[seedNode.slug] = node.id;
+            debugPrint('SeedImportService: Child node created - id: ${node.id}, slug: ${seedNode.slug}, parent: ${seedNode.parentSlug}');
+            
+            // 如果节点状态不是 'pending'，更新状态
+            if (seedNode.status != 'pending') {
+              final status = _parseNodeStatus(seedNode.status);
+              if (status != null) {
+                await _nodeService.updateNodeStatus(node.id, status);
+              }
+            }
+          } else {
+            // 父节点还未创建，下一轮再处理
+            hasMoreNodes = true;
+          }
+        }
+      }
+    }
+    
+    // 检查是否有未创建的节点（可能是循环引用或无效的 parentSlug）
+    final createdCount = nodeSlugToId.length;
+    if (createdCount < nodes.length) {
+      final missingNodes = nodes.where((n) => !nodeSlugToId.containsKey(n.slug)).toList();
+      debugPrint('SeedImportService: WARNING - ${missingNodes.length} nodes were not created for task $taskSlug');
+      for (final missing in missingNodes) {
+        debugPrint('SeedImportService: Missing node - slug: ${missing.slug}, parentSlug: ${missing.parentSlug}');
+      }
+    }
+    
+    debugPrint('SeedImportService: Nodes import complete for task $taskSlug - Created: $createdCount/${nodes.length}');
+  }
+
+  /// 解析节点状态字符串为 NodeStatus 枚举
+  NodeStatus? _parseNodeStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return NodeStatus.pending;
+      case 'finished':
+        return NodeStatus.finished;
+      case 'deleted':
+        return NodeStatus.deleted;
+      default:
+        return null;
+    }
   }
 }

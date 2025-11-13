@@ -25,19 +25,41 @@ class DriftNodeRepository implements NodeRepository {
     String? parentId,
     double? sortIndex,
   }) async {
+    final now = DateTime.now();
+    final nodeId = IdGenerator.generateId();
+    return createNodeWithId(
+      nodeId: nodeId,
+      taskId: taskId,
+      title: title,
+      parentId: parentId,
+      status: domain.NodeStatus.pending,
+      sortIndex: sortIndex ?? 0.0,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  @override
+  Future<domain.Node> createNodeWithId({
+    required String nodeId,
+    required String taskId,
+    required String title,
+    String? parentId,
+    required domain.NodeStatus status,
+    required double sortIndex,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) async {
     return await _adapter.writeTransaction(() async {
-      final now = DateTime.now();
-      final nodeId = IdGenerator.generateId();
-      
       final entity = drift.Node(
         id: nodeId,
         parentId: parentId,
         taskId: taskId,
         title: title,
-        status: domain.NodeStatus.pending,
-        sortIndex: sortIndex ?? 0.0,
-        createdAt: now,
-        updatedAt: now,
+        status: status,
+        sortIndex: sortIndex,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
       );
 
       await _db.into(_db.nodes).insert(entity);

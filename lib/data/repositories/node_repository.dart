@@ -15,6 +15,27 @@ abstract class NodeRepository {
     double? sortIndex,
   });
 
+  /// 使用指定的 ID 创建节点
+  /// 
+  /// [nodeId] 节点 ID
+  /// [taskId] 所属任务 ID
+  /// [title] 节点标题
+  /// [parentId] 父节点 ID，根节点为 null
+  /// [status] 节点状态
+  /// [sortIndex] 排序索引
+  /// [createdAt] 创建时间
+  /// [updatedAt] 更新时间
+  Future<Node> createNodeWithId({
+    required String nodeId,
+    required String taskId,
+    required String title,
+    String? parentId,
+    required NodeStatus status,
+    required double sortIndex,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  });
+
   /// 更新节点
   /// 
   /// [nodeId] 节点 ID
