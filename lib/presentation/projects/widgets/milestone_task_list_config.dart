@@ -6,7 +6,7 @@ import '../../../core/providers/repository_providers.dart';
 import '../../../core/providers/service_providers.dart';
 import '../../../core/providers/tasks_drag_provider.dart';
 import '../../../data/models/task.dart';
-import '../../widgets/simplified_task_row.dart';
+import '../../widgets/expandable_task_row.dart';
 import '../../common/task_list/task_list_config.dart';
 
 /// 里程碑任务列表配置
@@ -52,7 +52,7 @@ class MilestoneTaskListConfig implements TaskListConfig {
     // 使用 SimplifiedTaskRow（通过 TasksSectionTaskListSimplified 间接使用）
     // 注意：这里需要传入 section，但里程碑不是基于 section 的，所以传入 null
     // SimplifiedTaskRow 应该能够处理 section 为 null 的情况
-    return SimplifiedTaskRow(
+    return ExpandableTaskRow(
       key: key,
       task: task,
       section: null, // 里程碑不是基于 section 的

@@ -292,6 +292,7 @@
   "inboxQuickPlanAction": "Move to Today",
   "inboxQuickPlanSuccess": "Moved to today's tasks.",
   "inboxQuickPlanSuccessDetailed": "Task moved to today's tasks - You can find it in the Tasks section",
+  "inboxProjectMovedSuccessDetailed": "Task moved to project page - You can find it in the Projects section",
   "inboxRenameError": "Update name failed.",
   "inboxRenameSuccess": "Task name updated.",
   "inboxRenameTitle": "Rename Task",

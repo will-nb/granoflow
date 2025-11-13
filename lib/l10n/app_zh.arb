@@ -168,6 +168,7 @@
   "inboxQuickPlanAction": "快速排到今天",
   "inboxQuickPlanSuccess": "已排到今天。",
   "inboxQuickPlanSuccessDetailed": "任務已移動到今日任務 - 您可以在任務頁面找到它",
+  "inboxProjectMovedSuccessDetailed": "任務已移動到項目頁面 - 您可以在項目頁面找到它",
   "inboxRenameError": "重新命名失敗",
   "inboxRenameSuccess": "任務名稱已更新。",
   "inboxRenameTitle": "重新命名任務",

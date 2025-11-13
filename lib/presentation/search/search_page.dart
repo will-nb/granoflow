@@ -9,7 +9,7 @@ import '../home/widgets/task_search_bar.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
-import '../widgets/simplified_task_row.dart';
+import '../widgets/expandable_task_row.dart';
 
 /// 搜索页面
 class SearchPage extends ConsumerStatefulWidget {
@@ -156,7 +156,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   ),
                   itemBuilder: (context, index) {
                     final task = tasks[index];
-                    return SimplifiedTaskRow(
+                    return ExpandableTaskRow(
                       task: task,
                       onTap: () => _handleTaskTap(task),
                     );

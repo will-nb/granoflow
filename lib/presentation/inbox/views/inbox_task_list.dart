@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/task.dart';
-import '../../widgets/simplified_task_row.dart';
+import '../../widgets/expandable_task_row.dart';
 import '../../widgets/dismissible_task_tile.dart';
 import '../../widgets/swipe_action_handler.dart';
 import '../../widgets/swipe_configs.dart';
@@ -63,7 +63,7 @@ class InboxTaskList extends ConsumerWidget {
               task,
             );
           },
-          child: SimplifiedTaskRow(
+          child: ExpandableTaskRow(
             key: ValueKey(task.id),
             task: task,
             verticalPadding: 12.0,

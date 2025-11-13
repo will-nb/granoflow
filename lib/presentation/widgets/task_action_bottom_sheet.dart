@@ -786,6 +786,11 @@ class _TaskActionBottomSheetState
     WidgetRef ref,
     ProjectMilestoneSelection? selection,
   ) async {
+    // 保存原始状态，用于判断是否需要关闭弹窗
+    final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+    final originalTask = taskAsync.value ?? widget.task;
+    final wasInbox = originalTask.status == TaskStatus.inbox;
+    
     try {
       final taskService = await ref.read(taskServiceProvider.future);
       final updatePayload = TaskUpdate(
@@ -803,6 +808,20 @@ class _TaskActionBottomSheetState
         // 刷新相关 providers，确保 UI 更新
         ref.invalidate(taskProjectHierarchyProvider(widget.task.id));
         _refreshTaskListProviders(ref);
+        
+        // 如果任务原本是 inbox 状态，且分配了项目（不是清除项目），
+        // 底层逻辑会自动将状态从 inbox 改为 pending，关闭弹窗并显示 snackbar
+        if (wasInbox && selection != null && selection.project != null) {
+          final l10n = AppLocalizations.of(context);
+          Navigator.of(context).pop(); // 关闭弹窗
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.inboxProjectMovedSuccessDetailed),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -821,28 +840,56 @@ class _TaskActionBottomSheetState
     WidgetRef ref,
     DateTime? newDeadline,
   ) async {
+    // 保存原始状态，用于判断是否需要关闭弹窗
+    final taskAsync = ref.read(taskByIdProvider(widget.task.id));
+    final originalTask = taskAsync.value ?? widget.task;
+    final wasInbox = originalTask.status == TaskStatus.inbox;
+    
     try {
       final taskService = await ref.read(taskServiceProvider.future);
       
-      // 获取当前任务状态
-      final taskAsync = ref.read(taskByIdProvider(widget.task.id));
-      final currentTask = taskAsync.value ?? widget.task;
-      
       // 如果任务状态是 inbox 且设置了截止日期，使用 planTask 来设置截止日期和 section
       // planTask 和 updateDetails 都会在底层自动将 inbox 状态改为 pending
-      if (currentTask.status == TaskStatus.inbox && newDeadline != null) {
+      if (originalTask.status == TaskStatus.inbox && newDeadline != null) {
         final section = TaskSectionUtils.getSectionForDate(newDeadline);
         await taskService.planTask(
           taskId: widget.task.id,
           dueDateLocal: newDeadline,
           section: section,
         );
+        
+        // 如果任务原本是 inbox 状态，关闭弹窗并显示 snackbar
+        if (mounted && wasInbox) {
+          final l10n = AppLocalizations.of(context);
+          Navigator.of(context).pop(); // 关闭弹窗
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.inboxQuickPlanSuccessDetailed),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
       } else {
         // 其他情况使用 updateDetails，底层会自动处理状态转换
         await taskService.updateDetails(
           taskId: widget.task.id,
           payload: TaskUpdate(dueAt: newDeadline),
         );
+        
+        // 如果任务原本是 inbox 状态且设置了截止日期，
+        // 底层逻辑会自动将状态从 inbox 改为 pending，关闭弹窗并显示 snackbar
+        if (mounted && wasInbox && newDeadline != null) {
+          final l10n = AppLocalizations.of(context);
+          Navigator.of(context).pop(); // 关闭弹窗
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.inboxQuickPlanSuccessDetailed),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
       }
       
       // 刷新相关的列表 providers

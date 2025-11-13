@@ -121,6 +121,27 @@ class MockNodeRepository implements NodeRepository {
       }
     }
   }
+
+  @override
+  Future<void> updateNodeStatusWithChildren(String nodeId, NodeStatus status) async {
+    // 递归收集所有子节点 ID
+    final allNodeIds = <String>[nodeId];
+    await _collectChildNodeIds(nodeId, allNodeIds);
+    
+    // 批量更新所有节点状态
+    for (final id in allNodeIds) {
+      await updateNode(id, status: status);
+    }
+  }
+
+  Future<void> _collectChildNodeIds(String parentId, List<String> allNodeIds) async {
+    final children = await listChildrenByParentId(parentId);
+    for (final child in children) {
+      allNodeIds.add(child.id);
+      await _collectChildNodeIds(child.id, allNodeIds);
+    }
+  }
+
 }
 
 void main() {

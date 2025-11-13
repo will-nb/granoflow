@@ -16,8 +16,12 @@ class DrawerHeader extends StatelessWidget {
         ? 'assets/images/background.dark.webp'
         : 'assets/images/background.light.webp';
 
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    // 降低高度，让布局更紧凑优雅，内容底部对齐
+    final contentHeight = 85.0;
+    
     return Container(
-      height: 70 + MediaQuery.of(context).padding.top, // 添加状态栏高度
+      height: contentHeight + statusBarHeight,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(backgroundImage),
@@ -39,34 +43,38 @@ class DrawerHeader extends StatelessWidget {
               ),
             ),
           ),
-          // 内容区域 - 使用 SafeArea 确保内容不被状态栏遮挡
+          // 内容区域 - 使用 SafeArea 确保内容不被系统导航栏遮挡
           SafeArea(
+            bottom: false, // 只处理顶部安全区域
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Row(
-                children: [
-                  SizedBox(
-                    height: 20.0,
-                    width: 20.0,
-                    child: const AppLogo(
-                      size: 20.0,
-                      showText: false,
-                      variant: AppLogoVariant.onPrimary,
+              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    SizedBox(
+                      height: 32.0,
+                      width: 32.0,
+                      child: const AppLogo(
+                        size: 32.0,
+                        showText: false,
+                        variant: AppLogoVariant.onPrimary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Flexible(
-                          child: Text(
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
                             l10n.homeGreeting,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
                               shadows: [
                                 Shadow(
                                   offset: const Offset(0, 1),
@@ -78,14 +86,13 @@ class DrawerHeader extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Flexible(
-                          child: Text(
+                          const SizedBox(height: 6),
+                          Text(
                             l10n.homeTagline,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w400,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
                               shadows: [
                                 Shadow(
                                   offset: const Offset(0, 1),
@@ -97,11 +104,11 @@ class DrawerHeader extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -498,6 +498,7 @@
   "inboxQuickPlanAction": "移动到今日任务",
   "inboxQuickPlanSuccess": "已经移动到今日任务。",
   "inboxQuickPlanSuccessDetailed": "任务已移动到今日任务 - 您可以在任务页面找到它",
+  "inboxProjectMovedSuccessDetailed": "任务已移动到项目页面 - 您可以在项目页面找到它",
   "inboxRenameError": "重新命名失败",
   "inboxRenameSuccess": "任务名称已更新。",
   "inboxRenameTitle": "重新命名任务",

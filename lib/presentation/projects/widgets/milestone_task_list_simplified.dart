@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/task.dart';
-import '../../widgets/simplified_task_row.dart';
+import '../../widgets/expandable_task_row.dart';
 import '../../widgets/dismissible_task_tile.dart';
 import '../../widgets/swipe_action_handler.dart';
 import '../../widgets/swipe_configs.dart';
@@ -154,7 +154,7 @@ class _MilestoneTaskListSimplifiedState
             task,
           );
         },
-        child: SimplifiedTaskRow(
+        child: ExpandableTaskRow(
           key: ValueKey('simplified-${task.id}'),
           task: task,
           section: null, // 里程碑不是基于 section 的

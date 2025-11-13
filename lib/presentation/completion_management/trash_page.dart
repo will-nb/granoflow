@@ -9,7 +9,7 @@ import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/task_filter_collapsible.dart';
-import '../widgets/simplified_task_row.dart';
+import '../widgets/expandable_task_row.dart';
 import '../widgets/dismissible_task_tile.dart';
 import '../widgets/swipe_action_handler.dart';
 import '../widgets/swipe_configs.dart';
@@ -165,7 +165,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                                 task,
                               );
                             },
-                            child: SimplifiedTaskRow(
+                            child: ExpandableTaskRow(
                               key: ValueKey(task.id),
                               task: task,
                               verticalPadding: 12.0,

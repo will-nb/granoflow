@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../widgets/simplified_task_row.dart';
+import '../../widgets/expandable_task_row.dart';
 import '../../widgets/dismissible_task_tile.dart';
 import '../../widgets/swipe_action_handler.dart';
 import '../../widgets/swipe_configs.dart';
@@ -52,7 +52,7 @@ class TaskHierarchyList extends ConsumerWidget {
                   task,
                 );
               },
-              child: SimplifiedTaskRow(
+              child: ExpandableTaskRow(
                 key: ValueKey(node.task.id),
                 task: node.task,
                 verticalPadding: 4.0,
