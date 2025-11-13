@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/milestone.dart';
 import '../../data/models/project.dart';
-import '../../data/models/task.dart';
+import '../../data/models/task.dart' show Task, TaskTreeNode, TaskSection, TaskStatus;
 import '../services/tag_service.dart';
 import '../utils/project_statistics_utils.dart' show ProgressStatistics, ProjectStatisticsUtils;
 import '../utils/task_section_utils.dart';
@@ -11,6 +11,18 @@ import 'project_filter_providers.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
 import 'task_filter_providers.dart';
+
+/// 任务的项目和里程碑层级信息
+@immutable
+class TaskProjectHierarchy {
+  const TaskProjectHierarchy({
+    required this.project,
+    this.milestone,
+  });
+
+  final Project project;
+  final Milestone? milestone;
+}
 
 final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
   ref,
@@ -266,3 +278,64 @@ final milestoneTasksStatisticsProvider =
   }
 });
 
+/// 任务的项目和里程碑层级信息 Provider
+///
+/// 根据任务的 projectId 和 milestoneId 查询对应的项目和里程碑信息
+final taskProjectHierarchyProvider =
+    StreamProvider.family<TaskProjectHierarchy?, String>((
+  ref,
+  taskId,
+) async* {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final projectRepository = await ref.read(projectRepositoryProvider.future);
+  final milestoneRepository = await ref.read(milestoneRepositoryProvider.future);
+
+  await for (final task in taskRepository.watchTaskById(taskId)) {
+    if (task == null) {
+      yield null;
+      continue;
+    }
+
+    // 如果没有关联项目，返回 null
+    if (task.projectId == null) {
+      yield null;
+      continue;
+    }
+
+    // 查询项目
+    final project = await projectRepository.findById(task.projectId!);
+    if (project == null) {
+      yield null;
+      continue;
+    }
+
+    // 如果有里程碑ID，查询里程碑
+    Milestone? milestone;
+    if (task.milestoneId != null) {
+      milestone = await milestoneRepository.findById(task.milestoneId!);
+    }
+
+    yield TaskProjectHierarchy(
+      project: project,
+      milestone: milestone,
+    );
+  }
+});
+
+/// 根据任务ID监听任务变化
+final taskByIdProvider = StreamProvider.family<Task?, String>((
+  ref,
+  taskId,
+) async* {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  yield* taskRepository.watchTaskById(taskId);
+});
+
+/// 监听任务树变化（用于项目/里程碑视图）
+final taskTreeProvider = StreamProvider.family<TaskTreeNode, String>((
+  ref,
+  rootTaskId,
+) async* {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  yield* taskRepository.watchTaskTree(rootTaskId);
+});

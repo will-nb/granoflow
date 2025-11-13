@@ -90,10 +90,12 @@ class _TasksSectionTaskListState
 
     // 获取虚拟字段 levelMap 和 childrenMap（按分区）
     final levelMapAsync = ref.watch(
-      tasksSectionTaskLevelMapProvider(widget.section),
+      // 层级功能已移除，不再需要 levelMapProvider
+      FutureProvider<Map<String, int>>((ref) async => <String, int>{}),
     );
     final childrenMapAsync = ref.watch(
-      tasksSectionTaskChildrenMapProvider(widget.section),
+      // 层级功能已移除，不再需要 childrenMapProvider
+      FutureProvider<Map<String, Set<String>>>((ref) async => <String, Set<String>>{}),
     );
 
     // 使用 AsyncValue.when 处理异步加载

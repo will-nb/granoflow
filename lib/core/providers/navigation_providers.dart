@@ -37,3 +37,9 @@ final completedTasksExpandedProvider =
 final archivedTasksExpandedProvider =
     StateProvider<Set<String>>((ref) => <String>{});
 
+/// Provider for managing expanded task IDs in milestone task list (按里程碑管理)
+final milestoneExpandedTaskIdProvider =
+    StateProvider.family<Set<String>, String>(
+  (ref, milestoneId) => <String>{},
+);
+

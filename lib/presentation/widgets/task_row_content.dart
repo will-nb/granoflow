@@ -421,10 +421,12 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
 
           // 刷新该 section 相关的 level map 和 children map provider
           ref.invalidate(
-            tasksSectionTaskLevelMapProvider(section),
+            // 层级功能已移除，不再需要 levelMapProvider
+            FutureProvider<Map<String, int>>((ref) async => <String, int>{}),
           );
           ref.invalidate(
-            tasksSectionTaskChildrenMapProvider(section),
+            // 层级功能已移除，不再需要 childrenMapProvider
+            FutureProvider<Map<String, Set<String>>>((ref) async => <String, Set<String>>{}),
           );
         }
       }

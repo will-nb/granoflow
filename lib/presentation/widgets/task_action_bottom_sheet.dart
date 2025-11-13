@@ -314,8 +314,7 @@ class _TaskActionBottomSheetState
     if (currentTask.status == TaskStatus.pending && currentTask.dueAt != null) {
       final section = TaskSectionUtils.getSectionForDate(currentTask.dueAt);
       ref.invalidate(taskSectionsProvider(section));
-      ref.invalidate(tasksSectionTaskLevelMapProvider(section));
-      ref.invalidate(tasksSectionTaskChildrenMapProvider(section));
+      // 层级功能已移除，不再需要 invalidate 这些 Provider
     }
   }
 

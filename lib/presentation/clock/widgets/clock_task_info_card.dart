@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/task_query_providers.dart';
 import '../../../data/models/task.dart';
 import '../../widgets/inline_project_milestone_display.dart';
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/service_providers.dart';
+import '../../../core/providers/task_query_providers.dart';
 import '../../../core/services/project_models.dart';
 import '../../../core/services/tag_service.dart';
 import '../../../core/utils/task_section_utils.dart';
@@ -297,8 +298,7 @@ class _TaskDetailBottomSheetState
     if (currentTask.status == TaskStatus.pending && currentTask.dueAt != null) {
       final section = TaskSectionUtils.getSectionForDate(currentTask.dueAt);
       ref.invalidate(taskSectionsProvider(section));
-      ref.invalidate(tasksSectionTaskLevelMapProvider(section));
-      ref.invalidate(tasksSectionTaskChildrenMapProvider(section));
+      // 层级功能已移除，不再需要 invalidate 这些 Provider
     }
   }
 

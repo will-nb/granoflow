@@ -26,12 +26,14 @@ class TasksSectionTaskListConfig implements TaskListConfig {
 
   @override
   ProviderBase getLevelMapProvider(WidgetRef ref) {
-    return tasksSectionTaskLevelMapProvider(_section);
+    // 层级功能已移除，返回空的 Provider
+    return FutureProvider<Map<String, int>>((ref) async => <String, int>{});
   }
 
   @override
   ProviderBase getChildrenMapProvider(WidgetRef ref) {
-    return tasksSectionTaskChildrenMapProvider(_section);
+    // 层级功能已移除，返回空的 Provider
+    return FutureProvider<Map<String, Set<String>>>((ref) async => <String, Set<String>>{});
   }
 
   @override

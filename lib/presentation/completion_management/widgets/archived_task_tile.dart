@@ -31,13 +31,9 @@ class ArchivedTaskTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     
-    // 获取子任务列表
-    final childrenAsync = ref.watch(archivedTaskChildrenProvider(task.id));
-    final hasChildren = childrenAsync.hasValue && childrenAsync.value!.isNotEmpty;
-    
-    // 获取展开状态
-    final expandedTaskIds = ref.watch(archivedTasksExpandedProvider);
-    final isExpanded = expandedTaskIds.contains(task.id);
+    // 层级功能已移除，不再显示子任务
+    final hasChildren = false;
+    final isExpanded = false;
 
     // 构建任务内容
     final taskContent = Column(
@@ -65,29 +61,7 @@ class ArchivedTaskTile extends ConsumerWidget {
                 ),
               ),
             ),
-            // 展开/收缩按钮（如果有子任务）
-            if (hasChildren)
-              IconButton(
-                icon: Icon(
-                  isExpanded ? Icons.expand_less : Icons.expand_more,
-                  size: 20,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
-                ),
-                onPressed: () {
-                    final notifier = ref.read(archivedTasksExpandedProvider.notifier);
-                    final currentExpanded = Set<String>.from(expandedTaskIds);
-                  if (isExpanded) {
-                    currentExpanded.remove(task.id);
-                  } else {
-                    currentExpanded.add(task.id);
-                  }
-                  notifier.state = currentExpanded;
-                },
-              ),
+            // 层级功能已移除，不再显示展开/收缩按钮
           ],
         ),
         // 第二行：标签 + 项目/里程碑 + 归档时间
@@ -112,37 +86,7 @@ class ArchivedTaskTile extends ConsumerWidget {
             ],
           ),
         ),
-        // 子任务列表（展开时显示）
-        if (isExpanded && hasChildren)
-          Padding(
-            padding: EdgeInsets.only(top: 8, left: depth * 16.0),
-            child: childrenAsync.when(
-              data: (children) {
-                if (children.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: children.map((child) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: ArchivedTaskTile(
-                        task: child,
-                        depth: depth + 1,
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-              loading: () => const Padding(
-                padding: EdgeInsets.all(8),
-                child: Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
-          ),
+        // 层级功能已移除，不再显示子任务列表
       ],
     );
 
