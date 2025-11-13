@@ -1,0 +1,7 @@
+{
+  "toolbarMode": "full",
+  "previewMaxLines": 3,
+  "autoSaveDebounce": 300,
+  "note": "富文本编辑器配置：toolbarMode（工具栏模式：basic 或 full），previewMaxLines（预览最大行数：1-10），autoSaveDebounce（自动保存防抖延迟：毫秒，100-2000）"
+}
+
