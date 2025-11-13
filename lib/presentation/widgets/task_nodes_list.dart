@@ -193,7 +193,7 @@ class _TaskNodesListState extends ConsumerState<TaskNodesList> {
         controller: _addNodeController,
         focusNode: _addNodeFocusNode,
         decoration: InputDecoration(
-          hintText: 'Node title', // TODO: 使用 l10n.nodeTitleHint（阶段 7 添加）
+          hintText: AppLocalizations.of(context).nodeTitleHint,
           border: const OutlineInputBorder(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           isDense: true,
