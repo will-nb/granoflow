@@ -15,12 +15,6 @@ class _FakeTaskEditActions extends TaskEditActionsNotifier {
   Future<void> build() async {}
 
   @override
-  Future<void> addSubtask({
-    required String parentId,
-    required String title,
-  }) async {}
-
-  @override
   Future<void> editTitle({
     required String taskId,
     required String title,

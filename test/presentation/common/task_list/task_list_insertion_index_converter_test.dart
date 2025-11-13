@@ -4,7 +4,7 @@ import 'package:granoflow/presentation/common/task_list/task_list_insertion_inde
 import 'package:granoflow/presentation/tasks/utils/tree_flattening_utils.dart';
 
 /// 创建测试任务辅助函数
-Task _createTask({required String id, String? parentId, double sortIndex = 1000}) {
+Task _createTask({required String id, double sortIndex = 1000}) {
   return Task(
     id: id,
 

@@ -1,21 +1,8 @@
-import '../../data/models/task.dart';
-import '../../data/repositories/task_repository.dart';
-
 /// TaskCrudService 辅助方法
 /// 
 /// 包含任务层级和日期处理的辅助方法
 class TaskCrudServiceHelpers {
-  TaskCrudServiceHelpers({
-    required TaskRepository taskRepository,
-  }) : _tasks = taskRepository;
-
-  final TaskRepository _tasks;
-
-  /// 层级功能已移除，不再有后代任务
-  Future<List<Task>> getAllDescendantTasks(String taskId) async {
-    // 层级功能已移除，返回空列表
-    return <Task>[];
-  }
+  TaskCrudServiceHelpers();
 
   /// 标准化截止日期为当天的 23:59:59
   static DateTime normalizeDueDate(DateTime localDate) {

@@ -1,0 +1,998 @@
+{
+  // ===========================================
+  // 任务节点（Node）功能设计文档
+  // 在 TaskActionBottomSheet 中增加拆分任务功能，为 task 添加无限级 node
+  // 适用范围：TaskActionBottomSheet（任务操作底部弹窗）
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：在任务操作弹窗中提供任务拆分功能，支持将任务分解为无限层级的子节点，帮助用户更好地组织和管理复杂任务
+    goal: "在 TaskActionBottomSheet 中增加拆分任务功能，为 task 添加无限级 node。用户可以在任务中直接显示子节点，点击每个子节点可以单独编辑和添加下级子节点。每个节点可以拖拽进行同级排序，可以左右滑动（左滑完成，右滑删除）。节点不会出现在回收站，删除后直接显示删除状态（X 图标和删除线），支持恢复。",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的 TaskActionBottomSheet 弹窗样式和布局",
+        "遵循现有的交互规范（滑动操作、拖拽排序）",
+        "使用统一的字体样式和间距规范",
+        "保持与任务列表一致的视觉风格",
+      ],
+      
+      // 创新点：与现有主题不同的设计突破
+      innovation: [
+        "三态复选框：自定义复选框支持三种状态（pending、finished、deleted），直观显示节点状态",
+        "无限层级：支持任务拆分为无限层级的子节点，提供灵活的任务组织方式",
+        "内联编辑：点击节点标题直接内联编辑，提供流畅的编辑体验",
+        "状态恢复：删除的节点可以恢复，不会永久丢失",
+        "层级折叠：支持折叠整个节点树，节省空间",
+        "同级排序：支持拖拽进行同级节点排序，灵活调整节点顺序",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "任务分解：将复杂任务拆分为可管理的子任务（参考 Things 3、Todoist、TickTick）",
+      "无限层级：支持多层级任务组织，适应复杂项目需求",
+      "内联编辑：减少弹窗，提供流畅的编辑体验",
+      "状态管理：通过视觉状态清晰展示任务进度",
+      "手势操作：滑动完成/删除，提升操作效率",
+      "拖拽排序：直观的拖拽操作，灵活调整顺序",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：复用 TaskActionBottomSheet 的背景
+    backgroundGradients: {
+      // Light 模式
+      light: {
+        normal: {
+          type: "solid",
+          color: "Theme.of(context).colorScheme.surface",
+          note: "使用 TaskActionBottomSheet 的 surface 背景色",
+        },
+      },
+      
+      // Dark 模式
+      dark: {
+        normal: {
+          type: "solid",
+          color: "Theme.of(context).colorScheme.surface",
+          note: "使用 TaskActionBottomSheet 的 surface 背景色",
+        },
+      },
+    },
+    
+    // 专用配色：节点列表的专用颜色
+    specificColors: {
+      // 节点标题文字颜色
+      nodeTitle: {
+        light: "Theme.of(context).colorScheme.onSurface",
+        dark: "Theme.of(context).colorScheme.onSurface",
+        note: "使用主题的 onSurface 颜色，确保在不同模式下都有良好的可读性",
+      },
+      // 已完成节点标题颜色
+      finishedNodeTitle: {
+        light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        note: "已完成节点使用半透明颜色，配合删除线显示",
+      },
+      // 已删除节点标题颜色
+      deletedNodeTitle: {
+        light: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5)",
+        dark: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5)",
+        note: "已删除节点使用更低的透明度，配合删除线和 X 图标显示",
+      },
+      // 三态复选框颜色
+      checkbox: {
+        // 待处理状态（pending）
+        pending: {
+          border: "Theme.of(context).colorScheme.outline",
+          background: "transparent",
+          note: "待处理状态：透明背景，显示边框",
+        },
+        // 已完成状态（finished）
+        finished: {
+          border: "Theme.of(context).colorScheme.primary",
+          background: "Theme.of(context).colorScheme.primary",
+          icon: "Theme.of(context).colorScheme.onPrimary",
+          note: "已完成状态：主色背景，显示勾选图标",
+        },
+        // 已删除状态（deleted）
+        deleted: {
+          border: "Theme.of(context).colorScheme.error",
+          background: "Theme.of(context).colorScheme.errorContainer",
+          icon: "Theme.of(context).colorScheme.onErrorContainer",
+          note: "已删除状态：错误色背景，显示 X 图标",
+        },
+      },
+      // 滑动背景颜色
+      swipeBackground: {
+      // 右滑完成（finished，startToEnd，显示左侧背景）
+      rightSwipe: {
+        color: "Theme.of(context).colorScheme.primary",
+        icon: "Theme.of(context).colorScheme.onPrimary",
+        note: "右滑完成（startToEnd）：主色背景，显示勾选图标。遵循项目规范：右滑用于非破坏性/高频操作",
+      },
+      // 左滑删除（deleted，endToStart，显示右侧背景）
+      leftSwipe: {
+        color: "Theme.of(context).colorScheme.error",
+        icon: "Theme.of(context).colorScheme.onError",
+        note: "左滑删除（endToStart）：错误色背景，显示删除图标。遵循项目规范：左滑用于破坏性/风险操作",
+      },
+      },
+      // 添加按钮颜色
+      addButton: {
+        color: "Theme.of(context).colorScheme.primary",
+        note: "添加子节点按钮使用主色",
+      },
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：否，使用底部弹窗
+    fullScreen: false,
+    
+    // 隐藏导航栏：否
+    hideNavigation: false,
+    
+    // 节点列表在 TaskActionBottomSheet 中的位置
+    position: {
+      // 位置：在操作按钮之前（最底部）
+      location: "beforeActionButtons",
+      // 在以下组件之后
+      after: [
+        "任务标题编辑",
+        "任务描述",
+        "标签管理",
+        "项目/里程碑选择",
+        "复制按钮",
+        "转换为项目按钮（如果适用）",
+      ],
+      // 在以下组件之前
+      before: [
+        "操作按钮区域（开始计时/完成/快速规划等）",
+      ],
+      note: "节点列表位于 TaskActionBottomSheet 的底部，在操作按钮之前，确保用户可以在查看和编辑节点后直接进行操作",
+    },
+    
+    // 内容区域布局
+    contentLayout: {
+      // 布局方向
+      direction: "vertical",
+      // 主轴对齐
+      mainAxisAlignment: "start",
+      // 交叉轴对齐
+      crossAxisAlignment: "stretch",
+      // 使用 SafeArea
+      safeArea: false,
+      // 内边距
+      padding: {
+        horizontal: 0, // 使用 TaskActionBottomSheet 的 padding（24dp）
+        vertical: 0,
+      },
+      // 节点列表区域的内边距
+      nodesListPadding: {
+        top: 16, // dp
+        bottom: 16, // dp
+        left: 0, // 使用 TaskActionBottomSheet 的 padding
+        right: 0, // 使用 TaskActionBottomSheet 的 padding
+      },
+    },
+    
+    // 区域划分：节点列表的主要区域
+    sections: [
+      {
+        // 区域名称
+        name: "nodesHeader",
+        // 位置
+        position: "top",
+        // 权重
+        weight: "fixed",
+        // 子组件列表
+        children: [
+          "折叠/展开按钮（如果节点树被折叠）",
+          "节点列表标题（可选）",
+        ],
+        note: "节点列表的头部区域，显示折叠/展开按钮和标题",
+      },
+      {
+        // 区域名称
+        name: "nodesList",
+        // 位置
+        position: "middle",
+        // 权重
+        weight: "flexible",
+        // 子组件列表
+        children: [
+          "节点树（递归渲染）",
+        ],
+        note: "节点列表的主体区域，递归渲染节点树",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 节点列表容器
+  nodesListContainer: {
+    // 组件位置
+    position: "beforeActionButtons",
+    
+    // 背景样式
+    background: {
+      // 背景类型
+      type: "transparent",
+      note: "使用透明背景，与 TaskActionBottomSheet 的背景一致",
+    },
+    
+    // 分隔线（可选）
+    divider: {
+      enabled: true,
+      style: {
+        height: 1, // dp
+        color: "Theme.of(context).colorScheme.outline.withOpacity(0.12)",
+        margin: {
+          top: 16, // dp
+          bottom: 16, // dp
+        },
+      },
+      note: "在节点列表上方显示分隔线，与上方内容区分",
+    },
+  },
+
+  // 节点项组件
+  nodeItem: {
+    // 组件位置
+    position: "nodesList",
+    
+    // 布局结构
+    layout: {
+      direction: "horizontal",
+      mainAxisAlignment: "start",
+      crossAxisAlignment: "center",
+      padding: {
+        horizontal: 0, // 使用 TaskActionBottomSheet 的 padding
+        vertical: 8, // dp
+      },
+      // 层级缩进
+      indent: {
+        perLevel: 24, // dp（每级缩进 24dp）
+        base: 0, // dp（根节点不缩进）
+        note: "每个层级缩进 24dp，不显示连接线",
+      },
+    },
+    
+    // 三态复选框
+    checkbox: {
+      // 组件类型
+      type: "custom", // 自定义三态复选框
+      // 组件路径
+      componentPath: "lib/presentation/widgets/tri_state_checkbox.dart",
+      // 尺寸
+      size: 24, // dp
+      // 位置
+      position: "leading", // 左侧
+      // 状态
+      states: [
+        {
+          name: "pending",
+          display: "空圆圈（只有边框）",
+          color: {
+            border: "Theme.of(context).colorScheme.outline",
+            background: "transparent",
+          },
+        },
+        {
+          name: "finished",
+          display: "实心圆圈 + 勾选图标",
+          color: {
+            border: "Theme.of(context).colorScheme.primary",
+            background: "Theme.of(context).colorScheme.primary",
+            icon: "Theme.of(context).colorScheme.onPrimary",
+          },
+        },
+        {
+          name: "deleted",
+          display: "实心圆圈 + X 图标",
+          color: {
+            border: "Theme.of(context).colorScheme.error",
+            background: "Theme.of(context).colorScheme.errorContainer",
+            icon: "Theme.of(context).colorScheme.onErrorContainer",
+          },
+        },
+      ],
+      // 交互
+      interactive: true,
+      action: "点击循环切换状态：pending -> finished -> deleted -> pending",
+      note: "自定义三态复选框，支持显示勾和叉，点击循环切换状态",
+    },
+    
+    // 节点标题
+    title: {
+      // 字体样式
+      typography: {
+        // 字号（sp）
+        fontSize: 16,
+        // 字重
+        fontWeight: "regular",
+        // 颜色（根据状态）
+        color: {
+          pending: "Theme.of(context).colorScheme.onSurface",
+          finished: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+          deleted: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5)",
+        },
+        // 删除线（finished 和 deleted 状态）
+        decoration: {
+          pending: "none",
+          finished: "lineThrough",
+          deleted: "lineThrough",
+        },
+      },
+      
+      // 背景样式
+      background: {
+        // 背景类型
+        type: "transparent",
+        note: "节点标题背景透明",
+      },
+      
+      // 交互
+      interactive: true,
+      action: "点击节点标题直接内联编辑（类似任务标题）",
+      note: "点击节点标题时，标题变为可编辑的 TextField，支持直接编辑",
+    },
+    
+    // 添加子节点按钮
+    addChildButton: {
+      // 位置
+      position: "trailing", // 右侧
+      // 图标
+      icon: "Icons.add",
+      // 尺寸
+      size: 20, // dp
+      // 颜色
+      color: "Theme.of(context).colorScheme.primary",
+      // 交互
+      interactive: true,
+      action: "点击在节点下方显示内联输入框（TextField）",
+      note: "每个节点旁边有一个 '+' 按钮，用于添加子节点。点击后在节点下方显示内联输入框，符合2025年流行的内联编辑趋势。",
+    },
+    
+    // 内联输入框（用于添加和编辑节点）
+    inlineInputField: {
+      // 组件类型
+      type: "TextField",
+      // 显示位置
+      position: "belowNode", // 在节点下方显示
+      // 样式
+      style: {
+        // 边框
+        border: "OutlineInputBorder",
+        // 自动获得焦点
+        autofocus: true,
+        // 文本输入动作
+        textInputAction: "TextInputAction.done",
+        // 占位符
+        placeholder: "节点标题",
+      },
+      // 保存触发方式
+      saveTriggers: [
+        {
+          type: "onSubmitted",
+          description: "按回车键保存",
+        },
+        {
+          type: "onFocusLost",
+          description: "失去焦点时保存",
+        },
+      ],
+      // 取消方式
+      cancelTriggers: [
+        {
+          type: "onEscape",
+          description: "按 Esc 键取消（可选）",
+        },
+        {
+          type: "onEmptySubmit",
+          description: "输入为空时取消",
+        },
+      ],
+      note: "使用内联输入框，在节点下方直接显示，用户输入后按回车或失去焦点保存。这样更直观，用户可以立即看到新节点添加的位置，符合2025年流行的内联编辑趋势，与项目中的任务标题编辑风格一致。",
+    },
+    
+    // 拖拽手柄（可选）
+    dragHandle: {
+      enabled: true,
+      // 位置
+      position: "leading", // 复选框左侧
+      // 图标
+      icon: "Icons.drag_indicator_rounded",
+      // 尺寸
+      size: 20, // dp
+      // 颜色
+      color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6)",
+      // 交互
+      interactive: true,
+      action: "长按拖拽进行同级排序",
+      note: "显示拖拽手柄，支持拖拽进行同级节点排序",
+    },
+  },
+
+  // 折叠/展开按钮
+  collapseButton: {
+    // 位置
+    position: "nodesHeader",
+    // 显示条件
+    visible: "当节点树有子节点时显示",
+    // 图标
+    icon: {
+      collapsed: "Icons.expand_more",
+      expanded: "Icons.expand_less",
+    },
+    // 尺寸
+    size: 24, // dp
+    // 颜色
+    color: "Theme.of(context).colorScheme.primary",
+    // 交互
+    interactive: true,
+    action: "点击折叠/展开整个节点树",
+    note: "支持折叠整个节点树，但不支持每个节点单独折叠子节点",
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程名称
+        name: "添加根节点",
+        // 步骤列表
+        steps: [
+          "用户在 TaskActionBottomSheet 中滚动到底部",
+          "用户看到节点列表区域（如果已有节点）或空状态",
+          "用户点击'添加节点'按钮（在节点列表顶部）",
+          "显示输入框或对话框",
+          "用户输入节点标题",
+          "用户确认添加",
+          "新节点出现在节点列表顶部",
+        ],
+      },
+      {
+        // 流程名称
+        name: "添加子节点",
+        // 步骤列表
+        steps: [
+          "用户看到某个节点",
+          "用户点击节点右侧的 '+' 按钮",
+          "在该节点下方显示内联输入框（TextField）",
+          "输入框自动获得焦点，用户可以立即输入",
+          "用户输入子节点标题",
+          "用户按回车键或输入框失去焦点时保存",
+          "新子节点出现在该节点下方，缩进 24dp",
+          "输入框自动隐藏，恢复节点列表显示",
+        ],
+        note: "使用内联输入框，符合2025年流行的内联编辑趋势，与项目中的任务标题编辑风格一致",
+      },
+      {
+        // 流程名称
+        name: "编辑节点标题",
+        // 步骤列表
+        steps: [
+          "用户看到某个节点",
+          "用户点击节点标题",
+          "标题变为可编辑的 TextField（内联编辑）",
+          "TextField 自动获得焦点，用户可以立即编辑",
+          "用户修改标题",
+          "用户按回车键或 TextField 失去焦点时保存",
+          "标题保存并更新显示，TextField 恢复为普通文本",
+        ],
+        note: "支持回车保存和失去焦点保存，提供多种保存方式，提升用户体验",
+      },
+      {
+        // 流程名称
+        name: "切换节点状态（通过复选框）",
+        // 步骤列表
+        steps: [
+          "用户看到某个节点",
+          "用户点击节点的复选框",
+          "状态循环切换：pending -> finished -> deleted -> pending",
+          "复选框图标和节点标题样式相应更新",
+          "如果切换到 finished：显示勾选图标，标题显示删除线",
+          "如果切换到 deleted：显示 X 图标，标题显示删除线且颜色变淡",
+          "如果切换到 pending：恢复原始样式",
+        ],
+      },
+      {
+        // 流程名称
+        name: "右滑完成节点",
+        // 步骤列表
+        steps: [
+          "用户看到某个节点",
+          "用户向右滑动节点（startToEnd，显示左侧背景）",
+          "显示左侧背景（主色背景 + 勾选图标）",
+          "用户继续滑动到底",
+          "节点状态切换为 finished",
+          "复选框显示勾选图标，标题显示删除线",
+          "滑动背景自动复位",
+        ],
+        note: "遵循项目规范：右滑（startToEnd）用于非破坏性/高频操作（完成），与任务列表的滑动规范一致",
+      },
+      {
+        // 流程名称
+        name: "左滑删除节点",
+        // 步骤列表
+        steps: [
+          "用户看到某个节点",
+          "用户向左滑动节点（endToStart，显示右侧背景）",
+          "显示右侧背景（错误色背景 + 删除图标）",
+          "用户继续滑动到底",
+          "节点状态切换为 deleted",
+          "复选框显示 X 图标，标题显示删除线且颜色变淡",
+          "滑动背景自动复位",
+        ],
+        note: "遵循项目规范：左滑（endToStart）用于破坏性/风险操作（删除），与任务列表的滑动规范一致",
+      },
+      {
+        // 流程名称
+        name: "恢复已删除节点",
+        // 步骤列表
+        steps: [
+          "用户看到已删除的节点（显示 X 图标和删除线）",
+          "用户点击节点的复选框",
+          "状态从 deleted 切换为 pending",
+          "复选框恢复为空圆圈，标题恢复原始样式",
+        ],
+      },
+      {
+        // 流程名称
+        name: "拖拽排序节点",
+        // 步骤列表
+        steps: [
+          "用户看到节点列表",
+          "用户长按某个节点的拖拽手柄",
+          "节点进入拖拽状态（可能显示阴影或缩放效果）",
+          "用户拖动节点到目标位置（同级节点之间）",
+          "显示插入指示器",
+          "用户释放节点",
+          "节点移动到新位置，sortIndex 更新",
+          "节点列表重新排序",
+        ],
+      },
+      {
+        // 流程名称
+        name: "折叠/展开节点树",
+        // 步骤列表
+        steps: [
+          "用户看到节点列表（有子节点）",
+          "用户点击折叠/展开按钮",
+          "如果当前是展开状态：所有子节点隐藏，按钮图标变为 expand_more",
+          "如果当前是折叠状态：所有子节点显示，按钮图标变为 expand_less",
+        ],
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击
+      tap: {
+        // 点击节点标题
+        nodeTitle: {
+          action: "内联编辑节点标题",
+          note: "点击节点标题时，标题变为可编辑的 TextField",
+        },
+        // 点击复选框
+        checkbox: {
+          action: "循环切换节点状态：pending -> finished -> deleted -> pending",
+        },
+        // 点击添加按钮
+        addButton: {
+          action: "在节点下方显示内联输入框（TextField）",
+          note: "使用内联输入框，符合2025年流行的内联编辑趋势，与项目风格一致",
+        },
+      },
+      // 滑动
+      swipe: {
+        // 右滑（startToEnd，显示左侧背景）
+        rightSwipe: {
+          action: "完成节点（切换为 finished 状态）",
+          background: "主色背景 + 勾选图标",
+          note: "右滑（startToEnd）显示左侧背景，滑动到底完成节点。遵循项目规范：右滑用于非破坏性/高频操作（完成），与任务列表的滑动规范一致",
+        },
+        // 左滑（endToStart，显示右侧背景）
+        leftSwipe: {
+          action: "删除节点（切换为 deleted 状态）",
+          background: "错误色背景 + 删除图标",
+          note: "左滑（endToStart）显示右侧背景，滑动到底删除节点。遵循项目规范：左滑用于破坏性/风险操作（删除），与任务列表的滑动规范一致",
+        },
+      },
+      // 拖拽
+      drag: {
+        // 长按拖拽手柄
+        dragHandle: {
+          action: "拖拽进行同级节点排序",
+          constraint: "只能在同级节点之间拖拽",
+          note: "长按拖拽手柄，拖动节点到目标位置进行排序",
+        },
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 节点添加动画
+    nodeAdd: {
+      type: "fade_in_slide_up",
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+      note: "新节点添加时，淡入并向上滑动",
+    },
+    
+    // 节点删除动画
+    nodeDelete: {
+      type: "fade_out",
+      duration: 150, // 毫秒
+      curve: "Curves.easeIn",
+      note: "节点删除时，淡出（但保留在列表中，显示删除状态）",
+    },
+    
+    // 节点状态切换动画
+    nodeStatusChange: {
+      type: "scale",
+      duration: 150, // 毫秒
+      curve: "Curves.easeOut",
+      note: "节点状态切换时，复选框轻微缩放动画",
+    },
+    
+    // 拖拽动画
+    drag: {
+      type: "scale_shadow",
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+      note: "拖拽时，节点轻微缩放并显示阴影",
+    },
+    
+    // 折叠/展开动画
+    collapse: {
+      type: "slide_up_fade_out",
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+      note: "折叠时，子节点向上滑动并淡出",
+    },
+    expand: {
+      type: "slide_down_fade_in",
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+      note: "展开时，子节点向下滑动并淡入",
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      // 布局方式
+      layout: "vertical",
+      // 节点项内边距
+      nodeItemPadding: {
+        horizontal: 0, // 使用 TaskActionBottomSheet 的 padding
+        vertical: 8, // dp
+      },
+      // 层级缩进
+      indentPerLevel: 24, // dp
+      // 复选框尺寸
+      checkboxSize: 24, // dp
+      // 字体大小
+      fontSize: 16, // sp
+    },
+    
+    // 平板横屏（可选）
+    tabletLandscape: {
+      layout: "vertical",
+      nodeItemPadding: {
+        horizontal: 0,
+        vertical: 10, // dp（稍大）
+      },
+      indentPerLevel: 28, // dp（稍大）
+      checkboxSize: 26, // dp（稍大）
+      fontSize: 17, // sp（稍大）
+    },
+  },
+
+  // ===========================================
+  // 8. 手势支持（可选）
+  // ===========================================
+  gestures: {
+    // 点击
+    tap: {
+      enabled: true,
+      actions: [
+        "点击节点标题：内联编辑",
+        "点击复选框：切换状态",
+        "点击添加按钮：添加子节点",
+      ],
+    },
+    
+    // 长按
+    longPress: {
+      enabled: true,
+      action: "长按拖拽手柄：开始拖拽排序",
+    },
+    
+    // 滑动手势
+    swipeRight: {
+      enabled: true,
+      action: "右滑完成节点（startToEnd，显示左侧背景）",
+      background: "主色背景 + 勾选图标",
+      note: "遵循项目规范：右滑用于非破坏性/高频操作（完成）",
+    },
+    swipeLeft: {
+      enabled: true,
+      action: "左滑删除节点（endToStart，显示右侧背景）",
+      background: "错误色背景 + 删除图标",
+      note: "遵循项目规范：左滑用于破坏性/风险操作（删除）",
+    },
+  },
+
+  // ===========================================
+  // 9. 数据模型（必填）
+  // ===========================================
+  dataModel: {
+    // Node 实体
+    node: {
+      // 字段列表
+      fields: [
+        {
+          name: "id",
+          type: "String",
+          required: true,
+          description: "节点唯一标识（UUID v4）",
+        },
+        {
+          name: "parentId",
+          type: "String?",
+          required: false,
+          description: "父节点 ID，根节点为 null",
+        },
+        {
+          name: "taskId",
+          type: "String",
+          required: true,
+          description: "所属任务 ID",
+        },
+        {
+          name: "title",
+          type: "String",
+          required: true,
+          description: "节点标题",
+        },
+        {
+          name: "status",
+          type: "NodeStatus",
+          required: true,
+          description: "节点状态：pending（待处理）、finished（已完成）、deleted（已删除）",
+        },
+        {
+          name: "sortIndex",
+          type: "double",
+          required: true,
+          description: "排序索引，用于同级节点排序",
+        },
+        {
+          name: "createdAt",
+          type: "DateTime",
+          required: true,
+          description: "创建时间",
+        },
+        {
+          name: "updatedAt",
+          type: "DateTime",
+          required: true,
+          description: "最后更新时间",
+        },
+      ],
+      // 状态枚举
+      statusEnum: {
+        name: "NodeStatus",
+        values: [
+          {
+            name: "pending",
+            description: "待处理状态，默认状态",
+            display: "空圆圈（只有边框）",
+          },
+          {
+            name: "finished",
+            description: "已完成状态",
+            display: "实心圆圈 + 勾选图标，标题显示删除线",
+          },
+          {
+            name: "deleted",
+            description: "已删除状态（可恢复）",
+            display: "实心圆圈 + X 图标，标题显示删除线且颜色变淡",
+          },
+        ],
+      },
+    },
+    
+    // 数据库表
+    databaseTable: {
+      name: "nodes",
+      // 主键
+      primaryKey: ["id"],
+      // 索引
+      indexes: [
+        {
+          fields: ["taskId"],
+          description: "用于查询任务的所有节点",
+        },
+        {
+          fields: ["parentId"],
+          description: "用于查询子节点",
+        },
+        {
+          fields: ["taskId", "parentId", "sortIndex"],
+          description: "用于同级节点排序查询",
+        },
+      ],
+      // 外键约束
+      foreignKeys: [
+        {
+          fields: ["taskId"],
+          references: "tasks(id)",
+          onDelete: "CASCADE",
+          description: "删除任务时，自动删除所有节点",
+        },
+        {
+          fields: ["parentId"],
+          references: "nodes(id)",
+          onDelete: "CASCADE",
+          description: "删除父节点时，自动删除所有子节点",
+        },
+      ],
+    },
+  },
+
+  // ===========================================
+  // 10. 边界情况处理（必填）
+  // ===========================================
+  edgeCases: {
+    // 空状态
+    emptyState: {
+      description: "任务没有节点时",
+      display: "隐藏整个节点列表区域",
+      note: "大多数任务不会有子节点，这才是常态，隐藏可以保持界面简洁。当用户添加第一个节点时，节点列表区域才会显示。",
+    },
+    
+    // 深层级节点
+    deepNesting: {
+      description: "节点层级过深时",
+      display: "继续显示，但可能因为缩进过多导致右侧空间不足",
+      note: "支持无限层级，但建议在 UI 上提示用户避免过深的层级",
+    },
+    
+    // 大量节点
+    manyNodes: {
+      description: "节点数量很多时",
+      display: "节点列表可滚动，支持折叠节省空间",
+      note: "使用 SingleChildScrollView 或 ListView 支持滚动，折叠功能可以节省空间",
+    },
+    
+    // 节点标题过长
+    longTitle: {
+      description: "节点标题过长时",
+      display: "标题换行显示，最多显示 2-3 行",
+      note: "使用 Text 组件的 maxLines 属性限制行数，超出部分显示省略号",
+    },
+    
+    // 拖拽到无效位置
+    invalidDragTarget: {
+      description: "拖拽到无效位置（如跨层级）时",
+      display: "显示错误提示，节点回到原位置",
+      note: "拖拽只能在同级节点之间进行，跨层级拖拽应该被阻止",
+    },
+    
+    // 删除有子节点的节点
+    deleteNodeWithChildren: {
+      description: "删除有子节点的节点时",
+      display: "节点状态切换为 deleted，所有子节点也同时切换为 deleted 状态",
+      note: "删除父节点时，所有子节点一起删除（同时标记为 deleted 状态），删除操作更彻底，符合用户预期",
+    },
+  },
+
+  // ===========================================
+  // 11. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      // 问题描述
+      question: "删除有子节点的节点时，子节点应该如何处理？",
+      // 问题详细说明
+      description: "当用户删除一个有子节点的节点时，子节点应该如何处理？是同时标记为删除状态，还是保持原状态？",
+      // 可选方案列表
+      options: [
+        "方案1：只标记父节点为删除状态，子节点保持原状态",
+        "方案2：同时标记父节点和所有子节点为删除状态",
+        "方案3：删除父节点时，提示用户选择是否同时删除子节点",
+      ],
+      // 推荐方案
+      recommendation: "方案2：同时标记父节点和所有子节点为删除状态。这样删除操作更彻底，符合用户预期。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "删除有子节点的节点时，子节点一起删除（同时标记为 deleted 状态）。",
+    },
+    {
+      // 问题描述
+      question: "节点列表为空时，是否显示空状态提示？",
+      // 问题详细说明
+      description: "当任务没有节点时，节点列表区域应该如何处理？是显示空状态提示和'添加节点'按钮，还是隐藏整个区域？",
+      // 可选方案列表
+      options: [
+        "方案1：显示空状态提示和'添加节点'按钮",
+        "方案2：隐藏整个节点列表区域",
+        "方案3：显示一个简单的'添加节点'按钮",
+      ],
+      // 推荐方案
+      recommendation: "方案2：隐藏整个节点列表区域。大多数任务不会有子节点，这才是常态，隐藏可以保持界面简洁。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "节点列表为空时不显示。大多数任务不会有子节点，这才是常态，隐藏可以保持界面简洁。",
+    },
+    {
+      // 问题描述
+      question: "添加子节点时，使用输入框还是对话框？",
+      // 问题详细说明
+      description: "当用户点击 '+' 按钮添加子节点时，应该使用内联输入框还是弹出对话框？",
+      // 可选方案列表
+      options: [
+        "方案1：在节点下方显示内联输入框",
+        "方案2：弹出对话框输入节点标题",
+        "方案3：在节点列表底部显示输入框",
+      ],
+      // 推荐方案
+      recommendation: "根据2025年最新流行趋势和项目风格决定：使用内联输入框，在节点下方直接显示输入框，提供流畅的编辑体验。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "使用内联输入框：在节点下方直接显示输入框，用户输入后按回车或失去焦点保存。这样更直观，用户可以立即看到新节点添加的位置，符合2025年流行的内联编辑趋势。",
+    },
+    {
+      // 问题描述
+      question: "节点标题内联编辑时，如何触发保存？",
+      // 问题详细说明
+      description: "当用户点击节点标题进行内联编辑时，如何触发保存？是失去焦点时自动保存，还是需要点击完成按钮？",
+      // 可选方案列表
+      options: [
+        "方案1：失去焦点时自动保存",
+        "方案2：点击完成按钮保存",
+        "方案3：按 Enter 键保存，Esc 键取消",
+      ],
+      // 推荐方案
+      recommendation: "方案1和方案3结合：按 Enter 键保存，失去焦点时也保存。这样提供多种保存方式，提升用户体验。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "回车保存、失去焦点保存。提供多种保存方式，提升用户体验。",
+    },
+  ],
+}
+

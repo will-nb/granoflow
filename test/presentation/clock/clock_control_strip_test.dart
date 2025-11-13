@@ -127,17 +127,6 @@ Preference _buildPreference({required bool sound}) {
   );
 }
 
-Task _buildTask({required String id, required String title, String? parentId}) {
-  return Task(
-    id: id,
-
-    title: title,
-    status: TaskStatus.pending,
-    createdAt: DateTime(2025, 1, 1),
-    updatedAt: DateTime(2025, 1, 1),
-    
-  );
-}
 
 ClockTimerState _buildTimerState({
   required bool started,

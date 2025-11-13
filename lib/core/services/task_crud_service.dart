@@ -23,13 +23,11 @@ class TaskCrudService {
        _metricOrchestrator = metricOrchestrator,
        _sortIndex = sortIndexService,
        _projectService = projectService,
-       _helpers = TaskCrudServiceHelpers(taskRepository: taskRepository),
        _update = TaskCrudServiceUpdate(
          taskRepository: taskRepository,
          metricOrchestrator: metricOrchestrator,
          milestoneService: milestoneService,
          projectService: projectService,
-         helpers: TaskCrudServiceHelpers(taskRepository: taskRepository),
          clock: clock,
        );
 
@@ -37,7 +35,6 @@ class TaskCrudService {
   final MetricOrchestrator _metricOrchestrator;
   final SortIndexService? _sortIndex;
   final ProjectService? _projectService;
-  final TaskCrudServiceHelpers _helpers;
   final TaskCrudServiceUpdate _update;
 
 

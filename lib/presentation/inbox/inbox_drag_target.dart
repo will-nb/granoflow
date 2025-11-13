@@ -163,7 +163,6 @@ class InboxDragTarget extends ConsumerWidget {
     try {
       final taskHierarchyService = await ref.read(taskHierarchyServiceProvider.future);
       final taskRepository = await ref.read(taskRepositoryProvider.future);
-      final dragState = ref.read(inboxDragProvider);
       
       // 层级功能已移除，不再需要 parentId
       double newSortIndex;

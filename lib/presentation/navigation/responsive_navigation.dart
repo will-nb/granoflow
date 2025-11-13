@@ -133,6 +133,8 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
           const double fabDiameter = 48.0; // FAB 直径 48dp，与其他图标底部对齐
           
           return Scaffold(
+            backgroundColor: Colors.transparent, // 使底部导航栏和 FAB 之间的空隙透明
+            extendBody: true, // 让 body 延伸到导航栏下方，使背景可以透过空隙显示
             body: widget.child,
             floatingActionButton: MouseRegion(
               onEnter: (_) => _setFabHovered(true),

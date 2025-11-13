@@ -14,6 +14,7 @@ import 'tables/task_templates.dart';
 import 'tables/focus_sessions.dart';
 import 'tables/preferences.dart';
 import 'tables/seed_import_logs.dart';
+import 'tables/nodes.dart';
 import '../models/task.dart';
 import 'converters.dart';
 
@@ -33,6 +34,7 @@ part 'database.g.dart';
     FocusSessions,
     Preferences,
     SeedImportLogs,
+    Nodes,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -48,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -59,7 +61,10 @@ class AppDatabase extends _$AppDatabase {
         await customStatement('PRAGMA foreign_keys = ON');
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // 未来版本升级逻辑
+        if (from == 1 && to == 2) {
+          // 创建新表（只创建新表，不影响现有数据）
+          await m.createAll();
+        }
       },
     );
   }

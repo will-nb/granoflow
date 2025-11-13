@@ -49,12 +49,7 @@ void main() {
           inboxTasksProvider.overrideWith(
             (ref) => Stream<List<Task>>.value(const <Task>[]),
           ),
-          inboxTaskLevelMapProvider.overrideWith(
-            (ref) async => <String, int>{},
-          ),
-          inboxTaskChildrenMapProvider.overrideWith(
-            (ref) async => <String, Set<String>>{},
-          ),
+          // 层级功能已移除，不再需要这些 provider
           templateSuggestionsProvider.overrideWithProvider(
             (query) => FutureProvider(
               (ref) async => <TaskTemplate>[_template('Template')],
@@ -94,12 +89,7 @@ void main() {
           inboxTasksProvider.overrideWith(
             (ref) => Stream<List<Task>>.value(<Task>[task]),
           ),
-          inboxTaskLevelMapProvider.overrideWith(
-            (ref) async => <String, int>{task.id: 1},
-          ),
-          inboxTaskChildrenMapProvider.overrideWith(
-            (ref) async => <String, Set<String>>{},
-          ),
+          // 层级功能已移除，不再需要这些 provider
           templateSuggestionsProvider.overrideWithProvider(
             (query) => FutureProvider((ref) async => const <TaskTemplate>[]),
           ),

@@ -32,8 +32,6 @@ class ArchivedTaskTile extends ConsumerWidget {
     final theme = Theme.of(context);
     
     // 层级功能已移除，不再显示子任务
-    final hasChildren = false;
-    final isExpanded = false;
 
     // 构建任务内容
     final taskContent = Column(

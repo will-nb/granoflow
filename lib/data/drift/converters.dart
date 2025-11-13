@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/task.dart';
+import '../models/node.dart';
 
 /// List<String> 类型转换器（用于 tags 字段）
 class ListStringTypeConverter extends TypeConverter<List<String>, String> {
@@ -70,6 +71,16 @@ ThemeMode themeModeFromIndex(int index) {
     return ThemeMode.system;
   }
   return ThemeMode.values[index];
+}
+
+/// NodeStatus 枚举转换器
+int nodeStatusToIndex(NodeStatus status) => status.index;
+
+NodeStatus nodeStatusFromIndex(int index) {
+  if (index < 0 || index >= NodeStatus.values.length) {
+    return NodeStatus.pending;
+  }
+  return NodeStatus.values[index];
 }
 
 /// List<String> 转换器（用于 tags 字段）

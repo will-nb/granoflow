@@ -313,12 +313,10 @@ void main() {
           await gesture.up();
           await helper.waitForAnimation();
 
-          // 验证层级关系
+          // 层级功能已移除，不再验证层级关系
           final taskRepository = await container.read(taskRepositoryProvider.future);
           final updatedTask = await taskRepository.findById(draggedTask.id);
           expect(updatedTask, isNotNull, reason: '任务应该存在');
-          expect(updatedTask!.parentId, targetTask.id,
-              reason: '拖拽后的任务应该是目标任务的子任务');
         }
       },
     );

@@ -1,0 +1,1429 @@
+{
+  // ===========================================
+  // 任务节点（Node）功能迭代蓝图
+  // 基于 design_task_nodes.json5 实现任务拆分功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250201-task-nodes",
+    
+    // 迭代标题
+    title: "任务节点功能：在 TaskActionBottomSheet 中增加拆分任务功能，支持无限层级节点",
+    
+    // 迭代描述
+    description: "在 TaskActionBottomSheet 中增加拆分任务功能，为 task 添加无限级 node。用户可以在任务中直接显示子节点，点击每个子节点可以单独编辑和添加下级子节点。每个节点可以拖拽进行同级排序，可以左右滑动（右滑完成，左滑删除）。节点不会出现在回收站，删除后直接显示删除状态（X 图标和删除线），支持恢复。",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/tasks/design_task_nodes.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // 数据库表定义
+    driftTables: [
+      {
+        path: "lib/data/drift/tables/nodes.dart",
+        purpose: "定义 Nodes 数据库表，包含 id、parentId、taskId、title、status、sortIndex、createdAt、updatedAt 字段",
+        action: "create",
+        estimatedLines: 50,
+        dependencies: [
+          "lib/data/drift/converters.dart",
+        ],
+        details: [
+          "定义 Nodes 表类，继承 Table",
+          "表名：'nodes'",
+          "字段定义：",
+          "  - id: TextColumn（主键，UUID v4）",
+          "  - parentId: TextColumn().nullable()（父节点 ID，根节点为 null）",
+          "  - taskId: TextColumn()（所属任务 ID，不可为空）",
+          "  - title: TextColumn()（节点标题）",
+          "  - status: IntColumn（使用 intEnum<NodeStatus> 存储状态）",
+          "  - sortIndex: RealColumn（排序索引，用于同级节点排序）",
+          "  - createdAt: DateTimeColumn()（创建时间）",
+          "  - updatedAt: DateTimeColumn()（最后更新时间）",
+          "主键：{id}",
+          "注意：status 字段使用 intEnum<NodeStatus>，需要在 converters.dart 中定义 NodeStatus 枚举转换器",
+        ],
+      },
+    ],
+    
+    // 数据模型
+    models: [
+      {
+        path: "lib/data/models/node.dart",
+        purpose: "定义 Node 数据模型和 NodeStatus 枚举",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [],
+        details: [
+          "定义 NodeStatus 枚举：pending、finished、deleted",
+          "定义 Node 类（immutable）：",
+          "  - 字段：id、parentId、taskId、title、status、sortIndex、createdAt、updatedAt",
+          "  - copyWith 方法：支持部分更新",
+          "  - hashCode 和 == 操作符：用于比较",
+          "  - toString 方法：用于调试",
+          "遵循项目的数据模型规范，与 Task 模型保持一致的结构",
+        ],
+      },
+    ],
+    
+    // Repository 接口
+    repositories: [
+      {
+        path: "lib/data/repositories/node_repository.dart",
+        purpose: "定义 NodeRepository 接口，包含节点的 CRUD 操作和查询方法",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/data/models/node.dart",
+        ],
+        details: [
+          "定义 NodeRepository 抽象类",
+          "方法列表：",
+          "  - Future<Node> createNode({required String taskId, required String title, String? parentId, double? sortIndex})",
+          "  - Future<void> updateNode(String nodeId, {String? title, NodeStatus? status, double? sortIndex})",
+          "  - Future<void> deleteNode(String nodeId)（软删除，标记为 deleted 状态）",
+          "  - Future<void> deleteNodeWithChildren(String nodeId)（删除节点及其所有子节点）",
+          "  - Future<void> restoreNode(String nodeId)（恢复已删除的节点）",
+          "  - Future<Node?> findById(String id)",
+          "  - Stream<List<Node>> watchNodesByTaskId(String taskId)（监听任务的所有节点）",
+          "  - Future<List<Node>> listNodesByTaskId(String taskId)（查询任务的所有节点）",
+          "  - Future<List<Node>> listChildrenByParentId(String parentId)（查询子节点）",
+          "  - Future<void> reorderNodes(List<String> orderedIds)（批量重排序）",
+          "  - Future<void> moveNode(String nodeId, String? newParentId, double newSortIndex)（移动节点）",
+          "遵循项目 Repository 接口规范，与 TaskRepository 保持一致的结构",
+        ],
+      },
+    ],
+    
+    // Repository 实现
+    driftRepositories: [
+      {
+        path: "lib/data/repositories/drift/drift_node_repository.dart",
+        purpose: "实现 NodeRepository 接口，使用 Drift 数据库",
+        action: "create",
+        estimatedLines: 400,
+        dependencies: [
+          "lib/data/repositories/node_repository.dart",
+          "lib/data/models/node.dart",
+          "lib/data/drift/database.dart",
+          "lib/data/drift/tables/nodes.dart",
+        ],
+        details: [
+          "实现 NodeRepository 接口的所有方法",
+          "使用 AppDatabase.instance 访问数据库",
+          "实现 createNode：",
+          "  - 使用 IdGenerator.generateId() 生成 UUID v4 作为 id（参考项目规范）",
+          "  - 如果没有提供 sortIndex，调用 NodeService.calculateDefaultSortIndex 计算默认值",
+          "  - 插入新节点到数据库",
+          "实现 updateNode：",
+          "  - 支持部分更新（title、status、sortIndex）",
+          "  - 更新 updatedAt 时间戳",
+          "实现 deleteNode：",
+          "  - 将节点状态更新为 deleted",
+          "实现 deleteNodeWithChildren：",
+          "  - 递归查询所有子节点",
+          "  - 将所有节点（包括父节点和子节点）状态更新为 deleted",
+          "实现 restoreNode：",
+          "  - 将节点状态从 deleted 恢复为 pending",
+          "实现 watchNodesByTaskId：",
+          "  - 使用 Stream 监听任务的所有节点变化",
+          "  - 按 sortIndex 排序",
+          "实现 listNodesByTaskId：",
+          "  - 查询任务的所有节点",
+          "  - 按 sortIndex 排序",
+          "实现 listChildrenByParentId：",
+          "  - 查询指定父节点的所有子节点",
+          "  - 按 sortIndex 排序",
+          "实现 reorderNodes：",
+          "  - 批量更新节点的 sortIndex",
+          "  - 使用 batchUpdate 优化性能",
+          "实现 moveNode：",
+          "  - 更新节点的 parentId 和 sortIndex",
+          "错误处理：捕获异常并转换为合适的错误类型",
+          "性能优化：使用批量更新减少数据库操作",
+        ],
+      },
+    ],
+    
+    // 服务层
+    services: [
+      {
+        path: "lib/core/services/node_service.dart",
+        purpose: "Node 业务逻辑服务层，封装节点的业务操作",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/repositories/node_repository.dart",
+          "lib/data/models/node.dart",
+          "lib/core/utils/id_generator.dart",
+          "lib/presentation/tasks/utils/sort_index_calculator.dart",
+          "lib/core/services/sort_index_service.dart",
+        ],
+        details: [
+          "定义 NodeService 类",
+          "方法列表：",
+          "  - Future<Node> createNode({required String taskId, required String title, String? parentId})",
+          "  - Future<void> updateNodeTitle(String nodeId, String title)",
+          "  - Future<void> updateNodeStatus(String nodeId, NodeStatus status)",
+          "  - Future<void> deleteNode(String nodeId)",
+          "  - Future<void> restoreNode(String nodeId)",
+          "  - Future<void> reorderNodes(String taskId, String? parentId, List<String> orderedIds)",
+          "  - Future<void> moveNode(String nodeId, String? newParentId, double newSortIndex)",
+          "  - Future<double> calculateDefaultSortIndex(String taskId, String? parentId)",
+          "业务逻辑：",
+          "  - createNode：自动计算 sortIndex（如果没有提供）",
+          "  - updateNodeStatus：处理状态切换逻辑",
+          "  - deleteNode：调用 deleteNodeWithChildren 删除节点及其子节点",
+          "  - reorderNodes：验证节点属于同一父节点，使用 SortIndexService.reorderIds() 批量更新 sortIndex（参考任务拖拽排序逻辑）",
+          "  - calculateDefaultSortIndex：使用 SortIndexCalculator.insertAtLast() 计算新节点的 sortIndex（参考任务排序逻辑）",
+          "错误处理：验证输入参数，捕获异常并记录日志",
+        ],
+      },
+    ],
+    
+    // Provider 状态管理
+    providers: [
+      {
+        path: "lib/core/providers/node_providers.dart",
+        purpose: "定义 Node 相关的 Riverpod Provider，用于状态管理",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/repositories/node_repository.dart",
+          "lib/core/providers/repository_providers.dart",
+          "lib/core/providers/service_providers.dart",
+        ],
+        details: [
+          "定义 nodeRepositoryProvider：提供 NodeRepository 实例",
+          "定义 nodeServiceProvider：提供 NodeService 实例",
+          "定义 taskNodesProvider(String taskId)：StreamProvider，监听任务的所有节点",
+          "  - 返回 Stream<List<Node>>",
+          "  - 自动按 sortIndex 排序",
+          "定义 taskNodesTreeProvider(String taskId)：Provider，构建节点树结构",
+          "  - 返回 Map<String, List<Node>>（parentId -> children）",
+          "  - 用于快速查找子节点",
+          "遵循项目的 Provider 规范，与 taskByIdProvider 保持一致的结构",
+        ],
+      },
+    ],
+    
+    // UI 组件 - 三态复选框
+    widgets: [
+      {
+        path: "lib/presentation/widgets/tri_state_checkbox.dart",
+        purpose: "自定义三态复选框组件，支持 pending、finished、deleted 三种状态",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/node.dart",
+        ],
+        details: [
+          "定义 TriState 枚举：pending、finished、deleted",
+          "定义 TriStateCheckbox 组件（StatelessWidget）",
+          "属性：",
+          "  - value: TriState（当前状态）",
+          "  - onChanged: ValueChanged<TriState>?（状态改变回调）",
+          "  - size: double（默认 24.0）",
+          "显示逻辑：",
+          "  - pending：空圆圈（只有边框，透明背景）",
+          "  - finished：实心圆圈 + 勾选图标（主色背景）",
+          "  - deleted：实心圆圈 + X 图标（错误色背景）",
+          "交互：点击循环切换状态：pending -> finished -> deleted -> pending",
+          "样式：",
+          "  - 使用 Container 绘制圆形边框和背景",
+          "  - 使用 Icon 显示勾选或 X 图标",
+          "  - 颜色使用主题颜色（primary、error、outline）",
+          "遵循 Material 3 设计规范",
+        ],
+      },
+      {
+        path: "lib/presentation/widgets/dismissible_node_tile.dart",
+        purpose: "可滑动的节点瓦片组件，支持左右滑动（右滑完成，左滑删除）",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/models/node.dart",
+          "lib/presentation/widgets/tri_state_checkbox.dart",
+          "lib/presentation/widgets/swipe_action_config.dart",
+        ],
+        details: [
+          "定义 DismissibleNodeTile 组件（StatelessWidget）",
+          "属性：",
+          "  - node: Node（节点数据）",
+          "  - depth: int（节点层级深度，用于缩进）",
+          "  - onTap: VoidCallback（点击节点标题回调）",
+          "  - onAddChild: VoidCallback（点击添加子节点按钮回调）",
+          "  - onReorder: Function(int, int)（拖拽排序回调）",
+          "  - onStatusChange: ValueChanged<NodeStatus>?（状态改变回调）",
+          "布局结构：",
+          "  - Row(children: [拖拽手柄, 三态复选框, 节点标题, 添加按钮])",
+          "  - 根据 depth 计算缩进（depth * 24dp）",
+          "滑动操作：",
+          "  - 使用 Dismissible 组件包裹",
+          "  - 右滑（startToEnd）：显示左侧背景（主色 + 勾选图标），触发完成操作",
+          "  - 左滑（endToStart）：显示右侧背景（错误色 + 删除图标），触发删除操作",
+          "  - confirmDismiss 返回 false，让滑动背景自动复位",
+          "  - 参考 DismissibleTaskTile 的实现模式，但保持独立实现（节点滑动逻辑相对简单）",
+          "三态复选框：",
+          "  - 使用 TriStateCheckbox 组件",
+          "  - 根据 node.status 转换为 TriState",
+          "  - 点击切换状态，调用 onStatusChange",
+          "节点标题：",
+          "  - 根据状态显示不同样式：",
+          "    - pending：正常样式",
+          "    - finished：删除线 + 半透明颜色",
+          "    - deleted：删除线 + 更低透明度",
+          "  - 点击标题触发 onTap，用于内联编辑",
+          "添加按钮：",
+          "  - 显示 '+' 图标",
+          "  - 点击触发 onAddChild",
+          "拖拽手柄：",
+          "  - 显示拖拽图标（Icons.drag_indicator_rounded）",
+          "  - 用于长按拖拽排序",
+        ],
+      },
+      {
+        path: "lib/presentation/widgets/task_nodes_list.dart",
+        purpose: "任务节点列表组件，递归渲染节点树，支持折叠、拖拽排序、内联编辑",
+        action: "create",
+        estimatedLines: 600,
+        dependencies: [
+          "lib/data/models/node.dart",
+          "lib/data/models/task.dart",
+          "lib/presentation/widgets/dismissible_node_tile.dart",
+          "lib/core/providers/node_providers.dart",
+          "lib/core/providers/service_providers.dart",
+        ],
+        details: [
+          "定义 TaskNodesList 组件（ConsumerStatefulWidget）",
+          "属性：",
+          "  - task: Task（所属任务）",
+          "状态管理：",
+          "  - 使用 taskNodesProvider(task.id) 监听节点列表",
+          "  - 本地状态：_isCollapsed（是否折叠）、_editingNodeId（正在编辑的节点 ID）、_addingChildNodeId（正在添加子节点的父节点 ID）、_addingRootNode（是否正在添加根节点）",
+          "布局结构：",
+          "  - 如果节点列表为空，显示'添加节点'按钮（用于添加第一个根节点）",
+          "  - 如果有节点：",
+          "    - 折叠/展开按钮（如果节点树有子节点）",
+          "    - 分隔线",
+          "    - 节点树（递归渲染）",
+          "    - '添加节点'按钮（在节点列表底部，用于添加根节点）",
+          "递归渲染节点树：",
+          "  - _buildNodesTree 方法：构建根节点列表",
+          "  - _buildNodeItem 方法：递归渲染单个节点及其子节点",
+          "  - 根据 parentId 构建树形结构",
+          "  - 按 sortIndex 排序同级节点",
+          "  - 根据 depth 计算缩进（depth * 24dp）",
+          "内联编辑：",
+          "  - 点击节点标题时，显示 TextField 替换标题文本",
+          "  - TextField 自动获得焦点",
+          "  - 按回车或失去焦点时保存",
+          "  - 使用 _editingNodeId 跟踪正在编辑的节点",
+          "  - 参考 TaskRowTitleEditor 的实现模式（FocusNode、TextField、保存逻辑），但不需要全局状态管理",
+          "添加子节点：",
+          "  - 点击节点的 '+' 按钮时，在节点下方显示内联输入框",
+          "  - 输入框自动获得焦点",
+          "  - 按回车或失去焦点时创建节点",
+          "  - 使用 _addingChildNodeId 跟踪正在添加子节点的父节点",
+          "添加根节点：",
+          "  - 点击'添加节点'按钮时，在节点列表底部显示内联输入框",
+          "  - 输入框自动获得焦点",
+          "  - 按回车或失去焦点时创建根节点（parentId 为 null）",
+          "  - 使用 _addingRootNode 状态跟踪是否正在添加根节点",
+          "拖拽排序：",
+          "  - 使用 ReorderableListView 包裹同级节点",
+          "  - 只允许同级节点之间拖拽",
+          "  - 拖拽完成后，计算新的 sortIndex（使用 SortIndexCalculator.insertBetween 或 reorderIds）",
+          "  - 调用 NodeService.reorderNodes 批量更新 sortIndex",
+          "折叠/展开：",
+          "  - 点击折叠按钮时，隐藏所有子节点",
+          "  - 使用 _isCollapsed 状态控制",
+          "  - 折叠时，按钮图标变为 expand_more",
+          "  - 展开时，按钮图标变为 expand_less",
+          "状态更新：",
+          "  - 监听节点状态变化，自动更新 UI",
+          "  - 使用 ref.refresh 刷新 Provider",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（必填）
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/data/drift/database.dart",
+      purpose: "在数据库类中注册 Nodes 表",
+      changes: [
+        "在导入部分添加：import 'tables/nodes.dart';",
+        "在 @DriftDatabase 注解的 tables 列表中添加 Nodes",
+        "注意：需要更新 schemaVersion 从 1 到 2（因为新增了表）",
+      ],
+      estimatedLines: 5,
+    },
+    {
+      file: "lib/data/drift/converters.dart",
+      purpose: "添加 NodeStatus 枚举转换器",
+      changes: [
+        "定义 NodeStatusTypeConverter：TypeConverter<NodeStatus, int>",
+        "实现 fromSql 和 toSql 方法",
+        "参考 TaskStatus 的转换器实现",
+      ],
+      estimatedLines: 30,
+    },
+    {
+      file: "lib/core/providers/repository_providers.dart",
+      purpose: "添加 nodeRepositoryProvider",
+      changes: [
+        "导入 NodeRepository 和 DriftNodeRepository",
+        "定义 nodeRepositoryProvider：Provider<NodeRepository>",
+        "返回 DriftNodeRepository 实例",
+        "参考 taskRepositoryProvider 的实现",
+      ],
+      estimatedLines: 10,
+    },
+    {
+      file: "lib/core/providers/service_providers.dart",
+      purpose: "添加 nodeServiceProvider",
+      changes: [
+        "导入 NodeService",
+        "定义 nodeServiceProvider：FutureProvider<NodeService>",
+        "依赖 nodeRepositoryProvider",
+        "参考 taskServiceProvider 的实现",
+      ],
+      estimatedLines: 15,
+    },
+    {
+      file: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+      purpose: "在 TaskActionBottomSheet 中集成节点列表",
+      changes: [
+        "导入 TaskNodesList 组件",
+        "在 _buildContent 方法中，在操作按钮之前添加节点列表：",
+        "  - 在 _buildActionButtons 之前添加",
+        "  - 添加分隔线（如果节点列表不为空）",
+        "  - 添加 TaskNodesList(task: task)",
+        "  - 添加适当的间距（SizedBox(height: 16)）",
+        "确保节点列表在可滚动区域内",
+      ],
+      estimatedLines: 20,
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  // 注意：阶段完成后自动执行下一阶段，不需要沟通确认
+  // AI 开发将完成所有功能，按顺序执行所有阶段
+  // 每个阶段完成时忽略 pre-commit，强行 git commit（使用 --no-verify 选项）
+  // 
+  // 错误处理策略：
+  // - 如果某个任务失败，先尝试修复（如 analyze issues、测试失败），修复后继续
+  // - 如果无法自动修复（如需要人工决策），记录问题并继续下一个任务，在阶段完成时总结所有未解决问题
+  // - build_runner 冲突：使用 --delete-conflicting-outputs 参数自动删除冲突文件
+  // - analyze issues 无法自动修复：记录到 commit message 中，标记为已知问题，继续后续任务
+  implementationSteps: [
+    {
+      step: 1,
+      title: "阶段 1：数据库表和模型定义",
+      description: "创建 Nodes 数据库表定义、Node 数据模型和 NodeStatus 枚举",
+      tasks: [
+        {
+          task: "创建 Nodes 表定义",
+          file: "lib/data/drift/tables/nodes.dart",
+          action: [
+            "定义 Nodes 类，继承 Table",
+            "定义所有字段：id、parentId、taskId、title、status、sortIndex、createdAt、updatedAt",
+            "设置主键为 {id}",
+            "status 字段使用 intEnum<NodeStatus>()",
+          ],
+        },
+        {
+          task: "添加 NodeStatus 枚举转换器",
+          file: "lib/data/drift/converters.dart",
+          action: [
+            "定义 NodeStatusTypeConverter：TypeConverter<NodeStatus, int>",
+            "实现 fromSql：将 int 转换为 NodeStatus",
+            "实现 toSql：将 NodeStatus 转换为 int",
+            "参考 TaskStatusTypeConverter 的实现",
+          ],
+        },
+        {
+          task: "创建 Node 数据模型",
+          file: "lib/data/models/node.dart",
+          action: [
+            "定义 NodeStatus 枚举：pending、finished、deleted",
+            "定义 Node 类（immutable）",
+            "实现所有字段和 copyWith 方法",
+            "实现 hashCode、== 和 toString 方法",
+          ],
+        },
+        {
+          task: "在数据库类中注册 Nodes 表",
+          file: "lib/data/drift/database.dart",
+          action: [
+            "导入 'tables/nodes.dart'",
+            "在 @DriftDatabase 的 tables 列表中添加 Nodes",
+            "更新 schemaVersion 从 1 到 2",
+            "在 onUpgrade 方法中添加迁移逻辑：调用 m.createAll() 创建新表（只创建新表，不影响现有数据）",
+          ],
+        },
+        {
+          task: "运行 build_runner 生成数据库代码",
+          command: "flutter pub run build_runner build --delete-conflicting-outputs",
+          action: "生成 database.g.dart，包含 Nodes 表的代码",
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze lib/data/drift/tables/nodes.dart lib/data/models/node.dart lib/data/drift/converters.dart lib/data/drift/database.dart",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 数据库表和模型定义'",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：Repository 层实现",
+      description: "创建 NodeRepository 接口和 DriftNodeRepository 实现",
+      tasks: [
+        {
+          task: "创建 NodeRepository 接口",
+          file: "lib/data/repositories/node_repository.dart",
+          action: [
+            "定义 NodeRepository 抽象类",
+            "定义所有 CRUD 和查询方法",
+            "遵循项目 Repository 接口规范",
+          ],
+        },
+        {
+          task: "创建 DriftNodeRepository 实现",
+          file: "lib/data/repositories/drift/drift_node_repository.dart",
+          action: [
+            "实现 NodeRepository 接口的所有方法",
+            "使用 AppDatabase.instance 访问数据库",
+            "使用 IdGenerator.generateId() 生成 UUID v4（参考项目规范）",
+            "实现节点的 CRUD 操作",
+            "实现节点树查询和排序功能",
+            "实现批量更新和移动节点功能",
+            "添加错误处理和日志记录",
+          ],
+        },
+        {
+          task: "添加 nodeRepositoryProvider",
+          file: "lib/core/providers/repository_providers.dart",
+          action: [
+            "导入 NodeRepository 和 DriftNodeRepository",
+            "定义 nodeRepositoryProvider",
+            "返回 DriftNodeRepository 实例",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze lib/data/repositories/node_repository.dart lib/data/repositories/drift/drift_node_repository.dart lib/core/providers/repository_providers.dart",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - Repository 层实现'",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：Service 层和 Provider 实现",
+      description: "创建 NodeService 业务逻辑层和 Node 相关的 Provider",
+      tasks: [
+        {
+          task: "创建 NodeService",
+          file: "lib/core/services/node_service.dart",
+          action: [
+            "定义 NodeService 类",
+            "实现节点的业务逻辑方法",
+            "实现 sortIndex 自动计算逻辑（使用 SortIndexCalculator.insertAtLast）",
+            "实现节点状态切换和删除逻辑",
+            "实现 reorderNodes 方法（使用 SortIndexService.reorderIds）",
+            "添加参数验证和错误处理",
+          ],
+        },
+        {
+          task: "添加 nodeServiceProvider",
+          file: "lib/core/providers/service_providers.dart",
+          action: [
+            "导入 NodeService",
+            "定义 nodeServiceProvider",
+            "依赖 nodeRepositoryProvider",
+          ],
+        },
+        {
+          task: "创建 Node 相关的 Provider",
+          file: "lib/core/providers/node_providers.dart",
+          action: [
+            "定义 taskNodesProvider：监听任务的所有节点",
+            "定义 taskNodesTreeProvider：构建节点树结构",
+            "实现节点列表的自动排序",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze lib/core/services/node_service.dart lib/core/providers/service_providers.dart lib/core/providers/node_providers.dart",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - Service 层和 Provider 实现'",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：UI 组件实现 - 三态复选框和节点瓦片",
+      description: "创建三态复选框组件和可滑动的节点瓦片组件",
+      tasks: [
+        {
+          task: "创建三态复选框组件",
+          file: "lib/presentation/widgets/tri_state_checkbox.dart",
+          action: [
+            "定义 TriState 枚举",
+            "实现 TriStateCheckbox 组件",
+            "实现三种状态的视觉显示",
+            "实现点击循环切换状态",
+            "使用主题颜色",
+          ],
+        },
+        {
+          task: "创建可滑动的节点瓦片组件",
+          file: "lib/presentation/widgets/dismissible_node_tile.dart",
+          action: [
+            "实现 DismissibleNodeTile 组件",
+            "集成三态复选框",
+            "实现左右滑动操作（右滑完成，左滑删除）",
+            "实现节点标题显示（根据状态显示不同样式）",
+            "实现添加子节点按钮",
+            "实现拖拽手柄",
+            "根据 depth 计算缩进",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze lib/presentation/widgets/tri_state_checkbox.dart lib/presentation/widgets/dismissible_node_tile.dart",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - UI 组件实现（三态复选框和节点瓦片）'",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：节点列表组件实现",
+      description: "创建任务节点列表组件，实现递归渲染、内联编辑、拖拽排序、折叠功能",
+      tasks: [
+        {
+          task: "创建任务节点列表组件",
+          file: "lib/presentation/widgets/task_nodes_list.dart",
+          action: [
+            "实现 TaskNodesList 组件",
+            "使用 taskNodesProvider 监听节点列表",
+            "实现递归渲染节点树",
+            "实现内联编辑节点标题（点击标题编辑，回车或失去焦点保存）",
+            "实现添加子节点（点击节点的 '+' 按钮，显示内联输入框）",
+            "实现添加根节点（点击'添加节点'按钮，显示内联输入框）",
+            "实现拖拽排序（使用 ReorderableListView，只允许同级节点拖拽）",
+            "实现折叠/展开功能",
+            "处理空状态（节点列表为空时显示'添加节点'按钮）",
+            "添加适当的动画效果",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze lib/presentation/widgets/task_nodes_list.dart",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 5 完成 - 节点列表组件实现'",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：集成到 TaskActionBottomSheet",
+      description: "在 TaskActionBottomSheet 中集成节点列表组件",
+      tasks: [
+        {
+          task: "在 TaskActionBottomSheet 中集成节点列表",
+          file: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+          action: [
+            "导入 TaskNodesList 组件",
+            "在 _buildContent 方法中，在操作按钮之前添加节点列表",
+            "添加分隔线（如果节点列表不为空）",
+            "确保节点列表在可滚动区域内",
+            "添加适当的间距",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze lib/presentation/widgets/task_action_bottom_sheet.dart",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - 集成到 TaskActionBottomSheet'",
+        },
+      ],
+    },
+    {
+      step: 7,
+      title: "阶段 7：测试和优化",
+      description: "编写单元测试、Widget 测试，修复问题，优化性能",
+      tasks: [
+        {
+          task: "编写 Node 模型单元测试",
+          file: "test/data/models/node_test.dart",
+          action: [
+            "测试 Node 的创建、copyWith、hashCode、== 操作符",
+            "测试 NodeStatus 枚举",
+          ],
+        },
+        {
+          task: "编写 NodeRepository 单元测试",
+          file: "test/data/repositories/drift/drift_node_repository_test.dart",
+          action: [
+            "测试节点的 CRUD 操作",
+            "测试节点树查询",
+            "测试批量更新和移动节点",
+            "使用 mock 数据库",
+          ],
+        },
+        {
+          task: "编写 NodeService 单元测试",
+          file: "test/core/services/node_service_test.dart",
+          action: [
+            "测试节点的业务逻辑",
+            "测试 sortIndex 自动计算",
+            "测试节点状态切换和删除逻辑",
+            "使用 mock Repository",
+          ],
+        },
+        {
+          task: "编写三态复选框 Widget 测试",
+          file: "test/presentation/widgets/tri_state_checkbox_test.dart",
+          action: [
+            "测试三种状态的显示",
+            "测试点击切换状态",
+            "测试禁用状态",
+          ],
+        },
+        {
+          task: "编写节点列表组件 Widget 测试",
+          file: "test/presentation/widgets/task_nodes_list_test.dart",
+          action: [
+            "测试节点列表的渲染",
+            "测试内联编辑",
+            "测试添加子节点",
+            "测试添加根节点",
+            "测试拖拽排序",
+            "测试折叠/展开",
+            "测试空状态显示",
+            "使用 mock Provider",
+          ],
+        },
+        {
+          task: "添加国际化字符串",
+          file: "lib/l10n/app_*.arb",
+          action: [
+            "在 app_en.arb、app_zh_CN.arb、app_zh_HK.arb 中添加节点相关的本地化字符串",
+            "运行 flutter gen-l10n 生成本地化代码",
+          ],
+        },
+        {
+          task: "运行所有测试",
+          command: "flutter test",
+        },
+        {
+          task: "运行 flutter analyze 全面检查",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 7 完成 - 测试和优化'",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 重构和复用策略（必填）
+  // ===========================================
+  refactoringAndReuse: {
+    // 已复用的组件和工具
+    reusedComponents: [
+      {
+        component: "SortIndexCalculator",
+        usage: "用于计算节点的默认 sortIndex（insertAtLast）和拖拽排序时的 sortIndex（insertBetween）",
+        location: "lib/presentation/tasks/utils/sort_index_calculator.dart",
+        note: "完全复用，无需修改",
+      },
+      {
+        component: "SortIndexService.reorderIds()",
+        usage: "用于批量重排序节点的 sortIndex",
+        location: "lib/core/services/sort_index_service_reorder.dart",
+        note: "需要创建类似的 NodeSortIndexService，或者让 NodeService 使用类似的逻辑",
+      },
+      {
+        component: "IdGenerator.generateId()",
+        usage: "用于生成节点的 UUID v4 ID",
+        location: "lib/core/utils/id_generator.dart",
+        note: "完全复用，无需修改",
+      },
+      {
+        component: "Repository/Service 分层架构",
+        usage: "遵循现有的 Repository 接口和 Service 层架构模式",
+        location: "lib/data/repositories/, lib/core/services/",
+        note: "完全复用架构模式，保持一致性",
+      },
+      {
+        component: "Provider 状态管理",
+        usage: "使用 Riverpod Provider 管理节点状态，遵循现有的 Provider 规范",
+        location: "lib/core/providers/",
+        note: "完全复用架构模式，保持一致性",
+      },
+    ],
+    
+    // 可以重构的组件
+    refactoringOpportunities: [
+      {
+        component: "DismissibleTaskTile",
+        currentState: "专门为 Task 设计的滑动组件",
+        opportunity: "可以提取滑动背景构建逻辑为通用方法，但节点和任务的滑动逻辑不同（节点是完成/删除，任务是其他操作），所以保持独立实现更合适",
+        decision: "保持独立实现，但可以参考 DismissibleTaskTile 的实现模式",
+        location: "lib/presentation/widgets/dismissible_task_tile.dart",
+        note: "节点滑动逻辑相对简单（完成/删除），不需要复杂的配置系统，独立实现更清晰",
+      },
+      {
+        component: "TaskRowTitleEditor",
+        currentState: "专门为 Task 设计的标题内联编辑组件",
+        opportunity: "可以提取通用的内联编辑组件，但节点编辑逻辑相对简单（不需要全局状态管理），所以保持独立实现更合适",
+        decision: "保持独立实现，但可以参考 TaskRowTitleEditor 的实现模式（FocusNode、TextField、保存逻辑）",
+        location: "lib/presentation/widgets/task_row_content/task_row_title_editor.dart",
+        note: "节点编辑不需要全局状态管理（currentEditingTaskIdProvider），实现更简单",
+      },
+      {
+        component: "SortIndexService.reorderIds()",
+        currentState: "专门为 Task 设计的批量重排序方法",
+        opportunity: "可以创建通用的批量重排序工具类，或者让 NodeService 使用类似的逻辑",
+        decision: "在 NodeService 中实现类似的 reorderNodes 方法，复用排序逻辑模式，但使用 NodeRepository",
+        location: "lib/core/services/sort_index_service_reorder.dart",
+        note: "节点和任务的排序逻辑相同，但 Repository 接口不同，所以保持独立实现但复用逻辑模式",
+      },
+    ],
+    
+    // 代码复用原则
+    reusePrinciples: [
+      "优先复用现有的工具类和计算逻辑（SortIndexCalculator、IdGenerator）",
+      "遵循现有的架构模式（Repository/Service 分层、Provider 状态管理）",
+      "对于 UI 组件，如果逻辑差异较大，保持独立实现但参考现有实现模式",
+      "对于业务逻辑，如果逻辑相同，复用逻辑模式但保持独立实现（因为 Repository 接口不同）",
+      "避免过度抽象，保持代码清晰和可维护性",
+    ],
+  },
+
+  // ===========================================
+  // 6. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // 数据库版本升级
+      databaseVersion: {
+        recommendation: "将 schemaVersion 从 1 升级到 2，在 onUpgrade 中创建新表",
+        reason: "新增了 Nodes 表，需要数据库版本升级",
+        migrationStrategy: "在 onUpgrade 中调用 m.createAll() 创建新表（只创建新表，不影响现有数据）",
+        note: "由于是新增表，不会影响现有数据。即使不需要保存老数据，也应该在 onUpgrade 中添加创建新表的逻辑，这样：1) 如果用户有现有数据（任务、项目等），只创建新表，保留现有数据；2) 如果用户没有数据，onCreate 会创建所有表。这是最佳实践，确保升级过程可控。",
+      },
+      // 状态管理方案
+      stateManagement: {
+        method: "使用 Riverpod Provider 管理节点状态",
+        stateManagement: "StreamProvider 监听节点列表变化，Provider 构建节点树结构",
+        rollback: "如果 Provider 出现问题，可以回退到直接查询 Repository",
+      },
+      // 拖拽排序实现
+      dragAndDrop: {
+        method: "使用 ReorderableListView 实现同级节点拖拽排序",
+        constraint: "只允许同级节点之间拖拽，跨层级拖拽应该被阻止",
+        note: "需要在拖拽时验证节点的 parentId 是否相同",
+      },
+      // 内联编辑实现
+      inlineEditing: {
+        method: "使用 TextField 替换节点标题文本，实现内联编辑",
+        saveTrigger: "按回车键或失去焦点时保存",
+        note: "参考任务标题编辑的实现方式，保持一致的交互体验",
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 类型安全
+      typeSafety: {
+        rule: "所有方法必须使用强类型，通过 mypy 验证",
+        location: "所有新增文件",
+        example: "Future<Node> createNode({required String taskId, required String title})",
+        note: "遵循项目的类型安全规范",
+      },
+      // Repository 接口规范
+      repositoryInterface: {
+        rule: "Repository 接口必须定义所有 CRUD 和查询方法",
+        location: "lib/data/repositories/node_repository.dart",
+        example: "参考 TaskRepository 接口的定义方式",
+        note: "保持与现有 Repository 接口的一致性",
+      },
+      // Service 层规范
+      serviceLayer: {
+        rule: "Service 层封装业务逻辑，不直接操作数据库",
+        location: "lib/core/services/node_service.dart",
+        example: "参考 TaskService 的实现方式",
+        note: "Service 层调用 Repository 层，处理业务逻辑",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      optimization: [
+        "使用批量更新（batchUpdate）减少数据库操作",
+        "使用 Stream 监听节点变化，避免频繁查询",
+        "节点树结构缓存，避免重复构建",
+        "拖拽排序时，只更新受影响节点的 sortIndex",
+        "折叠功能减少渲染的节点数量",
+      ],
+      monitoring: [
+        "监控节点数量，如果节点过多可能影响性能",
+        "监控拖拽排序的响应时间",
+        "监控节点树构建的时间复杂度",
+      ],
+    },
+    
+    // 安全考虑
+    security: {
+      concerns: [
+        "验证节点属于指定任务（防止跨任务操作）",
+        "验证拖拽排序的节点属于同一父节点（防止跨层级操作）",
+        "验证用户权限（如果需要）",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 7. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // 数据层依赖
+    dataLayer: [
+      "lib/data/drift/tables/nodes.dart",
+      "lib/data/models/node.dart",
+      "lib/data/drift/converters.dart",
+      "lib/data/drift/database.dart",
+    ],
+    
+    // Repository 层依赖
+    repositoryLayer: [
+      "lib/data/repositories/node_repository.dart",
+      "lib/data/repositories/drift/drift_node_repository.dart",
+      "lib/core/providers/repository_providers.dart",
+    ],
+    
+    // 服务层依赖
+    serviceLayer: [
+      "lib/core/services/node_service.dart",
+      "lib/core/providers/service_providers.dart",
+    ],
+    
+    // Provider 层依赖
+    providerLayer: [
+      "lib/core/providers/node_providers.dart",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/widgets/tri_state_checkbox.dart",
+      "lib/presentation/widgets/dismissible_node_tile.dart",
+      "lib/presentation/widgets/task_nodes_list.dart",
+      "lib/presentation/widgets/task_action_bottom_sheet.dart",
+    ],
+  },
+
+  // ===========================================
+  // 8. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        file: "test/data/models/node_test.dart",
+        description: "测试 Node 数据模型",
+        testCases: [
+          {
+            group: "Node 创建和属性",
+            cases: [
+              {
+                name: "应该正确创建 Node 实例",
+                test: "创建 Node → 验证所有字段正确设置",
+              },
+              {
+                name: "应该支持 copyWith 部分更新",
+                test: "创建 Node → 调用 copyWith 更新部分字段 → 验证只有指定字段被更新",
+              },
+              {
+                name: "应该正确比较 Node 实例",
+                test: "创建两个相同的 Node → 验证 == 返回 true，hashCode 相同",
+              },
+            ],
+          },
+          {
+            group: "NodeStatus 枚举",
+            cases: [
+              {
+                name: "应该包含三种状态",
+                test: "验证 NodeStatus 枚举包含 pending、finished、deleted",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/data/repositories/drift/drift_node_repository_test.dart",
+        description: "测试 DriftNodeRepository 实现",
+        testCases: [
+          {
+            group: "节点 CRUD 操作",
+            cases: [
+              {
+                name: "应该能够创建节点",
+                test: "调用 createNode → 验证节点被正确插入数据库 → 验证返回的 Node 包含所有字段",
+              },
+              {
+                name: "应该能够更新节点标题",
+                test: "创建节点 → 调用 updateNode 更新标题 → 验证标题被更新",
+              },
+              {
+                name: "应该能够更新节点状态",
+                test: "创建节点 → 调用 updateNode 更新状态 → 验证状态被更新",
+              },
+              {
+                name: "应该能够删除节点（软删除）",
+                test: "创建节点 → 调用 deleteNode → 验证节点状态变为 deleted",
+              },
+              {
+                name: "应该能够删除节点及其子节点",
+                test: "创建父节点和子节点 → 调用 deleteNodeWithChildren → 验证父节点和所有子节点状态都变为 deleted",
+              },
+              {
+                name: "应该能够恢复已删除的节点",
+                test: "删除节点 → 调用 restoreNode → 验证节点状态恢复为 pending",
+              },
+            ],
+          },
+          {
+            group: "节点查询",
+            cases: [
+              {
+                name: "应该能够查询任务的所有节点",
+                test: "创建多个节点 → 调用 listNodesByTaskId → 验证返回所有节点，按 sortIndex 排序",
+              },
+              {
+                name: "应该能够查询子节点",
+                test: "创建父节点和子节点 → 调用 listChildrenByParentId → 验证返回所有子节点",
+              },
+              {
+                name: "应该能够监听节点变化",
+                test: "调用 watchNodesByTaskId → 创建新节点 → 验证 Stream 发出更新",
+              },
+            ],
+          },
+          {
+            group: "节点排序和移动",
+            cases: [
+              {
+                name: "应该能够批量重排序节点",
+                test: "创建多个节点 → 调用 reorderNodes → 验证节点的 sortIndex 被正确更新",
+              },
+              {
+                name: "应该能够移动节点到新的父节点",
+                test: "创建节点和新的父节点 → 调用 moveNode → 验证节点的 parentId 和 sortIndex 被更新",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/core/services/node_service_test.dart",
+        description: "测试 NodeService 业务逻辑",
+        testCases: [
+          {
+            group: "节点创建",
+            cases: [
+              {
+                name: "应该能够创建根节点",
+                test: "调用 createNode（parentId 为 null）→ 验证节点被创建，sortIndex 自动计算",
+              },
+              {
+                name: "应该能够创建子节点",
+                test: "创建父节点 → 调用 createNode（指定 parentId）→ 验证子节点被创建，sortIndex 自动计算",
+              },
+              {
+                name: "应该自动计算 sortIndex",
+                test: "创建多个同级节点 → 验证新节点的 sortIndex 为最大 sortIndex + 1024",
+              },
+            ],
+          },
+          {
+            group: "节点状态管理",
+            cases: [
+              {
+                name: "应该能够切换节点状态",
+                test: "创建节点 → 调用 updateNodeStatus → 验证节点状态被更新",
+              },
+              {
+                name: "删除节点时应该同时删除子节点",
+                test: "创建父节点和子节点 → 调用 deleteNode → 验证父节点和所有子节点状态都变为 deleted",
+              },
+            ],
+          },
+          {
+            group: "节点排序",
+            cases: [
+              {
+                name: "应该能够重排序同级节点",
+                test: "创建多个同级节点 → 调用 reorderNodes → 验证节点的 sortIndex 被正确更新",
+              },
+              {
+                name: "应该验证节点属于同一父节点",
+                test: "创建不同父节点的子节点 → 调用 reorderNodes → 验证抛出错误",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/widgets/tri_state_checkbox_test.dart",
+        description: "测试三态复选框组件",
+        testCases: [
+          {
+            group: "三态复选框显示",
+            cases: [
+              {
+                name: "应该正确显示 pending 状态",
+                test: "创建 TriStateCheckbox（value: pending）→ 验证显示空圆圈",
+              },
+              {
+                name: "应该正确显示 finished 状态",
+                test: "创建 TriStateCheckbox（value: finished）→ 验证显示实心圆圈 + 勾选图标",
+              },
+              {
+                name: "应该正确显示 deleted 状态",
+                test: "创建 TriStateCheckbox（value: deleted）→ 验证显示实心圆圈 + X 图标",
+              },
+            ],
+          },
+          {
+            group: "三态复选框交互",
+            cases: [
+              {
+                name: "点击应该循环切换状态",
+                test: "创建 TriStateCheckbox（value: pending）→ 点击 → 验证状态变为 finished → 点击 → 验证状态变为 deleted → 点击 → 验证状态变为 pending",
+              },
+              {
+                name: "禁用时不应该切换状态",
+                test: "创建 TriStateCheckbox（onChanged: null）→ 点击 → 验证状态不变",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/presentation/widgets/task_nodes_list_test.dart",
+        description: "测试任务节点列表组件",
+        testCases: [
+          {
+            group: "节点列表渲染",
+            cases: [
+              {
+                name: "节点列表为空时应该隐藏",
+                test: "创建 TaskNodesList（空节点列表）→ 验证返回 SizedBox.shrink()",
+              },
+              {
+                name: "应该正确渲染根节点",
+                test: "创建 TaskNodesList（有根节点）→ 验证根节点被渲染",
+              },
+              {
+                name: "应该递归渲染子节点",
+                test: "创建 TaskNodesList（有父节点和子节点）→ 验证父节点和子节点都被渲染，子节点有缩进",
+              },
+            ],
+          },
+          {
+            group: "内联编辑",
+            cases: [
+              {
+                name: "点击节点标题应该进入编辑模式",
+                test: "创建 TaskNodesList → 点击节点标题 → 验证标题变为 TextField",
+              },
+              {
+                name: "按回车应该保存标题",
+                test: "进入编辑模式 → 修改标题 → 按回车 → 验证标题被保存",
+              },
+              {
+                name: "失去焦点应该保存标题",
+                test: "进入编辑模式 → 修改标题 → 点击外部 → 验证标题被保存",
+              },
+            ],
+          },
+          {
+            group: "添加子节点",
+            cases: [
+              {
+                name: "点击 '+' 按钮应该显示输入框",
+                test: "创建 TaskNodesList → 点击节点的 '+' 按钮 → 验证在节点下方显示输入框",
+              },
+              {
+                name: "输入后按回车应该创建子节点",
+                test: "显示输入框 → 输入标题 → 按回车 → 验证子节点被创建",
+              },
+            ],
+          },
+          {
+            group: "拖拽排序",
+            cases: [
+              {
+                name: "应该能够拖拽同级节点",
+                test: "创建多个同级节点 → 拖拽节点到新位置 → 验证节点顺序被更新",
+              },
+              {
+                name: "不应该允许跨层级拖拽",
+                test: "创建不同层级的节点 → 尝试跨层级拖拽 → 验证拖拽被阻止",
+              },
+            ],
+          },
+          {
+            group: "折叠/展开",
+            cases: [
+              {
+                name: "点击折叠按钮应该隐藏子节点",
+                test: "创建有子节点的节点树 → 点击折叠按钮 → 验证所有子节点被隐藏",
+              },
+              {
+                name: "点击展开按钮应该显示子节点",
+                test: "折叠节点树 → 点击展开按钮 → 验证所有子节点被显示",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        file: "integration_test/task_nodes_test.dart",
+        description: "测试节点功能的端到端流程",
+        testCases: [
+          {
+            group: "节点创建和管理",
+            cases: [
+              {
+                name: "应该能够创建和管理节点",
+                test: "打开任务弹窗 → 添加根节点 → 添加子节点 → 编辑节点标题 → 切换节点状态 → 删除节点 → 验证所有操作成功",
+              },
+              {
+                name: "应该能够拖拽排序节点",
+                test: "创建多个同级节点 → 拖拽节点到新位置 → 验证节点顺序被保存",
+              },
+              {
+                name: "应该能够滑动完成和删除节点",
+                test: "创建节点 → 右滑完成节点 → 验证节点状态变为 finished → 左滑删除节点 → 验证节点状态变为 deleted",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 9. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "数据库版本升级可能导致现有数据不兼容",
+      mitigation: "由于是新增表，不会影响现有数据。在 onUpgrade 中调用 m.createAll() 创建新表，只创建新表，不影响现有数据。这是最佳实践，确保升级过程可控。",
+      priority: "low",
+      check: "验证现有任务数据不受影响，新表被正确创建",
+      enforcement: "在测试中验证现有功能正常，新表可以正常使用",
+    },
+    {
+      risk: "节点数量过多可能影响性能",
+      mitigation: "使用 Stream 监听变化，避免频繁查询。实现折叠功能减少渲染的节点数量。使用批量更新优化数据库操作",
+      priority: "medium",
+      check: "测试大量节点（100+）的性能表现",
+      enforcement: "在测试中验证性能指标",
+    },
+    {
+      risk: "拖拽排序时可能跨层级操作",
+      mitigation: "在拖拽时验证节点的 parentId 是否相同，阻止跨层级拖拽",
+      priority: "high",
+      check: "测试跨层级拖拽是否被正确阻止",
+      enforcement: "在代码中添加验证逻辑，在测试中验证",
+    },
+    {
+      risk: "删除节点时可能误删子节点",
+      mitigation: "明确删除逻辑：删除父节点时，所有子节点一起删除。在 UI 上提供清晰的视觉反馈",
+      priority: "medium",
+      check: "测试删除有子节点的节点，验证子节点也被删除",
+      enforcement: "在代码中实现递归删除逻辑，在测试中验证",
+    },
+    {
+      risk: "内联编辑可能与拖拽冲突",
+      mitigation: "编辑状态时禁用拖拽，使用 isEditingNotifier 控制拖拽的启用/禁用",
+      priority: "medium",
+      check: "测试编辑节点时是否能够拖拽",
+      enforcement: "在代码中添加编辑状态检查，在测试中验证",
+    },
+    {
+      risk: "节点树构建可能性能问题",
+      mitigation: "使用 Provider 缓存节点树结构，避免重复构建。只在节点列表变化时重新构建",
+      priority: "medium",
+      check: "测试大量节点时的树构建性能",
+      enforcement: "使用性能分析工具监控树构建时间",
+    },
+  ],
+
+  // ===========================================
+  // 10. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试和 Widget 测试通过",
+      "运行 integration_test，确保集成测试通过",
+      "代码审查，确保符合代码规范",
+      "确保所有新增代码通过 mypy 类型检查（如果适用）",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证能够创建根节点和子节点",
+      "验证能够编辑节点标题（内联编辑）",
+      "验证能够切换节点状态（通过复选框和滑动）",
+      "验证能够删除节点（软删除，显示删除状态）",
+      "验证能够恢复已删除的节点",
+      "验证能够拖拽排序同级节点",
+      "验证能够折叠/展开节点树",
+      "验证节点列表为空时隐藏",
+      "验证删除父节点时，所有子节点一起删除",
+      "验证节点不会出现在回收站",
+    ],
+    
+    // 性能验证
+    performance: [
+      "测试大量节点（100+）的渲染性能",
+      "测试拖拽排序的响应时间",
+      "测试节点树构建的时间复杂度",
+      "测试数据库查询性能",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "验证在 Light 和 Dark 模式下都正常显示",
+      "验证在不同屏幕尺寸下都正常显示",
+      "验证滑动操作在不同设备上都能正常工作",
+    ],
+  },
+
+  // ===========================================
+  // 11. 国际化需求（必填）
+  // ===========================================
+  i18n: {
+    // 需要添加的本地化字符串
+    strings: [
+      {
+        key: "nodeAddButton",
+        en: "Add Node",
+        zh_CN: "添加节点",
+        zh_HK: "添加節點",
+        note: "添加根节点的按钮文本",
+      },
+      {
+        key: "nodeTitleHint",
+        en: "Node title",
+        zh_CN: "节点标题",
+        zh_HK: "節點標題",
+        note: "节点标题输入框的占位符",
+      },
+      {
+        key: "nodeDeleteConfirm",
+        en: "Delete this node?",
+        zh_CN: "删除此节点？",
+        zh_HK: "刪除此節點？",
+        note: "删除节点的确认提示（如果需要）",
+      },
+      {
+        key: "nodeRestoreAction",
+        en: "Restore",
+        zh_CN: "恢复",
+        zh_HK: "恢復",
+        note: "恢复已删除节点的操作提示",
+      },
+    ],
+    // 需要修改的本地化文件
+    files: [
+      "lib/l10n/app_en.arb",
+      "lib/l10n/app_zh_CN.arb",
+      "lib/l10n/app_zh_HK.arb",
+    ],
+  },
+
+  // ===========================================
+  // 12. 数据与状态（必填）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "新增 Node 数据模型：包含 id、parentId、taskId、title、status、sortIndex、createdAt、updatedAt 字段",
+      "新增 NodeStatus 枚举：pending、finished、deleted 三种状态",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "新增 nodes 数据库表",
+      "数据库 schemaVersion 从 1 升级到 2",
+      "nodes 表包含外键约束：taskId 引用 tasks(id)，parentId 引用 nodes(id)",
+      "外键约束使用 CASCADE 删除：删除任务时自动删除所有节点，删除父节点时自动删除所有子节点",
+      "nodes 表包含索引：taskId、parentId、taskId+parentId+sortIndex（用于查询和排序）",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "新增 nodeRepositoryProvider：提供 NodeRepository 实例",
+      "新增 nodeServiceProvider：提供 NodeService 实例",
+      "新增 taskNodesProvider：StreamProvider，监听任务的所有节点",
+      "新增 taskNodesTreeProvider：Provider，构建节点树结构",
+      "节点列表状态通过 Stream 自动更新，无需手动刷新",
+    ],
+  },
+}
+

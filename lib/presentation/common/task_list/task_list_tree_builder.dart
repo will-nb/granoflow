@@ -1,5 +1,4 @@
 import '../../../../data/models/task.dart';
-import '../../../../core/services/sort_index_service.dart';
 import '../../tasks/utils/task_collection_utils.dart';
 
 /// 任务列表树构建工具类

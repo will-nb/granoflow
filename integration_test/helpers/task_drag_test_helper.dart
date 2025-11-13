@@ -244,12 +244,7 @@ class TaskDragTestHelper {
       }
     }
 
-    // 验证 parentId
-    if (expectedParentId != null) {
-      if (task.parentId != expectedParentId) {
-        return false;
-      }
-    }
+    // 层级功能已移除，不再验证 parentId
 
     // 验证 sortIndex
     if (expectedSortIndex != null) {

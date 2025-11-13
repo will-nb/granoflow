@@ -6,9 +6,9 @@ void main() {
   group('collectRoots', () {
     test('returns all tasks when none have parents', () {
       final tasks = [
-        _createTask(id: '1', 
-        _createTask(id: '2', 
-        _createTask(id: '3', 
+        _createTask(id: '1'),
+        _createTask(id: '2'),
+        _createTask(id: '3'), 
       ];
 
       final roots = collectRoots(tasks);
@@ -17,25 +17,26 @@ void main() {
       expect(roots.map((t) => t.id), ['1', '2', '3']);
     });
 
-    test('filters out tasks with parents in the list', () {
+    test('returns all tasks (hierarchy removed)', () {
       final tasks = [
-        _createTask(id: '1', 
-        _createTask(id: '2', 
-        _createTask(id: '3', 
-        _createTask(id: '4', 
+        _createTask(id: '1'),
+        _createTask(id: '2'),
+        _createTask(id: '3'), 
+        _createTask(id: '4'),
       ];
 
       final roots = collectRoots(tasks);
 
-      expect(roots.length, 2);
-      expect(roots.map((t) => t.id), ['1', '3']);
+      // 层级功能已移除，返回所有任务
+      expect(roots.length, 4);
+      expect(roots.map((t) => t.id), ['1', '2', '3', '4']);
     });
 
     test('includes tasks whose parents are not in the list', () {
       final tasks = [
-        _createTask(id: '1', 
-        _createTask(id: '2',  // parent not in list
-        _createTask(id: '3', 
+        _createTask(id: '1'),
+        _createTask(id: '2'),  // parent not in list
+        _createTask(id: '3'), 
       ];
 
       final roots = collectRoots(tasks);
@@ -47,9 +48,9 @@ void main() {
     test('sorts tasks by sortIndex when no dueAt (Inbox behavior)', () {
       // 当任务没有 dueAt 时，collectRoots 会按 sortIndex 升序排序（Inbox 页面行为）
       final tasks = [
-        _createTask(id: '3',  // sortIndex: 3 * 1024 = 3072
-        _createTask(id: '1',  // sortIndex: 1 * 1024 = 1024
-        _createTask(id: '2',  // sortIndex: 2 * 1024 = 2048
+        _createTask(id: '3'),  // sortIndex: 3 * 1024 = 3072
+        _createTask(id: '1'),  // sortIndex: 1 * 1024 = 1024
+        _createTask(id: '2'),  // sortIndex: 2 * 1024 = 2048
       ];
 
       final roots = collectRoots(tasks);
@@ -65,7 +66,8 @@ void main() {
   });
 }
 
-Task _createTask({required String id, String? parentId}) {
+Task _createTask({required String id}) {
+  // 层级功能已移除，不再需要 parentId 参数
   // 使用固定的时间基准，确保排序可预测
   // sortIndex 设置为 id 的数值 * 1024，确保每个任务有唯一的 sortIndex
   final baseTime = DateTime(2025, 1, 1);

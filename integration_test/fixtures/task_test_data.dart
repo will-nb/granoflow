@@ -3,7 +3,7 @@ import 'package:granoflow/core/utils/task_section_utils.dart';
 
 /// 测试数据生成器
 ///
-/// 用于生成测试任务数据，包括不同 title、dueAt、parentId 的任务
+/// 用于生成测试任务数据，包括不同 title、dueAt 的任务
 class TaskTestData {
   TaskTestData._();
 
@@ -12,7 +12,7 @@ class TaskTestData {
     required String id,
     required String title,
     DateTime? dueAt,
-    String? parentId,
+    // 层级功能已移除，不再需要 parentId 参数
     double sortIndex = 1000.0,
     TaskStatus status = TaskStatus.pending,
     DateTime? createdAt,
@@ -24,7 +24,7 @@ class TaskTestData {
 
       title: title,
       dueAt: dueAt,
-      parentId: parentId,
+      // 层级功能已移除，不再需要 parentId
       sortIndex: sortIndex,
       status: status,
       createdAt: createdAt ?? now,
@@ -192,7 +192,7 @@ class TaskTestData {
       id: rootTaskId.toString(),
       title: '根任务 $rootTaskId',
       dueAt: dueAt,
-      parentId: null,
+      // 层级功能已移除，不再需要 parentId
       sortIndex: 1000.0,
       status: TaskStatus.pending,
     );
@@ -205,7 +205,7 @@ class TaskTestData {
           id: (rootTaskId + 100 + i).toString(),
           title: '子任务 $i',
           dueAt: dueAt,
-          parentId: rootTaskId.toString(),
+          // 层级功能已移除，不再需要 parentId
           sortIndex: 1000.0 + (i * 1000.0),
           status: TaskStatus.pending,
         ),
@@ -224,7 +224,7 @@ class TaskTestData {
           id: (startId + i).toString(),
           title: 'Inbox 测试任务 $i',
           dueAt: null,
-          parentId: null,
+          // 层级功能已移除，不再需要 parentId
           sortIndex: 1000.0 + (i * 1000.0),
           status: TaskStatus.inbox,
         ),

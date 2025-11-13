@@ -191,10 +191,9 @@ void main() {
           expect(task.title, isNotEmpty, reason: '任务应该有标题');
         }
 
-        // 验证有根任务（parentId == null）
-        final rootTasks = tasks.where((t) => t.parentId == null).toList();
-        expect(rootTasks.length, greaterThan(0),
-            reason: '应该至少有一个根任务');
+        // 层级功能已移除，所有任务都是根任务
+        expect(tasks.length, greaterThan(0),
+            reason: '应该至少有一个任务');
 
         // 验证有项目任务（projectId != null）
         final projectTasks = tasks.where((t) => t.projectId != null).toList();

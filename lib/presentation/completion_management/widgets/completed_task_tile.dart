@@ -34,8 +34,6 @@ class CompletedTaskTile extends ConsumerWidget {
     final isCompleted = task.status == TaskStatus.completedActive;
     
     // 层级功能已移除，不再显示子任务
-    final hasChildren = false;
-    final isExpanded = false;
 
     // 构建任务内容，使用简化的 TaskRowContent，但替换完成时间显示
     final taskContent = Column(

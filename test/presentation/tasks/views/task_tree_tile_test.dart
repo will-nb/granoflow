@@ -7,7 +7,6 @@ import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/tasks/views/task_tree_tile.dart';
-import 'package:granoflow/presentation/tasks/views/task_section_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 

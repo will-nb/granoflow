@@ -23,8 +23,15 @@ class AppNavigationBar extends StatelessWidget {
         .where((d) => d != NavigationDestinations.add)
         .toList();
 
+    final colorScheme = Theme.of(context).colorScheme;
+    // 浅色模式使用 surfaceContainerHighest 增强对比度，深色模式使用 surface
+    final backgroundColor = colorScheme.brightness == Brightness.light
+        ? colorScheme.surfaceContainerHighest
+        : colorScheme.surface;
+
     return BottomAppBar(
       height: 50.0, // 保持高度 50dp
+      color: backgroundColor, // 根据主题设置背景色
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0, // FAB 与导航栏的间距，调整以确保 FAB 与其他图标底部对齐
       child: Row(

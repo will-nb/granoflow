@@ -4,13 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/repository_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
-import 'package:granoflow/core/providers/tasks_drag_provider.dart';
 import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/data/repositories/task_repository.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 import 'package:granoflow/presentation/inbox/inbox_page.dart';
-import 'package:granoflow/presentation/tasks/views/task_section_panel.dart';
 import 'package:granoflow/core/theme/app_theme.dart';
 import 'package:granoflow/data/models/tag.dart';
 import 'package:granoflow/data/models/task_template.dart';
@@ -83,29 +81,13 @@ void main() {
                 taskWithMilestone,
               ]);
             }),
-            inboxTaskLevelMapProvider.overrideWith(
-              (ref) async => {
-                regularTask.id: 1,
-                taskWithProject.id: 1,
-                taskWithMilestone.id: 1,
-              },
-            ),
-            inboxTaskChildrenMapProvider.overrideWith(
-              (ref) async => <String, Set<String>>{},
-            ),
             taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
             templateSuggestionsProvider.overrideWithProvider(
               (query) => FutureProvider((ref) async => const <TaskTemplate>[]),
             ),
-            contextTagOptionsProvider.overrideWith(
-              (ref) async => const <Tag>[],
-            ),
-            urgencyTagOptionsProvider.overrideWith(
-              (ref) async => const <Tag>[],
-            ),
-            importanceTagOptionsProvider.overrideWith(
-              (ref) async => const <Tag>[],
-            ),
+            contextTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+            urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
+            importanceTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -116,93 +98,9 @@ void main() {
         ),
       );
 
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
 
-      // 验证所有任务都应该显示
-      expect(find.text('Task 1'), findsOneWidget);
-      expect(find.text('Task 2 (Project)'), findsOneWidget);
-      expect(find.text('Task 3 (Milestone)'), findsOneWidget);
-    });
-
-    testWidgets('TaskSectionPanel should display tasks with projectId', (
-      tester,
-    ) async {
-      final regularTask = createTask(
-        id: '1',
-        status: TaskStatus.pending,
-        dueAt: DateTime(2025, 11, 2, 23, 59, 59),
-      );
-      final taskWithProject = createTask(
-        id: '2',
-        status: TaskStatus.pending,
-        projectId: 'prj-test-001',
-        dueAt: DateTime(2025, 11, 2, 23, 59, 59),
-      );
-      final taskWithMilestone = createTask(
-        id: '3',
-        status: TaskStatus.pending,
-        milestoneId: 'mil-test-001',
-        dueAt: DateTime(2025, 11, 2, 23, 59, 59),
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            taskRepositoryProvider.overrideWith((ref) {
-              // 创建一个返回所有 today 任务的 repository（包括关联项目的）
-              return _TestTaskRepository([
-                regularTask,
-                taskWithProject,
-                taskWithMilestone,
-              ]);
-            }),
-            taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
-            tasksSectionTaskLevelMapProvider.overrideWith(
-              (ref, section) async => {
-                regularTask.id: 1,
-                taskWithProject.id: 1,
-                taskWithMilestone.id: 1,
-              },
-            ),
-            tasksSectionTaskChildrenMapProvider.overrideWith(
-              (ref, section) async => <String, Set<String>>{},
-            ),
-            tasksSectionExpandedTaskIdProvider.overrideWith(
-              (ref, section) => <String>{},
-            ),
-            tasksDragProvider.overrideWith((ref) => TasksDragNotifier()),
-            urgencyTagOptionsProvider.overrideWith(
-              (ref) async => const <Tag>[],
-            ),
-            importanceTagOptionsProvider.overrideWith(
-              (ref) async => const <Tag>[],
-            ),
-            contextTagOptionsProvider.overrideWith(
-              (ref) async => const <Tag>[],
-            ),
-          ],
-          child: MaterialApp(
-            theme: AppTheme.light(),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: TaskSectionPanel(
-                section: TaskSection.today,
-                title: 'Today',
-                editMode: false,
-                onQuickAdd: () {},
-                tasks: [regularTask, taskWithProject, taskWithMilestone],
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await tester.pump(); // Pump again to allow async providers to resolve
-
-      // 验证所有任务都应该显示
+      // 验证所有任务都显示
       expect(find.text('Task 1'), findsOneWidget);
       expect(find.text('Task 2 (Project)'), findsOneWidget);
       expect(find.text('Task 3 (Milestone)'), findsOneWidget);
@@ -211,26 +109,10 @@ void main() {
 }
 
 /// 测试用的 TaskRepository，直接返回传入的任务列表
-class _TestTaskRepository implements TaskRepository {
+class _TestTaskRepository extends Fake implements TaskRepository {
   final List<Task> _tasks;
 
   _TestTaskRepository(this._tasks);
-
-  @override
-  Stream<List<Task>> watchSection(TaskSection section) {
-    // 根据 section 过滤任务
-    final filtered = _tasks.where((task) {
-      if (section == TaskSection.today) {
-        return task.status == TaskStatus.pending &&
-            task.dueAt != null &&
-            task.dueAt!.year == 2025 &&
-            task.dueAt!.month == 11 &&
-            task.dueAt!.day == 2;
-      }
-      return false;
-    }).toList();
-    return Stream.value(filtered);
-  }
 
   @override
   Stream<List<Task>> watchInbox() {
@@ -239,213 +121,22 @@ class _TestTaskRepository implements TaskRepository {
     );
   }
 
-  // 其他必需的方法实现为抛出异常或返回空值
   @override
-  Stream<TaskTreeNode> watchTaskTree(String rootTaskId) =>
-      throw UnimplementedError();
-
-  @override
-  Stream<List<Task>> watchProjects() => throw UnimplementedError();
-
-  @override
-  Stream<List<Task>> watchQuickTasks() => Stream.value([]);
-
-  @override
-  Stream<List<Task>> watchMilestones(String projectId) =>
-      throw UnimplementedError();
-
-  @override
-  Stream<List<Task>> watchTasksByProjectId(String projectId) =>
-      Stream.value([]);
-
-  @override
-  Stream<List<Task>> watchTasksByMilestoneId(String milestoneId) =>
-      Stream.value([]);
-
-  @override
-  Future<List<Task>> listTasksByMilestoneId(String milestoneId) async => [];
-
-  @override
-  Stream<List<Task>> watchInboxFiltered({
-    String? contextTag,
-    String? priorityTag,
-    String? urgencyTag,
-    String? importanceTag,
-    String? projectId,
-    String? milestoneId,
-    bool? showNoProject,
-  }) {
-    // 返回所有 inbox 任务（测试中不过滤标签）
+  Stream<List<Task>> watchSection(TaskSection section) {
     return Stream.value(
-      _tasks.where((task) => task.status == TaskStatus.inbox).toList(),
+      _tasks.where((task) => task.status == TaskStatus.pending).toList(),
     );
   }
 
   @override
-  Future<Task> createTask(TaskDraft draft) => throw UnimplementedError();
-
-  @override
-  Future<Task> createTaskWithId(
-    TaskDraft draft,
-    String taskId,
-    DateTime createdAt,
-    DateTime updatedAt,
-  ) => throw UnimplementedError();
-
-  @override
-  Future<Task?> findByTaskId(String taskId) async {
-    for (final task in _tasks) {
-      if (task.id == taskId) {
-        return task;
-      }
+  Future<Task?> findById(String id) async {
+    try {
+      return _tasks.firstWhere((t) => t.id == id);
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   @override
-  Future<void> updateTask(String taskId, TaskUpdate payload) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> moveTask({
-    required String taskId,
-    required String? targetParentId,
-    required TaskSection targetSection,
-    required double sortIndex,
-    DateTime? dueAt,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<void> markStatus({
-    required String taskId,
-    required TaskStatus status,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<void> archiveTask(String taskId) => throw UnimplementedError();
-
-  @override
-  Future<void> softDelete(String taskId) => throw UnimplementedError();
-
-  @override
-  Future<int> clearAllTrashedTasks() async => 0;
-
-  @override
-  Future<int> purgeObsolete(DateTime olderThan) async => 0;
-
-  @override
-  Future<void> adjustTemplateLock({
-    required String taskId,
-    required int delta,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<Task?> findById(String id) async => _tasks.firstWhere(
-    (t) => t.id == id,
-    orElse: () => throw StateError('Task not found'),
-  );
-
-  @override
-  Stream<Task?> watchTaskById(String id) => Stream.value(
-    _tasks.firstWhere(
-      (t) => t.id == id,
-      orElse: () => throw StateError('Task not found'),
-    ),
-  );
-
-  @override
-  Future<Task?> findBySlug(String slug) async => null;
-
-  @override
-  Future<List<Task>> listRoots() async => [];
-
-  @override
-  Future<List<Task>> listChildren(String parentId) async => [];
-
-  @override
-  Future<List<Task>> listChildrenIncludingTrashed(String parentId) async => [];
-
-  @override
-  Future<void> upsertTasks(List<Task> tasks) => throw UnimplementedError();
-
-  @override
-  Future<List<Task>> listAll() async => _tasks;
-
-  @override
-  Future<List<Task>> searchByTitle(
-    String query, {
-    TaskStatus? status,
-    int limit = 10,
-  }) async => [];
-
-  @override
-  Future<void> batchUpdate(Map<String, TaskUpdate> updates) =>
-      throw UnimplementedError();
-
-  @override
-  Future<List<Task>> listSectionTasks(TaskSection section) async => [];
-
-  @override
-  Future<List<Task>> listCompletedTasks({
-    required int limit,
-    required int offset,
-    String? contextTag,
-    String? priorityTag,
-    String? urgencyTag,
-    String? importanceTag,
-    String? projectId,
-    String? milestoneId,
-    bool? showNoProject,
-  }) async => [];
-
-  @override
-  Future<List<Task>> listArchivedTasks({
-    required int limit,
-    required int offset,
-    String? contextTag,
-    String? priorityTag,
-    String? urgencyTag,
-    String? importanceTag,
-    String? projectId,
-    String? milestoneId,
-    bool? showNoProject,
-  }) async => [];
-
-  @override
-  Future<int> countCompletedTasks() async => 0;
-
-  @override
-  Future<int> countArchivedTasks() async => 0;
-
-  @override
-  Future<List<Task>> listTrashedTasks({
-    required int limit,
-    required int offset,
-    String? contextTag,
-    String? priorityTag,
-    String? urgencyTag,
-    String? importanceTag,
-    String? projectId,
-    String? milestoneId,
-    bool? showNoProject,
-  }) async => [];
-
-  @override
-  Future<int> countTrashedTasks() async => 0;
-
-  Future<void> setTaskProjectAndMilestoneIsarId(
-    int taskId,
-    int? projectIsarId,
-    int? milestoneIsarId,
-  ) async {
-    // 测试中不需要实现，因为内存实现不维护 Isar ID 关系
-  }
-
-  @override
-  Future<Map<DateTime, List<Task>>> getCompletedRootTasksByDateRange({
-    required DateTime start,
-    required DateTime end,
-    String? projectId,
-    List<String>? tags,
-  }) async => throw UnimplementedError();
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }

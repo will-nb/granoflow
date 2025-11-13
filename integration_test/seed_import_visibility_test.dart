@@ -98,13 +98,7 @@ void main() {
           expect(foundBySlug!.id, equals(firstTaskWithSlug.id));
         }
 
-        // 验证 listChildren 工作正常
-        if (roots.isNotEmpty) {
-          final firstRoot = roots.first;
-          final children = await taskRepository.listChildren(firstRoot.id);
-          expect(children, isA<List<Task>>(), 
-            reason: 'listChildren 应该返回子任务列表');
-        }
+        // 层级功能已移除，不再需要验证 listChildren
       },
       timeout: const Timeout(Duration(minutes: 2)),
     );

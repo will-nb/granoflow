@@ -110,9 +110,9 @@ class _TaskSectionTaskModeListState
   /// 获取到当前索引为止已经显示的父任务 ID 集合
   Set<String> _getDisplayedParentIdsUpTo(int index) {
     final displayedParentIds = <String>{};
+    // 层级功能已移除，不再需要记录 parentId
     for (int i = 0; i < index; i++) {
       if (i < _roots.length) {
-        final task = _roots[i];
         // 层级功能已移除，不再需要记录 parentId
       }
     }

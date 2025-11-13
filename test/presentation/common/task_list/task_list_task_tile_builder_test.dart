@@ -46,12 +46,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => <String, int>{'1': 1},
-              ),
-              inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => <String, Set<String>>{},
-              ),
+              // 层级功能已移除，不再需要这些 provider
               taskProjectHierarchyProvider.overrideWith(
                 (ref, taskId) => Stream.value(null),
               ),
@@ -120,14 +115,7 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
-                inboxTaskLevelMapProvider.overrideWith(
-                  (ref) async => <String, int>{'1': 1},
-                ),
-                inboxTaskChildrenMapProvider.overrideWith(
-                  (ref) async => <String, Set<String>>{
-                    '1': {'2'},
-                  },
-                ),
+                // 层级功能已移除，不再需要这些 provider
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
                 priorityTagOptionsProvider.overrideWith(
                   (ref) async => const [],
@@ -195,14 +183,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => <String, int>{'1': 1},
-              ),
-              inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => <String, Set<String>>{
-                  '1': {'2'},
-                },
-              ),
+              // 层级功能已移除，不再需要这些 provider
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -269,14 +250,7 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
-                inboxTaskLevelMapProvider.overrideWith(
-                  (ref) async => <String, int>{'1': 1},
-                ),
-                inboxTaskChildrenMapProvider.overrideWith(
-                  (ref) async => <String, Set<String>>{
-                    '1': {'2'},
-                  },
-                ),
+                // 层级功能已移除，不再需要这些 provider
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
                 priorityTagOptionsProvider.overrideWith(
                   (ref) async => const [],
@@ -379,17 +353,7 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
-                tasksSectionTaskLevelMapProvider(
-                  TaskSection.today,
-                ).overrideWith((ref) async => <String, int>{'1': 1, '2': 1}),
-                tasksSectionTaskChildrenMapProvider(
-                  TaskSection.today,
-                ).overrideWith(
-                  (ref) async => <String, Set<String>>{
-                    '1': {'3'},
-                    '2': {'4'},
-                  },
-                ),
+                // 层级功能已移除，不再需要这些 provider
                 taskProjectHierarchyProvider.overrideWith(
                   (ref, taskId) => Stream.value(null),
                 ),
@@ -468,12 +432,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              inboxTaskLevelMapProvider.overrideWith(
-                (ref) async => <String, int>{'1': 2},
-              ),
-              inboxTaskChildrenMapProvider.overrideWith(
-                (ref) async => <String, Set<String>>{},
-              ),
+              // 层级功能已移除，不再需要这些 provider
               contextTagOptionsProvider.overrideWith((ref) async => const []),
               priorityTagOptionsProvider.overrideWith((ref) async => const []),
               urgencyTagOptionsProvider.overrideWith((ref) async => const []),
@@ -539,12 +498,7 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
-                inboxTaskLevelMapProvider.overrideWith(
-                  (ref) async => <String, int>{'1': 2},
-                ),
-                inboxTaskChildrenMapProvider.overrideWith(
-                  (ref) async => <String, Set<String>>{},
-                ),
+                // 层级功能已移除，不再需要这些 provider
                 contextTagOptionsProvider.overrideWith((ref) async => const []),
                 priorityTagOptionsProvider.overrideWith(
                   (ref) async => const [],

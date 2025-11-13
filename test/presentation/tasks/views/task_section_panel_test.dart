@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:granoflow/core/providers/app_providers.dart';
 import 'package:granoflow/core/providers/service_providers.dart';
-import 'package:granoflow/core/providers/tasks_drag_provider.dart';
 import 'package:granoflow/core/services/task_service.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
@@ -51,17 +50,6 @@ void main() {
           urgencyTagOptionsProvider.overrideWith((ref) async => const []),
           importanceTagOptionsProvider.overrideWith((ref) async => const []),
           contextTagOptionsProvider.overrideWith((ref) async => const []),
-          // Mock the new async providers for TasksSectionTaskList
-          tasksSectionTaskLevelMapProvider.overrideWith(
-            (ref, section) async => {task.id: 1},
-          ),
-          tasksSectionTaskChildrenMapProvider.overrideWith(
-            (ref, section) async => <String, Set<String>>{},
-          ),
-          tasksSectionExpandedTaskIdProvider.overrideWith(
-            (ref, section) => <String>{},
-          ),
-          tasksDragProvider.overrideWith((ref) => TasksDragNotifier()),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -72,15 +60,14 @@ void main() {
               title: 'Today',
               editMode: false,
               onQuickAdd: () {},
-              tasks: <Task>[task],
+              tasks: [task],
             ),
           ),
         ),
       ),
     );
 
-    await tester.pump();
-    await tester.pump(); // Pump again to allow async providers to resolve
+    await tester.pumpAndSettle();
 
     expect(find.text('Task 1'), findsOneWidget);
   });

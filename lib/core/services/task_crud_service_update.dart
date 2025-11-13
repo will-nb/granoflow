@@ -17,20 +17,17 @@ class TaskCrudServiceUpdate {
     required MetricOrchestrator metricOrchestrator,
     required MilestoneService milestoneService,
     ProjectService? projectService,
-    required TaskCrudServiceHelpers helpers,
     DateTime Function()? clock,
   }) : _tasks = taskRepository,
        _metricOrchestrator = metricOrchestrator,
        _milestoneService = milestoneService,
        _projectService = projectService,
-       _helpers = helpers,
        _clock = clock ?? DateTime.now;
 
   final TaskRepository _tasks;
   final MetricOrchestrator _metricOrchestrator;
   final MilestoneService _milestoneService;
   final ProjectService? _projectService;
-  final TaskCrudServiceHelpers _helpers;
   final DateTime Function() _clock;
 
   /// 更新任务详情

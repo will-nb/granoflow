@@ -6269,6 +6269,517 @@ class SeedImportLogsCompanion extends UpdateCompanion<SeedImportLog> {
   }
 }
 
+class $NodesTable extends Nodes with TableInfo<$NodesTable, Node> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NodesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _parentIdMeta = const VerificationMeta(
+    'parentId',
+  );
+  @override
+  late final GeneratedColumn<String> parentId = GeneratedColumn<String>(
+    'parent_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<NodeStatus, int> status =
+      GeneratedColumn<int>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<NodeStatus>($NodesTable.$converterstatus);
+  static const VerificationMeta _sortIndexMeta = const VerificationMeta(
+    'sortIndex',
+  );
+  @override
+  late final GeneratedColumn<double> sortIndex = GeneratedColumn<double>(
+    'sort_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    parentId,
+    taskId,
+    title,
+    status,
+    sortIndex,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'nodes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Node> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('parent_id')) {
+      context.handle(
+        _parentIdMeta,
+        parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
+      );
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('sort_index')) {
+      context.handle(
+        _sortIndexMeta,
+        sortIndex.isAcceptableOrUnknown(data['sort_index']!, _sortIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortIndexMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Node map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Node(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      parentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_id'],
+      ),
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      status: $NodesTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      sortIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}sort_index'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $NodesTable createAlias(String alias) {
+    return $NodesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<NodeStatus, int, int> $converterstatus =
+      const EnumIndexConverter<NodeStatus>(NodeStatus.values);
+}
+
+class Node extends DataClass implements Insertable<Node> {
+  final String id;
+  final String? parentId;
+  final String taskId;
+  final String title;
+  final NodeStatus status;
+  final double sortIndex;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Node({
+    required this.id,
+    this.parentId,
+    required this.taskId,
+    required this.title,
+    required this.status,
+    required this.sortIndex,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || parentId != null) {
+      map['parent_id'] = Variable<String>(parentId);
+    }
+    map['task_id'] = Variable<String>(taskId);
+    map['title'] = Variable<String>(title);
+    {
+      map['status'] = Variable<int>($NodesTable.$converterstatus.toSql(status));
+    }
+    map['sort_index'] = Variable<double>(sortIndex);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  NodesCompanion toCompanion(bool nullToAbsent) {
+    return NodesCompanion(
+      id: Value(id),
+      parentId: parentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentId),
+      taskId: Value(taskId),
+      title: Value(title),
+      status: Value(status),
+      sortIndex: Value(sortIndex),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Node.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Node(
+      id: serializer.fromJson<String>(json['id']),
+      parentId: serializer.fromJson<String?>(json['parentId']),
+      taskId: serializer.fromJson<String>(json['taskId']),
+      title: serializer.fromJson<String>(json['title']),
+      status: $NodesTable.$converterstatus.fromJson(
+        serializer.fromJson<int>(json['status']),
+      ),
+      sortIndex: serializer.fromJson<double>(json['sortIndex']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'parentId': serializer.toJson<String?>(parentId),
+      'taskId': serializer.toJson<String>(taskId),
+      'title': serializer.toJson<String>(title),
+      'status': serializer.toJson<int>(
+        $NodesTable.$converterstatus.toJson(status),
+      ),
+      'sortIndex': serializer.toJson<double>(sortIndex),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Node copyWith({
+    String? id,
+    Value<String?> parentId = const Value.absent(),
+    String? taskId,
+    String? title,
+    NodeStatus? status,
+    double? sortIndex,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Node(
+    id: id ?? this.id,
+    parentId: parentId.present ? parentId.value : this.parentId,
+    taskId: taskId ?? this.taskId,
+    title: title ?? this.title,
+    status: status ?? this.status,
+    sortIndex: sortIndex ?? this.sortIndex,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Node copyWithCompanion(NodesCompanion data) {
+    return Node(
+      id: data.id.present ? data.id.value : this.id,
+      parentId: data.parentId.present ? data.parentId.value : this.parentId,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      title: data.title.present ? data.title.value : this.title,
+      status: data.status.present ? data.status.value : this.status,
+      sortIndex: data.sortIndex.present ? data.sortIndex.value : this.sortIndex,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Node(')
+          ..write('id: $id, ')
+          ..write('parentId: $parentId, ')
+          ..write('taskId: $taskId, ')
+          ..write('title: $title, ')
+          ..write('status: $status, ')
+          ..write('sortIndex: $sortIndex, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    parentId,
+    taskId,
+    title,
+    status,
+    sortIndex,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Node &&
+          other.id == this.id &&
+          other.parentId == this.parentId &&
+          other.taskId == this.taskId &&
+          other.title == this.title &&
+          other.status == this.status &&
+          other.sortIndex == this.sortIndex &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class NodesCompanion extends UpdateCompanion<Node> {
+  final Value<String> id;
+  final Value<String?> parentId;
+  final Value<String> taskId;
+  final Value<String> title;
+  final Value<NodeStatus> status;
+  final Value<double> sortIndex;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const NodesCompanion({
+    this.id = const Value.absent(),
+    this.parentId = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.status = const Value.absent(),
+    this.sortIndex = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NodesCompanion.insert({
+    required String id,
+    this.parentId = const Value.absent(),
+    required String taskId,
+    required String title,
+    required NodeStatus status,
+    required double sortIndex,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       taskId = Value(taskId),
+       title = Value(title),
+       status = Value(status),
+       sortIndex = Value(sortIndex),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<Node> custom({
+    Expression<String>? id,
+    Expression<String>? parentId,
+    Expression<String>? taskId,
+    Expression<String>? title,
+    Expression<int>? status,
+    Expression<double>? sortIndex,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (parentId != null) 'parent_id': parentId,
+      if (taskId != null) 'task_id': taskId,
+      if (title != null) 'title': title,
+      if (status != null) 'status': status,
+      if (sortIndex != null) 'sort_index': sortIndex,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NodesCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? parentId,
+    Value<String>? taskId,
+    Value<String>? title,
+    Value<NodeStatus>? status,
+    Value<double>? sortIndex,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return NodesCompanion(
+      id: id ?? this.id,
+      parentId: parentId ?? this.parentId,
+      taskId: taskId ?? this.taskId,
+      title: title ?? this.title,
+      status: status ?? this.status,
+      sortIndex: sortIndex ?? this.sortIndex,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (parentId.present) {
+      map['parent_id'] = Variable<String>(parentId.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(
+        $NodesTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (sortIndex.present) {
+      map['sort_index'] = Variable<double>(sortIndex.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NodesCompanion(')
+          ..write('id: $id, ')
+          ..write('parentId: $parentId, ')
+          ..write('taskId: $taskId, ')
+          ..write('title: $title, ')
+          ..write('status: $status, ')
+          ..write('sortIndex: $sortIndex, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6283,6 +6794,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FocusSessionsTable focusSessions = $FocusSessionsTable(this);
   late final $PreferencesTable preferences = $PreferencesTable(this);
   late final $SeedImportLogsTable seedImportLogs = $SeedImportLogsTable(this);
+  late final $NodesTable nodes = $NodesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6299,6 +6811,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     focusSessions,
     preferences,
     seedImportLogs,
+    nodes,
   ];
 }
 
@@ -9360,6 +9873,257 @@ typedef $$SeedImportLogsTableProcessedTableManager =
       SeedImportLog,
       PrefetchHooks Function()
     >;
+typedef $$NodesTableCreateCompanionBuilder =
+    NodesCompanion Function({
+      required String id,
+      Value<String?> parentId,
+      required String taskId,
+      required String title,
+      required NodeStatus status,
+      required double sortIndex,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$NodesTableUpdateCompanionBuilder =
+    NodesCompanion Function({
+      Value<String> id,
+      Value<String?> parentId,
+      Value<String> taskId,
+      Value<String> title,
+      Value<NodeStatus> status,
+      Value<double> sortIndex,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$NodesTableFilterComposer extends Composer<_$AppDatabase, $NodesTable> {
+  $$NodesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentId => $composableBuilder(
+    column: $table.parentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get taskId => $composableBuilder(
+    column: $table.taskId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<NodeStatus, NodeStatus, int> get status =>
+      $composableBuilder(
+        column: $table.status,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<double> get sortIndex => $composableBuilder(
+    column: $table.sortIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$NodesTableOrderingComposer
+    extends Composer<_$AppDatabase, $NodesTable> {
+  $$NodesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentId => $composableBuilder(
+    column: $table.parentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get taskId => $composableBuilder(
+    column: $table.taskId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get sortIndex => $composableBuilder(
+    column: $table.sortIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$NodesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NodesTable> {
+  $$NodesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get parentId =>
+      $composableBuilder(column: $table.parentId, builder: (column) => column);
+
+  GeneratedColumn<String> get taskId =>
+      $composableBuilder(column: $table.taskId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<NodeStatus, int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<double> get sortIndex =>
+      $composableBuilder(column: $table.sortIndex, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$NodesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NodesTable,
+          Node,
+          $$NodesTableFilterComposer,
+          $$NodesTableOrderingComposer,
+          $$NodesTableAnnotationComposer,
+          $$NodesTableCreateCompanionBuilder,
+          $$NodesTableUpdateCompanionBuilder,
+          (Node, BaseReferences<_$AppDatabase, $NodesTable, Node>),
+          Node,
+          PrefetchHooks Function()
+        > {
+  $$NodesTableTableManager(_$AppDatabase db, $NodesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NodesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NodesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NodesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> parentId = const Value.absent(),
+                Value<String> taskId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<NodeStatus> status = const Value.absent(),
+                Value<double> sortIndex = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NodesCompanion(
+                id: id,
+                parentId: parentId,
+                taskId: taskId,
+                title: title,
+                status: status,
+                sortIndex: sortIndex,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> parentId = const Value.absent(),
+                required String taskId,
+                required String title,
+                required NodeStatus status,
+                required double sortIndex,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => NodesCompanion.insert(
+                id: id,
+                parentId: parentId,
+                taskId: taskId,
+                title: title,
+                status: status,
+                sortIndex: sortIndex,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$NodesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NodesTable,
+      Node,
+      $$NodesTableFilterComposer,
+      $$NodesTableOrderingComposer,
+      $$NodesTableAnnotationComposer,
+      $$NodesTableCreateCompanionBuilder,
+      $$NodesTableUpdateCompanionBuilder,
+      (Node, BaseReferences<_$AppDatabase, $NodesTable, Node>),
+      Node,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9385,4 +10149,6 @@ class $AppDatabaseManager {
       $$PreferencesTableTableManager(_db, _db.preferences);
   $$SeedImportLogsTableTableManager get seedImportLogs =>
       $$SeedImportLogsTableTableManager(_db, _db.seedImportLogs);
+  $$NodesTableTableManager get nodes =>
+      $$NodesTableTableManager(_db, _db.nodes);
 }

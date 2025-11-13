@@ -20,8 +20,6 @@ void main() {
 
     group('弹窗显示', () {
       testWidgets('弹窗正确显示', (tester) async {
-        String? savedDescription;
-        
         await tester.pumpWidget(
           createTestWidget(
             Builder(
@@ -31,9 +29,7 @@ void main() {
                     context: context,
                     builder: (dialogContext) => RichTextDescriptionEditorDialog(
                       initialDescription: null,
-                      onSave: (description) {
-                        savedDescription = description;
-                      },
+                      onSave: (_) {},
                       title: '编辑描述',
                     ),
                   );
