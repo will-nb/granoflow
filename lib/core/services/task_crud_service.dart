@@ -3,6 +3,7 @@ import '../../data/models/task.dart';
 import '../../data/repositories/task_repository.dart';
 import '../constants/task_constants.dart';
 import 'metric_orchestrator.dart';
+import 'milestone_service.dart';
 import 'sort_index_service.dart';
 import 'task_crud_service_helpers.dart';
 import 'task_crud_service_update.dart';
@@ -13,6 +14,7 @@ class TaskCrudService {
   TaskCrudService({
     required TaskRepository taskRepository,
     required MetricOrchestrator metricOrchestrator,
+    required MilestoneService milestoneService,
     SortIndexService? sortIndexService,
     DateTime Function()? clock,
   }) : _tasks = taskRepository,
@@ -22,6 +24,7 @@ class TaskCrudService {
        _update = TaskCrudServiceUpdate(
          taskRepository: taskRepository,
          metricOrchestrator: metricOrchestrator,
+         milestoneService: milestoneService,
          helpers: TaskCrudServiceHelpers(taskRepository: taskRepository),
          clock: clock,
        );

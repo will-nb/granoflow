@@ -50,6 +50,7 @@ final taskServiceProvider = FutureProvider<TaskService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);
   final tagRepository = await ref.read(tagRepositoryProvider.future);
   final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
+  final milestoneService = await ref.read(milestoneServiceProvider.future);
   final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
   final sortIndexService = await ref.read(sortIndexServiceProvider.future);
   final clockAudioService = await ref.read(clockAudioServiceProvider.future);
@@ -58,6 +59,7 @@ final taskServiceProvider = FutureProvider<TaskService>((ref) async {
     taskRepository: taskRepository,
     tagRepository: tagRepository,
     metricOrchestrator: metricOrchestrator,
+    milestoneService: milestoneService,
     focusSessionRepository: focusSessionRepository,
     sortIndexService: sortIndexService,
     clockAudioService: clockAudioService,
