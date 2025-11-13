@@ -73,7 +73,7 @@ class TasksPageDragTarget extends ConsumerWidget {
             );
           }
           return const TaskDragIntentResult.blocked(
-            blockReasonKey: 'taskMoveBlockedUnknown',
+            blockReasonKey: 'operationFailed', // 层级功能已移除，使用通用错误消息
             blockLogTag: 'exception',
           );
         }
