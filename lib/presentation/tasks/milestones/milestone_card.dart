@@ -240,7 +240,8 @@ class MilestoneCard extends ConsumerWidget {
     final byParent = <String?, List<Task>>{};
     final taskIds = tasks.map((task) => task.id).toSet();
     for (final task in tasks) {
-      final parentKey = task.parentId;
+      // 层级功能已移除，不再需要 parentKey
+      final parentKey = null;
       byParent.putIfAbsent(parentKey, () => <Task>[]).add(task);
     }
 
@@ -254,7 +255,8 @@ class MilestoneCard extends ConsumerWidget {
 
     final roots = <Task>[];
     for (final task in tasks) {
-      final parentKey = task.parentId;
+      // 层级功能已移除，不再需要 parentKey
+      final parentKey = null;
       if (parentKey == null || !taskIds.contains(parentKey)) {
         roots.add(task);
       }

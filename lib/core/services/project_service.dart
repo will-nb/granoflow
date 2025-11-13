@@ -167,7 +167,7 @@ class ProjectService {
       TaskUpdate(
         status: TaskStatus.archived,
         projectId: project.id,
-        clearParent: true,
+        // 层级功能已移除，不再需要 clearParent
         clearMilestone: true,
         logs: updatedLogs,
       ),

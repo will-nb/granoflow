@@ -594,7 +594,7 @@ class ImportService {
               title: task.title,
               status: task.status,
               dueAt: task.dueAt,
-              parentId: null, // 第四轮处理
+              // 层级功能已移除，不再处理 parentId
               projectId: sanitizedProjectId,
               milestoneId: sanitizedMilestoneId,
               tags: task.tags,
@@ -670,10 +670,7 @@ class ImportService {
           continue; // 已经在第三轮处理过错误
         }
 
-        await _taskRepository.updateTask(
-          childTask.id,
-          TaskUpdate(parentId: parentTask.id),
-        );
+        // 层级功能已移除，不再设置父子关系
       } catch (e) {
         errors.add('设置任务父子关系失败 $taskId: $e');
       }

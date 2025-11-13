@@ -163,7 +163,7 @@ class TaskCrudServiceUpdate {
         dueAt: dueForUpdate ?? payload.dueAt,
         startedAt: payload.startedAt,
         endedAt: payload.endedAt,
-        parentId: payload.parentId,
+        // 层级功能已移除，不再处理 parentId
         sortIndex: payload.sortIndex,
         tags: payload.tags,
         templateLockDelta: payload.templateLockDelta,

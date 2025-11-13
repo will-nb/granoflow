@@ -259,7 +259,7 @@ class ExportData {
       'archivedAt': task.archivedAt?.toIso8601String(),
       'createdAt': task.createdAt.toIso8601String(),
       'updatedAt': task.updatedAt.toIso8601String(),
-      'parentTaskId': task.parentId,
+      // 层级功能已移除，不再导出 parentTaskId
       'projectId': task.projectId,
       'milestoneId': task.milestoneId,
       'sortIndex': task.sortIndex,
@@ -293,7 +293,7 @@ class ExportData {
           : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      parentId: json['parentTaskId'] as String?,
+      // 层级功能已移除，不再导入 parentTaskId（parentId 字段已从 Task 模型中移除）
       projectId: json['projectId'] as String?,
       milestoneId: json['milestoneId'] as String?,
       sortIndex: (json['sortIndex'] as num).toDouble(),

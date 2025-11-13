@@ -94,8 +94,7 @@ class TaskListDragBuilder {
           hasChildren: taskIdToHasChildren[task.id] ?? false,
           isExpanded: expandedTaskIds.contains(task.id),
           taskLevel: levelMap[task.id] ?? 1,
-          isInExpandedArea: task.parentId != null &&
-              expandedTaskIds.contains(task.parentId),
+          isInExpandedArea: false, // 层级功能已移除，不再有扩展区
           flattenedTasks: flattenedTasks,
           filteredTasks: filteredTasks,
           rootTasks: rootTasks,

@@ -39,7 +39,8 @@ class CalendarReviewService {
 
     // 调试：检查数据库中的总任务数
     final allTasks = await _taskRepository.listAll();
-    final rootTasks = allTasks.where((t) => t.parentId == null).toList();
+    // 层级功能已移除，所有任务都是根任务
+    final rootTasks = allTasks;
     final completedTasks = allTasks.where((t) => t.status == TaskStatus.completedActive).toList();
     final rootCompletedTasks = rootTasks.where((t) => t.status == TaskStatus.completedActive).toList();
     debugPrint('  Debug: Total tasks: ${allTasks.length}, Root tasks: ${rootTasks.length}');
@@ -382,8 +383,8 @@ class CalendarReviewService {
     final allTasks = await _taskRepository.listAll();
     
     // 筛选根任务，排除指定状态
+    // 层级功能已移除，所有任务都是根任务
     var rootTasks = allTasks.where((task) =>
-        task.parentId == null &&
         task.status != TaskStatus.inbox &&
         task.status != TaskStatus.trashed &&
         task.status != TaskStatus.pseudoDeleted &&

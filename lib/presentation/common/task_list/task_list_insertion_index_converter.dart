@@ -43,24 +43,8 @@ class TaskListInsertionIndexConverter {
       return rootIndex;
     }
 
-    // 如果是子任务，找到它的根父任务
-    // 使用 filteredTasks 查找父任务（数据已在内存中）
-    Task? currentTask = task;
-    while (currentTask != null && currentTask.parentId != null) {
-      final parentId = currentTask.parentId!;
-      final parent = filteredTasks.firstWhere(
-        (t) => t.id == parentId,
-        orElse: () => throw StateError('Parent task not found'),
-      );
-      final parentRootIndex = taskIdToIndex[parent.id];
-      if (parentRootIndex != null) {
-        // 找到根父任务，返回它的索引 + 1（插入到它之后）
-        return parentRootIndex + 1;
-      }
-      currentTask = parent;
-    }
-
-    // 如果找不到根父任务，返回根任务列表长度（底部插入）
+    // 层级功能已移除，所有任务都是根任务，不应该到达这里
+    // 如果找不到，返回根任务列表长度（底部插入）
     return rootTasks.length;
   }
 

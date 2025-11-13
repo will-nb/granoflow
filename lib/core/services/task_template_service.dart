@@ -60,20 +60,11 @@ class TaskTemplateService {
     if (template == null) {
       throw StateError('Template not found');
     }
-    final parentId = overrides?.parentTaskId ?? template.parentTaskId;
-    if (parentId != null) {
-      await _tasks.adjustTemplateLock(taskId: parentId, delta: 0);
-    }
+    // 层级功能已移除，不再处理 parentTaskId
     final task = await _taskService.captureInboxTask(
       title: template.title,
       tags: overrides?.tags ?? template.defaultTags,
     );
-    if (parentId != null) {
-      await _tasks.updateTask(
-        task.id,
-        TaskUpdate(parentId: parentId, sortIndex: TaskConstants.DEFAULT_SORT_INDEX),
-      );
-    }
     await _taskService.updateDetails(
       taskId: task.id,
       payload: TaskUpdate(

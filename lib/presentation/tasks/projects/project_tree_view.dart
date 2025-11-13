@@ -335,7 +335,7 @@ class _ProjectChildrenEditorState extends ConsumerState<ProjectChildrenEditor> {
     try {
       await taskService.updateDetails(
         taskId: targetNode.id,
-        payload: TaskUpdate(parentId: widget.parentTask.id),
+        payload: TaskUpdate(), // 层级功能已移除，不再设置 parentId
       );
     } catch (error, stackTrace) {
       debugPrint('Failed to reorder project nodes: $error\n$stackTrace');

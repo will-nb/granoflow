@@ -10,7 +10,6 @@ class TaskUpdate {
     this.startedAt,
     this.endedAt,
     this.archivedAt,
-    this.parentId,
     this.projectId,
     this.milestoneId,
     this.sortIndex,
@@ -19,7 +18,6 @@ class TaskUpdate {
     this.allowInstantComplete,
     this.description,
     this.logs,
-    this.clearParent,
     this.clearProject,
     this.clearMilestone,
   });
@@ -30,7 +28,6 @@ class TaskUpdate {
   final DateTime? startedAt;
   final DateTime? endedAt;
   final DateTime? archivedAt;
-  final String? parentId;
   final String? projectId;
   final String? milestoneId;
   final double? sortIndex;
@@ -39,10 +36,6 @@ class TaskUpdate {
   final bool? allowInstantComplete;
   final String? description;
   final List<TaskLogEntry>? logs;
-
-  /// 当需要显式将 parentId 置为 null 时，传 true；
-  /// 否则保持现有行为（未提供 parentId 则不改动）。
-  final bool? clearParent;
 
   /// 当需要显式将 projectId 置为 null 时，传 true。
   final bool? clearProject;

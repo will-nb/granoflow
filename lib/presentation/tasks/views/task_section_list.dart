@@ -113,9 +113,7 @@ class _TaskSectionTaskModeListState
     for (int i = 0; i < index; i++) {
       if (i < _roots.length) {
         final task = _roots[i];
-        if (task.parentId != null) {
-          displayedParentIds.add(task.parentId!);
-        }
+        // 层级功能已移除，不再需要记录 parentId
       }
     }
     return displayedParentIds;
@@ -294,45 +292,13 @@ class TaskWithParentChain extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 如果任务没有父任务，直接显示任务
-    if (task.parentId == null) {
-      if (kDebugMode) {
-        debugPrint(
-          '[TaskWithParentChain] 任务无父任务，直接显示: taskId=${task.id}, title=${task.title}',
-        );
-      }
-      return TaskTreeTile(section: section, rootTask: task, editMode: false);
-    }
-
+    // 层级功能已移除，所有任务都直接显示
     if (kDebugMode) {
       debugPrint(
-        '[TaskWithParentChain] 任务有父任务，准备显示父任务链: taskId=${task.id}, parentId=${task.parentId}, section=${section.name}',
+        '[TaskWithParentChain] 直接显示任务: taskId=${task.id}, title=${task.title}',
       );
     }
-
-    // 检查父任务是否是项目或里程碑
-    final parentAsync = ref.watch(parentTaskProvider(task.parentId!));
-
-    return parentAsync.when(
-      data: (parent) {
-        // 层级功能已移除，不再需要检查父任务
-        if (parent == null || parent.projectId != null || parent.milestoneId != null) {
-          // 父任务不存在或是项目/里程碑，直接显示任务
-          return TaskTreeTile(
-            section: section,
-            rootTask: task,
-            editMode: false,
-          );
-        }
-
-        // 不再显示父任务和祖先任务链，直接显示当前任务
-        return TaskTreeTile(section: section, rootTask: task, editMode: false);
-      },
-      loading: () =>
-          TaskTreeTile(section: section, rootTask: task, editMode: false),
-      error: (_, __) =>
-          TaskTreeTile(section: section, rootTask: task, editMode: false),
-    );
+    return TaskTreeTile(section: section, rootTask: task, editMode: false);
   }
 }
 

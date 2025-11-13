@@ -137,7 +137,7 @@ class InboxDragTarget extends ConsumerWidget {
       final steps = <String, Object?>{
         'movable': movable,
         'status': draggedTask.status.name,
-        'parentId': draggedTask.parentId,
+        // 层级功能已移除，不再记录 parentId
         'beforeTask': beforeTask?.id,
         'afterTask': afterTask?.id,
       };
@@ -165,14 +165,12 @@ class InboxDragTarget extends ConsumerWidget {
       final taskRepository = await ref.read(taskRepositoryProvider.future);
       final dragState = ref.read(inboxDragProvider);
       
-      // 确定上方任务的 parentId
-    String? aboveTaskParentId;
+      // 层级功能已移除，不再需要 parentId
       double newSortIndex;
       
       switch (targetType) {
         case InboxDragTargetType.first:
-          // 顶部插入目标：成为根项目（parentId = null）
-          aboveTaskParentId = null;
+          // 顶部插入目标
           newSortIndex = beforeTask?.sortIndex != null
               ? beforeTask!.sortIndex - 1000
               : TaskConstants.DEFAULT_SORT_INDEX - 1000;
@@ -181,21 +179,16 @@ class InboxDragTarget extends ConsumerWidget {
         case InboxDragTargetType.between:
           // 层级功能已移除，所有任务都作为平级任务处理
           if (beforeTask != null && afterTask != null) {
-            // 使用 beforeTask 的 parentId（如果存在）
-            aboveTaskParentId = beforeTask!.parentId;
             // 计算 sortIndex
             newSortIndex = (beforeTask!.sortIndex + afterTask!.sortIndex) / 2;
           } else {
             // 如果 beforeTask 或 afterTask 为 null，使用默认值
-            aboveTaskParentId = beforeTask?.parentId;
             newSortIndex = TaskConstants.DEFAULT_SORT_INDEX;
           }
           break;
           
         case InboxDragTargetType.last:
           // 底部插入目标：最后一个任务作为 beforeTask（afterTask = null）
-          // 成为最后一个任务的兄弟
-          aboveTaskParentId = beforeTask?.parentId;
           newSortIndex = beforeTask?.sortIndex != null
               ? beforeTask!.sortIndex + 1000
               : TaskConstants.DEFAULT_SORT_INDEX + 1000;
@@ -205,15 +198,15 @@ class InboxDragTarget extends ConsumerWidget {
       // 统一使用 moveToParent 处理
       if (kDebugMode) {
         debugPrint(
-          '[DnD] {event: call:moveToParent, page: Inbox, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex}',
+          '[DnD] {event: call:moveToParent, page: Inbox, src: ${draggedTask.id}, sortIndex: $newSortIndex}',
         );
       }
       
       await taskHierarchyService.moveToParent(
         taskId: draggedTask.id,
-        parentId: aboveTaskParentId,
+        parentId: null, // 层级功能已移除
         sortIndex: newSortIndex,
-        clearParent: aboveTaskParentId == null,
+        clearParent: false, // 层级功能已移除
       );
 
       // 批量重排所有inbox任务的sortIndex
@@ -229,7 +222,7 @@ class InboxDragTarget extends ConsumerWidget {
       
       if (kDebugMode) {
         debugPrint(
-          '[DnD] {event: accept:success, page: Inbox, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex}',
+          '[DnD] {event: accept:success, page: Inbox, src: ${draggedTask.id}, sortIndex: $newSortIndex}',
         );
       }
       
@@ -238,20 +231,17 @@ class InboxDragTarget extends ConsumerWidget {
         final saved = await taskRepository.findById(draggedTask.id);
         if (kDebugMode) {
           debugPrint(
-            '[DnD] {event: db:readback, page: Inbox, task: ${draggedTask.id}, parentId: ${saved?.parentId}, status: ${saved?.status}, sortIndex: ${saved?.sortIndex}}',
+            '[DnD] {event: db:readback, page: Inbox, task: ${draggedTask.id}, status: ${saved?.status}, sortIndex: ${saved?.sortIndex}}',
           );
         }
       } catch (_) {}
       
-      // 如果提升为根项目，触发回调
-      if (aboveTaskParentId == null) {
-        onPromoteToRoot?.call(draggedTask, newSortIndex);
-      }
+      // 层级功能已移除，不再需要提升为根项目的回调
       
       return TaskDragIntentResult.success(
-        parentId: aboveTaskParentId,
+        parentId: null, // 层级功能已移除
         sortIndex: newSortIndex,
-        clearParent: aboveTaskParentId == null,
+        clearParent: false, // 层级功能已移除
       );
     } catch (e) {
       if (kDebugMode) {

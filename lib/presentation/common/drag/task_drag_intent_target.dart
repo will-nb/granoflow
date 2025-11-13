@@ -31,7 +31,7 @@ class TaskDragIntentMeta {
 class TaskDragIntentResult {
   const TaskDragIntentResult._internal({
     required this.success,
-    this.parentId,
+    this.parentId, // 保留字段以保持 API 兼容，但不再使用
     this.sortIndex,
     this.dueDate,
     this.clearParent = false,
@@ -42,7 +42,7 @@ class TaskDragIntentResult {
   }) : reminderArgs = reminderArgs ?? const {};
 
   const TaskDragIntentResult.success({
-      String? parentId,
+    String? parentId, // 保留参数以保持 API 兼容，但不再使用
     double? sortIndex,
     DateTime? dueDate,
     bool clearParent = false,
@@ -50,7 +50,7 @@ class TaskDragIntentResult {
     Map<String, String>? reminderArgs,
   }) : this._internal(
          success: true,
-         parentId: parentId,
+         parentId: null, // 层级功能已移除
          sortIndex: sortIndex,
          dueDate: dueDate,
          clearParent: clearParent,
@@ -72,7 +72,7 @@ class TaskDragIntentResult {
        );
 
   final bool success;
-    final String? parentId;
+  final String? parentId; // 保留字段以保持 API 兼容，但不再使用
   final double? sortIndex;
   final DateTime? dueDate;
   final bool clearParent;

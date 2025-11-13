@@ -365,7 +365,7 @@ class DriftTaskRepository implements TaskRepository {
         archivedAt: null,
         createdAt: createdAt,
         updatedAt: updatedAt,
-        parentId: draft.parentId,
+        parentId: null, // 层级功能已移除，数据库列仍存在但不再使用
         projectId: draft.projectId,
         milestoneId: draft.milestoneId,
         sortIndex: draft.sortIndex,
@@ -436,7 +436,7 @@ class DriftTaskRepository implements TaskRepository {
         endedAt: payload.endedAt != null ? Value(payload.endedAt) : const Value.absent(),
         archivedAt: payload.archivedAt != null ? Value(payload.archivedAt) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
-        parentId: payload.parentId != null ? Value(payload.parentId) : (payload.clearParent == true ? Value<String?>(null) : const Value.absent()),
+        parentId: const Value<String?>.absent(), // 层级功能已移除，数据库列仍存在但不再使用
         projectId: projectIdValue,
         milestoneId: milestoneIdValue,
         sortIndex: payload.sortIndex != null ? Value(payload.sortIndex!) : const Value.absent(),
@@ -484,7 +484,7 @@ class DriftTaskRepository implements TaskRepository {
       }
 
       var companion = TasksCompanion(
-        parentId: targetParentId != null ? Value(targetParentId) : const Value.absent(),
+        parentId: const Value<String?>.absent(), // 层级功能已移除，数据库列仍存在但不再使用
         sortIndex: Value(sortIndex),
         dueAt: dueAt != null ? Value(dueAt) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
@@ -713,7 +713,7 @@ class DriftTaskRepository implements TaskRepository {
           archivedAt: task.archivedAt,
           createdAt: task.createdAt,
           updatedAt: task.updatedAt,
-          parentId: task.parentId,
+          parentId: null, // 层级功能已移除
           projectId: task.projectId,
           milestoneId: task.milestoneId,
           sortIndex: task.sortIndex,
@@ -797,7 +797,7 @@ class DriftTaskRepository implements TaskRepository {
           endedAt: payload.endedAt != null ? Value(payload.endedAt) : const Value.absent(),
           archivedAt: payload.archivedAt != null ? Value(payload.archivedAt) : const Value.absent(),
           updatedAt: Value(DateTime.now()),
-          parentId: payload.parentId != null ? Value(payload.parentId) : (payload.clearParent == true ? Value<String?>(null) : const Value.absent()),
+          parentId: const Value<String?>.absent(), // 层级功能已移除，数据库列仍存在但不再使用
           projectId: payload.projectId != null ? Value(payload.projectId) : (payload.clearProject == true ? Value<String?>(null) : const Value.absent()),
           milestoneId: payload.milestoneId != null ? Value(payload.milestoneId) : (payload.clearMilestone == true ? Value<String?>(null) : const Value.absent()),
           sortIndex: payload.sortIndex != null ? Value(payload.sortIndex!) : const Value.absent(),
@@ -1110,7 +1110,7 @@ class DriftTaskRepository implements TaskRepository {
       archivedAt: entity.archivedAt,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
-      parentId: entity.parentId,
+      // 层级功能已移除，parentId 字段已从 Task 模型中移除
       projectId: entity.projectId,
       milestoneId: entity.milestoneId,
       sortIndex: entity.sortIndex,
@@ -1142,7 +1142,7 @@ class DriftTaskRepository implements TaskRepository {
         archivedAt: entity.archivedAt,
         createdAt: entity.createdAt,
         updatedAt: entity.updatedAt,
-        parentId: entity.parentId,
+        // 层级功能已移除，parentId 字段已从 Task 模型中移除
         projectId: entity.projectId,
         milestoneId: entity.milestoneId,
         sortIndex: entity.sortIndex,

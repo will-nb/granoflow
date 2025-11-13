@@ -450,7 +450,7 @@ class SeedImportService {
         title: seed.title,
         status: seed.status,
         dueAt: dueAt,
-          parentId: null,
+          // 层级功能已移除，不再处理 parentId
         projectId: projectId,
         milestoneId: milestoneId,
         tags: seed.tags,
@@ -465,35 +465,7 @@ class SeedImportService {
     }
     debugPrint('SeedImportService: Regular tasks processing complete - Created: $createdTasks, Skipped: $skippedTasks, Total: ${regularTasks.length}');
 
-    // 第四遍：处理普通任务的父子关系（parentTaskId）
-    for (final seed in regularTasks.where((task) => task.parentSlug != null)) {
-      final taskId = slugToId[seed.slug];
-      final parentId = seed.parentSlug == null
-          ? null
-          : slugToId[seed.parentSlug];
-
-      // 只有当父级也是普通任务时才设置 parentTaskId
-      if (taskId != null && parentId != null && seed.parentSlug != null) {
-        final parentSeedMatches = tasks.where((t) => t.slug == seed.parentSlug);
-        // 如果父级是普通任务，设置 parentTaskId
-        // 使用字符串比较来判断是否为普通任务
-        if (parentSeedMatches.isNotEmpty) {
-          final parentSeed = parentSeedMatches.first;
-          final parentTaskKind = parentSeed.taskKind?.toLowerCase();
-          if (parentTaskKind == null ||
-              parentTaskKind == 'regular' ||
-              (parentTaskKind != 'project' && parentTaskKind != 'milestone')) {
-            await _tasks.updateTask(
-              taskId,
-              TaskUpdate(
-                  parentId: parentId,
-                sortIndex: seed.sortIndex,
-              ),
-            );
-          }
-        }
-      }
-    }
+    // 层级功能已移除，不再处理普通任务的父子关系
 
     return slugToId;
   }

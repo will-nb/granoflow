@@ -36,15 +36,11 @@ class InboxTaskList extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: inboxTasks.map((task) {
-        // 根据任务是否有 parentId 判断是否是子任务
-        // parentId != null 表示是子任务（level > 1）
-        final isSubtask = task.parentId != null;
-        final config = isSubtask
-            ? SwipeConfigs.inboxSubtaskConfig
-            : SwipeConfigs.inboxConfig;
+        // 层级功能已移除，所有任务都使用相同的配置
+        final config = SwipeConfigs.inboxConfig;
         
-        // 计算任务层级（如果有 parentId，则 level > 1）
-        final taskLevel = isSubtask ? 2 : 1;
+        // 层级功能已移除，所有任务都是 level 1
+        final taskLevel = 1;
 
         return DismissibleTaskTile(
           key: ValueKey('inbox-${task.id}-${task.updatedAt.millisecondsSinceEpoch}'),

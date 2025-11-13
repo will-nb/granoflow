@@ -44,7 +44,6 @@ class Task {
     this.startedAt,
     this.endedAt,
     this.archivedAt,
-    this.parentId,
     this.projectId,
     this.milestoneId,
     this.sortIndex = 0,
@@ -65,7 +64,6 @@ class Task {
   final DateTime? archivedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String? parentId;
   final String? projectId;
   final String? milestoneId;
   final double sortIndex;
@@ -86,7 +84,6 @@ class Task {
     DateTime? archivedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-    String? parentId,
     String? projectId,
     String? milestoneId,
     double? sortIndex,
@@ -107,7 +104,6 @@ class Task {
       archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      parentId: parentId ?? this.parentId,
       projectId: projectId ?? this.projectId,
       milestoneId: milestoneId ?? this.milestoneId,
       sortIndex: sortIndex ?? this.sortIndex,
@@ -125,7 +121,8 @@ class Task {
       status != TaskStatus.archived &&
       templateLockCount == 0;
 
-  bool get isLeaf => parentId == null;
+  // 层级功能已移除，所有任务都是叶子节点
+  bool get isLeaf => true;
 
   @override
   int get hashCode => Object.hashAll([
@@ -138,7 +135,6 @@ class Task {
     archivedAt,
     createdAt,
     updatedAt,
-    parentId,
     sortIndex,
     const ListEquality<String>().hash(tags),
     templateLockCount,
@@ -162,7 +158,6 @@ class Task {
         other.archivedAt == archivedAt &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt &&
-        other.parentId == parentId &&
         other.projectId == projectId &&
         other.milestoneId == milestoneId &&
         other.sortIndex == sortIndex &&
@@ -201,7 +196,6 @@ class TaskDraft {
     required this.title,
     required this.status,
     this.dueAt,
-    this.parentId,
     this.projectId,
     this.milestoneId,
     this.tags = const <String>[],
@@ -215,7 +209,6 @@ class TaskDraft {
   final String title;
   final TaskStatus status;
   final DateTime? dueAt;
-  final String? parentId;
   final String? projectId;
   final String? milestoneId;
   final List<String> tags;

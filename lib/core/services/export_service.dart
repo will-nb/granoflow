@@ -322,7 +322,7 @@ class ExportService {
       'archivedAt': task.archivedAt?.toIso8601String(),
       'createdAt': task.createdAt.toIso8601String(),
       'updatedAt': task.updatedAt.toIso8601String(),
-      'parentTaskId': task.parentId,
+      // 层级功能已移除，不再导出 parentTaskId
       'projectId': task.projectId,
       'milestoneId': task.milestoneId,
       'sortIndex': task.sortIndex,

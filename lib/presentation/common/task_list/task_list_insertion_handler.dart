@@ -35,18 +35,16 @@ class TaskListInsertionHandler {
     TaskListConfig config,
     WidgetRef ref,
   ) async {
-    // 检查是否是子任务升级为根任务的情况
-    final isSubtaskPromotion = draggedTask.parentId != null;
+    // 层级功能已移除，不再有子任务升级
     if (kDebugMode) {
       debugPrint(
-        '[DnD] {event: _handleInsertionDrop:start, page: ${config.pageName}, section: ${config.section?.name ?? "null"}, src: ${draggedTask.id}, isSubtaskPromotion: $isSubtaskPromotion, originalParentId: ${draggedTask.parentId}, targetType: $targetType, beforeTask: ${beforeTask?.id}, afterTask: ${afterTask?.id}, beforeSortIndex: ${beforeTask?.sortIndex}, afterSortIndex: ${afterTask?.sortIndex}}',
+        '[DnD] {event: _handleInsertionDrop:start, page: ${config.pageName}, section: ${config.section?.name ?? "null"}, src: ${draggedTask.id}, targetType: $targetType, beforeTask: ${beforeTask?.id}, afterTask: ${afterTask?.id}, beforeSortIndex: ${beforeTask?.sortIndex}, afterSortIndex: ${afterTask?.sortIndex}}',
       );
     }
     try {
       final taskHierarchyService = await ref.read(taskHierarchyServiceProvider.future);
 
-      // 确定上方任务的 parentId
-        String? aboveTaskParentId;
+      // 层级功能已移除，不再需要 parentId
       double newSortIndex;
 
       // 通过 config.handleDueDate 处理 dueDate（Inbox 和 Tasks 的差异）
@@ -58,17 +56,13 @@ class TaskListInsertionHandler {
       );
 
       if (targetType == 'first') {
-        // 顶部插入目标：成为根项目（parentId = null）
-        aboveTaskParentId = null;
+        // 顶部插入目标
         newSortIndex = SortIndexCalculator.insertAtFirst(beforeTask?.sortIndex);
       } else if (targetType == 'last') {
         // 底部插入目标：最后一个任务作为 beforeTask（afterTask = null）
-        // 成为最后一个任务的兄弟
-        aboveTaskParentId = beforeTask?.parentId;
         newSortIndex = SortIndexCalculator.insertAtLast(beforeTask?.sortIndex);
       } else {
-        // 中间插入目标：成为 beforeTask 的兄弟
-        aboveTaskParentId = beforeTask?.parentId;
+        // 中间插入目标
         if (beforeTask != null && afterTask != null) {
           // 两个任务都存在：插入到它们之间
           newSortIndex = SortIndexCalculator.insertBetween(
@@ -86,13 +80,8 @@ class TaskListInsertionHandler {
 
       // 统一使用 moveToParent 处理
       if (kDebugMode) {
-        if (isSubtaskPromotion && aboveTaskParentId == null) {
-          debugPrint(
-            '[DnD] {event: subtaskPromotion, page: ${config.pageName}, section: ${config.section?.name ?? "null"}, src: ${draggedTask.id}, originalParentId: ${draggedTask.parentId}, newParentId: null (root), sortIndex: $newSortIndex, dueAt: $targetDueDate}',
-          );
-        }
         debugPrint(
-          '[DnD] {event: call:moveToParent, page: ${config.pageName}, section: ${config.section?.name ?? "null"}, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex, dueAt: $targetDueDate}',
+          '[DnD] {event: call:moveToParent, page: ${config.pageName}, section: ${config.section?.name ?? "null"}, src: ${draggedTask.id}, sortIndex: $newSortIndex, dueAt: $targetDueDate}',
         );
       }
 
@@ -105,10 +94,10 @@ class TaskListInsertionHandler {
 
       await taskHierarchyService.moveToParent(
         taskId: draggedTask.id,
-        parentId: aboveTaskParentId,
+        parentId: null, // 层级功能已移除
         sortIndex: newSortIndex,
         dueDate: targetDueDate, // Tasks 页面会传入 targetDueDate，Inbox 页面传入 null
-        clearParent: aboveTaskParentId == null, // 只有成为根项目时才 clearParent
+        clearParent: false, // 层级功能已移除
       );
 
       // 如果 milestoneId 发生变化，更新任务的 milestoneId
@@ -154,14 +143,14 @@ class TaskListInsertionHandler {
           );
         }
         debugPrint(
-          '[DnD] {event: accept:success, page: ${config.pageName}, section: ${config.section?.name ?? "null"}, src: ${draggedTask.id}, parentId: $aboveTaskParentId, sortIndex: $newSortIndex}',
+          '[DnD] {event: accept:success, page: ${config.pageName}, section: ${config.section?.name ?? "null"}, src: ${draggedTask.id}, sortIndex: $newSortIndex}',
         );
       }
 
       return TaskDragIntentResult.success(
-        parentId: aboveTaskParentId,
+        parentId: null, // 层级功能已移除
         sortIndex: newSortIndex,
-        clearParent: aboveTaskParentId == null,
+        clearParent: false, // 层级功能已移除
       );
     } catch (e, stackTrace) {
       if (kDebugMode) {
