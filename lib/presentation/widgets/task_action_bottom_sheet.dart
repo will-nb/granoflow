@@ -19,7 +19,6 @@ import 'tag_add_button.dart';
 import 'tag_data.dart';
 import 'tag_grouped_menu.dart';
 import 'task_copy_button.dart';
-import 'task_timer_widget.dart';
 
 /// 任务操作底部弹窗
 /// 
@@ -151,14 +150,6 @@ class _TaskActionBottomSheetState
     AppLocalizations l10n,
     Task task, // 使用传入的任务数据，而不是 widget.task
   ) {
-    final isInbox = task.status == TaskStatus.inbox;
-    final pinnedTaskId = ref.watch(pinnedTaskIdProvider);
-    final canShowTimer = !isInbox &&
-        (task.status == TaskStatus.pending ||
-            task.status == TaskStatus.doing ||
-            task.status == TaskStatus.paused) &&
-        (pinnedTaskId == null || pinnedTaskId != task.id);
-
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -213,15 +204,8 @@ class _TaskActionBottomSheetState
                   // 项目/里程碑选择 - 传递最新的任务数据
                   _buildProjectMilestoneSection(context, ref, theme, task),
                   const SizedBox(height: 16),
-                  // 复制按钮和计时控件 - 使用最新的任务数据，在同一排显示
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      TaskCopyButton(taskTitle: task.title),
-                      if (canShowTimer) TaskTimerWidget(task: task),
-                    ],
-                  ),
+                  // 复制按钮 - 使用最新的任务数据
+                  TaskCopyButton(taskTitle: task.title),
                   const SizedBox(height: 16),
                   // 转换为项目（如果适用）
                   if (widget.showConvertAction) ...[
@@ -412,22 +396,52 @@ class _TaskActionBottomSheetState
   ) {
     final isCompleted = task.status == TaskStatus.completedActive;
     final isInbox = task.status == TaskStatus.inbox;
+    final pinnedTaskId = ref.watch(pinnedTaskIdProvider);
+    final sessionAsync = ref.watch(focusSessionProvider(task.id));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 主要操作按钮（大按钮）
         if (!isCompleted)
-          FilledButton.icon(
-            onPressed: () {
+          sessionAsync.when(
+            data: (session) {
+              final hasActiveSession = session != null && session.isActive;
+              final hasOtherPinnedTask = pinnedTaskId != null && pinnedTaskId != task.id;
+              
+              // 如果是 inbox，显示快速规划按钮
               if (isInbox) {
-                _handleQuickPlan(context, ref, task);
-              } else {
-                _handleComplete(context, ref, task);
+                return FilledButton.icon(
+                  onPressed: () => _handleQuickPlan(context, ref, task),
+                  icon: const Icon(Icons.today),
+                  label: Text(l10n.inboxQuickPlanAction),
+                );
               }
+              
+              // 如果有活跃 session，显示完成按钮
+              if (hasActiveSession) {
+                return FilledButton.icon(
+                  onPressed: () => _handleComplete(context, ref, task),
+                  icon: const Icon(Icons.check),
+                  label: Text(l10n.actionMarkCompleted),
+                );
+              }
+              
+              // 如果没有活跃 session，检查是否有其他任务置顶
+              // 如果有其他任务置顶，不显示按钮
+              if (hasOtherPinnedTask) {
+                return const SizedBox.shrink();
+              }
+              
+              // 没有其他任务置顶，显示开始计时按钮
+              return FilledButton.icon(
+                onPressed: () => _handleStartTimer(context, ref, task),
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: Text(l10n.clockStart),
+              );
             },
-            icon: Icon(isInbox ? Icons.today : Icons.check),
-            label: Text(isInbox ? l10n.inboxQuickPlanAction : l10n.actionMarkCompleted),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
         if (!isCompleted) const SizedBox(height: 8),
         // 日期按钮、归档和删除按钮（小按钮，同一行）
@@ -825,6 +839,24 @@ class _TaskActionBottomSheetState
       SwipeActionType.complete,
       task,
     );
+    if (mounted) {
+      Navigator.of(context).pop(); // 关闭弹窗
+    }
+  }
+
+  /// 开始计时
+  Future<void> _handleStartTimer(BuildContext context, WidgetRef ref, Task task) async {
+    // 将任务状态改为doing（会自动控制背景音）
+    final taskService = await ref.read(taskServiceProvider.future);
+    await taskService.markInProgress(task.id);
+    
+    // 创建focus session
+    final focusNotifier = ref.read(focusActionsNotifierProvider.notifier);
+    await focusNotifier.start(task.id);
+    
+    // 设置任务为置顶
+    ref.read(pinnedTaskIdProvider.notifier).setPinnedTaskId(task.id);
+    
     if (mounted) {
       Navigator.of(context).pop(); // 关闭弹窗
     }

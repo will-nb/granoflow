@@ -67,8 +67,6 @@ void main() {
           importanceTagOptionsProvider.overrideWith(
             (ref) async => const <Tag>[],
           ),
-            (ref) async => const <Tag>[],
-          ),
           taskServiceProvider.overrideWith((ref) => _NoopTaskService()),
         ],
         child: MaterialApp(
@@ -108,8 +106,6 @@ void main() {
           contextTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           urgencyTagOptionsProvider.overrideWith((ref) async => const <Tag>[]),
           importanceTagOptionsProvider.overrideWith(
-            (ref) async => const <Tag>[],
-          ),
             (ref) async => const <Tag>[],
           ),
           taskServiceProvider.overrideWith((ref) => _NoopTaskService()),

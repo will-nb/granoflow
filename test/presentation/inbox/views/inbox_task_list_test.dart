@@ -67,8 +67,6 @@ void main() {
             importanceTagOptionsProvider.overrideWith(
               (ref) async => [_StubTag('#important', TagKind.importance)],
             ),
-              (ref) async => const <Tag>[],
-            ),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),

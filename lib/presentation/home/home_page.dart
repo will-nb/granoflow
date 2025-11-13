@@ -113,9 +113,11 @@ class HomePage extends ConsumerWidget {
           if (isWide) {
             // 横屏：两栏布局
             return Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: constraints.maxWidth >= 1200 ? 48 : 32,
-                vertical: 16,
+              padding: EdgeInsets.only(
+                top: 24, // 增加顶部间距，与标题栏保持距离
+                bottom: 16,
+                left: constraints.maxWidth >= 1200 ? 48 : 32,
+                right: constraints.maxWidth >= 1200 ? 48 : 32,
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,6 +166,7 @@ class HomePage extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 24), // 增加顶部间距，与标题栏保持距离
                     heroBlock,
                     const SizedBox(height: 24),
                     TaskSearchBar(
