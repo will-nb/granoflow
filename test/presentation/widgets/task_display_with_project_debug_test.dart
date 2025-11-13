@@ -143,7 +143,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const <Tag>[],
               ),
-              executionTagOptionsProvider.overrideWith(
                 (ref) async => const <Tag>[],
               ),
             ],
@@ -261,7 +260,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const <Tag>[],
               ),
-              executionTagOptionsProvider.overrideWith(
                 (ref) async => const <Tag>[],
               ),
               contextTagOptionsProvider.overrideWith(

@@ -67,7 +67,6 @@ void main() {
           importanceTagOptionsProvider.overrideWith(
             (ref) async => const <Tag>[],
           ),
-          executionTagOptionsProvider.overrideWith(
             (ref) async => const <Tag>[],
           ),
           taskServiceProvider.overrideWith((ref) => _NoopTaskService()),
@@ -111,7 +110,6 @@ void main() {
           importanceTagOptionsProvider.overrideWith(
             (ref) async => const <Tag>[],
           ),
-          executionTagOptionsProvider.overrideWith(
             (ref) async => const <Tag>[],
           ),
           taskServiceProvider.overrideWith((ref) => _NoopTaskService()),

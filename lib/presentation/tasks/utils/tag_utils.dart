@@ -7,7 +7,6 @@ import '../../widgets/modern_tag.dart';
 import '../../widgets/tag_data.dart';
 
 // Tag constants - 使用无前缀的 slug
-const executionTags = <String>{'timed', 'fragmented', 'waiting'};
 const urgencyTags = <String>{'urgent', 'not_urgent'};
 const importanceTags = <String>{'important', 'not_important'};
 
@@ -16,12 +15,6 @@ const quadrantOptionSlugs = <String>[
   'important',
   'not_urgent',
   'not_important',
-];
-
-const executionOptionSlugs = <String>[
-  'timed',
-  'fragmented',
-  'waiting',
 ];
 
 /// Builds a list of tag chips for a task.
@@ -75,35 +68,5 @@ TagKind getTagKindFromSlug(String slug) {
 /// 使用 TagService 统一处理
 String tagLabel(AppLocalizations l10n, String slug) {
   return TagService.getLocalizedLabel(l10n, slug);
-}
-
-/// Builds an execution type leading widget for a task.
-/// Returns null if the task has no execution tags.
-Widget? buildExecutionLeading(BuildContext context, Task task) {
-  // 查找执行方式标签（兼容旧数据，自动规范化）
-  final slug = task.tags.firstWhere(
-    (tag) {
-      final normalized = TagService.normalizeSlug(tag);
-      return executionTags.contains(normalized);
-    },
-    orElse: () => '',
-  );
-  if (slug.isEmpty) {
-    return null;
-  }
-  
-  final tagData = TagService.getTagData(context, slug);
-  if (tagData == null || tagData.icon == null) {
-    return null;
-  }
-  
-  return Container(
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: tagData.color.withValues(alpha: 0.18),
-    ),
-    padding: const EdgeInsets.all(8),
-    child: Icon(tagData.icon, color: tagData.color, size: 20),
-  );
 }
 

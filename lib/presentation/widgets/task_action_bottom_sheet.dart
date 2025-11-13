@@ -567,25 +567,6 @@ class _TaskActionBottomSheetState
       }
     }
 
-    // 执行方式组
-    final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-    final hasExecutionTag = task.tags.any(
-      (t) => TagService.getKind(t) == TagKind.execution,
-    );
-    if (!hasExecutionTag && executionTagsAsync.hasValue) {
-      final tags = executionTagsAsync.value!;
-      if (tags.isNotEmpty) {
-        tagGroups.add(
-          TagGroup(
-            title: l10n.tagGroupExecution,
-            tags: tags
-                .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                .toList(),
-          ),
-        );
-      }
-    }
-
     // 上下文组
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
     final hasContextTag = task.tags.any(

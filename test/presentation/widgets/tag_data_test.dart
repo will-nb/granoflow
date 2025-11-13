@@ -107,24 +107,7 @@ void main() {
       expect(tagData.prefix, null); // 前缀已废弃，不再显示
     });
 
-    test('fromTag creates TagData for waiting tag (normalizes slug)', () {
-      // Arrange
-      final tag = Tag(
-        id: '6',
-        slug: '#waiting', // 旧格式带前缀，会被规范化
-        kind: TagKind.execution, // 应该是 execution，不是 special
-        localizedLabels: {'en': 'Waiting'},
-      );
-
-      // Act
-      final tagData = TagData.fromTag(tag, 'en');
-
-      // Assert
-      expect(tagData.slug, 'waiting'); // 规范化后的 slug（无前缀）
-      expect(tagData.color, OceanBreezeColorSchemes.disabledGray);
-      expect(tagData.icon, Icons.hourglass_empty);
-      expect(tagData.prefix, null); // 前缀已废弃，不再显示
-    });
+    // Test removed - execution tags functionality has been removed
 
     test('fromTag creates TagData for wasted tag', () {
       // Arrange

@@ -69,7 +69,6 @@ void main() {
         priorityTagOptionsProvider.overrideWith((ref) async => const []),
         urgencyTagOptionsProvider.overrideWith((ref) async => const []),
         importanceTagOptionsProvider.overrideWith((ref) async => const []),
-        executionTagOptionsProvider.overrideWith((ref) async => const []),
       ],
       child: MaterialApp(
         theme: AppTheme.light(),

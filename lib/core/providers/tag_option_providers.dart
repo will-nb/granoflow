@@ -53,14 +53,3 @@ final importanceTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
   }
 });
 
-final executionTagOptionsProvider = FutureProvider<List<Tag>>((ref) async {
-  try {
-    ref.watch(seedInitializerProvider);
-    final taskService = await ref.read(taskServiceProvider.future);
-    return await taskService.listTagsByKind(TagKind.execution);
-  } catch (error) {
-    debugPrint('ExecutionTagOptionsProvider error: $error');
-    return <Tag>[];
-  }
-});
-

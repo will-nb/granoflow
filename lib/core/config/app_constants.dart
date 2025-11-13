@@ -84,23 +84,6 @@ class AppConstants {
       kind: TagKind.special,
       translationKey: 'tag_wasted',
     ),
-
-    // 执行方式标签（互斥）
-    TagDefinition(
-      slug: 'timed',
-      kind: TagKind.execution,
-      translationKey: 'tag_timed',
-    ),
-    TagDefinition(
-      slug: 'fragmented',
-      kind: TagKind.execution,
-      translationKey: 'tag_fragmented',
-    ),
-    TagDefinition(
-      slug: 'waiting',
-      kind: TagKind.execution,
-      translationKey: 'tag_waiting',
-    ),
   ];
 }
 

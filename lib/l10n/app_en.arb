@@ -176,7 +176,6 @@
   "completionTime": "Completion Time",
   "createSubtask": "Create Subtask",
   "dragToOverdueNotAllowed": "Cannot drag to overdue section",
-  "drawerExecution": "Execution Style",
   "drawerManageProjects": "Manage Projects",
   "@drawerManageProjects": {
     "description": "Button label to manage projects in drawer"
@@ -620,18 +619,8 @@
   "tag_not_urgent": "Not urgent",
   "tag_travel": "Travel",
   "tag_urgent": "Urgent",
-  "tag_waiting": "Waiting",
-  "tag_timed": "Timed",
-  "@tag_timed": {
-    "description": "Label for timed tasks"
-  },
-  "tag_fragmented": "Fragmented",
-  "@tag_fragmented": {
-    "description": "Label for fragmented tasks"
-  },
   "tag_wasted": "Wasted time",
   "tagGroupContext": "Context",
-  "tagGroupExecution": "Execution Style",
   "tagGroupImportance": "Importance",
   "tagGroupUrgency": "Urgency",
   "taskChain": "Task Chain",
@@ -791,10 +780,6 @@
   "projectSheetQuadrantLabel": "Quadrant tags",
   "@projectSheetQuadrantLabel": {
     "description": "Label for selecting quadrant tags"
-  },
-  "projectSheetExecutionLabel": "Execution style",
-  "@projectSheetExecutionLabel": {
-    "description": "Label for selecting execution tags"
   },
   "projectSheetContextLabel": "Context tag",
   "@projectSheetContextLabel": {

@@ -156,12 +156,6 @@
   "@projectStatusOverdue": {
     "description": "项目或里程碑逾期时的标签"
   },
-  "@tag_fragmented": {
-    "description": "碎片化任务标签"
-  },
-  "@tag_timed": {
-    "description": "计时任务标签"
-  },
   "actionAddSubtask": "添加子任务",
   "actionArchive": "归档",
   "actionDelete": "删除",
@@ -336,7 +330,6 @@
   "completionTime": "完成时间",
   "createSubtask": "创建子任务",
   "dragToOverdueNotAllowed": "无法拖拽到已逾期区域",
-  "drawerExecution": "执行方式",
   "drawerManageProjects": "管理项目",
   "@drawerManageProjects": {
     "description": "抽屉中管理项目按钮文字"
@@ -870,20 +863,16 @@
   "switchTheme": "切换主题",
   "tag_anywhere": "任何地点",
   "tag_company": "公司",
-  "tag_fragmented": "碎片",
   "tag_home": "家里",
   "tag_important": "重要",
   "tag_local": "本地",
   "tag_school": "学校",
   "tag_not_important": "不重要",
   "tag_not_urgent": "不紧急",
-  "tag_timed": "计时",
   "tag_travel": "旅行",
   "tag_urgent": "紧急",
-  "tag_waiting": "等待",
   "tag_wasted": "浪费时间",
   "tagGroupContext": "上下文",
-  "tagGroupExecution": "执行方式",
   "tagGroupImportance": "重要程度",
   "tagGroupUrgency": "紧急程度",
   "taskAddTag": "标签",

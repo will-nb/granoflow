@@ -290,8 +290,7 @@ class TaskCrudServiceUpdate {
           final kind = TagService.getKind(tag);
           return kind != TagKind.context &&
               kind != TagKind.urgency &&
-              kind != TagKind.importance &&
-              kind != TagKind.execution;
+              kind != TagKind.importance;
         })
         .toList(growable: true);
     if (contextTag != null && contextTag.isNotEmpty) {

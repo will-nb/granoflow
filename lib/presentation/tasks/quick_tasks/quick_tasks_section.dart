@@ -8,7 +8,6 @@ import '../../widgets/dismissible_task_tile.dart';
 import '../../widgets/swipe_action_handler.dart';
 import '../../widgets/swipe_action_type.dart';
 import '../../widgets/swipe_configs.dart';
-import '../utils/tag_utils.dart';
 import '../utils/tree_flattening_utils.dart';
 import '../widgets/description_block.dart';
 import '../widgets/empty_placeholder.dart';
@@ -218,7 +217,7 @@ class QuickTaskItem extends ConsumerWidget {
               TaskHeaderRow(
                 task: task,
                 showConvertAction: true,
-                leading: buildExecutionLeading(context, task),
+                leading: null,
               ),
               if (task.description != null && task.description!.isNotEmpty)
                 Padding(

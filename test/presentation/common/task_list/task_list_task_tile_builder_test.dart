@@ -61,7 +61,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -137,7 +136,6 @@ void main() {
                 importanceTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
-                executionTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
               ],
@@ -213,7 +211,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -290,7 +287,6 @@ void main() {
                 importanceTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
-                executionTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
               ],
@@ -409,7 +405,6 @@ void main() {
                 importanceTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
-                executionTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
               ],
@@ -491,7 +486,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -565,7 +559,6 @@ void main() {
                 importanceTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
-                executionTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
               ],

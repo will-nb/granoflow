@@ -13,14 +13,11 @@ class MilestoneDraft {
   DateTime? deadline;
   String? urgencyTag;
   String? importanceTag;
-  String? executionTag;
   VoidCallback? titleListener;
   bool suppressShortcut = false;
 
   void applyTag(String slug) {
-    if (executionTags.contains(slug)) {
-      executionTag = slug;
-    } else if (urgencyTags.contains(slug)) {
+    if (urgencyTags.contains(slug)) {
       urgencyTag = slug;
     } else if (importanceTags.contains(slug)) {
       importanceTag = slug;

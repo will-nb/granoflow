@@ -8,7 +8,6 @@ import '../../widgets/error_banner.dart';
 import '../../widgets/swipe_action_handler.dart';
 import '../../widgets/swipe_action_type.dart';
 import '../../widgets/swipe_configs.dart';
-import '../utils/tag_utils.dart';
 import '../utils/tree_flattening_utils.dart';
 import '../widgets/task_hierarchy_list.dart';
 import '../widgets/task_header_row.dart';
@@ -25,7 +24,6 @@ class QuickTaskCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final treeAsync = ref.watch(taskTreeProvider(task.id));
     final theme = Theme.of(context);
-    final executionLeading = buildExecutionLeading(context, task);
 
     return DismissibleTaskTile(
       task: task,
@@ -54,7 +52,7 @@ class QuickTaskCard extends ConsumerWidget {
               TaskHeaderRow(
                 task: task,
                 showConvertAction: true,
-                leading: executionLeading,
+                leading: null,
                 useBodyText: true,
               ),
               treeAsync.when(

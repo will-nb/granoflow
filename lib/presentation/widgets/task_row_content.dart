@@ -256,26 +256,6 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
       });
     }
 
-    // 执行方式组
-    final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-    final hasExecutionTag = widget.task.tags.any(
-      (t) => TagService.getKind(t) == TagKind.execution,
-    );
-    if (!hasExecutionTag) {
-      executionTagsAsync.whenData((tags) {
-        if (tags.isNotEmpty) {
-          tagGroups.add(
-            TagGroup(
-              title: l10n.tagGroupExecution,
-              tags: tags
-                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                  .toList(),
-            ),
-          );
-        }
-      });
-    }
-
     // 上下文组
     final contextTagsAsync = ref.watch(contextTagOptionsProvider);
     final hasContextTag = widget.task.tags.any(
