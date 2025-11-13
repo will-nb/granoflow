@@ -7,7 +7,6 @@ export 'preference_providers.dart';
 export 'task_filter_providers.dart';
 export 'project_filter_providers.dart';
 export 'task_query_providers.dart';
-export 'task_hierarchy_providers.dart';
 export 'task_action_providers.dart';
 export 'task_pagination_providers.dart';
 export 'focus_providers.dart';

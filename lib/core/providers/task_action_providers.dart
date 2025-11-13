@@ -5,29 +5,6 @@ import '../services/task_service.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
 
-/// Provider: 获取已完成任务的所有子任务（包括 trashed 状态）
-/// 用于在已完成页面展开任务时显示子任务
-final completedTaskChildrenProvider =
-    FutureProvider.family<List<Task>, String>((ref, parentId) async {
-  final taskRepository = await ref.read(taskRepositoryProvider.future);
-  final children = await taskRepository.listChildrenIncludingTrashed(parentId);
-  // 只返回已完成状态的子任务
-  return children
-      .where((task) => task.status == TaskStatus.completedActive)
-      .toList();
-});
-
-/// Provider: 获取已归档任务的所有子任务（包括 trashed 状态）
-/// 用于在已归档页面展开任务时显示子任务
-final archivedTaskChildrenProvider =
-    FutureProvider.family<List<Task>, String>((ref, parentId) async {
-  final taskRepository = await ref.read(taskRepositoryProvider.future);
-  final children = await taskRepository.listChildrenIncludingTrashed(parentId);
-  // 只返回已归档状态的子任务
-  return children
-      .where((task) => task.status == TaskStatus.archived)
-      .toList();
-});
 
 class TaskEditActionsNotifier extends AsyncNotifier<void> {
   @override
