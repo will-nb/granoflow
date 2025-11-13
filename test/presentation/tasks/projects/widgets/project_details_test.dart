@@ -97,7 +97,8 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Milestone 1'), findsOneWidget);
       expect(find.text('Milestone 2'), findsOneWidget);
@@ -114,7 +115,10 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('添加里程碑'), findsOneWidget);
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(ProjectDetails)),
+      );
+      expect(find.text(l10n.milestoneAddButton), findsOneWidget);
     });
   });
 }

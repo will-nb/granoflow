@@ -33,11 +33,12 @@ class ProjectNodeHeader extends ConsumerWidget {
       trailing: Wrap(
         spacing: 8,
         children: [
-          IconButton(
-            tooltip: l10n.actionAddSubtask,
-            icon: const Icon(Icons.subdirectory_arrow_right),
-            onPressed: () => showAddSubtaskDialog(context, ref, task.id),
-          ),
+          // 子任务功能已禁用
+          // IconButton(
+          //   tooltip: l10n.actionAddSubtask,
+          //   icon: const Icon(Icons.subdirectory_arrow_right),
+          //   onPressed: () => showAddSubtaskDialog(context, ref, task.id),
+          // ),
           IconButton(
             tooltip: l10n.taskListRenameDialogTitle,
             icon: const Icon(Icons.edit_outlined),

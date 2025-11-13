@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/milestone.dart';
 import '../../data/models/project.dart';
 import '../../data/models/task.dart';
 import '../services/tag_service.dart';
+import '../utils/project_statistics_utils.dart' show ProgressStatistics, ProjectStatisticsUtils;
+import '../utils/task_section_utils.dart';
 import 'project_filter_providers.dart';
 import 'repository_providers.dart';
 import 'service_providers.dart';
@@ -17,8 +20,36 @@ final taskSectionsProvider = StreamProvider.family<List<Task>, TaskSection>((
   final repository = await ref.read(taskRepositoryProvider.future);
   
   await for (final tasks in repository.watchSection(section)) {
+    // 对于 today section，需要额外查询已完成任务
+    List<Task> allTasks = List<Task>.from(tasks);
+    if (section == TaskSection.today) {
+      // 查询已完成任务（使用 completed section 的查询逻辑，但按 dueAt 筛选）
+      try {
+        final completed = await repository.listSectionTasks(TaskSection.completed);
+        // 筛选出今日的已完成任务
+        final now = DateTime.now();
+        final todayStart = TaskSectionUtils.getSectionStartTime(TaskSection.today, now: now);
+        final todayEnd = TaskSectionUtils.getSectionEndTimeForQuery(TaskSection.today, now: now);
+        final todayCompleted = completed.where((task) {
+          if (task.dueAt == null) return false;
+          final dueDate = DateTime(task.dueAt!.year, task.dueAt!.month, task.dueAt!.day);
+          final startDate = DateTime(todayStart.year, todayStart.month, todayStart.day);
+          final endDate = DateTime(todayEnd.year, todayEnd.month, todayEnd.day);
+          return (dueDate.isAtSameMomentAs(startDate) || dueDate.isAfter(startDate)) &&
+              dueDate.isBefore(endDate);
+        }).toList();
+        // 合并已完成任务，避免重复
+        final existingIds = allTasks.map((t) => t.id).toSet();
+        final newCompleted = todayCompleted.where((t) => !existingIds.contains(t.id)).toList();
+        allTasks = [...allTasks, ...newCompleted];
+      } catch (e) {
+        // 如果查询失败，继续使用原始任务列表
+        debugPrint('Failed to load completed tasks for today: $e');
+      }
+    }
+    
     // 应用筛选逻辑（内存筛选，参考 watchInboxFiltered 的实现）
-    final filtered = tasks.where((task) {
+    final filtered = allTasks.where((task) {
       final tags = task.tags;
       
       // 场景标签筛选
@@ -99,7 +130,17 @@ final rootTasksProvider = FutureProvider<List<Task>>((ref) async {
 
 final projectsDomainProvider = StreamProvider<List<Project>>((ref) async* {
   final projectService = await ref.read(projectServiceProvider.future);
-  yield* projectService.watchActiveProjects();
+  await for (final projects in projectService.watchActiveProjects()) {
+    // 过滤掉没有里程碑的项目
+    final filteredProjects = <Project>[];
+    for (final project in projects) {
+      final milestones = await projectService.listMilestones(project.id);
+      if (milestones.isNotEmpty) {
+        filteredProjects.add(project);
+      }
+    }
+    yield filteredProjects;
+  }
 });
 
 /// 根据筛选状态返回项目列表
@@ -107,7 +148,18 @@ final projectsDomainProvider = StreamProvider<List<Project>>((ref) async* {
 final projectsByStatusProvider = StreamProvider<List<Project>>((ref) async* {
   final filterStatus = ref.watch(projectFilterStatusProvider);
   final repository = await ref.read(projectRepositoryProvider.future);
-  yield* repository.watchProjectsByStatus(filterStatus);
+  final projectService = await ref.read(projectServiceProvider.future);
+  await for (final projects in repository.watchProjectsByStatus(filterStatus)) {
+    // 过滤掉没有里程碑的项目
+    final filteredProjects = <Project>[];
+    for (final project in projects) {
+      final milestones = await projectService.listMilestones(project.id);
+      if (milestones.isNotEmpty) {
+        filteredProjects.add(project);
+      }
+    }
+    yield filteredProjects;
+  }
 });
 
 /// 用于已完成/已归档页面的项目筛选
@@ -154,5 +206,63 @@ final milestoneTasksProvider = StreamProvider.family<List<Task>, String>((
 final quickTasksProvider = StreamProvider<List<Task>>((ref) async* {
   final repository = await ref.read(taskRepositoryProvider.future);
   yield* repository.watchQuickTasks();
+});
+
+/// 项目任务统计 Provider
+///
+/// 输入：项目ID
+/// 输出：进度统计（已完成数、总数、进度百分比）
+final projectTasksStatisticsProvider =
+    StreamProvider.family<ProgressStatistics, String>((
+  ref,
+  projectId,
+) async* {
+  try {
+    final repository = await ref.read(taskRepositoryProvider.future);
+    await for (final tasks in repository.watchTasksByProjectId(projectId)) {
+      yield ProjectStatisticsUtils.calculateProjectProgress(projectId, tasks);
+    }
+  } catch (e, stackTrace) {
+    if (kDebugMode) {
+      debugPrint(
+        '[projectTasksStatisticsProvider] {event: error, projectId: $projectId, error: $e, stackTrace: $stackTrace}',
+      );
+    }
+    // 返回默认值
+    yield const ProgressStatistics(
+      completedCount: 0,
+      totalCount: 0,
+      progress: 0.0,
+    );
+  }
+});
+
+/// 里程碑任务统计 Provider
+///
+/// 输入：里程碑ID
+/// 输出：进度统计（已完成数、总数、进度百分比）
+final milestoneTasksStatisticsProvider =
+    StreamProvider.family<ProgressStatistics, String>((
+  ref,
+  milestoneId,
+) async* {
+  try {
+    final repository = await ref.read(taskRepositoryProvider.future);
+    await for (final tasks in repository.watchTasksByMilestoneId(milestoneId)) {
+      yield ProjectStatisticsUtils.calculateMilestoneProgress(milestoneId, tasks);
+    }
+  } catch (e, stackTrace) {
+    if (kDebugMode) {
+      debugPrint(
+        '[milestoneTasksStatisticsProvider] {event: error, milestoneId: $milestoneId, error: $e, stackTrace: $stackTrace}',
+      );
+    }
+    // 返回默认值
+    yield const ProgressStatistics(
+      completedCount: 0,
+      totalCount: 0,
+      progress: 0.0,
+    );
+  }
 });
 

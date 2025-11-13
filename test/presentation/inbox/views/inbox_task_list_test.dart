@@ -67,9 +67,6 @@ void main() {
             importanceTagOptionsProvider.overrideWith(
               (ref) async => [_StubTag('#important', TagKind.importance)],
             ),
-            executionTagOptionsProvider.overrideWith(
-              (ref) async => const <Tag>[],
-            ),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -130,7 +127,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -190,7 +186,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -251,7 +246,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -290,7 +284,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -347,7 +340,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -390,7 +382,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -431,7 +422,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),
@@ -507,7 +497,6 @@ void main() {
             contextTagOptionsProvider.overrideWith((ref) async => const []),
             urgencyTagOptionsProvider.overrideWith((ref) async => const []),
             importanceTagOptionsProvider.overrideWith((ref) async => const []),
-            executionTagOptionsProvider.overrideWith((ref) async => const []),
           ],
           child: MaterialApp(
             theme: AppTheme.light(),

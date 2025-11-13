@@ -54,7 +54,7 @@ void main() {
             ProjectMilestoneBlueprint(
               title: 'Kickoff',
               dueDate: DateTime(2024, 3, 5),
-              tags: <String>['#timed'],
+              tags: <String>[],
               description: 'Align stakeholders and finalize scope.',
             ),
           ],

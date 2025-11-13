@@ -175,36 +175,29 @@ class _TaskDragIntentTargetState extends ConsumerState<TaskDragIntentTarget> {
 
   Widget _buildSurface(BuildContext context) {
     final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
-    final hoverColor =
-        widget.hoverColor ??
-        Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3);
-    final borderRadius = widget.borderRadius ?? BorderRadius.circular(8);
+    // hoverColor 和 borderRadius 不再使用，因为子任务功能已禁用，不显示 hover 效果
 
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        // TODO: 临时禁用拖拽生成子任务功能，不显示遮罩
+        // 子任务功能已禁用，不接受任何拖拽
         return false;
-
-        // 原有逻辑（已注释，保留以备将来使用）：
-        // final can = widget.canAccept(details.data, ref);
-        // _log('onWillAccept', dragged: details.data, extras: {'can': can});
-        // return can;
       },
       onAcceptWithDetails: (details) async {
+        // 不会执行到这里，因为 onWillAcceptWithDetails 总是返回 false
         await _handleAccept(details.data, context, l10n);
       },
-      onMove: (_) => _handleHover(true),
-      onLeave: (_) => _handleHover(false),
+      onMove: (_) {
+        // 不接受拖拽时不触发 hover 效果
+        // 不调用 _handleHover
+      },
+      onLeave: (_) {
+        // 不接受拖拽时不触发 hover 效果
+        // 不调用 _handleHover
+      },
       builder: (context, candidate, rejected) {
-        final isHovering = candidate.isNotEmpty || _isHovering;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          decoration: BoxDecoration(
-            color: isHovering ? hoverColor : Colors.transparent,
-            borderRadius: borderRadius,
-          ),
-          child: widget.child,
-        );
+        // 由于 onWillAcceptWithDetails 总是返回 false，candidate 总是为空
+        // 因此不会显示 hover 效果
+        return widget.child!;
       },
     );
   }

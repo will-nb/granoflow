@@ -156,12 +156,6 @@
   "@projectStatusOverdue": {
     "description": "项目或里程碑逾期时的标签"
   },
-  "@tag_fragmented": {
-    "description": "碎片化任务标签"
-  },
-  "@tag_timed": {
-    "description": "计时任务标签"
-  },
   "actionAddSubtask": "添加子任务",
   "actionArchive": "归档",
   "actionDelete": "删除",
@@ -336,7 +330,6 @@
   "completionTime": "完成时间",
   "createSubtask": "创建子任务",
   "dragToOverdueNotAllowed": "无法拖拽到已逾期区域",
-  "drawerExecution": "执行方式",
   "drawerManageProjects": "管理项目",
   "@drawerManageProjects": {
     "description": "抽屉中管理项目按钮文字"
@@ -349,6 +342,41 @@
     "description": "抽屉中最近项目区域标题"
   },
   "datePickerCustom": "选择其他日期",
+  "detailCreated": "创建时间：{date}",
+  "@detailCreated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailUpdated": "更新时间：{date}",
+  "@detailUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailMilestones": "里程碑：{count} 个",
+  "@detailMilestones": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detailTasks": "任务：{completed} / {total}",
+  "@detailTasks": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "datePickerMonthEnd": "月底",
   "datePickerOptionThisMonth": "本月月底",
   "datePickerOptionThisWeek": "本周结束",
@@ -424,6 +452,18 @@
   "home": "首页",
   "homeGreeting": "GranoFlow",
   "homePageTitle": "首页",
+  "homeStatisticsEmpty": "暂无统计数据",
+  "homeStatisticsHours": "小时",
+  "homeStatisticsMinutes": "分钟",
+  "homeStatisticsThisMonth": "当月",
+  "homeStatisticsThisWeek": "本周",
+  "homeStatisticsTitle": "数据统计",
+  "homeStatisticsToday": "今天",
+  "homeStatisticsTotal": "全部",
+  "homeStatisticsThisMonthTopCompletedDate": "当月最佳完成日",
+  "homeStatisticsThisMonthTopFocusDate": "当月最佳专注日",
+  "homeStatisticsTotalTopCompletedDate": "历史最佳完成日",
+  "homeStatisticsTotalTopFocusDate": "历史最佳专注日",
   "homeTagline": "Stay in flow. Grow in focus.",
   "inbox": "收集箱",
   "inboxAddError": "添加任务失败",
@@ -510,6 +550,28 @@
   "milestoneDeleted": "里程碑已删除",
   "milestoneEditTitle": "编辑里程碑",
   "milestoneUpdated": "里程碑已更新",
+  "milestoneProgressLabel": "{completed} / {total} 个任务（{percentage}%）",
+  "@milestoneProgressLabel": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "milestonesLoadError": "加载里程碑失败：{error}",
+  "@milestonesLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navArchivedTitle": "归档",
   "navCompletedTitle": "已完成",
   "navInboxTitle": "收集箱",
@@ -600,6 +662,38 @@
   "projectNoMilestonesHint": "为项目添加里程碑以细化阶段。",
   "projectProgressEmpty": "添加里程碑以开始追踪进度。",
   "projectProgressLabel": "{percentage}% · {completed}/{total} 个里程碑",
+  "projectProgressTasksLabel": "进度：{completed} / {total} 个任务（{percentage}%）",
+  "@projectProgressTasksLabel": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "projectProgressLoadError": "加载进度失败：{error}",
+  "@projectProgressLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "projectNoTasks": "暂无任务",
+  "projectNotFound": "项目未找到",
+  "projectLoadError": "加载项目失败：{error}",
+  "@projectLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "projectQuickTasksEmpty": "暂无轻量任务",
   "projectQuickTasksSubtitle": "这些未归类的任务可以随时完成",
   "projectQuickTasksTitle": "轻量任务",
@@ -752,6 +846,10 @@
     }
   },
   "sessionComplete": "时段完成",
+  "searchMinLengthHint": "请输入至少3个字符进行搜索",
+  "searchNoResults": "未找到匹配的任务",
+  "searchPageTitle": "搜索任务",
+  "searchTasksPlaceholder": "搜索任务",
   "settings": "设定",
   "settingsFontSizeLabel": "字体大小",
   "settingsFontSizeLarge": "大",
@@ -781,20 +879,16 @@
   "switchTheme": "切换主题",
   "tag_anywhere": "任何地点",
   "tag_company": "公司",
-  "tag_fragmented": "碎片",
   "tag_home": "家里",
   "tag_important": "重要",
   "tag_local": "本地",
   "tag_school": "学校",
   "tag_not_important": "不重要",
   "tag_not_urgent": "不紧急",
-  "tag_timed": "计时",
   "tag_travel": "旅行",
   "tag_urgent": "紧急",
-  "tag_waiting": "等待",
   "tag_wasted": "浪费时间",
   "tagGroupContext": "上下文",
-  "tagGroupExecution": "执行方式",
   "tagGroupImportance": "重要程度",
   "tagGroupUrgency": "紧急程度",
   "taskAddTag": "标签",
@@ -855,6 +949,54 @@
   "taskListTaskArchivedToast": "任务已归档。",
   "taskListTaskCompletedError": "完成任务失败。",
   "taskListTaskCompletedToast": "任务已完成。",
+  "taskListTaskUncompletedToast": "任务已恢复为未完成。",
+  "@taskListTaskUncompletedToast": {
+    "description": "任务恢复为未完成状态的提示"
+  },
+  "taskListTaskStatusToggleHint": "点击切换任务完成状态",
+  "@taskListTaskStatusToggleHint": {
+    "description": "任务状态切换的可访问性提示"
+  },
+  "taskListTaskStatusLabel": "任务完成状态",
+  "@taskListTaskStatusLabel": {
+    "description": "任务状态图标的可访问性标签"
+  },
+  "taskListTaskStatusCompletedHint": "点击切换为未完成",
+  "@taskListTaskStatusCompletedHint": {
+    "description": "已完成任务状态图标的可访问性提示"
+  },
+  "taskListTaskStatusUncompletedHint": "点击切换为完成",
+  "@taskListTaskStatusUncompletedHint": {
+    "description": "未完成任务状态图标的可访问性提示"
+  },
+  "taskListTaskDueDateLabel": "截止日期",
+  "@taskListTaskDueDateLabel": {
+    "description": "截止日期图标的可访问性标签"
+  },
+  "taskListTaskDueDate": "截止日期",
+  "@taskListTaskDueDate": {
+    "description": "截止日期的可访问性标签"
+  },
+  "taskListTaskDueDateHint": "此任务有截止日期",
+  "@taskListTaskDueDateHint": {
+    "description": "截止日期图标的可访问性提示"
+  },
+  "taskActionSheetTitle": "任务操作",
+  "@taskActionSheetTitle": {
+    "description": "任务操作弹窗的标题"
+  },
+  "taskDetailSheetTitle": "任务详情",
+  "@taskDetailSheetTitle": {
+    "description": "任务详情弹窗的标题"
+  },
+  "taskListSimplifiedTip": "点击任务可以查看详情和进行操作",
+  "@taskListSimplifiedTip": {
+    "description": "任务列表简化后的首次使用提示"
+  },
+  "taskActionSheetTip": "在弹窗中可以编辑任务、管理标签、设置截止日期等",
+  "@taskActionSheetTip": {
+    "description": "任务操作弹窗的首次使用提示"
+  },
   "taskListTitle": "任务",
   "taskListTitleEdit": "任务列表 · 编辑模式",
   "taskMoveBlockedCycle": "无法创建子任务：会形成循环关系。",

@@ -9,7 +9,10 @@ import '../widgets/page_app_bar.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/task_filter_collapsible.dart';
-import 'widgets/trashed_task_tile.dart';
+import '../widgets/simplified_task_row.dart';
+import '../widgets/dismissible_task_tile.dart';
+import '../widgets/swipe_action_handler.dart';
+import '../widgets/swipe_configs.dart';
 
 class TrashPage extends ConsumerStatefulWidget {
   const TrashPage({super.key});
@@ -139,15 +142,34 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...paginationState.tasks.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final task = entry.value;
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: index < paginationState.tasks.length - 1 ? 12 : 0,
+                        ...paginationState.tasks.map((task) {
+                          return DismissibleTaskTile(
+                            key: ValueKey('trash-${task.id}-${task.updatedAt.millisecondsSinceEpoch}'),
+                            task: task,
+                            config: SwipeConfigs.trashConfig,
+                            onLeftAction: (task) {
+                              SwipeActionHandler.handleAction(
+                                context,
+                                ref,
+                                SwipeConfigs.trashConfig.leftAction,
+                                task,
+                              );
+                            },
+                            onRightAction: (task) {
+                              SwipeActionHandler.handleAction(
+                                context,
+                                ref,
+                                SwipeConfigs.trashConfig.rightAction,
+                                task,
+                              );
+                            },
+                            child: SimplifiedTaskRow(
+                              key: ValueKey(task.id),
+                              task: task,
+                              verticalPadding: 12.0,
                             ),
-                            child: TrashedTaskTile(task: task),
                           );
                         }),
                         if (paginationState.isLoading)

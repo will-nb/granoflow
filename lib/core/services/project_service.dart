@@ -199,4 +199,64 @@ class ProjectService {
 
   Future<bool> hasActiveTasks(String projectId) =>
       _tasksHelper.hasActiveTasks(projectId);
+
+  /// 确保项目中的任务都有里程碑
+  ///
+  /// 如果项目中有任务没有分配到里程碑，自动将它们分配到项目的第一个里程碑
+  /// 第一个里程碑的确定规则：按截止日期（第一优先）和 sortIndex（第二优先）排序
+  ///
+  /// [projectId] 项目ID
+  /// 返回修复的任务数量
+  Future<int> ensureTasksHaveMilestone(String projectId) async {
+    // 获取项目的所有里程碑
+    final milestones = await _milestones.listByProjectId(projectId);
+    
+    // 如果项目没有里程碑，直接返回（不需要修复）
+    if (milestones.isEmpty) {
+      return 0;
+    }
+
+    // 按截止日期（第一优先）和 sortIndex（第二优先）排序
+    final sortedMilestones = List<Milestone>.from(milestones);
+    sortedMilestones.sort((a, b) {
+      // 首先按截止日期排序（升序）
+      if (a.dueAt != null && b.dueAt != null) {
+        final dateCompare = a.dueAt!.compareTo(b.dueAt!);
+        if (dateCompare != 0) {
+          return dateCompare;
+        }
+      } else if (a.dueAt != null) {
+        return -1; // a 有截止日期，b 没有，a 排在前面
+      } else if (b.dueAt != null) {
+        return 1; // b 有截止日期，a 没有，b 排在前面
+      }
+      // 如果截止日期相同或都没有，按 sortIndex 排序（升序）
+      return a.sortIndex.compareTo(b.sortIndex);
+    });
+
+    // 获取第一个里程碑
+    final firstMilestone = sortedMilestones.first;
+
+    // 获取项目的所有任务
+    final allTasks = await _tasks.listAll();
+    
+    // 查找项目中 milestoneId 为 null 的任务
+    final unmilestonedTasks = allTasks.where((task) {
+      return task.projectId == projectId && task.milestoneId == null;
+    }).toList();
+
+    if (unmilestonedTasks.isEmpty) {
+      return 0;
+    }
+
+    // 批量更新这些任务的 milestoneId
+    final updates = <String, TaskUpdate>{};
+    for (final task in unmilestonedTasks) {
+      updates[task.id] = TaskUpdate(milestoneId: firstMilestone.id);
+    }
+
+    await _tasks.batchUpdate(updates);
+
+    return unmilestonedTasks.length;
+  }
 }

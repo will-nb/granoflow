@@ -48,6 +48,7 @@ void main() {
           Locale('zh', 'CN'),
           Locale('zh', 'HK'),
         ],
+        locale: const Locale('zh', 'CN'),
         routerConfig: GoRouter(
           routes: [
             GoRoute(

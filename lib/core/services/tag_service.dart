@@ -94,12 +94,6 @@ class TagService {
         return l10n.tag_important;
       case 'tag_not_important':
         return l10n.tag_not_important;
-      case 'tag_timed':
-        return l10n.tag_timed;
-      case 'tag_fragmented':
-        return l10n.tag_fragmented;
-      case 'tag_waiting':
-        return l10n.tag_waiting;
       case 'tag_wasted':
         return l10n.tag_wasted;
       default:
@@ -157,20 +151,6 @@ class TagService {
       }
     }
 
-    // 执行方式标签
-    if (kind == TagKind.execution) {
-      switch (normalized) {
-        case 'timed':
-          return (OceanBreezeColorSchemes.softPink, Icons.schedule);
-        case 'fragmented':
-          return (OceanBreezeColorSchemes.lakeCyan, Icons.flash_on_outlined);
-        case 'waiting':
-          return (OceanBreezeColorSchemes.disabledGray, Icons.hourglass_empty);
-        default:
-          return (OceanBreezeColorSchemes.seaSaltBlue, Icons.tag);
-      }
-    }
-
     // 特殊标签
     if (kind == TagKind.special) {
       switch (normalized) {
@@ -222,10 +202,9 @@ class TagService {
     // 只有相同类型的标签才可能在同一组
     if (kind1 != kind2) return false;
     
-    // 同类型的标签都互斥（紧急程度、重要程度、执行方式、上下文）
+    // 同类型的标签都互斥（紧急程度、重要程度、上下文）
     return kind1 == TagKind.urgency ||
         kind1 == TagKind.importance ||
-        kind1 == TagKind.execution ||
         kind1 == TagKind.context;
   }
 

@@ -1,0 +1,869 @@
+{
+  // ===========================================
+  // 任务列表简化设计迭代蓝图
+  // 基于 design.json5 实现任务列表简化功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250115-task-list-simplification",
+    
+    // 迭代标题
+    title: "任务列表简化：极简设计 + 底部弹窗交互",
+    
+    // 迭代描述
+    description: "简化所有任务列表页面（收集箱、任务清单、已完成、已收纳、回收站、项目子任务）的展示，只显示任务标题和状态图标，移除所有其他信息和展开/收缩功能。点击任务根据状态显示操作弹窗（可编辑）或详情弹窗（只读）。",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/tasks/design.json5",
+    
+    // 设计评估文档
+    evaluationDocument: "documents/json5/tasks/design_evaluation.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // UI 组件层 - 新建组件
+    widgets: [
+      {
+        path: "lib/presentation/widgets/simplified_task_row.dart",
+        purpose: "简化的任务行组件，只显示状态图标和标题（带截止日期图标提示）",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/core/services/task_service.dart",
+          "lib/core/providers/service_providers.dart",
+        ],
+        details: [
+          "SimplifiedTaskRow 组件：极简任务行，只包含状态图标和标题",
+          "状态图标：使用 Checkbox 组件，根据任务状态显示选中/未选中",
+          "支持截止日期图标提示（如果任务有截止日期，在标题后显示 Icons.calendar_today）",
+          "支持点击打开弹窗（根据任务状态）：",
+          "  - inbox/pending/doing/paused 状态：显示 TaskActionBottomSheet",
+          "  - completed/archived/trashed 状态：显示 TaskDetailBottomSheet",
+          "支持状态切换（点击状态图标）：",
+          "  - 未完成 -> 完成：调用 TaskService.markCompleted",
+          "  - 完成 -> 未完成：调用 TaskService.markInProgress（需要确认是否有此方法）",
+          "使用 InkWell 或 GestureDetector 处理点击事件",
+          "支持可访问性标签和提示（语义化标签、屏幕阅读器支持）",
+          "支持拖拽排序（如果需要，包装在拖拽组件中）",
+        ],
+        reuse: [
+          "复用 Task 模型",
+          "复用 TaskService（状态切换）",
+          "复用主题样式",
+          "复用 Checkbox 组件（Flutter 标准组件）",
+        ],
+        note: "TaskStatusCheckbox 组件不存在，使用 Flutter 标准 Checkbox 组件实现状态图标",
+      },
+      {
+        path: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+        purpose: "任务操作底部弹窗，包含所有任务操作功能（编辑标题、标签管理、项目/里程碑选择、截止日期编辑、复制、计时、转换为项目、完成、归档、删除等）",
+        action: "create",
+        estimatedLines: 400,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/presentation/widgets/task_row_content/task_row_title_editor.dart",
+          "lib/presentation/widgets/inline_editable_tag.dart",
+          "lib/presentation/widgets/tag_add_button.dart",
+          "lib/presentation/widgets/project_milestone_picker.dart",
+          "lib/presentation/widgets/inline_deadline_editor.dart",
+          "lib/presentation/widgets/task_copy_button.dart",
+          "lib/presentation/widgets/task_timer_widget.dart",
+        ],
+        details: [
+          "TaskActionBottomSheet 组件：可编辑的任务操作弹窗",
+          "支持手势关闭（向下滑动、点击外部区域）",
+          "支持内容滚动（使用 SingleChildScrollView）",
+          "包含拖拽指示器（顶部）",
+          "包含所有操作功能：",
+          "  - 任务标题编辑（TextField）",
+          "  - 标签管理（InlineEditableTag + TagAddButton）",
+          "  - 项目/里程碑选择（ProjectMilestonePicker）",
+          "  - 截止日期编辑（InlineDeadlineEditor）",
+          "  - 复制按钮（TaskCopyButton）",
+          "  - 计时控件（TaskTimerWidget，仅 pending/doing/paused 状态显示，inbox 状态不显示）",
+          "  - 转换为项目（如果适用，showConvertAction）",
+          "  - 操作按钮区域：",
+          "    - 完成任务（TaskService.markCompleted，仅未完成状态显示）",
+          "    - 归档任务（TaskService.archive，使用 SwipeActionHandler._handleArchive）",
+          "    - 删除任务（TaskService.softDelete，使用 SwipeActionHandler._handleDelete）",
+          "    - 恢复任务（如果适用，如从回收站恢复）",
+          "根据任务状态动态显示/隐藏功能（如 inbox 状态不显示计时控件）",
+          "使用 showModalBottomSheet 显示，支持 isScrollControlled",
+          "支持动画效果（slideUp/slideDown）",
+        ],
+        reuse: [
+          "复用 TaskRowTitleEditor 的标题编辑逻辑",
+          "复用 InlineEditableTag 和 TagAddButton",
+          "复用 ProjectMilestonePicker",
+          "复用 InlineDeadlineEditor",
+          "复用 TaskCopyButton",
+          "复用 TaskTimerWidget",
+          "复用 TaskDetailBottomSheet 的弹窗样式和结构（作为参考）",
+          "复用 SwipeActionHandler（完成、归档、删除操作）",
+          "复用 TaskService（所有任务操作）",
+        ],
+      },
+    ],
+    
+    // UI 组件层 - 修改组件
+    modifiedWidgets: [
+      {
+        path: "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        purpose: "增强 TaskDetailBottomSheet，添加手势关闭和动画效果支持",
+        action: "modify",
+        estimatedLines: 50,
+        dependencies: [],
+        details: [
+          "确保支持手势关闭（向下滑动、点击外部区域）",
+          "确保使用 showModalBottomSheet 的 isScrollControlled 参数",
+          "确保动画效果符合设计规范（slideUp/slideDown）",
+          "确保拖拽指示器已存在（当前已有）",
+          "确保内容可滚动（如果需要）",
+        ],
+        note: "TaskDetailBottomSheet 已存在，只需要增强交互特性，确保与 TaskActionBottomSheet 一致",
+      },
+    ],
+    
+    // 页面层 - 修改页面
+    pages: [
+      {
+        path: "lib/presentation/inbox/inbox_page.dart",
+        purpose: "修改收集箱页面，使用 SimplifiedTaskRow 替换现有任务行，只显示 inbox 状态的任务",
+        action: "modify",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/presentation/widgets/simplified_task_row.dart",
+          "lib/presentation/widgets/task_action_bottom_sheet.dart",
+          "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "替换任务行组件为 SimplifiedTaskRow",
+          "移除所有展开/收缩功能",
+          "移除标签、项目、截止日期等信息的显示",
+          "点击任务时，根据状态显示 TaskActionBottomSheet（inbox 状态）",
+          "确保只显示 inbox 状态的任务（通过筛选）",
+          "保持筛选功能（如果存在）",
+          "保持空状态提示",
+        ],
+        reuse: [
+          "复用 SimplifiedTaskRow",
+          "复用 TaskActionBottomSheet",
+          "复用现有的筛选逻辑",
+          "复用现有的空状态组件",
+        ],
+      },
+      {
+        path: "lib/presentation/tasks/task_list_page.dart",
+        purpose: "修改任务清单页面，使用 SimplifiedTaskRow 替换现有任务行",
+        action: "modify",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/presentation/widgets/simplified_task_row.dart",
+          "lib/presentation/widgets/task_action_bottom_sheet.dart",
+          "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+          "lib/presentation/common/task_list/task_list_drag_builder.dart",
+        ],
+        details: [
+          "替换任务行组件为 SimplifiedTaskRow",
+          "移除所有展开/收缩功能",
+          "移除标签、项目、截止日期等信息的显示",
+          "点击任务时，根据状态显示 TaskActionBottomSheet（pending/doing/paused 状态）或 TaskDetailBottomSheet（completed 状态）",
+          "保持时间分区展示（逾期、今天、明天等）",
+          "保持筛选功能",
+          "保持拖拽排序功能：",
+          "  - SimplifiedTaskRow 需要包装在拖拽组件中（如 TaskDragIntentTarget）",
+          "  - 复用现有的拖拽排序逻辑（TaskDragService、ReorderableListView 等）",
+          "保持空状态提示",
+          "子任务处理：",
+          "  - 设计文档要求\"所有任务平铺显示\"，子任务也应该显示",
+          "  - 但需要确认：子任务是否也使用 SimplifiedTaskRow？是否显示在同一个列表中？",
+        ],
+        reuse: [
+          "复用 SimplifiedTaskRow",
+          "复用 TaskActionBottomSheet",
+          "复用 TaskDetailBottomSheet",
+          "复用现有的时间分区逻辑（TaskSectionPanel）",
+          "复用现有的筛选逻辑",
+          "复用现有的拖拽排序逻辑（TaskDragIntentTarget、TaskDragService 等）",
+        ],
+        note: "需要确认：子任务的处理方式，是否平铺显示在同一个列表中？",
+      },
+      {
+        path: "lib/presentation/tasks/views/task_section_panel.dart",
+        purpose: "修改任务分区面板，使用 SimplifiedTaskRow 替换现有任务行",
+        action: "modify",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/presentation/widgets/simplified_task_row.dart",
+        ],
+        details: [
+          "替换任务行组件为 SimplifiedTaskRow",
+          "移除所有展开/收缩功能",
+          "保持分区标题和任务列表结构",
+        ],
+        reuse: [
+          "复用 SimplifiedTaskRow",
+          "复用现有的分区逻辑",
+        ],
+      },
+      {
+        path: "lib/presentation/completion_management/completed_page.dart",
+        purpose: "修改已完成页面，使用 SimplifiedTaskRow 替换现有任务行",
+        action: "modify",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/presentation/widgets/simplified_task_row.dart",
+          "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "替换任务行组件为 SimplifiedTaskRow",
+          "移除所有展开/收缩功能",
+          "点击任务时显示 TaskDetailBottomSheet（completed 状态，只读）",
+          "保持筛选功能（如果存在）",
+          "保持空状态提示",
+        ],
+        reuse: [
+          "复用 SimplifiedTaskRow",
+          "复用 TaskDetailBottomSheet",
+          "复用现有的筛选逻辑",
+        ],
+      },
+      {
+        path: "lib/presentation/completion_management/archived_page.dart",
+        purpose: "修改已收纳页面，使用 SimplifiedTaskRow 替换现有任务行",
+        action: "modify",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/presentation/widgets/simplified_task_row.dart",
+          "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "替换任务行组件为 SimplifiedTaskRow",
+          "移除所有展开/收缩功能",
+          "点击任务时显示 TaskDetailBottomSheet（archived 状态，只读）",
+          "保持筛选功能（如果存在）",
+          "保持空状态提示",
+        ],
+        reuse: [
+          "复用 SimplifiedTaskRow",
+          "复用 TaskDetailBottomSheet",
+          "复用现有的筛选逻辑",
+        ],
+      },
+      {
+        path: "lib/presentation/completion_management/trash_page.dart",
+        purpose: "修改回收站页面，使用 SimplifiedTaskRow 替换现有任务行",
+        action: "modify",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/presentation/widgets/simplified_task_row.dart",
+          "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "替换任务行组件为 SimplifiedTaskRow",
+          "移除所有展开/收缩功能",
+          "点击任务时显示 TaskDetailBottomSheet（trashed 状态，只读）",
+          "保持筛选功能（如果存在）",
+          "保持空状态提示",
+        ],
+        reuse: [
+          "复用 SimplifiedTaskRow",
+          "复用 TaskDetailBottomSheet",
+          "复用现有的筛选逻辑",
+        ],
+      },
+      {
+        path: "lib/presentation/tasks/projects/widgets/project_details.dart",
+        purpose: "修改项目详情页面的子任务列表，使用 SimplifiedTaskRow 替换现有任务行",
+        action: "modify",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/presentation/widgets/simplified_task_row.dart",
+          "lib/presentation/widgets/task_action_bottom_sheet.dart",
+        ],
+        details: [
+          "替换子任务行组件为 SimplifiedTaskRow",
+          "移除所有展开/收缩功能",
+          "点击任务时显示 TaskActionBottomSheet（pending/doing/paused 状态）",
+          "保持子任务列表结构",
+        ],
+        reuse: [
+          "复用 SimplifiedTaskRow",
+          "复用 TaskActionBottomSheet",
+        ],
+      },
+    ],
+    
+    // 工具类 - 新建
+    utils: [
+      {
+        path: "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart",
+        purpose: "底部弹窗显示工具类，统一处理弹窗的显示逻辑（手势关闭、动画、样式等）",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/presentation/widgets/task_action_bottom_sheet.dart",
+          "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "TaskBottomSheetHelper 工具类：统一处理底部弹窗的显示",
+          "showTaskBottomSheet 方法：根据任务状态自动选择显示哪个弹窗",
+          "showTaskActionBottomSheet 方法：显示任务操作弹窗",
+          "showTaskDetailBottomSheet 方法：显示任务详情弹窗",
+          "统一处理 showModalBottomSheet 的参数：",
+          "  - isScrollControlled: true",
+          "  - enableDrag: true（支持手势关闭）",
+          "  - isDismissible: true（支持点击外部关闭）",
+          "  - 动画效果（slideUp/slideDown）",
+          "  - 背景颜色和圆角",
+        ],
+        reuse: [
+          "复用 Flutter 的 showModalBottomSheet",
+          "复用主题样式",
+          "复用 TaskActionBottomSheet 和 TaskDetailBottomSheet",
+        ],
+      },
+      {
+        path: "lib/presentation/widgets/utils/task_status_toggle_helper.dart",
+        purpose: "任务状态切换工具类，统一处理状态切换逻辑",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/core/services/task_service.dart",
+          "lib/core/providers/service_providers.dart",
+        ],
+        details: [
+          "TaskStatusToggleHelper 工具类：统一处理任务状态切换",
+          "toggleTaskStatus 方法：切换任务的完成/未完成状态",
+          "处理逻辑：",
+          "  - 如果任务未完成（inbox/pending/doing/paused），调用 TaskService.markCompleted",
+          "  - 如果任务已完成（completedActive），需要恢复为原状态（需要确认恢复逻辑）",
+          "  - 处理错误和成功提示",
+        ],
+        reuse: [
+          "复用 TaskService",
+          "复用 SwipeActionHandler（如果需要）",
+        ],
+        note: "需要确认：已完成任务如何恢复？是否有恢复方法？",
+      },
+    ],
+    
+    // 本地化 - 新增字符串
+    localization: [
+      {
+        path: "lib/l10n/app_en.arb",
+        purpose: "添加新的本地化字符串",
+        action: "modify",
+        estimatedLines: 20,
+        dependencies: [],
+        details: [
+          "taskActionSheetTitle: 任务操作",
+          "taskDetailSheetTitle: 任务详情",
+          "taskListSimplifiedTip: 点击任务可以查看详情和进行操作",
+          "taskActionSheetTip: 在弹窗中可以编辑任务、管理标签、设置截止日期等",
+        ],
+      },
+      {
+        path: "lib/l10n/app_zh_CN.arb",
+        purpose: "添加新的本地化字符串（简体中文）",
+        action: "modify",
+        estimatedLines: 20,
+        dependencies: [],
+        details: [
+          "taskActionSheetTitle: 任务操作",
+          "taskDetailSheetTitle: 任务详情",
+          "taskListSimplifiedTip: 点击任务可以查看详情和进行操作",
+          "taskActionSheetTip: 在弹窗中可以编辑任务、管理标签、设置截止日期等",
+        ],
+      },
+      {
+        path: "lib/l10n/app_zh_HK.arb",
+        purpose: "添加新的本地化字符串（繁体中文）",
+        action: "modify",
+        estimatedLines: 20,
+        dependencies: [],
+        details: [
+          "taskActionSheetTitle: 任务操作",
+          "taskDetailSheetTitle: 任务详情",
+          "taskListSimplifiedTip: 点击任务可以查看详情和进行操作",
+          "taskActionSheetTip: 在弹窗中可以编辑任务、管理标签、设置截止日期等",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 重构和复用策略（必填）
+  // ===========================================
+  refactoring: {
+    // 组件复用
+    componentReuse: [
+      {
+        component: "TaskDetailBottomSheet",
+        path: "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        action: "reuse",
+        modifications: [
+          "增强手势关闭支持（如果缺失）",
+          "确保动画效果符合设计规范",
+          "确保拖拽指示器已存在",
+        ],
+        note: "已存在的组件，直接复用，只需要增强交互特性",
+      },
+      {
+        component: "TaskRowTitleEditor",
+        path: "lib/presentation/widgets/task_row_content/task_row_title_editor.dart",
+        action: "reuse",
+        usage: "在 TaskActionBottomSheet 中复用标题编辑逻辑",
+        note: "复用现有的标题编辑组件和逻辑",
+      },
+      {
+        component: "InlineEditableTag",
+        path: "lib/presentation/widgets/inline_editable_tag.dart",
+        action: "reuse",
+        usage: "在 TaskActionBottomSheet 中复用标签编辑功能",
+        note: "复用现有的标签编辑组件",
+      },
+      {
+        component: "TagAddButton",
+        path: "lib/presentation/widgets/tag_add_button.dart",
+        action: "reuse",
+        usage: "在 TaskActionBottomSheet 中复用标签添加功能",
+        note: "复用现有的标签添加组件",
+      },
+      {
+        component: "ProjectMilestonePicker",
+        path: "lib/presentation/widgets/project_milestone_picker.dart",
+        action: "reuse",
+        usage: "在 TaskActionBottomSheet 中复用项目/里程碑选择功能",
+        note: "复用现有的项目/里程碑选择组件",
+      },
+      {
+        component: "InlineDeadlineEditor",
+        path: "lib/presentation/widgets/inline_deadline_editor.dart",
+        action: "reuse",
+        usage: "在 TaskActionBottomSheet 中复用截止日期编辑功能",
+        note: "复用现有的截止日期编辑组件",
+      },
+      {
+        component: "TaskCopyButton",
+        path: "lib/presentation/widgets/task_copy_button.dart",
+        action: "reuse",
+        usage: "在 TaskActionBottomSheet 中复用复制功能",
+        note: "复用现有的复制按钮组件",
+      },
+      {
+        component: "TaskTimerWidget",
+        path: "lib/presentation/widgets/task_timer_widget.dart",
+        action: "reuse",
+        usage: "在 TaskActionBottomSheet 中复用计时功能（仅 pending/doing/paused 状态，inbox 状态不显示）",
+        note: "复用现有的计时控件组件",
+      },
+    ],
+    
+    // 代码重构
+    codeRefactoring: [
+      {
+        target: "TaskRowContent",
+        path: "lib/presentation/widgets/task_row_content.dart",
+        action: "deprecate",
+        reason: "简化设计后不再需要复杂的任务行组件，但保留代码以备未来需要",
+        note: "不删除现有代码，但新页面不再使用，未来可以考虑删除或重构",
+      },
+      {
+        target: "任务行显示逻辑",
+        action: "extract",
+        purpose: "将任务行的点击处理逻辑提取到统一的地方",
+        details: [
+          "创建统一的任务点击处理函数（如 showTaskBottomSheet）",
+          "根据任务状态决定显示哪个弹窗：",
+          "  - inbox/pending/doing/paused -> TaskActionBottomSheet",
+          "  - completed/archived/trashed -> TaskDetailBottomSheet",
+          "在 SimplifiedTaskRow 中调用",
+          "在 TaskBottomSheetHelper 中实现",
+        ],
+      },
+      {
+        target: "状态切换逻辑",
+        action: "extract",
+        purpose: "将任务状态切换逻辑提取到统一的地方",
+        details: [
+          "创建统一的状态切换处理函数（如 toggleTaskStatus）",
+          "处理完成/未完成的切换：",
+          "  - 未完成 -> 完成：TaskService.markCompleted",
+          "  - 完成 -> 未完成：需要确认是否有恢复方法（可能需要根据原状态恢复）",
+          "在 SimplifiedTaskRow 的状态图标点击事件中调用",
+        ],
+        note: "需要确认：已完成任务如何恢复为未完成状态？是否有 markInProgress 或 restore 方法？",
+      },
+    ],
+    
+    // 样式复用
+    styleReuse: [
+      {
+        element: "底部弹窗样式",
+        source: "TaskDetailBottomSheet",
+        target: "TaskActionBottomSheet",
+        details: [
+          "复用弹窗的圆角、背景色、内边距",
+          "复用拖拽指示器的样式",
+          "复用动画效果",
+        ],
+      },
+      {
+        element: "任务行样式",
+        source: "现有任务行",
+        target: "SimplifiedTaskRow",
+        details: [
+          "复用任务行的内边距、字体大小",
+          "复用状态图标的样式",
+          "复用主题颜色",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. 实施阶段（必填）
+  // ===========================================
+  phases: [
+    {
+      id: "phase-1",
+      name: "阶段 1：基础组件创建",
+      description: "创建 SimplifiedTaskRow 和 TaskActionBottomSheet 基础组件",
+      tasks: [
+        "创建 SimplifiedTaskRow 组件（只显示状态图标和标题，支持截止日期图标）",
+        "创建 TaskActionBottomSheet 组件（包含所有操作功能）",
+        "创建 TaskBottomSheetHelper 工具类（统一处理弹窗显示）",
+        "添加本地化字符串",
+        "运行 flutter gen-l10n 生成本地化代码",
+      ],
+      dependencies: [],
+      estimatedTime: "2-3 天",
+    },
+    {
+      id: "phase-2",
+      name: "阶段 2：增强 TaskDetailBottomSheet",
+      description: "增强现有的 TaskDetailBottomSheet，确保交互特性一致",
+      tasks: [
+        "检查 TaskDetailBottomSheet 的手势关闭支持",
+        "确保动画效果符合设计规范",
+        "确保拖拽指示器已存在",
+        "使用 TaskBottomSheetHelper 统一显示逻辑",
+      ],
+      dependencies: ["phase-1"],
+      estimatedTime: "0.5 天",
+    },
+    {
+      id: "phase-3",
+      name: "阶段 3：修改收集箱页面",
+      description: "修改 Inbox 页面，使用 SimplifiedTaskRow，只显示 inbox 状态的任务",
+      tasks: [
+        "替换任务行组件为 SimplifiedTaskRow",
+        "移除展开/收缩功能",
+        "实现点击任务显示 TaskActionBottomSheet（inbox 状态）",
+        "确保只显示 inbox 状态的任务",
+        "测试功能",
+      ],
+      dependencies: ["phase-1"],
+      estimatedTime: "1 天",
+    },
+    {
+      id: "phase-4",
+      name: "阶段 4：修改任务清单页面",
+      description: "修改 Tasks 页面和 TaskSectionPanel，使用 SimplifiedTaskRow",
+      tasks: [
+        "修改 TaskSectionPanel，替换任务行组件为 SimplifiedTaskRow",
+        "修改 TaskListPage，确保点击任务显示正确的弹窗",
+        "移除展开/收缩功能",
+        "保持时间分区展示",
+        "保持筛选和拖拽排序功能",
+        "测试功能",
+      ],
+      dependencies: ["phase-1"],
+      estimatedTime: "1.5 天",
+    },
+    {
+      id: "phase-5",
+      name: "阶段 5：修改已完成、已收纳、回收站页面",
+      description: "修改 Completed、Archived、Trash 页面，使用 SimplifiedTaskRow 和 TaskDetailBottomSheet",
+      tasks: [
+        "修改 CompletedPage，替换任务行组件为 SimplifiedTaskRow",
+        "修改 ArchivedPage，替换任务行组件为 SimplifiedTaskRow",
+        "修改 TrashPage，替换任务行组件为 SimplifiedTaskRow",
+        "实现点击任务显示 TaskDetailBottomSheet（只读）",
+        "移除展开/收缩功能",
+        "测试功能",
+      ],
+      dependencies: ["phase-1", "phase-2"],
+      estimatedTime: "1.5 天",
+    },
+    {
+      id: "phase-6",
+      name: "阶段 6：修改项目子任务列表",
+      description: "修改项目详情页面的子任务列表，使用 SimplifiedTaskRow",
+      tasks: [
+        "修改 ProjectDetails 页面的子任务列表",
+        "替换任务行组件为 SimplifiedTaskRow",
+        "实现点击任务显示 TaskActionBottomSheet",
+        "移除展开/收缩功能",
+        "测试功能",
+      ],
+      dependencies: ["phase-1"],
+      estimatedTime: "1 天",
+    },
+      {
+        id: "phase-7",
+        name: "阶段 7：用户引导和可访问性",
+        description: "添加首次使用提示和可访问性支持",
+        tasks: [
+          "实现首次使用提示：",
+          "  - 使用 SharedPreferences 存储首次使用状态",
+          "  - 首次进入任务列表页面时显示提示",
+          "  - 首次点击任务时显示提示",
+          "  - 提示可关闭，关闭后不再显示",
+          "添加语义化标签（任务行、状态图标、截止日期图标）",
+          "实现键盘导航支持（桌面端）：",
+          "  - Enter 键打开任务弹窗",
+          "  - Space 键切换任务状态",
+          "  - Escape 键关闭弹窗",
+          "实现焦点管理（弹窗打开/关闭时）",
+          "添加屏幕阅读器支持（语义化标签、提示文本）",
+          "测试可访问性",
+        ],
+        dependencies: ["phase-3", "phase-4", "phase-5", "phase-6"],
+        estimatedTime: "1.5 天",
+      },
+    {
+      id: "phase-8",
+      name: "阶段 8：测试和优化",
+      description: "全面测试所有功能，修复问题，优化性能",
+      tasks: [
+        "编写单元测试（SimplifiedTaskRow、TaskActionBottomSheet）",
+        "编写 Widget 测试（各个页面）",
+        "编写集成测试（完整流程）",
+        "性能测试（大量任务时的滚动性能）",
+        "可访问性测试",
+        "修复发现的问题",
+        "代码审查和优化",
+      ],
+      dependencies: ["phase-7"],
+      estimatedTime: "2-3 天",
+    },
+  ],
+
+  // ===========================================
+  // 5. 测试策略（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        target: "SimplifiedTaskRow",
+        path: "test/presentation/widgets/simplified_task_row_test.dart",
+        coverage: [
+          "状态图标显示和切换",
+          "标题显示（包括截止日期图标）",
+          "点击事件处理",
+          "可访问性标签",
+        ],
+      },
+      {
+        target: "TaskActionBottomSheet",
+        path: "test/presentation/widgets/task_action_bottom_sheet_test.dart",
+        coverage: [
+          "弹窗显示和关闭",
+          "标题编辑功能",
+          "标签管理功能",
+          "项目/里程碑选择功能",
+          "截止日期编辑功能",
+          "复制功能",
+          "计时功能（状态相关）",
+          "操作按钮（完成、归档、删除）",
+        ],
+      },
+      {
+        target: "TaskBottomSheetHelper",
+        path: "test/presentation/widgets/utils/task_bottom_sheet_helper_test.dart",
+        coverage: [
+          "弹窗显示参数",
+          "手势关闭支持",
+          "动画效果",
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        target: "InboxPage",
+        path: "test/presentation/inbox/inbox_page_test.dart",
+        coverage: [
+          "SimplifiedTaskRow 显示",
+          "点击任务显示 TaskActionBottomSheet",
+          "只显示 inbox 状态的任务",
+        ],
+      },
+      {
+        target: "TaskListPage",
+        path: "test/presentation/tasks/task_list_page_test.dart",
+        coverage: [
+          "SimplifiedTaskRow 显示",
+          "点击任务显示正确的弹窗（根据状态）",
+          "时间分区展示",
+        ],
+      },
+      {
+        target: "CompletedPage",
+        path: "test/presentation/completion_management/completed_page_test.dart",
+        coverage: [
+          "SimplifiedTaskRow 显示",
+          "点击任务显示 TaskDetailBottomSheet",
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        target: "任务列表简化流程",
+        path: "integration_test/task_list_simplification_test.dart",
+        coverage: [
+          "从任务列表点击任务，显示弹窗",
+          "在弹窗中编辑任务",
+          "关闭弹窗，返回列表",
+          "状态切换功能",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 6. 需要确认的问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      question: "已完成任务如何恢复为未完成状态？",
+      description: "当用户点击已完成任务的状态图标时，如何恢复为未完成状态？是否有 TaskService.markInProgress 或 restore 方法？",
+      impact: "high",
+      options: [
+        "使用 TaskService.markInProgress（如果存在）",
+        "使用 TaskService.restore（如果存在）",
+        "需要实现新的恢复方法",
+        "根据任务的原始状态（从 logs 中获取）恢复",
+      ],
+      recommendation: "检查 TaskService 和 TaskStatusService，确认是否有恢复方法。如果没有，需要实现。",
+    },
+    {
+      question: "子任务是否也使用 SimplifiedTaskRow？",
+      description: "设计文档要求\"所有任务平铺显示\"，但需要确认：子任务是否也显示在同一个列表中？是否也使用 SimplifiedTaskRow？",
+      impact: "medium",
+      options: [
+        "子任务也使用 SimplifiedTaskRow，平铺显示在同一个列表中",
+        "子任务不显示在列表中（只显示根任务）",
+        "子任务显示在单独的列表中",
+      ],
+      recommendation: "根据设计文档，应该是选项1：子任务也平铺显示。但需要确认实现细节。",
+    },
+    {
+      question: "SimplifiedTaskRow 如何支持拖拽排序？",
+      description: "Tasks 页面需要保持拖拽排序功能，SimplifiedTaskRow 需要包装在拖拽组件中。如何实现？",
+      impact: "medium",
+      options: [
+        "SimplifiedTaskRow 包装在 TaskDragIntentTarget 中",
+        "SimplifiedTaskRow 包装在 ReorderableDragStartListener 中",
+        "SimplifiedTaskRow 本身支持拖拽（实现 Draggable）",
+      ],
+      recommendation: "复用现有的拖拽系统（TaskDragIntentTarget），保持一致性。",
+    },
+    {
+      question: "首次使用提示如何存储和检查？",
+      description: "首次使用提示需要使用 SharedPreferences 存储状态，需要确认存储的 key 和检查逻辑。",
+      impact: "low",
+      options: [
+        "使用 SharedPreferences 存储每个页面的首次使用状态",
+        "使用全局的首次使用状态",
+        "使用 PreferenceRepository（如果存在）",
+      ],
+      recommendation: "检查是否有 PreferenceRepository，如果有则使用，否则使用 SharedPreferences。",
+    },
+  ],
+
+  // ===========================================
+  // 7. 风险和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "用户不适应简化界面",
+      probability: "medium",
+      impact: "medium",
+      mitigation: [
+        "提供清晰的首次使用提示",
+        "提供帮助文档",
+        "收集用户反馈，及时调整",
+      ],
+    },
+    {
+      risk: "信息可见性降低（无法快速查看截止日期等）",
+      probability: "high",
+      impact: "low",
+      mitigation: [
+        "通过截止日期图标提供视觉提示",
+        "通过弹窗快速访问完整信息",
+        "考虑未来添加更多关键信息图标",
+      ],
+    },
+    {
+      risk: "现有代码重构可能影响其他功能",
+      probability: "low",
+      impact: "high",
+      mitigation: [
+        "保留现有代码，不删除（标记为 deprecated）",
+        "分阶段实施，逐步迁移",
+        "充分测试，确保不影响现有功能",
+      ],
+    },
+    {
+      risk: "性能问题（大量任务时）",
+      probability: "low",
+      impact: "medium",
+      mitigation: [
+        "简化后的列表性能更好（减少渲染元素）",
+        "考虑实现虚拟滚动（如果必要）",
+        "进行性能测试",
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 8. 成功标准（必填）
+  // ===========================================
+  successCriteria: [
+    "所有任务列表页面都使用 SimplifiedTaskRow",
+    "所有展开/收缩功能已移除",
+    "点击任务根据状态显示正确的弹窗",
+    "TaskActionBottomSheet 包含所有操作功能",
+    "TaskDetailBottomSheet 支持手势关闭和动画",
+    "可访问性支持完整（语义化标签、键盘导航、焦点管理、屏幕阅读器）",
+    "首次使用提示正常工作",
+    "所有测试通过",
+    "性能满足要求（大量任务时仍流畅）",
+    "代码审查通过",
+  ],
+}
+

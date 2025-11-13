@@ -1,0 +1,1535 @@
+{
+  // ===========================================
+  // 项目详情页迭代蓝图
+  // 基于 design_project_detail.json5 实现项目详情页功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250115-project-detail-page",
+    
+    // 迭代标题
+    title: "项目详情页：按里程碑分区展示任务 + 进度可视化",
+    
+    // 迭代描述
+    description: "实现项目详情页，按里程碑分区展示任务列表，支持查看项目和里程碑详情（通过底部弹窗），实现项目和里程碑的进度可视化，支持跨里程碑拖拽任务，实现数据层自动绑定逻辑（收集箱任务分配里程碑时自动设置截止日期和状态转换）",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/projects/design_project_detail.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // 页面文件
+    pages: [
+      {
+        path: "lib/presentation/projects/project_detail_page.dart",
+        purpose: "项目详情页，按里程碑分区展示任务列表，显示项目信息和进度",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/presentation/widgets/gradient_page_scaffold.dart",
+          "lib/presentation/widgets/page_app_bar.dart",
+          "lib/presentation/widgets/main_drawer.dart",
+          "lib/core/providers/task_query_providers.dart",
+          "lib/core/providers/project_filter_providers.dart",
+          "lib/presentation/projects/widgets/project_info_header.dart",
+          "lib/presentation/projects/widgets/milestone_section_panel.dart",
+        ],
+        details: [
+          "ProjectDetailPage 组件：项目详情页主组件",
+          "使用 GradientPageScaffold 作为页面容器",
+          "使用 PageAppBar 显示项目标题和信息图标按钮",
+          "页面头部显示 ProjectInfoHeader（项目信息和进度）",
+          "页面主体显示里程碑分区列表（MilestoneSectionPanel）",
+          "使用 projectMilestonesDomainProvider 获取项目里程碑列表",
+          "使用 milestoneTasksProvider 获取每个里程碑的任务列表",
+          "复用：使用 AsyncValue.when 处理加载状态、错误状态和数据状态",
+          "复用：使用 EmptyPlaceholder 显示空状态（项目没有里程碑时）",
+          "复用：使用 ErrorBanner 显示错误状态",
+          "复用：使用 CircularProgressIndicator 显示加载状态",
+        ],
+      },
+    ],
+    
+    // Widget 组件
+    widgets: [
+      {
+        path: "lib/presentation/projects/widgets/project_info_header.dart",
+        purpose: "项目信息头部组件，显示项目标题、基本信息和进度可视化",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/data/models/project.dart",
+          "lib/core/providers/task_query_providers.dart",
+          "lib/presentation/projects/widgets/project_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "ProjectInfoHeader 组件：项目信息头部",
+          "显示项目标题（可点击，显示项目详情弹窗）",
+          "显示项目基本信息（截止日期、状态等）",
+          "显示项目进度条（LinearProgressIndicator）",
+          "显示进度文字（已完成 X / 总计 Y 个任务（Z%））",
+          "使用项目任务统计逻辑计算进度（根据 dataRules.taskStatistics 规则）",
+          "支持点击项目标题显示项目详情弹窗",
+          "复用：使用 EmptyPlaceholder 显示空状态（如果项目没有任务）",
+          "复用：使用 ErrorBanner 显示错误状态",
+          "复用：使用 CircularProgressIndicator 显示加载状态",
+          "重构机会：进度可视化部分可以抽取为 ProgressIndicatorWidget 组件（后续迭代）",
+        ],
+      },
+      {
+        path: "lib/presentation/projects/widgets/milestone_section_panel.dart",
+        purpose: "里程碑分区面板组件，显示里程碑标题、进度和任务列表",
+        action: "create",
+        estimatedLines: 250,
+        dependencies: [
+          "lib/data/models/milestone.dart",
+          "lib/data/models/task.dart",
+          "lib/core/providers/task_query_providers.dart",
+          "lib/presentation/tasks/views/tasks_section_task_list_simplified.dart",
+          "lib/presentation/projects/widgets/milestone_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "MilestoneSectionPanel 组件：里程碑分区面板",
+          "使用 Card 组件包裹，样式与 TaskSectionPanel 保持一致",
+          "分区标题区域：",
+          "  - 里程碑标题（可点击，显示里程碑详情弹窗）",
+          "  - 信息图标（可选，点击显示里程碑详情弹窗）",
+          "  - 快速添加按钮（快速添加任务到该里程碑）",
+          "  - 里程碑进度指示器（LinearProgressIndicator + 进度文字）",
+          "任务列表区域：复用 TasksSectionTaskListSimplified 组件（完全复用，无需修改）",
+          "支持拖拽排序（里程碑内和跨里程碑）",
+          "跨里程碑拖拽实现：",
+          "  - 需要创建 MilestoneTaskListConfig 实现 TaskListConfig 接口",
+          "  - 在 handleDueDate 方法中处理跨里程碑拖拽：检测 milestoneId 变化，更新任务的 milestoneId",
+          "  - 在 reorderTasks 方法中处理里程碑内的任务排序",
+          "  - 使用 TaskListInsertionHandler.handleInsertionDrop 统一处理拖拽逻辑",
+          "  - 创建 MilestonePageDragTarget 组件（类似 TasksPageDragTarget），支持跨里程碑拖拽",
+          "复用：使用 EmptySectionHint 显示空状态（里程碑没有任务时）",
+          "复用：使用 ErrorBanner 显示错误状态",
+          "复用：使用 CircularProgressIndicator 显示加载状态",
+          "使用里程碑任务统计逻辑计算进度（根据 dataRules.taskStatistics 规则）",
+          "重构机会：进度可视化部分可以抽取为 ProgressIndicatorWidget 组件（后续迭代）",
+        ],
+      },
+      {
+        path: "lib/presentation/projects/widgets/project_detail_bottom_sheet.dart",
+        purpose: "项目详情底部弹窗，显示项目的完整信息（只读）",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/models/project.dart",
+          "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "ProjectDetailBottomSheet 组件：项目详情底部弹窗",
+          "支持手势关闭（向下滑动、点击外部区域）",
+          "支持内容滚动（使用 SingleChildScrollView）",
+          "包含拖拽指示器（顶部）",
+          "显示项目完整信息：",
+          "  - 项目标题（大标题）",
+          "  - 项目描述（如果有）",
+          "  - 截止日期（如果有）",
+          "  - 项目状态",
+          "  - 标签列表（如果有）",
+          "  - 创建时间、更新时间",
+          "  - 里程碑数量统计",
+          "  - 编辑链接（跳转到 /projects 页面）",
+          "复用：参考 TaskDetailBottomSheet 的实现，复制其样式和交互逻辑",
+          "复用：使用 TaskBottomSheetHelper 的 showModalBottomSheet 模式（或扩展为 BottomSheetHelper）",
+          "重构机会：可以抽取底部弹窗的通用逻辑为基类或 mixin（后续迭代）",
+        ],
+      },
+      {
+        path: "lib/presentation/projects/widgets/milestone_detail_bottom_sheet.dart",
+        purpose: "里程碑详情底部弹窗，显示里程碑的完整信息（只读）",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/data/models/milestone.dart",
+          "lib/presentation/projects/widgets/project_detail_bottom_sheet.dart",
+        ],
+        details: [
+          "MilestoneDetailBottomSheet 组件：里程碑详情底部弹窗",
+          "支持手势关闭（向下滑动、点击外部区域）",
+          "支持内容滚动（使用 SingleChildScrollView）",
+          "包含拖拽指示器（顶部）",
+          "显示里程碑完整信息：",
+          "  - 里程碑标题（大标题）",
+          "  - 里程碑描述（如果有）",
+          "  - 截止日期（如果有）",
+          "  - 里程碑状态",
+          "  - 标签列表（如果有）",
+          "  - 创建时间、更新时间",
+          "  - 任务数量统计",
+          "  - 编辑链接（跳转到 /projects 页面，并展开对应的项目卡片）",
+          "复用：参考 ProjectDetailBottomSheet 的实现，复制其样式和交互逻辑",
+          "复用：使用 TaskBottomSheetHelper 的 showModalBottomSheet 模式（或扩展为 BottomSheetHelper）",
+          "重构机会：可以抽取底部弹窗的通用逻辑为基类或 mixin（后续迭代）",
+        ],
+      },
+    ],
+    
+    // 工具类（统计计算）
+    utils: [
+      {
+        path: "lib/core/utils/project_statistics_utils.dart",
+        purpose: "项目和里程碑的进度统计工具类，实现任务统计规则",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/data/models/task.dart",
+        ],
+        details: [
+          "ProjectStatisticsUtils 工具类：项目/里程碑进度统计",
+          "calculateProjectProgress 方法：计算项目进度",
+          "  - 输入：项目ID、任务列表",
+          "  - 输出：进度百分比（0.0-1.0）、已完成任务数、总任务数",
+          "  - 统计规则：根据 dataRules.taskStatistics 规则",
+          "    - 总任务数：pending、doing、paused、completedActive、archived",
+          "    - 不包括：inbox、trashed、pseudoDeleted",
+          "    - 已完成数：completedActive、archived",
+          "calculateMilestoneProgress 方法：计算里程碑进度",
+          "  - 输入：里程碑ID、任务列表",
+          "  - 输出：进度百分比（0.0-1.0）、已完成任务数、总任务数",
+          "  - 统计规则：与项目进度统计规则一致",
+        ],
+      },
+    ],
+    
+    // 拖拽配置（跨里程碑拖拽支持）
+    dragConfigs: [
+      {
+        path: "lib/presentation/projects/widgets/milestone_task_list_config.dart",
+        purpose: "里程碑任务列表配置，实现 TaskListConfig 接口，处理跨里程碑拖拽",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/presentation/common/task_list/task_list_config.dart",
+          "lib/data/models/task.dart",
+          "lib/data/models/milestone.dart",
+          "lib/core/providers/service_providers.dart",
+        ],
+        details: [
+          "MilestoneTaskListConfig 类：实现 TaskListConfig 接口",
+          "用于处理项目详情页的拖拽逻辑，支持跨里程碑拖拽",
+          "实现方法：",
+          "  - dragProvider: 使用 tasksDragProvider（复用现有的拖拽状态管理）",
+          "  - getExpandedProvider: 返回里程碑的展开状态 Provider（需要新建）",
+          "  - getLevelMapProvider: 返回里程碑任务的层级映射 Provider（需要新建）",
+          "  - getChildrenMapProvider: 返回里程碑任务的子任务映射 Provider（需要新建）",
+          "  - buildTaskTile: 使用 SimplifiedTaskRow（通过 TasksSectionTaskListSimplified 间接使用）",
+          "  - reorderTasks: 处理里程碑内的任务排序，使用 sortIndexService.reorderTasksForSameMilestone（需要新建）",
+          "  - handleDueDate: 返回 null（里程碑拖拽不需要处理 dueDate）",
+          "  - handleMilestoneId: 处理跨里程碑拖拽，检测目标任务的 milestoneId，如果与拖拽任务不同，返回目标里程碑ID（新增方法）",
+          "  - section: 返回 null（里程碑不是基于 section 的）",
+          "  - pageName: 返回 'ProjectDetail'",
+          "  - getDragNotifier: 返回 tasksDragProvider.notifier",
+          "跨里程碑拖拽逻辑：",
+          "  - 在 handleMilestoneId 中检测目标任务的 milestoneId",
+          "  - 如果目标任务属于不同里程碑，返回目标里程碑的 milestoneId",
+          "  - 在 TaskListInsertionHandler.handleInsertionDrop 中调用 config.handleMilestoneId",
+          "  - 如果返回的 milestoneId 不为 null 且与拖拽任务的 milestoneId 不同：",
+          "    - 在调用 taskHierarchyService.moveToParent 后，调用 taskService.updateDetails 更新 milestoneId",
+          "  - 添加错误处理：如果更新失败，记录日志并显示用户友好的错误提示",
+        ],
+      },
+      {
+        path: "lib/presentation/projects/widgets/milestone_page_drag_target.dart",
+        purpose: "里程碑页面拖拽目标组件，支持跨里程碑拖拽",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/presentation/tasks/tasks_drag_target.dart",
+          "lib/presentation/common/task_list/task_list_insertion_handler.dart",
+          "lib/presentation/projects/widgets/milestone_task_list_config.dart",
+          "lib/data/models/milestone.dart",
+        ],
+        details: [
+          "MilestonePageDragTarget 组件：参考 TasksPageDragTarget 实现",
+          "支持在里程碑任务之间插入拖拽目标",
+          "支持跨里程碑拖拽：",
+          "  - 检测目标任务的 milestoneId",
+          "  - 如果目标任务属于不同里程碑，允许拖拽",
+          "  - 使用 MilestoneTaskListConfig 处理拖拽逻辑",
+          "  - 使用 TaskListInsertionHandler.handleInsertionDrop 统一处理",
+          "提供视觉反馈：插入线、高亮等",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（必填）
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/presentation/navigation/app_router.dart",
+      purpose: "添加项目详情页路由（/projects/:id）",
+      changes: [
+        "在 routes 数组中添加新的 GoRoute：",
+        "  - path: '/projects/:id'",
+        "  - name: 'project_detail'",
+        "  - builder: 从 state.pathParameters 获取项目ID，创建 ProjectDetailPage",
+        "导入 ProjectDetailPage",
+      ],
+      estimatedLines: 10,
+    },
+    {
+      file: "lib/presentation/widgets/drawer/drawer_projects_section.dart",
+      purpose: "修改项目列表项的点击行为，跳转到项目详情页而不是项目列表页",
+      changes: [
+        "修改 InkWell 的 onTap 回调：",
+        "  - 从 context.go('/projects') 改为 context.go('/projects/${project.id}')",
+        "确保项目ID正确传递到路由",
+      ],
+      estimatedLines: 5,
+    },
+    {
+      file: "lib/core/services/task_crud_service_update.dart",
+      purpose: "实现数据层自动绑定逻辑：收集箱任务分配里程碑时自动设置截止日期和状态转换",
+      changes: [
+        "在 updateDetails 方法中添加里程碑分配检测逻辑：",
+        "  - 检测 milestoneId 是否发生变化且新值不为 null",
+        "  - 如果任务当前状态为 inbox 且里程碑有截止日期：",
+        "    - 通过 MilestoneService 获取里程碑信息",
+        "    - 如果任务当前没有截止日期且用户未手动设置截止日期：",
+        "      - 自动将任务的截止日期设置为里程碑的截止日期",
+        "      - 在任务日志中记录此次自动设置（action: 'deadline_set'）",
+        "    - 如果任务状态为 inbox 且截止日期被设置：",
+        "      - 触发现有的自动状态转换逻辑（inbox → pending）",
+        "  - 边界条件处理：",
+        "    - 如果用户同时手动设置了截止日期，以用户设置为准",
+        "    - 如果里程碑没有截止日期，不自动设置任务截止日期",
+        "    - 如果任务已有截止日期，不覆盖现有截止日期",
+        "    - 如果任务当前不是 inbox 状态，不触发状态转换",
+        "需要注入 MilestoneService 到 TaskCrudServiceUpdate",
+      ],
+      estimatedLines: 50,
+    },
+    {
+      file: "lib/core/services/task_crud_service.dart",
+      purpose: "在 TaskCrudService 中注入 MilestoneService，供 TaskCrudServiceUpdate 使用",
+      changes: [
+        "在 TaskCrudService 构造函数中添加 MilestoneService 参数",
+        "将 MilestoneService 传递给 TaskCrudServiceUpdate",
+        "更新 service_providers.dart 中的 TaskCrudServiceProvider，注入 MilestoneService",
+      ],
+      estimatedLines: 15,
+    },
+    {
+      file: "lib/core/providers/service_providers.dart",
+      purpose: "更新 TaskCrudServiceProvider，注入 MilestoneService",
+      changes: [
+        "在 TaskCrudServiceProvider 中注入 MilestoneServiceProvider",
+        "将 MilestoneService 传递给 TaskCrudService 构造函数",
+      ],
+      estimatedLines: 5,
+    },
+    {
+      file: "lib/core/providers/task_query_providers.dart",
+      purpose: "添加项目任务统计 Provider，用于计算项目进度",
+      changes: [
+        "添加 projectTasksStatisticsProvider：",
+        "  - 输入：项目ID",
+        "  - 输出：进度统计（已完成数、总数、进度百分比）",
+        "  - 使用 ProjectStatisticsUtils 计算进度",
+        "添加 milestoneTasksStatisticsProvider：",
+        "  - 输入：里程碑ID",
+        "  - 输出：进度统计（已完成数、总数、进度百分比）",
+        "  - 使用 ProjectStatisticsUtils 计算进度",
+      ],
+      estimatedLines: 40,
+    },
+    {
+      file: "lib/core/services/sort_index_service.dart",
+      purpose: "添加里程碑任务排序方法，支持里程碑内的任务排序",
+      changes: [
+        "添加 reorderTasksForSameMilestone 方法：",
+        "  - 输入：所有任务列表、目标里程碑ID",
+        "  - 功能：重新计算目标里程碑内所有任务的 sortIndex",
+        "  - 逻辑：参考 reorderTasksForSameDate 的实现，但按 milestoneId 过滤",
+        "  - 用于跨里程碑拖拽后的排序调整",
+      ],
+      estimatedLines: 50,
+      note: "如果该方法已存在，则无需修改",
+    },
+    {
+      file: "lib/presentation/common/task_list/task_list_config.dart",
+      purpose: "扩展 TaskListConfig 接口，添加 handleMilestoneId 方法支持跨里程碑拖拽",
+      changes: [
+        "在 TaskListConfig 接口中添加 handleMilestoneId 方法：",
+        "  - 输入：beforeTask、afterTask、draggedTask",
+        "  - 输出：String?（目标里程碑ID，如果不需要更新则返回 null）",
+        "  - Inbox: 返回 null（不需要处理里程碑）",
+        "  - Tasks: 返回 null（不需要处理里程碑）",
+        "  - Milestone: 检测目标任务的 milestoneId，如果与拖拽任务不同，返回目标里程碑ID",
+      ],
+      estimatedLines: 15,
+      note: "需要更新所有实现类（InboxTaskListConfig、TasksSectionTaskListConfig、MilestoneTaskListConfig）",
+    },
+    {
+      file: "lib/presentation/common/task_list/task_list_insertion_handler.dart",
+      purpose: "扩展 TaskListInsertionHandler.handleInsertionDrop 支持 milestoneId 更新",
+      changes: [
+        "在 handleInsertionDrop 方法中：",
+        "  - 调用 config.handleMilestoneId 获取目标里程碑ID",
+        "  - 如果目标里程碑ID不为 null 且与拖拽任务的 milestoneId 不同：",
+        "    - 在调用 taskHierarchyService.moveToParent 后，调用 taskService.updateDetails 更新 milestoneId",
+        "    - 或者扩展 TaskHierarchyService.moveToParent 支持 milestoneId 参数",
+      ],
+      estimatedLines: 30,
+      note: "需要确认：是在 TaskListInsertionHandler 中更新，还是扩展 TaskHierarchyService.moveToParent",
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  // 注意：阶段完成后自动执行下一阶段，不需要沟通确认
+  // AI 开发将完成所有功能，按顺序执行所有阶段
+  // 每个阶段完成时忽略 pre-commit，强行 git commit（使用 --no-verify 选项）
+  // 
+  // 错误处理策略：
+  // - 如果某个任务失败，先尝试修复（如 analyze issues、测试失败），修复后继续
+  // - 如果无法自动修复（如需要人工决策），记录问题并继续下一个任务，在阶段完成时总结所有未解决问题
+  // - build_runner 冲突：使用 --delete-conflicting-outputs 参数自动删除冲突文件
+  // - analyze issues 无法自动修复：记录到 commit message 中，标记为已知问题，继续后续任务
+  implementationSteps: [
+    {
+      step: 1,
+      title: "阶段 1：创建统计工具类和 Provider",
+      description: "创建项目/里程碑进度统计工具类，添加统计 Provider",
+      tasks: [
+        {
+          task: "创建 ProjectStatisticsUtils 工具类",
+          file: "lib/core/utils/project_statistics_utils.dart",
+          action: [
+            "实现 calculateProjectProgress 方法：计算项目进度",
+            "实现 calculateMilestoneProgress 方法：计算里程碑进度",
+            "根据 dataRules.taskStatistics 规则实现统计逻辑",
+            "总任务数包括：pending、doing、paused、completedActive、archived",
+            "不包括：inbox、trashed、pseudoDeleted",
+            "已完成任务数包括：completedActive、archived",
+          ],
+        },
+        {
+          task: "添加项目任务统计 Provider",
+          file: "lib/core/providers/task_query_providers.dart",
+          action: [
+            "添加 projectTasksStatisticsProvider：StreamProvider.family",
+            "输入：项目ID",
+            "输出：进度统计（已完成数、总数、进度百分比）",
+            "使用 ProjectStatisticsUtils.calculateProjectProgress 计算",
+          ],
+        },
+        {
+          task: "添加里程碑任务统计 Provider",
+          file: "lib/core/providers/task_query_providers.dart",
+          action: [
+            "添加 milestoneTasksStatisticsProvider：StreamProvider.family",
+            "输入：里程碑ID",
+            "输出：进度统计（已完成数、总数、进度百分比）",
+            "使用 ProjectStatisticsUtils.calculateMilestoneProgress 计算",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 创建统计工具类和 Provider'",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：实现数据层自动绑定逻辑",
+      description: "在 TaskCrudServiceUpdate 中实现收集箱任务分配里程碑时的自动处理逻辑",
+      tasks: [
+        {
+          task: "在 TaskCrudService 中注入 MilestoneService",
+          file: "lib/core/services/task_crud_service.dart",
+          action: [
+            "在 TaskCrudService 构造函数中添加 MilestoneService 参数",
+            "将 MilestoneService 传递给 TaskCrudServiceUpdate",
+          ],
+        },
+        {
+          task: "更新 TaskCrudServiceProvider，注入 MilestoneService",
+          file: "lib/core/providers/service_providers.dart",
+          action: [
+            "在 TaskCrudServiceProvider 中注入 MilestoneServiceProvider",
+            "将 MilestoneService 传递给 TaskCrudService 构造函数",
+          ],
+        },
+        {
+          task: "在 TaskCrudServiceUpdate 中实现自动绑定逻辑",
+          file: "lib/core/services/task_crud_service_update.dart",
+          action: [
+            "在 updateDetails 方法中添加里程碑分配检测：",
+            "  - 检测 milestoneId 是否发生变化且新值不为 null",
+            "  - 如果任务当前状态为 inbox：",
+            "    - 通过 MilestoneService.findById 获取里程碑信息",
+            "    - 如果里程碑有截止日期且任务没有截止日期且用户未手动设置：",
+            "      - 自动设置任务的截止日期为里程碑的截止日期",
+            "      - 在任务日志中记录（action: 'deadline_set'）",
+            "    - 如果截止日期被设置（自动或手动），触发现有的状态转换逻辑",
+            "  - 边界条件处理：",
+            "    - 如果用户同时手动设置了截止日期，以用户设置为准",
+            "    - 如果里程碑没有截止日期，不自动设置",
+            "    - 如果任务已有截止日期，不覆盖",
+            "    - 如果任务不是 inbox 状态，不触发状态转换",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - 实现数据层自动绑定逻辑'",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：创建项目详情弹窗和里程碑详情弹窗",
+      description: "创建项目详情底部弹窗和里程碑详情底部弹窗组件",
+      tasks: [
+        {
+          task: "创建 ProjectDetailBottomSheet 组件",
+          file: "lib/presentation/projects/widgets/project_detail_bottom_sheet.dart",
+          action: [
+            "实现项目详情底部弹窗组件",
+            "支持手势关闭（向下滑动、点击外部区域）",
+            "支持内容滚动（SingleChildScrollView）",
+            "包含拖拽指示器（顶部）",
+            "显示项目完整信息：标题、描述、截止日期、状态、标签、创建时间、更新时间、里程碑数量",
+            "包含编辑链接（跳转到 /projects 页面）",
+            "参考 TaskDetailBottomSheet 的实现，保持一致的交互体验",
+          ],
+        },
+        {
+          task: "创建 MilestoneDetailBottomSheet 组件",
+          file: "lib/presentation/projects/widgets/milestone_detail_bottom_sheet.dart",
+          action: [
+            "实现里程碑详情底部弹窗组件",
+            "支持手势关闭（向下滑动、点击外部区域）",
+            "支持内容滚动（SingleChildScrollView）",
+            "包含拖拽指示器（顶部）",
+            "显示里程碑完整信息：标题、描述、截止日期、状态、标签、创建时间、更新时间、任务数量",
+            "包含编辑链接（跳转到 /projects 页面，并展开对应的项目卡片）",
+            "参考 ProjectDetailBottomSheet 的实现，保持一致的交互体验",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - 创建项目详情弹窗和里程碑详情弹窗'",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：创建项目信息头部组件",
+      description: "创建项目信息头部组件，包含项目标题、基本信息和进度可视化",
+      tasks: [
+        {
+          task: "创建 ProjectInfoHeader 组件",
+          file: "lib/presentation/projects/widgets/project_info_header.dart",
+          action: [
+            "实现项目信息头部组件",
+            "显示项目标题（可点击，显示项目详情弹窗）",
+            "显示项目基本信息（截止日期、状态等）",
+            "显示项目进度条（LinearProgressIndicator）",
+            "显示进度文字（已完成 X / 总计 Y 个任务（Z%））",
+            "使用 projectTasksStatisticsProvider 获取进度统计",
+            "支持点击项目标题显示项目详情弹窗",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - 创建项目信息头部组件'",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：创建里程碑拖拽配置和拖拽目标组件",
+      description: "创建里程碑任务列表配置和拖拽目标组件，支持跨里程碑拖拽",
+      tasks: [
+        {
+          task: "创建 MilestoneTaskListConfig 类",
+          file: "lib/presentation/projects/widgets/milestone_task_list_config.dart",
+          action: [
+            "实现 TaskListConfig 接口",
+            "实现所有必需的方法：",
+            "  - dragProvider: 返回 tasksDragProvider",
+            "  - getExpandedProvider: 返回里程碑的展开状态 Provider（需要新建）",
+            "  - getLevelMapProvider: 返回里程碑任务的层级映射 Provider（需要新建）",
+            "  - getChildrenMapProvider: 返回里程碑任务的子任务映射 Provider（需要新建）",
+            "  - buildTaskTile: 返回 SimplifiedTaskRow（通过 TasksSectionTaskListSimplified）",
+            "  - reorderTasks: 调用 sortIndexService.reorderTasksForSameMilestone",
+            "  - handleDueDate: 处理跨里程碑拖拽，检测并返回目标里程碑的 milestoneId（注意：TaskListConfig 的 handleDueDate 方法需要扩展支持 milestoneId，或者创建新的 handleMilestoneId 方法）",
+            "  - section: 返回 null",
+            "  - pageName: 返回 'ProjectDetail'",
+            "  - getDragNotifier: 返回 tasksDragProvider.notifier",
+          ],
+        },
+        {
+          task: "创建 MilestonePageDragTarget 组件",
+          file: "lib/presentation/projects/widgets/milestone_page_drag_target.dart",
+          action: [
+            "参考 TasksPageDragTarget 的实现",
+            "支持在里程碑任务之间插入拖拽目标",
+            "支持跨里程碑拖拽：检测目标任务的 milestoneId",
+            "使用 MilestoneTaskListConfig 处理拖拽逻辑",
+            "使用 TaskListInsertionHandler.handleInsertionDrop 统一处理",
+            "提供视觉反馈：插入线、高亮等",
+          ],
+        },
+        {
+          task: "扩展 TaskListConfig 接口，添加 handleMilestoneId 方法",
+          file: "lib/presentation/common/task_list/task_list_config.dart",
+          action: [
+            "在 TaskListConfig 接口中添加 handleMilestoneId 方法",
+            "输入：beforeTask、afterTask、draggedTask",
+            "输出：String?（目标里程碑ID，如果不需要更新则返回 null）",
+            "更新所有实现类：",
+            "  - InboxTaskListConfig: 返回 null",
+            "  - TasksSectionTaskListConfig: 返回 null",
+            "  - MilestoneTaskListConfig: 检测目标任务的 milestoneId，如果与拖拽任务不同，返回目标里程碑ID",
+          ],
+        },
+        {
+          task: "扩展 TaskListInsertionHandler 支持 milestoneId 更新",
+          file: "lib/presentation/common/task_list/task_list_insertion_handler.dart",
+          action: [
+            "在 handleInsertionDrop 方法中：",
+            "  - 调用 config.handleMilestoneId 获取目标里程碑ID",
+            "  - 如果目标里程碑ID不为 null 且与拖拽任务的 milestoneId 不同：",
+            "    - 在调用 taskHierarchyService.moveToParent 后，调用 taskService.updateDetails 更新 milestoneId",
+          ],
+        },
+        {
+          task: "添加 reorderTasksForSameMilestone 方法",
+          file: "lib/core/services/sort_index_service.dart",
+          action: [
+            "添加 reorderTasksForSameMilestone 方法",
+            "输入：所有任务列表、目标里程碑ID",
+            "功能：重新计算目标里程碑内所有任务的 sortIndex",
+            "逻辑：参考 reorderTasksForSameDate 的实现，但按 milestoneId 过滤",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 5 完成 - 创建里程碑拖拽配置和拖拽目标组件'",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：创建里程碑分区面板组件",
+      description: "创建里程碑分区面板组件，包含里程碑标题、进度和任务列表",
+      tasks: [
+        {
+          task: "创建 MilestoneSectionPanel 组件",
+          file: "lib/presentation/projects/widgets/milestone_section_panel.dart",
+          action: [
+            "实现里程碑分区面板组件",
+            "使用 Card 组件包裹，样式与 TaskSectionPanel 保持一致",
+            "分区标题区域：",
+            "  - 里程碑标题（可点击，显示里程碑详情弹窗）",
+            "  - 信息图标（可选，点击显示里程碑详情弹窗）",
+            "  - 快速添加按钮（快速添加任务到该里程碑）",
+            "  - 里程碑进度指示器（LinearProgressIndicator + 进度文字）",
+            "任务列表区域：使用 TasksSectionTaskListSimplified 组件（需要传入 MilestoneTaskListConfig）",
+            "支持拖拽排序（里程碑内和跨里程碑）：使用 MilestonePageDragTarget",
+            "支持空状态显示（里程碑没有任务时）",
+            "使用 milestoneTasksStatisticsProvider 获取进度统计",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - 创建里程碑分区面板组件'",
+        },
+      ],
+    },
+    {
+      step: 7,
+      title: "阶段 7：创建项目详情页",
+      description: "创建项目详情页主组件，整合所有子组件",
+      tasks: [
+        {
+          task: "创建 ProjectDetailPage 组件",
+          file: "lib/presentation/projects/project_detail_page.dart",
+          action: [
+            "实现项目详情页主组件",
+            "使用 GradientPageScaffold 作为页面容器",
+            "使用 PageAppBar 显示项目标题和信息图标按钮",
+            "页面头部显示 ProjectInfoHeader（项目信息和进度）",
+            "页面主体显示里程碑分区列表（MilestoneSectionPanel）",
+            "使用 projectMilestonesDomainProvider 获取项目里程碑列表",
+            "使用 milestoneTasksProvider 获取每个里程碑的任务列表",
+            "支持加载状态和错误状态处理",
+            "支持空状态显示（项目没有里程碑时）",
+            "里程碑按截止日期（第一优先）和 sortIndex（第二优先）排序",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - 创建项目详情页'",
+        },
+      ],
+    },
+    {
+      step: 8,
+      title: "阶段 8：添加路由和更新导航",
+      description: "添加项目详情页路由，更新抽屉导航逻辑",
+      tasks: [
+        {
+          task: "添加项目详情页路由",
+          file: "lib/presentation/navigation/app_router.dart",
+          action: [
+            "在 routes 数组中添加新的 GoRoute：",
+            "  - path: '/projects/:id'",
+            "  - name: 'project_detail'",
+            "  - builder: 从 state.pathParameters 获取项目ID，创建 ProjectDetailPage(projectId: id)",
+            "导入 ProjectDetailPage",
+          ],
+        },
+        {
+          task: "更新抽屉导航逻辑",
+          file: "lib/presentation/widgets/drawer/drawer_projects_section.dart",
+          action: [
+            "修改 InkWell 的 onTap 回调：",
+            "  - 从 context.go('/projects') 改为 context.go('/projects/${project.id}')",
+            "确保项目ID正确传递到路由",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 7 完成 - 添加路由和更新导航'",
+        },
+      ],
+    },
+    {
+      step: 9,
+      title: "阶段 9：测试和验证",
+      description: "运行测试，验证功能正确性",
+      tasks: [
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+        },
+        {
+          task: "运行单元测试",
+          command: "flutter test",
+        },
+        {
+          task: "手动测试项目详情页功能",
+          action: [
+            "测试项目详情页加载和显示",
+            "测试项目进度可视化",
+            "测试里程碑进度可视化",
+            "测试项目详情弹窗",
+            "测试里程碑详情弹窗",
+            "测试跨里程碑拖拽任务",
+            "测试收集箱任务分配里程碑时的自动处理",
+          ],
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 8 完成 - 测试和验证'",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 代码复用和重构策略（必填）
+  // ===========================================
+  codeReuseAndRefactoring: {
+    // 复用现有组件
+    reusableComponents: [
+      {
+        component: "TasksSectionTaskListSimplified",
+        location: "lib/presentation/tasks/views/tasks_section_task_list_simplified.dart",
+        usage: "MilestoneSectionPanel 中直接使用，无需修改",
+        note: "完全复用任务清单页面的任务列表组件，保持一致的交互体验",
+      },
+      {
+        component: "SimplifiedTaskRow",
+        location: "lib/presentation/widgets/simplified_task_row.dart",
+        usage: "通过 TasksSectionTaskListSimplified 间接使用",
+        note: "任务行组件已在多个页面使用，保持一致性",
+      },
+      {
+        component: "EmptySectionHint",
+        location: "lib/presentation/tasks/widgets/empty_section_hint.dart",
+        usage: "MilestoneSectionPanel 中用于显示空状态",
+        note: "复用现有的空状态提示组件，保持视觉一致性",
+      },
+      {
+        component: "ErrorBanner",
+        location: "lib/presentation/widgets/error_banner.dart",
+        usage: "ProjectDetailPage 和 MilestoneSectionPanel 中用于显示错误状态",
+        note: "复用现有的错误提示组件，保持视觉一致性",
+      },
+      {
+        component: "EmptyPlaceholder",
+        location: "lib/presentation/tasks/widgets/empty_placeholder.dart",
+        usage: "ProjectDetailPage 中用于显示项目没有里程碑的空状态",
+        note: "复用现有的空状态占位符组件",
+      },
+      {
+        component: "TaskBottomSheetHelper",
+        location: "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart",
+        usage: "参考其实现，创建类似的 ProjectBottomSheetHelper 和 MilestoneBottomSheetHelper",
+        note: "底部弹窗的显示逻辑可以复用，但需要扩展支持项目和里程碑",
+        refactoring: "考虑将底部弹窗的通用逻辑抽取为基类或 mixin，供 Task、Project、Milestone 弹窗复用",
+      },
+      {
+        component: "TaskSectionPanel",
+        location: "lib/presentation/tasks/views/task_section_panel.dart",
+        usage: "参考其 Card 样式和布局结构，保持 MilestoneSectionPanel 与其一致",
+        note: "虽然不能直接复用，但应该保持相同的视觉风格和布局结构",
+      },
+      {
+        component: "GradientPageScaffold",
+        location: "lib/presentation/widgets/gradient_page_scaffold.dart",
+        usage: "ProjectDetailPage 中直接使用",
+        note: "复用现有的页面容器组件，保持一致的页面背景",
+      },
+      {
+        component: "PageAppBar",
+        location: "lib/presentation/widgets/page_app_bar.dart",
+        usage: "ProjectDetailPage 中直接使用",
+        note: "复用现有的 AppBar 组件，保持一致的页面头部样式",
+      },
+    ],
+    
+    // 可抽取的通用组件（重构机会）
+    extractableComponents: [
+      {
+        component: "ProgressIndicatorWidget",
+        purpose: "通用的进度指示器组件，包含进度条、进度文字、状态图标",
+        location: "lib/presentation/widgets/progress_indicator_widget.dart",
+        usage: [
+          "ProjectInfoHeader 中使用（项目进度）",
+          "MilestoneSectionPanel 中使用（里程碑进度）",
+          "未来其他需要显示进度的地方也可以复用",
+        ],
+        benefits: [
+          "统一进度显示的样式和交互",
+          "减少代码重复",
+          "便于维护和更新",
+        ],
+        implementation: {
+          parameters: [
+            "progress: double (0.0-1.0)",
+            "completedCount: int",
+            "totalCount: int",
+            "showStatusIcon: bool (默认 true)",
+            "height: double (默认 6.0)",
+            "animationEnabled: bool (默认 true)",
+          ],
+          features: [
+            "进度条动画（平滑过渡）",
+            "数字计数动画",
+            "状态图标（已完成/进行中/未开始/已逾期）",
+            "自定义样式（颜色、高度等）",
+          ],
+        },
+        note: "这是一个重构机会，可以在实现时考虑抽取，但也可以在后续迭代中重构",
+      },
+      {
+        component: "DetailBottomSheetBase",
+        purpose: "底部弹窗的基类或 mixin，包含通用的交互逻辑（手势关闭、动画、样式等）",
+        location: "lib/presentation/widgets/detail_bottom_sheet_base.dart",
+        usage: [
+          "TaskDetailBottomSheet 继承或使用",
+          "ProjectDetailBottomSheet 继承或使用",
+          "MilestoneDetailBottomSheet 继承或使用",
+        ],
+        benefits: [
+          "统一底部弹窗的交互体验",
+          "减少重复代码",
+          "便于维护和更新",
+        ],
+        implementation: {
+          type: "mixin 或抽象基类",
+          commonFeatures: [
+            "手势关闭（向下滑动、点击外部区域）",
+            "内容滚动（SingleChildScrollView）",
+            "拖拽指示器（顶部）",
+            "动画效果（滑入/滑出）",
+            "SafeArea 处理",
+          ],
+        },
+        note: "这是一个重构机会，可以在实现时考虑抽取，但也可以在后续迭代中重构。当前可以先参考 TaskDetailBottomSheet 的实现",
+      },
+      {
+        component: "BottomSheetHelper",
+        purpose: "扩展 TaskBottomSheetHelper，支持项目和里程碑的弹窗显示",
+        location: "lib/presentation/widgets/utils/bottom_sheet_helper.dart",
+        usage: [
+          "统一管理所有底部弹窗的显示逻辑",
+          "提供一致的 API 接口",
+        ],
+        benefits: [
+          "统一的弹窗显示接口",
+          "便于维护和扩展",
+        ],
+        implementation: {
+          methods: [
+            "showTaskBottomSheet (已存在)",
+            "showProjectDetailBottomSheet (新增)",
+            "showMilestoneDetailBottomSheet (新增)",
+          ],
+        },
+        note: "可以扩展现有的 TaskBottomSheetHelper，或者创建新的 BottomSheetHelper 统一管理",
+      },
+    ],
+    
+    // 重构现有代码
+    refactoringOpportunities: [
+      {
+        target: "TaskBottomSheetHelper",
+        purpose: "扩展支持项目和里程碑的弹窗显示",
+        changes: [
+          "添加 showProjectDetailBottomSheet 方法",
+          "添加 showMilestoneDetailBottomSheet 方法",
+          "或者重命名为 BottomSheetHelper，统一管理所有弹窗",
+        ],
+        priority: "medium",
+        note: "可以在实现项目详情页时进行，也可以后续重构",
+      },
+      {
+        target: "进度显示逻辑",
+        purpose: "抽取进度可视化为独立组件",
+        changes: [
+          "创建 ProgressIndicatorWidget 组件",
+          "将项目进度和里程碑进度的显示逻辑抽取到该组件",
+          "统一进度条、进度文字、状态图标的显示逻辑",
+        ],
+        priority: "low",
+        note: "可以在后续迭代中重构，当前可以先在各自组件中实现",
+      },
+    ],
+    
+    // 避免重复代码的策略
+    avoidDuplication: [
+      {
+        area: "进度可视化",
+        strategy: "使用 ProjectStatisticsUtils 统一计算进度，避免在多个地方重复实现统计逻辑",
+        implementation: "所有进度计算都通过 ProjectStatisticsUtils 工具类，确保统计规则一致",
+      },
+      {
+        area: "底部弹窗样式",
+        strategy: "参考 TaskDetailBottomSheet 的实现，保持一致的样式和交互",
+        implementation: "复制 TaskDetailBottomSheet 的样式代码，然后修改内容部分",
+      },
+      {
+        area: "空状态和错误处理",
+        strategy: "复用现有的 EmptySectionHint、ErrorBanner、EmptyPlaceholder 组件",
+        implementation: "直接使用现有组件，不创建新的空状态或错误提示组件",
+      },
+      {
+        area: "加载状态",
+        strategy: "使用 AsyncValue 的标准处理方式（loading、error、data）",
+        implementation: "使用 AsyncValue.when 方法，保持与其他页面一致的加载状态处理",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 6. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // 进度统计规则
+      statisticsRule: {
+        recommendation: "使用 ProjectStatisticsUtils 工具类统一实现统计规则",
+        reason: "确保项目和里程碑的进度统计规则一致，便于维护和测试",
+        alternative: "在组件中直接计算（不推荐，会导致代码重复）",
+      },
+      // 自动绑定逻辑位置
+      autoBindingLocation: {
+        recommendation: "在 TaskCrudServiceUpdate 中实现自动绑定逻辑",
+        reason: "这是任务更新的核心逻辑位置，确保所有任务更新都经过此逻辑",
+        alternative: "在 UI 层实现（不推荐，违反分层架构）",
+      },
+      // 状态管理
+      stateManagement: {
+        method: "使用 Riverpod StreamProvider 管理异步数据流",
+        stateManagement: "Riverpod",
+        rollback: "如果出现问题，可以回滚到之前的版本",
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 类型安全
+      typeSafety: {
+        rule: "所有组件必须使用强类型，避免使用 dynamic",
+        location: "所有新建文件",
+        example: "final Project project; final List<Milestone> milestones;",
+        note: "使用 Dart 的类型系统确保代码安全",
+      },
+      // 组件复用
+      componentReuse: {
+        rule: "复用现有组件，保持 UI 一致性",
+        location: "所有新建组件",
+        example: "复用 TasksSectionTaskListSimplified、TaskDetailBottomSheet 等",
+        note: "参考现有组件的实现，保持交互体验一致",
+      },
+      // 错误处理
+      errorHandling: {
+        rule: "使用 AsyncValue 处理加载状态和错误状态",
+        location: "所有使用 StreamProvider 的组件",
+        example: "projectAsync.when(data: ..., loading: ..., error: ...)",
+        note: "确保用户能看到加载状态和错误提示",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      optimization: [
+        "使用 StreamProvider 实现响应式数据流，避免不必要的重建",
+        "使用 const 构造函数减少 widget 重建",
+        "进度统计计算使用缓存，避免重复计算",
+      ],
+      monitoring: [
+        "监控项目详情页的加载性能",
+        "监控进度统计计算的性能",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 7. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // 数据层依赖
+    dataLayer: [
+      "lib/data/models/project.dart",
+      "lib/data/models/milestone.dart",
+      "lib/data/models/task.dart",
+      "lib/data/repositories/task_repository.dart",
+    ],
+    
+    // 服务层依赖
+    serviceLayer: [
+      "lib/core/services/task_crud_service.dart",
+      "lib/core/services/task_crud_service_update.dart",
+      "lib/core/services/milestone_service.dart",
+      "lib/core/services/project_service.dart",
+    ],
+    
+    // Provider 层依赖
+    providerLayer: [
+      "lib/core/providers/task_query_providers.dart",
+      "lib/core/providers/project_filter_providers.dart",
+      "lib/core/providers/service_providers.dart",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/widgets/gradient_page_scaffold.dart",
+      "lib/presentation/widgets/page_app_bar.dart",
+      "lib/presentation/tasks/views/tasks_section_task_list_simplified.dart",
+      "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+    ],
+  },
+
+  // ===========================================
+  // 8. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        file: "test/core/utils/project_statistics_utils_test.dart",
+        description: "测试项目/里程碑进度统计工具类",
+        testCases: [
+          {
+            group: "calculateProjectProgress",
+            cases: [
+              {
+                name: "计算项目进度 - 正常情况",
+                test: "给定项目ID和任务列表，验证进度计算正确（已完成数/总数）",
+              },
+              {
+                name: "计算项目进度 - 统计规则验证",
+                test: "验证总任务数包括 pending、doing、paused、completedActive、archived，不包括 inbox、trashed、pseudoDeleted",
+              },
+              {
+                name: "计算项目进度 - 已完成数验证",
+                test: "验证已完成任务数包括 completedActive、archived",
+              },
+              {
+                name: "计算项目进度 - 空任务列表",
+                test: "验证空任务列表时进度为 0%",
+              },
+            ],
+          },
+          {
+            group: "calculateMilestoneProgress",
+            cases: [
+              {
+                name: "计算里程碑进度 - 正常情况",
+                test: "给定里程碑ID和任务列表，验证进度计算正确",
+              },
+              {
+                name: "计算里程碑进度 - 统计规则验证",
+                test: "验证统计规则与项目进度统计规则一致",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/core/services/task_crud_service_update_test.dart",
+        description: "测试任务更新服务中的自动绑定逻辑",
+        testCases: [
+          {
+            group: "inbox任务分配里程碑自动处理",
+            cases: [
+              {
+                name: "自动设置截止日期 - 里程碑有截止日期",
+                test: "inbox任务分配有截止日期的里程碑，验证任务的截止日期自动设置为里程碑的截止日期",
+              },
+              {
+                name: "自动状态转换 - inbox 转 pending",
+                test: "inbox任务分配里程碑后，验证任务状态自动从 inbox 转换为 pending",
+              },
+              {
+                name: "边界条件 - 用户手动设置截止日期",
+                test: "如果用户同时手动设置了截止日期，验证以用户设置为准，不自动覆盖",
+              },
+              {
+                name: "边界条件 - 里程碑没有截止日期",
+                test: "如果里程碑没有截止日期，验证不自动设置任务截止日期",
+              },
+              {
+                name: "边界条件 - 任务已有截止日期",
+                test: "如果任务已有截止日期，验证不覆盖现有截止日期",
+              },
+              {
+                name: "边界条件 - 任务不是 inbox 状态",
+                test: "如果任务不是 inbox 状态，验证不触发状态转换",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/projects/widgets/project_info_header_test.dart",
+        description: "测试项目信息头部组件",
+        testCases: [
+          {
+            group: "ProjectInfoHeader",
+            cases: [
+              {
+                name: "显示项目标题和基本信息",
+                test: "验证项目标题、截止日期、状态等信息正确显示",
+              },
+              {
+                name: "显示项目进度",
+                test: "验证项目进度条和进度文字正确显示",
+              },
+              {
+                name: "点击项目标题显示详情弹窗",
+                test: "验证点击项目标题后显示项目详情弹窗",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/presentation/projects/widgets/milestone_section_panel_test.dart",
+        description: "测试里程碑分区面板组件",
+        testCases: [
+          {
+            group: "MilestoneSectionPanel",
+            cases: [
+              {
+                name: "显示里程碑标题和进度",
+                test: "验证里程碑标题、进度条和进度文字正确显示",
+              },
+              {
+                name: "显示任务列表",
+                test: "验证里程碑下的任务列表正确显示",
+              },
+              {
+                name: "点击里程碑标题显示详情弹窗",
+                test: "验证点击里程碑标题后显示里程碑详情弹窗",
+              },
+              {
+                name: "空状态显示",
+                test: "验证里程碑没有任务时显示空状态提示",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        file: "integration_test/project_detail_page_test.dart",
+        description: "测试项目详情页的完整功能",
+        testCases: [
+          {
+            group: "项目详情页功能",
+            cases: [
+              {
+                name: "页面加载和显示",
+                test: "验证项目详情页正确加载和显示项目信息、里程碑列表和任务列表",
+              },
+              {
+                name: "项目进度可视化",
+                test: "验证项目进度条和进度文字正确显示，进度计算正确",
+              },
+              {
+                name: "里程碑进度可视化",
+                test: "验证每个里程碑的进度条和进度文字正确显示，进度计算正确",
+              },
+              {
+                name: "项目详情弹窗",
+                test: "验证点击项目标题或信息图标后显示项目详情弹窗，弹窗内容正确",
+              },
+              {
+                name: "里程碑详情弹窗",
+                test: "验证点击里程碑标题或信息图标后显示里程碑详情弹窗，弹窗内容正确",
+              },
+              {
+                name: "跨里程碑拖拽任务",
+                test: "验证可以将任务从一个里程碑拖拽到另一个里程碑，任务的 milestoneId 正确更新",
+              },
+              {
+                name: "收集箱任务分配里程碑自动处理",
+                test: "验证收集箱任务分配里程碑后，任务的截止日期自动设置为里程碑的截止日期，状态自动从 inbox 转换为 pending",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 9. 需要确认的事项（必填）
+  // ===========================================
+  confirmations: [
+    {
+      question: "跨里程碑拖拽的实现方式",
+      options: [
+        {
+          option: "方案 A：创建 MilestoneTaskListConfig 和 MilestonePageDragTarget",
+          description: "参考 TasksSectionTaskListConfig 和 TasksPageDragTarget，创建里程碑专用的配置和拖拽目标组件",
+          pros: [
+            "完全复用现有的拖拽架构（TaskListConfig、TaskListInsertionHandler）",
+            "代码结构清晰，易于维护",
+            "与任务清单页面的拖拽逻辑保持一致",
+          ],
+          cons: [
+            "需要创建新的配置类和拖拽目标组件",
+            "需要实现里程碑相关的 Provider（展开状态、层级映射等）",
+          ],
+          recommendation: "推荐此方案，符合现有架构设计",
+        },
+        {
+          option: "方案 B：直接修改 TasksSectionTaskListSimplified 支持里程碑",
+          description: "扩展 TasksSectionTaskListSimplified 组件，添加里程碑模式支持",
+          pros: [
+            "代码复用度高",
+            "实现相对简单",
+          ],
+          cons: [
+            "组件职责不清晰（既处理 section 又处理 milestone）",
+            "可能增加组件的复杂度",
+            "与现有架构不一致",
+          ],
+          recommendation: "不推荐，违反单一职责原则",
+        },
+      ],
+      decision: "已确认：采用方案 A",
+      note: "采用方案 A，创建 MilestoneTaskListConfig 和 MilestonePageDragTarget，保持架构一致性",
+    },
+    {
+      question: "里程碑任务的拖拽状态管理",
+      options: [
+        {
+          option: "复用 tasksDragProvider",
+          description: "项目详情页使用与任务清单页面相同的拖拽状态 Provider",
+          pros: [
+            "代码复用，减少重复",
+            "状态管理统一",
+          ],
+          cons: [
+            "如果两个页面同时打开，可能会有状态冲突（但实际使用中不太可能）",
+          ],
+          recommendation: "推荐，除非有明确的状态冲突问题",
+        },
+        {
+          option: "创建独立的 milestoneDragProvider",
+          description: "为项目详情页创建独立的拖拽状态 Provider",
+          pros: [
+            "状态隔离，避免冲突",
+          ],
+          cons: [
+            "代码重复",
+            "增加维护成本",
+          ],
+          recommendation: "不推荐，除非确实存在状态冲突",
+        },
+      ],
+      decision: "已确认：复用 tasksDragProvider",
+      note: "复用 tasksDragProvider，如果发现状态冲突，添加日志记录和错误提示",
+    },
+    {
+      question: "里程碑任务的排序方法",
+      options: [
+        {
+          option: "创建 reorderTasksForSameMilestone 方法",
+          description: "在 SortIndexService 中添加专门处理里程碑任务排序的方法",
+          pros: [
+            "逻辑清晰，职责明确",
+            "与 reorderTasksForSameDate 保持一致",
+          ],
+          cons: [
+            "需要新增方法",
+          ],
+          recommendation: "推荐，保持代码结构一致性",
+        },
+        {
+          option: "复用 reorderTasksForSameDate 方法",
+          description: "通过参数扩展现有方法支持里程碑",
+          pros: [
+            "代码复用",
+          ],
+          cons: [
+            "方法职责不清晰（既处理日期又处理里程碑）",
+            "可能增加方法复杂度",
+          ],
+          recommendation: "不推荐，违反单一职责原则",
+        },
+      ],
+      decision: "已确认：创建 reorderTasksForSameMilestone 方法",
+      note: "创建 reorderTasksForSameMilestone 方法，保持代码结构清晰",
+    },
+      {
+        question: "与 .plan.md 中拖拽功能改进的关系",
+        description: ".plan.md 中提到要扩展 TasksDragTargetType 枚举，添加 first 和 last 类型，并重构 tasks_section_task_list_simplified.dart",
+        impact: [
+          "如果 .plan.md 的改进已完成，可以直接复用",
+          "如果未完成，需要确认是否在本次迭代中一起实现，还是先实现项目详情页，后续再改进",
+        ],
+      decision: "已确认：在本次迭代中一起实现",
+      note: "根据 .plan.md，TasksDragTargetType 枚举需要添加 first 和 last 类型，tasks_section_task_list_simplified.dart 需要重构。这些改进将在本次迭代中一起实现，避免后续冲突",
+      },
+      {
+        question: "TaskListConfig 接口是否需要扩展支持 milestoneId",
+        description: "当前的 TaskListConfig.handleDueDate 只处理 dueDate，不处理 milestoneId。跨里程碑拖拽需要更新任务的 milestoneId",
+        options: [
+          {
+            option: "方案 A：扩展 handleDueDate 方法，返回包含 milestoneId 的对象",
+            description: "修改 handleDueDate 的返回类型，返回包含 dueDate 和 milestoneId 的对象",
+            pros: [
+              "保持接口一致性",
+              "统一处理 dueDate 和 milestoneId",
+            ],
+            cons: [
+              "需要修改现有接口，可能影响现有代码",
+            ],
+            recommendation: "不推荐，可能破坏现有代码",
+          },
+          {
+            option: "方案 B：添加新的 handleMilestoneId 方法",
+            description: "在 TaskListConfig 接口中添加 handleMilestoneId 方法，专门处理 milestoneId",
+            pros: [
+              "不破坏现有接口",
+              "职责清晰",
+            ],
+            cons: [
+              "需要扩展接口和所有实现类",
+            ],
+            recommendation: "推荐，保持接口向后兼容",
+          },
+          {
+            option: "方案 C：在 TaskListInsertionHandler 中直接处理 milestoneId",
+            description: "在 TaskListInsertionHandler.handleInsertionDrop 中，通过 config 获取目标任务的 milestoneId，然后直接更新",
+            pros: [
+              "不需要修改 TaskListConfig 接口",
+              "实现简单",
+            ],
+            cons: [
+              "逻辑分散，不够统一",
+            ],
+            recommendation: "可以考虑，但不如方案 B 清晰",
+          },
+        ],
+      decision: "已确认：采用方案 B",
+      note: "采用方案 B，添加 handleMilestoneId 方法，保持接口清晰和向后兼容",
+      },
+  ],
+
+  // ===========================================
+  // 10. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "进度统计计算性能问题",
+      mitigation: "使用 StreamProvider 缓存计算结果，避免重复计算。如果性能仍有问题，可以考虑使用 FutureProvider 并设置缓存时间",
+      priority: "medium",
+      check: "监控项目详情页的加载时间，如果超过 500ms，需要优化",
+    },
+    {
+      risk: "自动绑定逻辑可能影响现有功能",
+      mitigation: "仔细测试边界条件，确保只在满足条件时才触发自动处理。添加详细的日志记录，便于调试",
+      priority: "high",
+      check: "运行所有现有测试，确保没有回归问题",
+    },
+    {
+      risk: "跨里程碑拖拽可能影响任务排序",
+      mitigation: "参考任务清单页面的跨区域拖拽实现，确保 sortIndex 正确更新",
+      priority: "medium",
+      check: "测试跨里程碑拖拽后，任务的 sortIndex 是否正确更新",
+    },
+    {
+      risk: "项目没有里程碑时的处理",
+      mitigation: "根据设计文档，项目没有里程碑时不应该出现在项目列表中。在项目列表的 Provider 中过滤掉没有里程碑的项目",
+      priority: "low",
+      check: "验证项目列表中没有里程碑的项目被正确过滤",
+    },
+    {
+      risk: "跨里程碑拖拽实现复杂度高",
+      mitigation: "参考现有的跨区域拖拽实现（TasksSectionTaskListConfig），创建类似的 MilestoneTaskListConfig。使用 TaskListInsertionHandler 统一处理拖拽逻辑，减少重复代码。添加详细的错误处理和日志记录",
+      priority: "high",
+      check: "测试跨里程碑拖拽功能，确保任务的 milestoneId 正确更新，任务正确移动到目标里程碑。验证错误处理和日志记录是否完整",
+    },
+    {
+      risk: "与 .plan.md 中的拖拽改进冲突",
+      mitigation: "在本次迭代中一起实现 .plan.md 中的拖拽改进（扩展 TasksDragTargetType 枚举，重构 tasks_section_task_list_simplified.dart），避免后续冲突。添加详细的日志记录，便于调试",
+      priority: "medium",
+      check: "检查 TasksDragTargetType 枚举是否已包含 first 和 last 类型，tasks_section_task_list_simplified.dart 是否已重构。验证所有拖拽功能是否正常工作",
+    },
+    {
+      risk: "拖拽状态冲突（两个页面同时打开）",
+      mitigation: "在 MilestonePageDragTarget 中检测拖拽状态冲突，如果检测到冲突，显示用户友好的错误提示，阻止拖拽操作。添加详细的日志记录",
+      priority: "medium",
+      check: "测试两个页面同时打开时的拖拽操作，验证错误提示是否正确显示",
+    },
+    {
+      risk: "自动绑定逻辑执行失败",
+      mitigation: "在 TaskCrudServiceUpdate.updateDetails 中添加异常处理，如果自动绑定失败，记录详细日志并显示用户友好的错误提示。任务仍然分配里程碑，但不自动设置截止日期和状态",
+      priority: "high",
+      check: "测试自动绑定逻辑的各种边界情况，验证错误处理和日志记录是否完整",
+    },
+  ],
+
+  // ===========================================
+  // 12. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试通过",
+      "代码审查，确保符合代码规范",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证项目详情页正确加载和显示",
+      "验证项目进度可视化正确显示和计算",
+      "验证里程碑进度可视化正确显示和计算",
+      "验证项目详情弹窗正确显示",
+      "验证里程碑详情弹窗正确显示",
+      "验证跨里程碑拖拽任务功能正常",
+      "验证收集箱任务分配里程碑时的自动处理逻辑",
+      "验证边界情况处理（项目没有里程碑、里程碑没有任务等）",
+    ],
+    
+    // 性能验证
+    performance: [
+      "验证项目详情页加载时间 < 500ms",
+      "验证进度统计计算时间 < 100ms",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "验证在不同屏幕尺寸下（手机、平板）的显示效果",
+      "验证在 Light 和 Dark 模式下的显示效果",
+    ],
+  },
+
+  // ===========================================
+  // 13. 数据与状态（可选，但建议包含）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "无需修改数据模型，使用现有的 Project、Milestone、Task 模型",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "无需修改数据库结构",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "新增 projectTasksStatisticsProvider：用于计算项目进度统计",
+      "新增 milestoneTasksStatisticsProvider：用于计算里程碑进度统计",
+      "使用现有的 projectMilestonesDomainProvider 获取项目里程碑列表",
+      "使用现有的 milestoneTasksProvider 获取里程碑任务列表",
+    ],
+  },
+}
+

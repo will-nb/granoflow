@@ -6,7 +6,7 @@ class DragConstants {
   static const double tiltAngle = 0.026; // ~1.5度
   static const double feedbackScale = 1.03; // 轻微放大
   static const double feedbackOpacity = 0.98; // 反馈透明度更实
-  static const double draggingOpacity = 0.92; // 原位略透明
+  static const double draggingOpacity = 0.5; // 原位更透明，确保分割线可见（从 0.92 调整为 0.5）
   static const double feedbackElevation = 8.0; // 中等阴影
   static const double feedbackWidth = 300.0; // 反馈宽度
   static const double feedbackPadding = 8.0; // 反馈内边距（文字和阴影边框的间距）

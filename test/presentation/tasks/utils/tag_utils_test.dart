@@ -34,17 +34,6 @@ void main() {
       expect(getTagKindFromSlug('#not_important'), TagKind.importance);
     });
 
-    test('returns execution for execution tags (compatible with old format)', () {
-      // 新格式（无前缀）
-      expect(getTagKindFromSlug('timed'), TagKind.execution);
-      expect(getTagKindFromSlug('fragmented'), TagKind.execution);
-      expect(getTagKindFromSlug('waiting'), TagKind.execution);
-      // 兼容旧格式（带前缀）
-      expect(getTagKindFromSlug('#timed'), TagKind.execution);
-      expect(getTagKindFromSlug('#fragmented'), TagKind.execution);
-      expect(getTagKindFromSlug('#waiting'), TagKind.execution);
-    });
-
     test('returns special for wasted tag', () {
       expect(getTagKindFromSlug('wasted'), TagKind.special);
     });
@@ -86,19 +75,6 @@ void main() {
       expect(notImportantIcon, Icons.star_outline);
       expect(importantPrefix, null); // 前缀已废弃，不再显示
       expect(notImportantPrefix, null);
-    });
-
-    test('returns distinct styles for execution tags', () {
-      final (timedColor, timedIcon, timedPrefix) = getTagStyle('timed', TagKind.execution);
-      final (fragmentedColor, fragmentedIcon, fragmentedPrefix) = getTagStyle('fragmented', TagKind.execution);
-      final (waitingColor, waitingIcon, waitingPrefix) = getTagStyle('waiting', TagKind.execution);
-      
-      expect(timedIcon, Icons.schedule);
-      expect(fragmentedIcon, Icons.flash_on_outlined);
-      expect(waitingIcon, Icons.hourglass_empty);
-      expect(timedPrefix, null); // 前缀已废弃，不再显示
-      expect(fragmentedPrefix, null);
-      expect(waitingPrefix, null);
     });
 
     test('returns default style for unknown tags', () {
@@ -146,15 +122,6 @@ void main() {
               expect(tagLabel(l10n, '#important'), isNotEmpty);
               expect(tagLabel(l10n, '#not_important'), isNotEmpty);
               
-              // Execution tags (new format, no prefix)
-              expect(tagLabel(l10n, 'timed'), isNotEmpty);
-              expect(tagLabel(l10n, 'fragmented'), isNotEmpty);
-              expect(tagLabel(l10n, 'waiting'), isNotEmpty);
-              // Compatible with old format
-              expect(tagLabel(l10n, '#timed'), isNotEmpty);
-              expect(tagLabel(l10n, '#fragmented'), isNotEmpty);
-              expect(tagLabel(l10n, '#waiting'), isNotEmpty);
-              
               // Unknown tags
               expect(tagLabel(l10n, 'unknown'), 'unknown');
               expect(tagLabel(l10n, '#unknown'), 'unknown'); // 规范化后
@@ -168,10 +135,6 @@ void main() {
   });
 
   group('tag constants', () {
-    test('execution tags are correctly defined (no prefix)', () {
-      expect(executionTags, {'timed', 'fragmented', 'waiting'});
-    });
-
     test('urgency tags are correctly defined (no prefix)', () {
       expect(urgencyTags, {'urgent', 'not_urgent'});
     });

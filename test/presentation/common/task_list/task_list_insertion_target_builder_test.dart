@@ -73,7 +73,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -128,7 +127,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -181,7 +179,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -236,7 +233,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -289,7 +285,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -344,7 +339,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -397,7 +391,6 @@ void main() {
               importanceTagOptionsProvider.overrideWith(
                 (ref) async => const [],
               ),
-              executionTagOptionsProvider.overrideWith((ref) async => const []),
             ],
             child: Consumer(
               builder: (context, ref, child) {
@@ -453,9 +446,6 @@ void main() {
                 ),
                 urgencyTagOptionsProvider.overrideWith((ref) async => const []),
                 importanceTagOptionsProvider.overrideWith(
-                  (ref) async => const [],
-                ),
-                executionTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
               ],
@@ -518,9 +508,6 @@ void main() {
                 ),
                 urgencyTagOptionsProvider.overrideWith((ref) async => const []),
                 importanceTagOptionsProvider.overrideWith(
-                  (ref) async => const [],
-                ),
-                executionTagOptionsProvider.overrideWith(
                   (ref) async => const [],
                 ),
               ],

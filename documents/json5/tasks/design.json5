@@ -1,0 +1,956 @@
+{
+  // ===========================================
+  // 任务列表简化设计文档
+  // 简化所有任务列表页面展示，只显示任务标题，移除其他所有信息和展开/收缩功能
+  // 适用范围：收集箱（Inbox）、任务清单（Tasks）、已完成（Completed）、已收纳（Archived）、回收站（Trash）等所有任务列表页面
+  // 
+  // 设计评估：已基于2025年流行任务管理应用进行多角度评估，综合评分 8.7/10
+  // 评估文档：documents/json5/tasks/design_evaluation.json5
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：极简化的任务列表展示，只显示任务标题，提供最简洁的视觉体验
+    goal: "简化所有任务列表页面（收集箱、任务清单、已完成、已收纳、回收站等）的展示，只显示任务标题，移除所有其他信息（标签、项目、截止日期、复制按钮、计时控件等）和展开/收缩功能，提供极简、专注的任务列表体验",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的渐变背景系统（GradientPageScaffold）",
+        "遵循现有的页面布局规范（AppBar、Drawer、SafeArea）",
+        "使用统一的字体样式和间距规范",
+        "保持任务标题的编辑功能（点击编辑）",
+        "保持任务状态图标（完成/未完成）的显示",
+      ],
+      
+      // 创新点：与现有主题不同的设计突破
+      innovation: [
+        "极简化设计：移除所有次要信息，只保留核心的任务标题",
+        "扁平化展示：移除层级结构和展开/收缩功能，所有任务平铺显示",
+        "专注体验：减少视觉干扰，让用户专注于任务本身",
+        "简化交互：移除复杂的展开/收缩交互，降低认知负担",
+        "智能信息提示：通过图标提供关键信息（如截止日期），平衡简洁与信息可见性",
+        "状态区分交互：根据任务状态提供不同的弹窗内容，优化用户体验",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "极简主义设计：Less is More，移除不必要的元素（参考 Things 3、Todoist）",
+      "扁平化设计：移除层级结构，所有内容平铺展示",
+      "专注体验：减少视觉干扰，提升用户专注度",
+      "简洁交互：简化操作流程，降低学习成本",
+      "底部弹窗模式：移动端广泛采用底部弹窗展示详情和操作（参考 Things 3、Todoist、TickTick）",
+      "渐进式披露：列表简洁，详情丰富，按需展示",
+      "状态区分交互：根据任务状态提供不同的交互方式",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：Light 和 Dark 模式下的背景渐变
+    backgroundGradients: {
+      // Light 模式：使用现有的页面背景渐变
+      light: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用现有的渐变定义：AppGradients.seaSaltSky 或 context.gradients.pageBackground
+          colors: [
+            "OceanBreezeColorSchemes.seaSaltBlue",
+            "OceanBreezeColorSchemes.skyWhite",
+          ],
+          stops: [0.0, 1.0],
+          note: "使用 GradientPageScaffold 的默认渐变背景，与现有页面保持一致",
+        },
+      },
+      
+      // Dark 模式：使用深色主题渐变
+      dark: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用深色主题渐变：AppGradients.deepSeaGlow
+          colors: [
+            "OceanBreezeColorSchemes.navyBlue",
+            "OceanBreezeColorSchemes.floatingWater",
+            "OceanBreezeColorSchemes.navyBlue",
+          ],
+          stops: [0.0, 0.5, 1.0],
+          note: "使用深色主题渐变，与现有深色模式页面保持一致",
+        },
+      },
+    },
+    
+    // 专用配色：任务列表的专用颜色
+    specificColors: {
+      // 任务标题文字颜色
+      taskTitle: {
+        light: "Theme.of(context).colorScheme.onSurface",
+        dark: "Theme.of(context).colorScheme.onSurface",
+        note: "使用主题的 onSurface 颜色，确保在不同模式下都有良好的可读性",
+      },
+      // 已完成任务标题颜色
+      completedTaskTitle: {
+        light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        note: "已完成任务使用半透明颜色，表示已完成状态",
+      },
+      // 任务状态图标颜色
+      statusIcon: {
+        light: "Theme.of(context).colorScheme.primary",
+        dark: "Theme.of(context).colorScheme.primary",
+        note: "使用主题的主色，保持视觉一致性",
+      },
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：是否为全屏页面
+    fullScreen: false,
+    
+    // 隐藏导航栏：是否隐藏底部导航栏
+    hideNavigation: false,
+    
+    // 顶部栏配置
+    topBar: {
+      // 显示主菜单按钮
+      showMenuButton: true,
+      // 背景样式
+      background: "Theme.of(context).colorScheme.surface",
+      // 使用 PageAppBar 组件
+      component: "PageAppBar",
+    },
+    
+    // 内容区域布局
+    contentLayout: {
+      // 布局方向
+      direction: "vertical",
+      // 主轴对齐
+      mainAxisAlignment: "start",
+      // 交叉轴对齐
+      crossAxisAlignment: "stretch",
+      // 使用 SafeArea
+      safeArea: true,
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 8, // dp
+      },
+    },
+    
+    // 区域划分：页面的主要区域
+    sections: [
+      {
+        // 筛选区域
+        name: "filterSection",
+        position: "top",
+        weight: "fixed",
+        children: [
+          "TaskFilterCollapsible",
+        ],
+        note: "保留筛选功能，允许用户按项目、标签等筛选任务",
+      },
+      {
+        // 任务列表区域
+        name: "taskListSection",
+        position: "middle",
+        weight: "flexible",
+        children: [
+          "TaskSectionPanel (多个，按时间分区)",
+        ],
+        note: "任务列表区域，按时间分区（逾期、今天、明天等）展示任务",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 任务行组件（简化版）
+  taskRow: {
+    // 组件位置
+    position: "taskListSection",
+    
+    // 布局结构
+    structure: {
+      // 水平布局：状态图标 + 标题
+      direction: "horizontal",
+      mainAxisAlignment: "start",
+      crossAxisAlignment: "center",
+      // 内边距
+      padding: {
+        horizontal: 0, // dp
+        vertical: 12, // dp
+      },
+      // 间距
+      spacing: 12, // dp（状态图标和标题之间的间距）
+    },
+    
+    // 状态图标
+    statusIcon: {
+      // 显示位置
+      position: "leading",
+      // 图标大小
+      size: 24, // dp
+      // 图标类型
+      type: "checkbox", // 或 "radio" 等
+      // 颜色
+      color: "Theme.of(context).colorScheme.primary",
+      // 交互
+      interactive: true, // 可点击切换任务状态
+      note: "显示任务完成状态，点击可切换完成/未完成状态",
+    },
+    
+    // 任务标题
+    title: {
+      // 字体样式
+      typography: {
+        // 字号（sp）
+        fontSize: 16,
+        // 字重
+        fontWeight: "regular", // 未完成任务
+        completedFontWeight: "regular", // 已完成任务
+        // 颜色
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface",
+          dark: "Theme.of(context).colorScheme.onSurface",
+        },
+        completedColor: {
+          light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+          dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        },
+        // 删除线（已完成任务）
+        decoration: "lineThrough", // 已完成任务显示删除线
+      },
+      
+      // 背景样式
+      background: {
+        // 背景类型
+        type: "transparent",
+        note: "任务行背景透明，使用列表项的背景",
+      },
+      
+      // 关键信息提示（可选）
+      keyInfoIndicators: {
+        // 截止日期图标
+        dueDateIcon: {
+          enabled: true, // 如果任务有截止日期，在标题后显示图标
+          icon: "Icons.calendar_today",
+          size: 16, // dp
+          color: "Theme.of(context).colorScheme.primary",
+          position: "afterTitle", // 标题后
+          spacing: 8, // dp（图标和标题之间的间距）
+          note: "仅在任务有截止日期时显示，提供快速视觉提示，不影响极简设计",
+        },
+        // 优先级图标（可选，未来考虑）
+        priorityIcon: {
+          enabled: false, // 当前版本不启用
+          note: "未来可以考虑添加优先级图标，但需要评估是否影响极简设计",
+        },
+      },
+      
+      // 交互（根据任务状态有不同的行为）
+      interactive: true,
+      // pending、doing、paused、inbox 状态：点击显示任务操作弹窗
+      actionSheet: {
+        // 弹窗组件
+        component: "TaskActionBottomSheet",
+        // 组件路径（需要新建）
+        componentPath: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+        // 显示内容（包含所有操作功能，但根据状态有所不同）
+        content: [
+          "任务标题（可编辑，TextField）",
+          "标签管理（可添加/删除标签，InlineEditableTag + TagAddButton）",
+          "项目/里程碑选择（可编辑，ProjectMilestonePicker）",
+          "截止日期编辑（可编辑，InlineDeadlineEditor）",
+          "复制按钮（TaskCopyButton）",
+          "计时控件（TaskTimerWidget，开始/停止计时，仅适用于 pending/doing/paused 状态）",
+          "转换为项目（如果适用，showConvertAction）",
+          "其他操作按钮（完成、归档、删除等）",
+        ],
+        // 弹窗交互特性
+        interactionFeatures: {
+          // 手势关闭
+          gestureDismiss: {
+            enabled: true,
+            gestures: ["swipeDown", "tapOutside"],
+            note: "支持向下滑动和点击外部区域关闭弹窗",
+          },
+          // 可滚动
+          scrollable: {
+            enabled: true,
+            physics: "ClampingScrollPhysics",
+            note: "弹窗内容可滚动，支持大量操作功能",
+          },
+          // 动画效果
+          animations: {
+            enter: {
+              type: "slideUp",
+              duration: 300, // 毫秒
+              curve: "Curves.easeOut",
+            },
+            exit: {
+              type: "slideDown",
+              duration: 250, // 毫秒
+              curve: "Curves.easeIn",
+            },
+          },
+          // 拖拽指示器
+          dragIndicator: {
+            enabled: true,
+            style: {
+              width: 40, // dp
+              height: 4, // dp
+              color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.4)",
+              borderRadius: 2, // dp
+            },
+            note: "顶部显示拖拽指示器，提示用户可以向下滑动关闭",
+          },
+        },
+        // 详细操作功能列表
+        operations: [
+          {
+            name: "编辑标题",
+            component: "TextField",
+            description: "可编辑任务标题，支持保存",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "标签管理",
+            components: ["InlineEditableTag", "TagAddButton"],
+            description: "显示已选标签（可删除），可添加新标签",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "项目/里程碑选择",
+            component: "ProjectMilestonePicker",
+            description: "可选择或更改任务所属的项目和里程碑",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "截止日期编辑",
+            component: "InlineDeadlineEditor",
+            description: "可设置或修改任务的截止日期",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "复制任务",
+            component: "TaskCopyButton",
+            description: "复制任务标题到剪贴板",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "计时功能",
+            component: "TaskTimerWidget",
+            description: "开始/停止任务计时，记录专注时长",
+            applicableStatuses: ["pending", "doing", "paused"],
+            note: "inbox 状态的任务不显示计时控件",
+          },
+          {
+            name: "转换为项目",
+            component: "IconButton (showConvertAction)",
+            description: "将任务转换为项目（如果适用）",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "完成任务",
+            action: "complete",
+            description: "标记任务为已完成",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "归档任务",
+            action: "archive",
+            description: "将任务归档",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+          {
+            name: "删除任务",
+            action: "delete",
+            description: "将任务移动到回收站",
+            applicableStatuses: ["inbox", "pending", "doing", "paused"],
+          },
+        ],
+        // 适用的任务状态
+        applicableStatuses: ["inbox", "pending", "doing", "paused"],
+        note: "创建一个新的 TaskActionBottomSheet 组件，包含任务清单里每个任务的所有操作功能，提供完整的任务管理能力。弹窗应该是可滚动的，支持所有操作功能。注意：inbox 状态的任务不显示计时控件（TaskTimerWidget）。",
+      },
+      // completed、archived、trashed 状态：点击显示详情弹窗
+      detailSheet: {
+        // 弹窗组件
+        component: "TaskDetailBottomSheet",
+        // 组件路径
+        componentPath: "lib/presentation/review/widgets/task_detail_bottom_sheet.dart",
+        // 显示内容（只读）
+        content: [
+          "任务标题（完整显示，只读）",
+          "标签（ModernTag 组件，只读）",
+          "项目/里程碑（InlineProjectMilestoneDisplay 组件，只读）",
+          "截止日期（格式化显示，只读）",
+        ],
+        // 适用的任务状态
+        applicableStatuses: ["completed", "archived", "trashed"],
+        // 弹窗交互特性（与操作弹窗一致）
+        interactionFeatures: {
+          gestureDismiss: {
+            enabled: true,
+            gestures: ["swipeDown", "tapOutside"],
+          },
+          scrollable: {
+            enabled: true,
+            physics: "ClampingScrollPhysics",
+          },
+          animations: {
+            enter: {
+              type: "slideUp",
+              duration: 300,
+              curve: "Curves.easeOut",
+            },
+            exit: {
+              type: "slideDown",
+              duration: 250,
+              curve: "Curves.easeIn",
+            },
+          },
+          dragIndicator: {
+            enabled: true,
+            style: {
+              width: 40,
+              height: 4,
+              color: "Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.4)",
+              borderRadius: 2,
+            },
+          },
+        },
+        note: "复用日历页面的 TaskDetailBottomSheet 组件，保持一致的交互体验",
+      },
+    },
+    
+    // 移除的组件
+    removedComponents: [
+      "标签（Tags）",
+      "项目/里程碑（Project/Milestone）",
+      "截止日期（Due Date）",
+      "复制按钮（Copy Button）",
+      "计时控件（Timer Widget）",
+      "展开/收缩按钮（Expand/Collapse Button）",
+      "子任务层级显示（Subtask Hierarchy）",
+    ],
+  },
+  
+  // 任务列表组件
+  taskList: {
+    // 列表类型
+    type: "CustomScrollView with Slivers",
+    // 列表项构建
+    itemBuilder: "TaskRow (简化版)",
+    // 分隔线
+    separator: {
+      enabled: false, // 不显示分隔线，使用间距分隔
+      note: "使用垂直间距分隔任务项，不显示分隔线",
+    },
+    // 空状态
+    emptyState: {
+      enabled: true,
+      message: "该分区暂无任务",
+      note: "当某个时间分区没有任务时，显示空状态提示",
+    },
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程名称
+        name: "查看任务列表",
+        // 步骤列表
+        steps: [
+          "用户进入任务列表页面",
+          "页面显示按时间分区的任务列表（逾期、今天、明天等）",
+          "每个任务只显示状态图标和标题",
+          "用户可以通过筛选功能筛选任务",
+        ],
+      },
+      {
+        // 流程名称
+        name: "打开任务操作弹窗（inbox/pending/doing/paused 状态）",
+        // 步骤列表
+        steps: [
+          "用户点击任务（任务状态为 inbox、pending、doing 或 paused）",
+          "显示任务操作底部弹窗（TaskActionBottomSheet）",
+          "弹窗显示任务的所有操作功能：标题编辑、标签管理、项目/里程碑选择、截止日期编辑、复制按钮、计时控件（仅 pending/doing/paused 状态显示）、转换为项目、其他操作（完成、归档、删除等）",
+          "用户可以在弹窗中执行各种操作",
+          "用户可以通过向下滑动或点击外部区域关闭弹窗",
+        ],
+        note: "创建一个新的 TaskActionBottomSheet 组件，包含任务清单里每个任务的所有操作功能。注意：inbox 状态的任务不显示计时控件。",
+      },
+      {
+        // 流程名称
+        name: "查看任务详情（completed/archived/trashed 状态）",
+        // 步骤列表
+        steps: [
+          "用户点击任务（任务状态为 completed、archived 或 trashed）",
+          "显示任务详情底部弹窗（TaskDetailBottomSheet）",
+          "弹窗显示任务的完整信息：标题、标签、项目/里程碑、截止日期",
+          "用户可以通过向下滑动或点击外部区域关闭弹窗",
+        ],
+        note: "复用日历页面的 TaskDetailBottomSheet 组件，保持一致的交互体验",
+      },
+      {
+        // 流程名称
+        name: "切换任务状态",
+        // 步骤列表
+        steps: [
+          "用户点击任务的状态图标（checkbox）",
+          "任务状态切换（完成 ↔ 未完成）",
+          "任务标题样式更新（删除线、透明度等）",
+        ],
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击任务标题（根据任务状态有不同的行为）
+      tap: {
+        // inbox、pending、doing、paused 状态：显示任务操作弹窗
+        actionForActiveTasks: "显示任务操作弹窗",
+        activeTaskStatuses: ["inbox", "pending", "doing", "paused"],
+        // completed、archived、trashed 状态：显示任务详情弹窗
+        actionForInactiveTasks: "显示任务详情弹窗",
+        inactiveTaskStatuses: ["completed", "archived", "trashed"],
+        target: "任务标题或任务行",
+        note: "根据任务状态决定点击行为：活跃任务（inbox/pending/doing/paused）点击显示操作弹窗（包含所有操作功能，但 inbox 状态不显示计时控件），非活跃任务（completed/archived/trashed）点击显示详情弹窗（只读）",
+      },
+      // 点击状态图标
+      tapStatusIcon: {
+        action: "切换任务状态",
+        target: "状态图标（checkbox）",
+      },
+      // 长按任务（可选）
+      longPress: {
+        enabled: false, // 当前版本不启用长按功能
+        note: "未来可以考虑添加长按显示更多操作菜单",
+      },
+      // 滑动删除（可选）
+      swipeLeft: {
+        enabled: false, // 当前版本不启用滑动删除
+        note: "未来可以考虑添加滑动删除功能",
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 页面进入动画
+    pageEnter: {
+      type: "fade_in",
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+    },
+    
+    // 任务状态切换动画
+    statusToggle: {
+      type: "scale",
+      duration: 200, // 毫秒
+      curve: "Curves.easeInOut",
+      note: "状态图标切换时的缩放动画",
+    },
+    
+    // 任务标题编辑动画
+    titleEdit: {
+      type: "fade",
+      duration: 150, // 毫秒
+      curve: "Curves.easeInOut",
+      note: "标题进入/退出编辑模式时的淡入淡出动画",
+    },
+    
+    // 底部弹窗动画
+    bottomSheet: {
+      enter: {
+        type: "slideUp",
+        duration: 300, // 毫秒
+        curve: "Curves.easeOut",
+        note: "弹窗从底部滑入",
+      },
+      exit: {
+        type: "slideDown",
+        duration: 250, // 毫秒
+        curve: "Curves.easeIn",
+        note: "弹窗向下滑出",
+      },
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      // 布局方式
+      layout: "vertical_list",
+      // 任务行内边距
+      taskRowPadding: {
+        horizontal: 0, // dp
+        vertical: 12, // dp
+      },
+      // 字体大小
+      titleFontSize: 16, // sp
+      // 状态图标大小
+      statusIconSize: 24, // dp
+    },
+    
+    // 平板横屏（可选）
+    tabletLandscape: {
+      layout: "vertical_list",
+      taskRowPadding: {
+        horizontal: 0, // dp
+        vertical: 16, // dp
+      },
+      titleFontSize: 18, // sp
+      statusIconSize: 28, // dp
+    },
+  },
+
+  // ===========================================
+  // 8. 数据展示规则（必填）
+  // ===========================================
+  dataDisplay: {
+    // 任务过滤规则
+    filtering: {
+      // 各页面显示的任务状态
+      pageStatuses: {
+        "收集箱（Inbox）": ["inbox"],
+        "任务清单（Tasks）": ["pending", "doing", "paused"],
+        "已完成（Completed）": ["completedActive"],
+        "已收纳（Archived）": ["archived"],
+        "回收站（Trash）": ["trashed"],
+      },
+      // 排除的任务状态（所有页面都排除）
+      excludedStatuses: [
+        "pseudoDeleted",
+      ],
+      // 是否显示子任务
+      showSubtasks: true, // 显示子任务，但不显示层级结构
+      note: "子任务和根任务平铺显示，不显示层级关系。收集箱只显示 inbox 状态的任务。",
+    },
+    
+    // 任务排序规则
+    sorting: {
+      // 排序方式
+      method: "bySection", // 按时间分区排序
+      // 分区顺序
+      sectionOrder: [
+        "overdue", // 逾期
+        "today", // 今天
+        "tomorrow", // 明天
+        "thisWeek", // 本周
+        "thisMonth", // 本月
+        "later", // 以后
+      ],
+      // 分区内排序
+      withinSection: "byOrder", // 按任务顺序排序
+      note: "任务按时间分区展示，分区内按任务顺序排序",
+    },
+    
+    // 任务分组规则
+    grouping: {
+      // 分组方式
+      method: "byTimeSection", // 按时间分区分组
+      // 是否显示分组标题
+      showSectionTitle: true,
+      // 分组标题样式
+      sectionTitleStyle: {
+        fontSize: 14, // sp
+        fontWeight: "semiBold",
+        color: "Theme.of(context).colorScheme.onSurfaceVariant",
+        padding: {
+          horizontal: 16, // dp
+          vertical: 8, // dp
+        },
+      },
+    },
+  },
+
+  // ===========================================
+  // 9. 可访问性设计（必填）
+  // ===========================================
+  accessibility: {
+    // 语义化标签
+    semanticLabels: {
+      taskRow: {
+        role: "button", // 任务行作为按钮角色
+        label: "任务标题",
+        hint: "点击查看任务详情和操作",
+      },
+      statusIcon: {
+        role: "checkbox",
+        label: "任务完成状态",
+        hint: "点击切换任务完成状态",
+      },
+      dueDateIcon: {
+        role: "image",
+        label: "截止日期",
+        hint: "此任务有截止日期",
+      },
+    },
+    
+    // 键盘导航
+    keyboardNavigation: {
+      enabled: true,
+      shortcuts: {
+        // 桌面端快捷键（可选）
+        enter: "打开任务弹窗",
+        space: "切换任务状态",
+        escape: "关闭弹窗",
+      },
+      note: "确保键盘用户可以完全导航和操作任务列表",
+    },
+    
+    // 焦点管理
+    focusManagement: {
+      onTaskTap: "焦点移动到弹窗内的第一个可编辑元素（如果有）",
+      onSheetClose: "焦点返回到触发弹窗的任务行",
+      note: "弹窗打开和关闭时正确管理焦点，确保屏幕阅读器用户能够理解上下文",
+    },
+    
+    // 屏幕阅读器支持
+    screenReader: {
+      taskRowAnnouncement: "任务标题，状态：已完成/未完成，截止日期：XX（如果有）",
+      statusToggleAnnouncement: "任务已标记为完成/未完成",
+      sheetOpenAnnouncement: "任务详情弹窗已打开",
+      sheetCloseAnnouncement: "任务详情弹窗已关闭",
+    },
+  },
+
+  // ===========================================
+  // 10. 用户引导（必填）
+  // ===========================================
+  userGuidance: {
+    // 首次使用提示
+    firstTimeTips: {
+      enabled: true,
+      triggers: [
+        {
+          condition: "用户首次进入任务列表页面",
+          tip: "点击任务可以查看详情和进行操作",
+          position: "bottom", // 底部提示
+          dismissible: true, // 可关闭
+        },
+        {
+          condition: "用户首次点击任务",
+          tip: "在弹窗中可以编辑任务、管理标签、设置截止日期等",
+          position: "top", // 弹窗顶部提示
+          dismissible: true,
+        },
+      ],
+      note: "提供清晰的首次使用提示，帮助用户理解新的交互方式",
+    },
+    
+    // 帮助文档
+    helpDocumentation: {
+      enabled: true,
+      content: [
+        "任务列表简化说明",
+        "如何编辑任务",
+        "如何使用底部弹窗",
+        "任务状态说明",
+      ],
+      accessPoint: "设置页面或帮助菜单",
+    },
+  },
+
+  // ===========================================
+  // 11. 适用范围（必填）
+  // ===========================================
+  scope: {
+    // 应用此设计的页面列表
+    applicablePages: [
+      "收集箱（Inbox）",
+      "任务清单（Tasks）",
+      "已完成（Completed）",
+      "已收纳（Archived）",
+      "回收站（Trash）",
+      "项目子任务列表（Project Subtasks）",
+    ],
+    // 各页面显示的任务状态
+    pageTaskStatuses: {
+      "收集箱（Inbox）": ["inbox"],
+      "任务清单（Tasks）": ["pending", "doing", "paused"],
+      "已完成（Completed）": ["completedActive"],
+      "已收纳（Archived）": ["archived"],
+      "回收站（Trash）": ["trashed"],
+      "项目子任务列表（Project Subtasks）": ["pending", "doing", "paused"],
+    },
+    // 说明
+    note: "所有任务列表页面都应用此简化设计，保持一致的视觉体验和交互方式。收集箱只显示 inbox 状态的任务。",
+  },
+
+  // ===========================================
+  // 12. 功能保留与移除（必填）
+  // ===========================================
+  features: {
+    // 保留的功能
+    retained: [
+      "任务标题显示",
+      "任务操作弹窗（点击打开，适用于 inbox/pending/doing/paused 状态，包含所有操作功能，但 inbox 状态不显示计时控件）",
+      "任务详情弹窗（点击查看，仅适用于 completed/archived/trashed 状态，只读）",
+      "任务状态切换（点击状态图标）",
+      "任务筛选（按项目、标签等）",
+      "任务拖拽排序（如果原有功能支持）",
+      "任务分区展示（按时间分区，仅适用于 Tasks 页面）",
+      "空状态提示",
+    ],
+    
+    // 移除的功能
+    removed: [
+      "展开/收缩功能",
+      "子任务层级显示",
+      "标签显示和编辑",
+      "项目/里程碑显示和编辑",
+      "截止日期显示和编辑",
+      "复制按钮",
+      "计时控件",
+      "任务详情展开（如果有）",
+    ],
+    
+    // 未来可能添加的功能（可选）
+    futureConsiderations: [
+      "长按显示更多操作菜单",
+      "滑动删除任务",
+      "批量操作（多选、批量删除等）",
+    ],
+  },
+
+  // ===========================================
+  // 13. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      // 问题描述
+      question: "是否所有任务列表页面都要应用这个简化设计？",
+      // 问题详细说明
+      description: "当前项目中有多个任务列表页面：Tasks 页面、Inbox 页面、Projects 子任务列表、已完成、已收纳、回收站等。是否所有页面都要应用这个简化设计，还是只针对特定页面？",
+      // 可选方案列表
+      options: [
+        "所有任务列表页面都应用简化设计",
+        "只针对 Tasks 页面应用简化设计",
+        "只针对 Inbox 页面应用简化设计",
+        "根据页面类型选择性应用（需要明确哪些页面应用）",
+      ],
+      // 推荐方案（可选）
+      recommendation: "建议所有任务列表页面都应用简化设计，保持一致的视觉体验和交互方式",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案（可选）
+      confirmedAnswer: "所有任务列表页面都应用简化设计，包括收集箱（Inbox）、任务清单（Tasks）、已完成（Completed）、已收纳（Archived）、回收站（Trash）等",
+    },
+    {
+      // 问题描述
+      question: "是否还需要支持拖拽排序功能？",
+      // 问题详细说明
+      description: "当前任务列表可能支持拖拽排序功能。在简化设计中，是否保留这个功能？",
+      // 可选方案列表
+      options: [
+        "保留拖拽排序功能",
+        "移除拖拽排序功能",
+      ],
+      // 推荐方案（可选）
+      recommendation: "建议保留拖拽排序功能，这是任务管理的重要功能，不影响简化设计的核心目标",
+      // 是否已确认
+      confirmed: false,
+      // 确认后的答案（可选）
+      confirmedAnswer: "",
+    },
+    {
+      // 问题描述
+      question: "子任务如何展示？",
+      // 问题详细说明
+      description: "移除展开/收缩功能后，子任务如何展示？是平铺显示（和根任务混在一起），还是完全隐藏子任务？",
+      // 可选方案列表
+      options: [
+        "子任务和根任务平铺显示，不显示层级关系",
+        "只显示根任务，完全隐藏子任务",
+        "子任务显示在根任务下方，但不显示展开/收缩按钮（始终展开）",
+      ],
+      // 推荐方案（可选）
+      recommendation: "建议子任务和根任务平铺显示，不显示层级关系，这样既简化了界面，又保留了所有任务信息",
+      // 是否已确认
+      confirmed: false,
+      // 确认后的答案（可选）
+      confirmedAnswer: "",
+    },
+    {
+      // 问题描述
+      question: "任务状态图标使用什么样式？",
+      // 问题详细说明
+      description: "任务状态图标（完成/未完成）使用什么样式？是 checkbox、radio button，还是其他样式？",
+      // 可选方案列表
+      options: [
+        "Checkbox（复选框）",
+        "Radio button（单选按钮）",
+        "Circle icon（圆形图标）",
+        "其他自定义样式",
+      ],
+      // 推荐方案（可选）
+      recommendation: "建议使用 Checkbox 样式，这是任务管理应用中最常见的状态图标样式，用户熟悉度高",
+      // 是否已确认
+      confirmed: false,
+      // 确认后的答案（可选）
+      confirmedAnswer: "",
+    },
+    {
+      // 问题描述
+      question: "是否保留任务筛选功能？",
+      // 问题详细说明
+      description: "当前任务列表页面有筛选功能（按项目、标签等筛选）。在简化设计中，是否保留这个功能？",
+      // 可选方案列表
+      options: [
+        "保留筛选功能",
+        "移除筛选功能",
+      ],
+      // 推荐方案（可选）
+      recommendation: "建议保留筛选功能，这是任务管理的重要功能，不影响简化设计的核心目标（简化任务行展示）",
+      // 是否已确认
+      confirmed: false,
+      // 确认后的答案（可选）
+      confirmedAnswer: "",
+    },
+    {
+      // 问题描述
+      question: "inbox/pending/doing/paused 状态的任务点击后显示操作弹窗",
+      // 问题详细说明
+      description: "对于 inbox、pending、doing、paused 状态的任务，点击任务应该显示任务操作弹窗，包含所有任务清单里每个任务的所有操作功能（标题编辑、标签管理、项目/里程碑选择、截止日期编辑、复制按钮、计时控件（仅 pending/doing/paused 状态显示）、转换为项目、其他操作等）。对于 completed、archived、trashed 状态的任务，点击任务应该显示任务详情弹窗（只读），复用日历页面的 TaskDetailBottomSheet 组件。收集箱只显示 inbox 状态的任务。",
+      // 可选方案列表
+      options: [
+        "inbox/pending/doing/paused 状态显示操作弹窗（包含所有操作功能，但 inbox 状态不显示计时控件），completed/archived/trashed 状态显示详情弹窗（只读）",
+        "所有状态的任务点击都显示操作弹窗",
+        "所有状态的任务点击都显示详情弹窗（只读）",
+        "inbox/pending/doing/paused 状态点击编辑标题，completed/archived/trashed 状态显示详情弹窗",
+      ],
+      // 推荐方案（可选）
+      recommendation: "inbox/pending/doing/paused 状态显示操作弹窗（包含所有操作功能，但 inbox 状态不显示计时控件），completed/archived/trashed 状态显示详情弹窗（只读）。这样既保留了活跃任务的完整操作能力，又提供了查看已完成任务详情的功能。",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案（可选）
+      confirmedAnswer: "inbox/pending/doing/paused 状态的任务点击显示操作弹窗（TaskActionBottomSheet，包含所有操作功能，但 inbox 状态不显示计时控件），completed/archived/trashed 状态的任务点击显示详情弹窗（TaskDetailBottomSheet，只读）。收集箱只显示 inbox 状态的任务。",
+    },
+  ],
+}
+

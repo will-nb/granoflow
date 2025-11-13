@@ -1,0 +1,544 @@
+{
+  // ===========================================
+  // 首页优化重构设计文档
+  // 优化首页结构，拆分为多个 widget，实现数据刷新机制
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：优化首页代码结构，实现数据自动刷新，提升用户体验
+    goal: "将首页重构为多个独立的 widget，实现每次进入首页时自动刷新统计数据，提升代码可维护性和用户体验",
+    
+    // 主题集成：与现有设计保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "保持现有的 Ocean Breeze 配色方案",
+        "复用现有的渐变背景系统（GradientPageScaffold）",
+        "遵循现有的页面布局规范和响应式设计",
+        "保持与现有组件（AppBar、Drawer、Card）的样式一致性",
+        "使用统一的字体样式和间距规范",
+      ],
+      
+      // 创新点：代码结构和刷新机制的优化
+      innovation: [
+        "将首页拆分为多个独立的 widget，提升代码可维护性",
+        "实现每次进入首页时自动刷新统计数据，确保数据实时性",
+        "统一横屏和竖屏的刷新机制，提供一致的用户体验",
+        "使用生命周期方法管理数据刷新，避免不必要的重建",
+      ],
+    },
+    
+    // 设计趋势：参考 Flutter 最佳实践和项目规范
+    trends: [
+      "组件化设计：将复杂页面拆分为多个独立的 widget",
+      "生命周期管理：使用 StatefulWidget 的生命周期方法管理状态",
+      "数据刷新：在页面可见时自动刷新数据，确保数据实时性",
+      "代码可维护性：通过拆分 widget 提升代码的可读性和可维护性",
+      "响应式设计：保持对不同屏幕尺寸的良好适配",
+    ],
+  },
+
+  // ===========================================
+  // 2. 当前问题分析（必填）
+  // ===========================================
+  currentIssues: {
+    // 问题1：统计数据不会自动刷新
+    issue1: {
+      description: "首页统计数据只在应用启动时加载一次，之后不会自动刷新",
+      impact: "用户在其他页面完成任务或进行专注后返回首页，统计数据不会更新，需要手动下拉刷新（仅竖屏支持）",
+      rootCause: "HomePage 是 ConsumerWidget（无状态组件），无法使用生命周期方法；统计数据使用 FutureProvider，只在首次 watch 时执行",
+    },
+    
+    // 问题2：代码结构不够清晰
+    issue2: {
+      description: "首页代码较长，包含大量内联的 widget 构建逻辑（如 heroBlock）",
+      impact: "代码可读性和可维护性较差，难以进行单元测试",
+      rootCause: "所有 UI 逻辑都在 HomePage 的 build 方法中，没有拆分为独立的 widget",
+    },
+    
+    // 问题3：刷新机制不统一
+    issue3: {
+      description: "横屏布局没有刷新机制，只有竖屏布局支持下拉刷新",
+      impact: "横屏用户无法刷新统计数据，体验不一致",
+      rootCause: "横屏布局没有使用 RefreshIndicator，也没有其他刷新机制",
+    },
+  },
+
+  // ===========================================
+  // 3. 优化方案（必填）
+  // ===========================================
+  optimizationPlan: {
+    // 方案1：将 HomePage 改为 ConsumerStatefulWidget
+    plan1: {
+      title: "将 HomePage 改为 ConsumerStatefulWidget",
+      description: "使用 ConsumerStatefulWidget 替代 ConsumerWidget，以便使用生命周期方法",
+      implementation: [
+        "将 HomePage 从 ConsumerWidget 改为 ConsumerStatefulWidget",
+        "在 initState 中初始化必要的状态（如 _hasLoadedInitial 标志）",
+        "在 didChangeDependencies 中检测页面可见性，刷新统计数据",
+        "参考 CompletedPage、ArchivedPage、TrashPage 的实现方式",
+      ],
+      benefits: [
+        "可以使用生命周期方法管理数据刷新",
+        "避免在 build 方法中执行副作用，提升性能",
+        "与项目中其他页面的实现方式保持一致",
+      ],
+    },
+    
+    // 方案2：拆分 heroBlock 为独立 widget
+    plan2: {
+      title: "创建 HomeHeroWidget",
+      description: "将 heroBlock（Logo + 标题 + 标语）拆分为独立的 widget",
+      implementation: [
+        "创建 lib/presentation/home/widgets/home_hero_widget.dart",
+        "将 Logo、标题、标语的构建逻辑移到 HomeHeroWidget",
+        "HomeHeroWidget 接收 isWide 参数，用于响应式布局",
+        "HomeHeroWidget 使用 ConsumerWidget，自动适配主题",
+      ],
+      benefits: [
+        "提升代码可读性和可维护性",
+        "便于进行单元测试",
+        "可以在其他地方复用 hero 区域",
+      ],
+    },
+    
+    // 方案3：实现数据自动刷新
+    plan3: {
+      title: "实现每次进入首页时自动刷新统计数据",
+      description: "在 didChangeDependencies 中检测页面可见性，自动刷新所有统计数据",
+      implementation: [
+        "在 HomePage 的 didChangeDependencies 中检测页面是否可见",
+        "如果页面可见且已经初始化过，则刷新所有统计数据的 Provider",
+        "使用 ref.invalidate() 刷新以下 Provider：",
+        "  - todayStatisticsProvider",
+        "  - thisWeekStatisticsProvider",
+        "  - thisMonthStatisticsProvider",
+        "  - totalStatisticsProvider",
+        "  - topCompletedDateProvider",
+        "  - topFocusDateProvider",
+        "使用 WidgetsBinding.instance.addPostFrameCallback 确保在 build 完成后执行",
+        "使用 mounted 检查确保 widget 仍然存在",
+      ],
+      benefits: [
+        "每次进入首页时自动刷新统计数据，确保数据实时性",
+        "用户无需手动刷新，提升用户体验",
+        "与项目中其他页面的刷新机制保持一致",
+      ],
+    },
+    
+    // 方案4：统一横屏和竖屏的刷新机制
+    plan4: {
+      title: "统一横屏和竖屏的刷新机制",
+      description: "横屏布局也支持数据刷新（通过进入页面时自动刷新）",
+      implementation: [
+        "横屏布局不再需要 RefreshIndicator（因为会自动刷新）",
+        "如果用户需要手动刷新，可以考虑添加刷新按钮（可选）",
+        "或者为横屏布局也添加 RefreshIndicator（但需要调整布局）",
+        "推荐方案：横屏布局依赖自动刷新，竖屏布局保留下拉刷新作为补充",
+      ],
+      benefits: [
+        "横屏和竖屏用户都能获得最新的统计数据",
+        "提供一致的用户体验",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 4. Widget 拆分方案（必填）
+  // ===========================================
+  widgetStructure: {
+    // HomePage（主页面）
+    homePage: {
+      type: "ConsumerStatefulWidget",
+      location: "lib/presentation/home/home_page.dart",
+      responsibilities: [
+        "管理页面生命周期",
+        "在 didChangeDependencies 中刷新统计数据",
+        "根据屏幕宽度选择横屏或竖屏布局",
+        "协调各个子 widget 的布局",
+      ],
+      children: [
+        "HomeHeroWidget",
+        "TaskSearchBar（已存在）",
+        "HomeStatisticsWidget（已存在）",
+      ],
+    },
+    
+    // HomeHeroWidget（新增）
+    homeHeroWidget: {
+      type: "ConsumerWidget",
+      location: "lib/presentation/home/widgets/home_hero_widget.dart",
+      responsibilities: [
+        "显示 Logo、标题和标语",
+        "根据屏幕宽度调整布局（isWide 参数）",
+        "根据主题亮度选择 Logo variant 和文字颜色",
+      ],
+      props: {
+        isWide: "bool - 是否为宽屏布局",
+      },
+      children: [
+        "AppLogo（已存在）",
+        "Text（标题）",
+        "Text（标语）",
+      ],
+    },
+    
+    // HomeStatisticsWidget（已存在，无需修改）
+    homeStatisticsWidget: {
+      type: "ConsumerWidget",
+      location: "lib/presentation/home/widgets/home_statistics_widget.dart",
+      status: "existing",
+      note: "此 widget 已经存在，无需修改，它会自动响应 Provider 的刷新",
+    },
+    
+    // TaskSearchBar（已存在，无需修改）
+    taskSearchBar: {
+      type: "ConsumerStatefulWidget",
+      location: "lib/presentation/home/widgets/task_search_bar.dart",
+      status: "existing",
+      note: "此 widget 已经存在，无需修改",
+    },
+  },
+
+  // ===========================================
+  // 5. 数据刷新机制（必填）
+  // ===========================================
+  refreshMechanism: {
+    // 自动刷新：每次进入首页时
+    autoRefresh: {
+      trigger: "页面变为可见时（didChangeDependencies）",
+      condition: "页面已经初始化过（_hasLoadedInitial == true）",
+      action: [
+        "使用 ref.invalidate() 刷新所有统计数据的 Provider",
+        "刷新顺序：",
+        "  1. todayStatisticsProvider",
+        "  2. thisWeekStatisticsProvider",
+        "  3. thisMonthStatisticsProvider",
+        "  4. totalStatisticsProvider",
+        "  5. thisMonthTopCompletedDateProvider",
+        "  6. thisMonthTopFocusDateProvider",
+        "  7. totalTopCompletedDateProvider",
+        "  8. totalTopFocusDateProvider",
+      ],
+      implementation: {
+        code: `
+@override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  // 当页面变为可见时，如果已经初始化过，则刷新统计数据
+  if (_hasLoadedInitial && mounted) {
+    debugPrint('[HomePage] didChangeDependencies: Refreshing statistics');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.invalidate(todayStatisticsProvider);
+        ref.invalidate(thisWeekStatisticsProvider);
+        ref.invalidate(thisMonthStatisticsProvider);
+        ref.invalidate(totalStatisticsProvider);
+        ref.invalidate(thisMonthTopCompletedDateProvider);
+        ref.invalidate(thisMonthTopFocusDateProvider);
+        ref.invalidate(totalTopCompletedDateProvider);
+        ref.invalidate(totalTopFocusDateProvider);
+      }
+    });
+  }
+}
+        `,
+        note: "参考 CompletedPage、ArchivedPage、TrashPage 的实现方式",
+      },
+    },
+    
+    // 手动刷新：下拉刷新（竖屏）
+    manualRefresh: {
+      trigger: "用户下拉刷新（RefreshIndicator）",
+      condition: "竖屏布局",
+      action: [
+        "使用 RefreshIndicator 的 onRefresh 回调",
+        "刷新所有统计数据的 Provider（与自动刷新相同）",
+      ],
+      note: "横屏布局不提供下拉刷新，依赖自动刷新机制",
+    },
+    
+    // 刷新时机总结
+    refreshTiming: {
+      initialLoad: "应用启动时首次加载（initState）",
+      pageVisible: "每次进入首页时自动刷新（didChangeDependencies）",
+      manualRefresh: "用户手动下拉刷新（仅竖屏）",
+      note: "推荐使用混合模式：自动刷新 + 手动刷新（竖屏）",
+    },
+  },
+
+  // ===========================================
+  // 6. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 竖屏布局
+    portrait: {
+      structure: "Column（垂直布局）",
+      children: [
+        "SizedBox(height: 24) - 顶部间距",
+        "HomeHeroWidget",
+        "SizedBox(height: 24) - 间距",
+        "TaskSearchBar",
+        "HomeStatisticsWidget",
+      ],
+      refresh: "RefreshIndicator（下拉刷新）",
+      scrollable: "SingleChildScrollView",
+    },
+    
+    // 横屏布局
+    landscape: {
+      structure: "Row（水平布局）",
+      children: [
+        "Flexible（左侧栏）:",
+        "  - Column:",
+        "    - HomeHeroWidget",
+        "    - SizedBox(height: 24)",
+        "    - TaskSearchBar",
+        "SizedBox(width: 32-48) - 间距",
+        "Flexible（右侧栏）:",
+        "  - HomeStatisticsWidget",
+      ],
+      refresh: "自动刷新（进入页面时）",
+      scrollable: "无（固定布局）",
+    },
+  },
+
+  // ===========================================
+  // 7. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        name: "进入首页",
+        steps: [
+          "用户从其他页面导航到首页",
+          "HomePage 的 didChangeDependencies 被调用",
+          "检测到页面可见且已初始化，触发自动刷新",
+          "所有统计数据的 Provider 被刷新",
+          "HomeStatisticsWidget 自动更新显示最新数据",
+        ],
+      },
+      {
+        name: "手动刷新（竖屏）",
+        steps: [
+          "用户在竖屏布局中下拉页面",
+          "RefreshIndicator 触发 onRefresh 回调",
+          "所有统计数据的 Provider 被刷新",
+          "HomeStatisticsWidget 自动更新显示最新数据",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 8. 响应式设计（必填）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      layout: "Column（垂直布局）",
+      heroSize: "64x64",
+      spacing: "24dp",
+      refresh: "下拉刷新",
+    },
+    
+    // 平板/桌面横屏
+    tabletLandscape: {
+      layout: "Row（水平布局）",
+      heroSize: "80x80",
+      spacing: "32-48dp",
+      refresh: "自动刷新",
+    },
+    
+    // 大屏桌面
+    desktop: {
+      layout: "Row（水平布局，最大宽度限制）",
+      heroSize: "80x80",
+      spacing: "48dp",
+      refresh: "自动刷新",
+    },
+  },
+
+  // ===========================================
+  // 9. 命名和功能变更（必填）
+  // ===========================================
+  namingChanges: {
+    // 命名变更：总计 -> 全部
+    totalToAll: {
+      reason: "避免误解为表格中其他行的和，更清晰地表示所有历史数据",
+      changes: {
+        chinese: "总计 -> 全部",
+        english: "Total -> All Time",
+        hongkong: "總計 -> 全部",
+      },
+    },
+    
+    // 功能扩展：最佳日期从2个扩展为4个
+    topDatesExpansion: {
+      reason: "提供更细粒度的最佳日期统计，区分当月和历史",
+      changes: {
+        before: [
+          "最佳完成日（三个月内）",
+          "最佳专注日（三个月内）",
+        ],
+        after: [
+          "当月最佳完成日",
+          "当月最佳专注日",
+          "历史最佳完成日",
+          "历史最佳专注日",
+        ],
+      },
+    },
+  },
+
+  // ===========================================
+  // 10. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      question: "横屏布局是否需要手动刷新功能？",
+      description: "当前方案是横屏布局依赖自动刷新，不提供下拉刷新。是否需要为横屏布局添加刷新按钮或其他刷新方式？",
+      options: [
+        "方案1：横屏布局只依赖自动刷新（推荐）",
+        "方案2：为横屏布局添加刷新按钮",
+        "方案3：为横屏布局也添加 RefreshIndicator（需要调整布局）",
+      ],
+      recommendation: "方案1：横屏布局只依赖自动刷新。因为每次进入首页时都会自动刷新，用户通常不需要手动刷新。如果需要，可以考虑在统计卡片上添加刷新图标。",
+      confirmed: false,
+    },
+    {
+      question: "是否需要在刷新时显示加载指示器？",
+      description: "当统计数据刷新时，HomeStatisticsWidget 会显示 loading 状态。是否需要额外的全局加载指示器？",
+      options: [
+        "方案1：只使用 HomeStatisticsWidget 内部的 loading 状态（推荐）",
+        "方案2：添加全局的刷新指示器（如 SnackBar）",
+      ],
+      recommendation: "方案1：只使用 HomeStatisticsWidget 内部的 loading 状态。因为刷新是自动的，不需要额外的用户反馈。",
+      confirmed: false,
+    },
+    {
+      question: "刷新频率是否需要限制？",
+      description: "如果用户快速切换页面，可能会频繁触发刷新。是否需要添加防抖或节流机制？",
+      options: [
+        "方案1：不限制刷新频率（推荐）",
+        "方案2：添加防抖机制（如 500ms 内只刷新一次）",
+        "方案3：添加节流机制（如最多每 5 秒刷新一次）",
+      ],
+      recommendation: "方案1：不限制刷新频率。因为统计数据查询是异步的，不会阻塞 UI，而且用户切换页面的频率通常不会很高。如果后续发现性能问题，再考虑添加限制。",
+      confirmed: false,
+    },
+  ],
+
+  // ===========================================
+  // 11. 实施步骤（必填）
+  // ===========================================
+  implementationSteps: [
+    {
+      step: 1,
+      title: "创建 HomeHeroWidget",
+      description: "将 heroBlock 拆分为独立的 widget",
+      files: [
+        "lib/presentation/home/widgets/home_hero_widget.dart（新建）",
+      ],
+      tasks: [
+        "创建 HomeHeroWidget 类（ConsumerWidget）",
+        "将 Logo、标题、标语的构建逻辑移到 HomeHeroWidget",
+        "添加 isWide 参数用于响应式布局",
+        "根据主题亮度选择 Logo variant 和文字颜色",
+      ],
+    },
+    {
+      step: 2,
+      title: "将 HomePage 改为 ConsumerStatefulWidget",
+      description: "使用 ConsumerStatefulWidget 替代 ConsumerWidget",
+      files: [
+        "lib/presentation/home/home_page.dart（修改）",
+      ],
+      tasks: [
+        "将 HomePage 从 ConsumerWidget 改为 ConsumerStatefulWidget",
+        "创建 _HomePageState 类",
+        "添加 _hasLoadedInitial 标志",
+        "在 initState 中初始化状态",
+        "在 build 方法中使用 HomeHeroWidget 替代 heroBlock",
+      ],
+    },
+    {
+      step: 3,
+      title: "实现数据自动刷新",
+      description: "在 didChangeDependencies 中实现自动刷新",
+      files: [
+        "lib/presentation/home/home_page.dart（修改）",
+      ],
+      tasks: [
+        "在 didChangeDependencies 中检测页面可见性",
+        "如果页面可见且已初始化，刷新所有统计数据的 Provider",
+        "使用 WidgetsBinding.instance.addPostFrameCallback 确保在 build 完成后执行",
+        "使用 mounted 检查确保 widget 仍然存在",
+      ],
+    },
+    {
+      step: 4,
+      title: "测试和验证",
+      description: "测试刷新机制和响应式布局",
+      files: [
+        "test/presentation/home/home_page_test.dart（可能需要更新）",
+      ],
+      tasks: [
+        "测试进入首页时统计数据是否自动刷新",
+        "测试竖屏布局的下拉刷新功能",
+        "测试横屏布局的自动刷新功能",
+        "测试响应式布局在不同屏幕尺寸下的表现",
+        "运行 flutter analyze 确保没有错误",
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 12. 依赖和风险（必填）
+  // ===========================================
+  dependencies: {
+    // 技术依赖
+    technical: [
+      "Flutter Riverpod 状态管理",
+      "Flutter 生命周期方法（initState、didChangeDependencies）",
+      "现有的统计数据 Provider（home_statistics_providers.dart）",
+      "现有的统计数据服务（home_statistics_service.dart）",
+    ],
+    
+    // 代码依赖
+    code: [
+      "lib/core/providers/home_statistics_providers.dart",
+      "lib/core/services/home_statistics_service.dart",
+      "lib/presentation/home/widgets/home_statistics_widget.dart",
+      "lib/presentation/home/widgets/task_search_bar.dart",
+      "lib/presentation/widgets/app_logo.dart",
+    ],
+  },
+
+  risks: {
+    // 风险1：频繁刷新可能影响性能
+    risk1: {
+      description: "如果用户快速切换页面，可能会频繁触发刷新，导致不必要的数据库查询",
+      mitigation: [
+        "统计数据查询是异步的，不会阻塞 UI",
+        "如果后续发现性能问题，可以添加防抖或节流机制",
+        "统计数据查询通常很快，影响较小",
+      ],
+    },
+    
+    // 风险2：页面重建可能导致闪烁
+    risk2: {
+      description: "刷新统计数据时，页面可能会短暂显示 loading 状态，导致闪烁",
+      mitigation: [
+        "使用 FutureProvider 的缓存机制，避免不必要的重建",
+        "HomeStatisticsWidget 已经有 loading 状态处理",
+        "如果闪烁明显，可以考虑使用 keepAlive 保持状态",
+      ],
+    },
+  },
+}
+

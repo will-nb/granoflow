@@ -5,68 +5,69 @@ import '../../../../core/providers/service_providers.dart';
 import '../../../../data/models/task.dart';
 import '../../../../generated/l10n/app_localizations.dart';
 
-/// 显示添加子任务对话框
-Future<void> showAddSubtaskDialog(
-  BuildContext context,
-  WidgetRef ref,
-  String parentId,
-) async {
-  final l10n = AppLocalizations.of(context);
-  final controller = TextEditingController();
-  final result = await showDialog<String>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(l10n.actionAddSubtask),
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        maxLength: 3000,
-        decoration: InputDecoration(
-          hintText: l10n.taskTitleHint,
-          counterText: '',
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: Text(l10n.commonCancel),
-        ),
-        FilledButton(
-          onPressed: () {
-            final value = controller.text.trim();
-            if (value.isNotEmpty) {
-              Navigator.of(dialogContext).pop(value);
-            }
-          },
-          child: Text(l10n.commonAdd),
-        ),
-      ],
-    ),
-  );
+// 子任务功能已禁用
+// /// 显示添加子任务对话框
+// Future<void> showAddSubtaskDialog(
+//   BuildContext context,
+//   WidgetRef ref,
+//   String parentId,
+// ) async {
+//   final l10n = AppLocalizations.of(context);
+//   final controller = TextEditingController();
+//   final result = await showDialog<String>(
+//     context: context,
+//     builder: (dialogContext) => AlertDialog(
+//       title: Text(l10n.actionAddSubtask),
+//       content: TextField(
+//         controller: controller,
+//         autofocus: true,
+//         maxLength: 3000,
+//         decoration: InputDecoration(
+//           hintText: l10n.taskTitleHint,
+//           counterText: '',
+//         ),
+//       ),
+//       actions: [
+//         TextButton(
+//           onPressed: () => Navigator.of(dialogContext).pop(),
+//           child: Text(l10n.commonCancel),
+//         ),
+//         FilledButton(
+//           onPressed: () {
+//             final value = controller.text.trim();
+//             if (value.isNotEmpty) {
+//               Navigator.of(dialogContext).pop(value);
+//             }
+//           },
+//           child: Text(l10n.commonAdd),
+//         ),
+//       ],
+//     ),
+//   );
 
-  if (result == null || result.isEmpty) {
-    return;
-  }
+//   if (result == null || result.isEmpty) {
+//     return;
+//   }
 
-  final notifier = ref.read(taskEditActionsNotifierProvider.notifier);
-  try {
-    await notifier.addSubtask(parentId: parentId, title: result);
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.taskListSubtaskCreatedToast)));
-  } catch (error, stackTrace) {
-    debugPrint('Failed to create subtask: $error\n$stackTrace');
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.taskListSubtaskError)));
-  }
-}
+//   final notifier = ref.read(taskEditActionsNotifierProvider.notifier);
+//   try {
+//     await notifier.addSubtask(parentId: parentId, title: result);
+//     if (!context.mounted) {
+//       return;
+//     }
+//     ScaffoldMessenger.of(
+//       context,
+//     ).showSnackBar(SnackBar(content: Text(l10n.taskListSubtaskCreatedToast)));
+//   } catch (error, stackTrace) {
+//     debugPrint('Failed to create subtask: $error\n$stackTrace');
+//     if (!context.mounted) {
+//       return;
+//     }
+//     ScaffoldMessenger.of(
+//       context,
+//     ).showSnackBar(SnackBar(content: Text(l10n.taskListSubtaskError)));
+//   }
+// }
 
 /// 显示重命名对话框
 Future<void> showRenameDialog(

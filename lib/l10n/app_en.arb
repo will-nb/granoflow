@@ -176,7 +176,6 @@
   "completionTime": "Completion Time",
   "createSubtask": "Create Subtask",
   "dragToOverdueNotAllowed": "Cannot drag to overdue section",
-  "drawerExecution": "Execution Style",
   "drawerManageProjects": "Manage Projects",
   "@drawerManageProjects": {
     "description": "Button label to manage projects in drawer"
@@ -259,8 +258,20 @@
   "fontSize": "Font Size",
   "globalUniqueId": "Global Unique ID",
   "home": "Home",
-  "homeGreeting": "Hello, GranoFlow",
+  "homeGreeting": "GranoFlow",
   "homePageTitle": "Home",
+  "homeStatisticsEmpty": "No statistics available",
+  "homeStatisticsHours": "hours",
+  "homeStatisticsMinutes": "minutes",
+  "homeStatisticsThisMonth": "This Month",
+  "homeStatisticsThisWeek": "This Week",
+  "homeStatisticsTitle": "Statistics",
+  "homeStatisticsToday": "Today",
+  "homeStatisticsTotal": "All Time",
+  "homeStatisticsThisMonthTopCompletedDate": "Best Completion Day (This Month)",
+  "homeStatisticsThisMonthTopFocusDate": "Best Focus Day (This Month)",
+  "homeStatisticsTotalTopCompletedDate": "Best Completion Day (All Time)",
+  "homeStatisticsTotalTopFocusDate": "Best Focus Day (All Time)",
   "homeTagline": "Stay in flow. Grow in focus.",
   "inbox": "Inbox",
   "inboxAddError": "Add task failed.",
@@ -308,6 +319,45 @@
   "datePickerThisWeek": "This Week",
   "datePickerThisMonth": "This Month",
   "datePickerCustom": "Pick Custom Date",
+  "detailCreated": "Created: {date}",
+  "@detailCreated": {
+    "description": "Label for creation date in detail view",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailUpdated": "Updated: {date}",
+  "@detailUpdated": {
+    "description": "Label for update date in detail view",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailMilestones": "Milestones: {count}",
+  "@detailMilestones": {
+    "description": "Label for milestone count in detail view",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detailTasks": "Tasks: {completed} / {total}",
+  "@detailTasks": {
+    "description": "Label for task count in detail view",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "inboxTagError": "Tag operation failed.",
   "inboxTemplateApplied": "Template applied.",
   "inboxTemplateEmpty": "No template recommendations.",
@@ -345,6 +395,30 @@
   "milestoneDeleted": "Milestone deleted",
   "milestoneEditTitle": "Edit Milestone",
   "milestoneUpdated": "Milestone updated",
+  "milestoneProgressLabel": "{completed} / {total} tasks ({percentage}%)",
+  "@milestoneProgressLabel": {
+    "description": "Displays milestone progress summary",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "milestonesLoadError": "Failed to load milestones: {error}",
+  "@milestonesLoadError": {
+    "description": "Error message when loading milestones fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navArchivedTitle": "Archived",
   "navCompletedTitle": "Completed",
   "navInboxTitle": "Inbox",
@@ -521,6 +595,10 @@
     }
   },
   "sessionComplete": "Session Complete",
+  "searchMinLengthHint": "Please enter at least 3 characters to search",
+  "searchNoResults": "No matching tasks found",
+  "searchPageTitle": "Search Tasks",
+  "searchTasksPlaceholder": "Search tasks",
   "settings": "Settings",
   "settingsFontSizeLabel": "Font Size",
   "settingsFontSizeLarge": "L",
@@ -557,18 +635,8 @@
   "tag_not_urgent": "Not urgent",
   "tag_travel": "Travel",
   "tag_urgent": "Urgent",
-  "tag_waiting": "Waiting",
-  "tag_timed": "Timed",
-  "@tag_timed": {
-    "description": "Label for timed tasks"
-  },
-  "tag_fragmented": "Fragmented",
-  "@tag_fragmented": {
-    "description": "Label for fragmented tasks"
-  },
   "tag_wasted": "Wasted time",
   "tagGroupContext": "Context",
-  "tagGroupExecution": "Execution Style",
   "tagGroupImportance": "Importance",
   "tagGroupUrgency": "Urgency",
   "taskChain": "Task Chain",
@@ -656,6 +724,47 @@
       "total": {}
     }
   },
+  "projectProgressTasksLabel": "Progress: {completed} / {total} tasks ({percentage}%)",
+  "@projectProgressTasksLabel": {
+    "description": "Displays project progress with task counts",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "projectProgressLoadError": "Failed to load progress: {error}",
+  "@projectProgressLoadError": {
+    "description": "Error message when loading project progress fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "projectNoTasks": "No tasks",
+  "@projectNoTasks": {
+    "description": "Shown when project has no tasks"
+  },
+  "projectNotFound": "Project not found",
+  "@projectNotFound": {
+    "description": "Error message when project is not found"
+  },
+  "projectLoadError": "Failed to load project: {error}",
+  "@projectLoadError": {
+    "description": "Error message when loading project fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "projectConvertTooltip": "Convert to project",
   "@projectConvertTooltip": {
     "description": "Tooltip for converting a task into a project"
@@ -687,10 +796,6 @@
   "projectSheetQuadrantLabel": "Quadrant tags",
   "@projectSheetQuadrantLabel": {
     "description": "Label for selecting quadrant tags"
-  },
-  "projectSheetExecutionLabel": "Execution style",
-  "@projectSheetExecutionLabel": {
-    "description": "Label for selecting execution tags"
   },
   "projectSheetContextLabel": "Context tag",
   "@projectSheetContextLabel": {
@@ -846,6 +951,10 @@
   "taskCopyTitle": "Copy",
   "taskStartTimerError": "Failed to select timer tag",
   "taskStartTimerTitle": "Start Timer",
+  "taskTimeoutWarning": "Task is taking too long, consider splitting it",
+  "@taskTimeoutWarning": {
+    "description": "Warning message when task timer exceeds 1 hour"
+  },
   "taskDeadlineOverdue": "Overdue",
   "taskDeadlineSoon": "Due Soon",
   "taskCompleteAction": "Complete",
@@ -873,6 +982,46 @@
   "taskListTaskArchivedToast": "Task archived.",
   "taskListTaskCompletedError": "Complete task failed.",
   "taskListTaskCompletedToast": "Task completed.",
+  "taskListTaskUncompletedToast": "Task restored to uncompleted.",
+  "@taskListTaskUncompletedToast": {
+    "description": "Toast message when a task is restored to uncompleted status"
+  },
+  "taskListTaskStatusLabel": "Task completion status",
+  "@taskListTaskStatusLabel": {
+    "description": "Accessibility label for task status icon"
+  },
+  "taskListTaskStatusCompletedHint": "Tap to mark as uncompleted",
+  "@taskListTaskStatusCompletedHint": {
+    "description": "Accessibility hint for completed task status icon"
+  },
+  "taskListTaskStatusUncompletedHint": "Tap to mark as completed",
+  "@taskListTaskStatusUncompletedHint": {
+    "description": "Accessibility hint for uncompleted task status icon"
+  },
+  "taskListTaskDueDateLabel": "Due date",
+  "@taskListTaskDueDateLabel": {
+    "description": "Accessibility label for due date icon"
+  },
+  "taskListTaskDueDateHint": "This task has a due date",
+  "@taskListTaskDueDateHint": {
+    "description": "Accessibility hint for due date icon"
+  },
+  "taskActionSheetTitle": "Task Actions",
+  "@taskActionSheetTitle": {
+    "description": "Title for task action bottom sheet"
+  },
+  "taskDetailSheetTitle": "Task Details",
+  "@taskDetailSheetTitle": {
+    "description": "Title for task detail bottom sheet"
+  },
+  "taskListSimplifiedTip": "Tap a task to view details and perform actions",
+  "@taskListSimplifiedTip": {
+    "description": "First-time tip for simplified task list"
+  },
+  "taskActionSheetTip": "In the sheet, you can edit the task, manage tags, set due dates, etc.",
+  "@taskActionSheetTip": {
+    "description": "First-time tip for task action sheet"
+  },
   "taskListTitle": "Task List",
   "taskListTitleEdit": "Task List ? Edit Mode",
   "taskMoveBlockedCycle": "Cannot create subtask: would create a cyclic relationship.",

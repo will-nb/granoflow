@@ -101,22 +101,22 @@ class _CalendarFilterSheetState extends ConsumerState<CalendarFilterSheet> {
         });
       },
       child: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: projects.length + 1, // +1 for "No Project"
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return RadioListTile<String?>(
-              title: Text(l10n.calendarReviewFilterNoProject),
-              value: null,
-            );
-          }
-          final project = projects[index - 1];
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: projects.length + 1, // +1 for "No Project"
+      itemBuilder: (context, index) {
+        if (index == 0) {
           return RadioListTile<String?>(
-            title: Text(project.title),
-            value: project.id,
+            title: Text(l10n.calendarReviewFilterNoProject),
+            value: null,
           );
-        },
+        }
+        final project = projects[index - 1];
+        return RadioListTile<String?>(
+          title: Text(project.title),
+          value: project.id,
+          );
+          },
       ),
     );
   }

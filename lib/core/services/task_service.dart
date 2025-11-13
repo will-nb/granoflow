@@ -5,7 +5,9 @@ import '../../data/repositories/task_repository.dart';
 import '../../data/repositories/tag_repository.dart';
 import 'clock_audio_service.dart';
 import 'metric_orchestrator.dart';
+import 'milestone_service.dart';
 import 'preference_service.dart';
+import 'project_service.dart';
 import 'sort_index_service.dart';
 import 'task_crud_service.dart';
 import 'task_drag_service.dart';
@@ -29,6 +31,8 @@ class TaskService {
     required TaskRepository taskRepository,
     required TagRepository tagRepository,
     required MetricOrchestrator metricOrchestrator,
+    required MilestoneService milestoneService,
+    required ProjectService projectService,
     FocusSessionRepository? focusSessionRepository,
     SortIndexService? sortIndexService,
     ClockAudioService? clockAudioService,
@@ -37,6 +41,8 @@ class TaskService {
   })  : _crudService = TaskCrudService(
           taskRepository: taskRepository,
           metricOrchestrator: metricOrchestrator,
+          milestoneService: milestoneService,
+          projectService: projectService,
           sortIndexService: sortIndexService,
           clock: clock,
         ),

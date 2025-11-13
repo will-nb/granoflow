@@ -10,10 +10,14 @@ class QuickAddSheet extends StatefulWidget {
   const QuickAddSheet({
     super.key,
     this.section,
+    this.defaultDate,
   });
 
   /// 任务分区，如果为 null 则表示不预设分区，日期需要用户选择
   final TaskSection? section;
+
+  /// 默认日期，如果提供则优先使用此日期，否则使用 section 的默认日期
+  final DateTime? defaultDate;
 
   @override
   State<QuickAddSheet> createState() => _QuickAddSheetState();
@@ -27,8 +31,14 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   @override
   void initState() {
     super.initState();
-    // 如果有 section，使用默认日期；否则初始为 null，需要用户选择
-    _selectedDate = widget.section != null ? defaultDueDate(widget.section!) : null;
+    // 优先使用 defaultDate，如果没有则使用 section 的默认日期，否则为 null
+    if (widget.defaultDate != null) {
+      _selectedDate = widget.defaultDate;
+    } else if (widget.section != null) {
+      _selectedDate = defaultDueDate(widget.section!);
+    } else {
+      _selectedDate = null;
+    }
   }
 
   @override
@@ -44,12 +54,14 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
     final l10n = AppLocalizations.of(context);
     final spacing = context.spacingTokens;
     
-    // 日期标签：如果有选择日期则显示日期，否则显示"选择日期"
+    // 日期标签：如果有选择日期则显示日期，否则显示默认日期或"选择日期"
     final dateLabel = _selectedDate != null
         ? MaterialLocalizations.of(context).formatMediumDate(_selectedDate!)
-        : (widget.section != null
-            ? MaterialLocalizations.of(context).formatMediumDate(defaultDueDate(widget.section!))
-            : l10n.taskSetDeadline);
+        : (widget.defaultDate != null
+            ? MaterialLocalizations.of(context).formatMediumDate(widget.defaultDate!)
+            : (widget.section != null
+                ? MaterialLocalizations.of(context).formatMediumDate(defaultDueDate(widget.section!))
+                : l10n.taskSetDeadline));
 
     return Padding(
       padding: EdgeInsets.only(
@@ -142,10 +154,12 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
       _submitting = true;
     });
     
-    // 确定日期：优先使用用户选择的日期，如果有 section 则使用默认日期，否则为 null
+    // 确定日期：优先使用用户选择的日期，然后使用 defaultDate，再使用 section 的默认日期，否则为 null
     final DateTime? finalDate;
     if (_selectedDate != null) {
       finalDate = _selectedDate;
+    } else if (widget.defaultDate != null) {
+      finalDate = widget.defaultDate;
     } else if (widget.section != null) {
       finalDate = defaultDueDate(widget.section!);
     } else {

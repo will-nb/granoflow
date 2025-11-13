@@ -274,3 +274,98 @@ final tasksSectionTaskChildrenMapProvider =
   return childrenMap;
 });
 
+/// Provider for watching a single task by ID
+/// 
+/// 监听指定任务的变化，当任务更新时自动刷新
+final taskByIdProvider = StreamProvider.family<Task?, String>((ref, taskId) {
+  final taskRepositoryAsync = ref.watch(taskRepositoryProvider);
+  return taskRepositoryAsync.when(
+    data: (repository) => repository.watchTaskById(taskId),
+    loading: () => Stream.value(null),
+    error: (_, __) => Stream.value(null),
+  );
+});
+
+/// Provider for managing expanded task IDs in milestone (按里程碑管理)
+///
+/// 每个里程碑独立管理展开状态，使用 StateProvider.family 按里程碑ID分别管理。
+///
+/// 使用方式：
+/// ```dart
+/// final expandedTaskIds = ref.watch(milestoneExpandedTaskIdProvider(milestoneId));
+/// ```
+final milestoneExpandedTaskIdProvider =
+    StateProvider.family<Set<String>, String>(
+  (ref, milestoneId) => <String>{},
+);
+
+/// Provider for getting task level map for a specific milestone (虚拟字段)
+///
+/// 返回指定里程碑的 taskId -> level 的映射
+/// 自动响应 milestoneTasksProvider(milestoneId) 的变化
+///
+/// 使用方式：
+/// ```dart
+/// final levelMapAsync = ref.watch(milestoneTaskLevelMapProvider(milestoneId));
+/// return levelMapAsync.when(
+///   data: (levelMap) {
+///     final taskLevel = levelMap[task.id] ?? 1;
+///     // ...
+///   },
+///   loading: () => CircularProgressIndicator(),
+///   error: (_, __) => SizedBox.shrink(),
+/// );
+/// ```
+final milestoneTaskLevelMapProvider =
+    FutureProvider.family<Map<String, int>, String>((ref, milestoneId) async {
+  final tasksAsync = ref.watch(milestoneTasksProvider(milestoneId));
+  final tasks = await tasksAsync.requireValue;
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  return _calculateTaskLevelMap(tasks, taskRepository);
+});
+
+/// Provider for getting task children map for a specific milestone (虚拟字段)
+///
+/// 返回指定里程碑的 taskId -> Set<子任务ID> 的映射
+/// 自动响应 milestoneTasksProvider(milestoneId) 的变化
+///
+/// 使用方式：
+/// ```dart
+/// final childrenMapAsync = ref.watch(milestoneTaskChildrenMapProvider(milestoneId));
+/// return childrenMapAsync.when(
+///   data: (childrenMap) {
+///     final childTaskIds = childrenMap[task.id] ?? <String>{};
+///     // ...
+///   },
+///   loading: () => CircularProgressIndicator(),
+///   error: (_, __) => SizedBox.shrink(),
+/// );
+/// ```
+final milestoneTaskChildrenMapProvider =
+    FutureProvider.family<Map<String, Set<String>>, String>((ref, milestoneId) async {
+  final tasksAsync = ref.watch(milestoneTasksProvider(milestoneId));
+  final tasks = await tasksAsync.requireValue;
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final childrenMap = <String, Set<String>>{};
+
+  // 为每个任务查找所有子任务
+  for (final task in tasks) {
+    final children = await taskRepository.listChildren(task.id);
+    final normalChildren = children
+        .where((t) => !isProjectOrMilestone(t))
+        .map((t) => t.id)
+        .toSet();
+
+    // 递归添加子任务的子任务
+    final allChildren = <String>{...normalChildren};
+    for (final childId in normalChildren) {
+      final childChildren = await _getAllDescendants(childId, taskRepository);
+      allChildren.addAll(childChildren);
+    }
+
+    childrenMap[task.id] = allChildren;
+  }
+
+  return childrenMap;
+});
+

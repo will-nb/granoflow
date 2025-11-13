@@ -400,7 +400,7 @@ class CalendarReviewService {
         return filter.tags.every((tag) => task.tags.contains(tag));
       });
     }
-    
+
     return rootTasks.map((task) => task.id).toList();
   }
 

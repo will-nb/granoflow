@@ -7,7 +7,7 @@ import '../../../core/utils/calendar_review_utils.dart';
 import '../../../data/models/task.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../utils/week_view_event_converter.dart';
-import 'task_detail_bottom_sheet.dart';
+import '../../widgets/utils/task_bottom_sheet_helper.dart';
 
 /// 日视图详情组件，显示当日统计和时间轴表格（类似 Outlook）
 class DayDetailView extends ConsumerWidget {
@@ -48,21 +48,21 @@ class DayDetailView extends ConsumerWidget {
           children: [
             // 统计摘要（带导航按钮）
             Container(
-              padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
               child: _buildStatsSummary(
                 context,
                 l10n,
                 detail,
                 selectedDate,
                 notifier,
-              ),
+                ),
             ),
             const Divider(height: 1),
             // DayView 时间轴（即使没有数据也显示空白日程表）
             Expanded(
-              child: _buildDayView(context, selectedDate, allEvents, eventToTaskMap),
+              child: _buildDayView(context, ref, selectedDate, allEvents, eventToTaskMap),
             ),
-          ],
+            ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -116,21 +116,21 @@ class DayDetailView extends ConsumerWidget {
         // 统计摘要（中间）
         Expanded(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _StatItem(
-                label: l10n.calendarReviewFocusMinutes,
-                value: CalendarReviewUtils.formatFocusMinutes(detail.focusMinutes),
-              ),
-              _StatItem(
-                label: l10n.calendarReviewStatsCompletedTasks,
-                value: '${detail.completedTasks.length}',
-              ),
-              _StatItem(
-                label: l10n.calendarReviewFocusSessions,
-                value: '${detail.sessions.length}',
-              ),
-            ],
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _StatItem(
+          label: l10n.calendarReviewFocusMinutes,
+          value: CalendarReviewUtils.formatFocusMinutes(detail.focusMinutes),
+        ),
+        _StatItem(
+          label: l10n.calendarReviewStatsCompletedTasks,
+          value: '${detail.completedTasks.length}',
+        ),
+        _StatItem(
+          label: l10n.calendarReviewFocusSessions,
+          value: '${detail.sessions.length}',
+        ),
+      ],
           ),
         ),
         // 下一天按钮（如果是今天则触发动效并回退）
@@ -164,6 +164,7 @@ class DayDetailView extends ConsumerWidget {
   /// 构建 DayView 时间轴
   Widget _buildDayView(
     BuildContext context,
+    WidgetRef ref,
     DateTime selectedDate,
     List<FlutterWeekViewEvent> events,
     Map<FlutterWeekViewEvent, Task> eventToTaskMap,
@@ -182,12 +183,7 @@ class DayDetailView extends ConsumerWidget {
             final task = eventToTaskMap[event];
             if (task != null) {
               // 显示任务详情弹窗
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (sheetContext) => TaskDetailBottomSheet(task: task),
-              );
+              TaskBottomSheetHelper.showTaskDetailBottomSheet(context, ref, task);
             }
           },
           child: FlutterWeekViewEventWidget(

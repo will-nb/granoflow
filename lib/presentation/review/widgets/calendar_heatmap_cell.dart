@@ -78,9 +78,9 @@ class CalendarHeatmapCell extends ConsumerWidget {
                 color: _getTextColor(context, backgroundColor),
                 fontSize: 14,
                 fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                ),
               ),
             ),
-          ),
           // 专注时长文本（日视图时显示）
           if (showFocusMinutes && focusMinutes > 0)
             Positioned(

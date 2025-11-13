@@ -31,7 +31,6 @@ void main() {
     List<Tag>? contextTags,
     List<Tag>? urgencyTags,
     List<Tag>? importanceTags,
-    List<Tag>? executionTags,
     Map<TagKind, bool>? loadingStates,
     Map<TagKind, bool>? errorStates,
   }) {
@@ -56,8 +55,6 @@ void main() {
                 return urgencyTags ?? [];
               case TagKind.importance:
                 return importanceTags ?? [];
-              case TagKind.execution:
-                return executionTags ?? [];
               default:
                 return [];
             }
@@ -77,6 +74,7 @@ void main() {
           Locale('zh', 'CN'),
           Locale('zh', 'HK'),
         ],
+        locale: const Locale('zh', 'CN'),
         home: const Scaffold(
           body: DrawerTagsSection(),
         ),
@@ -129,20 +127,7 @@ void main() {
       expect(find.byType(ModernTag), findsNWidgets(2));
     });
 
-    testWidgets('should display execution tag group', (tester) async {
-      final tags = [
-        _createTag(id: '1', slug: 'phone', kind: TagKind.execution),
-        _createTag(id: '2', slug: 'email', kind: TagKind.execution),
-      ];
-      
-      await tester.pumpWidget(
-        buildTestWidget(executionTags: tags),
-      );
-      await tester.pump();
-      
-      expect(find.text('执行方式'), findsOneWidget);
-      expect(find.byType(ModernTag), findsNWidgets(2));
-    });
+    // Test removed - execution tags functionality has been removed
 
     // 注意：加载状态测试需要特殊的异步处理，暂时跳过以避免timersPending错误
     // testWidgets('should show loading indicator when tags are loading',
@@ -199,16 +184,12 @@ void main() {
       final importanceTags = [
         _createTag(id: '3', slug: '#important', kind: TagKind.importance),
       ];
-      final executionTags = [
-        _createTag(id: '4', slug: 'phone', kind: TagKind.execution),
-      ];
       
       await tester.pumpWidget(
         buildTestWidget(
           contextTags: contextTags,
           urgencyTags: urgencyTags,
           importanceTags: importanceTags,
-          executionTags: executionTags,
         ),
       );
       await tester.pump();
@@ -216,21 +197,16 @@ void main() {
       // 验证标签组按正确顺序显示
       expect(find.text('场景'), findsOneWidget);
       expect(find.text('四象限'), findsOneWidget);
-      expect(find.text('执行方式'), findsOneWidget);
     });
 
     testWidgets('should use correct spacing between tag groups', (tester) async {
       final contextTags = [
         _createTag(id: '1', slug: '@home', kind: TagKind.context),
       ];
-      final executionTags = [
-        _createTag(id: '2', slug: 'phone', kind: TagKind.execution),
-      ];
       
       await tester.pumpWidget(
         buildTestWidget(
           contextTags: contextTags,
-          executionTags: executionTags,
         ),
       );
       await tester.pump();
@@ -238,7 +214,6 @@ void main() {
       // 验证组件结构存在和分组显示
       expect(find.text('标签'), findsOneWidget);
       expect(find.text('场景'), findsOneWidget);
-      expect(find.text('执行方式'), findsOneWidget);
     });
   });
 }

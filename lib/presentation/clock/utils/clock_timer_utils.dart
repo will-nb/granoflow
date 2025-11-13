@@ -84,5 +84,31 @@ class ClockTimerUtils {
     // 确保不会返回负数
     return actualRunningTime.isNegative ? Duration.zero : actualRunningTime;
   }
+
+  /// 格式化已用时间为紧凑格式（MM:SS 或 HH:MM:SS）
+  /// 
+  /// 根据时间长度自动选择格式：
+  /// - 小于1小时：显示 MM:SS 格式（例如：45:30）
+  /// - 超过1小时：显示 HH:MM:SS 格式（例如：1:23:45）
+  /// 
+  /// [duration] 要格式化的时间长度
+  /// 
+  /// 返回格式化后的时间字符串
+  static String formatElapsedTimeCompact(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    
+    if (hours > 0) {
+      // 超过1小时：显示 HH:MM:SS 格式
+      return '${hours.toString().padLeft(2, '0')}:'
+             '${minutes.toString().padLeft(2, '0')}:'
+             '${seconds.toString().padLeft(2, '0')}';
+    } else {
+      // 小于1小时：显示 MM:SS 格式
+      return '${minutes.toString().padLeft(2, '0')}:'
+             '${seconds.toString().padLeft(2, '0')}';
+    }
+  }
 }
 

@@ -17,7 +17,6 @@ import 'project_milestone_picker.dart';
 import 'inline_project_milestone_display.dart';
 import 'task_row_content/task_row_title_editor.dart';
 import 'task_copy_button.dart';
-import 'task_timer_widget.dart';
 
 /// 通用的任务行内容组件，支持内联编辑标签和截止日期
 /// 可在Tasks、Inbox、Projects子任务、轻量任务等多个场景复用
@@ -117,13 +116,6 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
                 TaskCopyButton(
                   taskTitle: widget.task.title,
                 ),
-                // 计时控件（在pending、doing和paused状态显示）
-                if (widget.task.status == TaskStatus.pending ||
-                    widget.task.status == TaskStatus.doing ||
-                    widget.task.status == TaskStatus.paused)
-                  TaskTimerWidget(
-                    task: widget.task,
-                  ),
               ],
             ),
           ),
@@ -247,26 +239,6 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
           tagGroups.add(
             TagGroup(
               title: l10n.tagGroupImportance,
-              tags: tags
-                  .map((tag) => TagData.fromTagWithLocalization(tag, context))
-                  .toList(),
-            ),
-          );
-        }
-      });
-    }
-
-    // 执行方式组
-    final executionTagsAsync = ref.watch(executionTagOptionsProvider);
-    final hasExecutionTag = widget.task.tags.any(
-      (t) => TagService.getKind(t) == TagKind.execution,
-    );
-    if (!hasExecutionTag) {
-      executionTagsAsync.whenData((tags) {
-        if (tags.isNotEmpty) {
-          tagGroups.add(
-            TagGroup(
-              title: l10n.tagGroupExecution,
               tags: tags
                   .map((tag) => TagData.fromTagWithLocalization(tag, context))
                   .toList(),

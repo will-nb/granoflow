@@ -9,7 +9,7 @@ import '../../../data/models/task.dart';
 import '../../../data/repositories/focus_session_repository.dart';
 import '../../../generated/l10n/app_localizations.dart';
 import '../../tasks/utils/hierarchy_utils.dart';
-import '../../tasks/views/task_tree_tile/task_tree_tile_actions.dart';
+// import '../../tasks/views/task_tree_tile/task_tree_tile_actions.dart'; // 子任务功能已禁用
 import 'clock_subtask_item.dart';
 
 /// Provider: 获取任务的子任务列表（实时监听）
@@ -83,7 +83,8 @@ class _ClockSubtaskSectionState
     final isFirstSubtask = children.isEmpty;
 
     // 显示添加子任务对话框
-      await showAddSubtaskDialog(context, ref, widget.task.id);
+      // 子任务功能已禁用
+      // await showAddSubtaskDialog(context, ref, widget.task.id);
 
     // 如果是第一个子任务，创建特殊子任务
     if (isFirstSubtask && mounted) {

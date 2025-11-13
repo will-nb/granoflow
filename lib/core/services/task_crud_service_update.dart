@@ -3,6 +3,8 @@ import '../../data/models/tag.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/task_repository.dart';
 import 'metric_orchestrator.dart';
+import 'milestone_service.dart';
+import 'project_service.dart';
 import 'tag_service.dart';
 import 'task_crud_service_helpers.dart';
 
@@ -13,15 +15,21 @@ class TaskCrudServiceUpdate {
   TaskCrudServiceUpdate({
     required TaskRepository taskRepository,
     required MetricOrchestrator metricOrchestrator,
+    required MilestoneService milestoneService,
+    ProjectService? projectService,
     required TaskCrudServiceHelpers helpers,
     DateTime Function()? clock,
   }) : _tasks = taskRepository,
        _metricOrchestrator = metricOrchestrator,
+       _milestoneService = milestoneService,
+       _projectService = projectService,
        _helpers = helpers,
        _clock = clock ?? DateTime.now;
 
   final TaskRepository _tasks;
   final MetricOrchestrator _metricOrchestrator;
+  final MilestoneService _milestoneService;
+  final ProjectService? _projectService;
   final TaskCrudServiceHelpers _helpers;
   final DateTime Function() _clock;
 
@@ -42,8 +50,6 @@ class TaskCrudServiceUpdate {
     if (payload.dueAt != null) {
       dueForUpdate = TaskCrudServiceHelpers.normalizeDueDate(payload.dueAt!);
     }
-    final dueChanged = dueForUpdate != null &&
-        !TaskCrudServiceHelpers.isSameInstant(existing.dueAt, dueForUpdate);
     final now = _clock();
     List<TaskLogEntry>? updatedLogs;
 
@@ -56,25 +62,104 @@ class TaskCrudServiceUpdate {
       updatedLogs!.addAll(payload.logs!);
     }
 
+    // 自动绑定逻辑：收集箱任务分配里程碑时自动设置截止日期和状态转换
+    // 需要在 dueChanged 检查之前执行，以便正确计算 dueChanged
+    final milestoneIdChanged = (payload.milestoneId != existing.milestoneId) ||
+        (payload.clearMilestone == true && existing.milestoneId != null);
+    
+    if (milestoneIdChanged && payload.milestoneId != null) {
+      try {
+        final milestone = await _milestoneService.findById(payload.milestoneId!);
+        if (milestone == null) {
+          if (kDebugMode) {
+            debugPrint(
+              '[TaskCrudService.updateDetails] {event: autoBinding:milestoneNotFound, taskId: $taskId, milestoneId: ${payload.milestoneId}}',
+            );
+          }
+        } else {
+          // 如果任务当前状态为 inbox 且里程碑有截止日期
+          if (existing.status == TaskStatus.inbox && milestone.dueAt != null) {
+            // 如果任务当前没有截止日期且用户未手动设置截止日期
+            if (existing.dueAt == null && payload.dueAt == null) {
+              // 自动设置任务的截止日期为里程碑的截止日期
+              final milestoneDueAt = milestone.dueAt!;
+              dueForUpdate = TaskCrudServiceHelpers.normalizeDueDate(milestoneDueAt);
+              
+              // 在任务日志中记录此次自动设置
+              ensureLogBuffer();
+              updatedLogs!.add(
+                TaskLogEntry(
+                  timestamp: now,
+                  action: 'deadline_set',
+                  next: dueForUpdate.toIso8601String(),
+                ),
+              );
+              
+              if (kDebugMode) {
+                debugPrint(
+                  '[TaskCrudService.updateDetails] {event: autoBinding:deadlineSet, taskId: $taskId, milestoneId: ${payload.milestoneId}, dueAt: $dueForUpdate}',
+                );
+              }
+            }
+            
+            // 如果截止日期被设置（自动或手动），触发现有的状态转换逻辑
+            // 这个逻辑在下面的 finalStatus 计算中处理
+            if (dueForUpdate != null || payload.dueAt != null) {
+              if (kDebugMode) {
+                debugPrint(
+                  '[TaskCrudService.updateDetails] {event: autoBinding:statusChanged, taskId: $taskId, from: inbox, to: pending}',
+                );
+              }
+            }
+          }
+        }
+      } catch (e, stackTrace) {
+        if (kDebugMode) {
+          debugPrint(
+            '[TaskCrudService.updateDetails] {event: autoBinding:failed, taskId: $taskId, milestoneId: ${payload.milestoneId}, reason: exception, error: $e, stackTrace: $stackTrace}',
+          );
+        }
+        // 任务仍然分配里程碑，但不自动设置截止日期和状态
+        // 继续执行其他更新操作，不中断整个更新流程
+      }
+    }
+
+    // 计算 dueChanged（考虑自动绑定逻辑设置的 dueForUpdate）
+    final dueChanged = dueForUpdate != null &&
+        !TaskCrudServiceHelpers.isSameInstant(existing.dueAt, dueForUpdate);
+
     if (dueChanged) {
       // dueChanged is true only when dueForUpdate != null
-      final newDue = dueForUpdate; // dueChanged is true only when dueForUpdate != null
-      ensureLogBuffer();
-      updatedLogs!.add(
-        TaskLogEntry(
-          timestamp: now,
-          action: existing.dueAt == null ? 'deadline_set' : 'deadline_updated',
-          previous: existing.dueAt?.toIso8601String(),
-          next: newDue.toIso8601String(),
-        ),
-      );
+      final newDue = dueForUpdate;
+      // 只有在不是自动绑定设置的情况下才添加日志（自动绑定已经添加了日志）
+      if (payload.dueAt != null) {
+        ensureLogBuffer();
+        updatedLogs!.add(
+          TaskLogEntry(
+            timestamp: now,
+            action: existing.dueAt == null ? 'deadline_set' : 'deadline_updated',
+            previous: existing.dueAt?.toIso8601String(),
+            next: newDue.toIso8601String(),
+          ),
+        );
+      }
     }
+
+    // 计算最终的 dueAt 值（考虑自动绑定逻辑设置的 dueForUpdate）
+    final finalDueAt = dueForUpdate ?? payload.dueAt ?? existing.dueAt;
+    
+    // 底层规则：如果任务有截止日期，状态一定不是 inbox
+    // 如果最终有截止日期，且当前状态是 inbox，且 payload 没有明确指定状态，则自动改为 pending
+    final finalStatus = payload.status ??
+        (finalDueAt != null && existing.status == TaskStatus.inbox
+            ? TaskStatus.pending
+            : null);
 
     await _tasks.updateTask(
       taskId,
       TaskUpdate(
         title: payload.title,
-        status: payload.status,
+        status: finalStatus,
         dueAt: dueForUpdate ?? payload.dueAt,
         startedAt: payload.startedAt,
         endedAt: payload.endedAt,
@@ -136,8 +221,6 @@ class TaskCrudServiceUpdate {
     // 如果项目/里程碑变化，同步更新所有子任务的项目/里程碑关联
     final projectIdChanged = (payload.projectId != existing.projectId) ||
         (payload.clearProject == true && existing.projectId != null);
-    final milestoneIdChanged = (payload.milestoneId != existing.milestoneId) ||
-        (payload.clearMilestone == true && existing.milestoneId != null);
 
     if (projectIdChanged || milestoneIdChanged) {
       final allChildren = await _helpers.getAllDescendantTasks(taskId);
@@ -168,6 +251,26 @@ class TaskCrudServiceUpdate {
       }
     }
 
+    // 如果任务属于项目但没有里程碑，确保任务有里程碑
+    final finalProjectId = payload.projectId ?? existing.projectId;
+    if (finalProjectId != null && _projectService != null) {
+      // 检查任务是否有里程碑
+      final finalMilestoneId = payload.milestoneId ?? existing.milestoneId;
+      if (finalMilestoneId == null) {
+        // 任务属于项目但没有里程碑，确保任务有里程碑
+        try {
+          await _projectService.ensureTasksHaveMilestone(finalProjectId);
+        } catch (e, stackTrace) {
+          if (kDebugMode) {
+            debugPrint(
+              '[TaskCrudService.updateDetails] {event: ensureTasksHaveMilestone:failed, taskId: $taskId, projectId: $finalProjectId, error: $e, stackTrace: $stackTrace}',
+            );
+          }
+          // 继续执行，不中断整个更新流程
+        }
+      }
+    }
+
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
   }
 
@@ -187,8 +290,7 @@ class TaskCrudServiceUpdate {
           final kind = TagService.getKind(tag);
           return kind != TagKind.context &&
               kind != TagKind.urgency &&
-              kind != TagKind.importance &&
-              kind != TagKind.execution;
+              kind != TagKind.importance;
         })
         .toList(growable: true);
     if (contextTag != null && contextTag.isNotEmpty) {

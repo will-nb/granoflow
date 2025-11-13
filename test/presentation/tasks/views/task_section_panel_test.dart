@@ -50,7 +50,6 @@ void main() {
           }),
           urgencyTagOptionsProvider.overrideWith((ref) async => const []),
           importanceTagOptionsProvider.overrideWith((ref) async => const []),
-          executionTagOptionsProvider.overrideWith((ref) async => const []),
           contextTagOptionsProvider.overrideWith((ref) async => const []),
           // Mock the new async providers for TasksSectionTaskList
           tasksSectionTaskLevelMapProvider.overrideWith(

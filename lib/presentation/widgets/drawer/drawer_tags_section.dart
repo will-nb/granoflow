@@ -42,15 +42,6 @@ class DrawerTagsSection extends ConsumerWidget {
           
           // 四象限标签组（紧急度 + 重要性）
           _buildQuadrantTagGroup(context, ref),
-          const SizedBox(height: 8),
-          
-          // 执行方式标签组
-          _buildTagGroup(
-            context,
-            ref,
-            title: l10n.drawerExecution,
-            kind: TagKind.execution,
-          ),
         ],
       ),
     );
@@ -255,7 +246,7 @@ class DrawerTagsSection extends ConsumerWidget {
         return Padding(
           padding: const EdgeInsets.only(left: 4),
           child: Text(
-            '加载失败',
+            l10n.loadFailed,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.error,
             ),

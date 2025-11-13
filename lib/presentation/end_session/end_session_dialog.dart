@@ -7,7 +7,7 @@ import '../../data/models/focus_session.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
 
-enum EndSessionSelection { complete, addSubtask, logMultiple, markWasted }
+enum EndSessionSelection { complete, logMultiple, markWasted } // addSubtask 已移除：子任务功能已禁用
 
 Future<FocusOutcome?> showEndSessionDialog({
   required BuildContext context,
@@ -87,22 +87,23 @@ class _EndSessionDialogState extends State<_EndSessionDialog> {
                     l10n.endSessionCompleteTask,
                     EndSessionSelection.complete,
                   ),
-                  _buildRadioOption(
-                    context,
-                    l10n.endSessionAddSubtask,
-                    EndSessionSelection.addSubtask,
-                  ),
-                  if (_selection == EndSessionSelection.addSubtask)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 32, bottom: 12),
-                      child: TextField(
-                        controller: _subtaskController,
-                        decoration: InputDecoration(
-                          labelText: l10n.endSessionSubtaskTitleLabel,
-                          border: const OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                  // 子任务功能已禁用
+                  // _buildRadioOption(
+                  //   context,
+                  //   l10n.endSessionAddSubtask,
+                  //   EndSessionSelection.addSubtask,
+                  // ),
+                  // if (_selection == EndSessionSelection.addSubtask)
+                  //   Padding(
+                  //     padding: const EdgeInsets.only(left: 32, bottom: 12),
+                  //     child: TextField(
+                  //       controller: _subtaskController,
+                  //       decoration: InputDecoration(
+                  //         labelText: l10n.endSessionSubtaskTitleLabel,
+                  //         border: const OutlineInputBorder(),
+                  //       ),
+                  //     ),
+                  //   ),
                   _buildRadioOption(
                     context,
                     l10n.endSessionAddMultiple,
@@ -215,25 +216,26 @@ class _EndSessionDialogState extends State<_EndSessionDialog> {
           );
           navigator.pop(FocusOutcome.complete);
           break;
-        case EndSessionSelection.addSubtask:
-          final title = _subtaskController.text.trim();
-          if (title.isEmpty) {
-            setState(() {
-              _error = l10n.endSessionSubtaskValidation;
-              _submitting = false;
-            });
-            return;
-          }
-          await widget.ref
-              .read(taskEditActionsNotifierProvider.notifier)
-              .addSubtask(parentId: widget.task.id, title: title);
-          await focusNotifier.end(
-            sessionId: widget.session.id,
-            outcome: FocusOutcome.complete,
-            reflection: reflection,
-          );
-          navigator.pop(FocusOutcome.complete);
-          break;
+        // 子任务功能已禁用
+        // case EndSessionSelection.addSubtask:
+        //   final title = _subtaskController.text.trim();
+        //   if (title.isEmpty) {
+        //     setState(() {
+        //       _error = l10n.endSessionSubtaskValidation;
+        //       _submitting = false;
+        //     });
+        //     return;
+        //   }
+        //   await widget.ref
+        //       .read(taskEditActionsNotifierProvider.notifier)
+        //       .addSubtask(parentId: widget.task.id, title: title);
+        //   await focusNotifier.end(
+        //     sessionId: widget.session.id,
+        //     outcome: FocusOutcome.complete,
+        //     reflection: reflection,
+        //   );
+        //   navigator.pop(FocusOutcome.complete);
+        //   break;
         case EndSessionSelection.logMultiple:
           final lines = _multiTaskController.text
               .split('\n')

@@ -18,6 +18,8 @@ import '../services/task_template_service.dart';
 import '../services/clock_audio_service.dart';
 import '../services/calendar_review_service.dart';
 import '../services/heatmap_color_service.dart';
+import '../services/home_statistics_service.dart';
+import '../services/task_query_service.dart';
 import '../monetization/monetization_service.dart';
 import 'repository_providers.dart';
 
@@ -50,6 +52,8 @@ final taskServiceProvider = FutureProvider<TaskService>((ref) async {
   final taskRepository = await ref.read(taskRepositoryProvider.future);
   final tagRepository = await ref.read(tagRepositoryProvider.future);
   final metricOrchestrator = await ref.read(metricOrchestratorProvider.future);
+  final milestoneService = await ref.read(milestoneServiceProvider.future);
+  final projectService = await ref.read(projectServiceProvider.future);
   final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
   final sortIndexService = await ref.read(sortIndexServiceProvider.future);
   final clockAudioService = await ref.read(clockAudioServiceProvider.future);
@@ -58,6 +62,8 @@ final taskServiceProvider = FutureProvider<TaskService>((ref) async {
     taskRepository: taskRepository,
     tagRepository: tagRepository,
     metricOrchestrator: metricOrchestrator,
+    milestoneService: milestoneService,
+    projectService: projectService,
     focusSessionRepository: focusSessionRepository,
     sortIndexService: sortIndexService,
     clockAudioService: clockAudioService,
@@ -168,6 +174,24 @@ final calendarReviewServiceProvider = FutureProvider<CalendarReviewService>((ref
 
 final heatmapColorServiceProvider = FutureProvider<HeatmapColorService>((ref) async {
   return await HeatmapColorService.getInstance();
+});
+
+final homeStatisticsServiceProvider = FutureProvider<HomeStatisticsService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final focusSessionRepository = await ref.read(focusSessionRepositoryProvider.future);
+  return HomeStatisticsService(
+    taskRepository: taskRepository,
+    focusSessionRepository: focusSessionRepository,
+  );
+});
+
+final taskQueryServiceProvider = FutureProvider<TaskQueryService>((ref) async {
+  final taskRepository = await ref.read(taskRepositoryProvider.future);
+  final tagRepository = await ref.read(tagRepositoryProvider.future);
+  return TaskQueryService(
+    taskRepository: taskRepository,
+    tagRepository: tagRepository,
+  );
 });
 
 final exportServiceProvider = FutureProvider<ExportService>((ref) async {

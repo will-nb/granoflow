@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/focus_providers.dart';
+import '../../core/providers/pinned_task_provider.dart';
 import '../../core/providers/service_providers.dart';
 import '../../data/models/focus_session.dart';
 import '../../data/models/task.dart';
@@ -66,6 +67,9 @@ class _TaskTimerWidgetState extends ConsumerState<TaskTimerWidget> {
     // 创建focus session
     final focusNotifier = ref.read(focusActionsNotifierProvider.notifier);
     await focusNotifier.start(widget.task.id);
+    
+          // 设置任务为置顶
+          ref.read(pinnedTaskIdProvider.notifier).setPinnedTaskId(widget.task.id);
     
     // 启动定时器更新UI
     _startTimer();

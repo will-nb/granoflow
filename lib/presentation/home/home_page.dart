@@ -2,28 +2,112 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:granoflow/generated/l10n/app_localizations.dart';
 
+import 'package:go_router/go_router.dart';
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/home_statistics_providers.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import 'widgets/home_statistics_widget.dart';
+import 'widgets/task_search_bar.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  bool _hasLoadedInitial = false;
+  String? _lastLocation;
+  DateTime? _lastRefreshTime;
+
+  @override
+  void initState() {
+    super.initState();
     // 触发种子导入，但不监听状态变化（避免无限重建）
-    debugPrint('🟢 HomePage: build() called, triggering seed import...');
-    try {
-      ref.read(seedInitializerProvider);
-      debugPrint('🟢 HomePage: seedInitializerProvider read successfully');
-    } catch (error, stackTrace) {
-      debugPrint('🔴 HomePage: ERROR - Failed to read seedInitializerProvider: $error');
-      debugPrint('🔴 HomePage: Stack trace: $stackTrace');
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('🟢 HomePage: initState: triggering seed import...');
+      try {
+        ref.read(seedInitializerProvider);
+        debugPrint('🟢 HomePage: seedInitializerProvider read successfully');
+      } catch (error, stackTrace) {
+        debugPrint('🔴 HomePage: ERROR - Failed to read seedInitializerProvider: $error');
+        debugPrint('🔴 HomePage: Stack trace: $stackTrace');
+      }
+      _hasLoadedInitial = true;
+      // 初始化时刷新一次统计数据
+      _refreshStatistics();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 检查路由是否变化，如果变化则刷新统计数据
+    final route = ModalRoute.of(context);
+    final isCurrentRoute = route?.isCurrent ?? false;
     
+    if (_hasLoadedInitial && isCurrentRoute) {
+      // 使用 GoRouter 获取当前路由路径
+      final router = GoRouter.of(context);
+      final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+      
+      // 如果路由路径变化，说明进入了新页面
+      if (currentLocation == '/' && currentLocation != _lastLocation) {
+        _lastLocation = currentLocation;
+        debugPrint('[HomePage] Route changed to: $currentLocation, refreshing statistics');
+        _refreshStatistics();
+      }
+    }
+  }
+
+  void _refreshStatistics() {
+    if (!mounted) return;
+    
+    // 防止频繁刷新：如果距离上次刷新不到 500ms，则跳过
+    final now = DateTime.now();
+    if (_lastRefreshTime != null && now.difference(_lastRefreshTime!).inMilliseconds < 500) {
+      return;
+    }
+    _lastRefreshTime = now;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        debugPrint('[HomePage] Refreshing all statistics providers');
+        ref.invalidate(todayStatisticsProvider);
+        ref.invalidate(thisWeekStatisticsProvider);
+        ref.invalidate(thisMonthStatisticsProvider);
+        ref.invalidate(totalStatisticsProvider);
+        ref.invalidate(thisMonthTopCompletedDateProvider);
+        ref.invalidate(thisMonthTopFocusDateProvider);
+        ref.invalidate(totalTopCompletedDateProvider);
+        ref.invalidate(totalTopFocusDateProvider);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    
+    // 在 build 方法中检查路由状态，确保每次进入首页时刷新数据
+    if (_hasLoadedInitial) {
+      final router = GoRouter.of(context);
+      final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+      
+      // 如果当前是首页且路由路径变化，刷新统计数据
+      if (currentLocation == '/' && currentLocation != _lastLocation) {
+        _lastLocation = currentLocation;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _refreshStatistics();
+          }
+        });
+      }
+    }
 
     return GradientPageScaffold(
       appBar: PageAppBar(
@@ -53,7 +137,7 @@ class HomePage extends ConsumerWidget {
               applyHeightToFirstAscent: false,
               applyHeightToLastDescent: false,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start, // 文本左对齐，与 Column 对齐方式一致
           );
 
           final subtitle = Text(
@@ -66,37 +150,8 @@ class HomePage extends ConsumerWidget {
               applyHeightToFirstAscent: false,
               applyHeightToLastDescent: false,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start, // 文本左对齐，与 Column 对齐方式一致
           );
-
-          // 计算两行文本高度，便于让左侧 Logo 精准与顶部/底部对齐
-          final textDirection = Directionality.of(context);
-          double _measureLineHeight(String text, TextStyle? style) {
-            final painter = TextPainter(
-              text: TextSpan(text: text, style: style),
-              maxLines: 1,
-              textDirection: textDirection,
-            )..layout(maxWidth: double.infinity);
-            return painter.height;
-          }
-          final double _greetingH = _measureLineHeight(
-            l10n.homeGreeting,
-            textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: heroTextColor,
-              letterSpacing: 0.3,
-            ),
-          );
-          final double _subtitleH = _measureLineHeight(
-            l10n.homeTagline,
-            textTheme.bodyLarge?.copyWith(
-              color: heroTextColor.withValues(alpha: 0.85),
-              height: 1.4,
-            ),
-          );
-          const double _gapH = 8.0; // 与文本之间的实际间距保持一致
-          final double _logoTargetH = _greetingH + _gapH + _subtitleH;
-          const double _logoBottomTrim = 2.0; // 裁掉 SVG 底部留白（像素）
 
           // 根据主题亮度选择 Logo variant (Choose Logo variant based on theme brightness)
           final logoVariant = theme.brightness == Brightness.light
@@ -106,69 +161,105 @@ class HomePage extends ConsumerWidget {
           // 将 Logo + 标题 + 标语打包为一个横向 heroBlock
           final heroBlock = Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐，便于下方延伸
+            crossAxisAlignment: CrossAxisAlignment.center, // 垂直居中对齐
             children: [
-              // 左侧 Logo：在保持顶部不变的情况下向下延伸 3px，并整体向右 2px
-              Transform.translate(
-                offset: const Offset(2.0, 0.0),
-                child: SizedBox(
-                  height: _logoTargetH + 3.0,
-                  width: isWide ? 84 : 72,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        top: 0,
-                        bottom: _logoBottomTrim,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: AppLogo(
-                            size: 200.0,
-                            showText: false,
-                            variant: logoVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              // 左侧 Logo：使用固定尺寸，简化布局
+              SizedBox(
+                width: isWide ? 80 : 64,
+                height: isWide ? 80 : 64,
+                child: AppLogo(
+                  size: isWide ? 80 : 64,
+                  showText: false,
+                  variant: logoVariant,
                 ),
               ),
-              SizedBox(width: isWide ? 16 : 12),
-              // 修复：将 Flexible 放在 Row 的直接子级，而不是 Transform 内部
+              SizedBox(width: isWide ? 20 : 16), // 增加间距，更统一
+              // 文本区域：移除 Transform，使用标准布局
               Flexible(
-                child: Transform.translate(
-                  offset: const Offset(-3.0, 0.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      greeting,
-                      const SizedBox(height: _gapH),
-                      subtitle,
-                    ],
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start, // 文本左对齐
+                  children: [
+                    greeting,
+                    const SizedBox(height: 8),
+                    subtitle,
+                  ],
                 ),
               ),
             ],
           );
 
-          return Center(
-            child: Flex(
-              direction: isWide ? Axis.horizontal : Axis.vertical,
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      heroBlock,
-                    ],
+          // 响应式布局
+          if (isWide) {
+            // 横屏：两栏布局
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 24, // 增加顶部间距，与标题栏保持距离
+                bottom: 16,
+                left: constraints.maxWidth >= 1200 ? 48 : 32,
+                right: constraints.maxWidth >= 1200 ? 48 : 32,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 左侧栏：Hero + 搜索栏
+                  Flexible(
+                    flex: constraints.maxWidth >= 1200 ? 35 : 30,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        heroBlock,
+                        const SizedBox(height: 24),
+                        TaskSearchBar(
+                          onTap: () => context.go('/search'),
+                        ),
+                      ],
+                    ),
                   ),
+                  SizedBox(
+                    width: constraints.maxWidth >= 1200 ? 48 : 32,
+                  ),
+                  // 右侧栏：统计表
+                  Flexible(
+                    flex: constraints.maxWidth >= 1200 ? 50 : 40,
+                    child: const HomeStatisticsWidget(),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            // 竖屏：垂直布局
+            return RefreshIndicator(
+              onRefresh: () async {
+                // 刷新所有统计数据
+                ref.invalidate(todayStatisticsProvider);
+                ref.invalidate(thisWeekStatisticsProvider);
+                ref.invalidate(thisMonthStatisticsProvider);
+                ref.invalidate(totalStatisticsProvider);
+                ref.invalidate(thisMonthTopCompletedDateProvider);
+                ref.invalidate(thisMonthTopFocusDateProvider);
+                ref.invalidate(totalTopCompletedDateProvider);
+                ref.invalidate(totalTopFocusDateProvider);
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 24), // 增加顶部间距，与标题栏保持距离
+                    heroBlock,
+                    const SizedBox(height: 24),
+                    TaskSearchBar(
+                      onTap: () => context.go('/search'),
+                    ),
+                    const HomeStatisticsWidget(),
+                  ],
                 ),
-              ],
-            ),
-          );
+              ),
+            );
+          }
         },
       ),
     );

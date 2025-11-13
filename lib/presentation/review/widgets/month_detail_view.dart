@@ -47,7 +47,7 @@ class MonthDetailView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    l10n.calendarReviewEmptyState,
+              l10n.calendarReviewEmptyState,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),

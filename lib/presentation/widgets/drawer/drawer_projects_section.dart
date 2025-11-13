@@ -83,7 +83,7 @@ class DrawerProjectsSection extends ConsumerWidget {
                     child: InkWell(
                       onTap: () {
                         Navigator.of(context).pop();
-                        context.go('/projects');
+                        context.go('/projects/${project.id}');
                       },
                       borderRadius: BorderRadius.circular(8),
                       child: Padding(

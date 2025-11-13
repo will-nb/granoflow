@@ -11,7 +11,7 @@ class AppConstants {
   /// 任务完成时默认记录的时间（分钟）
   /// 
   /// 当通过滑动完成一个没有运行时间记录的任务时，会自动记录此默认时间
-  static const int defaultTaskCompletionMinutes = 10;
+  static const int defaultTaskCompletionMinutes = 0;
 
   /// 标签定义
   ///
@@ -83,23 +83,6 @@ class AppConstants {
       slug: 'wasted',
       kind: TagKind.special,
       translationKey: 'tag_wasted',
-    ),
-
-    // 执行方式标签（互斥）
-    TagDefinition(
-      slug: 'timed',
-      kind: TagKind.execution,
-      translationKey: 'tag_timed',
-    ),
-    TagDefinition(
-      slug: 'fragmented',
-      kind: TagKind.execution,
-      translationKey: 'tag_fragmented',
-    ),
-    TagDefinition(
-      slug: 'waiting',
-      kind: TagKind.execution,
-      translationKey: 'tag_waiting',
     ),
   ];
 }
