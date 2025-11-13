@@ -1,0 +1,1137 @@
+{
+  // ===========================================
+  // 首页统计表和搜索功能迭代蓝图
+  // 基于 design_statistics_and_search.json5 实现首页统计表和搜索功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250115-home-statistics-and-search",
+    
+    // 迭代标题
+    title: "首页统计表和搜索功能",
+    
+    // 迭代描述
+    description: "在首页增加统计表展示今天/本周/当月/总计的完成数量和专注时间，以及三个月内的最佳表现日期。同时提供搜索栏和搜索页面，支持快速搜索所有状态的任务（至少3个字符触发搜索）。",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/home/design_statistics_and_search.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // 服务层
+    services: [
+      {
+        path: "lib/core/services/home_statistics_service.dart",
+        purpose: "首页统计数据服务，提供完成数量和专注时间的统计功能",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/data/repositories/task_repository.dart",
+          "lib/data/repositories/focus_session_repository.dart",
+          "lib/core/utils/task_section_utils.dart",
+        ],
+        details: [
+          "HomeStatisticsService 类：统计数据服务",
+          "getTodayStatistics() 方法：获取今天的完成数量和专注时间",
+          "  - 使用 TaskRepository.getCompletedRootTasksByDateRange() 查询今天完成的根任务",
+          "  - 使用 FocusSessionRepository.getFocusMinutesByDateRange() 查询今天的专注时间",
+          "  - 返回 HomeStatistics 对象（包含 completedCount 和 focusMinutes）",
+          "getThisWeekStatistics() 方法：获取本周的完成数量和专注时间",
+          "  - 使用 TaskSectionUtils 计算本周的开始和结束时间（本周日 00:00:00 到本周六 23:59:59）",
+          "  - 查询本周完成的根任务和专注时间",
+          "getThisMonthStatistics() 方法：获取当月的完成数量和专注时间",
+          "  - 计算当月1日 00:00:00 到当月最后一天 23:59:59",
+          "  - 查询当月完成的根任务和专注时间",
+          "getTotalStatistics() 方法：获取总计的完成数量和专注时间",
+          "  - 查询所有历史数据（不限制日期范围）",
+          "getTopCompletedDate() 方法：获取三个月内完成任务数量最多的日期",
+          "  - 使用 TaskRepository.getCompletedRootTasksByDateRange() 查询最近三个月的数据",
+          "  - 按日期分组统计每天的完成数量",
+          "  - 返回完成数量最多的日期和数量，如果没有数据返回 null",
+          "getTopFocusDate() 方法：获取三个月内专注时间最长的日期",
+          "  - 使用 FocusSessionRepository.getFocusMinutesByDateRange() 查询最近三个月的数据",
+          "  - 按日期分组统计每天的专注时间总和",
+          "  - 返回专注时间最长的日期和时长，如果没有数据返回 null",
+          "错误处理：所有方法都使用 try-catch 捕获异常，返回默认值或 null",
+          "性能优化：使用批量查询避免 N+1 问题，合理使用缓存（如果需要）",
+        ],
+      },
+    ],
+    
+    // 数据模型
+    models: [
+      {
+        path: "lib/data/models/home_statistics.dart",
+        purpose: "首页统计数据模型，包含完成数量和专注时间",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [],
+        details: [
+          "HomeStatistics 类：统计数据模型",
+          "completedCount 字段：int 类型，完成的任务数量",
+          "focusMinutes 字段：int 类型，专注时间（分钟）",
+          "copyWith() 方法：支持不可变对象的更新",
+          "toString() 方法：用于调试",
+          "TopDateStatistics 类：最佳日期统计数据模型",
+          "date 字段：DateTime 类型，日期（只包含年月日）",
+          "completedCount 或 focusMinutes 字段：对应的统计值",
+          "copyWith() 方法：支持不可变对象的更新",
+        ],
+      },
+    ],
+    
+    // Provider 状态管理
+    providers: [
+      {
+        path: "lib/core/providers/home_statistics_providers.dart",
+        purpose: "首页统计数据的状态管理 Provider",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/core/services/home_statistics_service.dart",
+          "lib/data/models/home_statistics.dart",
+        ],
+        details: [
+          "homeStatisticsServiceProvider：FutureProvider<HomeStatisticsService>",
+          "  - 依赖 taskRepositoryProvider 和 focusSessionRepositoryProvider",
+          "  - 创建 HomeStatisticsService 实例",
+          "todayStatisticsProvider：FutureProvider<HomeStatistics>",
+          "  - 调用 HomeStatisticsService.getTodayStatistics()",
+          "  - 自动刷新：每次进入首页时刷新",
+          "thisWeekStatisticsProvider：FutureProvider<HomeStatistics>",
+          "  - 调用 HomeStatisticsService.getThisWeekStatistics()",
+          "thisMonthStatisticsProvider：FutureProvider<HomeStatistics>",
+          "  - 调用 HomeStatisticsService.getThisMonthStatistics()",
+          "totalStatisticsProvider：FutureProvider<HomeStatistics>",
+          "  - 调用 HomeStatisticsService.getTotalStatistics()",
+          "topCompletedDateProvider：FutureProvider<TopDateStatistics?>",
+          "  - 调用 HomeStatisticsService.getTopCompletedDate()",
+          "  - 如果没有数据返回 null",
+          "topFocusDateProvider：FutureProvider<TopDateStatistics?>",
+          "  - 调用 HomeStatisticsService.getTopFocusDate()",
+          "  - 如果没有数据返回 null",
+          "allStatisticsProvider：FutureProvider<AllStatistics>",
+          "  - 组合所有统计数据，提供统一的数据访问接口",
+          "  - 包含 today、thisWeek、thisMonth、total、topCompletedDate、topFocusDate",
+          "错误处理：使用 AsyncValue 处理加载、错误、数据状态",
+        ],
+      },
+      {
+        path: "lib/core/providers/task_search_providers.dart",
+        purpose: "任务搜索功能的状态管理 Provider",
+        action: "create",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/core/services/task_query_service.dart",
+          "lib/data/models/task.dart",
+        ],
+        details: [
+          "taskSearchQueryProvider：StateProvider<String>",
+          "  - 管理搜索关键词状态",
+          "  - 初始值为空字符串",
+          "taskSearchResultsProvider：FutureProvider<List<Task>>",
+          "  - 依赖 taskSearchQueryProvider",
+          "  - 当搜索关键词长度 >= 3 时，调用 TaskQueryService.searchTasksByTitle()",
+          "  - 当搜索关键词长度 < 3 时，返回空列表",
+          "  - 使用 debounce 延迟搜索（300毫秒），避免频繁搜索",
+          "  - 搜索范围：所有状态的任务（不传 status 参数）",
+          "  - 最大结果数：20 个",
+          "taskSearchLoadingProvider：Provider<bool>",
+          "  - 基于 taskSearchResultsProvider 的加载状态",
+          "  - 当搜索进行中时返回 true",
+          "错误处理：使用 AsyncValue 处理加载、错误、数据状态",
+        ],
+      },
+    ],
+    
+    // Widget 组件
+    widgets: [
+      {
+        path: "lib/presentation/home/widgets/home_statistics_widget.dart",
+        purpose: "首页统计表组件，展示完成数量和专注时间",
+        action: "create",
+        estimatedLines: 400,
+        dependencies: [
+          "lib/core/providers/home_statistics_providers.dart",
+          "lib/data/models/home_statistics.dart",
+        ],
+        details: [
+          "HomeStatisticsWidget 组件：ConsumerWidget",
+          "使用 allStatisticsProvider 获取统计数据",
+          "卡片样式：",
+          "  - 使用 Card 组件，圆角 16dp",
+          "  - 背景色：Theme.of(context).cardColor.withOpacity(0.95)",
+          "  - 阴影：elevation 1，shadow opacity 0.1",
+          "  - 内边距：horizontal 20dp, vertical 20dp",
+          "  - 外边距：horizontal 16dp, vertical 12dp",
+          "标题：",
+          "  - 文字：'数据统计'",
+          "  - 字号：18sp，字重：semiBold",
+          "  - 字距：-0.2",
+          "  - 底部间距：16dp",
+          "统计表格：",
+          "  - 使用 Column 布局，每行使用 Row",
+          "  - 行样式：",
+          "    - 垂直间距：14dp",
+          "    - 分隔线：0.5dp，opacity 0.08",
+          "    - 最后一行不显示分隔线",
+          "  - 标签样式：",
+          "    - 字号：13sp，字重：medium",
+          "    - 颜色：onSurface.withOpacity(0.65)",
+          "    - 字距：0.1",
+          "  - 数值样式：",
+          "    - 字号：16sp，字重：semiBold",
+          "    - 颜色：onSurface",
+          "    - 字距：-0.3",
+          "  - 最佳日期行样式：",
+          "    - 背景色：primaryContainer.withOpacity(0.3)",
+          "    - 圆角：8dp",
+          "    - 内边距：vertical 12dp, horizontal 12dp",
+          "    - 数值使用主色突出显示",
+          "数据行：",
+          "  - 今天：显示完成数量和专注时间",
+          "  - 本周：显示完成数量和专注时间",
+          "  - 当月：显示完成数量和专注时间",
+          "  - 总计：显示完成数量和专注时间",
+          "  - 最佳完成日：显示日期和完成数量（如果有数据）",
+          "  - 最佳专注日：显示日期和专注时间（如果有数据）",
+          "专注时间格式化：",
+          "  - 小于60分钟：显示 'X分钟'",
+          "  - 大于等于60分钟：显示 'X小时Y分钟'",
+          "  - 如果分钟为0：省略分钟部分，显示 'X小时'",
+          "日期格式化：",
+          "  - 如果是本月：显示简短格式（如：'1月15日'）",
+          "  - 如果是其他月份：显示完整格式（如：'2023年12月25日'）",
+          "加载状态：",
+          "  - 显示骨架屏（6行，每行高度40dp）",
+          "  - 使用 shimmer 效果",
+          "空状态：",
+          "  - 显示图标（Icons.analytics_outlined，48dp）",
+          "  - 显示文字：'暂无统计数据'",
+          "  - 图标和文字间距：12dp",
+        ],
+      },
+      {
+        path: "lib/presentation/home/widgets/task_search_bar.dart",
+        purpose: "任务搜索栏组件，可复用的搜索输入框",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/core/providers/task_search_providers.dart",
+        ],
+        details: [
+          "TaskSearchBar 组件：ConsumerWidget",
+          "输入框样式：",
+          "  - 背景：Theme.of(context).colorScheme.surface.withOpacity(0.95)",
+          "  - 圆角：12dp",
+          "  - 阴影：elevation 1",
+          "  - 边框：1dp，opacity 0.2",
+          "  - 聚焦时边框：2dp，使用主色",
+          "  - 内边距：horizontal 16dp, vertical 12dp",
+          "占位符：'搜索任务（至少3个字符）'",
+          "字体：16sp，regular",
+          "图标：",
+          "  - 前导图标：Icons.search，24dp，opacity 0.6",
+          "  - 尾随图标：Icons.clear，20dp（有输入时显示）",
+          "交互行为：",
+          "  - 点击搜索栏：跳转到搜索页面（如果 onTap 回调存在）",
+          "  - 在搜索页面中：支持实时搜索",
+          "  - 点击清除按钮：清空搜索关键词",
+          "  - 输入验证：至少3个字符才能搜索",
+          "使用 TextField 或 SearchBar 组件实现",
+        ],
+      },
+      {
+        path: "lib/presentation/search/search_page.dart",
+        purpose: "搜索页面，包含搜索栏和搜索结果列表",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/presentation/home/widgets/task_search_bar.dart",
+          "lib/core/providers/task_search_providers.dart",
+          "lib/presentation/widgets/gradient_page_scaffold.dart",
+          "lib/presentation/widgets/page_app_bar.dart",
+        ],
+        details: [
+          "SearchPage 组件：ConsumerWidget",
+          "页面布局：",
+          "  - 使用 GradientPageScaffold",
+          "  - AppBar：使用 PageAppBar，标题：'搜索任务'",
+          "  - 内容区域：垂直布局",
+          "搜索栏：",
+          "  - 使用 TaskSearchBar 组件",
+          "  - 支持实时搜索",
+          "  - 自动获得焦点（页面打开时）",
+          "  - 显示清除按钮",
+          "搜索结果区域：",
+          "  - 使用 ListView 展示结果",
+          "  - 使用 taskSearchResultsProvider 获取搜索结果",
+          "  - 结果项：使用现有的任务项组件（TaskItemWidget 或类似组件）",
+          "  - 分隔线：1dp，opacity 0.1",
+          "  - 点击结果项：跳转到任务详情页面",
+          "搜索限制：",
+          "  - 最少字符数：3个",
+          "  - 如果输入少于3个字符，显示提示信息：'请输入至少3个字符进行搜索'",
+          "  - 提示样式：12sp，opacity 0.5",
+          "空状态：",
+          "  - 当没有搜索结果时显示",
+          "  - 图标：Icons.search_off",
+          "  - 文字：'未找到匹配的任务'",
+          "  - 字号：16sp，opacity 0.6",
+          "加载状态：",
+          "  - 显示 CircularProgressIndicator",
+          "  - 大小：24dp",
+          "  - 颜色：primary",
+        ],
+      },
+    ],
+    
+    // 页面修改
+    pages: [
+      {
+        path: "lib/presentation/home/home_page.dart",
+        purpose: "修改首页，添加搜索栏和统计表组件",
+        action: "modify",
+        estimatedLines: 150,
+        dependencies: [
+          "lib/presentation/home/widgets/home_statistics_widget.dart",
+          "lib/presentation/home/widgets/task_search_bar.dart",
+        ],
+        details: [
+          "在 Hero 区域下方添加搜索栏：",
+          "  - 使用 TaskSearchBar 组件",
+          "  - 点击时跳转到搜索页面",
+          "  - 外边距：horizontal 16dp, vertical 12dp",
+          "在搜索栏下方添加统计表：",
+          "  - 使用 HomeStatisticsWidget 组件",
+          "  - 支持滚动（使用 SingleChildScrollView 或 ListView）",
+          "响应式布局：",
+          "  - 竖屏：垂直布局（Hero → 搜索栏 → 统计表）",
+          "  - 横屏（>= 600dp）：两栏布局",
+          "    - 左侧栏（300-400dp）：Hero + 搜索栏",
+          "    - 右侧栏（最小400dp）：统计表",
+          "    - 两栏间距：32dp",
+          "  - 桌面（>= 1200dp）：两栏布局",
+          "    - 左侧栏（350-450dp）：Hero + 搜索栏",
+          "    - 右侧栏（最小500dp）：统计表",
+          "    - 两栏间距：48dp",
+          "使用 LayoutBuilder 检测屏幕宽度",
+          "保持现有的 Hero 区域布局不变",
+        ],
+      },
+    ],
+    
+    // 路由修改
+    navigation: [
+      {
+        path: "lib/presentation/navigation/app_router.dart",
+        purpose: "添加搜索页面路由",
+        action: "modify",
+        estimatedLines: 20,
+        dependencies: [
+          "lib/presentation/search/search_page.dart",
+        ],
+        details: [
+          "添加搜索页面路由：",
+          "  - path: '/search'",
+          "  - name: 'search'",
+          "  - builder: SearchPage()",
+          "  - 放在 ShellRoute 的 routes 数组中",
+        ],
+      },
+    ],
+    
+    // 测试文件
+    tests: [
+      {
+        path: "test/core/services/home_statistics_service_test.dart",
+        purpose: "HomeStatisticsService 的单元测试",
+        action: "create",
+        estimatedLines: 400,
+        dependencies: [
+          "lib/core/services/home_statistics_service.dart",
+          "test/presentation/test_support/fakes.dart",
+        ],
+        details: [
+          "测试 getTodayStatistics() 方法：",
+          "  - 测试正常情况：有完成的任务和专注时间",
+          "  - 测试空数据：没有完成的任务和专注时间",
+          "  - 测试只统计根任务（parentId == null）",
+          "  - 测试只统计 completedActive 状态",
+          "  - 测试日期范围正确（当天 00:00:00 到 23:59:59）",
+          "测试 getThisWeekStatistics() 方法：",
+          "  - 测试本周范围计算正确（本周日到本周六）",
+          "  - 测试跨周数据统计",
+          "测试 getThisMonthStatistics() 方法：",
+          "  - 测试当月范围计算正确（1日到月末）",
+          "  - 测试跨月数据统计",
+          "测试 getTotalStatistics() 方法：",
+          "  - 测试统计所有历史数据",
+          "测试 getTopCompletedDate() 方法：",
+          "  - 测试找到完成数量最多的日期",
+          "  - 测试没有数据时返回 null",
+          "  - 测试三个月范围计算正确",
+          "测试 getTopFocusDate() 方法：",
+          "  - 测试找到专注时间最长的日期",
+          "  - 测试没有数据时返回 null",
+          "  - 测试三个月范围计算正确",
+          "使用 mock 对象测试（StubTaskRepository、StubFocusSessionRepository）",
+        ],
+      },
+      {
+        path: "test/presentation/home/home_statistics_widget_test.dart",
+        purpose: "HomeStatisticsWidget 的 Widget 测试",
+        action: "create",
+        estimatedLines: 300,
+        dependencies: [
+          "lib/presentation/home/widgets/home_statistics_widget.dart",
+        ],
+        details: [
+          "测试组件渲染：",
+          "  - 测试正常数据显示",
+          "  - 测试加载状态（骨架屏）",
+          "  - 测试空状态",
+          "  - 测试错误状态",
+          "测试数据格式化：",
+          "  - 测试专注时间格式化（分钟、小时分钟、小时）",
+          "  - 测试日期格式化（本月、其他月份）",
+          "测试样式：",
+          "  - 测试卡片样式（圆角、阴影、内边距）",
+          "  - 测试文字样式（字号、字重、颜色）",
+          "  - 测试最佳日期行样式（背景色、主色数值）",
+        ],
+      },
+      {
+        path: "test/presentation/search/search_page_test.dart",
+        purpose: "SearchPage 的 Widget 测试",
+        action: "create",
+        estimatedLines: 250,
+        dependencies: [
+          "lib/presentation/search/search_page.dart",
+        ],
+        details: [
+          "测试页面渲染：",
+          "  - 测试搜索栏显示",
+          "  - 测试搜索结果列表显示",
+          "  - 测试空状态显示",
+          "  - 测试加载状态显示",
+          "测试搜索功能：",
+          "  - 测试输入少于3个字符时显示提示",
+          "  - 测试输入3个字符以上时开始搜索",
+          "  - 测试搜索结果正确显示",
+          "  - 测试点击结果项跳转",
+          "  - 测试清除按钮功能",
+          "测试交互：",
+          "  - 测试搜索栏自动获得焦点",
+          "  - 测试实时搜索（debounce）",
+        ],
+      },
+      {
+        path: "integration_test/home_statistics_test.dart",
+        purpose: "首页统计功能的集成测试",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [],
+        details: [
+          "测试完整流程：",
+          "  - 创建测试任务并完成",
+          "  - 创建专注会话并结束",
+          "  - 打开首页",
+          "  - 验证统计数据正确显示",
+          "测试数据更新：",
+          "  - 完成任务后统计数据自动更新",
+          "  - 专注时间增加后统计数据自动更新",
+          "测试最佳日期：",
+          "  - 验证最佳完成日正确显示",
+          "  - 验证最佳专注日正确显示",
+          "使用真实数据库和仓库（不使用 mock）",
+        ],
+      },
+      {
+        path: "integration_test/task_search_test.dart",
+        purpose: "任务搜索功能的集成测试",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [],
+        details: [
+          "测试搜索流程：",
+          "  - 创建多个测试任务（不同状态、不同标题）",
+          "  - 打开搜索页面",
+          "  - 输入搜索关键词",
+          "  - 验证搜索结果正确",
+          "测试搜索限制：",
+          "  - 测试少于3个字符时不搜索",
+          "  - 测试3个字符以上时搜索",
+          "测试搜索范围：",
+          "  - 验证搜索所有状态的任务",
+          "  - 验证搜索根任务和子任务",
+          "使用真实数据库和仓库（不使用 mock）",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（可选）
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/core/providers/service_providers.dart",
+      purpose: "添加 HomeStatisticsService 的 Provider",
+      changes: [
+        "导入 home_statistics_service.dart",
+        "添加 homeStatisticsServiceProvider：FutureProvider<HomeStatisticsService>",
+        "依赖 taskRepositoryProvider 和 focusSessionRepositoryProvider",
+      ],
+      estimatedLines: 15,
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  // 注意：阶段完成后自动执行下一阶段，不需要沟通确认
+  // AI 开发将完成所有功能，按顺序执行所有阶段
+  // 每个阶段完成时忽略 pre-commit，强行 git commit（使用 --no-verify 选项）
+  // 
+  // 错误处理策略：
+  // - 如果某个任务失败，先尝试修复（如 analyze issues、测试失败），修复后继续
+  // - 如果无法自动修复（如需要人工决策），记录问题并继续下一个任务，在阶段完成时总结所有未解决问题
+  // - build_runner 冲突：使用 --delete-conflicting-outputs 参数自动删除冲突文件
+  // - analyze issues 无法自动修复：记录到 commit message 中，标记为已知问题，继续后续任务
+  implementationSteps: [
+    {
+      step: 1,
+      title: "阶段 1：数据模型和服务层",
+      description: "创建数据模型和统计服务，实现数据查询逻辑",
+      tasks: [
+        {
+          task: "创建 HomeStatistics 数据模型",
+          file: "lib/data/models/home_statistics.dart",
+          action: "创建 HomeStatistics 和 TopDateStatistics 类，包含所有必要字段和方法",
+        },
+        {
+          task: "创建 HomeStatisticsService 服务",
+          file: "lib/core/services/home_statistics_service.dart",
+          action: [
+            "实现 getTodayStatistics() 方法：查询今天的完成数量和专注时间",
+            "实现 getThisWeekStatistics() 方法：查询本周的完成数量和专注时间",
+            "实现 getThisMonthStatistics() 方法：查询当月的完成数量和专注时间",
+            "实现 getTotalStatistics() 方法：查询总计的完成数量和专注时间",
+            "实现 getTopCompletedDate() 方法：查询三个月内完成任务数量最多的日期",
+            "实现 getTopFocusDate() 方法：查询三个月内专注时间最长的日期",
+            "添加错误处理和性能优化",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+          action: "检查代码是否有 lint 错误，修复所有问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 数据模型和服务层'",
+          action: "提交阶段 1 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：Provider 状态管理",
+      description: "创建统计数据和搜索功能的 Provider",
+      tasks: [
+        {
+          task: "创建 home_statistics_providers.dart",
+          file: "lib/core/providers/home_statistics_providers.dart",
+          action: [
+            "创建 homeStatisticsServiceProvider",
+            "创建 todayStatisticsProvider、thisWeekStatisticsProvider、thisMonthStatisticsProvider、totalStatisticsProvider",
+            "创建 topCompletedDateProvider、topFocusDateProvider",
+            "创建 allStatisticsProvider 组合所有统计数据",
+          ],
+        },
+        {
+          task: "创建 task_search_providers.dart",
+          file: "lib/core/providers/task_search_providers.dart",
+          action: [
+            "创建 taskSearchQueryProvider 管理搜索关键词",
+            "创建 taskSearchResultsProvider 实现搜索功能（带 debounce）",
+            "创建 taskSearchLoadingProvider 管理加载状态",
+          ],
+        },
+        {
+          task: "修改 service_providers.dart",
+          file: "lib/core/providers/service_providers.dart",
+          action: "添加 homeStatisticsServiceProvider",
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+          action: "检查代码是否有 lint 错误，修复所有问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - Provider 状态管理'",
+          action: "提交阶段 2 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：UI 组件开发",
+      description: "创建统计表和搜索栏组件",
+      tasks: [
+        {
+          task: "创建 HomeStatisticsWidget 组件",
+          file: "lib/presentation/home/widgets/home_statistics_widget.dart",
+          action: [
+            "实现统计卡片样式（圆角、阴影、半透明背景）",
+            "实现统计表格布局（6行数据）",
+            "实现数据格式化（专注时间、日期）",
+            "实现加载状态（骨架屏）",
+            "实现空状态",
+            "实现最佳日期行样式（背景色、主色数值）",
+          ],
+        },
+        {
+          task: "创建 TaskSearchBar 组件",
+          file: "lib/presentation/home/widgets/task_search_bar.dart",
+          action: [
+            "实现搜索输入框样式（半透明背景、圆角、边框）",
+            "实现聚焦状态（边框加粗、主色）",
+            "实现搜索图标和清除按钮",
+            "实现点击跳转和实时搜索功能",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+          action: "检查代码是否有 lint 错误，修复所有问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - UI 组件开发'",
+          action: "提交阶段 3 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：搜索页面和首页集成",
+      description: "创建搜索页面并集成到首页",
+      tasks: [
+        {
+          task: "创建 SearchPage 页面",
+          file: "lib/presentation/search/search_page.dart",
+          action: [
+            "实现页面布局（GradientPageScaffold + PageAppBar）",
+            "集成 TaskSearchBar 组件（支持实时搜索）",
+            "实现搜索结果列表（ListView）",
+            "实现搜索限制提示（至少3个字符）",
+            "实现空状态和加载状态",
+            "实现点击结果项跳转功能",
+          ],
+        },
+        {
+          task: "修改 HomePage 页面",
+          file: "lib/presentation/home/home_page.dart",
+          action: [
+            "在 Hero 区域下方添加 TaskSearchBar（点击跳转到搜索页面）",
+            "在搜索栏下方添加 HomeStatisticsWidget",
+            "实现响应式布局（竖屏垂直布局，横屏两栏布局）",
+            "使用 LayoutBuilder 检测屏幕宽度",
+          ],
+        },
+        {
+          task: "修改 AppRouter 添加搜索页面路由",
+          file: "lib/presentation/navigation/app_router.dart",
+          action: "添加 '/search' 路由，指向 SearchPage",
+        },
+        {
+          task: "运行 flutter analyze 检查代码质量",
+          command: "flutter analyze",
+          action: "检查代码是否有 lint 错误，修复所有问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - 搜索页面和首页集成'",
+          action: "提交阶段 4 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：单元测试和 Widget 测试",
+      description: "编写并运行单元测试和 Widget 测试",
+      tasks: [
+        {
+          task: "创建 HomeStatisticsService 单元测试",
+          file: "test/core/services/home_statistics_service_test.dart",
+          action: [
+            "测试所有统计方法（today、thisWeek、thisMonth、total）",
+            "测试最佳日期方法（topCompletedDate、topFocusDate）",
+            "测试边界情况（空数据、日期范围）",
+            "使用 mock 对象测试",
+          ],
+        },
+        {
+          task: "创建 HomeStatisticsWidget Widget 测试",
+          file: "test/presentation/home/home_statistics_widget_test.dart",
+          action: [
+            "测试组件渲染（正常、加载、空、错误状态）",
+            "测试数据格式化",
+            "测试样式",
+          ],
+        },
+        {
+          task: "创建 SearchPage Widget 测试",
+          file: "test/presentation/search/search_page_test.dart",
+          action: [
+            "测试页面渲染",
+            "测试搜索功能",
+            "测试交互",
+          ],
+        },
+        {
+          task: "运行所有单元测试和 Widget 测试",
+          command: "flutter test",
+          action: "运行所有测试，确保全部通过，修复失败的测试",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 5 完成 - 单元测试和 Widget 测试'",
+          action: "提交阶段 5 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：集成测试",
+      description: "编写并运行集成测试",
+      tasks: [
+        {
+          task: "创建首页统计功能集成测试",
+          file: "integration_test/home_statistics_test.dart",
+          action: [
+            "测试完整流程（创建任务、完成任务、查看统计）",
+            "测试数据更新",
+            "测试最佳日期",
+            "使用真实数据库和仓库",
+          ],
+        },
+        {
+          task: "创建任务搜索功能集成测试",
+          file: "integration_test/task_search_test.dart",
+          action: [
+            "测试搜索流程",
+            "测试搜索限制",
+            "测试搜索范围",
+            "使用真实数据库和仓库",
+          ],
+        },
+        {
+          task: "运行集成测试",
+          command: "flutter test integration_test/",
+          action: "运行集成测试，确保全部通过，修复失败的测试",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - 集成测试'",
+          action: "提交阶段 6 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 7,
+      title: "阶段 7：最终验证和优化",
+      description: "运行所有检查，确保代码质量",
+      tasks: [
+        {
+          task: "运行 flutter analyze",
+          command: "flutter analyze",
+          action: "检查所有 lint 错误，修复所有问题",
+        },
+        {
+          task: "运行所有测试",
+          command: "flutter test",
+          action: "确保所有测试通过",
+        },
+        {
+          task: "运行集成测试",
+          command: "flutter test integration_test/",
+          action: "确保所有集成测试通过",
+        },
+        {
+          task: "检查代码覆盖率（如果配置了）",
+          command: "flutter test --coverage",
+          action: "检查测试覆盖率，确保关键功能有足够覆盖",
+        },
+        {
+          task: "最终提交",
+          command: "git add -A && git commit --no-verify -m 'feat: 首页统计表和搜索功能完成'",
+          action: "提交所有最终更改",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // 日期范围计算
+      dateRangeCalculation: {
+        method: "使用 TaskSectionUtils 计算本周范围，手动计算当月和三个月范围",
+        reason: "保持与现有代码的一致性，TaskSectionUtils 已经实现了本周范围计算逻辑",
+        alternative: "创建新的日期工具类，但会增加代码重复",
+      },
+      // 状态管理
+      stateManagement: {
+        method: "使用 Riverpod 的 FutureProvider 和 StateProvider",
+        reason: "项目已经使用 Riverpod 进行状态管理，保持一致性",
+        alternative: "使用其他状态管理方案，但不符合项目规范",
+      },
+      // 搜索防抖
+      searchDebounce: {
+        method: "使用 Timer 实现 300 毫秒防抖",
+        reason: "避免用户输入时频繁触发搜索，提升性能和用户体验",
+        alternative: "不使用防抖，但会导致性能问题",
+      },
+      // 响应式布局
+      responsiveLayout: {
+        method: "使用 LayoutBuilder 检测屏幕宽度，手动实现两栏布局",
+        reason: "项目已有类似实现（calendar_review_page.dart），保持一致性",
+        alternative: "使用响应式布局库，但会增加依赖",
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 类型安全
+      typeSafety: {
+        rule: "所有方法必须使用强类型，避免使用 dynamic",
+        location: "所有新创建的文件",
+        example: "Future<HomeStatistics> getTodayStatistics() 而不是 Future getTodayStatistics()",
+        note: "遵循 Dart 的类型安全最佳实践",
+      },
+      // 错误处理
+      errorHandling: {
+        rule: "所有异步操作必须使用 try-catch 处理异常",
+        location: "services 和 providers",
+        example: "try { ... } catch (e) { return defaultValue; }",
+        note: "确保应用不会因为异常而崩溃",
+      },
+      // 代码注释
+      codeComments: {
+        rule: "所有公共方法和类必须添加文档注释",
+        location: "所有新创建的文件",
+        example: "/// 获取今天的统计数据\nFuture<HomeStatistics> getTodayStatistics()",
+        note: "使用 Dart 文档注释格式（///）",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      optimization: [
+        "使用批量查询避免 N+1 问题（getCompletedRootTasksByDateRange、getFocusMinutesByDateRange）",
+        "搜索功能使用防抖（300毫秒）避免频繁查询",
+        "统计数据使用 FutureProvider 缓存，避免重复查询",
+        "统计表使用骨架屏优化加载体验",
+      ],
+      monitoring: [
+        "监控统计数据查询性能（如果查询时间过长，考虑添加索引）",
+        "监控搜索功能性能（如果搜索结果过多，考虑分页）",
+      ],
+    },
+    
+    // 安全考虑
+    security: {
+      concerns: [
+        "搜索功能使用参数化查询，避免 SQL 注入（通过 Repository 层处理）",
+        "统计数据不包含敏感信息，无需额外加密",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 6. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // 数据层依赖
+    dataLayer: [
+      "lib/data/repositories/task_repository.dart",
+      "lib/data/repositories/focus_session_repository.dart",
+      "lib/data/models/task.dart",
+      "lib/data/models/focus_session.dart",
+    ],
+    
+    // 服务层依赖
+    serviceLayer: [
+      "lib/core/services/home_statistics_service.dart",
+      "lib/core/services/task_query_service.dart",
+      "lib/core/utils/task_section_utils.dart",
+    ],
+    
+    // Provider 层依赖
+    providerLayer: [
+      "lib/core/providers/home_statistics_providers.dart",
+      "lib/core/providers/task_search_providers.dart",
+      "lib/core/providers/repository_providers.dart",
+      "lib/core/providers/service_providers.dart",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/home/widgets/home_statistics_widget.dart",
+      "lib/presentation/home/widgets/task_search_bar.dart",
+      "lib/presentation/search/search_page.dart",
+      "lib/presentation/home/home_page.dart",
+      "lib/presentation/widgets/gradient_page_scaffold.dart",
+      "lib/presentation/widgets/page_app_bar.dart",
+    ],
+    
+    // 导航层依赖
+    navigationLayer: [
+      "lib/presentation/navigation/app_router.dart",
+    ],
+  },
+
+  // ===========================================
+  // 7. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        file: "test/core/services/home_statistics_service_test.dart",
+        description: "测试 HomeStatisticsService 的所有统计方法",
+        testCases: [
+          {
+            group: "getTodayStatistics",
+            cases: [
+              {
+                name: "正常情况：有完成的任务和专注时间",
+                test: "创建今天完成的根任务 → 创建今天的专注会话 → 调用 getTodayStatistics() → 验证返回正确的完成数量和专注时间",
+              },
+              {
+                name: "空数据：没有完成的任务和专注时间",
+                test: "不创建任何任务和会话 → 调用 getTodayStatistics() → 验证返回 completedCount=0, focusMinutes=0",
+              },
+              {
+                name: "只统计根任务",
+                test: "创建根任务和子任务 → 完成它们 → 调用 getTodayStatistics() → 验证只统计根任务",
+              },
+              {
+                name: "只统计 completedActive 状态",
+                test: "创建不同状态的任务 → 调用 getTodayStatistics() → 验证只统计 completedActive 状态",
+              },
+            ],
+          },
+          {
+            group: "getTopCompletedDate",
+            cases: [
+              {
+                name: "找到完成数量最多的日期",
+                test: "创建多个不同日期的完成任务 → 调用 getTopCompletedDate() → 验证返回完成数量最多的日期",
+              },
+              {
+                name: "没有数据时返回 null",
+                test: "不创建任何完成的任务 → 调用 getTopCompletedDate() → 验证返回 null",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/home/home_statistics_widget_test.dart",
+        description: "测试 HomeStatisticsWidget 的渲染和交互",
+        testCases: [
+          {
+            group: "组件渲染",
+            cases: [
+              {
+                name: "正常数据显示",
+                test: "提供统计数据 → 渲染组件 → 验证所有数据正确显示",
+              },
+              {
+                name: "加载状态显示骨架屏",
+                test: "提供加载状态 → 渲染组件 → 验证显示骨架屏",
+              },
+              {
+                name: "空状态显示",
+                test: "提供空数据 → 渲染组件 → 验证显示空状态图标和文字",
+              },
+            ],
+          },
+          {
+            group: "数据格式化",
+            cases: [
+              {
+                name: "专注时间格式化：分钟",
+                test: "提供 45 分钟 → 验证显示 '45分钟'",
+              },
+              {
+                name: "专注时间格式化：小时分钟",
+                test: "提供 125 分钟 → 验证显示 '2小时5分钟'",
+              },
+              {
+                name: "专注时间格式化：小时（分钟为0）",
+                test: "提供 120 分钟 → 验证显示 '2小时'",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        file: "integration_test/home_statistics_test.dart",
+        description: "测试首页统计功能的完整流程",
+        testCases: [
+          {
+            group: "完整流程",
+            cases: [
+              {
+                name: "创建任务并完成，验证统计数据",
+                test: "创建根任务 → 完成任务 → 打开首页 → 验证今天完成数量为 1",
+              },
+              {
+                name: "创建专注会话，验证统计数据",
+                test: "创建专注会话并结束（60分钟）→ 打开首页 → 验证今天专注时间为 60 分钟",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 8. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "统计数据查询性能问题",
+      mitigation: "使用批量查询方法（getCompletedRootTasksByDateRange、getFocusMinutesByDateRange），避免 N+1 问题。如果性能仍然有问题，考虑添加数据库索引或缓存机制。",
+      priority: "medium",
+      check: "监控统计数据查询时间，如果超过 500ms，需要优化",
+      enforcement: "在代码审查时检查是否使用了批量查询方法",
+    },
+    {
+      risk: "搜索功能性能问题（大量任务）",
+      mitigation: "使用防抖（300毫秒）避免频繁搜索，限制搜索结果数量（20个）。如果任务数量非常大，考虑添加搜索索引或分页功能。",
+      priority: "medium",
+      check: "测试搜索大量任务时的性能，确保响应时间在可接受范围内",
+      enforcement: "在代码审查时检查是否实现了防抖和结果限制",
+    },
+    {
+      risk: "日期范围计算错误",
+      mitigation: "使用 TaskSectionUtils 计算本周范围，手动计算时仔细验证逻辑。编写详细的单元测试覆盖所有边界情况。",
+      priority: "high",
+      check: "运行单元测试，确保所有日期范围计算正确",
+      enforcement: "必须通过所有日期范围相关的单元测试",
+    },
+    {
+      risk: "响应式布局在不同设备上显示异常",
+      mitigation: "使用 LayoutBuilder 检测屏幕宽度，参考现有的响应式布局实现（calendar_review_page.dart）。在不同设备上测试布局。",
+      priority: "medium",
+      check: "在手机、平板、桌面设备上测试布局，确保显示正常",
+      enforcement: "在代码审查时检查响应式布局实现",
+    },
+    {
+      risk: "统计数据不实时更新",
+      mitigation: "使用 FutureProvider 的 refresh 机制，在首页显示时自动刷新数据。考虑添加下拉刷新功能。",
+      priority: "low",
+      check: "完成任务后返回首页，验证统计数据是否更新",
+      enforcement: "在代码审查时检查数据刷新逻辑",
+    },
+  ],
+
+  // ===========================================
+  // 9. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试和 Widget 测试通过",
+      "运行 flutter test integration_test/，确保所有集成测试通过",
+      "代码审查，确保符合代码规范和最佳实践",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证统计数据正确显示（今天、本周、当月、总计）",
+      "验证最佳日期正确显示（最佳完成日、最佳专注日）",
+      "验证搜索功能正常工作（至少3个字符触发搜索）",
+      "验证搜索页面正确显示搜索结果",
+      "验证响应式布局在不同设备上正常显示（竖屏、横屏、桌面）",
+      "验证数据格式化正确（专注时间、日期）",
+      "验证加载状态和空状态正确显示",
+    ],
+    
+    // 性能验证
+    performance: [
+      "测试统计数据查询性能（应该 < 500ms）",
+      "测试搜索功能性能（应该 < 300ms）",
+      "测试页面加载性能（应该 < 1s）",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "在 iOS 设备上测试",
+      "在 Android 设备上测试",
+      "在桌面（macOS/Windows/Linux）上测试",
+      "在不同屏幕尺寸上测试（手机、平板、桌面）",
+    ],
+  },
+
+  // ===========================================
+  // 10. 数据与状态（可选，但建议包含）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "新增 HomeStatistics 模型：包含 completedCount 和 focusMinutes 字段",
+      "新增 TopDateStatistics 模型：包含 date 和统计值字段",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "无需修改数据库结构，使用现有的 Task 和 FocusSession 表",
+      "使用现有的 Repository 方法查询数据",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "新增 homeStatisticsServiceProvider：提供 HomeStatisticsService 实例",
+      "新增多个统计数据 Provider：todayStatisticsProvider、thisWeekStatisticsProvider 等",
+      "新增 allStatisticsProvider：组合所有统计数据",
+      "新增 taskSearchQueryProvider：管理搜索关键词状态",
+      "新增 taskSearchResultsProvider：管理搜索结果状态",
+      "新增 taskSearchLoadingProvider：管理搜索加载状态",
+    ],
+  },
+}
+

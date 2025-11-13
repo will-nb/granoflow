@@ -78,6 +78,16 @@ class InboxTaskListConfig implements TaskListConfig {
   }
 
   @override
+  String? handleMilestoneId({
+    required Task? beforeTask,
+    required Task? afterTask,
+    required Task draggedTask,
+  }) {
+    // Inbox 页面不需要处理里程碑
+    return null;
+  }
+
+  @override
   TaskSection? get section => null;
 
   @override

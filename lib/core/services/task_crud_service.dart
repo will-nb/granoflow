@@ -4,6 +4,7 @@ import '../../data/repositories/task_repository.dart';
 import '../constants/task_constants.dart';
 import 'metric_orchestrator.dart';
 import 'milestone_service.dart';
+import 'project_service.dart';
 import 'sort_index_service.dart';
 import 'task_crud_service_helpers.dart';
 import 'task_crud_service_update.dart';
@@ -15,16 +16,19 @@ class TaskCrudService {
     required TaskRepository taskRepository,
     required MetricOrchestrator metricOrchestrator,
     required MilestoneService milestoneService,
+    ProjectService? projectService,
     SortIndexService? sortIndexService,
     DateTime Function()? clock,
   }) : _tasks = taskRepository,
        _metricOrchestrator = metricOrchestrator,
        _sortIndex = sortIndexService,
+       _projectService = projectService,
        _helpers = TaskCrudServiceHelpers(taskRepository: taskRepository),
        _update = TaskCrudServiceUpdate(
          taskRepository: taskRepository,
          metricOrchestrator: metricOrchestrator,
          milestoneService: milestoneService,
+         projectService: projectService,
          helpers: TaskCrudServiceHelpers(taskRepository: taskRepository),
          clock: clock,
        );
@@ -32,6 +36,7 @@ class TaskCrudService {
   final TaskRepository _tasks;
   final MetricOrchestrator _metricOrchestrator;
   final SortIndexService? _sortIndex;
+  final ProjectService? _projectService;
   final TaskCrudServiceHelpers _helpers;
   final TaskCrudServiceUpdate _update;
 
@@ -55,6 +60,21 @@ class TaskCrudService {
       sortIndex: TaskConstants.DEFAULT_SORT_INDEX,
     );
     final task = await _tasks.createTask(draft);
+    
+    // 如果任务属于项目但没有里程碑，确保任务有里程碑
+    if (task.projectId != null && task.milestoneId == null && _projectService != null) {
+      try {
+        await _projectService.ensureTasksHaveMilestone(task.projectId!);
+      } catch (e, stackTrace) {
+        if (kDebugMode) {
+          debugPrint(
+            '[TaskCrudService.captureInboxTask] {event: ensureTasksHaveMilestone:failed, taskId: ${task.id}, projectId: ${task.projectId}, error: $e, stackTrace: $stackTrace}',
+          );
+        }
+        // 继续执行，不中断整个创建流程
+      }
+    }
+    
     await _metricOrchestrator.requestRecompute(MetricRecomputeReason.task);
     return task;
   }

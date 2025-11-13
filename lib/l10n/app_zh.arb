@@ -727,6 +727,10 @@
   "taskDeleteAction": "刪除",
   "taskEditDeadline": "編輯截止日期",
   "taskEditTitle": "編輯標題",
+  "taskTimeoutWarning": "任務耗時過長，建議拆分任務",
+  "@taskTimeoutWarning": {
+    "description": "任務計時超過1小時時的警告提示"
+  },
   "taskTitleHint": "輸入任務標題",
   "taskUpdateError": "更新失敗",
   "taskUpdateSuccess": "任務已更新",

@@ -1,0 +1,1097 @@
+{
+  // ===========================================
+  // 首页统计表和搜索功能设计文档
+  // 在首页增加统计表展示完成数量和专注时间，以及任务搜索功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：在首页提供数据概览和快速搜索入口，帮助用户了解工作进度并快速定位任务
+    goal: "在首页增加统计表展示今天/本周/当月/总计的完成数量和专注时间，以及三个月内的最佳表现日期，同时提供搜索栏和搜索页面，支持快速搜索所有状态的任务",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的渐变背景系统（GradientPageScaffold）",
+        "遵循现有的页面布局规范（AppBar、Drawer、SafeArea）",
+        "使用统一的字体样式和间距规范",
+        "保持与现有卡片组件（Card）的样式一致性",
+        "使用统一的搜索栏样式，与现有搜索组件保持一致",
+      ],
+      
+      // 创新点：与现有主题不同的设计突破
+      innovation: [
+        "在首页引入数据统计展示，提供工作进度概览",
+        "统计表采用卡片式布局，清晰展示多维度数据",
+        "搜索栏支持实时搜索，至少3个字符触发搜索",
+        "搜索页面提供独立的结果展示区域，支持滚动加载",
+      ],
+    },
+    
+    // 设计趋势：参考2025年设计趋势和项目风格
+    trends: [
+      "极简主义：功能优先，减少装饰，突出内容本身",
+      "数据可视化：通过统计表直观展示工作进度",
+      "快速搜索：提供便捷的任务搜索入口",
+      "响应式设计：适配不同屏幕尺寸",
+      "渐进式交互：搜索栏实时反馈，搜索结果动态加载",
+      "现代化卡片：使用16dp圆角、柔和阴影、半透明效果（符合Material 3规范）",
+      "玻璃态效果：半透明背景增强层次感，符合2025年设计趋势",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：Light 和 Dark 模式下的背景渐变
+    backgroundGradients: {
+      // Light 模式：使用现有的页面背景渐变
+      light: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用现有的渐变定义：context.gradients.pageBackground
+          colors: [
+            "OceanBreezeColorSchemes.seaSaltBlue",
+            "OceanBreezeColorSchemes.skyWhite",
+          ],
+          stops: [0.0, 1.0],
+          note: "使用 GradientPageScaffold 的默认渐变背景，与现有首页保持一致",
+        },
+      },
+      
+      // Dark 模式：使用深色主题渐变
+      dark: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          // 使用深色主题渐变
+          colors: [
+            "OceanBreezeColorSchemes.navyBlue",
+            "OceanBreezeColorSchemes.floatingWater",
+            "OceanBreezeColorSchemes.navyBlue",
+          ],
+          stops: [0.0, 0.5, 1.0],
+          note: "使用深色主题渐变，与现有深色模式页面保持一致",
+        },
+      },
+    },
+    
+    // 专用配色：统计表和搜索组件的专用颜色
+    specificColors: {
+      // 统计卡片背景
+      statisticsCard: {
+        light: {
+          background: "Theme.of(context).cardColor",
+          surface: "Theme.of(context).colorScheme.surface",
+          border: "Theme.of(context).colorScheme.outline.withOpacity(0.2)",
+        },
+        dark: {
+          background: "Theme.of(context).cardColor",
+          surface: "Theme.of(context).colorScheme.surface",
+          border: "Theme.of(context).colorScheme.outline.withOpacity(0.2)",
+        },
+      },
+      // 统计数据文字颜色
+      statisticsText: {
+        light: {
+          primary: "Theme.of(context).colorScheme.onSurface",
+          secondary: "Theme.of(context).colorScheme.onSurface.withOpacity(0.7)",
+          highlight: "OceanBreezeColorSchemes.primaryColor",
+        },
+        dark: {
+          primary: "Theme.of(context).colorScheme.onSurface",
+          secondary: "Theme.of(context).colorScheme.onSurface.withOpacity(0.7)",
+          highlight: "OceanBreezeColorSchemes.primaryColor",
+        },
+      },
+      // 搜索栏颜色
+      searchBar: {
+        light: {
+          background: "Theme.of(context).colorScheme.surface",
+          border: "Theme.of(context).colorScheme.outline.withOpacity(0.3)",
+          icon: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        },
+        dark: {
+          background: "Theme.of(context).colorScheme.surface",
+          border: "Theme.of(context).colorScheme.outline.withOpacity(0.3)",
+          icon: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        },
+      },
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：是否为全屏页面
+    fullScreen: false,
+    
+    // 隐藏导航栏：是否隐藏底部导航栏
+    hideNavigation: false,
+    
+    // 顶部栏配置：使用现有的 PageAppBar
+    topBar: {
+      showBackButton: false, // 首页不需要返回按钮
+      background: "transparent", // 使用渐变背景
+      position: "topLeft",
+      note: "使用现有的 PageAppBar 组件，保持与现有首页一致",
+    },
+    
+    // 内容区域布局
+    contentLayout: {
+      // 布局方向：垂直布局
+      direction: "vertical",
+      // 主轴对齐：从顶部开始
+      mainAxisAlignment: "start",
+      // 交叉轴对齐：居中
+      crossAxisAlignment: "center",
+      // 使用 SafeArea
+      safeArea: true,
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 16, // dp
+      },
+    },
+    
+    // 区域划分：页面的主要区域
+    // 注意：竖屏时垂直排列，横屏时采用两栏布局（左侧：Hero + 搜索，右侧：统计表）
+    sections: [
+      {
+        // 区域1：Hero 区域（Logo + 标题 + 标语）
+        name: "heroSection",
+        position: "top", // 竖屏时位于顶部，横屏时位于左侧栏顶部
+        weight: "flexible",
+        children: [
+          "heroBlock", // Logo + 标题 + 标语
+        ],
+        note: "保持现有的 Hero 区域布局。竖屏时位于页面顶部，横屏时位于左侧栏顶部",
+      },
+      {
+        // 区域2：搜索栏
+        name: "searchSection",
+        position: "middle", // 竖屏时位于Hero下方，横屏时位于左侧栏Hero下方
+        weight: "fixed",
+        children: [
+          "searchBar", // 搜索输入框
+        ],
+        note: "搜索栏位于 Hero 区域下方。竖屏时垂直排列，横屏时位于左侧栏",
+      },
+      {
+        // 区域3：统计表
+        name: "statisticsSection",
+        position: "middle", // 竖屏时位于搜索栏下方，横屏时位于右侧栏
+        weight: "flexible",
+        children: [
+          "statisticsCard", // 统计卡片
+        ],
+        note: "统计表可滚动。竖屏时位于搜索栏下方，横屏时位于右侧栏，充分利用空间",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 4.1 搜索栏组件
+  searchBar: {
+    // 组件位置：位于 Hero 区域下方
+    position: "below_hero",
+    
+    // 布局：水平布局，包含搜索图标和输入框
+    layout: {
+      direction: "horizontal",
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+    },
+    
+      // 输入框样式（现代化设计，符合2025年趋势）
+    inputField: {
+      // 背景样式：使用半透明效果，增强层次感
+      background: {
+        type: "semi_transparent_card", // 半透明卡片样式，符合玻璃态效果
+        color: "Theme.of(context).colorScheme.surface.withOpacity(0.95)", // 95%不透明度
+        borderRadius: 12, // dp，与按钮圆角保持一致
+        elevation: 1, // 柔和阴影
+      },
+      // 边框样式：极简风格，仅在聚焦时显示
+      border: {
+        enabled: true,
+        width: 1, // dp
+        color: "Theme.of(context).colorScheme.outline.withOpacity(0.2)", // 更淡的边框
+        borderRadius: 12, // dp
+        focusColor: "Theme.of(context).colorScheme.primary", // 聚焦时使用主色
+        focusWidth: 2, // dp，聚焦时边框加粗
+      },
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+      // 占位符文本
+      placeholder: "搜索任务（至少3个字符）",
+      // 字体样式
+      typography: {
+        fontSize: 16, // sp
+        fontWeight: "regular",
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface",
+          dark: "Theme.of(context).colorScheme.onSurface",
+        },
+      },
+      // 图标
+      leadingIcon: {
+        icon: "Icons.search",
+        color: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        size: 24, // dp
+      },
+      // 清除按钮（当有输入时显示）
+      trailingIcon: {
+        icon: "Icons.clear",
+        color: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        size: 20, // dp
+        showWhen: "hasText", // 有输入时显示
+      },
+    },
+    
+    // 交互行为
+    interactions: {
+      // 点击搜索栏：跳转到搜索页面
+      onTap: "navigate_to_search_page",
+      // 输入验证：至少3个字符才能搜索
+      minLength: 3,
+      // 实时搜索：在搜索页面中支持实时搜索
+      realtimeSearch: true,
+      // 搜索范围：所有状态的任务
+      searchScope: "all_statuses",
+    },
+  },
+  
+  // 4.2 统计表组件
+  statisticsCard: {
+    // 组件位置：位于搜索栏下方
+    position: "below_search",
+    
+    // 卡片样式（符合Material 3规范和2025年设计趋势）
+    cardStyle: {
+      // 背景样式：使用半透明卡片，增强层次感
+      background: {
+        type: "semi_transparent_card", // 半透明卡片，符合玻璃态效果
+        color: "Theme.of(context).cardColor.withOpacity(0.95)", // 95%不透明度，增强可读性
+        borderRadius: 16, // dp，与CardTheme保持一致
+        elevation: 1, // 使用柔和阴影，符合Material 3规范
+        shadowColor: "Theme.of(context).colorScheme.shadow.withOpacity(0.1)", // 浅色阴影
+      },
+      // 边框（可选，增强层次感）
+      border: {
+        enabled: false, // 不使用边框，保持极简风格
+        // 如果需要边框，使用：width: 1, color: "Theme.of(context).colorScheme.outline.withOpacity(0.1)"
+      },
+      // 内边距：优化间距，符合2025年设计趋势
+      padding: {
+        horizontal: 20, // dp
+        vertical: 20, // dp
+      },
+      // 外边距
+      margin: {
+        horizontal: 16, // dp
+        vertical: 12, // dp，减少垂直间距，更紧凑
+      },
+    },
+    
+    // 标题样式（极简风格，减少视觉重量）
+    title: {
+      text: "数据统计",
+      typography: {
+        fontSize: 18, // sp，稍微减小字号，更精致
+        fontWeight: "semiBold",
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface",
+          dark: "Theme.of(context).colorScheme.onSurface",
+        },
+        letterSpacing: -0.2, // 稍微收紧字距，更现代
+      },
+      padding: {
+        bottom: 16, // dp
+      },
+    },
+    
+    // 统计表格布局
+    statisticsTable: {
+      // 表格结构：4行（今天、本周、当月、总计）+ 2行（最佳日期）
+      rows: [
+        {
+          // 行1：今天
+          name: "today",
+          label: "今天",
+          metrics: [
+            {
+              name: "completedCount",
+              label: "完成数量",
+              value: "number", // 数字
+              unit: "个",
+            },
+            {
+              name: "focusMinutes",
+              label: "专注时间",
+              value: "duration", // 时长（分钟）
+              unit: "分钟",
+              format: "format_as_hours_minutes", // 格式化为 "X小时Y分钟"
+            },
+          ],
+        },
+        {
+          // 行2：本周
+          name: "thisWeek",
+          label: "本周",
+          metrics: [
+            {
+              name: "completedCount",
+              label: "完成数量",
+              value: "number",
+              unit: "个",
+            },
+            {
+              name: "focusMinutes",
+              label: "专注时间",
+              value: "duration",
+              unit: "分钟",
+              format: "format_as_hours_minutes",
+            },
+          ],
+        },
+        {
+          // 行3：当月
+          name: "thisMonth",
+          label: "当月",
+          metrics: [
+            {
+              name: "completedCount",
+              label: "完成数量",
+              value: "number",
+              unit: "个",
+            },
+            {
+              name: "focusMinutes",
+              label: "专注时间",
+              value: "duration",
+              unit: "分钟",
+              format: "format_as_hours_minutes",
+            },
+          ],
+        },
+        {
+          // 行4：总计
+          name: "total",
+          label: "总计",
+          metrics: [
+            {
+              name: "completedCount",
+              label: "完成数量",
+              value: "number",
+              unit: "个",
+            },
+            {
+              name: "focusMinutes",
+              label: "专注时间",
+              value: "duration",
+              unit: "分钟",
+              format: "format_as_hours_minutes",
+            },
+          ],
+        },
+        {
+          // 行5：三个月内完成任务数量最多的日期
+          name: "topCompletedDate",
+          label: "最佳完成日",
+          metrics: [
+            {
+              name: "date",
+              label: "日期",
+              value: "date", // 日期
+              format: "format_as_date", // 格式化为 "YYYY年MM月DD日"
+            },
+            {
+              name: "completedCount",
+              label: "完成数量",
+              value: "number",
+              unit: "个",
+            },
+          ],
+          note: "显示三个月内完成任务数量最多的日期，如果没有数据则显示 '暂无数据'",
+        },
+        {
+          // 行6：三个月内专注时间最长的日期
+          name: "topFocusDate",
+          label: "最佳专注日",
+          metrics: [
+            {
+              name: "date",
+              label: "日期",
+              value: "date",
+              format: "format_as_date",
+            },
+            {
+              name: "focusMinutes",
+              label: "专注时间",
+              value: "duration",
+              unit: "分钟",
+              format: "format_as_hours_minutes",
+            },
+          ],
+          note: "显示三个月内专注时间最长的日期，如果没有数据则显示 '暂无数据'",
+        },
+      ],
+    },
+    
+    // 表格样式
+    tableStyle: {
+      // 行样式（极简风格，减少视觉干扰）
+      rowStyle: {
+        padding: {
+          vertical: 14, // dp，稍微增加垂直间距，提高可读性
+          horizontal: 0, // dp
+        },
+        border: {
+          bottom: {
+            enabled: true,
+            width: 0.5, // dp，使用更细的分隔线，更精致
+            color: "Theme.of(context).colorScheme.outline.withOpacity(0.08)", // 更淡的分隔线
+          },
+        },
+      },
+      // 最后一行不显示底部边框
+      lastRowNoBorder: true,
+      // 最佳日期行样式：使用轻微的背景色区分
+      highlightRowStyle: {
+        enabled: true,
+        backgroundColor: "Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)", // 使用主色容器，30%不透明度
+        borderRadius: 8, // dp
+        padding: {
+          vertical: 12, // dp
+          horizontal: 12, // dp
+        },
+      },
+      // 标签样式（优化可读性）
+      labelStyle: {
+        fontSize: 13, // sp，稍微减小字号，更精致
+        fontWeight: "medium",
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.65)", // 稍微降低不透明度
+          dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.65)",
+        },
+        letterSpacing: 0.1, // 稍微增加字距，提高可读性
+      },
+      // 数值样式（突出重要数据）
+      valueStyle: {
+        fontSize: 16, // sp
+        fontWeight: "semiBold",
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface",
+          dark: "Theme.of(context).colorScheme.onSurface",
+        },
+        letterSpacing: -0.3, // 收紧数字字距，更紧凑
+      },
+      // 最佳日期数值样式：使用主色突出显示
+      highlightValueStyle: {
+        fontSize: 16, // sp
+        fontWeight: "semiBold",
+        color: {
+          light: "Theme.of(context).colorScheme.primary", // 使用主色突出显示
+          dark: "Theme.of(context).colorScheme.primary",
+        },
+      },
+      // 单位样式
+      unitStyle: {
+        fontSize: 12, // sp
+        fontWeight: "regular",
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+          dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        },
+      },
+    },
+    
+    // 加载状态（现代化骨架屏）
+    loadingState: {
+      // 加载中显示骨架屏或加载指示器
+      showSkeleton: true,
+      skeletonStyle: {
+        rows: 6, // 6行数据
+        height: 40, // dp per row
+        borderRadius: 8, // dp，圆角骨架屏
+        shimmer: true, // 启用闪烁效果，更现代
+        baseColor: "Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3)", // 基础色
+        highlightColor: "Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5)", // 高亮色
+      },
+    },
+    
+    // 空状态（友好的空状态设计）
+    emptyState: {
+      // 当没有数据时显示
+      showMessage: true,
+      message: "暂无统计数据",
+      icon: "Icons.analytics_outlined", // 添加图标，更友好
+      iconSize: 48, // dp
+      iconColor: "Theme.of(context).colorScheme.onSurface.withOpacity(0.3)", // 淡色图标
+      typography: {
+        fontSize: 14, // sp
+        fontWeight: "regular",
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+          dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+        },
+      },
+      spacing: {
+        iconToText: 12, // dp，图标和文字间距
+      },
+    },
+  },
+  
+  // 4.3 搜索页面组件
+  searchPage: {
+    // 页面标题
+    title: "搜索任务",
+    
+    // 布局：垂直布局
+    layout: {
+      direction: "vertical",
+      padding: {
+        horizontal: 16, // dp
+        vertical: 16, // dp
+      },
+    },
+    
+    // 搜索栏（与首页搜索栏样式一致）
+    searchBar: {
+      // 复用首页搜索栏的样式
+      reference: "searchBar",
+      // 差异：在搜索页面中支持实时搜索
+      realtimeSearch: true,
+      // 差异：显示清除按钮
+      showClearButton: true,
+    },
+    
+    // 搜索结果区域
+    resultsArea: {
+      // 位置：搜索栏下方
+      position: "below_search",
+      
+      // 结果列表样式
+      listStyle: {
+        // 使用 ListView 展示结果
+        itemBuilder: "task_item_builder",
+        // 分隔线
+        separator: {
+          enabled: true,
+          height: 1, // dp
+          color: "Theme.of(context).colorScheme.outline.withOpacity(0.1)",
+        },
+        // 内边距
+        padding: {
+          horizontal: 0, // dp
+          vertical: 8, // dp
+        },
+      },
+      
+      // 结果项样式
+      itemStyle: {
+        // 使用现有的任务项组件
+        component: "TaskItemWidget", // 复用现有的任务项组件
+        // 内边距
+        padding: {
+          horizontal: 16, // dp
+          vertical: 12, // dp
+        },
+        // 背景
+        background: {
+          type: "transparent",
+        },
+      },
+      
+      // 空状态
+      emptyState: {
+        // 当没有搜索结果时显示
+        showMessage: true,
+        message: "未找到匹配的任务",
+        icon: "Icons.search_off",
+        typography: {
+          fontSize: 16, // sp
+          fontWeight: "regular",
+          color: {
+            light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+            dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.6)",
+          },
+        },
+      },
+      
+      // 加载状态
+      loadingState: {
+        // 搜索中显示加载指示器
+        showIndicator: true,
+        indicatorStyle: {
+          size: 24, // dp
+          color: "Theme.of(context).colorScheme.primary",
+        },
+      },
+    },
+    
+    // 搜索限制
+    searchConstraints: {
+      // 最少字符数
+      minLength: 3,
+      // 搜索提示
+      hintMessage: "请输入至少3个字符进行搜索",
+      // 提示样式
+      hintStyle: {
+        fontSize: 12, // sp
+        fontWeight: "regular",
+        color: {
+          light: "Theme.of(context).colorScheme.onSurface.withOpacity(0.5)",
+          dark: "Theme.of(context).colorScheme.onSurface.withOpacity(0.5)",
+        },
+      },
+    },
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程1：查看统计数据
+        name: "查看统计数据",
+        steps: [
+          "用户打开首页",
+          "系统自动加载统计数据（今天/本周/当月/总计）",
+          "系统自动加载三个月内的最佳日期数据",
+          "统计表显示加载状态（骨架屏）",
+          "数据加载完成后显示统计结果",
+          "用户查看各项统计数据",
+        ],
+      },
+      {
+        // 流程2：搜索任务（从首页）
+        name: "搜索任务（从首页）",
+        steps: [
+          "用户在首页看到搜索栏",
+          "用户点击搜索栏",
+          "系统跳转到搜索页面",
+          "搜索栏自动获得焦点",
+          "用户输入搜索关键词（至少3个字符）",
+          "系统实时搜索匹配的任务",
+          "搜索结果列表动态更新",
+          "用户点击搜索结果项，跳转到任务详情",
+        ],
+      },
+      {
+        // 流程3：搜索任务（在搜索页面）
+        name: "搜索任务（在搜索页面）",
+        steps: [
+          "用户在搜索页面",
+          "用户在搜索栏输入关键词",
+          "如果输入少于3个字符，显示提示信息",
+          "如果输入达到3个字符，开始搜索",
+          "显示加载状态",
+          "搜索结果加载完成后显示结果列表",
+          "如果无结果，显示空状态提示",
+          "用户可以继续修改搜索关键词，实时更新结果",
+          "用户点击清除按钮，清空搜索关键词和结果",
+        ],
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击搜索栏
+      tapSearchBar: {
+        action: "跳转到搜索页面",
+        animation: "fade_transition", // 淡入淡出过渡
+      },
+      // 点击搜索结果项
+      tapSearchResult: {
+        action: "跳转到任务详情页面",
+        animation: "slide_transition", // 滑动过渡
+      },
+      // 点击清除按钮
+      tapClearButton: {
+        action: "清空搜索关键词和结果",
+        animation: "none", // 无动画
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 页面进入动画
+    pageEnter: {
+      type: "fade_in", // 淡入
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+    },
+    
+    // 统计表加载动画
+    statisticsLoad: {
+      type: "fade_in", // 淡入
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+      note: "统计数据加载完成后淡入显示",
+    },
+    
+    // 搜索结果更新动画
+    searchResultsUpdate: {
+      type: "fade_in", // 淡入
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+      note: "搜索结果更新时淡入显示",
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      layout: "vertical_centered",
+      statisticsCard: {
+        maxWidth: "unlimited", // 不限制最大宽度
+        padding: {
+          horizontal: 16, // dp
+          vertical: 16, // dp
+        },
+      },
+      searchBar: {
+        width: "full_width", // 全宽
+        padding: {
+          horizontal: 16, // dp
+          vertical: 12, // dp
+        },
+      },
+    },
+    
+    // 平板横屏（两栏布局）
+    tabletLandscape: {
+      layout: "two_column", // 两栏布局
+      // 左侧栏：Hero区域 + 搜索栏
+      leftColumn: {
+        width: "flexible", // 自适应宽度
+        minWidth: 300, // dp，最小宽度
+        maxWidth: 400, // dp，最大宽度
+        padding: {
+          horizontal: 24, // dp
+          vertical: 24, // dp
+        },
+        children: [
+          "heroSection", // Hero区域（Logo + 标题 + 标语）
+          "searchSection", // 搜索栏
+        ],
+        alignment: "center", // 内容居中对齐
+      },
+      // 右侧栏：统计表
+      rightColumn: {
+        width: "flexible", // 自适应宽度
+        minWidth: 400, // dp，最小宽度
+        padding: {
+          horizontal: 24, // dp
+          vertical: 24, // dp
+        },
+        children: [
+          "statisticsSection", // 统计表
+        ],
+      },
+      // 两栏之间的间距
+      columnGap: 32, // dp
+      // 统计卡片样式（横屏时优化）
+      statisticsCard: {
+        maxWidth: "unlimited", // 不限制最大宽度，充分利用空间
+        padding: {
+          horizontal: 24, // dp
+          vertical: 24, // dp
+        },
+      },
+      // 搜索栏样式（横屏时优化）
+      searchBar: {
+        width: "full_width", // 全宽（在左侧栏内）
+        padding: {
+          horizontal: 16, // dp
+          vertical: 16, // dp
+        },
+      },
+      note: "横屏时采用两栏布局，左侧显示Hero区域和搜索栏，右侧显示统计表，充分利用屏幕空间",
+    },
+    
+    // 桌面（两栏布局，更宽的间距）
+    desktop: {
+      layout: "two_column", // 两栏布局
+      // 左侧栏：Hero区域 + 搜索栏
+      leftColumn: {
+        width: "flexible", // 自适应宽度
+        minWidth: 350, // dp，最小宽度
+        maxWidth: 450, // dp，最大宽度
+        padding: {
+          horizontal: 32, // dp
+          vertical: 32, // dp
+        },
+        children: [
+          "heroSection", // Hero区域（Logo + 标题 + 标语）
+          "searchSection", // 搜索栏
+        ],
+        alignment: "center", // 内容居中对齐
+      },
+      // 右侧栏：统计表
+      rightColumn: {
+        width: "flexible", // 自适应宽度
+        minWidth: 500, // dp，最小宽度
+        padding: {
+          horizontal: 32, // dp
+          vertical: 32, // dp
+        },
+        children: [
+          "statisticsSection", // 统计表
+        ],
+      },
+      // 两栏之间的间距
+      columnGap: 48, // dp，桌面端使用更大的间距
+      // 统计卡片样式（桌面端优化）
+      statisticsCard: {
+        maxWidth: "unlimited", // 不限制最大宽度，充分利用空间
+        padding: {
+          horizontal: 32, // dp
+          vertical: 32, // dp
+        },
+      },
+      // 搜索栏样式（桌面端优化）
+      searchBar: {
+        width: "full_width", // 全宽（在左侧栏内）
+        padding: {
+          horizontal: 20, // dp
+          vertical: 20, // dp
+        },
+      },
+      note: "桌面端采用两栏布局，左侧显示Hero区域和搜索栏，右侧显示统计表，使用更大的间距和字体，提供更好的阅读体验",
+    },
+  },
+
+  // ===========================================
+  // 8. 数据统计规则（必填）
+  // ===========================================
+  statisticsRules: {
+    // 完成数量统计规则
+    completedCount: {
+      // 统计范围：只统计根任务（parentId == null）
+      scope: "root_tasks_only",
+      // 任务状态：只统计 completedActive 状态
+      status: "completedActive",
+      // 时间字段：使用 endedAt 字段判断完成时间
+      timeField: "endedAt",
+      // 日期范围计算
+      dateRanges: {
+        // 今天：当天 00:00:00 到 23:59:59
+        today: {
+          start: "DateTime(year, month, day, 0, 0, 0)",
+          end: "DateTime(year, month, day, 23, 59, 59)",
+        },
+        // 本周：本周日 00:00:00 到本周六 23:59:59
+        thisWeek: {
+          start: "本周日 00:00:00",
+          end: "本周六 23:59:59",
+          note: "一周以周日为第一天，与 TaskSectionUtils 保持一致",
+        },
+        // 当月：当月1日 00:00:00 到当月最后一天 23:59:59
+        thisMonth: {
+          start: "当月1日 00:00:00",
+          end: "当月最后一天 23:59:59",
+        },
+        // 总计：所有历史数据
+        total: {
+          start: "null", // 无开始时间限制
+          end: "null", // 无结束时间限制
+        },
+        // 三个月内：最近三个月的数据
+        threeMonths: {
+          start: "三个月前的第一天 00:00:00",
+          end: "今天 23:59:59",
+        },
+      },
+    },
+    
+    // 专注时间统计规则
+    focusMinutes: {
+      // 统计范围：所有已结束的 FocusSession
+      scope: "ended_sessions_only",
+      // 时间字段：使用 endedAt 字段判断结束时间
+      timeField: "endedAt",
+      // 时长字段：使用 actualMinutes 字段
+      durationField: "actualMinutes",
+      // 日期范围计算（与完成数量相同）
+      dateRanges: {
+        today: {
+          start: "DateTime(year, month, day, 0, 0, 0)",
+          end: "DateTime(year, month, day, 23, 59, 59)",
+        },
+        thisWeek: {
+          start: "本周日 00:00:00",
+          end: "本周六 23:59:59",
+        },
+        thisMonth: {
+          start: "当月1日 00:00:00",
+          end: "当月最后一天 23:59:59",
+        },
+        total: {
+          start: "null",
+          end: "null",
+        },
+        threeMonths: {
+          start: "三个月前的第一天 00:00:00",
+          end: "今天 23:59:59",
+        },
+      },
+    },
+    
+    // 最佳日期统计规则
+    topDates: {
+      // 完成任务数量最多的日期
+      topCompletedDate: {
+        // 统计范围：三个月内
+        dateRange: "threeMonths",
+        // 统计方法：按日期分组，统计每天的完成数量，取最大值
+        method: "group_by_date_and_count",
+        // 如果没有数据，返回 null
+        emptyValue: null,
+      },
+      // 专注时间最长的日期
+      topFocusDate: {
+        // 统计范围：三个月内
+        dateRange: "threeMonths",
+        // 统计方法：按日期分组，统计每天的专注时间总和，取最大值
+        method: "group_by_date_and_sum",
+        // 如果没有数据，返回 null
+        emptyValue: null,
+      },
+    },
+  },
+
+  // ===========================================
+  // 9. 搜索功能规则（必填）
+  // ===========================================
+  searchRules: {
+    // 搜索范围
+    scope: {
+      // 任务状态：所有状态（不限制状态）
+      taskStatus: "all",
+      // 任务类型：所有任务（包括根任务和子任务）
+      taskType: "all",
+      // 搜索字段：任务标题
+      searchField: "title",
+    },
+    
+    // 搜索限制
+    constraints: {
+      // 最少字符数：3个字符
+      minLength: 3,
+      // 最大结果数：默认 20 个（可配置）
+      maxResults: 20,
+      // 搜索方式：模糊匹配（LIKE '%keyword%'）
+      matchType: "fuzzy",
+    },
+    
+    // 搜索行为
+    behavior: {
+      // 实时搜索：在搜索页面中支持实时搜索
+      realtimeSearch: true,
+      // 防抖延迟：300毫秒（避免频繁搜索）
+      debounceDelay: 300, // 毫秒
+      // 搜索提示：当输入少于3个字符时显示提示
+      showHint: true,
+    },
+  },
+
+  // ===========================================
+  // 10. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      // 问题1：统计数据刷新频率
+      question: "统计数据的刷新频率如何确定？",
+      description: "统计数据是否需要实时更新，还是定期刷新？如果用户在其他页面完成任务，返回首页时是否需要刷新统计数据？",
+      options: [
+        "实时更新：每次进入首页时刷新数据",
+        "定期刷新：每5分钟自动刷新一次",
+        "手动刷新：用户下拉刷新时更新数据",
+        "混合模式：进入首页时刷新，之后定期刷新",
+      ],
+      recommendation: "混合模式：进入首页时刷新数据，之后每5分钟自动刷新一次，同时支持下拉刷新",
+      confirmed: false,
+    },
+    {
+      // 问题2：搜索结果的排序方式
+      question: "搜索结果的排序方式是什么？",
+      description: "搜索结果应该按照什么顺序排列？是按创建时间、更新时间、还是相关性？",
+      options: [
+        "按创建时间降序（最新的在前）",
+        "按更新时间降序（最近更新的在前）",
+        "按相关性排序（匹配度高的在前）",
+        "按任务状态排序（doing > pending > completed > archived）",
+      ],
+      recommendation: "按更新时间降序，最近更新的任务在前，这样用户可以快速找到最近处理过的任务",
+      confirmed: false,
+    },
+    {
+      // 问题3：搜索页面是否支持筛选
+      question: "搜索页面是否需要支持额外的筛选功能？",
+      description: "除了按标题搜索，是否需要在搜索页面提供按状态、项目、标签等筛选功能？",
+      options: [
+        "仅支持标题搜索，保持简洁",
+        "支持按状态筛选（已完成、进行中、待办等）",
+        "支持按项目筛选",
+        "支持按标签筛选",
+        "支持多条件组合筛选",
+      ],
+      recommendation: "第一阶段仅支持标题搜索，保持功能简洁。后续可以根据用户反馈添加筛选功能",
+      confirmed: true,
+      confirmedAnswer: "第一阶段仅支持标题搜索",
+    },
+    {
+      // 问题4：统计数据的时间格式
+      question: "专注时间的显示格式是什么？",
+      description: "专注时间应该显示为分钟数，还是格式化为小时和分钟？例如：120分钟显示为'2小时'还是'2小时0分钟'？",
+      options: [
+        "仅显示分钟数（如：120分钟）",
+        "格式化为小时和分钟（如：2小时0分钟）",
+        "智能格式化（小于60分钟显示分钟，大于等于60分钟显示小时和分钟）",
+        "格式化为小时和分钟，但省略0分钟（如：2小时）",
+      ],
+      recommendation: "智能格式化：小于60分钟显示分钟（如：45分钟），大于等于60分钟显示小时和分钟（如：2小时30分钟），如果分钟为0则省略（如：2小时）",
+      confirmed: false,
+    },
+    {
+      // 问题5：最佳日期的显示格式
+      question: "最佳日期的显示格式是什么？",
+      description: "三个月内完成任务数量最多的日期和专注时间最长的日期，应该显示为什么格式？",
+      options: [
+        "完整日期格式（如：2024年1月15日）",
+        "简短日期格式（如：1月15日）",
+        "相对日期格式（如：3天前）",
+        "混合格式（如果是本月显示简短格式，否则显示完整格式）",
+      ],
+      recommendation: "混合格式：如果是本月显示简短格式（如：1月15日），如果是其他月份显示完整格式（如：2023年12月25日）",
+      confirmed: false,
+    },
+  ],
+}
+

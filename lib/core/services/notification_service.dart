@@ -56,6 +56,7 @@ class NotificationService {
 
     // 创建 Android 通知渠道
     await _createAndroidNotificationChannel();
+    await _createPinnedTaskNotificationChannel();
 
     _initialized = true;
   }
@@ -69,6 +70,23 @@ class NotificationService {
       importance: Importance.high,
       playSound: true,
       enableVibration: true,
+    );
+
+    await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(androidChannel);
+  }
+
+  /// 创建置顶任务通知渠道
+  Future<void> _createPinnedTaskNotificationChannel() async {
+    const androidChannel = AndroidNotificationChannel(
+      'grano_pinned_task', // 渠道 ID
+      'GranoFlow Pinned Task', // 渠道名称
+      description: '置顶任务进行中',
+      importance: Importance.high,
+      playSound: false, // 置顶任务通知不播放声音
+      enableVibration: false, // 置顶任务通知不震动
     );
 
     await _notificationsPlugin
@@ -163,11 +181,84 @@ class NotificationService {
     await _notificationsPlugin.cancelAll();
   }
 
+  /// 立即显示通知
+  /// 
+  /// [id] 通知 ID
+  /// [title] 通知标题
+  /// [body] 通知内容
+  /// [channelId] 通知渠道 ID（Android）
+  /// [channelName] 通知渠道名称（Android）
+  Future<void> showNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? channelId,
+    String? channelName,
+  }) async {
+    if (!_initialized) {
+      await initialize();
+    }
+
+    // 如果指定了渠道，确保渠道已创建
+    // 注意：渠道在初始化时已经创建，这里直接创建即可（如果已存在会被忽略）
+    if (channelId != null && channelName != null) {
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      if (androidImplementation != null) {
+        // 直接创建渠道（如果已存在会被忽略）
+        const androidChannel = AndroidNotificationChannel(
+          'grano_pinned_task',
+          'GranoFlow Pinned Task',
+          description: '置顶任务进行中',
+          importance: Importance.high,
+          playSound: false,
+          enableVibration: false,
+        );
+        await androidImplementation.createNotificationChannel(androidChannel);
+      }
+    }
+
+    await _notificationsPlugin.show(
+      id,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          channelId ?? 'grano_timer',
+          channelName ?? 'GranoFlow Timer',
+          channelDescription: '通知',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          ongoing: channelId == 'grano_pinned_task', // 置顶任务通知设置为持续通知
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: false, // 置顶任务通知不播放声音
+        ),
+      ),
+    );
+  }
+
   /// 通知点击回调
   void _onNotificationTapped(NotificationResponse response) {
     // 通知点击后的处理逻辑
-    // 可以通过路由跳转到计时页面
-    // 这里暂时只记录，具体跳转逻辑在应用层处理
+    // 如果是置顶任务通知（ID 为 2001），导航到任务列表
+    if (response.id == 2001) {
+      // 通过全局路由导航到任务列表并滚动到置顶任务
+      _handlePinnedTaskNotificationTap();
+    }
+  }
+
+  /// 处理置顶任务通知点击
+  void _handlePinnedTaskNotificationTap() {
+    // 通过全局路由导航到任务列表并滚动到置顶任务
+    // 注意：这里需要延迟导入以避免循环依赖
+    // 使用动态导入或者通过回调函数传递路由
+    // 暂时先注释，等待应用层处理
+    // AppRouter.router.go('/tasks?scrollToPinned=true');
   }
 }
 

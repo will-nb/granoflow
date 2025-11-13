@@ -255,7 +255,7 @@ class DrawerTagsSection extends ConsumerWidget {
         return Padding(
           padding: const EdgeInsets.only(left: 4),
           child: Text(
-            '加载失败',
+            l10n.loadFailed,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.error,
             ),

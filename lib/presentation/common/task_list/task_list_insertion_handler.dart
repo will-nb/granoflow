@@ -96,6 +96,13 @@ class TaskListInsertionHandler {
         );
       }
 
+      // 通过 config.handleMilestoneId 处理 milestoneId（用于跨里程碑拖拽）
+      final targetMilestoneId = config.handleMilestoneId(
+        beforeTask: beforeTask,
+        afterTask: afterTask,
+        draggedTask: draggedTask,
+      );
+
       await taskHierarchyService.moveToParent(
         taskId: draggedTask.id,
         parentId: aboveTaskParentId,
@@ -103,6 +110,29 @@ class TaskListInsertionHandler {
         dueDate: targetDueDate, // Tasks 页面会传入 targetDueDate，Inbox 页面传入 null
         clearParent: aboveTaskParentId == null, // 只有成为根项目时才 clearParent
       );
+
+      // 如果 milestoneId 发生变化，更新任务的 milestoneId
+      if (targetMilestoneId != null && targetMilestoneId != draggedTask.milestoneId) {
+        if (kDebugMode) {
+          debugPrint(
+            '[DnD] {event: milestoneId:update, page: ${config.pageName}, src: ${draggedTask.id}, oldMilestoneId: ${draggedTask.milestoneId}, newMilestoneId: $targetMilestoneId}',
+          );
+        }
+        try {
+          final taskService = await ref.read(taskServiceProvider.future);
+          await taskService.updateDetails(
+            taskId: draggedTask.id,
+            payload: TaskUpdate(milestoneId: targetMilestoneId),
+          );
+        } catch (e, stackTrace) {
+          if (kDebugMode) {
+            debugPrint(
+              '[DnD] {event: milestoneId:update:failed, page: ${config.pageName}, src: ${draggedTask.id}, newMilestoneId: $targetMilestoneId, error: $e, stackTrace: $stackTrace}',
+            );
+          }
+          // 继续执行重排序，不中断整个流程
+        }
+      }
 
       // 通过 config.reorderTasks 执行重排序（Inbox 和 Tasks 的差异）
       final taskRepository = await ref.read(taskRepositoryProvider.future);

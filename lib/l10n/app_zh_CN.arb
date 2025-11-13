@@ -349,6 +349,41 @@
     "description": "抽屉中最近项目区域标题"
   },
   "datePickerCustom": "选择其他日期",
+  "detailCreated": "创建时间：{date}",
+  "@detailCreated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailUpdated": "更新时间：{date}",
+  "@detailUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailMilestones": "里程碑：{count} 个",
+  "@detailMilestones": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detailTasks": "任务：{completed} / {total}",
+  "@detailTasks": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "datePickerMonthEnd": "月底",
   "datePickerOptionThisMonth": "本月月底",
   "datePickerOptionThisWeek": "本周结束",
@@ -510,6 +545,28 @@
   "milestoneDeleted": "里程碑已删除",
   "milestoneEditTitle": "编辑里程碑",
   "milestoneUpdated": "里程碑已更新",
+  "milestoneProgressLabel": "{completed} / {total} 个任务（{percentage}%）",
+  "@milestoneProgressLabel": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "milestonesLoadError": "加载里程碑失败：{error}",
+  "@milestonesLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navArchivedTitle": "归档",
   "navCompletedTitle": "已完成",
   "navInboxTitle": "收集箱",
@@ -600,6 +657,38 @@
   "projectNoMilestonesHint": "为项目添加里程碑以细化阶段。",
   "projectProgressEmpty": "添加里程碑以开始追踪进度。",
   "projectProgressLabel": "{percentage}% · {completed}/{total} 个里程碑",
+  "projectProgressTasksLabel": "进度：{completed} / {total} 个任务（{percentage}%）",
+  "@projectProgressTasksLabel": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "projectProgressLoadError": "加载进度失败：{error}",
+  "@projectProgressLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "projectNoTasks": "暂无任务",
+  "projectNotFound": "项目未找到",
+  "projectLoadError": "加载项目失败：{error}",
+  "@projectLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "projectQuickTasksEmpty": "暂无轻量任务",
   "projectQuickTasksSubtitle": "这些未归类的任务可以随时完成",
   "projectQuickTasksTitle": "轻量任务",

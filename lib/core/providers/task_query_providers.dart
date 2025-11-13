@@ -130,7 +130,17 @@ final rootTasksProvider = FutureProvider<List<Task>>((ref) async {
 
 final projectsDomainProvider = StreamProvider<List<Project>>((ref) async* {
   final projectService = await ref.read(projectServiceProvider.future);
-  yield* projectService.watchActiveProjects();
+  await for (final projects in projectService.watchActiveProjects()) {
+    // 过滤掉没有里程碑的项目
+    final filteredProjects = <Project>[];
+    for (final project in projects) {
+      final milestones = await projectService.listMilestones(project.id);
+      if (milestones.isNotEmpty) {
+        filteredProjects.add(project);
+      }
+    }
+    yield filteredProjects;
+  }
 });
 
 /// 根据筛选状态返回项目列表
@@ -138,7 +148,18 @@ final projectsDomainProvider = StreamProvider<List<Project>>((ref) async* {
 final projectsByStatusProvider = StreamProvider<List<Project>>((ref) async* {
   final filterStatus = ref.watch(projectFilterStatusProvider);
   final repository = await ref.read(projectRepositoryProvider.future);
-  yield* repository.watchProjectsByStatus(filterStatus);
+  final projectService = await ref.read(projectServiceProvider.future);
+  await for (final projects in repository.watchProjectsByStatus(filterStatus)) {
+    // 过滤掉没有里程碑的项目
+    final filteredProjects = <Project>[];
+    for (final project in projects) {
+      final milestones = await projectService.listMilestones(project.id);
+      if (milestones.isNotEmpty) {
+        filteredProjects.add(project);
+      }
+    }
+    yield filteredProjects;
+  }
 });
 
 /// 用于已完成/已归档页面的项目筛选

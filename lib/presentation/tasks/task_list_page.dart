@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../widgets/pinned_task_bar.dart';
+
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/providers/tasks_drag_provider.dart';
@@ -27,7 +29,11 @@ import 'views/task_section_panel.dart';
 /// 页面会自动循环生成每个分区，每个分区用 [TaskSectionPanel] 组件来展示任务列表。
 /// 如果某个分区没有任务，就不会显示这个分区。
 class TaskListPage extends ConsumerStatefulWidget {
-  const TaskListPage({super.key, this.initialSection});
+  const TaskListPage({
+    super.key,
+    this.initialSection,
+    this.scrollToPinned = false,
+  });
 
   /// 可选的初始分区参数
   ///
@@ -42,6 +48,11 @@ class TaskListPage extends ConsumerStatefulWidget {
   /// - 'thisMonth'：本月分区
   /// - 'later'：以后分区
   final String? initialSection;
+
+  /// 是否滚动到置顶任务
+  ///
+  /// 如果为 true，页面加载时会自动滚动到置顶任务栏的位置。
+  final bool scrollToPinned;
 
   @override
   ConsumerState<TaskListPage> createState() => _TaskListPageState();
@@ -75,6 +86,16 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   /// 用来确保自动滚动只执行一次，避免重复滚动。
   bool _didAutoScroll = false;
 
+  /// 是否已经滚动到置顶任务
+  ///
+  /// 用来确保滚动到置顶任务只执行一次。
+  bool _didScrollToPinned = false;
+
+  /// 置顶任务栏的全局键
+  ///
+  /// 用于定位置顶任务栏的位置，方便自动滚动。
+  final GlobalKey _pinnedTaskBarKey = GlobalKey();
+
   /// 是否已经完成初始构建
   ///
   /// 用来区分是首次加载还是数据更新后的重建
@@ -97,6 +118,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         // 同时保存 notifier 引用，以便在 dispose 中使用
         _dragNotifier = ref.read(tasksDragProvider.notifier);
         _dragNotifier?.setScrollController(_scrollController);
+        
+        // 检查是否需要滚动到置顶任务
+        if (widget.scrollToPinned && !_didScrollToPinned) {
+          _scrollToPinnedTask();
+        }
       }
     });
   }
@@ -185,6 +211,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                 ),
               ),
             ),
+            // 置顶任务栏
+            SliverToBoxAdapter(
+              key: _pinnedTaskBarKey,
+              child: const PinnedTaskBar(),
+            ),
             // 如果正在执行任务操作，在顶部显示进度条
             if (showLinearProgress)
               const SliverToBoxAdapter(
@@ -229,6 +260,12 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
                                     // 数据更新后的重建不应该触发自动滚动
                                     if (!_hasCompletedInitialBuild) {
                                       _maybeAutoScroll(meta.section);
+                                    }
+                                    // 检查是否需要滚动到置顶任务
+                                    if (widget.scrollToPinned && !_didScrollToPinned) {
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        _scrollToPinnedTask();
+                                      });
                                     }
                                     return panel;
                                   },
@@ -288,6 +325,27 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         );
       }
     });
+  }
+
+  /// 滚动到置顶任务栏
+  ///
+  /// 当用户点击通知时，自动滚动到置顶任务栏的位置。
+  void _scrollToPinnedTask() {
+    if (_didScrollToPinned) return;
+    if (!_scrollController.hasClients) return;
+
+    final key = _pinnedTaskBarKey;
+    final ctx = key.currentContext;
+    if (ctx != null && mounted) {
+      _didScrollToPinned = true;
+      // 平滑滚动到置顶任务栏，滚动时间 350 毫秒
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 350),
+        alignment: 0.0, // 置顶栏显示在页面顶部
+        curve: Curves.easeInOut, // 使用平滑的滚动动画
+      );
+    }
   }
 
   /// 把字符串转换成对应的分区枚举值

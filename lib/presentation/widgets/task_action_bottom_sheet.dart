@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/pinned_task_provider.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/services/project_models.dart';
 import '../../core/services/tag_service.dart';
@@ -19,7 +20,6 @@ import 'tag_data.dart';
 import 'tag_grouped_menu.dart';
 import 'task_copy_button.dart';
 import 'task_timer_widget.dart';
-import '../../core/providers/repository_providers.dart';
 
 /// 任务操作底部弹窗
 /// 
@@ -152,10 +152,12 @@ class _TaskActionBottomSheetState
     Task task, // 使用传入的任务数据，而不是 widget.task
   ) {
     final isInbox = task.status == TaskStatus.inbox;
+    final pinnedTaskId = ref.watch(pinnedTaskIdProvider);
     final canShowTimer = !isInbox &&
         (task.status == TaskStatus.pending ||
             task.status == TaskStatus.doing ||
-            task.status == TaskStatus.paused);
+            task.status == TaskStatus.paused) &&
+        (pinnedTaskId == null || pinnedTaskId != task.id);
 
     return Container(
       padding: const EdgeInsets.all(24),

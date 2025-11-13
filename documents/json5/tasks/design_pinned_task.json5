@@ -1,0 +1,1069 @@
+{
+  // ===========================================
+  // 任务置顶功能设计文档
+  // 在任务清单页面添加置顶任务栏，显示当前正在执行的任务及其计时器
+  // 适用范围：任务清单（Tasks）页面
+  // 
+  // 设计评估：基于2025年流行任务管理应用和Material Design 3设计规范
+  // 参考应用：Things 3、Todoist、TickTick、Notion
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：提供任务置顶功能，让用户能够快速访问和操作当前正在执行的任务
+    goal: "在任务清单页面添加置顶任务栏，当用户点击任务的start按钮开始计时时，自动将该任务置顶显示在页面顶部。置顶栏包含任务标题和计时器，支持点击打开任务详情弹窗，支持左滑右滑操作。当任务计时超过1小时时，在任务下方显示警告提示，建议用户修改标题并结束任务，将剩余工作细化成更多任务。当任务状态变为完成、删除或归档时，置顶栏自动消失，恢复任务弹窗中的start按钮显示。",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的渐变背景系统（GradientPageScaffold）",
+        "遵循现有的页面布局规范（AppBar、Drawer、SafeArea）",
+        "使用统一的字体样式和间距规范",
+        "保持与任务列表卡片一致的圆角设计（12px）",
+        "使用 Material Design 3 的 elevation 和 shadow 系统",
+        "复用现有的计时器组件（TaskTimerWidget）",
+        "复用现有的滑动操作组件（DismissibleTaskTile）",
+      ],
+      
+      // 创新点：与现有主题不同的设计突破
+      innovation: [
+        "反色对比设计：在light模式下使用dark样式，在dark模式下使用light样式，形成强烈的视觉对比，既美观又醒目",
+        "置顶栏设计：采用悬浮卡片式设计，与列表内容区分，提升视觉层次",
+        "智能显示：根据任务状态自动显示/隐藏，无需手动操作",
+        "集成计时器：将计时器直接集成到置顶栏，方便快速操作",
+        "超时警告：当任务计时超过1小时时，显示警告提示，引导用户优化任务管理",
+        "状态联动：置顶状态与任务状态联动，自动管理生命周期",
+        "交互优化：置顶任务在弹窗中隐藏start按钮，避免重复操作",
+        "流畅动画：置顶栏出现/消失使用平滑动画，提升用户体验",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "2025年流行趋势：悬浮式置顶栏（Sticky Bar）配合反色对比设计，参考 Notion、Linear 等现代应用",
+      "Material Design 3：使用 inverseSurface/onInverseSurface 实现反色对比设计，既美观又醒目",
+      "极简主义：置顶栏只显示必要信息（任务标题和计时器），保持简洁",
+      "智能交互：根据上下文自动显示/隐藏，减少用户操作负担",
+      "卡片式设计：使用圆角卡片和阴影，与列表内容形成视觉区分",
+      "渐进式披露：列表简洁，详情丰富，置顶栏提供快速访问入口",
+      "状态感知：根据任务状态智能调整UI，提供最佳用户体验",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：Light 和 Dark 模式下的背景渐变
+    backgroundGradients: {
+      // Light 模式：使用现有的页面背景渐变
+      light: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.seaSaltBlue",
+            "OceanBreezeColorSchemes.skyWhite",
+          ],
+          stops: [0.0, 1.0],
+          note: "使用 GradientPageScaffold 的默认渐变背景，与现有页面保持一致",
+        },
+      },
+      
+      // Dark 模式：使用深色主题渐变
+      dark: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "OceanBreezeColorSchemes.navyBlue",
+            "OceanBreezeColorSchemes.floatingWater",
+            "OceanBreezeColorSchemes.navyBlue",
+          ],
+          stops: [0.0, 0.5, 1.0],
+          note: "使用深色主题渐变，与现有深色模式页面保持一致",
+        },
+      },
+    },
+    
+    // 专用配色：置顶栏的专用颜色
+    // 设计亮点：反色对比设计 - 在light模式下使用dark样式，在dark模式下使用light样式
+    // 这样既美观又醒目，能够有效突出置顶栏的重要性
+    specificColors: {
+      // 置顶栏卡片背景（反色设计）
+      pinnedBarBackground: {
+        light: "Theme.of(context).colorScheme.inverseSurface", // Light模式下使用Dark的surface（navyBlue）
+        dark: "Theme.of(context).colorScheme.inverseSurface", // Dark模式下使用Light的surface（pureWhite）
+        note: "使用 Material Design 3 的 inverseSurface 实现反色对比设计。Light模式下显示深色背景（navyBlue），Dark模式下显示浅色背景（pureWhite），形成强烈的视觉对比，既美观又醒目",
+      },
+      // 置顶栏阴影（反色设计下需要更强的阴影）
+      pinnedBarShadow: {
+        light: "Colors.black.withOpacity(0.2)", // Light模式下深色背景需要更强的阴影
+        dark: "Colors.black.withOpacity(0.15)", // Dark模式下浅色背景使用中等阴影
+        note: "反色设计下，置顶栏与背景形成强烈对比，使用更强的阴影提升层次感和立体感",
+      },
+      // 任务标题文字颜色（反色设计）
+      taskTitle: {
+        light: "Theme.of(context).colorScheme.onInverseSurface", // Light模式下使用Dark的onSurface（skyWhite）
+        dark: "Theme.of(context).colorScheme.onInverseSurface", // Dark模式下使用Light的onSurface（navyBlue）
+        note: "使用 Material Design 3 的 onInverseSurface，确保在反色背景上有良好的可读性和对比度",
+      },
+      // 计时器文字颜色（反色设计下需要调整）
+      timerText: {
+        light: "Theme.of(context).colorScheme.onInverseSurface.withOpacity(0.8)", // Light模式下使用浅色，稍微降低不透明度以区分
+        dark: "Theme.of(context).colorScheme.onInverseSurface.withOpacity(0.7)", // Dark模式下使用深色，稍微降低不透明度以区分
+        note: "在反色背景下，计时器文字使用 onInverseSurface 并稍微降低不透明度，既保持可读性又与任务标题形成视觉层次",
+      },
+      // 反色设计的优势说明
+      inverseDesignBenefits: [
+        "视觉对比强烈：反色设计使置顶栏与背景形成鲜明对比，立即吸引用户注意力",
+        "美观现代：符合2025年设计趋势，参考 Notion、Linear 等现代应用的卡片设计",
+        "层次清晰：通过颜色反转，明确区分置顶栏和普通任务列表，提升信息层次",
+        "符合规范：使用 Material Design 3 的 inverseSurface/onInverseSurface，确保可访问性和对比度",
+        "品牌一致：在保持 Ocean Breeze 配色方案的同时，通过反色设计增强视觉冲击力",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：是否为全屏页面
+    fullScreen: false,
+    
+    // 隐藏导航栏：是否隐藏底部导航栏
+    hideNavigation: false,
+    
+    // 顶部栏配置
+    topBar: {
+      // 显示主菜单按钮
+      showMenuButton: true,
+      // 背景样式
+      background: "Theme.of(context).colorScheme.surface",
+      // 使用 PageAppBar 组件
+      component: "PageAppBar",
+    },
+    
+    // 内容区域布局
+    contentLayout: {
+      // 布局方向
+      direction: "vertical",
+      // 主轴对齐
+      mainAxisAlignment: "start",
+      // 交叉轴对齐
+      crossAxisAlignment: "stretch",
+      // 使用 SafeArea
+      safeArea: true,
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 8, // dp
+      },
+    },
+    
+    // 区域划分：页面的主要区域
+    sections: [
+      {
+        // 置顶任务栏区域
+        name: "pinnedTaskBarSection",
+        position: "top",
+        weight: "fixed",
+        height: "auto", // 根据内容自适应高度
+        children: [
+          "PinnedTaskBar",
+        ],
+        note: "置顶任务栏，显示在筛选区域下方，任务列表上方。当有任务被置顶时显示，否则隐藏。",
+        layout: {
+          // 位置：在 CustomScrollView 的 slivers 中，位于筛选UI之后
+          position: "afterFilter",
+          // 外边距
+          margin: {
+            horizontal: 16, // dp
+            vertical: 8, // dp
+          },
+        },
+      },
+      {
+        // 筛选区域
+        name: "filterSection",
+        position: "top",
+        weight: "fixed",
+        children: [
+          "TaskFilterCollapsible",
+        ],
+        note: "保留筛选功能，允许用户按项目、标签等筛选任务",
+      },
+      {
+        // 任务列表区域
+        name: "taskListSection",
+        position: "middle",
+        weight: "flexible",
+        children: [
+          "TaskSectionPanel (多个，按时间分区)",
+        ],
+        note: "任务列表区域，按时间分区（逾期、今天、明天等）展示任务",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 置顶任务栏组件
+  pinnedTaskBar: {
+    // 组件名称
+    component: "PinnedTaskBar",
+    // 组件路径
+    path: "lib/presentation/widgets/pinned_task_bar.dart",
+    
+    // 显示条件
+    displayCondition: {
+      // 当有任务被置顶时显示
+      showWhen: "pinnedTaskIdProvider 不为 null",
+      // 当任务状态变为完成/删除/归档时自动隐藏
+      hideWhen: [
+        "任务状态为 completedActive",
+        "任务状态为 trashed",
+        "任务状态为 archived",
+      ],
+      note: "置顶栏的显示/隐藏由 pinnedTaskIdProvider 和任务状态自动控制",
+    },
+    
+    // 卡片样式
+    cardStyle: {
+      // 背景颜色（反色设计）
+      backgroundColor: "Theme.of(context).colorScheme.inverseSurface",
+      // 圆角
+      borderRadius: 12, // dp，与任务列表卡片保持一致
+      // 阴影（反色设计下需要更强的阴影）
+      shadow: {
+        // Light 模式：深色背景需要更强的阴影
+        light: {
+          color: "Colors.black.withOpacity(0.2)",
+          blurRadius: 6, // dp，稍微增加模糊半径
+          offset: { x: 0, y: 3 }, // dp，稍微增加偏移
+        },
+        // Dark 模式：浅色背景使用中等阴影
+        dark: {
+          color: "Colors.black.withOpacity(0.15)",
+          blurRadius: 5, // dp
+          offset: { x: 0, y: 2 }, // dp
+        },
+      },
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+      // 外边距
+      margin: {
+        horizontal: 16, // dp
+        vertical: 8, // dp
+      },
+      note: "使用 Material Design 3 的 inverseSurface 作为背景，实现反色对比设计。Light模式下显示深色背景（navyBlue），Dark模式下显示浅色背景（pureWhite），形成强烈的视觉对比，既美观又醒目。使用更强的阴影提升层次感和立体感",
+    },
+    
+    // 内容布局
+    contentLayout: {
+      // 布局方向
+      direction: "horizontal", // Row
+      // 主轴对齐
+      mainAxisAlignment: "start", // 从左开始排列
+      // 交叉轴对齐
+      crossAxisAlignment: "center", // 垂直居中
+      // 子组件
+      children: [
+        {
+          // 计时器区域（左侧）
+          name: "timerArea",
+          weight: "auto", // 固定宽度，不伸缩
+          child: "CompactCircularTimerWidget", // 小型环形进度条计时器
+          size: {
+            width: 32, // dp，直径
+            height: 32, // dp，直径
+          },
+          note: "使用方案A：小型环形进度条计时器，直径32px，线条宽度2-3px，中心显示时间（MM:SS或HH:MM），使用onInverseSurface颜色，支持点击暂停/继续",
+        },
+        {
+          // 间距
+          name: "spacing",
+          width: 12, // dp
+        },
+        {
+          // 任务标题区域（右侧，可伸缩）
+          name: "taskTitleArea",
+          weight: "flexible", // Expanded，占据剩余空间
+          child: "Column（垂直布局）",
+          children: [
+            {
+              // 任务标题文本
+              name: "taskTitleText",
+              child: "任务标题文本",
+              style: {
+                fontSize: 16, // sp
+                fontWeight: "w500", // FontWeight.w500
+                color: "Theme.of(context).colorScheme.onInverseSurface", // 反色设计：使用onInverseSurface
+                maxLines: 3, // 最多显示3行
+                overflow: "TextOverflow.ellipsis", // 溢出部分用省略号显示
+                textAlign: "TextAlign.start", // 左对齐
+              },
+              interaction: {
+                // 点击任务标题打开任务弹窗
+                onTap: "TaskBottomSheetHelper.showTaskBottomSheet(context, ref, task)",
+                note: "点击任务标题打开与普通任务相同的弹窗，可以进行所有任务管理操作。标题支持多行显示，最多3行，溢出部分隐藏",
+              },
+            },
+            {
+              // 超时警告提示（条件显示）
+              name: "timeoutWarning",
+              child: "TimeoutWarningWidget",
+              displayCondition: "elapsedTime >= 1 hour",
+              note: "当任务计时超过1小时时，在任务标题下方显示警告提示",
+            },
+          ],
+        },
+      ],
+    },
+    
+    // 滑动操作支持
+    swipeActions: {
+      enabled: true,
+      // 使用 DismissibleTaskTile 组件包装
+      component: "DismissibleTaskTile",
+      // 滑动配置：使用与任务列表相同的配置
+      config: "SwipeConfigs.tasksConfig",
+      // 左滑操作：完成任务
+      leftAction: "SwipeActionType.complete",
+      // 右滑操作：归档任务
+      rightAction: "SwipeActionType.archive",
+      note: "置顶任务支持与普通任务相同的滑动操作，保持交互一致性",
+    },
+    
+    // 状态管理
+    stateManagement: {
+      // Provider：管理当前置顶的任务ID
+      provider: "pinnedTaskIdProvider",
+      path: "lib/core/providers/pinned_task_provider.dart",
+      type: "StateProvider<String?>",
+      note: "使用 StateProvider 管理置顶任务ID，当任务被置顶时设置为任务ID，当置顶被清除时设置为 null",
+    },
+  },
+  
+  // 小型环形进度条计时器组件（方案A）
+  compactCircularTimer: {
+    // 组件名称
+    component: "CompactCircularTimerWidget",
+    // 组件路径
+    path: "lib/presentation/widgets/compact_circular_timer_widget.dart",
+    
+    // 设计特点
+    designFeatures: {
+      // 尺寸
+      size: {
+        diameter: 32, // dp，直径
+        strokeWidth: 2.5, // dp，线条宽度
+        note: "小型设计，适合置顶栏的紧凑布局",
+      },
+      
+      // 显示内容
+      display: {
+        // 时间格式
+        timeFormat: "MM:SS", // 或 "HH:MM"（当超过1小时时）
+        // 字体
+        fontFamily: "monospace", // 等宽字体
+        fontSize: 10, // sp，小号字体
+        fontWeight: "w500", // FontWeight.w500
+        // 颜色
+        textColor: "Theme.of(context).colorScheme.onInverseSurface", // 反色设计
+        // 字体特性
+        fontFeatures: ["FontFeature.tabularFigures()"], // 等宽数字
+      },
+      
+      // 进度条设计
+      progressBar: {
+        // 进度计算：基于小时循环（每60分钟一圈）
+        progressCalculation: "elapsedMinutes % 60 / 60.0",
+        // 颜色
+        color: "Theme.of(context).colorScheme.onInverseSurface.withOpacity(0.8)", // 反色设计，稍微降低不透明度
+        // 背景圆环
+        backgroundCircle: {
+          enabled: true,
+          color: "Theme.of(context).colorScheme.onInverseSurface.withOpacity(0.2)", // 浅色背景圆环
+          strokeWidth: 2.5, // dp，与进度条相同
+        },
+        // 线条样式
+        strokeCap: "StrokeCap.round", // 圆角端点
+      },
+      
+      // 交互
+      interaction: {
+        // 计时器只显示，不可点击
+        onTap: null, // 不响应点击，只显示时间
+        note: "计时器只用于显示时间，不支持暂停/继续操作。开始计时后只能通过完成任务来结束计时",
+      },
+      
+      // 实现方式
+      implementation: {
+        // 复用组件
+        reuse: "CircularProgressPainter", // 复用现有的环形进度条绘制器
+        // 自定义绘制
+        customPaint: true, // 使用CustomPaint绘制
+        // 状态管理
+        stateManagement: "复用TaskTimerWidget的状态管理逻辑，但移除暂停/继续功能",
+        note: "基于现有的CircularProgressPainter和TaskTimerWidget，创建小型版本，但只显示时间，不支持暂停/继续",
+      },
+    },
+    
+    // 优势
+    advantages: [
+      "视觉突出：环形进度条在反色背景下非常醒目",
+      "空间紧凑：32px直径，适合置顶栏的紧凑布局",
+      "信息丰富：同时显示时间和进度，一目了然",
+      "符合趋势：符合2025年设计趋势，参考Notion、Linear等现代应用",
+      "易于复用：基于现有组件，开发成本低",
+    ],
+  },
+  
+  // 超时警告提示组件
+  timeoutWarning: {
+    // 组件名称
+    component: "TimeoutWarningWidget",
+    // 组件路径
+    path: "lib/presentation/widgets/timeout_warning_widget.dart",
+    
+    // 显示条件
+    displayCondition: {
+      // 当任务计时超过1小时时显示
+      showWhen: "elapsedTime >= 1 hour",
+      // 当任务完成、删除或归档时隐藏
+      hideWhen: [
+        "任务状态为 completedActive",
+        "任务状态为 trashed",
+        "任务状态为 archived",
+      ],
+      note: "警告提示在任务计时超过1小时时自动显示，提醒用户优化任务管理",
+    },
+    
+    // 警告提示样式
+    warningStyle: {
+      // 背景颜色
+      backgroundColor: "Theme.of(context).colorScheme.errorContainer", // 使用错误容器颜色
+      // 文字颜色
+      textColor: "Theme.of(context).colorScheme.onErrorContainer",
+      // 图标
+      icon: "Icons.warning_rounded",
+      iconColor: "Theme.of(context).colorScheme.error",
+      // 圆角
+      borderRadius: 8, // dp
+      // 内边距
+      padding: {
+        horizontal: 12, // dp
+        vertical: 8, // dp
+      },
+      // 外边距（在任务标题下方）
+      margin: {
+        top: 8, // dp
+        bottom: 0, // dp
+        horizontal: 0, // dp
+      },
+    },
+    
+    // 警告提示内容
+    warningContent: {
+      // 提示文本
+      message: "任务耗时过长，建议拆分任务",
+      // 文本样式
+      textStyle: {
+        fontSize: 12, // sp
+        fontWeight: "w400", // FontWeight.w400
+        color: "Theme.of(context).colorScheme.onErrorContainer",
+      },
+      // 布局：图标 + 文本
+      layout: "horizontal", // Row
+      // 图标和文本间距
+      spacing: 8, // dp
+    },
+    
+    // 位置
+    position: {
+      // 在置顶栏中，位于任务标题下方
+      location: "belowTaskTitle",
+      note: "警告提示显示在置顶栏的任务标题下方，计时器右侧",
+    },
+  },
+  
+  // 任务弹窗修改（当有置顶任务时）
+  taskActionBottomSheet: {
+    // 修改点：根据是否有置顶任务决定是否显示start按钮
+    modification: {
+      // 当任务被置顶时，弹窗中不显示计时控件（TaskTimerWidget）
+      hideTimerWhenPinned: {
+        condition: "pinnedTaskId == task.id",
+        action: "不显示 TaskTimerWidget",
+        note: "当任务被置顶时，弹窗中隐藏start按钮，避免重复操作。置顶栏已经提供了计时器功能。",
+      },
+      // 当有其他任务被置顶时，弹窗中也不显示计时控件
+      hideTimerWhenOtherPinned: {
+        condition: "pinnedTaskId != null && pinnedTaskId != task.id",
+        action: "不显示 TaskTimerWidget",
+        note: "当有其他任务被置顶时，当前任务的弹窗中也不显示start按钮，确保同时只有一个任务在计时",
+      },
+      // 当没有置顶任务时，正常显示计时控件
+      showTimerWhenNoPinned: {
+        condition: "pinnedTaskId == null",
+        action: "正常显示 TaskTimerWidget",
+        note: "当没有置顶任务时，任务弹窗中正常显示start按钮，用户可以开始计时",
+      },
+    },
+    // 修改位置
+    modificationLocation: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+    // 修改方法
+    modificationMethod: "_buildContent",
+    note: "在 _buildContent 方法中，根据 pinnedTaskIdProvider 的值和当前任务ID，决定是否显示 TaskTimerWidget",
+  },
+  
+  // 计时器组件修改（点击start时设置置顶）
+  taskTimerWidget: {
+    // 修改点：点击start时自动设置任务为置顶
+    modification: {
+      // 在 _handleStart 方法中，设置任务为置顶
+      setPinnedOnStart: {
+        location: "_handleStart 方法",
+        action: "ref.read(pinnedTaskIdProvider.notifier).state = widget.task.id",
+        note: "当用户点击start按钮开始计时时，自动将该任务设置为置顶，置顶栏会自动显示",
+      },
+    },
+    // 修改位置
+    modificationLocation: "lib/presentation/widgets/task_timer_widget.dart",
+    note: "在 TaskTimerWidget 的 _handleStart 方法中，添加设置置顶任务的逻辑",
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程名称
+        name: "开始任务计时并置顶",
+        // 步骤列表
+        steps: [
+          "用户在任务列表中点击某个任务的start按钮（TaskTimerWidget）",
+          "任务状态自动变为 doing，开始计时",
+          "任务自动设置为置顶（pinnedTaskIdProvider 设置为任务ID）",
+          "置顶栏自动出现在页面顶部，显示任务标题和计时器",
+          "任务弹窗中的start按钮自动隐藏（如果弹窗已打开）",
+        ],
+        note: "当用户点击start按钮时，任务自动置顶，置顶栏自动显示",
+      },
+      {
+        // 流程名称
+        name: "查看置顶任务的计时器",
+        // 步骤列表
+        steps: [
+          "用户在置顶栏中看到计时器",
+          "计时器实时更新，显示已用时间（HH:MM:SS格式）",
+          "计时器只用于显示，不支持暂停/继续操作",
+          "用户只能通过完成任务来结束计时",
+        ],
+        note: "置顶栏中的计时器只用于显示时间，不支持暂停/继续操作",
+      },
+      {
+        // 流程名称
+        name: "任务超时警告",
+        // 步骤列表
+        steps: [
+          "任务开始计时后，系统持续监控已用时间",
+          "当任务计时达到1小时时，在任务标题下方自动显示警告提示",
+          "警告提示显示：\"任务耗时过长，建议拆分任务\"",
+          "警告提示使用错误容器颜色（errorContainer），带有警告图标",
+          "用户可以通过完成任务、删除任务或归档任务来消除警告",
+        ],
+        note: "超时警告功能帮助用户识别可能需要拆分的任务，提升任务管理效率",
+      },
+      {
+        // 流程名称
+        name: "查看和管理置顶任务",
+        // 步骤列表
+        steps: [
+          "用户点击置顶栏中的任务标题",
+          "打开任务操作弹窗（TaskActionBottomSheet）",
+          "弹窗显示任务的所有操作功能（标题编辑、标签管理、项目/里程碑选择、截止日期编辑、复制按钮等）",
+          "注意：弹窗中不显示start按钮（因为任务已被置顶）",
+          "用户可以在弹窗中执行各种操作（完成、归档、删除等）",
+          "用户可以通过向下滑动或点击外部区域关闭弹窗",
+        ],
+        note: "置顶任务可以像普通任务一样进行所有管理操作，只是不显示start按钮",
+      },
+      {
+        // 流程名称
+        name: "滑动操作置顶任务",
+        // 步骤列表
+        steps: [
+          "用户在置顶栏中左滑任务",
+          "执行完成任务操作（SwipeActionType.complete）",
+          "任务状态变为 completedActive",
+          "置顶栏自动消失（因为任务已完成）",
+          "任务弹窗中的start按钮恢复显示（如果弹窗已打开）",
+        ],
+        note: "置顶任务支持与普通任务相同的滑动操作",
+      },
+      {
+        // 流程名称
+        name: "置顶任务状态变化",
+        // 步骤列表
+        steps: [
+          "置顶任务的状态发生变化（完成、删除、归档）",
+          "系统检测到任务状态变化（通过 taskByIdProvider 监听）",
+          "置顶栏自动消失（pinnedTaskIdProvider 设置为 null）",
+          "任务弹窗中的start按钮恢复显示（如果弹窗已打开）",
+          "用户可以再次启动其他任务置顶",
+        ],
+        note: "当置顶任务状态变为完成/删除/归档时，置顶栏自动消失，恢复正常的任务管理流程",
+      },
+      {
+        // 流程名称
+        name: "切换置顶任务",
+        // 步骤列表
+        steps: [
+          "当前已有任务被置顶",
+          "用户点击另一个任务的start按钮",
+          "新任务开始计时并设置为置顶",
+          "旧任务的置顶状态自动清除",
+          "置顶栏显示新任务的信息",
+          "旧任务的计时器停止（如果正在计时）",
+        ],
+        note: "同时只能有一个任务被置顶，启动新任务时自动清除旧任务的置顶状态",
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击置顶栏任务标题
+      tapPinnedTaskTitle: {
+        action: "打开任务操作弹窗",
+        target: "置顶栏右侧的任务标题",
+        note: "点击任务标题打开与普通任务相同的弹窗，可以进行所有任务管理操作。标题支持多行显示，最多3行，溢出部分用省略号显示",
+      },
+      // 计时器显示（不可点击）
+      timerDisplay: {
+        action: "仅显示时间，不可交互",
+        target: "置顶栏中的小型环形进度条计时器",
+        note: "计时器只用于显示时间，不支持点击操作。计时器使用小型环形进度条设计，直径32px，中心显示时间（MM:SS或HH:MM），外围显示进度（每60分钟一圈）",
+      },
+      // 左滑置顶任务
+      swipeLeftPinnedTask: {
+        action: "完成任务",
+        target: "置顶栏中的任务",
+        config: "SwipeConfigs.tasksConfig.leftAction",
+        note: "左滑置顶任务执行完成任务操作，与普通任务一致",
+      },
+      // 右滑置顶任务
+      swipeRightPinnedTask: {
+        action: "归档任务",
+        target: "置顶栏中的任务",
+        config: "SwipeConfigs.tasksConfig.rightAction",
+        note: "右滑置顶任务执行归档任务操作，与普通任务一致",
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 置顶栏出现动画
+    pinnedBarEnter: {
+      type: "slideDown + fadeIn",
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+      note: "置顶栏从上方滑入并淡入，提供流畅的视觉反馈",
+    },
+    
+    // 置顶栏消失动画
+    pinnedBarExit: {
+      type: "slideUp + fadeOut",
+      duration: 250, // 毫秒
+      curve: "Curves.easeIn",
+      note: "置顶栏向上滑出并淡出，提供流畅的视觉反馈",
+    },
+    
+    // 计时器进度动画
+    timerProgress: {
+      type: "smoothUpdate",
+      duration: 1000, // 毫秒，每秒更新一次
+      curve: "Curves.linear",
+      note: "环形进度条平滑更新，每秒更新一次进度，提供流畅的视觉反馈",
+    },
+    
+    // 超时警告出现动画
+    warningEnter: {
+      type: "slideDown + fadeIn",
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+      note: "警告提示从上方滑入并淡入，提供流畅的视觉反馈",
+    },
+    
+    // 超时警告消失动画
+    warningExit: {
+      type: "slideUp + fadeOut",
+      duration: 250, // 毫秒
+      curve: "Curves.easeIn",
+      note: "警告提示向上滑出并淡出，提供流畅的视觉反馈",
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      // 布局方式
+      layout: "vertical",
+      // 置顶栏宽度：全宽（减去左右边距）
+      pinnedBarWidth: "screenWidth - 32dp", // 16dp 左右边距
+      // 字体大小
+      taskTitleFontSize: 16, // sp
+      taskTitleMaxLines: 3, // 最多3行
+      timerSize: 32, // dp，计时器直径
+      timerFontSize: 10, // sp，计时器中心文字大小
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+    },
+    
+    // 手机横屏（可选）
+    mobileLandscape: {
+      layout: "vertical",
+      pinnedBarWidth: "screenWidth - 32dp",
+      taskTitleFontSize: 16, // sp
+      taskTitleMaxLines: 3, // 最多3行
+      timerSize: 32, // dp，计时器直径
+      timerFontSize: 10, // sp，计时器中心文字大小
+      padding: {
+        horizontal: 16, // dp
+        vertical: 10, // dp（横屏时稍微减少垂直内边距）
+      },
+    },
+    
+    // 平板（可选）
+    tablet: {
+      layout: "vertical",
+      // 平板模式下，置顶栏可以设置最大宽度，居中显示
+      maxWidth: 600, // dp
+      pinnedBarWidth: "min(screenWidth - 64dp, 600dp)", // 左右各32dp边距，最大600dp
+      taskTitleFontSize: 18, // sp（平板模式下稍微增大字体）
+      taskTitleMaxLines: 3, // 最多3行
+      timerSize: 36, // dp，计时器直径（平板模式下稍微增大）
+      timerFontSize: 11, // sp，计时器中心文字大小
+      padding: {
+        horizontal: 20, // dp
+        vertical: 14, // dp
+      },
+    },
+  },
+
+  // ===========================================
+  // 8. 状态管理（必填）
+  // ===========================================
+  stateManagement: {
+    // 置顶任务ID Provider
+    pinnedTaskIdProvider: {
+      // Provider 类型
+      type: "StateProvider<String?>",
+      // Provider 路径
+      path: "lib/core/providers/pinned_task_provider.dart",
+      // 初始值
+      initialValue: null,
+      // 用途
+      purpose: "管理当前置顶的任务ID，当任务被置顶时设置为任务ID，当置顶被清除时设置为 null",
+      // 监听任务状态变化
+      watchTaskStatus: {
+        enabled: true,
+        provider: "taskByIdProvider(pinnedTaskId)",
+        note: "通过 taskByIdProvider 监听置顶任务的状态变化，当任务状态变为完成/删除/归档时，自动清除置顶",
+      },
+    },
+    
+    // 任务状态监听
+    taskStatusWatch: {
+      // 监听方式
+      method: "通过 taskByIdProvider 监听任务状态",
+      // 触发清除置顶的状态
+      clearPinnedStatuses: [
+        "TaskStatus.completedActive",
+        "TaskStatus.trashed",
+        "TaskStatus.archived",
+      ],
+      // 清除逻辑
+      clearLogic: "在 PinnedTaskBar 组件中，通过 taskAsync.when 监听任务状态，当状态为完成/删除/归档时，使用 WidgetsBinding.instance.addPostFrameCallback 清除置顶",
+      note: "当置顶任务状态变化时，自动清除置顶状态，置顶栏自动消失",
+    },
+  },
+
+  // ===========================================
+  // 9. 边界情况处理（必填）
+  // ===========================================
+  edgeCases: {
+    // 任务不存在
+    taskNotFound: {
+      scenario: "置顶的任务ID对应的任务不存在（可能被删除）",
+      handling: "在 PinnedTaskBar 组件中，当 taskAsync.when 返回 null 时，自动清除置顶状态",
+      note: "确保即使任务被删除，置顶栏也能正确消失",
+    },
+    
+    // 任务状态异常
+    taskStatusAnomaly: {
+      scenario: "置顶任务的状态变为非活跃状态（完成/删除/归档）",
+      handling: "通过 taskByIdProvider 监听任务状态，当状态变化时自动清除置顶",
+      note: "确保置顶栏只在任务处于活跃状态时显示",
+    },
+    
+    // 同时启动多个任务
+    multipleTasksStarted: {
+      scenario: "用户快速点击多个任务的start按钮",
+      handling: "每次启动新任务时，自动清除旧任务的置顶状态，确保同时只有一个任务被置顶",
+      note: "通过 pinnedTaskIdProvider 的单一状态管理，确保同时只有一个任务被置顶",
+    },
+    
+    // 页面切换
+    pageNavigation: {
+      scenario: "用户在置顶任务时切换到其他页面，然后返回",
+      handling: "置顶状态通过 Provider 管理，页面切换不影响置顶状态，返回时置顶栏仍然显示",
+      note: "置顶状态是全局的，不依赖于页面状态",
+    },
+    
+    // 应用重启
+    appRestart: {
+      scenario: "应用重启后，之前置顶的任务状态",
+      handling: "应用重启后，pinnedTaskIdProvider 初始值为 null，置顶状态不会持久化",
+      note: "置顶状态是临时的，应用重启后需要用户重新启动任务",
+    },
+    
+    // 超时警告显示时机
+    timeoutWarningTiming: {
+      scenario: "任务计时刚好达到1小时时，警告提示的显示时机",
+      handling: "当任务计时达到或超过1小时（60分钟）时，立即显示警告提示。警告提示会持续显示，直到任务完成、删除或归档",
+      note: "警告提示在达到1小时阈值时立即显示，不会延迟或闪烁",
+    },
+    
+    // 超时警告与任务状态
+    timeoutWarningWithTaskStatus: {
+      scenario: "任务在超时状态下完成、删除或归档",
+      handling: "当任务状态变为完成、删除或归档时，警告提示自动消失，置顶栏也会自动消失",
+      note: "警告提示的生命周期与置顶栏绑定，任务状态变化时自动清除",
+    },
+  },
+
+  // ===========================================
+  // 10. 性能考虑（可选）
+  // ===========================================
+  performance: {
+    // 状态监听优化
+    stateWatchOptimization: {
+      method: "使用 taskByIdProvider 的 StreamProvider 监听任务状态",
+      note: "StreamProvider 会自动处理订阅和取消订阅，避免内存泄漏",
+    },
+    
+    // 动画性能
+    animationPerformance: {
+      method: "使用 Flutter 的原生动画系统，确保60fps流畅动画",
+      note: "置顶栏的显示/隐藏动画使用 AnimatedSwitcher 或类似的组件，确保流畅",
+    },
+    
+    // 渲染优化
+    renderOptimization: {
+      method: "置顶栏使用 ConsumerWidget，只在 pinnedTaskIdProvider 变化时重建",
+      note: "避免不必要的重建，提升性能",
+    },
+  },
+
+  // ===========================================
+  // 11. 可访问性（可选）
+  // ===========================================
+  accessibility: {
+    // 语义标签
+    semanticLabels: {
+      pinnedBar: "置顶任务栏",
+      taskTitle: "任务标题，点击查看详情",
+      timer: "小型环形进度条计时器，仅显示时间",
+      warning: "超时警告提示，任务计时超过1小时时显示",
+    },
+    
+    // 屏幕阅读器支持
+    screenReader: {
+      enabled: true,
+      announcements: [
+        "任务已置顶",
+        "任务已取消置顶",
+        "任务计时已超过1小时",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 12. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      // 问题描述
+      question: "置顶状态是否需要持久化？",
+      // 问题详细说明
+      description: "当前设计置顶状态是临时的，应用重启后会丢失。是否需要将置顶状态持久化到本地存储，应用重启后自动恢复？",
+      // 可选方案列表
+      options: [
+        "方案1：不持久化，应用重启后置顶状态丢失（当前方案）",
+        "方案2：持久化到本地存储，应用重启后自动恢复置顶状态",
+        "方案3：持久化但增加过期机制，超过一定时间（如24小时）后自动清除",
+      ],
+      // 推荐方案
+      recommendation: "方案1：不持久化。置顶状态是临时的，应用重启后用户需要重新启动任务，这样可以确保用户明确知道当前正在执行的任务。",
+      // 是否已确认
+      confirmed: false,
+    },
+    {
+      // 问题描述
+      question: "置顶栏的位置是否需要支持自定义？",
+      // 问题详细说明
+      description: "当前设计置顶栏固定在页面顶部（筛选区域下方）。是否需要支持用户自定义置顶栏的位置（如固定在底部）？",
+      // 可选方案列表
+      options: [
+        "方案1：固定位置，不支持自定义（当前方案）",
+        "方案2：支持用户自定义位置（顶部/底部）",
+        "方案3：根据用户习惯自动调整位置",
+      ],
+      // 推荐方案
+      recommendation: "方案1：固定位置。置顶栏的目的是快速访问当前任务，固定在顶部符合用户习惯，不需要自定义。",
+      // 是否已确认
+      confirmed: false,
+    },
+    {
+      // 问题描述
+      question: "置顶栏是否需要支持多个任务？",
+      // 问题详细说明
+      description: "当前设计同时只能有一个任务被置顶。是否需要支持多个任务同时置顶（如显示多个置顶任务卡片）？",
+      // 可选方案列表
+      options: [
+        "方案1：只支持单个任务置顶（当前方案）",
+        "方案2：支持多个任务置顶，显示多个置顶任务卡片",
+        "方案3：支持多个任务置顶，但只显示最近的一个，其他折叠",
+      ],
+      // 推荐方案
+      recommendation: "方案1：只支持单个任务置顶。这样可以确保用户专注于当前任务，避免分散注意力。如果需要切换任务，可以停止当前任务后启动新任务。",
+      // 是否已确认
+      confirmed: false,
+    },
+    {
+      // 问题描述
+      question: "置顶栏的动画效果是否需要更丰富？",
+      // 问题详细说明
+      description: "当前设计置顶栏使用简单的滑入/滑出动画。是否需要添加更丰富的动画效果（如弹性动画、粒子效果等）？",
+      // 可选方案列表
+      options: [
+        "方案1：简单的滑入/滑出动画（当前方案）",
+        "方案2：添加弹性动画效果",
+        "方案3：添加粒子效果或其他视觉特效",
+      ],
+      // 推荐方案
+      recommendation: "方案1：简单的滑入/滑出动画。保持简洁，避免过度设计，符合 Material Design 3 的设计原则。",
+      // 是否已确认
+      confirmed: false,
+    },
+  ],
+
+  // ===========================================
+  // 13. 依赖与风险（必填）
+  // ===========================================
+  dependencies: {
+    // 技术依赖
+    technical: [
+      "flutter_riverpod：用于状态管理（pinnedTaskIdProvider）",
+      "现有的 TaskTimerWidget 组件：复用计时器状态管理逻辑（但移除暂停/继续功能）",
+      "现有的 CircularProgressPainter 组件：复用环形进度条绘制逻辑",
+      "新建 CompactCircularTimerWidget 组件：小型环形进度条计时器（方案A，只显示，不可交互）",
+      "新建 TimeoutWarningWidget 组件：超时警告提示组件",
+      "现有的 DismissibleTaskTile 组件：复用滑动操作功能",
+      "现有的 TaskBottomSheetHelper：复用任务弹窗功能",
+      "现有的 taskByIdProvider：监听任务状态变化",
+    ],
+    
+    // 功能依赖
+    functional: [
+      "任务计时功能：需要任务能够正常开始计时（不支持暂停/继续）",
+      "任务状态管理：需要任务状态能够正常更新",
+      "任务弹窗功能：需要任务弹窗能够正常显示和操作",
+      "滑动操作功能：需要滑动操作能够正常执行",
+    ],
+  },
+
+  risks: {
+    // 技术风险
+    technical: [
+      {
+        risk: "状态管理复杂度增加",
+        impact: "中等",
+        mitigation: "使用 StateProvider 管理置顶状态，逻辑简单清晰，风险可控",
+      },
+      {
+        risk: "任务状态监听可能导致性能问题",
+        impact: "低",
+        mitigation: "使用 StreamProvider 自动管理订阅，只在有置顶任务时监听，性能影响最小",
+      },
+    ],
+    
+    // 用户体验风险
+    ux: [
+      {
+        risk: "置顶栏可能遮挡任务列表内容",
+        impact: "低",
+        mitigation: "置顶栏高度较小，且只在有置顶任务时显示，对内容遮挡影响很小",
+      },
+      {
+        risk: "用户可能不清楚置顶栏的作用",
+        impact: "低",
+        mitigation: "置顶栏的设计直观，显示任务标题和计时器，用户容易理解其作用",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 14. 后续优化方向（可选）
+  // ===========================================
+  futureEnhancements: [
+    {
+      feature: "置顶状态持久化",
+      description: "将置顶状态持久化到本地存储，应用重启后自动恢复",
+      priority: "低",
+      note: "根据用户反馈决定是否需要",
+    },
+    {
+      feature: "置顶栏自定义位置",
+      description: "支持用户自定义置顶栏的位置（顶部/底部）",
+      priority: "低",
+      note: "根据用户反馈决定是否需要",
+    },
+    {
+      feature: "多个任务置顶",
+      description: "支持多个任务同时置顶，显示多个置顶任务卡片",
+      priority: "低",
+      note: "根据用户反馈决定是否需要，当前设计优先考虑专注度",
+    },
+    {
+      feature: "置顶栏快捷操作",
+      description: "在置顶栏中添加更多快捷操作按钮（如快速完成、快速归档等）",
+      priority: "低",
+      note: "根据用户反馈决定是否需要，当前设计保持简洁",
+    },
+  ],
+}
+

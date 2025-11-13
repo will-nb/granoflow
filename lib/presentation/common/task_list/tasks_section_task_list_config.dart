@@ -130,6 +130,16 @@ class TasksSectionTaskListConfig implements TaskListConfig {
   }
 
   @override
+  String? handleMilestoneId({
+    required Task? beforeTask,
+    required Task? afterTask,
+    required Task draggedTask,
+  }) {
+    // Tasks 页面不需要处理里程碑
+    return null;
+  }
+
+  @override
   TaskSection? get section => _section;
 
   @override

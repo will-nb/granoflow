@@ -4,6 +4,7 @@ import '../../data/models/task.dart';
 import '../../data/repositories/task_repository.dart';
 import 'metric_orchestrator.dart';
 import 'milestone_service.dart';
+import 'project_service.dart';
 import 'tag_service.dart';
 import 'task_crud_service_helpers.dart';
 
@@ -15,17 +16,20 @@ class TaskCrudServiceUpdate {
     required TaskRepository taskRepository,
     required MetricOrchestrator metricOrchestrator,
     required MilestoneService milestoneService,
+    ProjectService? projectService,
     required TaskCrudServiceHelpers helpers,
     DateTime Function()? clock,
   }) : _tasks = taskRepository,
        _metricOrchestrator = metricOrchestrator,
        _milestoneService = milestoneService,
+       _projectService = projectService,
        _helpers = helpers,
        _clock = clock ?? DateTime.now;
 
   final TaskRepository _tasks;
   final MetricOrchestrator _metricOrchestrator;
   final MilestoneService _milestoneService;
+  final ProjectService? _projectService;
   final TaskCrudServiceHelpers _helpers;
   final DateTime Function() _clock;
 
@@ -244,6 +248,26 @@ class TaskCrudServiceUpdate {
           );
         }
         await _tasks.batchUpdate(updates);
+      }
+    }
+
+    // 如果任务属于项目但没有里程碑，确保任务有里程碑
+    final finalProjectId = payload.projectId ?? existing.projectId;
+    if (finalProjectId != null && _projectService != null) {
+      // 检查任务是否有里程碑
+      final finalMilestoneId = payload.milestoneId ?? existing.milestoneId;
+      if (finalMilestoneId == null) {
+        // 任务属于项目但没有里程碑，确保任务有里程碑
+        try {
+          await _projectService.ensureTasksHaveMilestone(finalProjectId);
+        } catch (e, stackTrace) {
+          if (kDebugMode) {
+            debugPrint(
+              '[TaskCrudService.updateDetails] {event: ensureTasksHaveMilestone:failed, taskId: $taskId, projectId: $finalProjectId, error: $e, stackTrace: $stackTrace}',
+            );
+          }
+          // 继续执行，不中断整个更新流程
+        }
       }
     }
 

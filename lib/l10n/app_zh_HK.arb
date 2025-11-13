@@ -289,6 +289,41 @@
   "datePickerThisWeek": "本週",
   "datePickerThisMonth": "當月",
   "datePickerCustom": "選擇其他日期",
+  "detailCreated": "創建時間：{date}",
+  "@detailCreated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailUpdated": "更新時間：{date}",
+  "@detailUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailMilestones": "里程碑：{count} 個",
+  "@detailMilestones": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detailTasks": "任務：{completed} / {total}",
+  "@detailTasks": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "inboxTagError": "更新標籤失敗",
   "inboxTemplateApplied": "模板已套用。",
   "inboxTemplateEmpty": "暫時沒有模板推薦。",
@@ -330,6 +365,28 @@
   "milestoneDeleted": "里程碑已刪除",
   "milestoneEditTitle": "編輯里程碑",
   "milestoneUpdated": "里程碑已更新",
+  "milestoneProgressLabel": "{completed} / {total} 個任務（{percentage}%）",
+  "@milestoneProgressLabel": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "milestonesLoadError": "載入里程碑失敗：{error}",
+  "@milestonesLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navArchivedTitle": "封存",
   "navCompletedTitle": "已完成",
   "navInboxTitle": "收集箱",
@@ -631,6 +688,41 @@
     "description": "無里程碑進度提示"
   },
   "projectProgressLabel": "{percentage}% · {completed}/{total} 個里程碑",
+  "projectProgressTasksLabel": "進度：{completed} / {total} 個任務（{percentage}%）",
+  "@projectProgressTasksLabel": {
+    "description": "項目進度（任務數）",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "projectProgressLoadError": "載入進度失敗：{error}",
+  "@projectProgressLoadError": {
+    "description": "載入進度錯誤訊息",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "projectNoTasks": "暫無任務",
+  "projectNotFound": "項目未找到",
+  "projectLoadError": "載入項目失敗：{error}",
+  "@projectLoadError": {
+    "description": "載入項目錯誤訊息",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "@projectProgressLabel": {
     "description": "項目進度摘要",
     "placeholders": {

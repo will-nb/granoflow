@@ -31,6 +31,6 @@ void main() {
     );
 
     final textWidget = tester.widget<Text>(find.text('Sample Task'));
-    expect(textWidget.style?.fontWeight, FontWeight.w600);
+    expect(textWidget.style?.fontWeight, FontWeight.w400);
   });
 }

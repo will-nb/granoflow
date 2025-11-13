@@ -1,0 +1,1239 @@
+{
+  // ===========================================
+  // 任务置顶功能迭代蓝图
+  // 基于 design_pinned_task.json5 实现任务置顶功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID
+    id: "250127-tasks-pinned-task",
+    
+    // 迭代标题
+    title: "任务置顶功能：反色对比设计 + 小型环形计时器 + 超时警告",
+    
+    // 迭代描述
+    description: "在任务清单页面添加置顶任务栏功能。当用户点击任务的start按钮开始计时时，自动将该任务置顶显示在页面顶部。置顶栏采用反色对比设计（light模式显示dark样式，dark模式显示light样式），包含任务标题（最多3行）和小型环形进度条计时器（32px直径）。当任务计时超过1小时时，在任务标题下方显示警告提示。置顶任务支持点击打开弹窗、左滑右滑操作。当任务状态变为完成、删除或归档时，置顶栏自动消失。",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/tasks/design_pinned_task.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // Provider 状态管理
+    providers: [
+      {
+        path: "lib/core/providers/pinned_task_provider.dart",
+        purpose: "管理当前置顶的任务ID状态，使用StateProvider实现",
+        action: "create",
+        estimatedLines: 30,
+        dependencies: [
+          "flutter_riverpod",
+        ],
+        details: [
+          "创建 pinnedTaskIdProvider：StateProvider<String?>",
+          "初始值为 null，表示没有置顶任务",
+          "当任务被置顶时设置为任务ID",
+          "当置顶被清除时设置为 null",
+          "提供简单的状态管理，不涉及复杂逻辑",
+        ],
+      },
+    ],
+    
+    // Widget 组件
+    widgets: [
+      {
+        path: "lib/presentation/widgets/pinned_task_bar.dart",
+        purpose: "置顶任务栏组件，显示置顶的任务标题、计时器和超时警告",
+        action: "create",
+        estimatedLines: 200,
+        dependencies: [
+          "lib/core/providers/pinned_task_provider.dart",
+          "lib/core/providers/app_providers.dart",
+          "lib/data/models/task.dart",
+          "lib/presentation/widgets/dismissible_task_tile.dart",
+          "lib/presentation/widgets/swipe_configs.dart",
+          "lib/presentation/widgets/compact_circular_timer_widget.dart",
+          "lib/presentation/widgets/timeout_warning_widget.dart",
+          "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart",
+        ],
+        details: [
+          "PinnedTaskBar 组件：ConsumerWidget，监听 pinnedTaskIdProvider",
+          "当 pinnedTaskIdProvider 为 null 时，返回 SizedBox.shrink()",
+          "当有置顶任务时，通过 taskByIdProvider 监听任务数据",
+          "任务状态检查：如果任务不存在或状态为 completedActive/trashed/archived，自动清除置顶",
+          "使用 DismissibleTaskTile 包装，支持左滑右滑操作（SwipeConfigs.tasksConfig）",
+          "布局结构：",
+          "  - 外层：Container（反色背景 inverseSurface，圆角12px，阴影）",
+          "  - 内层：Row（水平布局）",
+          "    - 左侧：CompactCircularTimerWidget（32px直径，固定宽度）",
+          "    - 间距：12dp",
+          "    - 右侧：Expanded Column（垂直布局，占据剩余空间）",
+          "      - 任务标题：Text（最多3行，溢出省略，点击打开弹窗）",
+          "      - 超时警告：TimeoutWarningWidget（条件显示，elapsedTime >= 1 hour）",
+          "点击任务标题打开 TaskBottomSheetHelper.showTaskBottomSheet",
+          "使用 AnimatedSwitcher 实现出现/消失动画（slideDown + fadeIn / slideUp + fadeOut）",
+          "支持可访问性标签和屏幕阅读器",
+        ],
+      },
+      {
+        path: "lib/presentation/widgets/compact_circular_timer_widget.dart",
+        purpose: "小型环形进度条计时器组件，用于置顶栏显示时间",
+        action: "create",
+        estimatedLines: 180,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/core/providers/focus_providers.dart",
+          "lib/presentation/clock/widgets/circular_progress_painter.dart",
+          "lib/presentation/clock/utils/clock_timer_utils.dart",
+          "lib/core/theme/ocean_breeze_color_schemes.dart",
+        ],
+        details: [
+          "CompactCircularTimerWidget 组件：ConsumerStatefulWidget",
+          "尺寸：固定32px × 32px（直径）",
+          "使用 CustomPaint + CircularProgressPainter 绘制环形进度条",
+          "进度计算：elapsedMinutes % 60 / 60.0（每60分钟一圈）",
+          "进度条颜色：onInverseSurface.withOpacity(0.8)",
+          "背景圆环：onInverseSurface.withOpacity(0.2)",
+          "线条宽度：2.5dp，圆角端点（StrokeCap.round）",
+          "中心显示时间：",
+          "  - 格式：MM:SS（小于1小时）或 HH:MM（超过1小时）",
+          "  - 字体：monospace，10sp，w500",
+          "  - 颜色：onInverseSurface",
+          "  - 字体特性：FontFeature.tabularFigures()",
+          "状态管理：",
+          "  - 通过 focusSessionProvider(taskId) 监听 session",
+          "  - 通过 task.status 获取任务状态",
+          "  - 如果没有活跃session，不显示（返回 SizedBox.shrink()）",
+          "  - 如果有活跃session，计算已用时间并显示",
+          "时间计算：",
+          "  - doing状态：实时计算（now - session.startedAt - pausedDuration）",
+          "  - paused状态：使用 session.actualMinutes（已保存的时间）",
+          "  - 使用 Timer.periodic(Duration(seconds: 1)) 每秒更新UI",
+          "不支持点击交互（只显示，不可点击）",
+          "使用 RepaintBoundary 优化性能",
+        ],
+      },
+      {
+        path: "lib/presentation/widgets/timeout_warning_widget.dart",
+        purpose: "超时警告提示组件，当任务计时超过1小时时显示",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [
+          "lib/data/models/task.dart",
+          "lib/core/providers/focus_providers.dart",
+          "lib/generated/l10n/app_localizations.dart",
+          "lib/l10n/app_en.arb（需要添加新的翻译键）",
+          "lib/l10n/app_zh.arb（需要添加新的翻译键）",
+        ],
+        details: [
+          "TimeoutWarningWidget 组件：ConsumerWidget",
+          "接收 task 参数",
+          "显示条件：elapsedTime >= 1 hour（60分钟）",
+          "通过 focusSessionProvider(taskId) 获取 session，计算已用时间",
+          "如果已用时间小于1小时，返回 SizedBox.shrink()",
+          "布局：Row（水平布局）",
+          "  - 警告图标：Icons.warning_rounded，error颜色，14sp",
+          "  - 间距：8dp",
+          "  - 警告文本：使用 AppLocalizations 的本地化文本（需要添加新的翻译键），12sp，w400，onErrorContainer颜色",
+          "  - 注意：不能硬编码文案，必须使用 l10n 获取本地化文本",
+          "样式：",
+          "  - 背景：errorContainer",
+          "  - 圆角：8dp",
+          "  - 内边距：horizontal 12dp，vertical 8dp",
+          "  - 外边距：top 8dp（在任务标题下方）",
+          "使用 AnimatedSwitcher 实现出现/消失动画",
+          "支持可访问性标签",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（必填）
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/presentation/clock/utils/clock_timer_utils.dart",
+      purpose: "扩展时间格式化工具，添加条件格式支持（MM:SS 或 HH:MM:SS）",
+      changes: [
+        "添加 formatElapsedTimeCompact 静态方法：",
+        "  - 方法签名：static String formatElapsedTimeCompact(Duration duration)",
+        "  - 小于1小时：显示 MM:SS 格式（例如：45:30）",
+        "  - 超过1小时：显示 HH:MM:SS 格式（例如：1:23:45）",
+        "保持现有的 formatElapsedTime 方法不变（向后兼容）",
+        "添加方法文档注释，说明使用场景和格式规则",
+      ],
+      estimatedLines: 20,
+    },
+    {
+      file: "lib/presentation/tasks/task_list_page.dart",
+      purpose: "在任务列表页面添加置顶任务栏显示",
+      changes: [
+        "在 CustomScrollView 的 slivers 列表最前面添加置顶栏：",
+        "  - 在筛选UI（TaskFilterCollapsible）之后添加 SliverToBoxAdapter",
+        "  - 内容：PinnedTaskBar()",
+        "  - 位置：在筛选UI之后，进度条（showLinearProgress）之前",
+        "导入 PinnedTaskBar 组件",
+      ],
+      estimatedLines: 10,
+    },
+    {
+      file: "lib/presentation/widgets/task_timer_widget.dart",
+      purpose: "在开始计时时自动设置任务为置顶",
+      changes: [
+        "在 _handleStart 方法中，添加设置置顶任务的逻辑：",
+        "  - 导入 pinnedTaskIdProvider",
+        "  - 在创建focus session之后，添加：ref.read(pinnedTaskIdProvider.notifier).state = widget.task.id",
+        "  - 这样当用户点击start按钮时，任务自动置顶",
+      ],
+      estimatedLines: 5,
+    },
+    {
+      file: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+      purpose: "根据是否有置顶任务决定是否显示start按钮（TaskTimerWidget）",
+      changes: [
+        "在 _buildContent 方法中，修改 canShowTimer 的判断逻辑：",
+        "  - 导入 pinnedTaskIdProvider",
+        "  - 获取 pinnedTaskId：final pinnedTaskId = ref.watch(pinnedTaskIdProvider);",
+        "  - 修改 canShowTimer 条件：",
+        "    - 原有条件：!isInbox && (pending || doing || paused)",
+        "    - 新增条件：pinnedTaskId == null（没有置顶任务）",
+        "    - 新增条件：pinnedTaskId != task.id（当前任务不是置顶任务）",
+        "  - 最终条件：!isInbox && (pending || doing || paused) && (pinnedTaskId == null || pinnedTaskId != task.id)",
+        "这样当任务被置顶时，弹窗中不显示start按钮，避免重复操作",
+      ],
+      estimatedLines: 10,
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  // 注意：阶段完成后自动执行下一阶段，不需要沟通确认
+  // AI 开发将完成所有功能，按顺序执行所有阶段
+  // 每个阶段完成时忽略 pre-commit，强行 git commit（使用 --no-verify 选项）
+  // 
+  // 错误处理策略：
+  // - 如果某个任务失败，先尝试修复（如 analyze issues、测试失败），修复后继续
+  // - 如果无法自动修复（如需要人工决策），记录问题并继续下一个任务，在阶段完成时总结所有未解决问题
+  // - build_runner 冲突：使用 --delete-conflicting-outputs 参数自动删除冲突文件
+  // - analyze issues 无法自动修复：记录到 commit message 中，标记为已知问题，继续后续任务
+  implementationSteps: [
+    {
+      step: 1,
+      title: "阶段 1：创建状态管理 Provider",
+      description: "创建 pinnedTaskIdProvider 用于管理置顶任务ID状态",
+      tasks: [
+        {
+          task: "创建 pinnedTaskIdProvider",
+          file: "lib/core/providers/pinned_task_provider.dart",
+          action: [
+            "创建新文件 lib/core/providers/pinned_task_provider.dart",
+            "导入 flutter_riverpod",
+            "创建 pinnedTaskIdProvider：StateProvider<String?>，初始值为 null",
+            "添加注释说明用途：管理当前置顶的任务ID",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze lib/core/providers/pinned_task_provider.dart",
+          action: "检查新创建的 Provider 文件是否有语法错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 创建置顶任务状态管理 Provider'",
+          action: "提交阶段 1 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：扩展时间格式化工具并创建小型环形进度条计时器组件",
+      description: "扩展 ClockTimerUtils 支持条件格式，然后创建 CompactCircularTimerWidget",
+      tasks: [
+        {
+          task: "扩展 ClockTimerUtils 添加条件格式方法",
+          file: "lib/presentation/clock/utils/clock_timer_utils.dart",
+          action: [
+            "在 ClockTimerUtils 中添加 formatElapsedTimeCompact 静态方法",
+            "方法签名：static String formatElapsedTimeCompact(Duration duration)",
+            "实现逻辑：",
+            "  - 如果 duration.inHours == 0：显示 MM:SS 格式",
+            "  - 如果 duration.inHours > 0：显示 HH:MM:SS 格式",
+            "使用 Duration 的 inHours、inMinutes、inSeconds 计算各部分",
+            "保持现有的 formatElapsedTime 方法不变（向后兼容）",
+          ],
+        },
+        {
+          task: "创建 CompactCircularTimerWidget 组件",
+          file: "lib/presentation/widgets/compact_circular_timer_widget.dart",
+          action: [
+            "创建新文件 lib/presentation/widgets/compact_circular_timer_widget.dart",
+            "导入必要的包：flutter/material.dart, flutter_riverpod, dart:async",
+            "导入依赖：Task模型、focus_providers、CircularProgressPainter、主题颜色",
+            "创建 CompactCircularTimerWidget：ConsumerStatefulWidget",
+            "接收 task 参数",
+            "实现状态类：_CompactCircularTimerWidgetState extends ConsumerState",
+            "添加 Timer? _timer 用于每秒更新UI",
+            "扩展 ClockTimerUtils，添加 formatElapsedTimeCompact 方法：",
+            "  - 方法签名：static String formatElapsedTimeCompact(Duration duration)",
+            "  - 时间格式规则：",
+            "    - 小于1小时：显示 MM:SS（例如：45:30）",
+            "    - 超过1小时：显示 HH:MM:SS（例如：1:23:45）",
+            "  - 使用 Duration 的 inHours、inMinutes、inSeconds 计算各部分",
+            "在 CompactCircularTimerWidget 中使用 ClockTimerUtils.formatElapsedTimeCompact 格式化时间",
+            "实现 _computeElapsed 方法：计算已用时间（doing状态实时计算，paused状态使用session.actualMinutes）",
+            "实现 _startTimer 方法：启动每秒更新的定时器",
+            "在 build 方法中：",
+            "  - 通过 focusSessionProvider(taskId) 监听 session",
+            "  - 如果没有活跃session，返回 SizedBox.shrink()",
+            "  - 如果有活跃session，计算进度和已用时间",
+            "  - 使用 CustomPaint + CircularProgressPainter 绘制环形进度条",
+            "  - 进度计算：elapsedMinutes % 60 / 60.0",
+            "  - 进度条颜色：onInverseSurface.withOpacity(0.8)",
+            "  - 背景圆环：onInverseSurface.withOpacity(0.2)",
+            "  - 中心显示时间文本（monospace字体，10sp，w500，onInverseSurface颜色）",
+            "  - 使用 RepaintBoundary 优化性能",
+            "在 dispose 中取消定时器",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze lib/presentation/clock/utils/clock_timer_utils.dart lib/presentation/widgets/compact_circular_timer_widget.dart",
+          action: "检查扩展的工具类和新建的组件是否有语法错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 扩展时间格式化工具并创建小型环形进度条计时器组件'",
+          action: "提交阶段 2 的所有更改（包括 ClockTimerUtils 扩展和 CompactCircularTimerWidget），忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：添加本地化翻译并创建超时警告组件",
+      description: "先在 .arb 文件中添加超时警告的翻译键，然后创建 TimeoutWarningWidget",
+      tasks: [
+        {
+          task: "添加超时警告的本地化翻译键",
+          file: "lib/l10n/app_en.arb 和 app_zh.arb",
+          action: [
+            "在 app_en.arb 中添加翻译键（按字母顺序插入）：",
+            "  \"taskTimeoutWarning\": \"Task is taking too long, consider splitting it\",",
+            "  \"@taskTimeoutWarning\": { \"description\": \"Warning message when task timer exceeds 1 hour\" },",
+            "在 app_zh.arb 中添加翻译键（按字母顺序插入）：",
+            "  \"taskTimeoutWarning\": \"任务耗时过长，建议拆分任务\",",
+            "  \"@taskTimeoutWarning\": { \"description\": \"任务计时超过1小时时的警告提示\" },",
+            "如果需要支持繁体中文，在 app_zh_Hant.arb 中也添加相应翻译",
+            "注意：翻译键必须按字母顺序插入到 .arb 文件中",
+          ],
+        },
+        {
+          task: "创建 TimeoutWarningWidget 组件",
+          file: "lib/presentation/widgets/timeout_warning_widget.dart",
+          action: [
+            "创建新文件 lib/presentation/widgets/timeout_warning_widget.dart",
+            "导入必要的包：flutter/material.dart, flutter_riverpod",
+            "导入依赖：Task模型、focus_providers、AppLocalizations",
+            "创建 TimeoutWarningWidget：ConsumerWidget",
+            "接收 task 参数",
+            "使用 AppLocalizations.of(context) 获取本地化文本：final l10n = AppLocalizations.of(context);",
+            "警告文本使用 l10n.taskTimeoutWarning（不能硬编码）",
+            "在 build 方法中：",
+            "  - 通过 focusSessionProvider(taskId) 获取 session",
+            "  - 计算已用时间：如果session存在且活跃，计算 elapsedTime",
+            "  - 如果 elapsedTime < 1 hour，返回 SizedBox.shrink()",
+            "  - 如果 elapsedTime >= 1 hour，显示警告提示",
+            "警告提示布局：",
+            "  - Container（errorContainer背景，8dp圆角，内边距12dp×8dp，外边距top 8dp）",
+            "  - Row（水平布局）：",
+            "    - Icon（Icons.warning_rounded，error颜色，14sp）",
+            "    - SizedBox（宽度8dp）",
+            "    - Text（使用 AppLocalizations 的本地化文本，12sp，w400，onErrorContainer颜色）",
+            "    - 注意：不能硬编码文案，必须使用 l10n 获取本地化文本",
+            "使用 AnimatedSwitcher 实现出现/消失动画",
+            "添加可访问性标签",
+          ],
+        },
+        {
+          task: "运行 flutter gen-l10n 生成本地化代码",
+          command: "flutter gen-l10n",
+          action: "生成包含新翻译键的 AppLocalizations 代码",
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze lib/presentation/widgets/timeout_warning_widget.dart",
+          action: "检查新创建的组件是否有语法错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 添加超时警告本地化并创建超时警告组件'",
+          action: "提交阶段 3 的所有更改（包括 .arb 文件和组件），忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：创建置顶任务栏组件",
+      description: "创建 PinnedTaskBar 组件，整合计时器和警告提示",
+      tasks: [
+        {
+          task: "创建 PinnedTaskBar 组件",
+          file: "lib/presentation/widgets/pinned_task_bar.dart",
+          action: [
+            "创建新文件 lib/presentation/widgets/pinned_task_bar.dart",
+            "导入必要的包和依赖",
+            "创建 PinnedTaskBar：ConsumerWidget",
+            "在 build 方法中：",
+            "  - 监听 pinnedTaskIdProvider，如果没有置顶任务，返回 SizedBox.shrink()",
+            "  - 通过 taskByIdProvider(pinnedTaskId) 监听任务数据",
+            "  - 如果任务不存在或状态为 completedActive/trashed/archived，使用 WidgetsBinding.instance.addPostFrameCallback 清除置顶",
+            "  - 创建 _PinnedTaskBarContent 内部组件（接收 task 参数）",
+            "_PinnedTaskBarContent 实现：",
+            "  - 使用 DismissibleTaskTile 包装（SwipeConfigs.tasksConfig）",
+            "  - 外层 Container：",
+            "    - 背景：inverseSurface（反色设计）",
+            "    - 圆角：12dp",
+            "    - 阴影：Colors.black.withOpacity(0.2)（light模式）或 0.15（dark模式），blurRadius 6dp，offset (0, 3)",
+            "    - 外边距：horizontal 16dp，vertical 8dp",
+            "  - 内层 InkWell（点击打开弹窗）：",
+            "    - onTap：TaskBottomSheetHelper.showTaskBottomSheet",
+            "    - 内边距：horizontal 16dp，vertical 12dp",
+            "    - Row（水平布局）：",
+            "      - CompactCircularTimerWidget（task: task）",
+            "      - SizedBox（宽度12dp）",
+            "      - Expanded Column（垂直布局）：",
+            "        - Text（任务标题，16sp，w500，onInverseSurface，最多3行，溢出省略，左对齐）",
+            "        - TimeoutWarningWidget（task: task，条件显示）",
+            "使用 AnimatedSwitcher 实现出现/消失动画（slideDown + fadeIn / slideUp + fadeOut）",
+            "添加可访问性标签和屏幕阅读器支持",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze lib/presentation/widgets/pinned_task_bar.dart",
+          action: "检查新创建的组件是否有语法错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 创建置顶任务栏组件'",
+          action: "提交阶段 4 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：修改 TaskListPage 添加置顶栏",
+      description: "在任务列表页面添加置顶任务栏显示",
+      tasks: [
+        {
+          task: "修改 TaskListPage 添加置顶栏",
+          file: "lib/presentation/tasks/task_list_page.dart",
+          action: [
+            "导入 PinnedTaskBar 组件",
+            "在 CustomScrollView 的 slivers 列表中，在筛选UI（TaskFilterCollapsible）之后添加：",
+            "  SliverToBoxAdapter(",
+            "    child: PinnedTaskBar(),",
+            "  ),",
+            "位置：在筛选UI之后，进度条（showLinearProgress）之前",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze lib/presentation/tasks/task_list_page.dart",
+          action: "检查修改后的代码是否有语法错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 在任务列表页面添加置顶栏'",
+          action: "提交阶段 5 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：修改 TaskTimerWidget 设置置顶",
+      description: "在开始计时时自动设置任务为置顶",
+      tasks: [
+        {
+          task: "修改 TaskTimerWidget 的 _handleStart 方法",
+          file: "lib/presentation/widgets/task_timer_widget.dart",
+          action: [
+            "导入 pinnedTaskIdProvider",
+            "在 _handleStart 方法中，在创建focus session之后，添加：",
+            "  ref.read(pinnedTaskIdProvider.notifier).state = widget.task.id;",
+            "注意：由于 StateProvider 的特性，设置新值会自动替换旧值，因此不需要手动清除旧任务的置顶状态",
+            "这样当用户点击start按钮时，任务自动置顶，如果之前有其他任务被置顶，会自动清除",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze lib/presentation/widgets/task_timer_widget.dart",
+          action: "检查修改后的代码是否有语法错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 开始计时时自动设置任务为置顶'",
+          action: "提交阶段 6 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 7,
+      title: "阶段 7：修改 TaskActionBottomSheet 隐藏start按钮",
+      description: "根据是否有置顶任务决定是否显示start按钮",
+      tasks: [
+        {
+          task: "修改 TaskActionBottomSheet 的 _buildContent 方法",
+          file: "lib/presentation/widgets/task_action_bottom_sheet.dart",
+          action: [
+            "导入 pinnedTaskIdProvider",
+            "在 _buildContent 方法中，获取 pinnedTaskId：",
+            "  final pinnedTaskId = ref.watch(pinnedTaskIdProvider);",
+            "修改 canShowTimer 的判断逻辑：",
+            "  - 原有条件：!isInbox && (pending || doing || paused)",
+            "  - 新增条件：pinnedTaskId == null || pinnedTaskId != task.id",
+            "  - 最终条件：!isInbox && (pending || doing || paused) && (pinnedTaskId == null || pinnedTaskId != task.id)",
+            "这样当任务被置顶时，弹窗中不显示start按钮",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze lib/presentation/widgets/task_action_bottom_sheet.dart",
+          action: "检查修改后的代码是否有语法错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 置顶任务在弹窗中隐藏start按钮'",
+          action: "提交阶段 7 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 8,
+      title: "阶段 8：运行完整测试和代码检查",
+      description: "运行所有测试，确保功能正常，修复发现的问题",
+      tasks: [
+        {
+          task: "运行 flutter analyze 检查所有代码",
+          command: "flutter analyze",
+          action: "检查所有代码是否有语法错误和lint问题，修复发现的问题",
+        },
+        {
+          task: "运行 flutter test 运行所有测试",
+          command: "flutter test",
+          action: "运行所有单元测试和Widget测试，确保没有破坏现有功能",
+        },
+        {
+          task: "运行 mypy 类型检查（如果项目使用）",
+          command: "mypy . || true",
+          action: "运行类型检查，如果有错误记录但不阻塞",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'test: 完成置顶任务功能实现和测试'",
+          action: "提交所有最终更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 本地化策略（必填）
+  // ===========================================
+  localization: {
+    // 需要添加的翻译键
+    translationKeys: [
+      {
+        key: "taskTimeoutWarning",
+        description: "任务计时超过1小时时的警告提示",
+        english: "Task is taking too long, consider splitting it",
+        chinese: "任务耗时过长，建议拆分任务",
+        traditionalChinese: "任務耗時過長，建議拆分任務（如果需要支持繁体中文）",
+        usage: "TimeoutWarningWidget 组件中使用",
+        files: [
+          "lib/l10n/app_en.arb",
+          "lib/l10n/app_zh.arb",
+          "lib/l10n/app_zh_Hant.arb（如果需要支持繁体中文）",
+        ],
+        note: "翻译键必须按字母顺序插入到 .arb 文件中",
+      },
+    ],
+    
+    // 本地化要求
+    requirements: [
+      "所有用户可见的文案必须使用 AppLocalizations 进行本地化",
+      "不能硬编码任何中文或英文文案",
+      "使用 l10n 获取本地化文本：final l10n = AppLocalizations.of(context);",
+      "在添加新的翻译键后，必须运行 flutter gen-l10n 生成本地化代码",
+      "翻译键必须按字母顺序插入到 .arb 文件中，保持一致性",
+      "所有新组件必须导入 AppLocalizations 并使用本地化文本",
+    ],
+    
+    // 需要本地化的组件
+    components: [
+      {
+        component: "TimeoutWarningWidget",
+        text: "超时警告提示文本",
+        localizationKey: "taskTimeoutWarning",
+        usage: "l10n.taskTimeoutWarning",
+        note: "不能硬编码 \"任务耗时过长，建议拆分任务\"",
+      },
+    ],
+    
+    // 本地化检查清单
+    checklist: [
+      "确认所有用户可见的文案都使用 AppLocalizations",
+      "确认没有硬编码的中文或英文文案",
+      "确认所有 .arb 文件都已添加相应的翻译键",
+      "确认翻译键按字母顺序插入",
+      "确认运行了 flutter gen-l10n 生成本地化代码",
+      "确认在不同语言环境下测试文案显示正确",
+    ],
+  },
+
+  // ===========================================
+  // 6. 重构和复用策略（必填）
+  // ===========================================
+  refactoringAndReuse: {
+    // 需要重构的现有代码
+    refactoring: [
+      {
+        file: "lib/presentation/widgets/task_timer_widget.dart",
+        issue: "时间格式化逻辑重复，_formatDuration 方法可以复用工具类",
+        action: [
+          "将 _formatDuration 方法重构为使用 ClockTimerUtils 或创建新的工具方法",
+          "考虑创建 TaskTimerUtils 工具类，统一管理任务计时相关的时间格式化逻辑",
+          "支持不同的时间格式：MM:SS（小于1小时）和 HH:MM:SS（超过1小时）",
+        ],
+        benefit: "避免代码重复，统一时间格式化逻辑，便于维护和测试",
+      },
+      {
+        file: "lib/presentation/clock/utils/clock_timer_utils.dart",
+        issue: "现有的 formatElapsedTime 总是显示 HH:MM:SS，不支持条件格式（MM:SS 或 HH:MM:SS）",
+        action: [
+          "扩展 ClockTimerUtils，添加 formatElapsedTimeCompact 方法",
+          "支持条件格式：小于1小时显示 MM:SS，超过1小时显示 HH:MM:SS",
+          "保持现有的 formatElapsedTime 方法不变（向后兼容）",
+        ],
+        benefit: "提供灵活的时间格式化选项，满足不同场景的需求",
+      },
+      {
+        file: "lib/presentation/widgets/task_timer_widget.dart",
+        issue: "时间计算逻辑 _computeElapsed 可能可以复用",
+        action: [
+          "评估是否可以将 _computeElapsed 逻辑提取为工具方法",
+          "考虑创建 TaskTimerUtils.computeElapsedTime 方法",
+          "注意：TaskTimerWidget 的 _computeElapsed 使用了实例变量 _pauseStartTime 和 _pausedDuration，需要评估是否适合提取",
+        ],
+        benefit: "如果逻辑可以复用，可以减少代码重复",
+        note: "由于 TaskTimerWidget 使用了实例状态，可能不适合完全提取，但可以提取核心计算逻辑",
+      },
+    ],
+    
+    // 复用策略
+    reuseStrategy: {
+      // 复用现有组件
+      existingComponents: [
+        {
+          component: "CircularProgressPainter",
+          location: "lib/presentation/clock/widgets/circular_progress_painter.dart",
+          usage: "CompactCircularTimerWidget 复用此绘制器绘制环形进度条",
+          note: "直接复用，无需修改",
+        },
+        {
+          component: "DismissibleTaskTile",
+          location: "lib/presentation/widgets/dismissible_task_tile.dart",
+          usage: "PinnedTaskBar 复用此组件支持滑动操作",
+          note: "直接复用，无需修改",
+        },
+        {
+          component: "focusSessionProvider",
+          location: "lib/core/providers/focus_providers.dart",
+          usage: "CompactCircularTimerWidget 和 TimeoutWarningWidget 复用此 Provider 获取 session 数据",
+          note: "直接复用，无需修改",
+        },
+        {
+          component: "taskByIdProvider",
+          location: "lib/core/providers/task_hierarchy_providers.dart",
+          usage: "PinnedTaskBar 复用此 Provider 监听任务状态变化",
+          note: "直接复用，无需修改",
+        },
+      ],
+      
+      // 复用现有工具类
+      existingUtils: [
+        {
+          util: "ClockTimerUtils",
+          location: "lib/presentation/clock/utils/clock_timer_utils.dart",
+          usage: "时间格式化（需要扩展支持条件格式）",
+          action: "扩展 ClockTimerUtils，添加 formatElapsedTimeCompact 方法",
+        },
+      ],
+      
+      // 创建新的可复用组件/工具
+      newReusableComponents: [
+        {
+          component: "TaskTimerUtils（可选）",
+          location: "lib/presentation/widgets/utils/task_timer_utils.dart",
+          purpose: "统一管理任务计时相关的时间格式化和时间计算逻辑",
+          methods: [
+            "formatElapsedTimeCompact(Duration duration): String - 条件格式（MM:SS 或 HH:MM:SS）",
+            "computeElapsedTime(FocusSession session, DateTime? pauseStartTime, Duration pausedDuration): Duration - 计算已用时间（如果逻辑可以提取）",
+          ],
+          note: "如果时间计算逻辑可以提取，创建此工具类；否则只扩展 ClockTimerUtils",
+        },
+      ],
+    },
+    
+    // 重构优先级
+    refactoringPriority: {
+      high: [
+        "扩展 ClockTimerUtils 支持条件格式（MM:SS 或 HH:MM:SS）",
+        "CompactCircularTimerWidget 使用扩展后的 ClockTimerUtils",
+      ],
+      medium: [
+        "评估 TaskTimerWidget 的时间格式化逻辑是否可以重构为使用工具类",
+        "评估时间计算逻辑是否可以提取为工具方法",
+      ],
+      low: [
+        "如果评估后认为合适，创建 TaskTimerUtils 工具类统一管理任务计时逻辑",
+        "重构其他使用重复时间格式化逻辑的地方（如 end_session_dialog.dart）",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 7. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // 状态管理方案
+      stateManagement: {
+        recommendation: "使用 StateProvider<String?> 管理置顶任务ID",
+        reason: "置顶状态是简单的字符串ID，不需要复杂的状态管理，StateProvider足够且性能好",
+        alternative: "可以使用 StateNotifier，但会增加不必要的复杂度",
+      },
+      // 计时器实现方案
+      timerImplementation: {
+        method: "复用 CircularProgressPainter 和 focusSessionProvider",
+        stateManagement: "通过 focusSessionProvider 监听 session，通过 task.status 获取任务状态",
+        rollback: "如果性能有问题，可以考虑使用更轻量的定时器实现",
+      },
+      // 反色设计实现
+      inverseDesign: {
+        method: "使用 Material Design 3 的 inverseSurface/onInverseSurface",
+        reason: "符合Material Design 3规范，确保可访问性和对比度",
+        alternative: "可以自定义颜色，但需要确保对比度符合WCAG标准",
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 类型安全
+      typeSafety: {
+        rule: "所有代码必须通过 mypy 类型检查（如果项目使用）",
+        location: "所有新创建和修改的文件",
+        example: "使用明确的类型注解，避免使用 dynamic",
+        note: "确保类型安全，避免运行时错误",
+      },
+      // 响应式设计
+      responsiveDesign: {
+        rule: "使用 MediaQuery 和响应式布局，适配不同屏幕尺寸",
+        location: "PinnedTaskBar 和 CompactCircularTimerWidget",
+        example: "使用 Flexible/Expanded 而不是固定宽度",
+        note: "确保在不同设备上都有良好的显示效果",
+      },
+      // 性能优化
+      performance: {
+        rule: "使用 RepaintBoundary 和 const 构造函数优化性能",
+        location: "所有新创建的 Widget",
+        example: "CompactCircularTimerWidget 使用 RepaintBoundary 包装",
+        note: "避免不必要的重建，提升性能",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      optimization: [
+        "使用 RepaintBoundary 包装 CompactCircularTimerWidget，避免不必要的重绘",
+        "使用 const 构造函数减少重建",
+        "定时器每秒更新一次，使用 Timer.periodic 而不是 setState",
+        "使用 StreamProvider 自动管理订阅，避免内存泄漏",
+        "置顶栏使用 ConsumerWidget，只在 pinnedTaskIdProvider 变化时重建",
+      ],
+      monitoring: [
+        "监控定时器的性能影响（每秒更新一次）：",
+        "  - 使用 Flutter DevTools 的 Performance 面板监控帧率",
+        "  - 确保帧率保持在 60fps 以上",
+        "  - 监控 CPU 使用率，确保定时器更新不会导致 CPU 占用过高",
+        "监控状态监听的性能影响（taskByIdProvider）：",
+        "  - 使用 Flutter DevTools 的 Memory 面板监控内存使用",
+        "  - 确保 StreamProvider 正确取消订阅，避免内存泄漏",
+        "  - 监控 Widget 重建次数，确保只在必要时重建",
+        "确保动画流畅（60fps）：",
+        "  - 使用 Flutter DevTools 的 Performance 面板监控动画帧率",
+        "  - 确保 AnimatedSwitcher 的动画流畅，没有卡顿",
+        "  - 监控动画期间的 CPU 和 GPU 使用率",
+        "监控置顶栏的渲染性能：",
+        "  - 使用 RepaintBoundary 减少不必要的重绘",
+        "  - 监控置顶栏的渲染时间，确保不超过 16ms（60fps）",
+        "  - 使用 Flutter DevTools 的 Widget Inspector 检查 Widget 树深度",
+      ],
+    },
+    
+    // 安全考虑
+    security: {
+      concerns: [
+        "无安全风险，所有操作都在客户端本地完成",
+        "状态管理使用 Riverpod，不涉及网络请求",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 8. 依赖关系图（必填）
+  // ===========================================
+  dependencies: {
+    // Provider 层依赖
+    providerLayer: [
+      "lib/core/providers/pinned_task_provider.dart（新建）",
+      "lib/core/providers/app_providers.dart（现有，taskByIdProvider）",
+      "lib/core/providers/focus_providers.dart（现有，focusSessionProvider）",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/widgets/pinned_task_bar.dart（新建）",
+      "lib/presentation/widgets/compact_circular_timer_widget.dart（新建）",
+      "lib/presentation/widgets/timeout_warning_widget.dart（新建）",
+      "lib/presentation/widgets/dismissible_task_tile.dart（现有，滑动操作）",
+      "lib/presentation/widgets/swipe_configs.dart（现有，滑动配置）",
+      "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart（现有，弹窗工具）",
+      "lib/presentation/clock/widgets/circular_progress_painter.dart（现有，进度条绘制）",
+      "lib/presentation/clock/utils/clock_timer_utils.dart（现有，时间格式化工具，需要扩展）",
+    ],
+    
+    // 页面层依赖
+    pageLayer: [
+      "lib/presentation/tasks/task_list_page.dart（修改，添加置顶栏）",
+    ],
+    
+    // 数据模型层依赖
+    modelLayer: [
+      "lib/data/models/task.dart（现有，Task模型）",
+      "lib/data/models/focus_session.dart（现有，FocusSession模型）",
+    ],
+  },
+
+  // ===========================================
+  // 9. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        file: "test/core/providers/pinned_task_provider_test.dart",
+        description: "测试 pinnedTaskIdProvider 的状态管理",
+        testCases: [
+          {
+            group: "pinnedTaskIdProvider 状态管理",
+            cases: [
+              {
+                name: "初始状态为 null",
+                test: "验证 pinnedTaskIdProvider 的初始值为 null",
+              },
+              {
+                name: "设置置顶任务ID",
+                test: "设置 pinnedTaskIdProvider 为某个任务ID，验证状态更新",
+              },
+              {
+                name: "清除置顶任务",
+                test: "将 pinnedTaskIdProvider 设置为 null，验证状态清除",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/widgets/pinned_task_bar_test.dart",
+        description: "测试 PinnedTaskBar 组件的显示和交互",
+        testCases: [
+          {
+            group: "PinnedTaskBar 显示",
+            cases: [
+              {
+                name: "没有置顶任务时不显示",
+                test: "当 pinnedTaskIdProvider 为 null 时，PinnedTaskBar 返回 SizedBox.shrink()",
+              },
+              {
+                name: "有置顶任务时显示",
+                test: "当 pinnedTaskIdProvider 有值时，PinnedTaskBar 显示任务信息",
+              },
+              {
+                name: "任务状态变化时自动清除置顶（完成）",
+                test: "当置顶任务状态变为 completedActive 时，自动清除置顶状态",
+              },
+              {
+                name: "任务状态变化时自动清除置顶（删除）",
+                test: "当置顶任务状态变为 trashed 时，自动清除置顶状态",
+              },
+              {
+                name: "任务状态变化时自动清除置顶（归档）",
+                test: "当置顶任务状态变为 archived 时，自动清除置顶状态",
+              },
+              {
+                name: "任务不存在时清除置顶",
+                test: "当置顶任务被删除（taskByIdProvider 返回 null）时，自动清除置顶状态",
+              },
+            ],
+          },
+          {
+            group: "PinnedTaskBar 交互",
+            cases: [
+              {
+                name: "点击任务标题打开弹窗",
+                test: "点击任务标题，验证 TaskBottomSheetHelper.showTaskBottomSheet 被调用",
+              },
+              {
+                name: "左滑完成任务",
+                test: "左滑置顶任务，验证执行完成任务操作",
+              },
+              {
+                name: "右滑归档任务",
+                test: "右滑置顶任务，验证执行归档任务操作",
+              },
+              {
+                name: "滑动操作后置顶栏消失",
+                test: "左滑完成任务或右滑归档任务后，置顶栏自动消失",
+              },
+            ],
+          },
+          {
+            group: "PinnedTaskBar 边界情况",
+            cases: [
+              {
+                name: "任务标题为空",
+                test: "当任务标题为空时，显示默认文本或占位符",
+              },
+              {
+                name: "任务标题超长",
+                test: "当任务标题超过3行时，正确显示省略号",
+              },
+              {
+                name: "任务标题多行显示",
+                test: "验证任务标题最多显示3行，超出部分用省略号",
+              },
+              {
+                name: "页面切换后置顶状态保持",
+                test: "切换到其他页面后返回，置顶栏仍然显示",
+              },
+              {
+                name: "应用重启后置顶状态丢失",
+                test: "应用重启后，置顶状态应该丢失（pinnedTaskIdProvider 初始化为 null）",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/presentation/widgets/compact_circular_timer_widget_test.dart",
+        description: "测试 CompactCircularTimerWidget 的显示和更新",
+        testCases: [
+          {
+            group: "CompactCircularTimerWidget 显示",
+            cases: [
+              {
+                name: "没有活跃session时不显示",
+                test: "当没有活跃的focus session时，组件返回 SizedBox.shrink()",
+              },
+              {
+                name: "有活跃session时显示计时器",
+                test: "当有活跃的focus session时，显示环形进度条和时间",
+              },
+              {
+                name: "时间格式正确",
+                test: "验证时间格式：小于1小时显示 MM:SS（例如：45:30），超过1小时显示 HH:MM:SS（例如：1:23:45）",
+              },
+              {
+                name: "时间格式边界情况",
+                test: "验证边界情况：59:59 → 1:00:00 的格式切换正确",
+              },
+              {
+                name: "进度条计算正确",
+                test: "验证进度条计算：elapsedMinutes % 60 / 60.0",
+              },
+            ],
+          },
+          {
+            group: "CompactCircularTimerWidget 更新",
+            cases: [
+              {
+                name: "定时器每秒更新",
+                test: "验证定时器每秒更新一次，时间显示正确",
+              },
+              {
+                name: "暂停状态显示已保存时间",
+                test: "当任务状态为 paused 时，显示 session.actualMinutes 的时间",
+              },
+              {
+                name: "计时器在任务状态变化时更新",
+                test: "当任务状态从 doing 变为 paused 时，计时器停止更新，显示已保存时间",
+              },
+              {
+                name: "计时器在session不存在时不显示",
+                test: "当 focusSessionProvider 返回 null 时，组件返回 SizedBox.shrink()",
+              },
+              {
+                name: "计时器进度条循环",
+                test: "验证进度条每60分钟循环一次（0% → 100% → 0%）",
+              },
+              {
+                name: "计时器在任务完成时隐藏",
+                test: "当任务状态变为 completedActive 时，计时器应该隐藏（因为置顶栏会消失）",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        file: "test/presentation/widgets/timeout_warning_widget_test.dart",
+        description: "测试 TimeoutWarningWidget 的显示条件",
+        testCases: [
+          {
+            group: "TimeoutWarningWidget 显示条件",
+            cases: [
+              {
+                name: "计时小于1小时时不显示",
+                test: "当任务计时小于1小时时，组件返回 SizedBox.shrink()",
+              },
+              {
+                name: "计时达到1小时时显示",
+                test: "当任务计时达到或超过1小时时，显示警告提示",
+              },
+              {
+                name: "任务完成时隐藏",
+                test: "当任务状态变为 completedActive 时，警告提示消失",
+              },
+              {
+                name: "任务删除时隐藏",
+                test: "当任务状态变为 trashed 时，警告提示消失",
+              },
+              {
+                name: "任务归档时隐藏",
+                test: "当任务状态变为 archived 时，警告提示消失",
+              },
+              {
+                name: "警告提示边界时间",
+                test: "验证在59分59秒时不显示，在1小时0分0秒时立即显示",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试
+    integrationTests: [
+      {
+        file: "integration_test/tasks/pinned_task_test.dart",
+        description: "测试置顶任务功能的完整流程",
+        testCases: [
+          {
+            group: "置顶任务完整流程",
+            cases: [
+              {
+                name: "开始计时并置顶",
+                test: "点击任务的start按钮 → 任务状态变为doing → 任务自动置顶 → 置顶栏显示 → 计时器开始计时",
+              },
+              {
+                name: "超时警告显示",
+                test: "任务计时达到1小时 → 警告提示自动显示 → 提示内容正确",
+              },
+              {
+                name: "完成任务清除置顶",
+                test: "完成任务 → 置顶栏自动消失 → pinnedTaskIdProvider 变为 null",
+              },
+              {
+                name: "切换置顶任务",
+                test: "已有置顶任务 → 点击另一个任务的start按钮 → 旧任务置顶自动清除（StateProvider自动替换） → 新任务置顶 → 置顶栏显示新任务",
+              },
+              {
+                name: "旧任务计时器停止",
+                test: "切换置顶任务后，旧任务的计时器应该停止（通过 markInProgress 自动将其他doing任务切换为paused）",
+              },
+              {
+                name: "弹窗中隐藏start按钮",
+                test: "任务被置顶 → 打开任务弹窗 → 弹窗中不显示start按钮",
+              },
+              {
+                name: "其他任务弹窗中隐藏start按钮",
+                test: "任务A被置顶 → 打开任务B的弹窗 → 任务B的弹窗中不显示start按钮（因为已有置顶任务）",
+              },
+              {
+                name: "置顶任务完成后弹窗恢复start按钮",
+                test: "置顶任务完成 → 置顶栏消失 → 打开其他任务弹窗 → start按钮恢复显示",
+              },
+              {
+                name: "快速切换置顶任务",
+                test: "任务A置顶 → 快速点击任务B的start按钮 → 任务A置顶清除 → 任务B置顶 → 置顶栏显示任务B",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 10. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "状态管理复杂度增加",
+      mitigation: "使用简单的 StateProvider，逻辑清晰，风险可控。通过测试确保状态管理正确",
+      priority: "medium",
+      check: "运行单元测试验证状态管理逻辑",
+      enforcement: "必须通过所有单元测试才能合并",
+    },
+    {
+      risk: "任务状态监听可能导致性能问题",
+      mitigation: "使用 StreamProvider 自动管理订阅，只在有置顶任务时监听，性能影响最小。使用 RepaintBoundary 优化渲染",
+      priority: "low",
+      check: "监控应用性能，确保没有明显的性能下降",
+      enforcement: "使用性能分析工具验证",
+    },
+    {
+      risk: "定时器每秒更新可能导致性能问题",
+      mitigation: "使用 RepaintBoundary 包装计时器组件，避免不必要的重绘。定时器只在有活跃session时运行",
+      priority: "low",
+      check: "监控定时器的性能影响，确保60fps流畅",
+      enforcement: "使用性能分析工具验证",
+    },
+    {
+      risk: "置顶栏可能遮挡任务列表内容",
+      mitigation: "置顶栏高度较小（约60-80dp），且只在有置顶任务时显示，对内容遮挡影响很小。使用动画平滑过渡",
+      priority: "low",
+      check: "在不同屏幕尺寸上测试，确保不影响用户体验",
+      enforcement: "必须通过UI测试验证",
+    },
+    {
+      risk: "反色设计可能在某些设备上显示不佳",
+      mitigation: "使用 Material Design 3 的标准颜色（inverseSurface/onInverseSurface），确保对比度符合WCAG标准",
+      priority: "low",
+      check: "在light和dark模式下测试，确保可读性良好",
+      enforcement: "必须通过可访问性测试",
+    },
+    {
+      risk: "超时警告的1小时阈值可能需要调整",
+      mitigation: "先实现1小时阈值，后续可以根据用户反馈调整。阈值可以通过配置项管理",
+      priority: "low",
+      check: "收集用户反馈，评估1小时阈值是否合适",
+      enforcement: "根据用户反馈决定是否需要调整",
+    },
+  ],
+
+  // ===========================================
+  // 11. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试和Widget测试通过",
+      "运行 mypy 类型检查（如果项目使用），确保类型安全",
+      "代码审查，确保符合代码规范和最佳实践",
+      "检查所有文案是否使用本地化，确保没有硬编码的中文或英文文案",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证置顶栏在开始计时时自动显示",
+      "验证置顶栏显示任务标题（最多3行）和计时器",
+      "验证计时器正确显示时间（MM:SS 或 HH:MM:SS）",
+      "验证计时器进度条正确显示（每60分钟一圈）",
+      "验证超时警告在计时达到1小时时显示",
+      "验证点击任务标题打开弹窗",
+      "验证置顶任务在弹窗中不显示start按钮",
+      "验证左滑右滑操作正常工作",
+      "验证任务完成/删除/归档时置顶栏自动消失",
+      "验证切换置顶任务时旧任务置顶自动清除（StateProvider自动替换）",
+      "验证切换置顶任务时旧任务的计时器自动停止（通过 markInProgress 机制）",
+      "验证反色设计在light和dark模式下都正常显示",
+    ],
+    
+    // 性能验证
+    performance: [
+      "验证定时器每秒更新不影响性能（60fps）",
+      "验证状态监听不导致内存泄漏",
+      "验证动画流畅（60fps）",
+      "验证页面滚动流畅",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "验证在不同屏幕尺寸上显示正常（手机、平板）",
+      "验证在light和dark模式下显示正常",
+      "验证在不同设备上性能正常",
+    ],
+  },
+
+  // ===========================================
+  // 12. 数据与状态（必填）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "无需修改数据模型，使用现有的 Task 和 FocusSession 模型",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "无需修改持久化结构，置顶状态是临时的，不持久化到数据库",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "新增 pinnedTaskIdProvider：StateProvider<String?>，管理当前置顶的任务ID",
+      "使用 taskByIdProvider 监听置顶任务的状态变化",
+      "使用 focusSessionProvider 监听置顶任务的计时状态",
+      "置顶状态是全局的，不依赖于页面状态",
+      "置顶状态是临时的，应用重启后丢失",
+    ],
+  },
+
+  // ===========================================
+  // 13. 文档同步（可选，但建议包含）
+  // ===========================================
+  documentation: {
+    // 需要更新的文档
+    updates: [
+      {
+        file: "documents/json5/tasks/design_pinned_task.json5",
+        note: "设计文档已完成，无需更新",
+      },
+      {
+        file: "documents/architecture/widgets/pinned_task_bar.yaml（可选）",
+        note: "如果需要，可以创建架构文档描述置顶栏组件的结构",
+      },
+    ],
+  },
+}
+

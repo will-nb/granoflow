@@ -158,7 +158,7 @@ class ProjectDetailBottomSheet extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Created: ${_formatDateTime(context, project.createdAt)}',
+                        l10n.detailCreated(_formatDateTime(context, project.createdAt)),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -176,7 +176,7 @@ class ProjectDetailBottomSheet extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Updated: ${_formatDateTime(context, project.updatedAt)}',
+                        l10n.detailUpdated(_formatDateTime(context, project.updatedAt)),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -196,7 +196,7 @@ class ProjectDetailBottomSheet extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Milestones: ${milestones.length}',
+                            l10n.detailMilestones(milestones.length),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -220,7 +220,10 @@ class ProjectDetailBottomSheet extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Tasks: ${statistics.completedCount} / ${statistics.totalCount}',
+                            l10n.detailTasks(
+                              statistics.completedCount,
+                              statistics.totalCount,
+                            ),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

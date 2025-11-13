@@ -54,9 +54,20 @@
     "datePickerTomorrow",
     "datePickerThisMonth",
     "datePickerCustom",
+    "detailCreated",
+    "detailUpdated",
+    "detailMilestones",
+    "detailTasks",
+    "milestoneProgressLabel",
+    "milestonesLoadError",
     "noProject",
     "taskDragCrossSectionSuccess",
     "projectFilterLabel",
+    "projectProgressTasksLabel",
+    "projectProgressLoadError",
+    "projectNoTasks",
+    "projectNotFound",
+    "projectLoadError",
     "taskCopySuccess",
     "taskCopyTitle",
     "taskStartTimerError",
@@ -73,6 +84,10 @@
     "taskActionSheetTip",
     "trashPermanentDeleteAction",
     "trashRestoreAction"
+  ],
+
+  "zh_CN": [
+    "taskTimeoutWarning"
   ],
 
   "zh_HK": [
@@ -96,6 +111,7 @@
     "taskCopyTitle",
     "taskStartTimerError",
     "taskStartTimerTitle",
+    "taskTimeoutWarning",
     "taskAddToProject",
     "taskRemoveFromProject",
     "taskNoProjects"

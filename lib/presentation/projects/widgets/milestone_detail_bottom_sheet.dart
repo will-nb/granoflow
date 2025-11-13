@@ -155,7 +155,7 @@ class MilestoneDetailBottomSheet extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Created: ${_formatDateTime(context, milestone.createdAt)}',
+                        l10n.detailCreated(_formatDateTime(context, milestone.createdAt)),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -173,7 +173,7 @@ class MilestoneDetailBottomSheet extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Updated: ${_formatDateTime(context, milestone.updatedAt)}',
+                        l10n.detailUpdated(_formatDateTime(context, milestone.updatedAt)),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -193,7 +193,10 @@ class MilestoneDetailBottomSheet extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Tasks: ${statistics.completedCount} / ${statistics.totalCount}',
+                            l10n.detailTasks(
+                              statistics.completedCount,
+                              statistics.totalCount,
+                            ),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

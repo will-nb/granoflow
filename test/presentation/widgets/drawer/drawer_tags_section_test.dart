@@ -77,6 +77,7 @@ void main() {
           Locale('zh', 'CN'),
           Locale('zh', 'HK'),
         ],
+        locale: const Locale('zh', 'CN'),
         home: const Scaffold(
           body: DrawerTagsSection(),
         ),

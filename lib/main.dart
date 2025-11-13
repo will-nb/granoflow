@@ -9,7 +9,7 @@ import 'core/services/notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 初始化前台服务（Android）
+  // 初始化前台服务（Android）- 计时器服务
   FlutterForegroundTask.init(
     androidNotificationOptions: AndroidNotificationOptions(
       channelId: 'grano_timer',
@@ -29,6 +29,9 @@ Future<void> main() async {
       allowWifiLock: true,
     ),
   );
+
+  // 注意：置顶任务的前台服务使用相同的 FlutterForegroundTask 初始化
+  // 但使用不同的通知渠道和处理器（通过 pinnedTaskStartCallback）
 
   // 初始化通知服务
   final notificationService = NotificationService();

@@ -109,7 +109,7 @@ class ProjectInfoHeader extends ConsumerWidget {
           data: (statistics) {
             if (statistics.totalCount == 0) {
               return Text(
-                'No tasks',
+                l10n.projectNoTasks,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -148,7 +148,11 @@ class ProjectInfoHeader extends ConsumerWidget {
                 const SizedBox(height: 6),
                 // 进度文字
                 Text(
-                  'Progress: ${statistics.completedCount} / ${statistics.totalCount} tasks (${percentage}%)',
+                  l10n.projectProgressTasksLabel(
+                    statistics.completedCount,
+                    statistics.totalCount,
+                    percentage,
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -161,7 +165,7 @@ class ProjectInfoHeader extends ConsumerWidget {
             minHeight: 2,
           ),
           error: (error, stackTrace) => ErrorBanner(
-            message: 'Failed to load progress: $error',
+            message: l10n.projectProgressLoadError('$error'),
           ),
         ),
       ],

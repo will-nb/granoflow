@@ -8,6 +8,7 @@ import '../completion_management/completed_page.dart';
 import '../completion_management/archived_page.dart';
 import '../completion_management/trash_page.dart';
 import '../projects/projects_page.dart';
+import '../projects/project_detail_page.dart';
 import '../review/calendar_review_page.dart';
 
 /// 应用路由配置
@@ -30,13 +31,25 @@ class AppRouter {
             name: 'tasks',
             builder: (context, state) {
               final sectionParam = state.uri.queryParameters['section'];
-              return TaskListPage(initialSection: sectionParam);
+              final scrollToPinned = state.uri.queryParameters['scrollToPinned'] == 'true';
+              return TaskListPage(
+                initialSection: sectionParam,
+                scrollToPinned: scrollToPinned,
+              );
             },
           ),
           GoRoute(
             path: '/projects',
             name: 'projects',
             builder: (context, state) => const ProjectsPage(),
+          ),
+          GoRoute(
+            path: '/projects/:id',
+            name: 'project_detail',
+            builder: (context, state) {
+              final projectId = state.pathParameters['id']!;
+              return ProjectDetailPage(projectId: projectId);
+            },
           ),
           GoRoute(
             path: '/achievements',

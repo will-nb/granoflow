@@ -65,8 +65,20 @@ abstract class TaskListConfig {
   ///
   /// Inbox: 返回 null（不需要处理 section）
   /// Tasks: 根据 section 计算目标 dueDate
+  /// Milestone: 返回 null（不需要处理 dueDate）
   DateTime? handleDueDate({
     required TaskSection? section,
+    required Task? beforeTask,
+    required Task? afterTask,
+    required Task draggedTask,
+  });
+
+  /// 处理 milestoneId（用于跨里程碑拖拽）
+  ///
+  /// Inbox: 返回 null（不需要处理里程碑）
+  /// Tasks: 返回 null（不需要处理里程碑）
+  /// Milestone: 检测目标任务的 milestoneId，如果与拖拽任务不同，返回目标里程碑ID
+  String? handleMilestoneId({
     required Task? beforeTask,
     required Task? afterTask,
     required Task draggedTask,
@@ -76,6 +88,7 @@ abstract class TaskListConfig {
   ///
   /// Inbox: 返回 null
   /// Tasks: 返回当前 section
+  /// Milestone: 返回 null（里程碑不是基于 section 的）
   TaskSection? get section;
 
   /// 获取页面标识（用于日志）

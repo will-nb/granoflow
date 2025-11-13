@@ -166,5 +166,46 @@ class SortIndexServiceReorder {
     await _tasks.batchUpdate(updates);
     debugPrint('[SortIndexServiceReorder] reorderTasksForSameDate: batch update completed');
   }
+
+  /// 按里程碑分组批量重排同一里程碑的任务
+  ///
+  /// 从任务列表中筛选出属于指定里程碑的任务，按统一排序规则排序后批量更新 sortIndex
+  /// 用于项目详情页中，当任务移动后，只重排同一里程碑内的任务
+  ///
+  /// [allTasks] 所有任务列表（用于筛选）
+  /// [targetMilestoneId] 目标里程碑ID
+  /// [start] 起始 sortIndex 值
+  /// [step] sortIndex 间隔
+  Future<void> reorderTasksForSameMilestone({
+    required List<Task> allTasks,
+    required String targetMilestoneId,
+    double start = 1024,
+    double step = _step,
+  }) async {
+    debugPrint('[SortIndexServiceReorder] reorderTasksForSameMilestone called: allTasksCount=${allTasks.length}, targetMilestoneId=$targetMilestoneId');
+
+    final sameMilestoneTasks = allTasks.where((task) {
+      return task.milestoneId == targetMilestoneId;
+    }).toList();
+
+    debugPrint('[SortIndexServiceReorder] reorderTasksForSameMilestone: found ${sameMilestoneTasks.length} tasks with same milestone');
+    if (sameMilestoneTasks.isEmpty) {
+      debugPrint('[SortIndexServiceReorder] reorderTasksForSameMilestone: no tasks with same milestone, returning');
+      return;
+    }
+
+    final sorted = List<Task>.from(sameMilestoneTasks);
+    SortIndexServiceSorting.sortTasksForTasksPage(sorted);
+    debugPrint('[SortIndexServiceReorder] reorderTasksForSameMilestone: sorted ${sorted.length} tasks');
+
+    final updates = <String, TaskUpdate>{};
+    for (var i = 0; i < sorted.length; i++) {
+      updates[sorted[i].id] =
+          TaskUpdate(sortIndex: (start + i * step).toDouble());
+    }
+    debugPrint('[SortIndexServiceReorder] reorderTasksForSameMilestone: batch updating ${updates.length} tasks');
+    await _tasks.batchUpdate(updates);
+    debugPrint('[SortIndexServiceReorder] reorderTasksForSameMilestone: batch update completed');
+  }
 }
 

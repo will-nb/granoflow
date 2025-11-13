@@ -134,6 +134,28 @@ class SortIndexService {
         step: step,
       );
 
+  /// 按里程碑分组批量重排同一里程碑的任务
+  ///
+  /// 从任务列表中筛选出属于指定里程碑的任务，按统一排序规则排序后批量更新 sortIndex
+  /// 用于项目详情页中，当任务移动后，只重排同一里程碑内的任务
+  ///
+  /// [allTasks] 所有任务列表（用于筛选）
+  /// [targetMilestoneId] 目标里程碑ID
+  /// [start] 起始 sortIndex 值
+  /// [step] sortIndex 间隔
+  Future<void> reorderTasksForSameMilestone({
+    required List<Task> allTasks,
+    required String targetMilestoneId,
+    double start = 1024,
+    double step = _step,
+  }) =>
+      _reorder.reorderTasksForSameMilestone(
+        allTasks: allTasks,
+        targetMilestoneId: targetMilestoneId,
+        start: start,
+        step: step,
+      );
+
   /// 插入到相邻任务之间；必要时做局部重排
   Future<void> insertBetween({
     required String draggedId,
