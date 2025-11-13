@@ -162,14 +162,14 @@ void main() {
             TaskDraft(
               title: 'Child 1',
               status: TaskStatus.pending,
-              parentId: parent.id,
+              
             ),
           );
           final child2 = await taskRepository.createTask(
             TaskDraft(
               title: 'Child 2',
               status: TaskStatus.pending,
-              parentId: parent.id,
+              
             ),
           );
 

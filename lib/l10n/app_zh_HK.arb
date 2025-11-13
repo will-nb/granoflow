@@ -745,6 +745,34 @@
     "description": "隱藏項目描述按鈕"
   },
   "projectSheetDescriptionHint": "可選備註",
+  "richTextDescriptionEditorTitle": "編輯描述",
+  "@richTextDescriptionEditorTitle": {
+    "description": "富文本編輯器標題（編輯模式）"
+  },
+  "richTextDescriptionEditorTitleAdd": "新增描述",
+  "@richTextDescriptionEditorTitleAdd": {
+    "description": "富文本編輯器標題（新增模式）"
+  },
+  "richTextDescriptionAutoSaveSuccess": "已儲存",
+  "@richTextDescriptionAutoSaveSuccess": {
+    "description": "自動儲存成功提示"
+  },
+  "richTextDescriptionAutoSaveFailed": "自動儲存失敗，請檢查您的網路連線或稍後重試。",
+  "@richTextDescriptionAutoSaveFailed": {
+    "description": "自動儲存失敗錯誤提示"
+  },
+  "richTextDescriptionAutoSaveFailedRetry": "重試",
+  "@richTextDescriptionAutoSaveFailedRetry": {
+    "description": "自動儲存失敗重試按鈕"
+  },
+  "richTextDescriptionAutoSaveFailedCancel": "取消",
+  "@richTextDescriptionAutoSaveFailedCancel": {
+    "description": "自動儲存失敗取消按鈕"
+  },
+  "richTextDescriptionUnsavedChanges": "有未儲存的更改，確定要放棄嗎？",
+  "@richTextDescriptionUnsavedChanges": {
+    "description": "未儲存更改確認對話框"
+  },
   "@projectSheetDescriptionHint": {
     "description": "項目描述提示"
   },

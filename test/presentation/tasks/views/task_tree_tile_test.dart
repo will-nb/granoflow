@@ -11,19 +11,17 @@ import 'package:granoflow/presentation/tasks/views/task_section_list.dart';
 
 class _FakeTaskService extends Fake implements TaskService {}
 
-Task _createTask({required String id, String? parentId, DateTime? dueAt}) {
-  // 如果没有指定 dueAt，使用同一个日期，确保父子任务在同一区域
-  final taskDueAt = dueAt ?? DateTime(2025, 1, 15); // 使用固定日期，确保在同一区域
+Task _createTask({required String id, DateTime? dueAt}) {
+  // 层级功能已移除，不再需要 parentId 参数
+  final taskDueAt = dueAt ?? DateTime(2025, 1, 15); // 使用固定日期
   final idNum = int.tryParse(id) ?? 0;
   return Task(
     id: id,
-
     title: 'Task $id',
     status: TaskStatus.pending,
     dueAt: taskDueAt,
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
-    parentId: parentId,
     sortIndex: idNum.toDouble(),
     tags: const [],
     templateLockCount: 0,
@@ -35,11 +33,10 @@ Task _createTask({required String id, String? parentId, DateTime? dueAt}) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('TaskTreeTile renders root and child tasks', (tester) async {
-    // 使用今天作为日期，确保任务在 TaskSection.today 区域
+  testWidgets('TaskTreeTile renders task', (tester) async {
+    // 层级功能已移除，所有任务都是平级的
     final today = DateTime.now();
     final root = _createTask(id: '1', dueAt: today);
-    final child = _createTask(id: '2', parentId: '1', dueAt: today);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -47,22 +44,10 @@ void main() {
           taskServiceProvider.overrideWith((ref) => _FakeTaskService()),
           taskTreeProvider.overrideWithProvider((taskId) {
             return StreamProvider<TaskTreeNode>((ref) {
-              if (taskId == root.id) {
-                return Stream.value(
-                  TaskTreeNode(
-                    task: root,
-                    children: <TaskTreeNode>[
-                      TaskTreeNode(
-                        task: child,
-                        children: const <TaskTreeNode>[],
-                      ),
-                    ],
-                  ),
-                );
-              }
+              // 层级功能已移除，所有任务树只包含单个任务
               return Stream.value(
                 TaskTreeNode(
-                  task: child.copyWith(id: taskId),
+                  task: root.copyWith(id: taskId),
                   children: const <TaskTreeNode>[],
                 ),
               );
@@ -75,10 +60,7 @@ void main() {
           taskProjectHierarchyProvider.overrideWith(
             (ref, taskId) => Stream.value(null),
           ),
-          parentTaskProvider.overrideWith((ref, parentId) async {
-            if (parentId == root.id) return null;
-            return null;
-          }),
+          // 层级功能已移除，不再需要 parentTaskProvider
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -109,8 +109,8 @@ class _RichTextDescriptionPreviewState
     // 如果 description 有值，使用 QuillEditor 只读模式显示预览
     final previewWidget = QuillEditor.basic(
       controller: _controller!,
-      readOnly: true,
       configurations: QuillEditorConfigurations(
+        readOnly: true,
         padding: EdgeInsets.zero,
         textStyle: theme.textTheme.bodyMedium?.copyWith(
           color: colorScheme.onSurfaceVariant,

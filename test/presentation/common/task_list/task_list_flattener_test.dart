@@ -11,7 +11,7 @@ Task _createTask({required String id, String? parentId}) {
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
-    parentId: parentId,
+    
     sortIndex: 1000,
     tags: const [],
   );
@@ -42,8 +42,8 @@ void main() {
 
       test('should not include children when parent is not expanded', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', parentId: '1');
-        final task3 = _createTask(id: '3', parentId: '1');
+        final task2 = _createTask(id: '2', ;
+        final task3 = _createTask(id: '3', ;
         final node = _createNode(task1, [
           _createNode(task2, []),
           _createNode(task3, []),
@@ -62,8 +62,8 @@ void main() {
 
       test('should include children when parent is expanded', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', parentId: '1');
-        final task3 = _createTask(id: '3', parentId: '1');
+        final task2 = _createTask(id: '2', ;
+        final task3 = _createTask(id: '3', ;
         final node = _createNode(task1, [
           _createNode(task2, []),
           _createNode(task3, []),
@@ -86,8 +86,8 @@ void main() {
 
       test('should calculate depth correctly for nested tasks', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', parentId: '1');
-        final task3 = _createTask(id: '3', parentId: '2');
+        final task2 = _createTask(id: '2', ;
+        final task3 = _createTask(id: '3', ;
         final node = _createNode(task1, [
           _createNode(task2, [_createNode(task3, [])]),
         ]);
@@ -111,8 +111,8 @@ void main() {
         'should only expand immediate children when nested parent is collapsed',
         () {
           final task1 = _createTask(id: '1');
-          final task2 = _createTask(id: '2', parentId: '1');
-          final task3 = _createTask(id: '3', parentId: '2');
+          final task2 = _createTask(id: '2', ;
+          final task3 = _createTask(id: '3', ;
           final node = _createNode(task1, [
             _createNode(task2, [_createNode(task3, [])]),
           ]);
@@ -173,9 +173,9 @@ void main() {
 
       test('should handle partial expansion', () {
         final task1 = _createTask(id: '1');
-        final task2 = _createTask(id: '2', parentId: '1');
-        final task3 = _createTask(id: '3', parentId: '1');
-        final task4 = _createTask(id: '4', parentId: '2');
+        final task2 = _createTask(id: '2', ;
+        final task3 = _createTask(id: '3', ;
+        final task4 = _createTask(id: '4', ;
         final node = _createNode(task1, [
           _createNode(task2, [_createNode(task4, [])]),
           _createNode(task3, []),

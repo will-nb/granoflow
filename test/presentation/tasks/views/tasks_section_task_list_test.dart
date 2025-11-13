@@ -19,7 +19,7 @@ Task _createTask({required String id, DateTime? dueAt}) {
     dueAt: dueAt ?? DateTime(2025, 1, 1),
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
-    parentId: null,
+    
     sortIndex: 1000,
     tags: const [],
   );

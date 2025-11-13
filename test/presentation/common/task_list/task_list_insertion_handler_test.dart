@@ -111,7 +111,7 @@ void main() {
         status: TaskStatus.pending,
         createdAt: DateTime(2025, 1, 1),
         updatedAt: DateTime(2025, 1, 1),
-        parentId: parentId,
+        
         sortIndex: sortIndex,
         dueAt: dueAt ?? DateTime(2025, 1, 1),
         tags: const [],
@@ -255,7 +255,7 @@ void main() {
       });
 
       testWidgets('should handle subtask promotion (Inbox)', (tester) async {
-        final draggedTask = _createTask(id: '1', parentId: '99');
+        final draggedTask = _createTask(id: '1', ;
         final beforeTask = _createTask(id: '2');
         final config = InboxTaskListConfig();
         WidgetRef? testRef;

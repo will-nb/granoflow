@@ -6,9 +6,9 @@ void main() {
   group('collectRoots', () {
     test('returns all tasks when none have parents', () {
       final tasks = [
-        _createTask(id: '1', parentId: null),
-        _createTask(id: '2', parentId: null),
-        _createTask(id: '3', parentId: null),
+        _createTask(id: '1', 
+        _createTask(id: '2', 
+        _createTask(id: '3', 
       ];
 
       final roots = collectRoots(tasks);
@@ -19,10 +19,10 @@ void main() {
 
     test('filters out tasks with parents in the list', () {
       final tasks = [
-        _createTask(id: '1', parentId: null),
-        _createTask(id: '2', parentId: '1'),
-        _createTask(id: '3', parentId: null),
-        _createTask(id: '4', parentId: '3'),
+        _createTask(id: '1', 
+        _createTask(id: '2', 
+        _createTask(id: '3', 
+        _createTask(id: '4', 
       ];
 
       final roots = collectRoots(tasks);
@@ -33,9 +33,9 @@ void main() {
 
     test('includes tasks whose parents are not in the list', () {
       final tasks = [
-        _createTask(id: '1', parentId: null),
-        _createTask(id: '2', parentId: '999'), // parent not in list
-        _createTask(id: '3', parentId: null),
+        _createTask(id: '1', 
+        _createTask(id: '2',  // parent not in list
+        _createTask(id: '3', 
       ];
 
       final roots = collectRoots(tasks);
@@ -47,9 +47,9 @@ void main() {
     test('sorts tasks by sortIndex when no dueAt (Inbox behavior)', () {
       // 当任务没有 dueAt 时，collectRoots 会按 sortIndex 升序排序（Inbox 页面行为）
       final tasks = [
-        _createTask(id: '3', parentId: null), // sortIndex: 3 * 1024 = 3072
-        _createTask(id: '1', parentId: null), // sortIndex: 1 * 1024 = 1024
-        _createTask(id: '2', parentId: null), // sortIndex: 2 * 1024 = 2048
+        _createTask(id: '3',  // sortIndex: 3 * 1024 = 3072
+        _createTask(id: '1',  // sortIndex: 1 * 1024 = 1024
+        _createTask(id: '2',  // sortIndex: 2 * 1024 = 2048
       ];
 
       final roots = collectRoots(tasks);
@@ -75,7 +75,7 @@ Task _createTask({required String id, String? parentId}) {
 
     title: 'Task $id',
     status: TaskStatus.pending,
-    parentId: parentId,
+    
     sortIndex: idNum * 1024.0, // 确保每个任务有唯一的 sortIndex，按 id 顺序排序
     tags: const [],
     templateLockCount: 0,

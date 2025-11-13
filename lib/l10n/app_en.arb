@@ -774,6 +774,34 @@
     "description": "Button to hide project description"
   },
   "projectSheetDescriptionHint": "Optional notes about this project",
+  "richTextDescriptionEditorTitle": "Edit description",
+  "@richTextDescriptionEditorTitle": {
+    "description": "Rich text editor title (edit mode)"
+  },
+  "richTextDescriptionEditorTitleAdd": "Add description",
+  "@richTextDescriptionEditorTitleAdd": {
+    "description": "Rich text editor title (add mode)"
+  },
+  "richTextDescriptionAutoSaveSuccess": "Saved",
+  "@richTextDescriptionAutoSaveSuccess": {
+    "description": "Auto-save success message"
+  },
+  "richTextDescriptionAutoSaveFailed": "Auto-save failed. Please check your network connection or try again later.",
+  "@richTextDescriptionAutoSaveFailed": {
+    "description": "Auto-save failure error message"
+  },
+  "richTextDescriptionAutoSaveFailedRetry": "Retry",
+  "@richTextDescriptionAutoSaveFailedRetry": {
+    "description": "Auto-save failure retry button"
+  },
+  "richTextDescriptionAutoSaveFailedCancel": "Cancel",
+  "@richTextDescriptionAutoSaveFailedCancel": {
+    "description": "Auto-save failure cancel button"
+  },
+  "richTextDescriptionUnsavedChanges": "You have unsaved changes. Are you sure you want to discard them?",
+  "@richTextDescriptionUnsavedChanges": {
+    "description": "Unsaved changes confirmation dialog"
+  },
   "@projectSheetDescriptionHint": {
     "description": "Hint text for project description"
   },

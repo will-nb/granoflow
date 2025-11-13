@@ -81,7 +81,7 @@ void main() {
             title: 'Subtask',
             status: TaskStatus.pending,
             dueAt: todayStart,
-            parentId: rootTask.id,
+            
           ),
         );
 

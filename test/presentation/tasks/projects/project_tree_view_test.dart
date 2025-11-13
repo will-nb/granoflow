@@ -39,7 +39,7 @@ void main() {
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
-      parentId: null,
+      
 
       projectId: null,
       milestoneId: null,
@@ -58,7 +58,7 @@ void main() {
       status: TaskStatus.pending,
       createdAt: DateTime(2025, 1, 1),
       updatedAt: DateTime(2025, 1, 1),
-      parentId: '1',
+      
 
       projectId: null,
       milestoneId: null,

@@ -81,7 +81,7 @@ class _FakeFocusFlowService implements FocusFlowService {
     required String parentTaskId,
     required String title,
   }) async {
-    return _buildTask(id: '999', title: title, parentId: parentTaskId);
+    return _buildTask(id: '999', title: title, ;
   }
 
   @override
@@ -139,7 +139,7 @@ Task _buildTask({required String id, required String title, String? parentId}) {
     status: TaskStatus.pending,
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
-    parentId: parentId,
+    
   );
 }
 

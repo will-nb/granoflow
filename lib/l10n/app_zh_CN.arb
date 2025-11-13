@@ -694,6 +694,34 @@
   "projectSheetContextLabel": "情境标签",
   "projectSheetDeadlineRequired": "请为项目设置截止日期。",
   "projectSheetDescriptionHint": "可选备注",
+  "richTextDescriptionEditorTitle": "编辑描述",
+  "@richTextDescriptionEditorTitle": {
+    "description": "富文本编辑器标题（编辑模式）"
+  },
+  "richTextDescriptionEditorTitleAdd": "添加描述",
+  "@richTextDescriptionEditorTitleAdd": {
+    "description": "富文本编辑器标题（添加模式）"
+  },
+  "richTextDescriptionAutoSaveSuccess": "已保存",
+  "@richTextDescriptionAutoSaveSuccess": {
+    "description": "自动保存成功提示"
+  },
+  "richTextDescriptionAutoSaveFailed": "自动保存失败，请检查您的网络连接或稍后重试。",
+  "@richTextDescriptionAutoSaveFailed": {
+    "description": "自动保存失败错误提示"
+  },
+  "richTextDescriptionAutoSaveFailedRetry": "重试",
+  "@richTextDescriptionAutoSaveFailedRetry": {
+    "description": "自动保存失败重试按钮"
+  },
+  "richTextDescriptionAutoSaveFailedCancel": "取消",
+  "@richTextDescriptionAutoSaveFailedCancel": {
+    "description": "自动保存失败取消按钮"
+  },
+  "richTextDescriptionUnsavedChanges": "有未保存的更改，确定要放弃吗？",
+  "@richTextDescriptionUnsavedChanges": {
+    "description": "未保存更改确认对话框"
+  },
   "projectSheetExecutionLabel": "执行方式",
   "projectSheetHideDescription": "收起描述",
   "projectSheetMilestoneTitleHint": "里程碑名称",

@@ -48,7 +48,7 @@ void main() {
       status: status,
       projectId: projectId,
       milestoneId: milestoneId,
-      parentId: parentId,
+      
       sortIndex: idNum.toDouble() * 1024,
       dueAt:
           dueAt ??

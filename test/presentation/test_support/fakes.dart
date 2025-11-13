@@ -54,7 +54,7 @@ class StubTaskRepository implements TaskRepository {
           (task) =>
               task.projectId == null &&
               task.milestoneId == null &&
-              task.parentId == null &&
+              // 层级功能已移除，不再需要检查 parentId
               _isActiveProjectStatus(task.status),
         )
         .sorted((a, b) => _compareDueDates(a.dueAt, b.dueAt))
@@ -157,7 +157,7 @@ class StubTaskRepository implements TaskRepository {
       endedAt: null,
       createdAt: now,
       updatedAt: now,
-      parentId: draft.parentId,
+      
 
       projectId: draft.projectId,
       milestoneId: draft.milestoneId,
@@ -190,7 +190,7 @@ class StubTaskRepository implements TaskRepository {
       endedAt: null,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      parentId: draft.parentId,
+      
 
       projectId: draft.projectId,
       milestoneId: draft.milestoneId,
@@ -221,9 +221,7 @@ class StubTaskRepository implements TaskRepository {
       dueAt: payload.dueAt,
       startedAt: payload.startedAt,
       endedAt: payload.endedAt,
-      parentId: payload.clearParent == true
-          ? null
-          : payload.parentId ?? existing.parentId,
+      // 层级功能已移除，不再处理 parentId
       projectId: payload.clearProject == true
           ? null
           : payload.projectId ?? existing.projectId,
@@ -270,7 +268,7 @@ class StubTaskRepository implements TaskRepository {
     await updateTask(
       taskId,
       TaskUpdate(
-        parentId: targetParentId,
+        
         status: status,
         sortIndex: sortIndex,
         dueAt: dueAt,
@@ -364,23 +362,18 @@ class StubTaskRepository implements TaskRepository {
       _tasks.values.firstWhereOrNull((task) => task.seedSlug == slug);
 
   @override
-  Future<List<Task>> listRoots() async => _tasks.values
-      .where((task) => task.parentId == null)
-      .sortedBy((task) => task.sortIndex)
-      .toList(growable: false);
+  Future<List<Task>> listRoots() async {
+    // 层级功能已移除，所有任务都是根任务
+    return _tasks.values
+        .sortedBy((task) => task.sortIndex)
+        .toList(growable: false);
+  }
 
-  @override
-  Future<List<Task>> listChildren(String parentId) async => _tasks.values
-      .where((task) => task.parentId == parentId)
-      .sortedBy((task) => task.sortIndex)
-      .toList(growable: false);
-
-  @override
-  Future<List<Task>> listChildrenIncludingTrashed(String parentId) async =>
-      _tasks.values
-          .where((task) => task.parentId == parentId)
-          .sortedBy((task) => task.sortIndex)
-          .toList(growable: false);
+  // 层级功能已移除，这些方法不再需要
+  // @override
+  // Future<List<Task>> listChildren(String parentId) async => ...;
+  // @override
+  // Future<List<Task>> listChildrenIncludingTrashed(String parentId) async => ...;
 
   @override
   Future<void> upsertTasks(List<Task> tasks) async {
@@ -639,11 +632,8 @@ class StubTaskRepository implements TaskRepository {
         ),
       );
     }
-    final children = _tasks.values
-        .where((candidate) => candidate.parentId == task.id)
-        .sortedBy((child) => child.sortIndex)
-        .map((child) => _buildTree(child.id))
-        .toList(growable: false);
+    // 层级功能已移除，不再有子任务
+    final children = <TaskTreeNode>[];
     return TaskTreeNode(task: task, children: children);
   }
 
@@ -686,7 +676,7 @@ class StubTaskRepository implements TaskRepository {
     final endDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
     
     var filtered = _tasks.values.where((task) =>
-        task.parentId == null &&
+        // 层级功能已移除，不再需要检查 parentId
         task.status == TaskStatus.completedActive &&
         task.endedAt != null &&
         task.endedAt!.isAfter(startDate.subtract(const Duration(milliseconds: 1))) &&

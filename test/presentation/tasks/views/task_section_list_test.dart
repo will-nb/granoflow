@@ -20,7 +20,7 @@ Task _createTask({required String id}) {
     dueAt: DateTime(2025, 1, idNum),
     createdAt: DateTime(2025, 1, 1),
     updatedAt: DateTime(2025, 1, 1),
-    parentId: null,
+    
     sortIndex: idNum.toDouble(),
     tags: const [],
     templateLockCount: 0,
