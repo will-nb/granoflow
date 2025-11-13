@@ -11,7 +11,6 @@ class DismissibleNodeTile extends StatelessWidget {
     required this.depth,
     required this.onTap,
     required this.onAddChild,
-    required this.onReorder,
     required this.onStatusChange,
   });
 
@@ -19,7 +18,6 @@ class DismissibleNodeTile extends StatelessWidget {
   final int depth;
   final VoidCallback onTap;
   final VoidCallback onAddChild;
-  final Function(int, int) onReorder;
   final ValueChanged<NodeStatus>? onStatusChange;
 
   @override
@@ -59,9 +57,6 @@ class DismissibleNodeTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // 拖拽手柄
-              const Icon(Icons.drag_indicator_rounded, size: 20),
-              const SizedBox(width: 8),
               // 三态复选框
               TriStateCheckbox(
                 value: _nodeStatusToTriState(node.status),

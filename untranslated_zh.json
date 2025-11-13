@@ -73,6 +73,7 @@
     "milestoneProgressLabel",
     "milestonesLoadError",
     "nodeAddButton",
+    "nodeEditButton",
     "nodeDeleteConfirm",
     "nodeRestoreAction",
     "nodeTitleHint",

@@ -16,14 +16,10 @@ class RichTextDescriptionEditorDialog extends StatefulWidget {
   /// 保存回调（返回 Delta JSON 字符串或 null）
   final ValueChanged<String?> onSave;
 
-  /// 弹窗标题（"编辑描述" 或 "添加描述"）
-  final String title;
-
   const RichTextDescriptionEditorDialog({
     super.key,
     this.initialDescription,
     required this.onSave,
-    required this.title,
   });
 
   @override
@@ -178,7 +174,12 @@ class _RichTextDescriptionEditorDialogState
     return true;
   }
 
-  void _handleClose() async {
+  void _handleSaveAndClose() async {
+    // 确保保存最新内容
+    if (!_isSaving) {
+      await _performSave();
+    }
+    // 等待保存完成后再关闭
     final canClose = await _handleWillPop();
     if (canClose && mounted) {
       Navigator.of(context).pop();
@@ -190,6 +191,14 @@ class _RichTextDescriptionEditorDialogState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
+    
+    // 根据内容状态动态计算标题
+    final hasContent = widget.initialDescription != null &&
+        widget.initialDescription!.isNotEmpty &&
+        DeltaJsonUtils.isValidDeltaJson(widget.initialDescription);
+    final title = hasContent
+        ? l10n.flexibleDescriptionEdit
+        : l10n.flexibleDescriptionAdd;
 
     return PopScope(
       canPop: false,
@@ -206,7 +215,7 @@ class _RichTextDescriptionEditorDialogState
         body: Column(
           children: [
             // 顶部栏
-            _buildTopBar(context, theme, colorScheme, l10n),
+            _buildTopBar(context, theme, colorScheme, l10n, title),
             // 工具栏
             _buildToolbar(context, theme, colorScheme),
             // 编辑器
@@ -224,6 +233,7 @@ class _RichTextDescriptionEditorDialogState
     ThemeData theme,
     ColorScheme colorScheme,
     AppLocalizations l10n,
+    String title,
   ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -240,16 +250,16 @@ class _RichTextDescriptionEditorDialogState
         bottom: false,
         child: Row(
           children: [
-            // 关闭按钮
+            // 保存并关闭按钮
             IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: _handleClose,
-              tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+              icon: const Icon(Icons.check),
+              onPressed: _isSaving ? null : _handleSaveAndClose,
+              tooltip: l10n.commonSave,
             ),
             // 标题
             Expanded(
               child: Text(
-                widget.title,
+                title,
                 style: theme.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),

@@ -53,6 +53,15 @@ class NodeService {
     await _repository.updateNode(nodeId, status: status);
   }
 
+  /// 更新节点及其所有子节点的状态
+  ///
+  /// [nodeId] 节点 ID
+  /// [status] 新状态
+  /// 注意：更新节点状态时，所有子节点也会一起更新
+  Future<void> updateNodeStatusWithChildren(String nodeId, NodeStatus status) async {
+    await _repository.updateNodeStatusWithChildren(nodeId, status);
+  }
+
   /// 删除节点（软删除，标记为 deleted 状态）
   ///
   /// [nodeId] 节点 ID

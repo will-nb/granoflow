@@ -91,6 +91,26 @@ class DriftNodeRepository implements NodeRepository {
     });
   }
 
+  @override
+  Future<void> updateNodeStatusWithChildren(String nodeId, domain.NodeStatus status) async {
+    await _adapter.writeTransaction(() async {
+      // 递归查询所有子节点
+      final allNodeIds = <String>[nodeId];
+      await _collectChildNodeIds(nodeId, allNodeIds);
+
+      // 批量更新所有节点状态
+      final now = DateTime.now();
+      for (final id in allNodeIds) {
+        final companion = NodesCompanion(
+          id: const Value.absent(),
+          status: Value(status),
+          updatedAt: Value(now),
+        );
+        await (_db.update(_db.nodes)..where((n) => n.id.equals(id))).write(companion);
+      }
+    });
+  }
+
   /// 递归收集所有子节点 ID
   Future<void> _collectChildNodeIds(String parentId, List<String> result) async {
     final children = await listChildrenByParentId(parentId);

@@ -394,6 +394,7 @@
   },
   "navArchivedTitle": "封存",
   "nodeAddButton": "添加節點",
+  "nodeEditButton": "編輯節點",
   "nodeDeleteConfirm": "刪除此節點？",
   "nodeRestoreAction": "恢復",
   "nodeTitleHint": "節點標題",

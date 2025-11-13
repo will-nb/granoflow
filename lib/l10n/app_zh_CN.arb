@@ -568,6 +568,7 @@
   },
   "navArchivedTitle": "归档",
   "nodeAddButton": "添加节点",
+  "nodeEditButton": "编辑节点",
   "nodeDeleteConfirm": "删除此节点？",
   "nodeRestoreAction": "恢复",
   "nodeTitleHint": "节点标题",

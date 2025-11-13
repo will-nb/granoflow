@@ -16,7 +16,6 @@ import '../../data/models/tag.dart';
 import 'project_milestone_picker.dart';
 import 'inline_project_milestone_display.dart';
 import 'task_row_content/task_row_title_editor.dart';
-import 'task_copy_button.dart';
 
 /// 通用的任务行内容组件，支持内联编辑标签和截止日期
 /// 可在Tasks、Inbox、Projects子任务、轻量任务等多个场景复用
@@ -102,23 +101,6 @@ class _TaskRowContentState extends ConsumerState<TaskRowContent> {
         // 只在编辑状态且非 trashed 状态时显示标签和项目
         if (!isTrashed && isEditing)
           _buildTagsAndDeadlineRow(context, ref, theme),
-        
-        // 第三行：复制按钮 + 计时控件（单独一行，不需要编辑模式）
-        // 只在非 trashed 状态且非子任务时显示
-        if (!isTrashed && (widget.taskLevel == null || widget.taskLevel! <= 1))
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                // 复制按钮
-                TaskCopyButton(
-                  taskTitle: widget.task.title,
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }

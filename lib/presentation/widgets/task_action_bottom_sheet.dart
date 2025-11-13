@@ -18,14 +18,14 @@ import 'swipe_action_type.dart';
 import 'tag_add_button.dart';
 import 'tag_data.dart';
 import 'tag_grouped_menu.dart';
-import 'task_copy_button.dart';
-import 'task_nodes_list.dart';
 import '../widgets/rich_text_description_preview.dart';
 import '../widgets/utils/rich_text_description_editor_helper.dart';
+import '../widgets/utils/node_editor_helper.dart';
+import '../../core/providers/node_providers.dart';
 
 /// 任务操作底部弹窗
 /// 
-/// 包含所有任务操作功能：编辑标题、标签管理、项目/里程碑选择、截止日期编辑、复制、计时、转换为项目、完成、归档、删除等
+/// 包含所有任务操作功能：编辑标题、标签管理、项目/里程碑选择、截止日期编辑、计时、转换为项目、完成、归档、删除等
 class TaskActionBottomSheet extends ConsumerStatefulWidget {
   const TaskActionBottomSheet({
     super.key,
@@ -204,40 +204,8 @@ class _TaskActionBottomSheetState
                     onSubmitted: (_) => _saveTitle(),
                   ),
                   const SizedBox(height: 16),
-                  // 任务描述
-                  RichTextDescriptionPreview(
-                    description: _description,
-                    onTap: () async {
-                      await RichTextDescriptionEditorHelper
-                          .showRichTextDescriptionEditor(
-                        context,
-                        initialDescription: _description,
-                        onSave: (savedDescription) async {
-                          setState(() {
-                            _description = savedDescription;
-                          });
-                          // 保存到数据库
-                          try {
-                            final taskService = await ref.read(taskServiceProvider.future);
-                            await taskService.updateDetails(
-                              taskId: task.id,
-                              payload: TaskUpdate(description: savedDescription),
-                            );
-                          } catch (error) {
-                            if (mounted) {
-                              final l10n = AppLocalizations.of(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('${l10n.taskUpdateError}: $error'),
-                                  backgroundColor: Theme.of(context).colorScheme.error,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                      );
-                    },
-                  ),
+                  // 任务描述和节点按钮
+                  _buildDescriptionAndNodesSection(context, ref, theme, l10n, task),
                   const SizedBox(height: 24),
                   // 标签管理 - 传递最新的任务数据
                   _buildTagsSection(context, ref, theme, task),
@@ -245,17 +213,11 @@ class _TaskActionBottomSheetState
                   // 项目/里程碑选择 - 传递最新的任务数据
                   _buildProjectMilestoneSection(context, ref, theme, task),
                   const SizedBox(height: 16),
-                  // 复制按钮 - 使用最新的任务数据
-                  TaskCopyButton(taskTitle: task.title),
-                  const SizedBox(height: 16),
                   // 转换为项目（如果适用）
                   if (widget.showConvertAction) ...[
                     _buildConvertToProjectButton(context, ref, theme, l10n, task),
                     const SizedBox(height: 16),
                   ],
-                  // 任务节点列表
-                  TaskNodesList(task: task),
-                  const SizedBox(height: 16),
                   // 操作按钮区域 - 传递最新的任务数据
                   _buildActionButtons(context, ref, theme, l10n, task),
                   // 底部安全区域
@@ -574,6 +536,76 @@ class _TaskActionBottomSheetState
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDescriptionAndNodesSection(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeData theme,
+    AppLocalizations l10n,
+    Task task,
+  ) {
+    final nodesAsync = ref.watch(taskNodesProvider(task.id));
+    final hasNodes = nodesAsync.maybeWhen(
+      data: (nodes) => nodes.isNotEmpty,
+      orElse: () => false,
+    );
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        // 任务描述按钮
+        RichTextDescriptionPreview(
+          description: _description,
+          onTap: () async {
+            await RichTextDescriptionEditorHelper
+                .showRichTextDescriptionEditor(
+              context,
+              initialDescription: _description,
+              onSave: (savedDescription) async {
+                setState(() {
+                  _description = savedDescription;
+                });
+                // 保存到数据库
+                try {
+                  final taskService = await ref.read(taskServiceProvider.future);
+                  await taskService.updateDetails(
+                    taskId: task.id,
+                    payload: TaskUpdate(description: savedDescription),
+                  );
+                } catch (error) {
+                  if (mounted) {
+                    final l10n = AppLocalizations.of(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${l10n.taskUpdateError}: $error'),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
+                  }
+                }
+              },
+            );
+          },
+        ),
+        // 节点按钮
+        TextButton.icon(
+          onPressed: () async {
+            await NodeEditorHelper.showNodeManager(
+              context,
+              ref,
+              taskId: task.id,
+            );
+          },
+          icon: const Icon(Icons.checklist),
+          label: Text(hasNodes ? l10n.nodeEditButton : l10n.nodeAddButton),
+          style: TextButton.styleFrom(
+            foregroundColor: theme.colorScheme.primary,
+          ),
+        ),
+      ],
     );
   }
 

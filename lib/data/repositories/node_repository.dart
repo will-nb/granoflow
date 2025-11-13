@@ -38,6 +38,12 @@ abstract class NodeRepository {
   /// [nodeId] 节点 ID
   Future<void> deleteNodeWithChildren(String nodeId);
 
+  /// 更新节点及其所有子节点的状态
+  /// 
+  /// [nodeId] 节点 ID
+  /// [status] 新状态
+  Future<void> updateNodeStatusWithChildren(String nodeId, NodeStatus status);
+
   /// 恢复已删除的节点
   /// 
   /// [nodeId] 节点 ID

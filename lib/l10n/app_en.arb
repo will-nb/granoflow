@@ -415,6 +415,7 @@
   },
   "navArchivedTitle": "Archived",
   "nodeAddButton": "Add Node",
+  "nodeEditButton": "Edit Nodes",
   "nodeDeleteConfirm": "Delete this node?",
   "nodeRestoreAction": "Restore",
   "nodeTitleHint": "Node title",
