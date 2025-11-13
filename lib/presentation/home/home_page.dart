@@ -57,7 +57,7 @@ class HomePage extends ConsumerWidget {
               applyHeightToFirstAscent: false,
               applyHeightToLastDescent: false,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start, // 文本左对齐，与 Column 对齐方式一致
           );
 
           final subtitle = Text(
@@ -70,37 +70,8 @@ class HomePage extends ConsumerWidget {
               applyHeightToFirstAscent: false,
               applyHeightToLastDescent: false,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start, // 文本左对齐，与 Column 对齐方式一致
           );
-
-          // 计算两行文本高度，便于让左侧 Logo 精准与顶部/底部对齐
-          final textDirection = Directionality.of(context);
-          double _measureLineHeight(String text, TextStyle? style) {
-            final painter = TextPainter(
-              text: TextSpan(text: text, style: style),
-              maxLines: 1,
-              textDirection: textDirection,
-            )..layout(maxWidth: double.infinity);
-            return painter.height;
-          }
-          final double _greetingH = _measureLineHeight(
-            l10n.homeGreeting,
-            textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: heroTextColor,
-              letterSpacing: 0.3,
-            ),
-          );
-          final double _subtitleH = _measureLineHeight(
-            l10n.homeTagline,
-            textTheme.bodyLarge?.copyWith(
-              color: heroTextColor.withValues(alpha: 0.85),
-              height: 1.4,
-            ),
-          );
-          const double _gapH = 8.0; // 与文本之间的实际间距保持一致
-          final double _logoTargetH = _greetingH + _gapH + _subtitleH;
-          const double _logoBottomTrim = 2.0; // 裁掉 SVG 底部留白（像素）
 
           // 根据主题亮度选择 Logo variant (Choose Logo variant based on theme brightness)
           final logoVariant = theme.brightness == Brightness.light
@@ -110,46 +81,29 @@ class HomePage extends ConsumerWidget {
           // 将 Logo + 标题 + 标语打包为一个横向 heroBlock
           final heroBlock = Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐，便于下方延伸
+            crossAxisAlignment: CrossAxisAlignment.center, // 垂直居中对齐
             children: [
-              // 左侧 Logo：在保持顶部不变的情况下向下延伸 3px，并整体向右 2px
-              Transform.translate(
-                offset: const Offset(2.0, 0.0),
-                child: SizedBox(
-                  height: _logoTargetH + 3.0,
-                  width: isWide ? 84 : 72,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        top: 0,
-                        bottom: _logoBottomTrim,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: AppLogo(
-                            size: 200.0,
-                            showText: false,
-                            variant: logoVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              // 左侧 Logo：使用固定尺寸，简化布局
+              SizedBox(
+                width: isWide ? 80 : 64,
+                height: isWide ? 80 : 64,
+                child: AppLogo(
+                  size: isWide ? 80 : 64,
+                  showText: false,
+                  variant: logoVariant,
                 ),
               ),
-              SizedBox(width: isWide ? 16 : 12),
-              // 修复：将 Flexible 放在 Row 的直接子级，而不是 Transform 内部
+              SizedBox(width: isWide ? 20 : 16), // 增加间距，更统一
+              // 文本区域：移除 Transform，使用标准布局
               Flexible(
-                child: Transform.translate(
-                  offset: const Offset(-3.0, 0.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      greeting,
-                      const SizedBox(height: _gapH),
-                      subtitle,
-                    ],
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start, // 文本左对齐
+                  children: [
+                    greeting,
+                    const SizedBox(height: 8),
+                    subtitle,
+                  ],
                 ),
               ),
             ],
