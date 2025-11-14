@@ -147,15 +147,20 @@ Future<bool> handleProjectSwipeAction(
     // 左滑（右侧操作）
     if (isActive) {
       // 活跃项目：完成
-      final confirmed = await confirmProjectComplete(context, ref, project);
-      if (confirmed == null || confirmed == false) {
+      final result = await confirmProjectAction(
+        context,
+        ref,
+        ProjectActionType.complete,
+        project,
+      );
+      if (result == null) {
         return false;
       }
       await completeProject(
         context,
         ref,
         project.id,
-        archiveTasks: confirmed == true,
+        archiveTasks: result.includeSubItems,
       );
       return true;
     } else if (isArchived || isCompleted) {

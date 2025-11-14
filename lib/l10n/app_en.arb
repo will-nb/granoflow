@@ -450,6 +450,7 @@
   "nodeDeleteConfirm": "Delete this node?",
   "nodeRestoreAction": "Restore",
   "nodeTitleHint": "Node title",
+  "nodeEmptyStateMessage": "No nodes yet. Add your first node in the input field below.",
   "navCompletedTitle": "Completed",
   "navInboxTitle": "Inbox",
   "navOverviewTitle": "Overview",

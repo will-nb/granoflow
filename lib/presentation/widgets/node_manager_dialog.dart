@@ -8,6 +8,7 @@ import '../../generated/l10n/app_localizations.dart';
 import 'gradient_page_scaffold.dart';
 import 'tri_state_checkbox.dart';
 import 'input_decoration_builder.dart';
+import 'empty_state_widget.dart';
 
 /// 全屏节点管理弹窗组件
 /// 
@@ -203,10 +204,15 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
       color: colorScheme.surface,
       child: Column(
         children: [
-          // 可滚动的节点列表
+          // 可滚动的节点列表或空状态
           Expanded(
             child: visibleNodes.isEmpty
-                ? const SizedBox.shrink()
+                ? EmptyStateWidget(
+                    icon: Icons.checklist_rtl,
+                    iconSize: 64,
+                    message: l10n.nodeEmptyStateMessage,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
+                  )
                 : ListView(
                     controller: _scrollController,
                     padding: const EdgeInsets.symmetric(vertical: 8),

@@ -86,6 +86,7 @@
     "nodeDeleteConfirm",
     "nodeRestoreAction",
     "nodeTitleHint",
+    "nodeEmptyStateMessage",
     "noProject",
     "searchMinLengthHint",
     "searchNoResults",

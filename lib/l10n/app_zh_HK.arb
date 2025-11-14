@@ -430,6 +430,7 @@
   "nodeDeleteConfirm": "刪除此節點？",
   "nodeRestoreAction": "恢復",
   "nodeTitleHint": "節點標題",
+  "nodeEmptyStateMessage": "暫無節點，在下方輸入框添加第一個節點",
   "navCompletedTitle": "已完成",
   "navInboxTitle": "收集箱",
   "navOverviewTitle": "總覽",
