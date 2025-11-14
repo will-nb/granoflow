@@ -110,15 +110,20 @@ Future<bool> handleProjectSwipeAction(
     // 右滑（左侧操作）
     if (isActive) {
       // 活跃项目：归档
-      final confirmed = await confirmProjectArchive(context, ref, project);
-      if (confirmed == null || confirmed == false) {
+      final result = await confirmProjectAction(
+        context,
+        ref,
+        ProjectActionType.archive,
+        project,
+      );
+      if (result == null) {
         return false;
       }
       await archiveProject(
         context,
         ref,
         project.id,
-        archiveTasks: confirmed == true,
+        archiveTasks: result.includeSubItems,
       );
       return true;
     } else if (isArchived || isCompleted) {

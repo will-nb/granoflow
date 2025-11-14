@@ -280,6 +280,11 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
     final isDeleted = node.status == NodeStatus.deleted;
     final isFinished = node.status == NodeStatus.finished;
 
+    // 根据主题模式确定 Card 背景色
+    final cardColor = theme.brightness == Brightness.light
+        ? colorScheme.surface
+        : colorScheme.surfaceContainerHigh;
+
     return Dismissible(
       key: Key('node_${node.id}'),
       direction: DismissDirection.horizontal,
@@ -313,77 +318,95 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
         }
         return false;
       },
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _editingNodeId = node.id;
-            _isAddingNode = false;
-            _currentParentId = null;
-          });
-          // 初始化编辑控制器
-          if (!_editingControllers.containsKey(node.id)) {
-            _editingControllers[node.id] = TextEditingController(text: node.title);
-            _editingFocusNodes[node.id] = FocusNode();
-            _editingFocusNodes[node.id]!.addListener(() {
-              if (!_editingFocusNodes[node.id]!.hasFocus && _editingNodeId == node.id) {
-                _saveNodeTitle(node.id);
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        color: cardColor,
+        margin: EdgeInsets.only(
+          left: depth * 24.0 + 16.0,
+          right: 16.0,
+          top: 8.0,
+          bottom: 8.0,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _editingNodeId = node.id;
+                _isAddingNode = false;
+                _currentParentId = null;
+              });
+              // 初始化编辑控制器
+              if (!_editingControllers.containsKey(node.id)) {
+                _editingControllers[node.id] = TextEditingController(text: node.title);
+                _editingFocusNodes[node.id] = FocusNode();
+                _editingFocusNodes[node.id]!.addListener(() {
+                  if (!_editingFocusNodes[node.id]!.hasFocus && _editingNodeId == node.id) {
+                    _saveNodeTitle(node.id);
+                  }
+                  // 触发重建以更新焦点状态
+                  if (mounted && _editingNodeId == node.id) {
+                    setState(() {});
+                  }
+                });
               }
-            });
-          }
-          // 自动聚焦
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _editingFocusNodes[node.id]?.requestFocus();
-          });
-        },
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: depth * 24.0 + 16.0,
-            right: 16.0,
-            top: 8.0,
-            bottom: 8.0,
-          ),
-          child: Row(
-            children: [
-              // 三态复选框
-              TriStateCheckbox(
-                value: _nodeStatusToTriState(node.status),
-                onChanged: (newState) {
-                  _updateNodeStatus(node.id, _triStateToNodeStatus(newState));
-                },
-              ),
-              const SizedBox(width: 12),
-              // 节点标题
-              Expanded(
-                child: Text(
-                  node.title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    decoration: isDeleted || isFinished
-                        ? TextDecoration.lineThrough
-                        : null,
-                    color: isDeleted
-                        ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
-                        : null,
-                  ),
+              // 自动聚焦
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _editingFocusNodes[node.id]?.requestFocus();
+              });
+            },
+            splashColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            highlightColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                  children: [
+                    // 三态复选框
+                    TriStateCheckbox(
+                      value: _nodeStatusToTriState(node.status),
+                      onChanged: (newState) {
+                        _updateNodeStatus(node.id, _triStateToNodeStatus(newState));
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    // 节点标题
+                    Expanded(
+                      child: Text(
+                        node.title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          decoration: isDeleted || isFinished
+                              ? TextDecoration.lineThrough
+                              : null,
+                          color: isDeleted
+                              ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                              : null,
+                        ),
+                      ),
+                    ),
+                    // 添加子节点按钮
+                    IconButton(
+                      icon: const Icon(Icons.add, size: 20),
+                      onPressed: () {
+                        setState(() {
+                          _isAddingNode = true;
+                          _currentParentId = node.id;
+                          _editingNodeId = null;
+                          _addNodeController.clear();
+                        });
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _addNodeFocusNode.requestFocus();
+                          _scrollToInputField();
+                        });
+                      },
+                      tooltip: l10n.nodeAddButton,
+                    ),
+                  ],
                 ),
               ),
-              // 添加子节点按钮
-              IconButton(
-                icon: const Icon(Icons.add, size: 20),
-                onPressed: () {
-                  setState(() {
-                    _isAddingNode = true;
-                    _currentParentId = node.id;
-                    _editingNodeId = null;
-                    _addNodeController.clear();
-                  });
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _addNodeFocusNode.requestFocus();
-                    _scrollToInputField();
-                  });
-                },
-                tooltip: l10n.nodeAddButton,
-              ),
-            ],
           ),
         ),
       ),

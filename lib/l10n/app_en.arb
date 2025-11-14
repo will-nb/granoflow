@@ -951,6 +951,111 @@
   "projectDeletePermanentMessage": "Are you sure you want to permanently delete this project? This action cannot be undone.",
   "projectDeletePermanentTitle": "Permanently Delete",
   "projectDeletedPermanent": "Project permanently deleted",
+  "projectArchiveConfirmButton": "Confirm Archive",
+  "@projectArchiveConfirmButton": {
+    "description": "Confirmation button for archiving project"
+  },
+  "projectArchiveFirstConfirmMessage": "Project \"{projectTitle}\" has {milestoneCount} active milestones and {taskCount} active tasks.\n\nDo you want to archive them together?",
+  "@projectArchiveFirstConfirmMessage": {
+    "description": "First confirmation message when archiving project with sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"},
+      "milestoneCount": {"type": "int"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "projectArchiveFirstConfirmTitle": "Archive project",
+  "@projectArchiveFirstConfirmTitle": {
+    "description": "First confirmation dialog title when archiving project"
+  },
+  "projectArchiveSecondConfirmMessageWithSubItems": "You will archive project \"{projectTitle}\" and all its milestones and tasks.",
+  "@projectArchiveSecondConfirmMessageWithSubItems": {
+    "description": "Second confirmation message when archiving project with sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectArchiveSecondConfirmMessageWithoutSubItems": "You will archive project \"{projectTitle}\" and its milestones, but keep all tasks.",
+  "@projectArchiveSecondConfirmMessageWithoutSubItems": {
+    "description": "Second confirmation message when archiving project without sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectArchiveSecondConfirmTitle": "Confirm archive",
+  "@projectArchiveSecondConfirmTitle": {
+    "description": "Second confirmation dialog title when archiving project"
+  },
+  "projectCompleteConfirmButton": "Confirm Complete",
+  "@projectCompleteConfirmButton": {
+    "description": "Confirmation button for completing project"
+  },
+  "projectCompleteFirstConfirmMessage": "Project \"{projectTitle}\" has {milestoneCount} active milestones and {taskCount} active tasks.\n\nDo you want to complete them together?",
+  "@projectCompleteFirstConfirmMessage": {
+    "description": "First confirmation message when completing project with sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"},
+      "milestoneCount": {"type": "int"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "projectCompleteFirstConfirmTitle": "Complete project",
+  "@projectCompleteFirstConfirmTitle": {
+    "description": "First confirmation dialog title when completing project"
+  },
+  "projectCompleteSecondConfirmMessageWithSubItems": "You will complete project \"{projectTitle}\" and all its milestones and tasks.",
+  "@projectCompleteSecondConfirmMessageWithSubItems": {
+    "description": "Second confirmation message when completing project with sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectCompleteSecondConfirmMessageWithoutSubItems": "You will complete project \"{projectTitle}\" and its milestones, but keep all tasks.",
+  "@projectCompleteSecondConfirmMessageWithoutSubItems": {
+    "description": "Second confirmation message when completing project without sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectCompleteSecondConfirmTitle": "Confirm complete",
+  "@projectCompleteSecondConfirmTitle": {
+    "description": "Second confirmation dialog title when completing project"
+  },
+  "projectDeleteConfirmButton": "Confirm Delete",
+  "@projectDeleteConfirmButton": {
+    "description": "Confirmation button for deleting project"
+  },
+  "projectDeleteFirstConfirmMessage": "Project \"{projectTitle}\" has {milestoneCount} active milestones and {taskCount} active tasks.\n\nDo you want to delete them together?",
+  "@projectDeleteFirstConfirmMessage": {
+    "description": "First confirmation message when deleting project with sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"},
+      "milestoneCount": {"type": "int"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "projectDeleteFirstConfirmTitle": "Delete project",
+  "@projectDeleteFirstConfirmTitle": {
+    "description": "First confirmation dialog title when deleting project"
+  },
+  "projectDeleteSecondConfirmMessageWithSubItems": "You will permanently delete project \"{projectTitle}\" and all its milestones and tasks.\n\nThis action cannot be undone.",
+  "@projectDeleteSecondConfirmMessageWithSubItems": {
+    "description": "Second confirmation message when deleting project with sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectDeleteSecondConfirmMessageWithoutSubItems": "You will permanently delete project \"{projectTitle}\" and its milestones, but keep all tasks.\n\nThis action cannot be undone.",
+  "@projectDeleteSecondConfirmMessageWithoutSubItems": {
+    "description": "Second confirmation message when deleting project without sub-items",
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectDeleteSecondConfirmTitle": "Confirm delete",
+  "@projectDeleteSecondConfirmTitle": {
+    "description": "Second confirmation dialog title when deleting project"
+  },
   "projectEditAction": "Edit Project",
   "projectEditTitle": "Edit Project",
   "projectSnoozeAction": "Snooze",
