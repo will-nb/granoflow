@@ -436,6 +436,17 @@ class SystemTrayService {
     _isMenuUpdating = false;
   }
 
+  /// 确保菜单已构建（用于在点击时确保菜单存在）
+  Future<void> _ensureMenuBuilt() async {
+    try {
+      // 检查菜单是否已设置（通过尝试获取当前菜单项数量）
+      // 如果菜单未设置，重新构建
+      await _buildMenu();
+    } catch (error, stackTrace) {
+      debugPrint('[SystemTrayService] Failed to ensure menu built: $error\n$stackTrace');
+    }
+  }
+
   /// 导航到任务页面
   Future<void> _navigateToTaskPage(String? section, String? taskId) async {
     try {
@@ -491,12 +502,14 @@ class _TrayListener extends TrayListener {
   @override
   void onTrayIconMouseDown() {
     debugPrint('[SystemTrayService] Tray icon clicked (left button)');
-    // 在 macOS 上，左键点击托盘图标时显示菜单（由系统自动处理）
+    // 在 macOS 上，左键点击托盘图标时显示菜单
     // 在 Windows/Linux 上，左键点击显示窗口
     if (Platform.isMacOS) {
-      // macOS 上左键点击显示菜单（由系统自动处理）
+      // macOS 上左键点击显示菜单
       // 在点击时，暂时停止菜单更新，避免干扰菜单显示
       _service._pauseMenuUpdate();
+      // 确保菜单已构建并设置
+      _service._ensureMenuBuilt();
       // 延迟恢复菜单更新，给菜单显示留出时间
       Future.delayed(const Duration(milliseconds: 100), () {
         _service._resumeMenuUpdate();
@@ -515,6 +528,8 @@ class _TrayListener extends TrayListener {
     // 在 macOS 上，右键点击会自动显示菜单
     // 在点击时，暂时停止菜单更新，避免干扰菜单显示
     _service._pauseMenuUpdate();
+    // 确保菜单已构建并设置
+    _service._ensureMenuBuilt();
     // 延迟恢复菜单更新，给菜单显示留出时间
     Future.delayed(const Duration(milliseconds: 100), () {
       _service._resumeMenuUpdate();

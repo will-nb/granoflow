@@ -29,6 +29,7 @@ class _GranoFlowAppState extends ConsumerState<GranoFlowApp> {
     super.initState();
     // 在应用启动后初始化系统托盘（仅桌面平台）
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('[GranoFlowApp] PostFrameCallback triggered, initializing system tray...');
       _initializeSystemTray();
     });
   }
