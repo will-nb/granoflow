@@ -41,7 +41,12 @@
       "Material Design 3：现代化的卡片设计、圆角、间距规范",
       "Things 3：内联编辑体验、简洁直观的界面",
       "Notion：层级展示、流畅的交互",
-      "2025 年设计趋势：更宽松的间距、更好的视觉层次、更清晰的交互反馈",
+      "2025 年设计趋势：",
+      "  - 更宽松的间距（12-16dp 而不是 8dp），提升可读性和视觉舒适度",
+      "  - 更大的圆角（20dp），带来更柔和的视觉感受",
+      "  - 无阴影或极轻微阴影（elevation: 0），更扁平化的设计",
+      "  - 更好的视觉层次（使用 Card 容器区分内容区域）",
+      "  - 更清晰的交互反馈（悬停、点击状态的视觉变化）",
     ],
   },
 
@@ -144,8 +149,8 @@
       position: "topLeft", // 保存按钮在左上角
       // 内边距
       padding: {
-        horizontal: 16, // dp
-        vertical: 12, // dp（从 8 增加到 12，更宽松）
+        horizontal: 16, // dp（与项目 cardHorizontalPadding 一致）
+        vertical: 12, // dp（从 8 增加到 12，更宽松，符合2025年设计趋势）
       },
       // 底部边框
       border: {
@@ -312,18 +317,18 @@
         },
       },
       // 圆角
-      borderRadius: 12, // dp（使用项目统一的 12dp 圆角）
+      borderRadius: 20, // dp（使用 20dp 圆角，与 QuickTaskCard 一致，符合2025年设计趋势：更大的圆角带来更柔和的视觉感受）
       // 阴影
       elevation: 0, // 无阴影，与项目风格一致
       // 内边距
       padding: {
-        horizontal: 16, // dp
-        vertical: 12, // dp
+        horizontal: 16, // dp（与项目 cardHorizontalPadding 一致）
+        vertical: 12, // dp（从 8 增加到 12，更宽松，符合2025年设计趋势）
       },
       // 外边距
       margin: {
-        horizontal: 16, // dp
-        vertical: 6, // dp（节点之间的间距）
+        horizontal: 16, // dp（与项目 cardHorizontalPadding 一致）
+        vertical: 8, // dp（节点之间的间距，使用 8dp 网格系统）
       },
       // 悬停/点击效果
       hoverEffect: {
@@ -331,7 +336,12 @@
         background: "Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)",
         note: "悬停或点击时显示背景色变化，提供视觉反馈",
       },
-      note: "使用 Card 容器包裹节点项，提升视觉层次，与项目其他卡片组件保持一致",
+      // Dismissible 支持
+      dismissible: {
+        enabled: true,
+        note: "Card 需要包裹在 Dismissible 内，以支持滑动操作（右滑完成、左滑删除）",
+      },
+      note: "使用 Card 容器包裹节点项，提升视觉层次。圆角使用 20dp（与 QuickTaskCard 一致），内边距使用 12dp（更宽松，符合2025年设计趋势），与项目其他卡片组件保持一致",
     },
     
     // 三态复选框
@@ -457,8 +467,8 @@
       },
       // 内边距
       padding: {
-        horizontal: 16, // dp
-        vertical: 12, // dp
+        horizontal: 16, // dp（与项目 cardHorizontalPadding 一致）
+        vertical: 12, // dp（从 8 增加到 12，更宽松，符合2025年设计趋势）
       },
     },
     
@@ -694,15 +704,15 @@
         horizontal: 16, // dp
         vertical: 12, // dp
       },
-      // 节点项内边距
+      // 节点项内边距（Card 内边距）
       nodeItemPadding: {
-        horizontal: 16, // dp
-        vertical: 12, // dp
+        horizontal: 16, // dp（与项目 cardHorizontalPadding 一致）
+        vertical: 12, // dp（更宽松，符合2025年设计趋势）
       },
-      // 节点项外边距
+      // 节点项外边距（Card 外边距）
       nodeItemMargin: {
-        horizontal: 16, // dp
-        vertical: 6, // dp
+        horizontal: 16, // dp（与项目 cardHorizontalPadding 一致）
+        vertical: 8, // dp（使用 8dp 网格系统）
       },
       // 层级缩进
       indentPerLevel: 24, // dp
@@ -822,11 +832,11 @@
         "方案3：使用 Container + BoxDecoration，自定义样式",
       ],
       // 推荐方案
-      recommendation: "方案1：使用 Card 容器。与项目其他卡片组件保持一致，提升视觉层次，但需要确保不影响现有的交互功能（如滑动、拖拽）",
+      recommendation: "方案1：使用 Card 容器。与项目其他卡片组件（如 QuickTaskCard）保持一致，提升视觉层次。使用 20dp 圆角（与 QuickTaskCard 一致，符合2025年设计趋势），elevation: 0（无阴影），内边距 12dp（更宽松）。需要确保 Card 包裹在 Dismissible 内，以支持现有的滑动操作（右滑完成、左滑删除）",
       // 是否已确认
       confirmed: true,
       // 确认后的答案
-      confirmedAnswer: "使用 Card 容器（elevation: 0, borderRadius: 12），与项目风格保持一致",
+      confirmedAnswer: "使用 Card 容器（elevation: 0, borderRadius: 20dp，padding: 16dp/12dp，margin: 16dp/8dp），与项目 QuickTaskCard 风格保持一致，符合2025年设计趋势。Card 需要包裹在 Dismissible 内以支持滑动操作",
     },
     {
       // 问题描述
@@ -858,11 +868,11 @@
         "方案3：使用 titleLarge（22sp, regular）",
       ],
       // 推荐方案
-      recommendation: "方案2：增加到 18sp, semiBold。在不影响整体布局的前提下，使标题更突出，提升视觉层次",
+      recommendation: "方案2：增加到 18sp, semiBold。在不影响整体布局的前提下，使标题更突出，提升视觉层次，符合2025年设计趋势（更清晰的视觉层次）",
       // 是否已确认
       confirmed: true,
       // 确认后的答案
-      confirmedAnswer: "标题使用 18sp, semiBold，使标题更突出",
+      confirmedAnswer: "标题使用 18sp, semiBold，使标题更突出，符合2025年设计趋势",
     },
     {
       // 问题描述
@@ -876,11 +886,11 @@
         "方案3：改为 FilledTextField，使用填充背景",
       ],
       // 推荐方案
-      recommendation: "方案1：保持 UnderlineInputBorder。与现有的 NodeEditorDialog 和 Things3 风格保持一致，只优化颜色和焦点状态即可",
+      recommendation: "方案1：保持 UnderlineInputBorder。与现有的 NodeEditorDialog 和 Things3 风格保持一致，只优化颜色和焦点状态即可。符合2025年设计趋势：保持简洁，不过度设计",
       // 是否已确认
       confirmed: true,
       // 确认后的答案
-      confirmedAnswer: "保持 UnderlineInputBorder，只优化颜色和焦点状态，与现有风格保持一致",
+      confirmedAnswer: "保持 UnderlineInputBorder，只优化颜色和焦点状态，与现有风格保持一致，符合2025年设计趋势（保持简洁）",
     },
   ],
 }

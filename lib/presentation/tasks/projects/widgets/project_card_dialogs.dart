@@ -58,13 +58,17 @@ Future<ProjectActionConfirmResult?> confirmProjectAction(
   
   // 如果没有活跃的里程碑和任务，直接进入第二次确认
   if (activeMilestones == 0 && activeTasks == 0) {
-    return await _showSecondConfirmDialog(
+    final confirmed = await _showSecondConfirmDialog(
       context,
       l10n,
       actionType,
       project,
       includeSubItems: false,
     );
+    if (confirmed == null || !confirmed) {
+      return null;
+    }
+    return const ProjectActionConfirmResult(includeSubItems: false);
   }
   
   // 第一次确认：询问是否包含子项
@@ -166,9 +170,9 @@ Future<bool?> _showSecondConfirmDialog(
   BuildContext context,
   AppLocalizations l10n,
   ProjectActionType actionType,
-  Project project,
-  {required bool includeSubItems},
-) async {
+  Project project, {
+  required bool includeSubItems,
+}) async {
   String title;
   String message;
   String confirmButtonText;
