@@ -1,0 +1,887 @@
+{
+  // ===========================================
+  // 节点管理弹窗（NodeManagerDialog）美化设计文档
+  // 优化全屏节点管理弹窗的视觉设计和用户体验
+  // 适用范围：NodeManagerDialog（全屏节点管理弹窗）
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：在保持 Things3 风格内联编辑体验的基础上，提升视觉层次和交互反馈，使界面更现代、统一、易用
+    goal: "优化 NodeManagerDialog 的视觉设计和用户体验，在保持 Things3 风格内联编辑体验的基础上，提升视觉层次、优化交互反馈、改进空状态展示，使界面更现代、统一、易用，与项目整体设计风格保持一致",
+    
+    // 主题集成：与现有 Ocean Breeze 主题和项目设计规范保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用 Ocean Breeze 配色方案（海盐蓝、薄荷青、湖光青等）",
+        "复用现有的 GradientPageScaffold 渐变背景系统",
+        "遵循 Material Design 3 设计规范（圆角、间距、阴影）",
+        "使用统一的字体样式和间距规范（8dp 网格系统）",
+        "保持与 TaskActionBottomSheet 等弹窗的视觉风格一致",
+        "使用项目统一的 Card 组件样式（elevation: 0, borderRadius: 12-20）",
+        "保持与 NodeEditorDialog 顶部栏样式的一致性",
+      ],
+      
+      // 创新点：在保持风格一致的前提下进行的美化优化
+      innovation: [
+        "优化顶部栏：改进间距和字体，使标题更突出",
+        "美化节点列表项：使用 Card 容器，添加圆角和轻微阴影，提升视觉层次",
+        "优化输入框：改进焦点状态和边框样式，使交互更清晰",
+        "改进空状态：添加友好的空状态提示，引导用户操作",
+        "优化动画：添加微妙的过渡动画，提升交互流畅度",
+        "改进视觉反馈：优化点击、悬停等交互状态的视觉反馈",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "Material Design 3：现代化的卡片设计、圆角、间距规范",
+      "Things 3：内联编辑体验、简洁直观的界面",
+      "Notion：层级展示、流畅的交互",
+      "2025 年设计趋势：更宽松的间距、更好的视觉层次、更清晰的交互反馈",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  colorScheme: {
+    // 背景渐变：复用 GradientPageScaffold 的背景渐变
+    backgroundGradients: {
+      // Light 模式
+      light: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "context.gradients.pageBackground",
+          ],
+          stops: [0.0, 1.0],
+          note: "使用 GradientPageScaffold 的默认渐变背景，与现有页面保持一致",
+        },
+      },
+      
+      // Dark 模式
+      dark: {
+        normal: {
+          type: "LinearGradient",
+          direction: "topToBottom",
+          colors: [
+            "context.gradients.pageBackground",
+          ],
+          stops: [0.0, 1.0],
+          note: "使用 GradientPageScaffold 的默认渐变背景，与现有页面保持一致",
+        },
+      },
+    },
+    
+    // 专用配色：节点管理弹窗的专用颜色
+    specificColors: {
+      // 顶部栏
+      topBar: {
+        background: "Theme.of(context).colorScheme.surface",
+        border: "Theme.of(context).colorScheme.outline.withValues(alpha: 0.2)",
+        title: "Theme.of(context).colorScheme.onSurface",
+        note: "顶部栏使用 surface 背景色，底部边框使用 outline 颜色（20% 透明度）",
+      },
+      // 节点列表项
+      nodeItem: {
+        // 卡片背景
+        cardBackground: {
+          light: "Theme.of(context).colorScheme.surface",
+          dark: "Theme.of(context).colorScheme.surfaceContainerHigh",
+          note: "节点列表项使用 Card 容器，浅色模式使用 surface，深色模式使用 surfaceContainerHigh 以增强对比度",
+        },
+        // 悬停/点击状态
+        hoverBackground: "Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)",
+        // 节点标题颜色
+        title: {
+          normal: "Theme.of(context).colorScheme.onSurface",
+          finished: "Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)",
+          deleted: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)",
+        },
+      },
+      // 输入框
+      inputField: {
+        // 边框颜色
+        border: {
+          normal: "Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)",
+          focused: "Theme.of(context).colorScheme.primary",
+        },
+        // 背景颜色
+        background: "Theme.of(context).colorScheme.surface",
+        // 占位符颜色
+        hint: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6)",
+      },
+      // 空状态
+      emptyState: {
+        icon: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4)",
+        text: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6)",
+      },
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 全屏布局：是，使用全屏弹窗
+    fullScreen: true,
+    
+    // 隐藏导航栏：是，全屏弹窗隐藏导航栏
+    hideNavigation: true,
+    
+    // 顶部栏配置
+    topBar: {
+      // 显示返回按钮：否，使用保存按钮
+      showBackButton: false,
+      // 背景样式
+      background: "Theme.of(context).colorScheme.surface",
+      // 按钮位置
+      position: "topLeft", // 保存按钮在左上角
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp（从 8 增加到 12，更宽松）
+      },
+      // 底部边框
+      border: {
+        enabled: true,
+        color: "Theme.of(context).colorScheme.outline.withValues(alpha: 0.2)",
+        width: 1, // dp
+      },
+      note: "顶部栏保持简洁设计，使用保存按钮（check icon）和居中标题，与 NodeEditorDialog 保持一致",
+    },
+    
+    // 内容区域布局
+    contentLayout: {
+      // 布局方向
+      direction: "vertical",
+      // 主轴对齐
+      mainAxisAlignment: "start",
+      // 交叉轴对齐
+      crossAxisAlignment: "stretch",
+      // 使用 SafeArea
+      safeArea: true,
+      // 内边距
+      padding: {
+        horizontal: 0, // 节点列表项内部处理内边距
+        vertical: 0,
+      },
+    },
+    
+    // 区域划分：页面的主要区域
+    sections: [
+      {
+        // 区域名称
+        name: "topBar",
+        // 位置
+        position: "top",
+        // 权重
+        weight: "fixed",
+        // 子组件列表
+        children: [
+          "保存按钮（check icon）",
+          "标题（居中）",
+        ],
+        note: "顶部栏区域，固定高度",
+      },
+      {
+        // 区域名称
+        name: "nodesList",
+        // 位置
+        position: "middle",
+        // 权重
+        weight: "flexible",
+        // 子组件列表
+        children: [
+          "节点列表（可滚动）",
+          "空状态提示（如果列表为空）",
+        ],
+        note: "节点列表区域，可滚动，支持空状态",
+      },
+      {
+        // 区域名称
+        name: "bottomInput",
+        // 位置
+        position: "bottom",
+        // 权重
+        weight: "fixed",
+        // 子组件列表
+        children: [
+          "底部输入框（始终显示）",
+        ],
+        note: "底部输入框区域，固定高度，始终显示",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  
+  // 顶部栏组件
+  topBar: {
+    // 组件位置
+    position: "top",
+    
+    // 布局结构
+    layout: {
+      direction: "horizontal",
+      mainAxisAlignment: "spaceBetween",
+      crossAxisAlignment: "center",
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp（从 8 增加到 12）
+      },
+    },
+    
+    // 保存按钮
+    saveButton: {
+      // 组件类型
+      type: "IconButton",
+      // 图标
+      icon: "Icons.check",
+      // 尺寸
+      size: 24, // dp
+      // 颜色
+      color: "Theme.of(context).colorScheme.primary",
+      // 工具提示
+      tooltip: "保存并关闭",
+      // 交互
+      interactive: true,
+      action: "保存并关闭弹窗",
+      note: "使用 IconButton，保持与 NodeEditorDialog 一致",
+    },
+    
+    // 标题
+    title: {
+      // 字体样式
+      typography: {
+        // 字号（sp）
+        fontSize: 18, // 从 titleMedium（16）增加到 18，更突出
+        // 字重
+        fontWeight: "semiBold", // 从 regular 增加到 semiBold，更突出
+        // 颜色
+        color: "Theme.of(context).colorScheme.onSurface",
+      },
+      // 对齐方式
+      textAlign: "center",
+      // 位置
+      position: "center",
+      note: "标题使用更大的字号和更粗的字重，使标题更突出",
+    },
+  },
+
+  // 节点列表项组件
+  nodeItem: {
+    // 组件位置
+    position: "nodesList",
+    
+    // 布局结构
+    layout: {
+      direction: "horizontal",
+      mainAxisAlignment: "start",
+      crossAxisAlignment: "center",
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp（从 8 增加到 12，更宽松）
+      },
+      // 层级缩进
+      indent: {
+        perLevel: 24, // dp（每级缩进 24dp）
+        base: 16, // dp（根节点基础缩进 16dp）
+        note: "每个层级缩进 24dp，根节点基础缩进 16dp",
+      },
+    },
+    
+    // 卡片容器
+    card: {
+      // 组件类型
+      type: "Card",
+      // 背景样式
+      background: {
+        // 背景类型
+        type: "solid",
+        color: {
+          light: "Theme.of(context).colorScheme.surface",
+          dark: "Theme.of(context).colorScheme.surfaceContainerHigh",
+        },
+      },
+      // 圆角
+      borderRadius: 12, // dp（使用项目统一的 12dp 圆角）
+      // 阴影
+      elevation: 0, // 无阴影，与项目风格一致
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+      // 外边距
+      margin: {
+        horizontal: 16, // dp
+        vertical: 6, // dp（节点之间的间距）
+      },
+      // 悬停/点击效果
+      hoverEffect: {
+        enabled: true,
+        background: "Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)",
+        note: "悬停或点击时显示背景色变化，提供视觉反馈",
+      },
+      note: "使用 Card 容器包裹节点项，提升视觉层次，与项目其他卡片组件保持一致",
+    },
+    
+    // 三态复选框
+    checkbox: {
+      // 组件类型
+      type: "custom", // 自定义三态复选框
+      // 组件路径
+      componentPath: "lib/presentation/widgets/tri_state_checkbox.dart",
+      // 尺寸
+      size: 24, // dp
+      // 位置
+      position: "leading", // 左侧
+      // 右边距
+      marginRight: 12, // dp
+      note: "复用现有的 TriStateCheckbox 组件",
+    },
+    
+    // 节点标题
+    title: {
+      // 字体样式
+      typography: {
+        // 字号（sp）
+        fontSize: 16,
+        // 字重
+        fontWeight: "regular",
+        // 颜色（根据状态）
+        color: {
+          pending: "Theme.of(context).colorScheme.onSurface",
+          finished: "Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)",
+          deleted: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)",
+        },
+        // 删除线（finished 和 deleted 状态）
+        decoration: {
+          pending: "none",
+          finished: "lineThrough",
+          deleted: "lineThrough",
+        },
+      },
+      // 交互
+      interactive: true,
+      action: "点击节点标题直接内联编辑",
+      note: "保持现有的内联编辑功能",
+    },
+    
+    // 添加子节点按钮
+    addChildButton: {
+      // 位置
+      position: "trailing", // 右侧
+      // 图标
+      icon: "Icons.add",
+      // 尺寸
+      size: 20, // dp
+      // 颜色
+      color: "Theme.of(context).colorScheme.primary",
+      // 交互
+      interactive: true,
+      action: "点击在节点下方显示内联输入框",
+      note: "保持现有的添加子节点功能",
+    },
+  },
+
+  // 内联编辑输入框
+  inlineEditingField: {
+    // 组件类型
+    type: "TextField",
+    // 显示位置
+    position: "inline", // 内联显示
+    // 样式
+    style: {
+      // 边框
+      border: "UnderlineInputBorder",
+      // 边框颜色
+      borderColor: {
+        normal: "Theme.of(context).colorScheme.primary",
+        focused: "Theme.of(context).colorScheme.primary",
+      },
+      // 边框宽度
+      borderWidth: 1.5, // dp
+      // 自动获得焦点
+      autofocus: true,
+      // 文本输入动作
+      textInputAction: "TextInputAction.done",
+      // 占位符
+      placeholder: "节点标题",
+    },
+    // 内边距
+    padding: {
+      horizontal: 4, // dp
+      vertical: 8, // dp
+    },
+    note: "保持现有的 UnderlineInputBorder 样式，优化颜色和焦点状态",
+  },
+
+  // 底部输入框
+  bottomInputField: {
+    // 组件位置
+    position: "bottom",
+    
+    // 布局结构
+    layout: {
+      direction: "horizontal",
+      mainAxisAlignment: "start",
+      crossAxisAlignment: "center",
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp（从 8 增加到 12）
+      },
+    },
+    
+    // 容器样式
+    container: {
+      // 背景样式
+      background: {
+        // 背景类型
+        type: "solid",
+        color: "Theme.of(context).colorScheme.surface",
+      },
+      // 顶部边框
+      border: {
+        enabled: true,
+        color: "Theme.of(context).colorScheme.outline.withValues(alpha: 0.2)",
+        width: 1, // dp
+      },
+      // 内边距
+      padding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+    },
+    
+    // 输入框样式
+    inputField: {
+      // 组件类型
+      type: "TextField",
+      // 边框
+      border: "UnderlineInputBorder",
+      // 边框颜色
+      borderColor: {
+        normal: "Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)",
+        focused: "Theme.of(context).colorScheme.primary",
+      },
+      // 边框宽度
+      borderWidth: {
+        normal: 1, // dp
+        focused: 1.5, // dp
+      },
+      // 占位符
+      placeholder: "节点标题",
+      // 占位符颜色
+      placeholderColor: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6)",
+      // 内边距
+      padding: {
+        horizontal: 4, // dp
+        vertical: 12, // dp
+      },
+      note: "优化输入框的边框颜色和焦点状态，使交互更清晰",
+    },
+  },
+
+  // 空状态组件
+  emptyState: {
+    // 组件位置
+    position: "nodesList",
+    
+    // 显示条件
+    visible: "当节点列表为空时显示",
+    
+    // 布局结构
+    layout: {
+      direction: "vertical",
+      mainAxisAlignment: "center",
+      crossAxisAlignment: "center",
+      padding: {
+        horizontal: 32, // dp
+        vertical: 64, // dp
+      },
+    },
+    
+    // 图标
+    icon: {
+      // 图标类型
+      type: "Icon",
+      // 图标名称
+      name: "Icons.checklist_rtl", // 或 Icons.list_alt
+      // 尺寸
+      size: 64, // dp
+      // 颜色
+      color: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4)",
+      // 底部间距
+      marginBottom: 16, // dp
+    },
+    
+    // 提示文字
+    text: {
+      // 字体样式
+      typography: {
+        // 字号（sp）
+        fontSize: 16,
+        // 字重
+        fontWeight: "regular",
+        // 颜色
+        color: "Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6)",
+      },
+      // 文本内容
+      content: "暂无节点，在下方输入框添加第一个节点",
+      // 文本对齐
+      textAlign: "center",
+      // 最大行数
+      maxLines: 2,
+    },
+    
+    note: "空状态显示友好的提示，引导用户添加第一个节点",
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程名称
+        name: "打开节点管理弹窗",
+        // 步骤列表
+        steps: [
+          "用户从 TaskActionBottomSheet 点击'编辑节点'按钮",
+          "全屏弹窗从底部滑入（slide up animation）",
+          "显示顶部栏（保存按钮 + 标题）",
+          "显示节点列表（如果有节点）或空状态",
+          "显示底部输入框（始终显示）",
+        ],
+      },
+      {
+        // 流程名称
+        name: "添加根节点",
+        // 步骤列表
+        steps: [
+          "用户在底部输入框输入节点标题",
+          "输入框获得焦点，边框颜色变为 primary",
+          "用户按回车键或点击保存",
+          "新节点添加到列表顶部，带有淡入动画",
+          "输入框清空，保持焦点，支持连续添加",
+        ],
+      },
+      {
+        // 流程名称
+        name: "编辑节点标题",
+        // 步骤列表
+        steps: [
+          "用户点击节点标题",
+          "标题变为可编辑的 TextField（内联编辑）",
+          "TextField 自动获得焦点，边框高亮",
+          "用户修改标题",
+          "用户按回车键或失去焦点时保存",
+          "标题保存并更新显示，带有轻微动画反馈",
+        ],
+      },
+      {
+        // 流程名称
+        name: "查看空状态",
+        // 步骤列表
+        steps: [
+          "用户打开节点管理弹窗",
+          "如果节点列表为空，显示空状态提示",
+          "空状态显示图标和提示文字",
+          "用户可以在底部输入框添加第一个节点",
+        ],
+      },
+    ],
+    
+    // 交互细节
+    gestures: {
+      // 点击
+      tap: {
+        // 点击节点标题
+        nodeTitle: {
+          action: "内联编辑节点标题",
+          visualFeedback: "节点项背景色轻微变化",
+        },
+        // 点击保存按钮
+        saveButton: {
+          action: "保存并关闭弹窗",
+          visualFeedback: "按钮轻微缩放动画",
+        },
+      },
+      // 悬停（桌面端）
+      hover: {
+        // 悬停节点项
+        nodeItem: {
+          action: "显示悬停背景色",
+          visualFeedback: "节点项背景色变为 surfaceContainerHighest（50% 透明度）",
+        },
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 页面进入动画
+    pageEnter: {
+      type: "slide_up", // 从底部滑入
+      duration: 300, // 毫秒
+      curve: "Curves.easeOut",
+      note: "全屏弹窗从底部滑入，与 NodeEditorDialog 保持一致",
+    },
+    
+    // 页面退出动画
+    pageExit: {
+      type: "slide_down", // 向底部滑出
+      duration: 250, // 毫秒
+      curve: "Curves.easeIn",
+      note: "全屏弹窗向底部滑出",
+    },
+    
+    // 节点添加动画
+    nodeAdd: {
+      type: "fade_in_slide_up",
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+      note: "新节点添加时，淡入并向上滑动",
+    },
+    
+    // 节点状态切换动画
+    nodeStatusChange: {
+      type: "scale",
+      duration: 150, // 毫秒
+      curve: "Curves.easeOut",
+      note: "节点状态切换时，复选框轻微缩放动画",
+    },
+    
+    // 输入框焦点动画
+    inputFocus: {
+      type: "border_color_transition",
+      duration: 200, // 毫秒
+      curve: "Curves.easeOut",
+      note: "输入框获得焦点时，边框颜色平滑过渡",
+    },
+    
+    // 悬停动画
+    hover: {
+      type: "background_color_transition",
+      duration: 150, // 毫秒
+      curve: "Curves.easeOut",
+      note: "悬停时，背景色平滑过渡",
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 手机竖屏
+    mobilePortrait: {
+      // 布局方式
+      layout: "vertical",
+      // 顶部栏内边距
+      topBarPadding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+      // 节点项内边距
+      nodeItemPadding: {
+        horizontal: 16, // dp
+        vertical: 12, // dp
+      },
+      // 节点项外边距
+      nodeItemMargin: {
+        horizontal: 16, // dp
+        vertical: 6, // dp
+      },
+      // 层级缩进
+      indentPerLevel: 24, // dp
+      // 字体大小
+      fontSize: {
+        title: 18, // sp
+        nodeTitle: 16, // sp
+        emptyState: 16, // sp
+      },
+    },
+    
+    // 平板横屏（可选）
+    tabletLandscape: {
+      layout: "vertical",
+      topBarPadding: {
+        horizontal: 24, // dp（稍大）
+        vertical: 16, // dp（稍大）
+      },
+      nodeItemPadding: {
+        horizontal: 20, // dp（稍大）
+        vertical: 14, // dp（稍大）
+      },
+      nodeItemMargin: {
+        horizontal: 24, // dp（稍大）
+        vertical: 8, // dp（稍大）
+      },
+      indentPerLevel: 28, // dp（稍大）
+      fontSize: {
+        title: 20, // sp（稍大）
+        nodeTitle: 17, // sp（稍大）
+        emptyState: 17, // sp（稍大）
+      },
+    },
+  },
+
+  // ===========================================
+  // 8. 手势支持（可选）
+  // ===========================================
+  gestures: {
+    // 点击
+    tap: {
+      enabled: true,
+      actions: [
+        "点击节点标题：内联编辑",
+        "点击复选框：切换状态",
+        "点击添加按钮：添加子节点",
+        "点击保存按钮：保存并关闭",
+      ],
+    },
+    
+    // 滑动手势（保持现有功能）
+    swipeRight: {
+      enabled: true,
+      action: "右滑完成节点（startToEnd，显示左侧背景）",
+      note: "保持现有的滑动完成功能",
+    },
+    swipeLeft: {
+      enabled: true,
+      action: "左滑删除节点（endToStart，显示右侧背景）",
+      note: "保持现有的滑动删除功能",
+    },
+  },
+
+  // ===========================================
+  // 9. 边界情况处理（必填）
+  // ===========================================
+  edgeCases: {
+    // 空状态
+    emptyState: {
+      description: "节点列表为空时",
+      display: "显示空状态提示（图标 + 文字），引导用户添加第一个节点",
+      note: "空状态显示友好的提示，而不是隐藏整个列表区域",
+    },
+    
+    // 大量节点
+    manyNodes: {
+      description: "节点数量很多时",
+      display: "节点列表可滚动，支持平滑滚动",
+      note: "使用 ListView 支持滚动，确保性能",
+    },
+    
+    // 节点标题过长
+    longTitle: {
+      description: "节点标题过长时",
+      display: "标题换行显示，最多显示 2-3 行，超出部分显示省略号",
+      note: "使用 Text 组件的 maxLines 属性限制行数",
+    },
+    
+    // 深层级节点
+    deepNesting: {
+      description: "节点层级过深时",
+      display: "继续显示，但可能因为缩进过多导致右侧空间不足",
+      note: "支持无限层级，但建议在 UI 上提示用户避免过深的层级",
+    },
+    
+    // 输入框键盘遮挡
+    keyboardOverlay: {
+      description: "键盘弹出时遮挡输入框",
+      display: "自动滚动到输入框位置，确保输入框可见",
+      note: "使用 ScrollController 和 Scrollable.ensureVisible 确保输入框可见",
+    },
+  },
+
+  // ===========================================
+  // 10. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      // 问题描述
+      question: "节点列表项是否使用 Card 容器？",
+      // 问题详细说明
+      description: "当前节点列表项使用 InkWell + Padding，是否改为使用 Card 容器以提升视觉层次？",
+      // 可选方案列表
+      options: [
+        "方案1：使用 Card 容器（elevation: 0, borderRadius: 12），提升视觉层次",
+        "方案2：保持现有的 InkWell + Padding 设计，只优化间距和颜色",
+        "方案3：使用 Container + BoxDecoration，自定义样式",
+      ],
+      // 推荐方案
+      recommendation: "方案1：使用 Card 容器。与项目其他卡片组件保持一致，提升视觉层次，但需要确保不影响现有的交互功能（如滑动、拖拽）",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "使用 Card 容器（elevation: 0, borderRadius: 12），与项目风格保持一致",
+    },
+    {
+      // 问题描述
+      question: "空状态是否显示提示？",
+      // 问题详细说明
+      description: "当节点列表为空时，是否显示空状态提示（图标 + 文字），还是隐藏整个列表区域？",
+      // 可选方案列表
+      options: [
+        "方案1：显示空状态提示（图标 + 文字），引导用户添加第一个节点",
+        "方案2：隐藏整个列表区域，只显示底部输入框",
+        "方案3：显示简单的提示文字，不显示图标",
+      ],
+      // 推荐方案
+      recommendation: "方案1：显示空状态提示。提供友好的引导，帮助用户理解如何使用功能",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "显示空状态提示（图标 + 文字），引导用户添加第一个节点",
+    },
+    {
+      // 问题描述
+      question: "顶部栏标题字号和字重是否需要调整？",
+      // 问题详细说明
+      description: "当前顶部栏标题使用 titleMedium（16sp, regular），是否需要调整为更大的字号和更粗的字重以更突出？",
+      // 可选方案列表
+      options: [
+        "方案1：保持 titleMedium（16sp, regular）",
+        "方案2：增加到 18sp, semiBold，使标题更突出",
+        "方案3：使用 titleLarge（22sp, regular）",
+      ],
+      // 推荐方案
+      recommendation: "方案2：增加到 18sp, semiBold。在不影响整体布局的前提下，使标题更突出，提升视觉层次",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "标题使用 18sp, semiBold，使标题更突出",
+    },
+    {
+      // 问题描述
+      question: "输入框是否改为 FilledTextField 或 OutlinedTextField？",
+      // 问题详细说明
+      description: "当前输入框使用 UnderlineInputBorder，是否改为 Material 3 的 FilledTextField 或 OutlinedTextField？",
+      // 可选方案列表
+      options: [
+        "方案1：保持 UnderlineInputBorder，只优化颜色和焦点状态",
+        "方案2：改为 OutlinedTextField，使用圆角边框",
+        "方案3：改为 FilledTextField，使用填充背景",
+      ],
+      // 推荐方案
+      recommendation: "方案1：保持 UnderlineInputBorder。与现有的 NodeEditorDialog 和 Things3 风格保持一致，只优化颜色和焦点状态即可",
+      // 是否已确认
+      confirmed: true,
+      // 确认后的答案
+      confirmedAnswer: "保持 UnderlineInputBorder，只优化颜色和焦点状态，与现有风格保持一致",
+    },
+  ],
+}
+
