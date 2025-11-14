@@ -41,6 +41,8 @@ class _GranoFlowAppState extends ConsumerState<GranoFlowApp> {
       return;
     }
 
+    debugPrint('[GranoFlowApp] Platform: ${Platform.operatingSystem}');
+
     try {
       debugPrint('[GranoFlowApp] Reading system tray service provider...');
       // 读取系统托盘服务并初始化
@@ -53,7 +55,10 @@ class _GranoFlowAppState extends ConsumerState<GranoFlowApp> {
       ref.read(systemTrayInitializedProvider.notifier).state = true;
       debugPrint('[GranoFlowApp] System tray initialization completed successfully');
     } catch (error, stackTrace) {
-      debugPrint('[GranoFlowApp] Failed to initialize system tray: $error\n$stackTrace');
+      debugPrint('[GranoFlowApp] ❌ Failed to initialize system tray: $error');
+      debugPrint('[GranoFlowApp] Stack trace: $stackTrace');
+      // 重新抛出错误以便调试
+      rethrow;
     }
   }
 

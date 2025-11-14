@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/models/focus_session.dart';
 import '../../data/models/task.dart';
 import '../services/pinned_task_background_service.dart';
 import '../services/pinned_task_persistence_service.dart';
@@ -145,11 +144,8 @@ class PinnedTaskIdNotifier extends StateNotifier<String?> {
 
       // 获取 FocusSession 计算已用时间
       // 注意：focusSessionProvider 是 StreamProvider，使用 .future 获取第一个值
-      final sessionAsyncValue = await _ref.read(focusSessionProvider(_currentTaskId!).future) as AsyncValue<FocusSession?>;
-      final session = sessionAsyncValue.maybeWhen(
-        data: (value) => value,
-        orElse: () => null,
-      );
+      // .future 返回的是 Future<FocusSession?>，不是 AsyncValue
+      final session = await _ref.read(focusSessionProvider(_currentTaskId!).future);
 
       Duration elapsed = Duration.zero;
       if (session != null && session.isActive) {

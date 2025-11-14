@@ -32,6 +32,7 @@ class SystemTrayService {
   Timer? _updateTimer;
   VoidCallback? _debouncedUpdateMenu;
   bool _disposed = false;
+  bool _isMenuUpdating = false; // 标记菜单是否正在更新
 
   /// 初始化系统托盘服务
   /// 
@@ -123,7 +124,7 @@ class SystemTrayService {
 
   /// 更新菜单（带防抖）
   void _updateMenu() {
-    if (_disposed) {
+    if (_disposed || _isMenuUpdating) {
       return;
     }
 
@@ -132,10 +133,15 @@ class SystemTrayService {
     _debouncedUpdateMenu ??= DebounceUtil.debounce(
       const Duration(milliseconds: 500),
       () async {
-        if (_disposed) {
+        if (_disposed || _isMenuUpdating) {
           return;
         }
-        await _buildMenu();
+        _isMenuUpdating = true;
+        try {
+          await _buildMenu();
+        } finally {
+          _isMenuUpdating = false;
+        }
       },
     );
 
@@ -178,6 +184,8 @@ class SystemTrayService {
 
     // 更新菜单以刷新计时器时间
     // 注意：使用防抖机制，避免过于频繁的更新
+    // 在 macOS 上，如果菜单正在显示，频繁更新可能会干扰菜单显示
+    // 所以使用较长的防抖延迟（1秒）来减少更新频率
     _updateMenu();
   }
 
@@ -405,6 +413,16 @@ class SystemTrayService {
     }
   }
 
+  /// 暂停菜单更新（用于在显示菜单时避免干扰）
+  void _pauseMenuUpdate() {
+    _isMenuUpdating = true;
+  }
+
+  /// 恢复菜单更新
+  void _resumeMenuUpdate() {
+    _isMenuUpdating = false;
+  }
+
   /// 导航到任务页面
   Future<void> _navigateToTaskPage(String? section, String? taskId) async {
     try {
@@ -460,8 +478,21 @@ class _TrayListener extends TrayListener {
   @override
   void onTrayIconMouseDown() {
     debugPrint('[SystemTrayService] Tray icon clicked (left button)');
-    // 点击托盘图标时显示窗口
-    _service._showWindow();
+    // 在 macOS 上，左键点击托盘图标时显示菜单（由系统自动处理）
+    // 在 Windows/Linux 上，左键点击显示窗口
+    if (Platform.isMacOS) {
+      // macOS 上左键点击显示菜单（由系统自动处理）
+      // 在点击时，暂时停止菜单更新，避免干扰菜单显示
+      _service._pauseMenuUpdate();
+      // 延迟恢复菜单更新，给菜单显示留出时间
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _service._resumeMenuUpdate();
+      });
+      debugPrint('[SystemTrayService] macOS: Menu should be shown by system');
+    } else {
+      // Windows/Linux 上左键点击显示窗口
+      _service._showWindow();
+    }
   }
 
   @override
@@ -469,7 +500,12 @@ class _TrayListener extends TrayListener {
     debugPrint('[SystemTrayService] Tray icon clicked (right button)');
     // 右键点击托盘图标时显示菜单（由系统自动处理）
     // 在 macOS 上，右键点击会自动显示菜单
-    // 注意：不要在右键点击时更新菜单，因为这可能会干扰菜单的显示
+    // 在点击时，暂时停止菜单更新，避免干扰菜单显示
+    _service._pauseMenuUpdate();
+    // 延迟恢复菜单更新，给菜单显示留出时间
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _service._resumeMenuUpdate();
+    });
   }
 
   @override
