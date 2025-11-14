@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/font_scale_level.dart';
+import '../../../core/utils/locale_utils.dart';
 import '../../database/database_adapter.dart';
 import '../../drift/database.dart' hide Preference;
 import '../../drift/database.dart' as drift show Preference;
@@ -32,7 +33,7 @@ class DriftPreferenceRepository implements PreferenceRepository {
         final now = DateTime.now();
         await _db.into(_db.preferences).insert(PreferencesCompanion(
           id: Value(_defaultPreferenceId),
-          localeCode: const Value('en'),
+          localeCode: Value(LocaleUtils.getSystemLocaleCode()),
           themeModeIndex: Value(themeModeToIndex(ThemeMode.system)),
           fontScaleLevel: Value(FontScaleLevel.medium.name),
           clockTickSoundEnabled: const Value(true),
@@ -58,7 +59,7 @@ class DriftPreferenceRepository implements PreferenceRepository {
         final now = DateTime.now();
         await _db.into(_db.preferences).insert(PreferencesCompanion(
           id: Value(_defaultPreferenceId),
-          localeCode: Value('en'),
+          localeCode: Value(LocaleUtils.getSystemLocaleCode()),
           themeModeIndex: Value(themeModeToIndex(ThemeMode.system)),
           fontScaleLevel: Value(FontScaleLevel.medium.name),
           clockTickSoundEnabled: const Value(true),
@@ -84,7 +85,7 @@ class DriftPreferenceRepository implements PreferenceRepository {
         final now = DateTime.now();
         await _db.into(_db.preferences).insert(PreferencesCompanion(
           id: Value(_defaultPreferenceId),
-          localeCode: Value('en'),
+          localeCode: Value(LocaleUtils.getSystemLocaleCode()),
           themeModeIndex: Value(themeModeToIndex(ThemeMode.system)),
           fontScaleLevel: Value(FontScaleLevel.medium.name),
           clockTickSoundEnabled: const Value(true),
