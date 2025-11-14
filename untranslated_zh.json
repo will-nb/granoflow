@@ -121,11 +121,23 @@
     "taskListSimplifiedTip",
     "taskActionSheetTip",
     "trashPermanentDeleteAction",
-    "trashRestoreAction"
+    "trashRestoreAction",
+    "trayAddTask",
+    "trayMoreTasks",
+    "trayOpen",
+    "trayQuit",
+    "traySettings",
+    "trayStartTimer"
   ],
 
   "zh_CN": [
-    "taskTimeoutWarning"
+    "taskTimeoutWarning",
+    "trayAddTask",
+    "trayMoreTasks",
+    "trayOpen",
+    "trayQuit",
+    "traySettings",
+    "trayStartTimer"
   ],
 
   "zh_HK": [
@@ -151,6 +163,12 @@
     "taskTimeoutWarning",
     "taskAddToProject",
     "taskRemoveFromProject",
-    "taskNoProjects"
+    "taskNoProjects",
+    "trayAddTask",
+    "trayMoreTasks",
+    "trayOpen",
+    "trayQuit",
+    "traySettings",
+    "trayStartTimer"
   ]
 }

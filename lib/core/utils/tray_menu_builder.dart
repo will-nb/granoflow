@@ -4,6 +4,7 @@ import 'package:tray_manager/tray_manager.dart';
 
 import '../../data/models/focus_session.dart';
 import '../../data/models/task.dart';
+import '../../generated/l10n/app_localizations.dart';
 import '../../presentation/navigation/app_router.dart';
 import '../constants/tray_constants.dart';
 import '../providers/focus_providers.dart';
@@ -124,7 +125,8 @@ class TrayMenuBuilder {
   /// 
   /// 格式：➕ 添加任务
   static MenuItem buildQuickAddItem(BuildContext? context) {
-    final label = '${TrayConstants.quickAddIcon} Add Task'; // TODO: 添加本地化
+    final l10n = context != null ? AppLocalizations.of(context) : null;
+    final label = '${TrayConstants.quickAddIcon} ${l10n?.trayAddTask ?? 'Add Task'}';
 
     return MenuItem(
       key: TrayConstants.quickAddTaskKey,
@@ -173,7 +175,8 @@ class TrayMenuBuilder {
 
     // 如果有溢出，添加溢出提示
     if (overflowCount > 0) {
-      final overflowLabel = 'More $overflowCount tasks...'; // TODO: 添加本地化
+      final l10n = context != null ? AppLocalizations.of(context) : null;
+      final overflowLabel = l10n?.trayMoreTasks(overflowCount) ?? 'More $overflowCount tasks...';
       menuItems.add(
         MenuItem(
           key: 'overflow',
@@ -220,7 +223,8 @@ class TrayMenuBuilder {
     final menuItems = <MenuItem>[];
 
     // 开始计时（只有在没有置顶任务时才启用）
-    final startTimerLabel = 'Start Timer'; // TODO: 添加本地化
+    final l10n = context != null ? AppLocalizations.of(context) : null;
+    final startTimerLabel = l10n?.trayStartTimer ?? 'Start Timer';
     // 注意：tray_manager 的 MenuItem 可能不支持 enabled 参数
     // 如果不支持，可以通过 label 前缀或后缀来标识禁用状态
     menuItems.add(
@@ -231,7 +235,7 @@ class TrayMenuBuilder {
     );
 
     // 打开
-    final openLabel = 'Open'; // TODO: 添加本地化
+    final openLabel = l10n?.trayOpen ?? 'Open';
     menuItems.add(
       MenuItem(
         key: TrayConstants.buildTaskOpenKey(taskId),
@@ -246,7 +250,8 @@ class TrayMenuBuilder {
   /// 
   /// 格式：⚙️ 设置
   static MenuItem buildSettingsItem(BuildContext? context) {
-    final label = '${TrayConstants.settingsIcon} Settings'; // TODO: 添加本地化
+    final l10n = context != null ? AppLocalizations.of(context) : null;
+    final label = '${TrayConstants.settingsIcon} ${l10n?.traySettings ?? 'Settings'}';
 
     return MenuItem(
       key: TrayConstants.settingsKey,
@@ -258,7 +263,8 @@ class TrayMenuBuilder {
   /// 
   /// 格式：🚪 退出
   static MenuItem buildQuitItem(BuildContext? context) {
-    final label = '${TrayConstants.quitIcon} Quit'; // TODO: 添加本地化
+    final l10n = context != null ? AppLocalizations.of(context) : null;
+    final label = '${TrayConstants.quitIcon} ${l10n?.trayQuit ?? 'Quit'}';
 
     return MenuItem(
       key: TrayConstants.quitKey,

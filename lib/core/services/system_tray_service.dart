@@ -15,7 +15,7 @@ import '../utils/debounce_util.dart';
 import '../utils/tray_menu_builder.dart';
 import '../../presentation/navigation/app_router.dart';
 import '../../presentation/widgets/utils/quick_add_sheet_helper.dart';
-import '../../data/models/task.dart';
+import '../../presentation/widgets/utils/task_status_toggle_helper.dart';
 
 /// 系统托盘服务
 /// 
@@ -252,26 +252,18 @@ class SystemTrayService {
       }
 
       // 调用三态切换方法
-      // 注意：TaskStatusToggleHelper 需要 WidgetRef，但这里只有 Ref
-      // 需要创建一个 WidgetRef 包装器或修改 TaskStatusToggleHelper 的签名
-      // 暂时直接调用 taskService 的方法
-      final taskService = await _ref.read(taskServiceProvider.future);
-      if (task.status == TaskStatus.inbox ||
-          task.status == TaskStatus.pending ||
-          task.status == TaskStatus.doing ||
-          task.status == TaskStatus.paused) {
-        await taskService.markCompleted(taskId: task.id);
-      } else if (task.status == TaskStatus.completedActive) {
-        await taskService.softDelete(task.id);
-      } else if (task.status == TaskStatus.trashed) {
-        await taskService.updateDetails(
-          taskId: task.id,
-          payload: const TaskUpdate(status: TaskStatus.pending),
-        );
-      }
+      // 注意：WidgetRef 是 Ref 的子类，所以可以安全地将 _ref 作为 WidgetRef 传递
+      // 使用类型转换以确保类型安全
+      final success = await TaskStatusToggleHelper.toggleTaskStatusThreeState(
+        context,
+        _ref as WidgetRef,
+        task,
+      );
 
-      // 更新菜单
-      _updateMenu();
+      if (success) {
+        // 更新菜单
+        _updateMenu();
+      }
     } catch (error, stackTrace) {
       debugPrint('[SystemTrayService] Failed to handle task click: $error\n$stackTrace');
     }
@@ -405,31 +397,6 @@ class SystemTrayService {
     }
   }
 
-  /// 显示任务详情
-  Future<void> _showTaskDetail(String taskId) async {
-    try {
-      // 获取 context（优先使用 navigatorKey，否则使用 AppRouter）
-      final context = _navigatorKey?.currentContext ?? 
-          AppRouter.router.routerDelegate.navigatorKey.currentContext;
-      if (context == null) {
-        debugPrint('[SystemTrayService] Context is null, cannot show task detail');
-        return;
-      }
-
-      // 获取任务数据
-      final taskRepository = await _ref.read(taskRepositoryProvider.future);
-      final task = await taskRepository.findById(taskId);
-      if (task == null) {
-        debugPrint('[SystemTrayService] Task not found: $taskId');
-        return;
-      }
-
-      // 注意：任务详情会在 TaskListPage 中自动显示（通过 initialTaskId 参数）
-      // 这里不需要手动显示，因为导航时已经传递了 taskId 参数
-    } catch (error, stackTrace) {
-      debugPrint('[SystemTrayService] Failed to show task detail: $error\n$stackTrace');
-    }
-  }
 
   /// 清理资源
   Future<void> dispose() async {

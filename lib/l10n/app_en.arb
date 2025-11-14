@@ -1214,6 +1214,19 @@
   "trashRestoreError": "Restore failed.",
   "trashRestoreSuccess": "Task restored.",
   "trashedStatus": "Deleted",
+  "trayAddTask": "Add Task",
+  "trayMoreTasks": "More {count} tasks...",
+  "@trayMoreTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayOpen": "Open",
+  "trayQuit": "Quit",
+  "traySettings": "Settings",
+  "trayStartTimer": "Start Timer",
   "tooltipJumpToParentTask": "Jump to parent task",
   "tooltipOpenMainMenu": "Open main menu",
   "viewDetails": "View Details"
