@@ -110,7 +110,9 @@ class SystemTrayService {
       // 打印菜单项详情用于调试
       for (var i = 0; i < menuItems.length; i++) {
         final item = menuItems[i];
-        debugPrint('[SystemTrayService] Menu item $i: key="${item.key}", label="${item.label}", isSeparator=${item.isSeparator}');
+        // 判断是否是分隔线：分隔线的 key 通常为 null 或空字符串
+        final isSeparator = item.key == null || item.key == '';
+        debugPrint('[SystemTrayService] Menu item $i: key="${item.key}", label="${item.label}", isSeparator=$isSeparator');
       }
       await _trayManager.setContextMenu(Menu(items: menuItems));
       debugPrint('[SystemTrayService] Context menu set successfully');
