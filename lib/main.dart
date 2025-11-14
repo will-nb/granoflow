@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'package:flutter_foreground_task/flutter_foreground_task';
+// 条件导入：只在移动平台导入 flutter_foreground_task
+// 在桌面和 web 平台使用 stub
+import 'core/services/flutter_foreground_task_wrapper.dart';
 
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
@@ -17,8 +19,8 @@ Future<void> main() async {
     await windowManager.ensureInitialized();
   }
 
-  // 初始化前台服务（Android）- 计时器服务
-  FlutterForegroundTask.init(
+  // 初始化前台服务（仅移动平台）- 计时器服务
+  initFlutterForegroundTask(
     androidNotificationOptions: AndroidNotificationOptions(
       channelId: 'grano_timer',
       channelName: 'GranoFlow Timer',
