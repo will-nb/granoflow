@@ -106,7 +106,12 @@ class SystemTrayService {
       );
       debugPrint('[SystemTrayService] Menu items built: ${menuItems.length} items');
 
-      debugPrint('[SystemTrayService] Setting context menu...');
+      debugPrint('[SystemTrayService] Setting context menu with ${menuItems.length} items...');
+      // 打印菜单项详情用于调试
+      for (var i = 0; i < menuItems.length; i++) {
+        final item = menuItems[i];
+        debugPrint('[SystemTrayService] Menu item $i: key="${item.key}", label="${item.label}", isSeparator=${item.isSeparator}');
+      }
       await _trayManager.setContextMenu(Menu(items: menuItems));
       debugPrint('[SystemTrayService] Context menu set successfully');
     } catch (error, stackTrace) {
@@ -121,6 +126,7 @@ class SystemTrayService {
     }
 
     // 使用防抖机制，避免过于频繁的更新
+    // 注意：防抖延迟设置为 500ms，这样可以避免在用户点击时立即更新菜单
     _debouncedUpdateMenu ??= DebounceUtil.debounce(
       const Duration(milliseconds: 500),
       () async {
@@ -169,6 +175,7 @@ class SystemTrayService {
     }
 
     // 更新菜单以刷新计时器时间
+    // 注意：使用防抖机制，避免过于频繁的更新
     _updateMenu();
   }
 
@@ -460,6 +467,7 @@ class _TrayListener extends TrayListener {
     debugPrint('[SystemTrayService] Tray icon clicked (right button)');
     // 右键点击托盘图标时显示菜单（由系统自动处理）
     // 在 macOS 上，右键点击会自动显示菜单
+    // 注意：不要在右键点击时更新菜单，因为这可能会干扰菜单的显示
   }
 
   @override
