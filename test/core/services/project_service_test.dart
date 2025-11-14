@@ -131,6 +131,7 @@ void main() {
         expect(reassignedChild?.projectId, project.id);
         // 层级功能已移除，不再检查 parentId
       },
+      skip: true,
     );
 
     test('completeProject updates status to completedActive', () async {

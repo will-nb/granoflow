@@ -1215,6 +1215,14 @@
   "trashRestoreSuccess": "Task restored.",
   "trashedStatus": "Deleted",
   "trayAddTask": "Add Task",
+  "trayMoreOverdueTasks": "+{count} overdue tasks",
+  "@trayMoreOverdueTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trayMoreTasks": "More {count} tasks...",
   "@trayMoreTasks": {
     "placeholders": {
@@ -1225,6 +1233,14 @@
   },
   "trayMoreTasksCompact": "+{count} 更多任务",
   "@trayMoreTasksCompact": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayMoreTodayTasks": "+{count} today tasks",
+  "@trayMoreTodayTasks": {
     "placeholders": {
       "count": {
         "type": "int"

@@ -139,6 +139,37 @@ class TaskStatusToggleHelper {
     WidgetRef ref,
     Task task, {
     TaskSection? section,
+  }) {
+    return _toggleTaskStatusInternal(
+      context,
+      // ignore: unnecessary_cast
+      ref as Ref<Object?>,
+      task,
+      section: section,
+    );
+  }
+
+  /// 提供给非 Widget 场景（如系统托盘）的入口
+  static Future<bool> toggleTaskStatusWithRef(
+    BuildContext context,
+    Ref ref,
+    Task task, {
+    TaskSection? section,
+  }) {
+    return _toggleTaskStatusInternal(
+      context,
+      // ignore: unnecessary_cast
+      ref as Ref<Object?>,
+      task,
+      section: section,
+    );
+  }
+
+  static Future<bool> _toggleTaskStatusInternal(
+    BuildContext context,
+    Ref<Object?> ref,
+    Task task, {
+    TaskSection? section,
   }) async {
     try {
       final taskService = await ref.read(taskServiceProvider.future);
@@ -231,6 +262,37 @@ class TaskStatusToggleHelper {
   static Future<bool> toggleTaskStatusThreeState(
     BuildContext context,
     WidgetRef ref,
+    Task task, {
+    TaskSection? section,
+  }) {
+    return _toggleTaskStatusThreeStateInternal(
+      context,
+      // ignore: unnecessary_cast
+      ref as Ref<Object?>,
+      task,
+      section: section,
+    );
+  }
+
+  /// 提供给非 Widget 场景的入口
+  static Future<bool> toggleTaskStatusThreeStateWithRef(
+    BuildContext context,
+    Ref ref,
+    Task task, {
+    TaskSection? section,
+  }) {
+    return _toggleTaskStatusThreeStateInternal(
+      context,
+      // ignore: unnecessary_cast
+      ref as Ref<Object?>,
+      task,
+      section: section,
+    );
+  }
+
+  static Future<bool> _toggleTaskStatusThreeStateInternal(
+    BuildContext context,
+    Ref<Object?> ref,
     Task task, {
     TaskSection? section,
   }) async {

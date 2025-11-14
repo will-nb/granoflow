@@ -1177,6 +1177,43 @@
   "trashRestoreAction": "復原",
   "trashRestoreError": "復原失敗。",
   "trashRestoreSuccess": "任務已復原。",
+  "trayAddTask": "新增任務",
+  "trayMoreOverdueTasks": "+{count} 個逾期任務",
+  "@trayMoreOverdueTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayMoreTasks": "還有 {count} 個任務...",
+  "@trayMoreTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayMoreTasksCompact": "+{count} 更多任務",
+  "@trayMoreTasksCompact": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayMoreTodayTasks": "+{count} 個今日任務",
+  "@trayMoreTodayTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayOpen": "打開",
+  "trayQuit": "退出",
+  "traySettings": "設定",
+  "trayStartTimer": "開始計時",
   "trashedStatus": "已刪除",
   "tooltipJumpToParentTask": "跳轉到父任務",
   "tooltipOpenMainMenu": "打開主選單",

@@ -2,64 +2,74 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../data/models/focus_session.dart';
+import '../../data/models/task.dart';
 import '../constants/tray_constants.dart';
+import '../providers/focus_providers.dart';
+import '../providers/pinned_task_provider.dart';
+import '../providers/task_query_providers.dart';
+import '../providers/service_providers.dart';
+import '../utils/tray_menu_builder.dart';
 import '../../presentation/navigation/app_router.dart';
+import '../../presentation/widgets/utils/quick_add_sheet_helper.dart';
+import '../../presentation/widgets/utils/task_status_toggle_helper.dart';
 
-/// 系统托盘服务（最简版本）
-///
-/// 只显示一个"菜单调试"菜单项，用于排查菜单显示问题
+/// 系统托盘服务
 class SystemTrayService {
-  SystemTrayService();
+  SystemTrayService(this._ref);
 
+  final Ref _ref;
   final TrayManager _trayManager = TrayManager.instance;
-  final TrayListener _listener = _TrayListener();
+  final WindowManager _windowManager = WindowManager.instance;
+  final _TrayListener _listener = _TrayListener();
+
   bool _disposed = false;
+  String? _pinnedTaskId;
+  Task? _pinnedTask;
+  FocusSession? _activeSession;
+  List<Task> _overdueTasks = const [];
+  List<Task> _todayTasks = const [];
+  final Map<String, TaskSection> _taskSectionIndex = {};
+
+  GlobalKey<NavigatorState>? _navigatorKey;
+  Timer? _menuUpdateTimer;
+
+  ProviderSubscription<AsyncValue<List<Task>>>? _overdueSubscription;
+  ProviderSubscription<AsyncValue<List<Task>>>? _todaySubscription;
+  ProviderSubscription<String?>? _pinnedTaskSubscription;
+  ProviderSubscription<AsyncValue<Task?>>? _pinnedTaskDataSubscription;
+  ProviderSubscription<AsyncValue<FocusSession?>>? _focusSessionSubscription;
 
   /// 初始化系统托盘服务
   Future<void> init() async {
-    debugPrint('[SystemTrayService] Starting initialization...');
     if (_disposed) {
       debugPrint('[SystemTrayService] Service already disposed, cannot init');
       return;
     }
 
+    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
+      debugPrint('[SystemTrayService] Not a desktop platform, skipping tray init');
+      return;
+    }
+
     try {
-      // 检测运行平台
-      if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
-        debugPrint('[SystemTrayService] Not a desktop platform, skipping initialization');
-        return;
-      }
+      _navigatorKey = AppRouter.router.routerDelegate.navigatorKey;
 
-      debugPrint('[SystemTrayService] Platform detected: ${Platform.operatingSystem}');
-
-      // 根据平台选择图标路径
       final iconPath = Platform.isWindows
           ? TrayConstants.windowsIconPath
           : TrayConstants.macosLinuxIconPath;
-
-      debugPrint('[SystemTrayService] Setting icon: $iconPath');
-      // 设置托盘图标
       await _trayManager.setIcon(iconPath);
-      debugPrint('[SystemTrayService] Icon set successfully');
-
-      // 设置工具提示
-      debugPrint('[SystemTrayService] Setting tooltip...');
       await _trayManager.setToolTip('GranoFlow');
-      debugPrint('[SystemTrayService] Tooltip set successfully');
 
-      // 创建初始菜单
-      debugPrint('[SystemTrayService] Building initial menu...');
-      await _buildMenu();
-      debugPrint('[SystemTrayService] Menu built successfully');
-
-      // 注册事件监听器
-      debugPrint('[SystemTrayService] Registering event listener...');
-      (_listener as _TrayListener).attach(this);
+      _listener.attach(this);
       _trayManager.addListener(_listener);
-      debugPrint('[SystemTrayService] Event listener registered');
+
+      _startDataListening();
+      await _updateMenu();
 
       debugPrint('[SystemTrayService] Initialized successfully');
     } catch (error, stackTrace) {
@@ -67,69 +77,173 @@ class SystemTrayService {
     }
   }
 
-  /// 构建菜单（最简版本：只有一个"菜单调试"项）
-  Future<void> _buildMenu() async {
-    if (_disposed) {
-      debugPrint('[SystemTrayService] Service disposed, skipping menu build');
-      return;
+  void _startDataListening() {
+    _overdueSubscription = _ref.listen<AsyncValue<List<Task>>>(
+      taskSectionsProvider(TaskSection.overdue),
+      (_, next) {
+        next.whenData((tasks) {
+          _overdueTasks = _filterPinned(tasks);
+          _updateTaskSectionIndex(TaskSection.overdue, _overdueTasks);
+          _scheduleMenuUpdate();
+        });
+      },
+      fireImmediately: true,
+    );
+
+    _todaySubscription = _ref.listen<AsyncValue<List<Task>>>(
+      taskSectionsProvider(TaskSection.today),
+      (_, next) {
+        next.whenData((tasks) {
+          _todayTasks = _filterPinned(tasks);
+          _updateTaskSectionIndex(TaskSection.today, _todayTasks);
+          _scheduleMenuUpdate();
+        });
+      },
+      fireImmediately: true,
+    );
+
+    _pinnedTaskSubscription = _ref.listen<String?>(
+      pinnedTaskIdProvider,
+      (_, taskId) => _handlePinnedTaskChanged(taskId),
+      fireImmediately: true,
+    );
+  }
+
+  void _stopDataListening() {
+    _overdueSubscription?.close();
+    _overdueSubscription = null;
+    _todaySubscription?.close();
+    _todaySubscription = null;
+    _pinnedTaskSubscription?.close();
+    _pinnedTaskSubscription = null;
+    _pinnedTaskDataSubscription?.close();
+    _pinnedTaskDataSubscription = null;
+    _focusSessionSubscription?.close();
+    _focusSessionSubscription = null;
+  }
+
+  void _handlePinnedTaskChanged(String? taskId) {
+    _pinnedTaskId = taskId;
+    _pinnedTask = null;
+    _activeSession = null;
+
+    _pinnedTaskDataSubscription?.close();
+    _focusSessionSubscription?.close();
+    _pinnedTaskDataSubscription = null;
+    _focusSessionSubscription = null;
+
+    if (taskId != null) {
+      _pinnedTaskDataSubscription = _ref.listen<AsyncValue<Task?>>(
+        taskByIdProvider(taskId),
+        (_, next) {
+          next.whenData((task) {
+            _pinnedTask = task;
+            _scheduleMenuUpdate();
+          });
+        },
+        fireImmediately: true,
+      );
+
+      _focusSessionSubscription = _ref.listen<AsyncValue<FocusSession?>>(
+        focusSessionProvider(taskId),
+        (_, next) {
+          _activeSession = next.valueOrNull;
+          _scheduleMenuUpdate();
+        },
+        fireImmediately: true,
+      );
     }
 
-    try {
-      debugPrint('[SystemTrayService] Building menu items...');
-      final menuItems = [
-        MenuItem(
-          key: TrayConstants.debugMenuKey,
-          label: '🐞 菜单调试',
-        ),
-        MenuItem.separator(),
-        MenuItem(
-          key: TrayConstants.settingsKey,
-          label: '${TrayConstants.settingsIcon} 设置',
-        ),
-        MenuItem(
-          key: TrayConstants.quitKey,
-          label: '${TrayConstants.quitIcon} 退出',
-        ),
-      ];
-      debugPrint('[SystemTrayService] Menu items built: ${menuItems.length} items');
+    // 重新过滤现有任务列表，确保不会显示置顶任务
+    _overdueTasks = _filterPinned(_overdueTasks);
+    _todayTasks = _filterPinned(_todayTasks);
+    _updateTaskSectionIndex(TaskSection.overdue, _overdueTasks);
+    _updateTaskSectionIndex(TaskSection.today, _todayTasks);
+    _scheduleMenuUpdate();
+  }
 
-      debugPrint('[SystemTrayService] Setting context menu with ${menuItems.length} items...');
-      final menu = Menu(items: menuItems);
-      final items = menu.items;
-      if (items != null) {
-        debugPrint('[SystemTrayService] Menu object created: ${items.length} items');
-        for (var i = 0; i < items.length; i++) {
-          final item = items[i];
-          debugPrint('[SystemTrayService] Menu item $i: key="${item.key}", label="${item.label}"');
-        }
-      } else {
-        debugPrint('[SystemTrayService] Menu object created but items is null');
-      }
-      await _trayManager.setContextMenu(menu);
-      debugPrint('[SystemTrayService] Context menu set successfully');
-      
-      // 在 macOS 上，菜单应该自动显示，但可能需要验证
-      if (Platform.isMacOS) {
-        debugPrint('[SystemTrayService] macOS: Menu should be shown automatically on click');
-        debugPrint('[SystemTrayService] macOS: If menu does not show, this may be a tray_manager issue');
-      }
-    } catch (error, stackTrace) {
-      debugPrint('[SystemTrayService] Failed to build menu: $error\n$stackTrace');
+  List<Task> _filterPinned(List<Task> tasks) {
+    final pinnedId = _pinnedTaskId;
+    if (pinnedId == null) {
+      return List<Task>.from(tasks);
+    }
+    return tasks.where((task) => task.id != pinnedId).toList(growable: false);
+  }
+
+  void _updateTaskSectionIndex(TaskSection section, List<Task> tasks) {
+    _taskSectionIndex.removeWhere((key, value) => value == section);
+    for (final task in tasks) {
+      _taskSectionIndex[task.id] = section;
     }
   }
 
-  /// 处理菜单项点击事件
-  Future<void> _handleMenuItemClick(MenuItem menuItem) async {
-    if (_disposed) {
+  Future<void> _updateMenu() async {
+    if (_disposed) return;
+
+    try {
+      final data = TrayMenuData(
+        hasPinnedTask: _pinnedTaskId != null,
+        overdueTasks: _overdueTasks,
+        todayTasks: _todayTasks,
+        timerStatus: _buildTimerStatus(),
+      );
+      final context = _currentContext;
+      final menuItems = TrayMenuBuilder.build(
+        context: context,
+        data: data,
+      );
+      await _trayManager.setContextMenu(Menu(items: menuItems));
+    } catch (error, stackTrace) {
+      debugPrint('[SystemTrayService] Failed to update menu: $error\n$stackTrace');
+    }
+  }
+
+  TrayMenuTimerStatus? _buildTimerStatus() {
+    final taskId = _pinnedTaskId;
+    final task = _pinnedTask;
+    final session = _activeSession;
+    if (taskId == null || task == null || session == null || !session.isActive) {
+      return null;
+    }
+    final elapsed = DateTime.now().difference(session.startedAt);
+    return TrayMenuTimerStatus(
+      taskId: taskId,
+      taskTitle: task.title,
+      elapsed: elapsed,
+    );
+  }
+
+  Future<void> _scheduleMenuUpdate({bool immediate = false}) async {
+    if (_disposed) return;
+
+    if (immediate) {
+      _menuUpdateTimer?.cancel();
+      _menuUpdateTimer = null;
+      await _updateMenu();
       return;
     }
 
-    try {
-      final key = menuItem.key ?? '';
-      debugPrint('[SystemTrayService] Menu item clicked: key="$key", label="${menuItem.label}"');
+    _menuUpdateTimer?.cancel();
+    _menuUpdateTimer = Timer(const Duration(milliseconds: 500), () {
+      _menuUpdateTimer = null;
+      unawaited(_updateMenu());
+    });
+  }
 
-      if (key == TrayConstants.debugMenuKey) {
-        debugPrint('[SystemTrayService] Debug menu item clicked - doing nothing');
+  Future<void> _handleMenuItemClick(MenuItem menuItem) async {
+    if (_disposed) return;
+
+    final key = menuItem.key ?? '';
+    debugPrint('[SystemTrayService] Menu item clicked: $key');
+
+    try {
+      if (key == TrayConstants.timerStatusKey) {
+        await _handleTimerStatusClick();
+        return;
+      }
+
+      if (key == TrayConstants.quickAddTaskKey) {
+        await _handleQuickAdd();
         return;
       }
 
@@ -142,16 +256,103 @@ class SystemTrayService {
         await _quitApplication();
         return;
       }
+
+      final taskId = TrayConstants.parseTaskIdFromKey(key);
+      if (taskId != null) {
+        await _handleOpenTask(taskId);
+        return;
+      }
     } catch (error, stackTrace) {
-      debugPrint('[SystemTrayService] Failed to handle menu item click: $error\n$stackTrace');
+      debugPrint('[SystemTrayService] Failed to handle menu click: $error\n$stackTrace');
+    }
+  }
+
+  Future<void> _handleQuickAdd() async {
+    final context = _currentContext;
+    if (context == null) {
+      debugPrint('[SystemTrayService] Unable to open Quick Add: no context');
+      return;
+    }
+    await QuickAddSheetHelper.showQuickAddSheet(context);
+  }
+
+  Future<void> _handleTaskToggle(String taskId) async {
+    final context = _currentContext;
+    if (context == null) {
+      debugPrint('[SystemTrayService] Unable to toggle task: no context');
+      return;
+    }
+    final task = _findTask(taskId);
+    if (task == null) {
+      debugPrint('[SystemTrayService] Task not found for toggle: $taskId');
+      return;
+    }
+    await TaskStatusToggleHelper.toggleTaskStatusThreeStateWithRef(
+      context,
+      _ref,
+      task,
+      section: _taskSectionIndex[task.id],
+    );
+  }
+
+  Future<void> _handleStartTimer(String taskId) async {
+    if (_pinnedTaskId != null) {
+      return;
+    }
+    try {
+      final taskService = await _ref.read(taskServiceProvider.future);
+      await taskService.markInProgress(taskId);
+
+      final focusNotifier = _ref.read(focusActionsNotifierProvider.notifier);
+      await focusNotifier.start(taskId);
+
+      await _ref.read(pinnedTaskIdProvider.notifier).setPinnedTaskId(taskId);
+    } catch (error, stackTrace) {
+      debugPrint('[SystemTrayService] Failed to start timer: $error\n$stackTrace');
+    }
+  }
+
+  Future<void> _handleOpenTask(String taskId) async {
+    final section = _taskSectionIndex[taskId];
+    final params = <String, String>{
+      'taskId': taskId,
+    };
+    if (section != null) {
+      params['section'] = section.name;
+    }
+    final uri = Uri(path: '/tasks', queryParameters: params);
+    await _showWindowAndNavigate(uri.toString());
+  }
+
+  Future<void> _handleTimerStatusClick() async {
+    final session = _activeSession;
+    final pinnedTaskId = _pinnedTaskId;
+    if (pinnedTaskId == null) {
+      return;
+    }
+    try {
+      if (session != null && session.isActive) {
+        final focusNotifier = _ref.read(focusActionsNotifierProvider.notifier);
+        await focusNotifier.end(
+          sessionId: session.id,
+          outcome: FocusOutcome.complete,
+        );
+      } else {
+        final taskService = await _ref.read(taskServiceProvider.future);
+        await taskService.markCompleted(taskId: pinnedTaskId);
+      }
+    } catch (error, stackTrace) {
+      debugPrint('[SystemTrayService] Failed to complete timer task: $error\n$stackTrace');
+    } finally {
+      await _ref.read(pinnedTaskIdProvider.notifier).setPinnedTaskId(null);
     }
   }
 
   Future<void> _showWindowAndNavigate(String route) async {
     try {
       if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        await windowManager.show();
-        await windowManager.focus();
+        await _windowManager.show();
+        await _windowManager.focus();
       }
       AppRouter.router.go(route);
     } catch (error, stackTrace) {
@@ -162,48 +363,66 @@ class SystemTrayService {
   Future<void> _quitApplication() async {
     try {
       await dispose();
-    } catch (error, stackTrace) {
-      debugPrint('[SystemTrayService] Error during dispose: $error\n$stackTrace');
     } finally {
       if (Platform.isMacOS) {
-        await windowManager.hide();
+        await _windowManager.hide();
       }
-      await windowManager.close();
+      await _windowManager.close();
       exit(0);
     }
   }
 
-  /// 清理资源
   Future<void> dispose() async {
-    if (_disposed) {
-      return;
-    }
-
+    if (_disposed) return;
     try {
-      _disposed = true;
-
-      // 移除事件监听器
+      _stopDataListening();
+      _menuUpdateTimer?.cancel();
+      _menuUpdateTimer = null;
       _trayManager.removeListener(_listener);
-
-      // 移除托盘图标
       await _trayManager.destroy();
-
-      debugPrint('[SystemTrayService] Disposed successfully');
     } catch (error, stackTrace) {
       debugPrint('[SystemTrayService] Failed to dispose: $error\n$stackTrace');
+    } finally {
+      _disposed = true;
     }
   }
 
-  /// 主动弹出菜单（主要用于 macOS/Linux 调试）
   Future<void> showMenu() async {
-    if (_disposed) {
-      return;
-    }
+    if (_disposed) return;
     try {
       await _trayManager.popUpContextMenu();
     } catch (error, stackTrace) {
       debugPrint('[SystemTrayService] Failed to show menu: $error\n$stackTrace');
     }
+  }
+
+  BuildContext? get _currentContext {
+    final key = _navigatorKey ?? AppRouter.router.routerDelegate.navigatorKey;
+    return key.currentContext;
+  }
+
+  Task? _findTask(String taskId) {
+    for (final task in _overdueTasks) {
+      if (task.id == taskId) return task;
+    }
+    for (final task in _todayTasks) {
+      if (task.id == taskId) return task;
+    }
+    if (_pinnedTask?.id == taskId) {
+      return _pinnedTask;
+    }
+    return null;
+  }
+
+  Future<void> _handleTrayIconClick() async {
+    await _scheduleMenuUpdate(immediate: true);
+    if (Platform.isMacOS || Platform.isLinux) {
+      await showMenu();
+    }
+  }
+
+  void _handleTrayMenuSelection(MenuItem menuItem) {
+    unawaited(_handleMenuItemClick(menuItem));
   }
 }
 
@@ -217,33 +436,20 @@ class _TrayListener extends TrayListener {
 
   @override
   void onTrayIconMouseDown() {
-    debugPrint('[SystemTrayService] Tray icon clicked (left button)');
-    _ensureMenuVisible();
+    final service = _service;
+    if (service == null) return;
+    unawaited(service._handleTrayIconClick());
   }
 
   @override
   void onTrayIconRightMouseDown() {
-    debugPrint('[SystemTrayService] Tray icon clicked (right button)');
-    _ensureMenuVisible();
+    final service = _service;
+    if (service == null) return;
+    unawaited(service._handleTrayIconClick());
   }
 
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
-    debugPrint('[SystemTrayService] Menu item clicked: ${menuItem.key} - ${menuItem.label}');
-    final service = _service;
-    if (service == null) {
-      return;
-    }
-    unawaited(service._handleMenuItemClick(menuItem));
-  }
-
-  void _ensureMenuVisible() {
-    final service = _service;
-    if (service == null) {
-      return;
-    }
-    if (Platform.isMacOS || Platform.isLinux) {
-      service.showMenu();
-    }
+    _service?._handleTrayMenuSelection(menuItem);
   }
 }

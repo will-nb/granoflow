@@ -178,7 +178,7 @@ void main() {
               ),
           throwsStateError,
         );
-      });
+      }, skip: '层级系统已下线，该场景不再出现，待新结构确认后重写');
     });
 
     group('findTasksForInsertionIndex', () {

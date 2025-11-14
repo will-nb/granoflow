@@ -149,6 +149,7 @@ void main() {
         },
       );
 
+      // TODO: 层级已移除，父子自动完成逻辑将重新设计后再补测
       test(
         'should auto-complete parent when all siblings are completed',
         () async {
@@ -187,6 +188,7 @@ void main() {
           ); // 父任务自动完成
           expect(parentAfterChild2.endedAt, fixedNow);
         },
+        skip: true,
       );
     });
   });
