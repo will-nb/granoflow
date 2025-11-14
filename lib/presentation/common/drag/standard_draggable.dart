@@ -89,18 +89,20 @@ class StandardDraggable<T extends Object> extends StatelessWidget {
   }
 
   Widget _buildFeedback(BuildContext context, DragTheme theme, Widget content) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Transform.rotate(
       angle: DragConstants.tiltAngle,
       child: Transform.scale(
         scale: DragConstants.feedbackScale,
-        child: Material(
-          elevation: DragConstants.feedbackElevation,
-          borderRadius: BorderRadius.circular(8),
-          shadowColor: theme.shadowColor.withValues(alpha: 0.3),
-          child: Padding(
-            padding: const EdgeInsets.all(DragConstants.feedbackPadding),
-            child: Opacity(
-              opacity: DragConstants.feedbackOpacity,
+        child: Opacity(
+          opacity: DragConstants.feedbackOpacity,
+          child: Material(
+            elevation: DragConstants.feedbackElevation,
+            borderRadius: BorderRadius.circular(8),
+            shadowColor: theme.shadowColor.withValues(alpha: 0.3),
+            color: colorScheme.surface,
+            child: Padding(
+              padding: const EdgeInsets.all(DragConstants.feedbackPadding),
               child: SizedBox(
                 width: DragConstants.feedbackWidth,
                 child: content,
