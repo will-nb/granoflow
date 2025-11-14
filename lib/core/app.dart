@@ -34,18 +34,24 @@ class _GranoFlowAppState extends ConsumerState<GranoFlowApp> {
   }
 
   Future<void> _initializeSystemTray() async {
+    debugPrint('[GranoFlowApp] Starting system tray initialization...');
     // 检测运行平台
     if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
+      debugPrint('[GranoFlowApp] Not a desktop platform, skipping system tray initialization');
       return;
     }
 
     try {
+      debugPrint('[GranoFlowApp] Reading system tray service provider...');
       // 读取系统托盘服务并初始化
       final service = await ref.read(systemTrayServiceProvider.future);
+      debugPrint('[GranoFlowApp] System tray service obtained, calling init...');
       await service.init();
+      debugPrint('[GranoFlowApp] System tray service initialized');
 
       // 更新初始化状态
       ref.read(systemTrayInitializedProvider.notifier).state = true;
+      debugPrint('[GranoFlowApp] System tray initialization completed successfully');
     } catch (error, stackTrace) {
       debugPrint('[GranoFlowApp] Failed to initialize system tray: $error\n$stackTrace');
     }

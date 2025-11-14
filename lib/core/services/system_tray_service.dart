@@ -37,6 +37,7 @@ class SystemTrayService {
   /// 
   /// [navigatorKey] 用于获取 BuildContext 的 GlobalKey（可选，如果不提供则使用 AppRouter 的 navigatorKey）
   Future<void> init([GlobalKey<NavigatorState>? navigatorKey]) async {
+    debugPrint('[SystemTrayService] Starting initialization...');
     if (_disposed) {
       debugPrint('[SystemTrayService] Service already disposed, cannot init');
       return;
@@ -52,25 +53,37 @@ class SystemTrayService {
         return;
       }
 
+      debugPrint('[SystemTrayService] Platform detected: ${Platform.operatingSystem}');
+
       // 根据平台选择图标路径
       final iconPath = Platform.isWindows
           ? TrayConstants.windowsIconPath
           : TrayConstants.macosLinuxIconPath;
 
+      debugPrint('[SystemTrayService] Setting icon: $iconPath');
       // 设置托盘图标
       await _trayManager.setIcon(iconPath);
+      debugPrint('[SystemTrayService] Icon set successfully');
 
       // 设置工具提示
+      debugPrint('[SystemTrayService] Setting tooltip...');
       await _trayManager.setToolTip('GranoFlow');
+      debugPrint('[SystemTrayService] Tooltip set successfully');
 
       // 创建初始菜单
+      debugPrint('[SystemTrayService] Building initial menu...');
       await _buildMenu();
+      debugPrint('[SystemTrayService] Menu built successfully');
 
       // 注册事件监听器
+      debugPrint('[SystemTrayService] Registering event listener...');
       _trayManager.addListener(_TrayListener(this));
+      debugPrint('[SystemTrayService] Event listener registered');
 
       // 启动数据监听
+      debugPrint('[SystemTrayService] Starting data listening...');
       _startDataListening();
+      debugPrint('[SystemTrayService] Data listening started');
 
       debugPrint('[SystemTrayService] Initialized successfully');
     } catch (error, stackTrace) {
@@ -81,16 +94,21 @@ class SystemTrayService {
   /// 构建菜单
   Future<void> _buildMenu() async {
     if (_disposed) {
+      debugPrint('[SystemTrayService] Service disposed, skipping menu build');
       return;
     }
 
     try {
+      debugPrint('[SystemTrayService] Building menu items...');
       final menuItems = await TrayMenuBuilder.buildTrayMenu(
         ref: _ref,
         navigatorKey: _navigatorKey,
       );
+      debugPrint('[SystemTrayService] Menu items built: ${menuItems.length} items');
 
+      debugPrint('[SystemTrayService] Setting context menu...');
       await _trayManager.setContextMenu(Menu(items: menuItems));
+      debugPrint('[SystemTrayService] Context menu set successfully');
     } catch (error, stackTrace) {
       debugPrint('[SystemTrayService] Failed to build menu: $error\n$stackTrace');
     }
@@ -432,17 +450,21 @@ class _TrayListener extends TrayListener {
 
   @override
   void onTrayIconMouseDown() {
+    debugPrint('[SystemTrayService] Tray icon clicked (left button)');
     // 点击托盘图标时显示窗口
     _service._showWindow();
   }
 
   @override
   void onTrayIconRightMouseDown() {
+    debugPrint('[SystemTrayService] Tray icon clicked (right button)');
     // 右键点击托盘图标时显示菜单（由系统自动处理）
+    // 在 macOS 上，右键点击会自动显示菜单
   }
 
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
+    debugPrint('[SystemTrayService] Menu item clicked: ${menuItem.key} - ${menuItem.label}');
     // 处理菜单项点击
     _service._handleMenuItemClick(menuItem);
   }
