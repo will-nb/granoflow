@@ -14,6 +14,7 @@ import '../utils/tag_utils.dart';
 import '../widgets/status_chip.dart';
 import '../projects/widgets/milestone_edit_sheet.dart';
 import '../../../core/providers/service_providers.dart';
+import 'widgets/milestone_card_dialogs.dart';
 
 class MilestoneCard extends ConsumerWidget {
   const MilestoneCard({super.key, required this.milestone});
@@ -189,25 +190,12 @@ class MilestoneCard extends ConsumerWidget {
 
   Future<void> _deleteMilestone(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.milestoneDeleteTitle),
-        content: Text(l10n.milestoneDeleteConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.commonDelete),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) {
+    
+    // 使用新的两次确认弹窗
+    final result = await confirmMilestoneDelete(context, ref, milestone);
+    
+    // 如果用户取消，直接返回
+    if (result == null) {
       return;
     }
 
