@@ -1257,7 +1257,145 @@ void main() {
     );
 
     testWidgets(
-      'test_project_007: 删除里程碑',
+      'test_project_007: 删除里程碑（无活跃任务）',
+      (WidgetTester tester) async {
+        final container = await setupTestApp(tester);
+        final projectService = await container.read(projectServiceProvider.future);
+        final milestoneService = await container.read(milestoneServiceProvider.future);
+        final milestoneRepository = await container.read(milestoneRepositoryProvider.future);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
+
+        // 创建项目和里程碑
+        final project = await projectService.createProject(
+          ProjectBlueprint(
+            title: 'Test Project',
+            dueDate: DateTime.now(),
+            tags: const [],
+            milestones: const [],
+          ),
+        );
+        final milestone = await milestoneService.createMilestone(
+          projectId: project.id,
+          title: 'Test Milestone',
+        );
+
+        // 创建已完成的任务（非活跃任务）
+        final completedTask = await taskRepository.createTask(
+          TaskDraft(
+            title: 'Completed Task',
+            status: TaskStatus.completedActive,
+            projectId: project.id,
+            milestoneId: milestone.id,
+            sortIndex: 0,
+          ),
+        );
+
+        // 删除里程碑
+        await milestoneService.delete(milestone.id);
+
+        // 验证里程碑已删除
+        final deletedMilestone = await milestoneRepository.findById(milestone.id);
+        expect(deletedMilestone, isNull);
+
+        // 验证任务保留但 milestoneId 为 null
+        final retainedTask = await taskRepository.findById(completedTask.id);
+        expect(retainedTask, isNotNull);
+        expect(retainedTask!.milestoneId, isNull);
+        expect(retainedTask.projectId, equals(project.id)); // 项目关联保留
+
+        // 清理
+        await taskRepository.softDelete(completedTask.id);
+        await projectService.deleteProject(project.id);
+      },
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+
+    testWidgets(
+      'test_project_007b: 删除里程碑（有活跃任务）',
+      (WidgetTester tester) async {
+        final container = await setupTestApp(tester);
+        final projectService = await container.read(projectServiceProvider.future);
+        final milestoneService = await container.read(milestoneServiceProvider.future);
+        final milestoneRepository = await container.read(milestoneRepositoryProvider.future);
+        final taskRepository = await container.read(taskRepositoryProvider.future);
+
+        // 创建项目和里程碑
+        final project = await projectService.createProject(
+          ProjectBlueprint(
+            title: 'Test Project',
+            dueDate: DateTime.now(),
+            tags: const [],
+            milestones: const [],
+          ),
+        );
+        final milestone = await milestoneService.createMilestone(
+          projectId: project.id,
+          title: 'Test Milestone',
+        );
+
+        // 创建活跃任务
+        final activeTask1 = await taskRepository.createTask(
+          TaskDraft(
+            title: 'Active Task 1',
+            status: TaskStatus.pending,
+            projectId: project.id,
+            milestoneId: milestone.id,
+            sortIndex: 0,
+          ),
+        );
+        final activeTask2 = await taskRepository.createTask(
+          TaskDraft(
+            title: 'Active Task 2',
+            status: TaskStatus.doing,
+            projectId: project.id,
+            milestoneId: milestone.id,
+            sortIndex: 1,
+          ),
+        );
+        final pausedTask = await taskRepository.createTask(
+          TaskDraft(
+            title: 'Paused Task',
+            status: TaskStatus.paused,
+            projectId: project.id,
+            milestoneId: milestone.id,
+            sortIndex: 2,
+          ),
+        );
+
+        // 删除里程碑
+        await milestoneService.delete(milestone.id);
+
+        // 验证里程碑已删除
+        final deletedMilestone = await milestoneRepository.findById(milestone.id);
+        expect(deletedMilestone, isNull);
+
+        // 验证所有任务保留但 milestoneId 为 null
+        final retainedTask1 = await taskRepository.findById(activeTask1.id);
+        expect(retainedTask1, isNotNull);
+        expect(retainedTask1!.milestoneId, isNull);
+        expect(retainedTask1.projectId, equals(project.id));
+
+        final retainedTask2 = await taskRepository.findById(activeTask2.id);
+        expect(retainedTask2, isNotNull);
+        expect(retainedTask2!.milestoneId, isNull);
+        expect(retainedTask2.projectId, equals(project.id));
+
+        final retainedPausedTask = await taskRepository.findById(pausedTask.id);
+        expect(retainedPausedTask, isNotNull);
+        expect(retainedPausedTask!.milestoneId, isNull);
+        expect(retainedPausedTask.projectId, equals(project.id));
+
+        // 清理
+        await taskRepository.softDelete(activeTask1.id);
+        await taskRepository.softDelete(activeTask2.id);
+        await taskRepository.softDelete(pausedTask.id);
+        await projectService.deleteProject(project.id);
+      },
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+
+    testWidgets(
+      'test_project_007c: 删除里程碑（无任务）',
       (WidgetTester tester) async {
         final container = await setupTestApp(tester);
         final projectService = await container.read(projectServiceProvider.future);
@@ -1278,7 +1416,7 @@ void main() {
           title: 'Test Milestone',
         );
 
-        // 删除里程碑
+        // 删除里程碑（无任务）
         await milestoneService.delete(milestone.id);
 
         // 验证里程碑已删除
