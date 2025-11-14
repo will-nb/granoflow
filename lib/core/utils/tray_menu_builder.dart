@@ -10,7 +10,6 @@ import '../constants/tray_constants.dart';
 import '../providers/focus_providers.dart';
 import '../providers/pinned_task_provider.dart';
 import '../providers/repository_providers.dart';
-import '../providers/task_query_providers.dart';
 import '../../presentation/clock/utils/clock_timer_utils.dart';
 import '../utils/text_utils.dart';
 
@@ -69,34 +68,10 @@ class TrayMenuBuilder {
       }
     }
 
-    // 2. 快速添加任务
-    menuItems.add(buildQuickAddItem(context));
-
-    // 如果有计时器，在快速添加后添加分隔线
-    if (pinnedTaskId != null && activeSession != null) {
-      menuItems.add(buildSeparator());
-    }
-
-    // 3. 任务列表
-    final overdueTasks = await ref.read(taskSectionsProvider(TaskSection.overdue).future);
-    final todayTasks = await ref.read(taskSectionsProvider(TaskSection.today).future);
-
-    final taskItems = buildTaskItems(
-      overdueTasks: overdueTasks,
-      todayTasks: todayTasks,
-      pinnedTaskId: pinnedTaskId,
-      context: context,
-    );
-
-    if (taskItems.isNotEmpty) {
-      menuItems.addAll(taskItems);
-      menuItems.add(buildSeparator());
-    }
-
-    // 4. 设置
+    // 2. 设置（最小化菜单，暂时不显示任务）
     menuItems.add(buildSettingsItem(context));
 
-    // 5. 退出
+    // 3. 退出
     menuItems.add(buildQuitItem(context));
 
     return menuItems;
