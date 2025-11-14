@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/task.dart';
 import '../../data/repositories/task_repository.dart';
-import '../constants/task_constants.dart';
 
 class SortIndexResetService {
   SortIndexResetService({

@@ -7,6 +7,7 @@ import '../../core/providers/service_providers.dart';
 import '../../generated/l10n/app_localizations.dart';
 import 'gradient_page_scaffold.dart';
 import 'tri_state_checkbox.dart';
+import 'input_decoration_builder.dart';
 
 /// 全屏节点管理弹窗组件
 /// 
@@ -40,10 +41,18 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
   @override
   void initState() {
     super.initState();
+    // 监听底部输入框焦点变化，用于触发动画
+    _addNodeFocusNode.addListener(_onBottomInputFocusChange);
     // 延迟检查，确保 provider 已经初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkInitialState();
     });
+  }
+
+  void _onBottomInputFocusChange() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _checkInitialState() {
@@ -63,6 +72,7 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
 
   @override
   void dispose() {
+    _addNodeFocusNode.removeListener(_onBottomInputFocusChange);
     for (final controller in _editingControllers.values) {
       controller.dispose();
     }
@@ -141,7 +151,7 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
     String title,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -165,7 +175,10 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
             Expanded(
               child: Text(
                 title,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -392,8 +405,14 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
         if (!_editingFocusNodes[node.id]!.hasFocus && _editingNodeId == node.id) {
           _saveNodeTitle(node.id);
         }
+        // 触发重建以更新焦点状态
+        if (mounted && _editingNodeId == node.id) {
+          setState(() {});
+        }
       });
     }
+
+    final focusNode = _editingFocusNodes[node.id]!;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -412,35 +431,21 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
           }
           return KeyEventResult.ignored;
         },
-        child: TextField(
-          controller: _editingControllers[node.id],
-          focusNode: _editingFocusNodes[node.id],
-          decoration: InputDecoration(
-            hintText: l10n.nodeTitleHint,
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: colorScheme.primary,
-                width: 1.5,
-              ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: TextField(
+            controller: _editingControllers[node.id],
+            focusNode: focusNode,
+            decoration: InputDecorationBuilder.buildUnderlineInputDecoration(
+              context,
+              hintText: l10n.nodeTitleHint,
+              isFocused: focusNode.hasFocus,
             ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: colorScheme.primary,
-                width: 1.5,
-              ),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: colorScheme.primary,
-                width: 1.5,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-            isDense: true,
+            style: theme.textTheme.bodyMedium,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _saveNodeTitle(node.id),
           ),
-          style: theme.textTheme.bodyMedium,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _saveNodeTitle(node.id),
         ),
       ),
     );
@@ -453,7 +458,7 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
     AppLocalizations l10n,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -472,42 +477,25 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
           }
           return KeyEventResult.ignored;
         },
-        child: TextField(
-          controller: _addNodeController,
-          focusNode: _addNodeFocusNode,
-          decoration: InputDecoration(
-            hintText: l10n.nodeTitleHint,
-            hintStyle: TextStyle(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: TextField(
+            controller: _addNodeController,
+            focusNode: _addNodeFocusNode,
+            decoration: InputDecorationBuilder.buildUnderlineInputDecoration(
+              context,
+              hintText: l10n.nodeTitleHint,
+              isFocused: _addNodeFocusNode.hasFocus,
             ),
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: colorScheme.primary,
-                width: 1.5,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-            isDense: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (value) => _handleSubmitNode(value),
+            onTapOutside: (_) {
+              if (_addNodeController.text.trim().isEmpty) {
+                _cancelAddingNode();
+              }
+            },
           ),
-          textInputAction: TextInputAction.done,
-          onSubmitted: (value) => _handleSubmitNode(value),
-          onTapOutside: (_) {
-            if (_addNodeController.text.trim().isEmpty) {
-              _cancelAddingNode();
-            }
-          },
         ),
       ),
     );
