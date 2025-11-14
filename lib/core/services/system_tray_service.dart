@@ -150,14 +150,15 @@ class SystemTrayService {
 
   /// 启动数据监听
   void _startDataListening() {
-    // 监听计时器状态变化
-    _ref.listen<String?>(
-      pinnedTaskIdProvider,
-      (previous, next) {
-        _updateMenu();
-        _updateTimerDisplay();
-      },
-    );
+    // 停止所有菜单更新（用户要求停止菜单更新，用于排查问题）
+    // 不再监听任何数据变化，菜单只在初始化时构建一次
+    // _ref.listen<String?>(
+    //   pinnedTaskIdProvider,
+    //   (previous, next) {
+    //     _updateMenu();
+    //     _updateTimerDisplay();
+    //   },
+    // );
 
     // 注意：taskSectionsProvider 是 StreamProvider，不能直接使用 ref.listen
     // 菜单构建时会直接读取最新数据，所以不需要额外监听
@@ -502,18 +503,12 @@ class _TrayListener extends TrayListener {
   @override
   void onTrayIconMouseDown() {
     debugPrint('[SystemTrayService] Tray icon clicked (left button)');
-    // 在 macOS 上，左键点击托盘图标时显示菜单
+    // 在 macOS 上，左键点击托盘图标时显示菜单（由系统自动处理）
     // 在 Windows/Linux 上，左键点击显示窗口
     if (Platform.isMacOS) {
-      // macOS 上左键点击显示菜单
-      // 在点击时，暂时停止菜单更新，避免干扰菜单显示
-      _service._pauseMenuUpdate();
-      // 确保菜单已构建并设置
-      _service._ensureMenuBuilt();
-      // 延迟恢复菜单更新，给菜单显示留出时间
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _service._resumeMenuUpdate();
-      });
+      // macOS 上左键点击显示菜单（由系统自动处理）
+      // 注意：不要在点击时更新菜单，这会干扰菜单的显示
+      // 菜单应该已经在初始化时设置好了
       debugPrint('[SystemTrayService] macOS: Menu should be shown by system');
     } else {
       // Windows/Linux 上左键点击显示窗口
@@ -526,14 +521,8 @@ class _TrayListener extends TrayListener {
     debugPrint('[SystemTrayService] Tray icon clicked (right button)');
     // 右键点击托盘图标时显示菜单（由系统自动处理）
     // 在 macOS 上，右键点击会自动显示菜单
-    // 在点击时，暂时停止菜单更新，避免干扰菜单显示
-    _service._pauseMenuUpdate();
-    // 确保菜单已构建并设置
-    _service._ensureMenuBuilt();
-    // 延迟恢复菜单更新，给菜单显示留出时间
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _service._resumeMenuUpdate();
-    });
+    // 注意：不要在点击时更新菜单，这会干扰菜单的显示
+    // 菜单应该已经在初始化时设置好了
   }
 
   @override
