@@ -258,6 +258,8 @@
   "commonCancel": "取消",
   "commonContinue": "继续输入",
   "commonConfirm": "确认",
+  "commonNo": "否",
+  "commonYes": "是",
   "commonDelete": "删除",
   "commonEdit": "编辑",
   "commonLoading": "加载中...",
@@ -543,6 +545,34 @@
   "milestoneDeleteConfirmMessage": "确定要删除这个里程碑吗？此操作无法撤销。",
   "milestoneDeleteTitle": "删除里程碑",
   "milestoneDeleted": "里程碑已删除",
+  "milestoneDeleteFirstConfirmTitle": "删除里程碑",
+  "milestoneDeleteFirstConfirmMessage": "里程碑「{milestoneTitle}」下还有 {taskCount} 个活跃任务。\n\n您想将它们一起删除吗？",
+  "@milestoneDeleteFirstConfirmMessage": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "milestoneDeleteSecondConfirmTitle": "确认删除",
+  "milestoneDeleteSecondConfirmMessageWithTasks": "您将永久删除里程碑「{milestoneTitle}」。所有任务将保留，但不再关联到此里程碑。\n\n此操作无法撤销。",
+  "@milestoneDeleteSecondConfirmMessageWithTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteSecondConfirmMessageWithoutTasks": "您将永久删除里程碑「{milestoneTitle}」，但保留所有任务。任务将不再关联到此里程碑。\n\n此操作无法撤销。",
+  "@milestoneDeleteSecondConfirmMessageWithoutTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteSecondConfirmMessageNoActiveTasks": "您将永久删除里程碑「{milestoneTitle}」，但保留所有任务。任务将不再关联到此里程碑。\n\n此操作无法撤销。",
+  "@milestoneDeleteSecondConfirmMessageNoActiveTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteConfirmButton": "确定删除",
   "milestoneEditTitle": "编辑里程碑",
   "milestoneUpdated": "里程碑已更新",
   "milestoneProgressLabel": "{completed} / {total} 个任务（{percentage}%）",
@@ -1077,5 +1107,74 @@
   "trashedStatus": "已删除",
   "tooltipJumpToParentTask": "跳转到父任务",
   "tooltipOpenMainMenu": "打开主菜单",
-  "viewDetails": "查看详情"
+  "viewDetails": "查看详情",
+  "projectDeleteFirstConfirmTitle": "删除项目",
+  "projectDeleteFirstConfirmMessage": "项目「{projectTitle}」下还有 {milestoneCount} 个活跃里程碑和 {taskCount} 个活跃任务。\n\n您想将它们一起删除吗？",
+  "@projectDeleteFirstConfirmMessage": {
+    "placeholders": {
+      "projectTitle": {"type": "String"},
+      "milestoneCount": {"type": "int"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "projectDeleteSecondConfirmTitle": "确认删除",
+  "projectDeleteSecondConfirmMessageWithSubItems": "您将永久删除项目「{projectTitle}」及其下属的所有里程碑和任务。\n\n此操作无法撤销。",
+  "@projectDeleteSecondConfirmMessageWithSubItems": {
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectDeleteSecondConfirmMessageWithoutSubItems": "您将永久删除项目「{projectTitle}」及其里程碑，但保留所有任务。\n\n此操作无法撤销。",
+  "@projectDeleteSecondConfirmMessageWithoutSubItems": {
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectDeleteConfirmButton": "确定删除",
+  "projectArchiveFirstConfirmTitle": "归档项目",
+  "projectArchiveFirstConfirmMessage": "项目「{projectTitle}」下还有 {milestoneCount} 个活跃里程碑和 {taskCount} 个活跃任务。\n\n您想将它们一起归档吗？",
+  "@projectArchiveFirstConfirmMessage": {
+    "placeholders": {
+      "projectTitle": {"type": "String"},
+      "milestoneCount": {"type": "int"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "projectArchiveSecondConfirmTitle": "确认归档",
+  "projectArchiveSecondConfirmMessageWithSubItems": "您将归档项目「{projectTitle}」及其下属的所有里程碑和任务。",
+  "@projectArchiveSecondConfirmMessageWithSubItems": {
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectArchiveSecondConfirmMessageWithoutSubItems": "您将归档项目「{projectTitle}」及其里程碑，但保留所有任务。",
+  "@projectArchiveSecondConfirmMessageWithoutSubItems": {
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectArchiveConfirmButton": "确定归档",
+  "projectCompleteFirstConfirmTitle": "完成项目",
+  "projectCompleteFirstConfirmMessage": "项目「{projectTitle}」下还有 {milestoneCount} 个活跃里程碑和 {taskCount} 个活跃任务。\n\n您想将它们一起完成吗？",
+  "@projectCompleteFirstConfirmMessage": {
+    "placeholders": {
+      "projectTitle": {"type": "String"},
+      "milestoneCount": {"type": "int"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "projectCompleteSecondConfirmTitle": "确认完成",
+  "projectCompleteSecondConfirmMessageWithSubItems": "您将完成项目「{projectTitle}」及其下属的所有里程碑和任务。",
+  "@projectCompleteSecondConfirmMessageWithSubItems": {
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectCompleteSecondConfirmMessageWithoutSubItems": "您将完成项目「{projectTitle}」及其里程碑，但保留所有任务。",
+  "@projectCompleteSecondConfirmMessageWithoutSubItems": {
+    "placeholders": {
+      "projectTitle": {"type": "String"}
+    }
+  },
+  "projectCompleteConfirmButton": "确定完成"
 }

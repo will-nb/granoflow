@@ -152,12 +152,32 @@ void main() {
         });
 
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final fabRect = getFabRect(tester);
-        final navBarFinder = find.byType(NavigationBar);
-        expect(navBarFinder, findsOneWidget);
+        
+        // 等待 BottomAppBar 渲染完成
+        await tester.pumpAndSettle(const Duration(milliseconds: 500));
+        
+        // 应用使用 BottomAppBar 而不是 NavigationBar
+        final navBarFinder = find.byType(BottomAppBar);
+        debugPrint('=== Looking for BottomAppBar ===');
+        debugPrint('Found ${navBarFinder.evaluate().length} BottomAppBar widgets');
+        expect(navBarFinder, findsOneWidget, reason: '应该找到 BottomAppBar');
 
         // 获取第一个导航按钮的图标（home_outlined 或 home）
         var iconFinder = find.descendant(
@@ -202,12 +222,32 @@ void main() {
         });
 
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final fabRect = getFabRect(tester);
-        final navBarFinder = find.byType(NavigationBar);
-        expect(navBarFinder, findsOneWidget);
+        
+        // 等待 BottomAppBar 渲染完成
+        await tester.pumpAndSettle(const Duration(milliseconds: 500));
+        
+        // 应用使用 BottomAppBar 而不是 NavigationBar
+        final navBarFinder = find.byType(BottomAppBar);
+        debugPrint('=== Looking for BottomAppBar ===');
+        debugPrint('Found ${navBarFinder.evaluate().length} BottomAppBar widgets');
+        expect(navBarFinder, findsOneWidget, reason: '应该找到 BottomAppBar');
 
         // 获取第一个导航按钮的文字（通过查找 NavigationDestination 的 label）
         // 由于 NavigationBar 的文本可能在不同位置，我们通过查找 Text widget 来定位
@@ -247,12 +287,32 @@ void main() {
         });
 
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final fabRect = getFabRect(tester);
-        final navBarFinder = find.byType(NavigationBar);
-        expect(navBarFinder, findsOneWidget);
+        
+        // 等待 BottomAppBar 渲染完成
+        await tester.pumpAndSettle(const Duration(milliseconds: 500));
+        
+        // 应用使用 BottomAppBar 而不是 NavigationBar
+        final navBarFinder = find.byType(BottomAppBar);
+        debugPrint('=== Looking for BottomAppBar ===');
+        debugPrint('Found ${navBarFinder.evaluate().length} BottomAppBar widgets');
+        expect(navBarFinder, findsOneWidget, reason: '应该找到 BottomAppBar');
         final fabCenterX = fabRect.center.dx;
 
         // 获取所有导航按钮的中心点
@@ -512,7 +572,7 @@ void main() {
           reason: '横屏模式下不应显示 FAB',
         );
         expect(
-          find.byType(NavigationBar),
+          find.byType(BottomAppBar),
           findsNothing,
           reason: '横屏模式下应隐藏底部导航栏',
         );
@@ -578,8 +638,12 @@ void main() {
       );
 
       // 验证 FAB 顶部是否与图标顶部对齐
-      final navBarFinder = find.byType(NavigationBar);
-      expect(navBarFinder, findsOneWidget);
+      // 等待 BottomAppBar 渲染完成
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      final navBarFinder = find.byType(BottomAppBar);
+      debugPrint('=== testSlotWidthConsistency: Looking for BottomAppBar ===');
+      debugPrint('Found ${navBarFinder.evaluate().length} BottomAppBar widgets');
+      expect(navBarFinder, findsOneWidget, reason: '应该找到 BottomAppBar');
       
       var homeIcon = find.descendant(
         of: navBarFinder,

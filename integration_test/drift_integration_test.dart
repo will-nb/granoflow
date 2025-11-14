@@ -9,6 +9,8 @@ import 'package:granoflow/core/providers/service_providers.dart';
 import 'package:granoflow/data/models/task.dart';
 import 'package:granoflow/data/models/project.dart';
 import 'package:granoflow/core/services/project_models.dart';
+import 'package:granoflow/core/utils/delta_json_utils.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
@@ -63,15 +65,18 @@ void main() {
         final taskRepository = await container.read(taskRepositoryProvider.future);
 
         // 测试创建任务
+        // description 需要使用 Delta JSON 格式
+        final descriptionDoc = Document()..insert(0, 'Test Description\n');
+        final descriptionJson = DeltaJsonUtils.documentToJson(descriptionDoc);
         final taskDraft = TaskDraft(
           title: 'Test Task',
-          description: 'Test Description',
+          description: descriptionJson,
           status: TaskStatus.pending,
         );
         final createdTask = await taskRepository.createTask(taskDraft);
         expect(createdTask.id, isNotEmpty);
         expect(createdTask.title, equals('Test Task'));
-        expect(createdTask.description, equals('Test Description'));
+        expect(createdTask.description, equals(descriptionJson));
         expect(createdTask.status, equals(TaskStatus.pending));
 
         // 验证任务已保存
@@ -80,9 +85,12 @@ void main() {
         expect(retrievedTask!.title, equals('Test Task'));
 
         // 测试编辑任务
+        // description 需要使用 Delta JSON 格式
+        final updatedDescriptionDoc = Document()..insert(0, 'Updated Description\n');
+        final updatedDescriptionJson = DeltaJsonUtils.documentToJson(updatedDescriptionDoc);
         final update = TaskUpdate(
           title: 'Updated Task',
-          description: 'Updated Description',
+          description: updatedDescriptionJson,
         );
         await taskRepository.updateTask(createdTask.id, update);
 
@@ -90,7 +98,7 @@ void main() {
         final retrievedUpdatedTask = await taskRepository.findById(createdTask.id);
         expect(retrievedUpdatedTask, isNotNull);
         expect(retrievedUpdatedTask?.title, equals('Updated Task'));
-        expect(retrievedUpdatedTask?.description, equals('Updated Description'));
+        expect(retrievedUpdatedTask?.description, equals(updatedDescriptionJson));
 
         // 测试删除任务
         await taskRepository.softDelete(createdTask.id);
@@ -151,9 +159,12 @@ void main() {
         final projectService = await container.read(projectServiceProvider.future);
 
         // 测试创建项目
+        // description 需要使用 Delta JSON 格式
+        final projectDescriptionDoc = Document()..insert(0, 'Test Description\n');
+        final projectDescriptionJson = DeltaJsonUtils.documentToJson(projectDescriptionDoc);
         final projectBlueprint = ProjectBlueprint(
           title: 'Test Project',
-          description: 'Test Description',
+          description: projectDescriptionJson,
           dueDate: DateTime.now(),
           tags: const [],
           milestones: const [],
@@ -161,7 +172,7 @@ void main() {
         final createdProject = await projectService.createProject(projectBlueprint);
         expect(createdProject.id, isNotEmpty);
         expect(createdProject.title, equals('Test Project'));
-        expect(createdProject.description, equals('Test Description'));
+        expect(createdProject.description, equals(projectDescriptionJson));
 
         // 验证项目已保存
         final retrievedProject = await projectRepository.findById(createdProject.id);
@@ -169,9 +180,12 @@ void main() {
         expect(retrievedProject!.title, equals('Test Project'));
 
         // 测试编辑项目
+        // description 需要使用 Delta JSON 格式
+        final updatedProjectDescriptionDoc = Document()..insert(0, 'Updated Description\n');
+        final updatedProjectDescriptionJson = DeltaJsonUtils.documentToJson(updatedProjectDescriptionDoc);
         final update = ProjectUpdate(
           title: 'Updated Project',
-          description: 'Updated Description',
+          description: updatedProjectDescriptionJson,
         );
         await projectService.updateProject(createdProject.id, update);
 
@@ -179,7 +193,7 @@ void main() {
         final retrievedUpdatedProject = await projectRepository.findById(createdProject.id);
         expect(retrievedUpdatedProject, isNotNull);
         expect(retrievedUpdatedProject?.title, equals('Updated Project'));
-        expect(retrievedUpdatedProject?.description, equals('Updated Description'));
+        expect(retrievedUpdatedProject?.description, equals(updatedProjectDescriptionJson));
 
         // 测试删除项目
         await projectService.deleteProject(createdProject.id);
@@ -249,14 +263,17 @@ void main() {
         final parentProject = await projectService.createProject(projectBlueprint);
 
         // 测试创建里程碑
+        // description 需要使用 Delta JSON 格式
+        final milestoneDescriptionDoc = Document()..insert(0, 'Test Description\n');
+        final milestoneDescriptionJson = DeltaJsonUtils.documentToJson(milestoneDescriptionDoc);
         final createdMilestone = await milestoneService.createMilestone(
           projectId: parentProject.id,
           title: 'Test Milestone',
-          description: 'Test Description',
+          description: milestoneDescriptionJson,
         );
         expect(createdMilestone.id, isNotEmpty);
         expect(createdMilestone.title, equals('Test Milestone'));
-        expect(createdMilestone.description, equals('Test Description'));
+        expect(createdMilestone.description, equals(milestoneDescriptionJson));
         expect(createdMilestone.projectId, equals(parentProject.id));
 
         // 验证里程碑已保存
@@ -265,17 +282,20 @@ void main() {
         expect(retrievedMilestone!.title, equals('Test Milestone'));
 
         // 测试编辑里程碑
+        // description 需要使用 Delta JSON 格式
+        final updatedMilestoneDescriptionDoc = Document()..insert(0, 'Updated Description\n');
+        final updatedMilestoneDescriptionJson = DeltaJsonUtils.documentToJson(updatedMilestoneDescriptionDoc);
         await milestoneService.updateMilestone(
           id: createdMilestone.id,
           title: 'Updated Milestone',
-          description: 'Updated Description',
+          description: updatedMilestoneDescriptionJson,
         );
 
         // 验证里程碑已更新
         final retrievedUpdatedMilestone = await milestoneRepository.findById(createdMilestone.id);
         expect(retrievedUpdatedMilestone, isNotNull);
         expect(retrievedUpdatedMilestone?.title, equals('Updated Milestone'));
-        expect(retrievedUpdatedMilestone?.description, equals('Updated Description'));
+        expect(retrievedUpdatedMilestone?.description, equals(updatedMilestoneDescriptionJson));
 
         // 测试删除里程碑
         await milestoneService.delete(createdMilestone.id);

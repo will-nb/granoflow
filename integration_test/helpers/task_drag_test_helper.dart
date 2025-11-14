@@ -292,9 +292,11 @@ class TaskDragTestHelper {
 
   /// 导航到 Inbox 页面
   Future<void> navigateToInbox() async {
+    print('[TaskDragTestHelper] 导航到 Inbox 页面...');
     // 尝试打开抽屉菜单
     final drawer = find.byIcon(Icons.menu);
     if (drawer.evaluate().isNotEmpty) {
+      print('[TaskDragTestHelper] 打开抽屉菜单');
       await tester.tap(drawer.first);
       await tester.pumpAndSettle(const Duration(milliseconds: 500));
     }
@@ -308,13 +310,18 @@ class TaskDragTestHelper {
       inbox = find.textContaining('Inbox');
     }
     if (inbox.evaluate().isNotEmpty) {
+      print('[TaskDragTestHelper] 找到 Inbox 链接: ${inbox.evaluate().length} 个');
       await tester.tap(inbox.first);
       await tester.pumpAndSettle(const Duration(seconds: 2));
+      print('[TaskDragTestHelper] Inbox 页面导航完成');
+    } else {
+      print('[TaskDragTestHelper] 警告: 找不到 Inbox 链接');
     }
   }
 
   /// 导航到 Tasks 页面
   Future<void> navigateToTasks() async {
+    print('[TaskDragTestHelper] 导航到 Tasks 页面...');
     // 查找 Tasks 图标
     var tasksIcon = find.byIcon(Icons.checklist);
     if (tasksIcon.evaluate().isEmpty) {
@@ -323,12 +330,17 @@ class TaskDragTestHelper {
     if (tasksIcon.evaluate().isEmpty) {
       final tasksText = find.textContaining('任务');
       if (tasksText.evaluate().isNotEmpty) {
+        print('[TaskDragTestHelper] 通过文本查找 Tasks: 找到 ${tasksText.evaluate().length} 个');
         await tester.tap(tasksText.first);
+      } else {
+        print('[TaskDragTestHelper] 警告: 找不到 Tasks 图标或文本');
       }
     } else {
+      print('[TaskDragTestHelper] 通过图标查找 Tasks: 找到 ${tasksIcon.evaluate().length} 个');
       await tester.tap(tasksIcon.first);
     }
     await tester.pumpAndSettle(const Duration(seconds: 2));
+    print('[TaskDragTestHelper] Tasks 页面导航完成');
   }
 
   /// 获取 Inbox 任务列表

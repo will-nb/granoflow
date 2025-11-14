@@ -177,6 +177,24 @@ uninstall_android_app() {
   fi
 }
 
+# 授予 Android 应用通知权限（用于测试，避免弹出权限对话框）
+grant_android_notification_permission() {
+  local device_id="$1"
+  if [ -z "$device_id" ]; then
+    echo -e "${YELLOW}⚠️  设备 ID 为空，跳过权限授予${NC}"
+    return 0
+  fi
+  
+  echo -e "${BLUE}授予通知权限（避免测试时弹出对话框）...${NC}"
+  
+  # 授予 Android 13+ 通知权限
+  adb -s "$device_id" shell pm grant com.granoflow.app android.permission.POST_NOTIFICATIONS 2>/dev/null || {
+    echo -e "${YELLOW}  ⚠️  权限授予失败（可能应用未安装或权限已授予）${NC}"
+  }
+  
+  echo -e "${GREEN}✅ 权限授予完成${NC}"
+}
+
 # 卸载 iOS 应用
 uninstall_ios_app() {
   local device_id="$1"

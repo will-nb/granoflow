@@ -126,6 +126,15 @@
       "tags": []
     },
     {
+      "slug": "milestone_long_term_goals",
+      "title": "Long-term Goals Planning",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
       "slug": "nav_001",
       "title": "Open drawer menu",
       "status": "pending",
@@ -1214,6 +1223,46 @@
       "allowInstantComplete": true,
       "tags": [],
       "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "long_term_goal_001",
+      "title": "Become a core architect of the technical team within the next 3-5 years, responsible for designing and implementing large-scale distributed systems, mastering microservices architecture and cloud-native technology stack (Kubernetes, Docker, Service Mesh), possessing cross-team collaboration and mentorship capabilities, able to guide junior and mid-level engineers' growth, and play a key role in technical decision-making",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_002",
+      "title": "Systematically learn and master modern frontend technology stack (React, Vue, TypeScript, WebAssembly) and backend technologies (Node.js, Go, Rust), deeply understand performance optimization, security best practices and scalability design, be able to independently design and implement full-stack applications, contribute high-quality code to open source communities, and build a personal technical brand",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_003",
+      "title": "Complete the refactoring and modernization project of the company's core product, migrate monolithic applications to microservices architecture, improve system performance and maintainability, achieve zero-downtime deployment, establish comprehensive monitoring and alerting systems, ensure system availability reaches above 99.9%, and establish best practice documentation and training materials during the project to help the team improve overall technical level",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_004",
+      "title": "Improve soft skills such as communication and coordination, problem-solving and leadership, exercise expression abilities through participating in cross-departmental projects, organizing technical sharing sessions, writing technical blogs, learn project management methodologies (Agile, Scrum, Kanban), cultivate data-driven decision-making thinking, establish personal influence, and become a trusted technical advisor and problem solver in the team",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_005",
+      "title": "Take on the role of technical mentor in the team, establish mentorship programs, help 3-5 junior engineers grow rapidly, transfer knowledge and experience through code reviews, technical sharing, one-on-one guidance, promote team technical culture construction, establish knowledge sharing mechanisms, improve the team's overall technical level and collaboration efficiency, and contribute to the team's long-term development",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
     }
   ]
 }

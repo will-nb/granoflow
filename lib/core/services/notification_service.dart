@@ -98,29 +98,37 @@ class NotificationService {
   /// 请求通知权限
   /// 
   /// Android 13+ 和 iOS 需要用户授权
+  /// 如果权限请求正在进行中，会捕获异常并返回 false
   Future<bool> requestPermission() async {
-    // Android 13+ 权限请求
-    final androidImplementation = _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    if (androidImplementation != null) {
-      final granted = await androidImplementation.requestNotificationsPermission();
-      if (granted == true) {
-        return true;
+    try {
+      // Android 13+ 权限请求
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      if (androidImplementation != null) {
+        final granted = await androidImplementation.requestNotificationsPermission();
+        if (granted == true) {
+          return true;
+        }
       }
-    }
 
-    // iOS 权限请求（在初始化时已请求，这里检查状态）
-    final iosImplementation = _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-    if (iosImplementation != null) {
-      final settings = await iosImplementation.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      return settings ?? false;
+      // iOS 权限请求（在初始化时已请求，这里检查状态）
+      final iosImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>();
+      if (iosImplementation != null) {
+        final settings = await iosImplementation.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        return settings ?? false;
+      }
+    } catch (e) {
+      // 如果权限请求正在进行中或其他错误，记录并返回 false
+      // 这在集成测试中很常见，因为多个测试可能同时请求权限
+      print('Notification permission request failed (may be in progress): $e');
+      return false;
     }
 
     return false;

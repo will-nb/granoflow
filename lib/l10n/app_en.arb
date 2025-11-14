@@ -104,6 +104,8 @@
   "commonCancel": "Cancel",
   "commonContinue": "Continue",
   "commonConfirm": "Confirm",
+  "commonNo": "No",
+  "commonYes": "Yes",
   "commonDelete": "Delete",
   "commonEdit": "Edit",
   "commonLoading": "Loading...",
@@ -388,6 +390,34 @@
   "milestoneDeleteConfirmMessage": "Are you sure you want to delete this milestone? This action cannot be undone.",
   "milestoneDeleteTitle": "Delete Milestone",
   "milestoneDeleted": "Milestone deleted",
+  "milestoneDeleteFirstConfirmTitle": "Delete Milestone",
+  "milestoneDeleteFirstConfirmMessage": "Milestone \"{milestoneTitle}\" has {taskCount} active tasks.\n\nDo you want to delete them together?",
+  "@milestoneDeleteFirstConfirmMessage": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "milestoneDeleteSecondConfirmTitle": "Confirm Delete",
+  "milestoneDeleteSecondConfirmMessageWithTasks": "You will permanently delete milestone \"{milestoneTitle}\". All tasks will be preserved but will no longer be associated with this milestone.\n\nThis action cannot be undone.",
+  "@milestoneDeleteSecondConfirmMessageWithTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteSecondConfirmMessageWithoutTasks": "You will permanently delete milestone \"{milestoneTitle}\" but keep all tasks. Tasks will no longer be associated with this milestone.\n\nThis action cannot be undone.",
+  "@milestoneDeleteSecondConfirmMessageWithoutTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteSecondConfirmMessageNoActiveTasks": "You will permanently delete milestone \"{milestoneTitle}\" but keep all tasks. Tasks will no longer be associated with this milestone.\n\nThis action cannot be undone.",
+  "@milestoneDeleteSecondConfirmMessageNoActiveTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteConfirmButton": "Confirm Delete",
   "milestoneEditTitle": "Edit Milestone",
   "milestoneUpdated": "Milestone updated",
   "milestoneProgressLabel": "{completed} / {total} tasks ({percentage}%)",

@@ -102,6 +102,9 @@
   "commonAdd": "新增",
   "commonCancel": "取消",
   "commonContinue": "繼續輸入",
+  "commonConfirm": "確認",
+  "commonNo": "否",
+  "commonYes": "是",
   "commonDelete": "刪除",
   "commonEdit": "編輯",
   "commonLoading": "載入中...",
@@ -369,6 +372,34 @@
   "milestoneDeleteConfirmMessage": "確定要刪除這個里程碑嗎？此操作無法撤銷。",
   "milestoneDeleteTitle": "刪除里程碑",
   "milestoneDeleted": "里程碑已刪除",
+  "milestoneDeleteFirstConfirmTitle": "刪除里程碑",
+  "milestoneDeleteFirstConfirmMessage": "里程碑「{milestoneTitle}」下還有 {taskCount} 個活躍任務。\n\n您想將它們一起刪除嗎？",
+  "@milestoneDeleteFirstConfirmMessage": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"},
+      "taskCount": {"type": "int"}
+    }
+  },
+  "milestoneDeleteSecondConfirmTitle": "確認刪除",
+  "milestoneDeleteSecondConfirmMessageWithTasks": "您將永久刪除里程碑「{milestoneTitle}」。所有任務將保留，但不再關聯到此里程碑。\n\n此操作無法撤銷。",
+  "@milestoneDeleteSecondConfirmMessageWithTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteSecondConfirmMessageWithoutTasks": "您將永久刪除里程碑「{milestoneTitle}」，但保留所有任務。任務將不再關聯到此里程碑。\n\n此操作無法撤銷。",
+  "@milestoneDeleteSecondConfirmMessageWithoutTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteSecondConfirmMessageNoActiveTasks": "您將永久刪除里程碑「{milestoneTitle}」，但保留所有任務。任務將不再關聯到此里程碑。\n\n此操作無法撤銷。",
+  "@milestoneDeleteSecondConfirmMessageNoActiveTasks": {
+    "placeholders": {
+      "milestoneTitle": {"type": "String"}
+    }
+  },
+  "milestoneDeleteConfirmButton": "確定刪除",
   "milestoneEditTitle": "編輯里程碑",
   "milestoneUpdated": "里程碑已更新",
   "milestoneProgressLabel": "{completed} / {total} 個任務（{percentage}%）",

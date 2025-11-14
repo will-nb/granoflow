@@ -20,7 +20,18 @@ void main() {
         // 启动应用
         app.main();
         await tester.pump();
-        await tester.pump(const Duration(seconds: 2));
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        // 先等待几秒让应用初始化
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         // 验证应用已加载
         expect(find.byType(MaterialApp), findsOneWidget);
@@ -250,11 +261,15 @@ void main() {
         // 启动应用
         app.main();
         await tester.pump();
-        await tester.pump(const Duration(seconds: 2));
         
-        // 等待应用加载
-        for (int i = 0; i < 5; i++) {
+        // 等待应用启动，使用 pumpAndSettle 确保 MaterialApp 已加载
+        await tester.pumpAndSettle(const Duration(seconds: 1));
+        
+        // 如果 MaterialApp 还没出现，继续等待
+        int retries = 0;
+        while (retries < 10 && !tester.any(find.byType(MaterialApp))) {
           await tester.pump(const Duration(seconds: 1));
+          retries++;
         }
 
         // 验证应用已加载

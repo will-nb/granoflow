@@ -222,24 +222,34 @@ class ProjectHeaderRow extends ConsumerWidget {
         await _editProject(context, ref, project);
         break;
       case 'complete':
-        final confirmed = await confirmProjectComplete(context, ref, project);
-        if (confirmed != null) {
+        final result = await confirmProjectAction(
+          context,
+          ref,
+          ProjectActionType.complete,
+          project,
+        );
+        if (result != null) {
           await completeProject(
             context,
             ref,
             project.id,
-            archiveTasks: confirmed == true,
+            archiveTasks: result.includeSubItems,
           );
         }
         break;
       case 'archive':
-        final confirmed = await confirmProjectArchive(context, ref, project);
-        if (confirmed != null) {
+        final result = await confirmProjectAction(
+          context,
+          ref,
+          ProjectActionType.archive,
+          project,
+        );
+        if (result != null) {
           await archiveProject(
             context,
             ref,
             project.id,
-            archiveTasks: confirmed == true,
+            archiveTasks: result.includeSubItems,
           );
         }
         break;

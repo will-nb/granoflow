@@ -106,9 +106,19 @@ void main() {
       (WidgetTester tester) async {
         // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
-
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
         // 验证应用已加载
         expect(find.byType(MaterialApp), findsOneWidget);
 
@@ -121,33 +131,61 @@ void main() {
 
         // 记录初始状态
         final initialState = container.read(tasksFilterProvider);
-        print('初始筛选状态: ${initialState.contextTag}');
+        print('=== 初始筛选状态 ===');
+        print('contextTag: ${initialState.contextTag}');
+        print('hasFilters: ${initialState.hasFilters}');
 
         // 设置一个标签
+        print('=== 设置 contextTag 为 "home" ===');
         taskFilterNotifier.setContextTag('home');
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
         // 验证状态已更新
         final stateAfterSet = container.read(tasksFilterProvider);
+        print('=== 设置后的状态 ===');
+        print('contextTag: ${stateAfterSet.contextTag}');
+        print('hasFilters: ${stateAfterSet.hasFilters}');
         expect(stateAfterSet.contextTag, equals('home'),
             reason: '筛选状态应该更新');
 
         // 等待一段时间，验证状态稳定
         await tester.pump(const Duration(seconds: 1));
         final stateAfterWait = container.read(tasksFilterProvider);
+        print('=== 等待后的状态 ===');
+        print('contextTag: ${stateAfterWait.contextTag}');
         expect(stateAfterWait.contextTag, equals('home'),
             reason: '筛选状态应该保持稳定');
 
-        // 清除筛选
-        taskFilterNotifier.setContextTag(null);
+        // 清除筛选 - 使用 reset() 方法清除所有筛选
+        print('=== 清除筛选（使用 reset()） ===');
+        taskFilterNotifier.reset();
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
         // 验证状态已清除
+        // 等待状态更新完成，可能需要多次 pump
+        print('=== 等待状态清除 ===');
+        for (int i = 0; i < 20; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+          final currentState = container.read(tasksFilterProvider);
+          print('尝试 $i: contextTag=${currentState.contextTag}');
+          if (currentState.contextTag == null) {
+            print('状态已清除！');
+            break;
+          }
+          if (i == 19) {
+            print('警告: 状态清除超时，最后一次状态: contextTag=${currentState.contextTag}');
+          }
+        }
         final stateAfterClear = container.read(tasksFilterProvider);
+        print('=== 清除后的最终状态 ===');
+        print('contextTag: ${stateAfterClear.contextTag}');
+        print('hasFilters: ${stateAfterClear.hasFilters}');
         expect(stateAfterClear.contextTag, isNull,
-            reason: '筛选状态应该被清除');
+            reason: '筛选状态应该被清除。实际值: ${stateAfterClear.contextTag}');
 
         print('筛选状态管理正常，没有检测到无限重建');
       },

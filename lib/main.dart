@@ -38,7 +38,13 @@ Future<void> main() async {
   await notificationService.initialize();
 
   // 请求通知权限（Android 13+ 和 iOS）
-  await notificationService.requestPermission();
+  // 在集成测试环境中跳过权限请求，避免弹出对话框阻塞测试
+  // 测试环境可以通过 adb 预先授予权限
+  // 检查是否在集成测试环境中（通过环境变量或 kDebugMode）
+  final isIntegrationTest = const bool.fromEnvironment('INTEGRATION_TEST', defaultValue: false);
+  if (!isIntegrationTest) {
+    await notificationService.requestPermission();
+  }
 
   // 根据 DatabaseConfig 初始化数据库（默认使用 Drift）
   // Drift 数据库将在 DriftAdapter 中自动初始化

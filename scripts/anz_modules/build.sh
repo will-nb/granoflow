@@ -23,9 +23,14 @@ run_tests_with_clean() {
     shift
   fi
   
-  # 先执行 clean（和 clean 命令一样的清理内容）
-  echo -e "${BLUE}🧹 执行清理...${NC}"
-  clean_project
+  # 对于 macOS，执行完整清理（清理数据库等）
+  # 对于 Android/iOS，只需要卸载应用即可，不需要执行完整的 clean
+  if [ "$device" = "macos" ]; then
+    echo -e "${BLUE}🧹 执行清理（macOS 需要清理数据库）...${NC}"
+    clean_project
+  else
+    echo -e "${BLUE}🧹 跳过清理（移动设备通过卸载应用确保数据干净）...${NC}"
+  fi
   
   # 如果没有提供参数，执行 flutter run
   if [ $# -eq 0 ]; then
@@ -56,6 +61,8 @@ run_tests_with_clean() {
         fi
       fi
       echo -e "${GREEN}✅ 使用 Android 设备: $actual_device${NC}"
+      # 卸载已安装的应用，确保测试数据来自种子数据
+      uninstall_android_app "$actual_device"
     elif [ "$device" = "ios" ] || [ "$device" = "iphone" ] || [ "$device" = "ipad" ]; then
       # 查找运行中的 iOS 设备
       local pattern="${device_type:-iPhone}"
@@ -114,6 +121,10 @@ run_tests_with_clean() {
         fi
       fi
       echo -e "${GREEN}✅ 使用 Android 设备: $actual_device${NC}"
+      # 卸载已安装的应用，确保测试数据来自种子数据
+      uninstall_android_app "$actual_device"
+      # 授予通知权限，避免测试时弹出对话框
+      grant_android_notification_permission "$actual_device"
     elif [ "$device" = "ios" ] || [ "$device" = "iphone" ] || [ "$device" = "ipad" ]; then
       # 查找运行中的 iOS 设备
       local pattern="${device_type:-iPhone}"
@@ -146,7 +157,38 @@ run_tests_with_clean() {
     
     # 传递所有参数给 flutter test
     # 注意：使用 run_with_timeout 包装，避免测试超时
-    run_with_timeout 600 flutter test -d "$actual_device" "$@" || {
+    # 对于 Android，先构建并安装应用，然后授予权限，避免测试时弹出对话框
+    if [ "$device" = "android" ] || [ "$device" = "tablet" ]; then
+      echo -e "${BLUE}构建并安装应用（用于授予权限）...${NC}"
+      # 构建 APK（如果还没有构建）
+      if [ ! -f "build/app/outputs/flutter-apk/app-debug.apk" ]; then
+        echo -e "${BLUE}构建 APK...${NC}"
+        flutter build apk --debug 2>/dev/null || {
+          echo -e "${YELLOW}⚠️  APK 构建失败，测试将自动构建${NC}"
+        }
+      fi
+      
+      # 安装应用
+      echo -e "${BLUE}安装应用...${NC}"
+      flutter install -d "$actual_device" 2>/dev/null || {
+        echo -e "${YELLOW}⚠️  应用安装失败，测试将自动安装${NC}"
+      }
+      
+      # 等待应用安装完成
+      sleep 2
+      
+      # 检查应用是否已安装
+      if adb -s "$actual_device" shell pm list packages 2>/dev/null | grep -q "com.granoflow.app"; then
+        echo -e "${GREEN}✅ 应用已安装${NC}"
+        # 授予通知权限
+        grant_android_notification_permission "$actual_device"
+      else
+        echo -e "${YELLOW}⚠️  应用未安装，测试将自动安装${NC}"
+      fi
+    fi
+    
+    # 运行测试，传递 INTEGRATION_TEST 环境变量（通过 --dart-define）
+    run_with_timeout 600 flutter test --dart-define=INTEGRATION_TEST=true -d "$actual_device" "$@" || {
       echo -e "${RED}❌ 测试失败${NC}"
       return 1
     }

@@ -126,6 +126,15 @@
       "tags": []
     },
     {
+      "slug": "milestone_long_term_goals",
+      "title": "長期目標規劃",
+      "status": "pending",
+      "taskKind": "milestone",
+      "parentSlug": "project_learn_how_to_use",
+      "allowInstantComplete": false,
+      "tags": []
+    },
+    {
       "slug": "nav_001",
       "title": "打開抽屜菜單",
       "status": "pending",
@@ -1214,6 +1223,46 @@
       "allowInstantComplete": true,
       "tags": [],
       "parentSlug": "milestone_other_operations"
+    },
+    {
+      "slug": "long_term_goal_001",
+      "title": "在未來3-5年內成為技術團隊的核心架構師，負責設計和實施大規模分散式系統，掌握微服務架構、雲原生技術棧（Kubernetes、Docker、Service Mesh），具備跨團隊協作和 mentorship 能力，能夠指導初級和中級工程師成長，並在技術決策中發揮關鍵作用",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_002",
+      "title": "系統學習並掌握現代前端技術棧（React、Vue、TypeScript、WebAssembly）和後端技術（Node.js、Go、Rust），深入理解性能優化、安全最佳實踐和可擴展性設計，能夠獨立設計和實現全棧應用，並在開源社區貢獻高質量代碼，建立個人技術品牌",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_003",
+      "title": "完成公司核心產品的重構和現代化改造項目，將單體應用遷移到微服務架構，提升系統性能和可維護性，實現零停機部署，建立完善的監控和告警體系，確保系統可用性達到99.9%以上，並在項目過程中建立最佳實踐文檔和培訓材料，幫助團隊提升整體技術水平",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_004",
+      "title": "提升溝通協調、問題解決和領導力等軟技能，通過參與跨部門項目、組織技術分享會、撰寫技術博客等方式鍛煉表達能力，學習項目管理方法論（Agile、Scrum、Kanban），培養數據驅動的決策思維，建立個人影響力，成為團隊中值得信賴的技術顧問和問題解決者",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
+    },
+    {
+      "slug": "long_term_goal_005",
+      "title": "在團隊中承擔技術導師角色，建立mentorship計劃，幫助3-5名初級工程師快速成長，通過code review、技術分享、一對一指導等方式傳遞知識和經驗，推動團隊技術文化建設，建立知識分享機制，提升團隊整體技術水平和協作效率，為團隊長期發展做出貢獻",
+      "status": "pending",
+      "allowInstantComplete": false,
+      "tags": [],
+      "parentSlug": "milestone_long_term_goals"
     }
   ]
 }

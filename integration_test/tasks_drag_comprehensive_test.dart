@@ -16,9 +16,23 @@ void main() {
     testWidgets(
       'should insert task at the beginning of the list (Inbox)',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
@@ -26,15 +40,21 @@ void main() {
         final helper = TaskDragTestHelper(tester, container);
 
         // 确保有足够的任务
+        print('=== 检查 Inbox 任务 ===');
         final inboxTasks = await helper.getInboxTasks();
         if (inboxTasks.length < 3) {
+          print('=== 创建测试任务 ===');
           for (int i = 0; i < 5; i++) {
             await helper.addTestTask('排序测试任务 $i');
           }
-          await Future.delayed(const Duration(milliseconds: 500));
+          await tester.pumpAndSettle(const Duration(seconds: 1));
         }
 
+        print('=== 导航到 Inbox 页面 ===');
         await helper.navigateToInbox();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         final tasks = await helper.getInboxTasks();
         expect(tasks.length, greaterThanOrEqualTo(2),
@@ -78,24 +98,44 @@ void main() {
     testWidgets(
       'should insert task between two tasks (Inbox)',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
         final helper = TaskDragTestHelper(tester, container);
 
+        print('=== 检查 Inbox 任务 ===');
         final inboxTasks = await helper.getInboxTasks();
         if (inboxTasks.length < 3) {
+          print('=== 创建测试任务 ===');
           for (int i = 0; i < 5; i++) {
             await helper.addTestTask('排序测试任务 $i');
           }
-          await Future.delayed(const Duration(milliseconds: 500));
+          await tester.pumpAndSettle(const Duration(seconds: 1));
         }
 
+        print('=== 导航到 Inbox 页面 ===');
         await helper.navigateToInbox();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         final tasks = await helper.getInboxTasks();
         expect(tasks.length, greaterThanOrEqualTo(3),
@@ -145,24 +185,44 @@ void main() {
     testWidgets(
       'should insert task at the end of the list (Inbox)',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
         );
         final helper = TaskDragTestHelper(tester, container);
 
+        print('=== 检查 Inbox 任务 ===');
         final inboxTasks = await helper.getInboxTasks();
         if (inboxTasks.length < 3) {
+          print('=== 创建测试任务 ===');
           for (int i = 0; i < 5; i++) {
             await helper.addTestTask('排序测试任务 $i');
           }
-          await Future.delayed(const Duration(milliseconds: 500));
+          await tester.pumpAndSettle(const Duration(seconds: 1));
         }
 
+        print('=== 导航到 Inbox 页面 ===');
         await helper.navigateToInbox();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         final tasks = await helper.getInboxTasks();
         expect(tasks.length, greaterThanOrEqualTo(2),
@@ -206,9 +266,23 @@ void main() {
     testWidgets(
       'should reorder tasks within the same section (Tasks)',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
@@ -224,8 +298,15 @@ void main() {
         );
         expect(tasks.length, greaterThanOrEqualTo(2),
             reason: '应该有至少 2 个任务');
+        
+        // 等待任务保存到数据库
+        await tester.pumpAndSettle(const Duration(seconds: 1));
 
+        print('=== 导航到 Tasks 页面 ===');
         await helper.navigateToTasks();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         final draggedTask = tasks.last;
         final targetTask = tasks.first;
@@ -265,9 +346,23 @@ void main() {
     testWidgets(
       'should drag task to become child of another task',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
@@ -283,8 +378,15 @@ void main() {
         );
         expect(tasks.length, greaterThanOrEqualTo(2),
             reason: '应该有至少 2 个任务');
+        
+        // 等待任务保存到数据库
+        await tester.pumpAndSettle(const Duration(seconds: 1));
 
+        print('=== 导航到 Tasks 页面 ===');
         await helper.navigateToTasks();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         final draggedTask = tasks.last;
         final targetTask = tasks.first;
@@ -324,9 +426,23 @@ void main() {
     testWidgets(
       'should handle empty section drag',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
@@ -343,8 +459,15 @@ void main() {
         );
         // 创建一个空 section（只创建任务但立即删除，或使用其他方式）
         // 这里我们假设 tomorrow section 是空的
+        
+        // 等待任务保存到数据库
+        await tester.pumpAndSettle(const Duration(seconds: 1));
 
+        print('=== 导航到 Tasks 页面 ===');
         await helper.navigateToTasks();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         if (sourceTasks.isEmpty) return;
 
@@ -366,9 +489,23 @@ void main() {
     testWidgets(
       'should handle dragging task to invalid position (cancel drag)',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
@@ -384,8 +521,15 @@ void main() {
         );
         expect(tasks.length, greaterThanOrEqualTo(1),
             reason: '应该有至少 1 个任务');
+        
+        // 等待任务保存到数据库
+        await tester.pumpAndSettle(const Duration(seconds: 1));
 
+        print('=== 导航到 Tasks 页面 ===');
         await helper.navigateToTasks();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         final draggedTask = tasks.first;
         final draggedFinder = helper.findTaskByTitle(draggedTask.title);
@@ -423,9 +567,23 @@ void main() {
     testWidgets(
       'should verify database consistency after drag',
       (WidgetTester tester) async {
+        // 启动应用
         app.main();
-        await tester.pumpAndSettle();
-        await tester.pumpAndSettle(const Duration(seconds: 3));
+        await tester.pump();
+        
+        // 等待应用启动，MaterialApp 可能需要一些时间才能出现
+        for (int i = 0; i < 10; i++) {
+          await tester.pump(const Duration(seconds: 1));
+          if (tester.any(find.byType(MaterialApp))) {
+            break;
+          }
+        }
+        
+        // 使用 pumpAndSettle 确保所有动画和异步操作完成
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // 验证应用已加载
+        expect(find.byType(MaterialApp), findsOneWidget);
 
         final container = ProviderScope.containerOf(
           tester.element(find.byType(MaterialApp).first),
@@ -441,8 +599,15 @@ void main() {
         );
         expect(tasks.length, greaterThanOrEqualTo(2),
             reason: '应该有至少 2 个任务');
+        
+        // 等待任务保存到数据库
+        await tester.pumpAndSettle(const Duration(seconds: 1));
 
+        print('=== 导航到 Tasks 页面 ===');
         await helper.navigateToTasks();
+        
+        // 等待页面完全加载
+        await tester.pumpAndSettle(const Duration(seconds: 2));
 
         final draggedTask = tasks.last;
         final targetTask = tasks.first;
