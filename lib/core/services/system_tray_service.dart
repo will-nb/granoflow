@@ -163,11 +163,11 @@ class SystemTrayService {
     // 菜单构建时会直接读取最新数据，所以不需要额外监听
     // 如果需要实时更新，可以在菜单构建时使用 ref.watch 或 ref.read
 
-    // 启动定时器更新计时器时间显示（每1秒）
-    _updateTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => _updateTimerDisplay(),
-    );
+    // 停止定时器更新菜单（用户要求停止菜单更新）
+    // _updateTimer = Timer.periodic(
+    //   const Duration(seconds: 1),
+    //   (_) => _updateTimerDisplay(),
+    // );
   }
 
   /// 更新计时器时间显示
@@ -203,6 +203,8 @@ class SystemTrayService {
         await _handleTimerStatusClick();
       } else if (key == TrayConstants.quickAddTaskKey) {
         await _handleQuickAddClick();
+      } else if (key == TrayConstants.moreTasksKey) {
+        await _handleMoreTasksClick();
       } else if (key == TrayConstants.settingsKey) {
         await _handleSettingsClick();
       } else if (key == TrayConstants.quitKey) {
@@ -347,6 +349,17 @@ class SystemTrayService {
       }
     } catch (error, stackTrace) {
       debugPrint('[SystemTrayService] Failed to handle task submenu click: $error\n$stackTrace');
+    }
+  }
+
+  /// 处理更多任务点击
+  Future<void> _handleMoreTasksClick() async {
+    try {
+      await _showWindow();
+      // 导航到任务页面
+      AppRouter.router.go('/tasks');
+    } catch (error, stackTrace) {
+      debugPrint('[SystemTrayService] Failed to handle more tasks click: $error\n$stackTrace');
     }
   }
 

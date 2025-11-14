@@ -158,8 +158,8 @@ class TrayMenuBuilder {
       }
     }
 
-    // 限制任务数量（最多10个）
-    final limitedTasks = limitTasks(allTasks, maxCount: 10);
+    // 限制任务数量（最多30个）
+    final limitedTasks = limitTasks(allTasks, maxCount: 30);
     final overflowCount = allTasks.length - limitedTasks.length;
 
     // 构建任务菜单项
@@ -176,10 +176,11 @@ class TrayMenuBuilder {
     // 如果有溢出，添加溢出提示
     if (overflowCount > 0) {
       final l10n = context != null ? AppLocalizations.of(context) : null;
-      final overflowLabel = l10n?.trayMoreTasks(overflowCount) ?? 'More $overflowCount tasks...';
+      // 格式：+80 更多任务
+      final overflowLabel = l10n?.trayMoreTasksCompact(overflowCount) ?? '+$overflowCount 更多任务';
       menuItems.add(
         MenuItem(
-          key: 'overflow',
+          key: TrayConstants.moreTasksKey,
           label: overflowLabel,
         ),
       );

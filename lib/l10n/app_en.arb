@@ -1223,6 +1223,14 @@
       }
     }
   },
+  "trayMoreTasksCompact": "+{count} 更多任务",
+  "@trayMoreTasksCompact": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trayOpen": "Open",
   "trayQuit": "Quit",
   "traySettings": "Settings",

@@ -12,6 +12,9 @@ class TrayConstants {
   /// 快速添加任务菜单项 key
   static const String quickAddTaskKey = 'quick_add_task';
   
+  /// 更多任务菜单项 key
+  static const String moreTasksKey = 'more_tasks';
+  
   /// 设置菜单项 key
   static const String settingsKey = 'settings';
   
