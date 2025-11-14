@@ -5,6 +5,7 @@ import '../../core/providers/service_providers.dart';
 import '../../core/utils/task_section_utils.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../tasks/quick_tasks/quick_add_sheet.dart';
+import '../widgets/utils/quick_add_sheet_helper.dart';
 import 'drawer_menu.dart';
 import 'navigation_bar.dart';
 import 'navigation_destinations.dart';
@@ -183,52 +184,8 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
 
   /// 显示创建任务弹窗
   void _showCreateTaskDialog(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final isLandscape = mediaQuery.orientation == Orientation.landscape;
-    final maxHeight = isLandscape 
-        ? mediaQuery.size.height * 0.5  // 横屏时限制最大高度为屏幕高度的 50%
-        : double.infinity;  // 竖屏时自适应内容高度
-
-    // 使用 QuickAddSheet（不传 section，让用户选择日期）
-    showModalBottomSheet<QuickAddResult>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: maxHeight,
-        ),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 拖拽指示器
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // QuickAddSheet（不传 section）
-              const QuickAddSheet(),
-              // 底部安全区域
-              SizedBox(height: mediaQuery.viewPadding.bottom + 20),
-            ],
-          ),
-        ),
-      ),
-    ).then((result) {
+    // 使用 QuickAddSheetHelper 显示快速添加任务弹窗（不传 section，让用户选择日期）
+    QuickAddSheetHelper.showQuickAddSheet(context).then((result) {
       if (result == null || !context.mounted) return;
       _handleQuickAddResult(context, result);
     });

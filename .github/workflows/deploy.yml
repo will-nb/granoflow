@@ -1,0 +1,114 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - pro
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: choice
+        options:
+          - lite
+          - pro
+      platform:
+        description: 'Platform to deploy'
+        required: false
+        type: choice
+        options:
+          - all
+          - android
+          - apple
+          - windows
+          - linux
+
+jobs:
+  determine-edition:
+    name: Determine Edition
+    runs-on: ubuntu-latest
+    outputs:
+      edition: ${{ steps.set-edition.outputs.edition }}
+    steps:
+      - name: Set edition
+        id: set-edition
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "edition=${{ inputs.edition }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "edition=lite" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/pro" ]; then
+            echo "edition=pro" >> $GITHUB_OUTPUT
+          else
+            echo "edition=lite" >> $GITHUB_OUTPUT
+          fi
+
+  wait-for-ci:
+    name: Wait for CI
+    needs: determine-edition
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI status
+        run: |
+          echo "等待CI完成..."
+          # TODO: 使用GitHub API检查CI工作流状态
+          echo "CI检查功能待实现"
+
+  wait-for-build:
+    name: Wait for Build
+    needs: [determine-edition, wait-for-ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Build status
+        run: |
+          echo "等待构建完成..."
+          # TODO: 使用GitHub API检查构建工作流状态
+          echo "构建检查功能待实现"
+
+  deploy-android:
+    name: Deploy Android
+    needs: [determine-edition, wait-for-build]
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'android' || (inputs.platform == '' && github.event_name == 'push') }}
+    uses: ./.github/workflows/deploy-android.yml
+    secrets: inherit
+    with:
+      edition: ${{ needs.determine-edition.outputs.edition }}
+
+  deploy-apple:
+    name: Deploy Apple
+    needs: [determine-edition, wait-for-build]
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'apple' || (inputs.platform == '' && github.event_name == 'push') }}
+    uses: ./.github/workflows/deploy-apple.yml
+    secrets: inherit
+    with:
+      edition: ${{ needs.determine-edition.outputs.edition }}
+
+  deploy-windows:
+    name: Deploy Windows
+    needs: [determine-edition, wait-for-build]
+    if: ${{ needs.determine-edition.outputs.edition == 'lite' && (inputs.platform == 'all' || inputs.platform == 'windows' || (inputs.platform == '' && github.event_name == 'push')) }}
+    uses: ./.github/workflows/deploy-windows.yml
+    secrets: inherit
+    with:
+      edition: ${{ needs.determine-edition.outputs.edition }}
+
+  deploy-linux:
+    name: Deploy Linux
+    needs: [determine-edition, wait-for-build]
+    if: ${{ needs.determine-edition.outputs.edition == 'lite' && (inputs.platform == 'all' || inputs.platform == 'linux' || (inputs.platform == '' && github.event_name == 'push')) }}
+    uses: ./.github/workflows/deploy-linux.yml
+    secrets: inherit
+    with:
+      edition: ${{ needs.determine-edition.outputs.edition }}
+
+  create-release:
+    name: Create GitHub Release
+    needs: [determine-edition, deploy-android, deploy-apple, deploy-windows, deploy-linux]
+    if: always()
+    uses: ./.github/workflows/release.yml
+    secrets: inherit
+    with:
+      edition: ${{ needs.determine-edition.outputs.edition }}
+

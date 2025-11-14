@@ -1,0 +1,9 @@
+# Pro版本 - App Store iOS发布配置
+edition: pro
+packageName: com.granoflow.pro
+platform: ios
+store: app-store
+storeAccount: apple-developer-account
+versionCode: auto-increment
+enableInAppPurchase: true
+

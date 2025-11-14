@@ -1,0 +1,8 @@
+# Lite版本 - GitHub Release AppImage发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: linux
+store: github-release
+buildType: appimage
+enableInAppPurchase: false
+

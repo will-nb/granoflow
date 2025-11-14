@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: choice
+        options:
+          - lite
+          - pro
+
+jobs:
+  create-release:
+    name: Create GitHub Release - ${{ inputs.edition }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_PART=$(echo "$VERSION" | cut -d'+' -f1)
+          BUILD_PART=$(echo "$VERSION" | cut -d'+' -f2)
+          echo "version=$VERSION_PART" >> $GITHUB_OUTPUT
+          echo "build=$BUILD_PART" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION_PART+${{ inputs.edition }}.$BUILD_PART" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-*
+          merge-multiple: true
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.tag }} (${{ inputs.edition }})
+          body: |
+            ## GranoFlow ${{ inputs.edition }} ${{ steps.version.outputs.version }}
+            
+            ### 下载
+            - **Android APK**: 见下方Assets
+            - **macOS DMG**: 见下方Assets
+            - **Windows EXE**: 见下方Assets
+            - **Linux AppImage**: 见下方Assets
+            
+            ### 变更
+            - 查看 [提交历史](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
+            
+            ### 安装说明
+            - **Android**: 下载APK文件并安装
+            - **macOS**: 下载DMG文件并拖拽到Applications文件夹
+            - **Windows**: 下载EXE文件并运行安装程序
+            - **Linux**: 下载AppImage文件，添加执行权限后运行
+          files: |
+            artifacts/**/*.apk
+            artifacts/**/*.dmg
+            artifacts/**/*.exe
+            artifacts/**/*.AppImage
+          draft: false
+          prerelease: ${{ inputs.edition == 'lite' && github.ref == 'refs/heads/develop' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

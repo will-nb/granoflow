@@ -1,0 +1,9 @@
+# Lite版本 - Flatpak发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: linux
+store: flatpak
+storeAccount: flathub-account
+versionCode: auto-increment
+enableInAppPurchase: false
+

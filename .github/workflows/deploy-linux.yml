@@ -1,0 +1,78 @@
+name: Deploy Linux
+
+on:
+  workflow_call:
+    inputs:
+      edition:
+        description: 'App edition (lite only)'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite only)'
+        required: true
+        type: choice
+        options:
+          - lite
+
+jobs:
+  deploy-snap:
+    name: Deploy Snap - ${{ inputs.edition }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-linux-*
+          merge-multiple: true
+
+      - name: Deploy to Snap Store
+        run: |
+          echo "🚀 部署到Snap Store..."
+          # TODO: 实现Snap Store部署
+          # 需要使用snapcraft和snap store API
+          echo "Snap Store部署功能待实现"
+
+  deploy-flatpak:
+    name: Deploy Flatpak - ${{ inputs.edition }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-linux-*
+          merge-multiple: true
+
+      - name: Deploy to Flathub
+        run: |
+          echo "🚀 部署到Flathub..."
+          # TODO: 实现Flathub部署
+          # 需要使用flatpak-builder和Flathub API
+          echo "Flathub部署功能待实现"
+
+  deploy-appimage:
+    name: Deploy AppImage - ${{ inputs.edition }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-linux-*
+          merge-multiple: true
+
+      - name: Create AppImage
+        run: |
+          echo "📦 创建AppImage文件..."
+          # TODO: 实现AppImage创建
+          echo "AppImage创建功能待实现"
+

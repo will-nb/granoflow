@@ -1,0 +1,9 @@
+# Lite版本 - Snap Store发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: linux
+store: snap-store
+storeAccount: snapcraft-account
+versionCode: auto-increment
+enableInAppPurchase: false
+

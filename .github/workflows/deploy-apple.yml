@@ -1,0 +1,65 @@
+name: Deploy Apple
+
+on:
+  workflow_call:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: choice
+        options:
+          - lite
+          - pro
+
+jobs:
+  deploy-ios:
+    name: Deploy iOS - ${{ inputs.edition }}
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download iOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-ios-*
+          merge-multiple: true
+
+      - name: Deploy to App Store (iOS)
+        run: |
+          echo "🚀 部署iOS应用到App Store..."
+          # TODO: 实现App Store iOS部署
+          # 需要使用fastlane或app-store-connect-api
+          echo "App Store iOS部署功能待实现"
+
+  deploy-macos:
+    name: Deploy macOS - ${{ inputs.edition }}
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-macos-*
+          merge-multiple: true
+
+      - name: Create DMG
+        run: |
+          echo "📦 创建DMG文件..."
+          # TODO: 实现DMG创建
+          echo "DMG创建功能待实现"
+
+      - name: Deploy to App Store (macOS)
+        run: |
+          echo "🚀 部署macOS应用到App Store..."
+          # TODO: 实现App Store macOS部署
+          echo "App Store macOS部署功能待实现"
+

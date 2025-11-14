@@ -10,4 +10,8 @@ class ConfigKeys {
   static const String featureFocusTimer = 'GRANOFLOW_FEATURE_FOCUS_TIMER';
   static const String featureMonetization = 'GRANOFLOW_FEATURE_MONETIZATION';
   static const String sentryDsn = 'GRANOFLOW_SENTRY_DSN';
+  
+  // 应用版本类型配置
+  static const String appEdition = 'GRANOFLOW_APP_EDITION'; // 'lite' 或 'pro'
+  static const String packageName = 'GRANOFLOW_PACKAGE_NAME'; // 用于动态设置包名
 }

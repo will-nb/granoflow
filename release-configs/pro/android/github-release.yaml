@@ -1,0 +1,8 @@
+# Pro版本 - GitHub Release APK发布配置
+edition: pro
+packageName: com.granoflow.pro
+platform: android
+store: github-release
+buildType: apk
+enableInAppPurchase: true
+

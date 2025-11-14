@@ -1,0 +1,8 @@
+# Lite版本 - GitHub Release APK发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: android
+store: github-release
+buildType: apk
+enableInAppPurchase: false
+

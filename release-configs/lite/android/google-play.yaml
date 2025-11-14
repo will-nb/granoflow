@@ -1,0 +1,12 @@
+# Lite版本 - Google Play发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: android
+store: google-play
+storeAccount: google-play-lite-account
+keystore: lite-keystore.jks
+versionCode: auto-increment
+track: production
+buildType: appbundle
+enableInAppPurchase: false
+

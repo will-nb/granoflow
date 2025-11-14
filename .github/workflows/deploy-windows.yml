@@ -1,0 +1,39 @@
+name: Deploy Windows
+
+on:
+  workflow_call:
+    inputs:
+      edition:
+        description: 'App edition (lite only)'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite only)'
+        required: true
+        type: choice
+        options:
+          - lite
+
+jobs:
+  deploy:
+    name: Deploy Windows - ${{ inputs.edition }}
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-windows-*
+          merge-multiple: true
+
+      - name: Deploy to Microsoft Store
+        run: |
+          echo "🚀 部署到Microsoft Store..."
+          # TODO: 实现Microsoft Store部署
+          # 需要使用Windows App Certification Kit和Microsoft Store API
+          echo "Microsoft Store部署功能待实现"
+

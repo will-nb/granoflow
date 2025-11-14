@@ -1,0 +1,1320 @@
+{
+  // ===========================================
+  // 系统托盘功能迭代蓝图
+  // 基于 design_system_tray.json5 实现系统托盘图标和菜单功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID：格式 YYMMDD-module-slug
+    id: "251114-desktop-system-tray",
+    
+    // 迭代标题
+    title: "系统托盘功能：实现跨平台系统托盘图标和菜单",
+    
+    // 迭代描述
+    description: "基于设计文档实现系统托盘功能，包括：系统托盘图标设置、动态菜单构建（计时器状态、快速添加任务、任务列表、设置、退出）、菜单项点击事件处理（任务状态切换、开始计时、打开任务详情、完成任务并取消置顶、打开设置、退出应用）、窗口管理集成（打开/恢复窗口）、任务数据监听（实时更新菜单）、计时器状态监听（实时更新计时器显示），支持 Windows/Linux/macOS 跨平台，符合2025年现代化设计趋势",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "high",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/desktop/design_system_tray.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // 服务层：系统托盘服务
+    services: [
+      {
+        path: "lib/core/services/system_tray_service.dart",
+        purpose: "系统托盘服务，封装 tray_manager 和 window_manager 的功能，提供统一的系统托盘管理接口",
+        action: "create",
+        estimatedLines: 400,
+          dependencies: [
+            "package:tray_manager/tray_manager.dart",
+            "package:window_manager/window_manager.dart",
+            "package:flutter/material.dart",
+            "package:dart:io",
+            "lib/core/providers/task_query_providers.dart",
+            "lib/core/providers/pinned_task_provider.dart",
+            "lib/core/providers/focus_providers.dart",
+            "lib/core/providers/service_providers.dart",
+            "lib/presentation/navigation/app_router.dart",
+            "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart",
+            "lib/presentation/tasks/quick_tasks/quick_add_sheet.dart",
+            "lib/core/app.dart",
+          ],
+        details: [
+          "SystemTrayService 类：单例服务，管理系统托盘生命周期",
+          "属性：",
+          "  - ref: Ref（Riverpod 引用，用于访问 providers）",
+          "  - _trayManager: TrayManager（tray_manager 实例）",
+          "  - _windowManager: WindowManager（window_manager 实例）",
+          "  - _navigatorKey: GlobalKey<NavigatorState>（用于获取 BuildContext）",
+          "  - _updateTimer: Timer?（计时器时间更新定时器）",
+          "  - _menuUpdateDebounceTimer: Timer?（菜单更新防抖定时器）",
+          "  - _disposed: bool（是否已销毁）",
+          "初始化方法：init(GlobalKey<NavigatorState> navigatorKey) - 设置托盘图标、创建初始菜单、注册事件监听器",
+          "  - 检测运行平台（使用 dart:io Platform.isWindows、Platform.isLinux、Platform.isMacOS）",
+          "  - 根据平台选择图标路径（Windows: assets/logo/app_icon.ico，macOS/Linux: assets/logo/granostack-logo-transparent.png）",
+          "  - 设置托盘图标：await trayManager.setIcon(iconPath)",
+          "  - 设置工具提示：await trayManager.setToolTip('GranoFlow')",
+          "  - 创建初始菜单：await buildMenu()",
+          "  - 注册事件监听器：trayManager.addListener(TrayListener(...))",
+          "  - 启动数据监听",
+          "菜单构建方法：buildMenu() - 根据当前状态动态构建菜单（计时器状态、任务列表、操作项）",
+          "  - 调用 TrayMenuBuilder 的方法构建各个菜单项",
+          "  - 处理条件显示逻辑（计时器状态、分隔线等）",
+          "  - 使用防抖机制，避免过于频繁的更新（最多每 500ms 更新一次）",
+          "菜单更新方法：updateMenu() - 更新菜单内容（任务列表变化、计时器状态变化）",
+          "  - 使用防抖（debounce）机制，避免过于频繁的更新",
+          "  - 使用 DebounceUtil.debounce() 实现防抖（复用通用工具类）",
+          "  - 防抖延迟：500ms",
+          "  - 如果 _disposed 为 true，不执行更新",
+          "事件处理方法：",
+          "  - handleMenuItemClick(MenuItem menuItem) - 主事件处理方法，根据菜单项 key 分发到具体处理方法",
+          "  - handleTimerStatusClick() - 处理计时器状态点击（完成任务并取消置顶）",
+          "    * 调用 taskService.markCompleted(taskId)",
+          "    * 调用 pinnedTaskIdProvider.setPinnedTaskId(null)",
+          "    * 调用 focusActionsNotifierProvider.stop(taskId)",
+          "  - handleTaskClick(String taskId) - 处理任务项点击（切换任务状态：☐→☑→☒→☐）",
+          "    * 获取任务数据（通过 taskByIdProvider）",
+          "    * 调用 TaskStatusToggleHelper.toggleTaskStatusThreeState() 进行三态切换",
+          "    * 复用现有的任务状态切换逻辑，避免重复代码",
+          "  - handleTaskSubmenuClick(String taskId, String action) - 处理任务子菜单点击（开始计时、打开任务）",
+          "    * action='start_timer': 调用 taskService.markInProgress()、setPinnedTaskId()、focusActionsNotifierProvider.start()",
+          "    * action='open_task': 调用 showWindow()、navigateToTaskPage()、showTaskDetail()",
+          "  - handleQuickAddClick() - 处理快速添加任务点击",
+          "    * 调用 showWindow()",
+          "    * 使用 navigatorKey.currentContext 获取 context",
+          "    * 调用 QuickAddSheetHelper.showQuickAddSheet() 显示弹窗（复用提取的通用方法）",
+          "  - handleSettingsClick() - 处理设置点击",
+          "    * 调用 showWindow()",
+          "    * 导航到 /settings（使用 AppRouter.router.go('/settings')）",
+          "  - handleQuitClick() - 处理退出点击",
+          "    * 清理资源（停止计时器、保存数据等）",
+          "    * 根据平台调用退出方法：",
+          "      - macOS: 使用 NSApplication.sharedApplication().terminate(nil)（通过 platform channel）或 exit(0)",
+          "      - Windows/Linux: 使用 dart:io exit(0)",
+          "窗口管理方法：",
+          "  - showWindow() - 显示/恢复窗口（使用 window_manager）",
+          "    * 检查窗口状态：await windowManager.isVisible()",
+          "    * 如果窗口已关闭或最小化：await windowManager.show()、await windowManager.focus()",
+          "    * 如果窗口已打开：不改变窗口状态",
+          "  - bringToFront() - 将窗口置顶",
+          "    * await windowManager.show()、await windowManager.focus()",
+          "监听器注册：",
+          "  - 监听任务列表变化（taskSectionsProvider，overdue 和 today）",
+          "    * 使用 ref.listen() 监听 provider 变化",
+          "    * 当数据变化时，调用 updateMenu()（带防抖）",
+          "  - 监听计时器状态变化（pinnedTaskIdProvider、focusSessionProvider）",
+          "    * 使用 ref.listen() 监听 provider 变化",
+          "    * 当状态变化时，调用 updateMenu()（带防抖）",
+          "  - 定期更新计时器时间显示（每1秒）",
+          "    * 使用 Timer.periodic(Duration(seconds: 1))",
+          "    * 只在有活跃计时器时更新",
+          "    * 更新菜单中的计时器状态项",
+          "资源清理：dispose() - 清理资源、移除托盘图标",
+          "  - 取消定时器：_updateTimer?.cancel()、_menuUpdateDebounceTimer?.cancel()",
+          "  - 移除事件监听器：trayManager.removeListener(...)",
+          "  - 移除托盘图标：await trayManager.destroy()",
+          "  - 设置 _disposed = true",
+          "错误处理：所有方法都包含 try-catch，记录错误日志（使用 debugPrint 或 logger）",
+          "Context 访问：",
+          "  - 通过 navigatorKey.currentContext 获取 BuildContext",
+          "  - 用于显示弹窗和获取本地化字符串",
+          "本地化字符串：",
+          "  - 通过 navigatorKey.currentContext 获取 context",
+          "  - 使用 AppLocalizations.of(context) 获取本地化字符串",
+          "  - 如果 context 为 null，使用英文默认值",
+        ],
+      },
+    ],
+    
+    // 常量定义：系统托盘常量
+    constants: [
+      {
+        path: "lib/core/constants/tray_constants.dart",
+        purpose: "系统托盘相关常量定义，包括菜单项 key、图标、路径等",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [],
+        details: [
+          "TrayConstants 类：静态常量类",
+          "菜单项 key 常量：",
+          "  - timerStatusKey: 'timer_status'",
+          "  - quickAddTaskKey: 'quick_add_task'",
+          "  - settingsKey: 'settings'",
+          "  - quitKey: 'quit'",
+          "  - taskKeyPrefix: 'task_'",
+          "  - taskStartTimerKeySuffix: '_start_timer'",
+          "  - taskOpenKeySuffix: '_open'",
+          "图标常量：",
+          "  - timerIcon: '⏱️'",
+          "  - quickAddIcon: '➕'",
+          "  - settingsIcon: '⚙️'",
+          "  - quitIcon: '🚪'",
+          "  - statusIconActive: '☐'",
+          "  - statusIconCompleted: '☑'",
+          "  - statusIconDeleted: '☒'",
+          "  - warningIcon: '⚠️ '",
+          "图标路径常量：",
+          "  - windowsIconPath: 'assets/logo/app_icon.ico'",
+          "  - macosLinuxIconPath: 'assets/logo/granostack-logo-transparent.png'",
+          "工具方法：",
+          "  - buildTaskKey(String taskId) -> String: 构建任务菜单项 key",
+          "  - buildTaskStartTimerKey(String taskId) -> String: 构建任务开始计时 key",
+          "  - buildTaskOpenKey(String taskId) -> String: 构建任务打开 key",
+          "  - parseTaskIdFromKey(String key) -> String?: 从 key 中解析 taskId",
+        ],
+      },
+    ],
+    
+    // 工具类：菜单构建器
+    utils: [
+      {
+        path: "lib/core/utils/tray_menu_builder.dart",
+        purpose: "系统托盘菜单构建器，负责构建菜单项列表，处理菜单项格式化（图标、文本、状态）",
+        action: "create",
+        estimatedLines: 350,
+        dependencies: [
+          "package:tray_manager/tray_manager.dart",
+          "package:flutter/material.dart",
+          "lib/data/models/task.dart",
+          "lib/generated/l10n/app_localizations.dart",
+          "lib/core/constants/tray_constants.dart",
+          "lib/core/providers/pinned_task_provider.dart",
+          "lib/core/providers/focus_providers.dart",
+        ],
+        details: [
+          "TrayMenuBuilder 类：静态工具类，提供菜单构建方法",
+          "使用 TrayConstants 中的常量定义菜单项 key 和图标",
+          "构建计时器状态菜单项：buildTimerStatusItem(String taskId, String taskTitle, Duration elapsed) -> MenuItem",
+          "  - 格式：⏱️ (00:15:30) 任务标题",
+          "  - key: 'timer_status'",
+          "  - label: 使用 formatElapsedTime() 格式化时间",
+          "构建快速添加任务菜单项：buildQuickAddItem(BuildContext? context) -> MenuItem",
+          "  - 格式：➕ 添加任务",
+          "  - key: 'quick_add_task'",
+          "  - label: 使用本地化字符串（如果 context 为 null，使用英文默认值）",
+          "构建任务列表菜单项：buildTaskItems(List<Task> overdueTasks, List<Task> todayTasks, String? pinnedTaskId, BuildContext? context) -> List<MenuItem>",
+          "  - 构建逾期任务列表和今日任务列表",
+          "  - 排除置顶任务（置顶任务显示在计时器状态中）",
+          "  - 调用 buildTaskItem() 构建每个任务项",
+          "  - 应用任务数量限制（最多10个）",
+          "  - 如果超过限制，添加溢出提示项",
+          "构建任务菜单项：buildTaskItem(Task task, String? pinnedTaskId, BuildContext? context) -> MenuItem",
+          "  - 格式：☐ ⚠️ 任务标题（带子菜单）",
+          "  - key: 'task_{taskId}'",
+          "  - label: 使用 getStatusIcon() + 警告图标（仅逾期任务）+ formatTaskTitle()",
+          "  - 子菜单：调用 buildTaskSubmenu() 构建",
+          "构建任务子菜单：buildTaskSubmenu(String taskId, String? pinnedTaskId, BuildContext? context) -> List<MenuItem>",
+          "  - 包含'开始计时'和'打开'选项",
+          "  - '开始计时'：只有在没有置顶任务时才启用（enabled: pinnedTaskId == null）",
+          "  - key: 'task_{taskId}_start_timer' 和 'task_{taskId}_open'",
+          "构建设置菜单项：buildSettingsItem(BuildContext? context) -> MenuItem",
+          "  - 格式：⚙️ 设置",
+          "  - key: 'settings'",
+          "构建退出菜单项：buildQuitItem(BuildContext? context) -> MenuItem",
+          "  - 格式：🚪 退出",
+          "  - key: 'quit'",
+          "构建分隔线：buildSeparator() -> MenuItem",
+          "  - 使用 MenuItem.separator()",
+          "任务状态图标映射：getStatusIcon(TaskStatus status) -> String",
+          "  - pending/doing/paused/inbox → '☐'",
+          "  - completedActive → '☑'",
+          "  - trashed → '☒'",
+          "任务标题格式化：formatTaskTitle(String title, {int maxLength = 50}) -> String",
+          "  - 如果标题长度超过 maxLength，截断并添加省略号",
+          "  - 调用 TextUtils.truncate(title, maxLength)（复用提取的通用方法）",
+          "时间格式化：复用 ClockTimerUtils.formatElapsedTimeCompact()",
+          "  - 不要新建 formatElapsedTime() 方法",
+          "  - 直接调用 ClockTimerUtils.formatElapsedTimeCompact(duration)",
+          "  - 该方法已实现完全相同的功能（MM:SS 或 HH:MM:SS 格式）",
+          "菜单项排序：sortTasks(List<Task> overdueTasks, List<Task> todayTasks) -> List<Task>",
+          "  - 逾期任务在前，今日任务在后",
+          "  - 返回合并后的列表",
+          "任务数量限制：limitTasks(List<Task> tasks, {int maxCount = 10}) -> List<Task>",
+          "  - 如果任务数量超过 maxCount，只返回前 maxCount 个任务",
+          "  - 返回限制后的任务列表和溢出数量（用于显示溢出提示）",
+        ],
+      },
+    ],
+    
+    // Provider 层：系统托盘状态管理
+    providers: [
+      {
+        path: "lib/core/providers/system_tray_provider.dart",
+        purpose: "系统托盘状态管理 Provider，提供系统托盘服务的访问和状态监听",
+        action: "create",
+        estimatedLines: 100,
+        dependencies: [
+          "lib/core/services/system_tray_service.dart",
+        ],
+        details: [
+          "systemTrayServiceProvider - FutureProvider，提供 SystemTrayService 实例",
+          "systemTrayInitializedProvider - StateProvider<bool>，跟踪系统托盘初始化状态",
+          "系统托盘服务在应用启动时初始化（仅桌面平台）",
+          "提供系统托盘服务的全局访问点",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（必填）
+  // ===========================================
+  modifications: [
+    {
+      file: "lib/main.dart",
+      purpose: "在应用启动时初始化系统托盘服务（仅桌面平台）",
+      changes: [
+        "导入系统托盘相关依赖：system_tray_service.dart、system_tray_provider.dart、window_manager.dart",
+        "在 main() 函数中，在 WidgetsFlutterBinding.ensureInitialized() 之后",
+        "检测运行平台（使用 Platform.isWindows、Platform.isLinux、Platform.isMacOS）",
+        "如果是桌面平台，初始化 window_manager：await windowManager.ensureInitialized()",
+        "初始化系统托盘服务：await ref.read(systemTrayServiceProvider.future).then((service) => service.init())",
+        "注意：需要在 ProviderScope 内部访问 ref，所以需要在 runApp 之前初始化",
+        "或者使用 WidgetsBinding.instance.addPostFrameCallback 在应用启动后初始化",
+      ],
+      estimatedLines: 30,
+    },
+    {
+      file: "lib/core/app.dart",
+      purpose: "在应用启动后初始化系统托盘（如果 main.dart 中无法访问 ref）",
+      changes: [
+        "在 GranoFlowApp 的 initState 或 didChangeDependencies 中",
+        "检测运行平台，如果是桌面平台，初始化系统托盘",
+        "使用 WidgetsBinding.instance.addPostFrameCallback 确保在应用启动后初始化",
+        "读取 systemTrayServiceProvider 并调用 init() 方法",
+      ],
+      estimatedLines: 20,
+    },
+    {
+      file: "lib/presentation/navigation/app_router.dart",
+      purpose: "确保设置页面路由存在（已存在，无需修改，但需要确认）",
+      changes: [
+        "确认 /settings 路由已存在（已存在，无需修改）",
+      ],
+      estimatedLines: 0,
+    },
+      {
+        file: "lib/presentation/tasks/task_list_page.dart",
+        purpose: "确保任务列表页面支持通过 URL 参数打开特定任务详情（可能需要增强）",
+        changes: [
+          "检查是否支持通过 URL 参数（如 ?taskId=xxx）打开特定任务详情",
+          "如果不支持，需要添加支持：",
+          "  - 在 _TaskListPageState 的 initState 或 didChangeDependencies 中",
+          "  - 检查 URL 参数：widget.initialSection 或通过 AppRouter.router.routerDelegate.currentConfiguration 获取",
+          "  - 如果有 taskId 参数，延迟显示任务详情弹窗（使用 Future.delayed(Duration(milliseconds: 500))）",
+          "  - 使用 TaskBottomSheetHelper.showTaskBottomSheet 显示任务详情",
+          "  - 确保只在首次加载时执行，避免重复显示",
+        ],
+        estimatedLines: 40,
+      },
+      {
+        file: "lib/l10n/app_en.arb",
+        purpose: "添加系统托盘菜单相关的本地化字符串",
+        changes: [
+          "添加以下本地化字符串（按字母顺序插入）：",
+          "  - 'trayAddTask': 'Add Task'",
+          "  - 'trayOpen': 'Open'",
+          "  - 'trayQuit': 'Quit'",
+          "  - 'traySettings': 'Settings'",
+          "  - 'trayStartTimer': 'Start Timer'",
+          "  - 'trayTimerStatus': 'Timer: {elapsedTime} {taskTitle}'（带占位符）",
+          "  - 'trayMoreTasks': 'More {count} tasks...'（带占位符）",
+          "注意：需要同时更新其他语言文件（app_zh_CN.arb、app_zh_HK.arb）",
+        ],
+        estimatedLines: 20,
+      },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  // 注意：阶段完成后自动执行下一阶段，不需要沟通确认
+  // AI 开发将完成所有功能，按顺序执行所有阶段
+  // 每个阶段完成时忽略 pre-commit，强行 git commit（使用 --no-verify 选项）
+  // 
+  // 错误处理策略：
+  // - 如果某个任务失败，先尝试修复（如 analyze issues、测试失败），修复后继续
+  // - 如果无法自动修复（如需要人工决策），记录问题并继续下一个任务，在阶段完成时总结所有未解决问题
+  // - build_runner 冲突：使用 --delete-conflicting-outputs 参数自动删除冲突文件
+  // - analyze issues 无法自动修复：记录到 commit message 中，标记为已知问题，继续后续任务
+  implementationSteps: [
+    {
+      step: 0,
+      title: "阶段 0：重构现有代码（复用准备）",
+      description: "在实现系统托盘功能之前，先重构现有代码，提取可复用的工具方法，确保系统托盘功能可以直接复用",
+      tasks: [
+        {
+          task: "提取 TextUtils.truncate() 方法",
+          file: "lib/core/utils/text_utils.dart",
+          action: [
+            "创建 lib/core/utils/text_utils.dart 文件",
+            "实现 TextUtils.truncate(String text, int maxLength, {String ellipsis = '...'}) -> String 方法",
+            "更新 lib/presentation/widgets/project_milestone_text_utils.dart，将 _truncateText() 改为调用 TextUtils.truncate()",
+          ],
+        },
+        {
+          task: "提取 showQuickAddSheet() 方法",
+          file: "lib/presentation/widgets/utils/quick_add_sheet_helper.dart",
+          action: [
+            "创建 lib/presentation/widgets/utils/quick_add_sheet_helper.dart 文件",
+            "实现 showQuickAddSheet(BuildContext context, {TaskSection? section, DateTime? defaultDate}) -> Future<QuickAddResult?> 方法",
+            "封装 showModalBottomSheet 的调用逻辑（包括 Container、拖拽指示器、底部安全区域等）",
+            "更新所有现有调用点：",
+            "  - lib/presentation/navigation/responsive_navigation.dart",
+            "  - lib/presentation/tasks/task_list_page.dart",
+            "  - lib/presentation/projects/project_detail_page.dart",
+          ],
+        },
+        {
+          task: "扩展 TaskStatusToggleHelper，添加三态切换方法",
+          file: "lib/presentation/widgets/utils/task_status_toggle_helper.dart",
+          action: [
+            "添加 toggleTaskStatusThreeState(BuildContext context, WidgetRef ref, Task task, {TaskSection? section}) -> Future<bool> 方法",
+            "实现三态切换逻辑：pending/doing/paused/inbox → completedActive → trashed → pending",
+            "复用现有的 taskService 调用逻辑和错误处理",
+          ],
+        },
+        {
+          task: "创建 DebounceUtil 工具类",
+          file: "lib/core/utils/debounce_util.dart",
+          action: [
+            "创建 lib/core/utils/debounce_util.dart 文件",
+            "实现 DebounceUtil 类，提供防抖功能",
+            "实现 debounce(Duration delay, VoidCallback callback) -> VoidCallback 方法",
+            "实现 cancel(VoidCallback debouncedCallback) 方法（可选）",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze",
+          action: "检查代码是否有语法错误或 lint 问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 0 完成 - 重构现有代码，提取可复用工具方法'",
+          action: "提交阶段 0 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 1,
+      title: "阶段 1：创建系统托盘服务基础结构",
+      description: "创建 SystemTrayService 类和基础方法框架，实现初始化和资源清理",
+      tasks: [
+        {
+          task: "创建 SystemTrayService 类",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "创建 SystemTrayService 类（单例模式）",
+            "添加基础属性：trayManager、windowManager、ref、disposed 标志",
+            "实现 init() 方法：检测平台、设置托盘图标、创建初始菜单",
+            "实现 dispose() 方法：清理资源、移除托盘图标",
+            "添加错误处理和日志记录",
+          ],
+        },
+        {
+          task: "创建 TrayMenuBuilder 工具类",
+          file: "lib/core/utils/tray_menu_builder.dart",
+          action: [
+            "创建 TrayMenuBuilder 静态工具类",
+            "实现基础菜单项构建方法：buildSeparator()、buildMenuItem()",
+            "实现任务状态图标映射：getStatusIcon()",
+            "实现时间格式化：formatElapsedTime()",
+            "实现任务标题格式化：formatTaskTitle()",
+          ],
+        },
+        {
+          task: "创建系统托盘 Provider",
+          file: "lib/core/providers/system_tray_provider.dart",
+          action: [
+            "创建 systemTrayServiceProvider（FutureProvider）",
+            "创建 systemTrayInitializedProvider（StateProvider<bool>）",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze",
+          action: "检查代码是否有语法错误或 lint 问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 创建系统托盘服务基础结构'",
+          action: "提交阶段 1 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：实现菜单构建逻辑",
+      description: "实现完整的菜单构建逻辑，包括计时器状态、任务列表、操作项等",
+      tasks: [
+        {
+          task: "实现菜单构建方法",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "实现 buildMenu() 方法：根据当前状态构建完整菜单",
+            "调用 TrayMenuBuilder 的方法构建各个菜单项",
+            "处理条件显示逻辑（计时器状态、分隔线等）",
+          ],
+        },
+        {
+          task: "完善 TrayMenuBuilder 菜单项构建方法",
+          file: "lib/core/utils/tray_menu_builder.dart",
+          action: [
+            "实现 buildTimerStatusItem() - 构建计时器状态菜单项",
+            "实现 buildQuickAddItem() - 构建快速添加任务菜单项",
+            "实现 buildTaskItems() - 构建任务列表菜单项",
+            "实现 buildTaskItem() - 构建单个任务菜单项（带子菜单）",
+            "实现 buildTaskSubmenu() - 构建任务子菜单",
+            "实现 buildSettingsItem() - 构建设置菜单项",
+            "实现 buildQuitItem() - 构建退出菜单项",
+            "实现任务排序和数量限制逻辑",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze",
+          action: "检查代码是否有语法错误或 lint 问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - 实现菜单构建逻辑'",
+          action: "提交阶段 2 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：实现菜单项点击事件处理",
+      description: "实现所有菜单项点击事件的处理逻辑，包括任务状态切换、开始计时、打开任务详情等",
+      tasks: [
+        {
+          task: "实现菜单项点击事件处理方法",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "实现 handleMenuItemClick() - 主事件处理方法，根据菜单项 key 分发到具体处理方法",
+            "实现 handleTimerStatusClick() - 处理计时器状态点击（完成任务并取消置顶）",
+            "实现 handleTaskClick() - 处理任务项点击（切换任务状态：☐→☑→☒→☐）",
+            "实现 handleTaskSubmenuClick() - 处理任务子菜单点击（开始计时、打开任务）",
+            "实现 handleQuickAddClick() - 处理快速添加任务点击",
+            "实现 handleSettingsClick() - 处理设置点击",
+            "实现 handleQuitClick() - 处理退出点击",
+            "所有方法都包含错误处理和日志记录",
+          ],
+        },
+        {
+          task: "实现窗口管理方法",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "实现 showWindow() - 显示/恢复窗口（使用 window_manager）",
+            "实现 bringToFront() - 将窗口置顶",
+            "处理窗口状态检查（是否已打开、是否最小化）",
+          ],
+        },
+        {
+          task: "实现任务状态切换逻辑",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "实现 toggleTaskStatus(String taskId) - 切换任务状态（空框→勾选→叉号→空框）",
+            "获取任务当前状态（通过 taskByIdProvider）",
+            "根据当前状态切换到下一个状态：",
+            "  - pending/doing/paused/inbox → completedActive（调用 taskService.markCompleted()）",
+            "  - completedActive → trashed（调用 taskService.softDelete()）",
+            "  - trashed → pending（调用 taskService.updateDetails(taskId, TaskUpdate(status: TaskStatus.pending))）",
+            "更新菜单以反映状态变化（调用 updateMenu()）",
+          ],
+        },
+        {
+          task: "实现导航和弹窗显示逻辑",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "实现 navigateToTaskPage(String? section, String? taskId) - 导航到任务页面",
+            "  - 构建 URL：/tasks?section={section}（如果 taskId 存在，添加 &taskId={taskId}）",
+            "  - 使用 AppRouter.router.go(url)",
+            "  - 如果 taskId 存在，延迟显示任务详情弹窗（使用 Future.delayed(Duration(milliseconds: 500))）",
+            "实现 showTaskDetail(String taskId) - 显示任务详情弹窗",
+            "  - 获取 context: navigatorKey.currentContext",
+            "  - 如果 context 为 null，记录错误并返回",
+            "  - 获取任务数据（通过 taskByIdProvider）",
+            "  - 使用 TaskBottomSheetHelper.showTaskBottomSheet(context, ref, task)",
+            "实现 showQuickAddSheet() - 显示快速添加任务弹窗",
+            "  - 获取 context: navigatorKey.currentContext",
+            "  - 如果 context 为 null，记录错误并返回",
+            "  - 使用 showModalBottomSheet 显示 QuickAddSheet",
+            "  - 参考 responsive_navigation.dart 中的实现方式",
+            "实现 navigateToSettings() - 导航到设置页面",
+            "  - 使用 AppRouter.router.go('/settings')",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze",
+          action: "检查代码是否有语法错误或 lint 问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - 实现菜单项点击事件处理'",
+          action: "提交阶段 3 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：实现数据监听和菜单更新",
+      description: "实现任务列表和计时器状态的监听，实时更新菜单内容",
+      tasks: [
+        {
+          task: "实现任务列表监听",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "监听 taskSectionsProvider（overdue 和 today）的变化",
+            "当任务列表变化时，调用 updateMenu() 更新菜单",
+            "处理任务新增、删除、修改的情况",
+          ],
+        },
+        {
+          task: "实现计时器状态监听",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "监听 pinnedTaskIdProvider 的变化",
+            "监听 focusSessionProvider 的变化",
+            "当计时器状态变化时，调用 updateMenu() 更新菜单",
+            "实现定时器（每1秒）更新计时器时间显示",
+          ],
+        },
+        {
+          task: "实现菜单更新方法",
+          file: "lib/core/services/system_tray_service.dart",
+          action: [
+            "实现 updateMenu() - 重新构建菜单并更新",
+            "优化更新逻辑，避免不必要的菜单重建",
+            "处理更新失败的情况（记录日志，不中断应用）",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze",
+          action: "检查代码是否有语法错误或 lint 问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - 实现数据监听和菜单更新'",
+          action: "提交阶段 4 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：集成到应用启动流程",
+      description: "在应用启动时初始化系统托盘服务，确保在桌面平台上正常工作",
+      tasks: [
+        {
+          task: "修改 app.dart 添加 navigatorKey 并初始化系统托盘",
+          file: "lib/core/app.dart",
+          action: [
+            "在 GranoFlowApp 类中添加静态 navigatorKey: GlobalKey<NavigatorState>",
+            "在 MaterialApp.router 中设置 navigatorKey: GranoFlowApp.navigatorKey",
+            "在 build 方法中，使用 WidgetsBinding.instance.addPostFrameCallback 确保在应用启动后初始化",
+            "检测运行平台（使用 dart:io Platform.isWindows、Platform.isLinux、Platform.isMacOS）",
+            "如果是桌面平台：",
+            "  - 初始化 window_manager: await windowManager.ensureInitialized()（在 main.dart 中）",
+            "  - 读取 systemTrayServiceProvider 并调用 init(GranoFlowApp.navigatorKey) 方法",
+            "注意：window_manager.ensureInitialized() 需要在 main.dart 中调用（在 runApp 之前）",
+          ],
+        },
+        {
+          task: "修改 main.dart 初始化 window_manager",
+          file: "lib/main.dart",
+          action: [
+            "导入 window_manager 和 dart:io Platform",
+            "在 WidgetsFlutterBinding.ensureInitialized() 之后",
+            "检测运行平台（使用 Platform.isWindows、Platform.isLinux、Platform.isMacOS）",
+            "如果是桌面平台，初始化 window_manager: await windowManager.ensureInitialized()",
+            "注意：系统托盘服务的初始化在 app.dart 中进行（需要 navigatorKey）",
+          ],
+        },
+        {
+          task: "检查任务列表页面是否支持通过 URL 参数打开任务详情",
+          file: "lib/presentation/tasks/task_list_page.dart",
+          action: [
+            "检查是否支持通过 URL 参数（如 ?taskId=xxx）打开特定任务详情",
+            "如果不支持，添加支持：在页面加载时检查 URL 参数，如果有 taskId，延迟显示任务详情弹窗",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze",
+          action: "检查代码是否有语法错误或 lint 问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 5 完成 - 集成到应用启动流程'",
+          action: "提交阶段 5 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 6,
+      title: "阶段 6：测试和优化",
+      description: "测试系统托盘功能，修复问题，优化性能和用户体验",
+      tasks: [
+        {
+          task: "测试系统托盘初始化",
+          action: [
+            "在 Windows/Linux/macOS 上测试系统托盘图标是否正常显示",
+            "测试菜单是否正常显示",
+            "测试菜单项点击是否正常工作",
+          ],
+        },
+        {
+          task: "测试任务列表功能",
+          action: [
+            "测试任务列表是否正确显示",
+            "测试任务状态切换是否正常工作",
+            "测试任务子菜单是否正常工作",
+            "测试任务数量限制是否生效",
+          ],
+        },
+        {
+          task: "测试计时器功能",
+          action: [
+            "测试计时器状态是否正确显示",
+            "测试计时器时间是否实时更新",
+            "测试点击计时器状态是否完成任务并取消置顶",
+          ],
+        },
+        {
+          task: "测试窗口管理功能",
+          action: [
+            "测试点击菜单项后窗口是否正确打开/恢复",
+            "测试窗口是否正确置顶",
+            "测试导航是否正确跳转到对应页面",
+          ],
+        },
+        {
+          task: "优化性能和用户体验",
+          action: [
+            "优化菜单更新频率，避免过于频繁的更新",
+            "优化错误处理，确保错误不影响应用正常运行",
+            "优化日志记录，便于调试和问题排查",
+          ],
+        },
+        {
+          task: "运行 flutter analyze 检查代码",
+          command: "flutter analyze",
+          action: "检查代码是否有语法错误或 lint 问题",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 6 完成 - 测试和优化'",
+          action: "提交阶段 6 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 重构和复用策略（必填）
+  // ===========================================
+  refactoringAndReuse: {
+    // 复用现有代码
+    reuseExistingCode: [
+      {
+        item: "时间格式化：复用 ClockTimerUtils.formatElapsedTimeCompact()",
+        location: "lib/presentation/clock/utils/clock_timer_utils.dart",
+        reason: "该方法已实现完全相同的功能（MM:SS 或 HH:MM:SS 格式），无需重复实现",
+        action: "在 TrayMenuBuilder 中直接调用 ClockTimerUtils.formatElapsedTimeCompact()，而不是新建 formatElapsedTime() 方法",
+        impact: "减少代码重复，保持时间格式化逻辑的一致性",
+      },
+      {
+        item: "任务状态切换：扩展 TaskStatusToggleHelper",
+        location: "lib/presentation/widgets/utils/task_status_toggle_helper.dart",
+        reason: "现有 toggleTaskStatus() 只支持 pending ↔ completedActive 的切换，系统托盘需要三态切换（pending → completedActive → trashed → pending）",
+        action: [
+          "在 TaskStatusToggleHelper 中新增 toggleTaskStatusThreeState() 方法",
+          "支持三态切换：pending/doing/paused/inbox → completedActive → trashed → pending",
+          "复用现有的 taskService 调用逻辑和错误处理",
+          "SystemTrayService 调用新的 toggleTaskStatusThreeState() 方法",
+        ],
+        impact: "统一任务状态切换逻辑，避免代码重复，便于维护",
+      },
+      {
+        item: "任务标题截断：提取通用文本截断工具方法",
+        location: "lib/presentation/widgets/project_milestone_text_utils.dart",
+        reason: "现有 _truncateText() 是私有方法，且只在该文件中使用。系统托盘也需要文本截断功能",
+        action: [
+          "在 lib/core/utils/ 中新建 text_utils.dart 文件",
+          "提取通用的 truncateText() 方法（公开）",
+          "将 project_milestone_text_utils.dart 中的 _truncateText() 改为调用新的 truncateText()",
+          "TrayMenuBuilder 中的 formatTaskTitle() 调用新的 truncateText()",
+        ],
+        impact: "提取通用工具方法，避免代码重复，便于其他模块复用",
+      },
+      {
+        item: "QuickAddSheet 显示：提取通用显示方法",
+        location: "lib/presentation/navigation/responsive_navigation.dart, lib/presentation/tasks/task_list_page.dart, lib/presentation/projects/project_detail_page.dart",
+        reason: "多个地方都有相同的 QuickAddSheet 显示代码（showModalBottomSheet + Container + QuickAddSheet），存在代码重复",
+        action: [
+          "在 lib/presentation/widgets/utils/ 中新建 quick_add_sheet_helper.dart 文件",
+          "提取 showQuickAddSheet() 静态方法，封装 showModalBottomSheet 的调用",
+          "支持可选的 section 和 defaultDate 参数",
+          "所有现有调用点改为使用新的 showQuickAddSheet() 方法",
+          "SystemTrayService 中的 handleQuickAddClick() 也使用新的 showQuickAddSheet() 方法",
+        ],
+        impact: "消除代码重复，统一 QuickAddSheet 的显示逻辑，便于维护和修改",
+      },
+      {
+        item: "任务详情弹窗显示：复用 TaskBottomSheetHelper",
+        location: "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart",
+        reason: "TaskBottomSheetHelper.showTaskBottomSheet() 已实现根据任务状态自动选择弹窗的逻辑",
+        action: "SystemTrayService 中的 showTaskDetail() 直接调用 TaskBottomSheetHelper.showTaskBottomSheet()",
+        impact: "复用现有逻辑，保持一致性",
+      },
+    ],
+    
+    // 需要新建的工具类
+    newUtilityClasses: [
+      {
+        item: "防抖工具类：DebounceUtil",
+        location: "lib/core/utils/debounce_util.dart",
+        reason: "系统托盘菜单更新需要防抖机制，代码库中没有通用的防抖工具类",
+        purpose: "提供通用的防抖功能，供 SystemTrayService 和其他需要防抖的模块使用",
+        methods: [
+          "DebounceUtil.debounce(Duration delay, VoidCallback callback) -> VoidCallback: 返回一个防抖后的回调函数",
+          "DebounceUtil.cancel(VoidCallback debouncedCallback): 取消防抖回调",
+        ],
+        impact: "提供可复用的防抖功能，便于其他模块使用",
+      },
+      {
+        item: "文本工具类：TextUtils",
+        location: "lib/core/utils/text_utils.dart",
+        reason: "提取通用的文本处理功能（如截断），供多个模块复用",
+        purpose: "提供通用的文本处理工具方法",
+        methods: [
+          "TextUtils.truncate(String text, int maxLength, {String ellipsis = '...'}) -> String: 截断文本并添加省略号",
+        ],
+        impact: "统一文本处理逻辑，便于维护和复用",
+      },
+    ],
+    
+    // 需要扩展的现有类
+    extendExistingClasses: [
+      {
+        item: "TaskStatusToggleHelper：添加三态切换方法",
+        location: "lib/presentation/widgets/utils/task_status_toggle_helper.dart",
+        reason: "系统托盘需要三态切换（pending → completedActive → trashed → pending），现有方法只支持两态切换",
+        action: [
+          "添加 toggleTaskStatusThreeState() 静态方法",
+          "支持三态切换逻辑：",
+          "  - pending/doing/paused/inbox → completedActive（调用 taskService.markCompleted()）",
+          "  - completedActive → trashed（调用 taskService.softDelete()）",
+          "  - trashed → pending（调用 taskService.updateDetails(status: TaskStatus.pending)）",
+          "复用现有的错误处理和日志记录逻辑",
+        ],
+        impact: "扩展现有工具类，保持代码组织的一致性",
+      },
+    ],
+    
+    // 避免重复代码
+    avoidDuplication: [
+      {
+        item: "时间格式化：不要新建 formatElapsedTime()，直接使用 ClockTimerUtils.formatElapsedTimeCompact()",
+        reason: "避免重复实现相同功能",
+      },
+      {
+        item: "任务状态切换：不要直接在 SystemTrayService 中实现切换逻辑，使用 TaskStatusToggleHelper",
+        reason: "保持业务逻辑的统一性和可维护性",
+      },
+      {
+        item: "文本截断：不要重复实现截断逻辑，使用提取的 TextUtils.truncate()",
+        reason: "避免代码重复，便于统一修改",
+      },
+      {
+        item: "QuickAddSheet 显示：不要重复 showModalBottomSheet 的调用代码，使用提取的 showQuickAddSheet()",
+        reason: "消除代码重复，统一显示逻辑",
+      },
+    ],
+    
+    // 重构计划
+    refactoringPlan: [
+      {
+        phase: "阶段 0：重构现有代码（在实现系统托盘功能之前）",
+        tasks: [
+          "提取 TextUtils.truncate() 方法，并更新 project_milestone_text_utils.dart 使用新方法",
+          "提取 showQuickAddSheet() 方法，并更新所有现有调用点",
+          "扩展 TaskStatusToggleHelper，添加 toggleTaskStatusThreeState() 方法",
+          "创建 DebounceUtil 工具类",
+        ],
+        estimatedTime: "1-2 小时",
+        priority: "high",
+        note: "这些重构应该在实现系统托盘功能之前完成，确保系统托盘功能可以直接复用重构后的代码",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 6. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // 库选择
+      libraryChoice: {
+        recommendation: "使用 tray_manager 和 window_manager 包",
+        reason: "tray_manager 提供跨平台的系统托盘功能，window_manager 提供窗口管理功能，两者配合使用可以满足所有需求",
+        alternative: "如果 tray_manager 不支持某些功能，可以考虑使用平台特定的 API",
+      },
+      // 实现方案
+      implementation: {
+        method: "使用服务层封装系统托盘功能，通过 Provider 提供全局访问",
+        stateManagement: "使用 Riverpod 进行状态管理，监听任务列表和计时器状态变化",
+        rollback: "如果系统托盘功能出现问题，可以通过配置开关禁用，不影响应用核心功能",
+      },
+      // 平台兼容性
+      platformCompatibility: {
+        windows: "使用 ICO 格式图标（assets/logo/app_icon.ico），支持系统托盘菜单",
+        linux: "使用 PNG 格式图标（assets/logo/granostack-logo-transparent.png），支持系统托盘菜单（取决于桌面环境）",
+        macos: "使用 PNG 格式图标（assets/logo/granostack-logo-transparent.png），支持菜单栏图标和菜单",
+        note: "不同平台对菜单项颜色、子菜单的支持可能不同，需要做兼容处理",
+        platformDetection: "使用 dart:io Platform.isWindows、Platform.isLinux、Platform.isMacOS 检测平台",
+      },
+      // Context 访问
+      contextAccess: {
+        method: "使用 GlobalKey<NavigatorState> 获取 BuildContext",
+        implementation: "在 app.dart 中定义静态 navigatorKey，在 MaterialApp.router 中设置，在系统托盘服务中通过 navigatorKey.currentContext 访问",
+        fallback: "如果 context 为 null，使用英文默认值或记录错误日志",
+      },
+      // 本地化字符串
+      localization: {
+        method: "通过 navigatorKey.currentContext 获取 context，使用 AppLocalizations.of(context) 获取本地化字符串",
+        fallback: "如果 context 为 null，使用英文默认值（硬编码）",
+        note: "菜单项文本需要支持多语言，但系统托盘服务无法直接访问 context，需要通过 navigatorKey 获取",
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 服务层规范
+      serviceRule: {
+        rule: "服务层使用单例模式，提供统一的接口，包含完整的错误处理",
+        location: "lib/core/services/system_tray_service.dart",
+        example: "所有方法都包含 try-catch，记录错误日志，不抛出异常",
+        note: "确保服务层的稳定性，错误不应该影响应用正常运行",
+      },
+      // 工具类规范
+      utilRule: {
+        rule: "工具类使用静态方法，不包含状态，方法应该是纯函数",
+        location: "lib/core/utils/tray_menu_builder.dart",
+        example: "所有方法都是静态方法，输入参数，返回结果，不修改外部状态",
+        note: "工具类应该易于测试和复用",
+      },
+      // 类型安全
+      typeSafety: {
+        rule: "使用强类型，避免使用 dynamic，使用枚举表示菜单项类型",
+        location: "所有相关文件",
+        example: "使用 MenuItemKey 枚举表示菜单项 key，使用 TaskStatus 枚举表示任务状态",
+        note: "确保类型安全，减少运行时错误",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      optimization: [
+        "菜单更新使用防抖（debounce），避免过于频繁的更新",
+        "任务列表监听使用 StreamProvider，只在数据变化时更新",
+        "计时器时间更新使用定时器，每1秒更新一次，避免过于频繁",
+        "菜单构建时缓存结果，只在数据变化时重新构建",
+      ],
+      monitoring: [
+        "记录菜单更新频率，监控性能",
+        "记录菜单构建耗时，优化慢速操作",
+        "记录事件处理耗时，优化用户体验",
+      ],
+    },
+    
+    // 安全考虑
+    security: {
+      concerns: [
+        "系统托盘菜单项点击事件需要验证参数，防止注入攻击",
+        "任务 ID 需要验证，确保是有效的 UUID",
+        "退出应用时需要清理敏感数据",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 6. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // 外部依赖
+    externalDependencies: [
+      "package:tray_manager (^0.2.0)",
+      "package:window_manager (^0.5.1)",
+      "package:flutter_riverpod (状态管理)",
+      "package:go_router (路由导航)",
+    ],
+    
+    // 服务层依赖
+    serviceLayer: [
+      "lib/core/services/system_tray_service.dart",
+      "lib/core/services/task_service.dart",
+    ],
+    
+    // Provider 层依赖
+    providerLayer: [
+      "lib/core/providers/system_tray_provider.dart",
+      "lib/core/providers/task_query_providers.dart",
+      "lib/core/providers/pinned_task_provider.dart",
+      "lib/core/providers/focus_providers.dart",
+      "lib/core/providers/service_providers.dart",
+    ],
+    
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/widgets/utils/task_bottom_sheet_helper.dart",
+      "lib/presentation/tasks/quick_tasks/quick_add_sheet.dart",
+      "lib/presentation/navigation/app_router.dart",
+      "lib/presentation/tasks/task_list_page.dart",
+    ],
+    
+    // 工具层依赖
+    utilLayer: [
+      "lib/core/utils/tray_menu_builder.dart",
+    ],
+  },
+
+  // ===========================================
+  // 7. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // 单元测试
+    unitTests: [
+      {
+        file: "test/core/utils/tray_menu_builder_test.dart",
+        description: "测试菜单构建器的各种方法",
+        testCases: [
+          {
+            group: "任务状态图标映射",
+            cases: [
+              {
+                name: "活跃任务返回空框图标",
+                test: "测试 getStatusIcon() 方法，传入 pending 状态，返回 ☐",
+              },
+              {
+                name: "已完成任务返回勾选图标",
+                test: "测试 getStatusIcon() 方法，传入 completedActive 状态，返回 ☑",
+              },
+              {
+                name: "已删除任务返回叉号图标",
+                test: "测试 getStatusIcon() 方法，传入 trashed 状态，返回 ☒",
+              },
+            ],
+          },
+          {
+            group: "时间格式化",
+            cases: [
+              {
+                name: "格式化小于1小时的时间",
+                test: "测试 formatElapsedTime() 方法，传入 15 分钟，返回 '15:30'",
+              },
+              {
+                name: "格式化大于1小时的时间",
+                test: "测试 formatElapsedTime() 方法，传入 1 小时 15 分钟，返回 '01:15:30'",
+              },
+            ],
+          },
+          {
+            group: "任务标题格式化",
+            cases: [
+              {
+                name: "截断过长标题",
+                test: "测试 formatTaskTitle() 方法，传入超过 50 字符的标题，返回截断后的标题加省略号",
+              },
+              {
+                name: "保留正常长度标题",
+                test: "测试 formatTaskTitle() 方法，传入正常长度的标题，返回原标题",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/core/services/system_tray_service_test.dart",
+        description: "测试系统托盘服务的功能（需要 mock tray_manager 和 window_manager）",
+        testCases: [
+          {
+            group: "菜单构建",
+            cases: [
+              {
+                name: "构建包含计时器状态的菜单",
+                test: "测试 buildMenu() 方法，当有活跃计时器时，菜单包含计时器状态项",
+              },
+              {
+                name: "构建包含任务列表的菜单",
+                test: "测试 buildMenu() 方法，当有任务时，菜单包含任务列表项",
+              },
+            ],
+          },
+          {
+            group: "事件处理",
+            cases: [
+              {
+                name: "处理任务状态切换",
+                test: "测试 handleTaskClick() 方法，点击任务项后，任务状态正确切换",
+              },
+              {
+                name: "处理开始计时",
+                test: "测试 handleTaskSubmenuClick() 方法，点击'开始计时'后，任务状态切换到 doing 并置顶",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试（可选，因为系统托盘功能需要真实的系统环境）
+    integrationTests: [
+      {
+        file: "integration_test/desktop/system_tray_test.dart",
+        description: "集成测试系统托盘功能（需要在真实的桌面环境中运行）",
+        testCases: [
+          {
+            group: "系统托盘初始化",
+            cases: [
+              {
+                name: "系统托盘图标正常显示",
+                test: "在 Windows/Linux/macOS 上运行应用，验证系统托盘图标是否正常显示",
+              },
+              {
+                name: "菜单正常显示",
+                test: "右键点击系统托盘图标，验证菜单是否正常显示",
+              },
+            ],
+          },
+          {
+            group: "菜单项功能",
+            cases: [
+              {
+                name: "点击任务项切换状态",
+                test: "点击任务菜单项，验证任务状态是否正确切换",
+              },
+              {
+                name: "点击开始计时",
+                test: "点击任务子菜单中的'开始计时'，验证任务是否开始计时并置顶",
+              },
+              {
+                name: "点击打开任务",
+                test: "点击任务子菜单中的'打开'，验证窗口是否打开并显示任务详情",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 8. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      risk: "平台兼容性问题：不同平台对系统托盘菜单的支持可能不同",
+      description: "tray_manager 支持 Windows、macOS 和 Linux，但不同平台的实现方式存在差异。Linux 可能需要安装额外的依赖库（如 libappindicator3-1）才能正常显示托盘图标。不同平台的菜单行为可能不一致。",
+      mitigation: [
+        "在实现时检测平台，对不同平台使用不同的实现方式，提供降级方案",
+        "Linux 平台：确保安装 libappindicator3-1 依赖库",
+        "在 Windows/Linux/macOS 上分别进行充分测试",
+        "提供平台特定的错误处理和日志记录",
+      ],
+      priority: "high",
+      check: "在 Windows/Linux/macOS 上分别测试系统托盘功能，验证图标显示、菜单功能是否正常",
+      enforcement: "在代码中添加平台检测，对不同平台使用不同的菜单构建逻辑，添加平台特定的错误处理",
+      verified: true,
+      source: "网络搜索确认：不同平台的系统托盘实现方式存在差异，Linux 需要额外依赖",
+    },
+    {
+      risk: "菜单项颜色不支持：系统托盘菜单的外观通常由操作系统控制，无法自定义颜色",
+      description: "tray_manager 的文档未明确提及对菜单项颜色自定义的支持。系统托盘菜单的外观通常由操作系统控制，开发者对其定制能力有限。macOS 的托盘图标通常是黑白的，彩色图标可能无法正常显示。",
+      mitigation: [
+        "使用图标和前缀符号来标识逾期任务（如 ⚠️），不依赖颜色",
+        "在菜单构建时，如果平台不支持颜色，使用图标替代",
+        "通过图标和文本内容来传达信息，而不是依赖颜色",
+      ],
+      priority: "medium",
+      check: "在不同平台上测试菜单项显示，验证颜色是否生效，如果不支持则使用图标替代",
+      enforcement: "在菜单构建时，不依赖颜色，始终使用图标和符号来标识不同状态",
+      verified: true,
+      source: "网络搜索确认：系统托盘菜单的外观由操作系统控制，无法自定义颜色",
+    },
+    {
+      risk: "子菜单支持不确定：tray_manager 可能支持子菜单，但在不同平台上的表现可能存在差异",
+      description: "搜索结果有矛盾：有些资料显示 tray_manager 支持创建子菜单，但在不同平台上的表现可能存在差异。某些平台可能不支持子菜单或支持不完整。",
+      mitigation: [
+        "在实际实现时先测试子菜单功能是否支持",
+        "如果支持，使用子菜单；如果不支持，使用替代方案（如将子菜单项作为主菜单项，使用特殊标识）",
+        "检测平台支持情况，如果不支持子菜单，使用其他交互方式",
+        "提供降级方案：将子菜单项（开始计时、打开）作为主菜单项显示，使用不同的 key 区分",
+      ],
+      priority: "medium",
+      check: "在不同平台上测试子菜单功能，验证是否正常工作。如果不支持，使用替代方案",
+      enforcement: "在菜单构建时，检测平台是否支持子菜单，如果不支持，使用替代方案（将子菜单项作为主菜单项）",
+      verified: true,
+      source: "网络搜索确认：子菜单支持情况不确定，需要实际测试验证",
+      note: "如果子菜单不支持，可以考虑将'开始计时'和'打开'作为主菜单项显示，使用不同的 key（如 task_{taskId}_start_timer、task_{taskId}_open）",
+    },
+    {
+      risk: "窗口管理失败：window_manager 可能在某些平台上无法正常工作",
+      description: "tray_manager 主要用于托盘管理，不提供窗口管理功能。需要结合 window_manager 来实现窗口的打开、隐藏和恢复等功能。window_manager 在某些情况下可能无法正确管理窗口的打开、关闭或最小化等操作。",
+      mitigation: [
+        "添加错误处理，如果窗口管理失败，记录日志但不中断应用运行",
+        "确保使用最新版本的 window_manager",
+        "在所有目标平台上进行充分测试",
+        "提供降级方案：如果窗口管理失败，至少尝试打开窗口（不保证置顶）",
+      ],
+      priority: "medium",
+      check: "在不同平台上测试窗口打开/恢复功能，验证是否正常工作",
+      enforcement: "所有窗口管理操作都包含 try-catch，确保错误不影响应用运行",
+      verified: true,
+      source: "网络搜索确认：window_manager 在某些情况下可能无法正确管理窗口",
+    },
+    {
+      risk: "性能问题：频繁更新托盘图标或菜单项可能影响性能",
+      description: "tray_manager 的性能通常满足一般应用需求。但在高频率更新托盘图标或菜单项的情况下（如每秒更新计时器时间），可能会对性能产生影响。",
+      mitigation: [
+        "使用防抖（debounce）优化菜单更新频率，限制更新频率（最多每 500ms 更新一次）",
+        "使用节流（throttle）控制计时器时间更新频率（每1秒更新一次）",
+        "缓存菜单构建结果，只在数据变化时重新构建",
+        "避免不必要的菜单重建",
+      ],
+      priority: "low",
+      check: "监控菜单更新频率和构建耗时，确保性能在可接受范围内",
+      enforcement: "实现防抖机制，限制菜单更新频率（如最多每 500ms 更新一次），计时器时间更新使用节流（每1秒）",
+      verified: true,
+      source: "网络搜索确认：频繁更新可能影响性能，建议使用节流或防抖技术",
+    },
+    {
+      risk: "资源泄漏：未正确释放资源可能导致内存泄漏",
+      description: "如果在使用 tray_manager 时未正确释放资源，可能导致内存泄漏。例如，未及时销毁不再使用的菜单项或图标，未取消定时器，未移除事件监听器等。",
+      mitigation: [
+        "确保 dispose() 方法正确清理所有资源，包括定时器、监听器等",
+        "在应用退出时调用 dispose() 方法",
+        "取消所有定时器：_updateTimer?.cancel()、_menuUpdateDebounceTimer?.cancel()",
+        "移除所有事件监听器：trayManager.removeListener(...)",
+        "移除托盘图标：await trayManager.destroy()",
+        "设置 _disposed 标志，防止在已销毁后继续操作",
+      ],
+      priority: "high",
+      check: "在应用退出时检查资源是否正确清理，使用内存分析工具检测泄漏",
+      enforcement: "在 dispose() 方法中清理所有资源，包括取消定时器、移除监听器等，确保没有资源泄漏",
+      verified: true,
+      source: "网络搜索确认：未正确释放资源可能导致内存泄漏，需要正确管理资源",
+    },
+    {
+      risk: "Context 访问失败：navigatorKey.currentContext 可能为 null",
+      mitigation: "在访问 context 前检查是否为 null，如果为 null 则使用默认值或记录错误",
+      priority: "high",
+      check: "在显示弹窗和获取本地化字符串时检查 context 是否为 null",
+      enforcement: "所有需要 context 的操作都添加 null 检查，提供降级方案",
+    },
+    {
+      risk: "菜单更新过于频繁：任务列表或计时器状态频繁变化可能导致性能问题",
+      mitigation: "实现防抖机制，限制菜单更新频率（最多每 500ms 更新一次）",
+      priority: "medium",
+      check: "监控菜单更新频率，确保不超过每 500ms 一次",
+      enforcement: "在 updateMenu() 方法中实现防抖逻辑，使用 Timer 延迟执行",
+    },
+    {
+      risk: "任务状态切换失败：从 trashed 恢复到 pending 可能失败",
+      mitigation: "使用 taskService.updateDetails() 方法，传入 TaskUpdate(status: TaskStatus.pending)",
+      priority: "medium",
+      check: "测试从 trashed 状态恢复到 pending 状态的功能",
+      enforcement: "在 toggleTaskStatus() 方法中正确处理 trashed 状态的恢复",
+    },
+  ],
+
+  // ===========================================
+  // 9. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试通过",
+      "代码审查，确保符合代码规范",
+      "检查所有方法都包含错误处理",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证系统托盘图标在 Windows/Linux/macOS 上正常显示",
+      "验证菜单正常显示，包含所有预期的菜单项",
+      "验证计时器状态正确显示，时间实时更新",
+      "验证任务列表正确显示，包含逾期和今日任务",
+      "验证任务状态切换正常工作（☐→☑→☒→☐）",
+      "验证任务子菜单正常工作（开始计时、打开）",
+      "验证点击菜单项后窗口正确打开/恢复",
+      "验证导航正确跳转到对应页面",
+      "验证任务详情弹窗正确显示",
+      "验证快速添加任务弹窗正确显示",
+      "验证设置页面正确打开",
+      "验证退出应用功能正常工作",
+    ],
+    
+    // 性能验证
+    performance: [
+      "验证菜单更新频率在可接受范围内（不超过每 500ms 一次）",
+      "验证菜单构建耗时在可接受范围内（不超过 100ms）",
+      "验证事件处理耗时在可接受范围内（不超过 200ms）",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "在 Windows 10/11 上测试系统托盘功能",
+      "在 Linux（Ubuntu、Fedora）上测试系统托盘功能",
+      "在 macOS 上测试系统托盘功能",
+      "验证不同桌面环境（GNOME、KDE、XFCE）的兼容性",
+    ],
+  },
+
+  // ===========================================
+  // 10. 数据与状态（可选，但建议包含）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "无需修改数据模型，复用现有的 Task、FocusSession 等模型",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "无需修改持久化结构，系统托盘状态不持久化（每次启动时重新初始化）",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "新增 systemTrayServiceProvider - 提供系统托盘服务实例",
+      "新增 systemTrayInitializedProvider - 跟踪系统托盘初始化状态",
+      "复用 taskSectionsProvider - 监听任务列表变化",
+      "复用 pinnedTaskIdProvider - 监听置顶任务变化",
+      "复用 focusSessionProvider - 监听计时器状态变化",
+    ],
+  },
+}
+

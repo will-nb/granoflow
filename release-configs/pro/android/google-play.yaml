@@ -1,0 +1,12 @@
+# Pro版本 - Google Play发布配置
+edition: pro
+packageName: com.granoflow.pro
+platform: android
+store: google-play
+storeAccount: google-play-pro-account
+keystore: pro-keystore.jks
+versionCode: auto-increment
+track: production
+buildType: appbundle
+enableInAppPurchase: true
+

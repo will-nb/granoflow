@@ -1,0 +1,90 @@
+name: Deploy Android
+
+on:
+  workflow_call:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: choice
+        options:
+          - lite
+          - pro
+
+jobs:
+  deploy:
+    name: Deploy Android - ${{ inputs.edition }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition }}-android-*
+          merge-multiple: true
+
+      - name: Deploy to Google Play
+        if: ${{ inputs.edition == 'lite' || inputs.edition == 'pro' }}
+        run: |
+          echo "🚀 部署到Google Play..."
+          # TODO: 实现Google Play部署
+          # 需要使用fastlane或google-play-deploy-action
+          echo "Google Play部署功能待实现"
+
+      - name: Deploy to Amazon Appstore
+        if: ${{ inputs.edition == 'lite' }}
+        run: |
+          echo "🚀 部署到Amazon Appstore..."
+          # TODO: 实现Amazon Appstore部署
+          echo "Amazon Appstore部署功能待实现"
+
+      - name: Deploy to Samsung Galaxy Store
+        if: ${{ inputs.edition == 'lite' }}
+        run: |
+          echo "🚀 部署到Samsung Galaxy Store..."
+          # TODO: 实现Samsung Galaxy Store部署
+          echo "Samsung Galaxy Store部署功能待实现"
+
+      - name: Deploy to Xiaomi App Store
+        if: ${{ inputs.edition == 'lite' }}
+        run: |
+          echo "🚀 部署到小米应用商店..."
+          # TODO: 实现小米应用商店部署
+          echo "小米应用商店部署功能待实现"
+
+      - name: Deploy to OPPO App Store
+        if: ${{ inputs.edition == 'lite' }}
+        run: |
+          echo "🚀 部署到OPPO应用商店..."
+          # TODO: 实现OPPO应用商店部署
+          echo "OPPO应用商店部署功能待实现"
+
+      - name: Deploy to vivo App Store
+        if: ${{ inputs.edition == 'lite' }}
+        run: |
+          echo "🚀 部署到vivo应用商店..."
+          # TODO: 实现vivo应用商店部署
+          echo "vivo应用商店部署功能待实现"
+
+      - name: Deploy to Tencent App Store
+        if: ${{ inputs.edition == 'lite' }}
+        run: |
+          echo "🚀 部署到腾讯应用宝..."
+          # TODO: 实现腾讯应用宝部署
+          echo "腾讯应用宝部署功能待实现"
+
+      - name: Deploy to Coolapk
+        if: ${{ inputs.edition == 'lite' }}
+        run: |
+          echo "🚀 部署到Coolapk（酷安）..."
+          # TODO: 实现Coolapk部署
+          echo "Coolapk部署功能待实现"
+

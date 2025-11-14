@@ -5,6 +5,9 @@ import 'config_keys.dart';
 /// Supported deployment environments.
 enum AppEnvironment { development, staging, production }
 
+/// Supported application editions.
+enum AppEdition { lite, pro }
+
 /// Immutable snapshot of runtime configuration sourced from environment
 /// variables or build-time `--dart-define` flags.
 @immutable
@@ -17,6 +20,8 @@ class AppConfig {
     required this.featureFocusTimer,
     required this.featureMonetization,
     this.sentryDsn,
+    required this.edition,
+    this.packageName,
   });
 
   final AppEnvironment environment;
@@ -26,10 +31,18 @@ class AppConfig {
   final bool featureFocusTimer;
   final bool featureMonetization;
   final Uri? sentryDsn;
+  final AppEdition edition;
+  final String? packageName;
 
   bool get isProduction => environment == AppEnvironment.production;
   bool get isStaging => environment == AppEnvironment.staging;
   bool get isDevelopment => environment == AppEnvironment.development;
+  
+  bool get isLite => edition == AppEdition.lite;
+  bool get isPro => edition == AppEdition.pro;
+  
+  /// 是否启用内购订阅功能（仅Pro版本启用）
+  bool get enableInAppPurchase => isPro && featureMonetization;
 
   /// Construct configuration from compile-time environment values.
   ///
@@ -63,6 +76,11 @@ class AppConfig {
       name: ConfigKeys.sentryDsn,
       required: false,
     );
+    
+    final edition = _parseEdition(
+      source.read(ConfigKeys.appEdition) ?? 'lite',
+    );
+    final packageName = source.read(ConfigKeys.packageName);
 
     return AppConfig(
       environment: environment,
@@ -72,7 +90,19 @@ class AppConfig {
       featureFocusTimer: featureFocusTimer,
       featureMonetization: featureMonetization,
       sentryDsn: sentryDsn,
+      edition: edition,
+      packageName: packageName?.isEmpty == true ? null : packageName,
     );
+  }
+}
+
+AppEdition _parseEdition(String value) {
+  switch (value.toLowerCase()) {
+    case 'pro':
+      return AppEdition.pro;
+    case 'lite':
+    default:
+      return AppEdition.lite;
   }
 }
 

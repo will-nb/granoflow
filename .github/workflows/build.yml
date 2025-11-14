@@ -1,0 +1,210 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: choice
+        options:
+          - lite
+          - pro
+      platform:
+        description: 'Platform to build'
+        required: true
+        type: choice
+        options:
+          - android
+          - ios
+          - macos
+          - windows
+          - linux
+  push:
+    branches:
+      - main
+      - develop
+      - pro
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'macos/**'
+      - 'windows/**'
+      - 'linux/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    name: Build ${{ inputs.edition || 'lite' }} - ${{ inputs.platform || 'all' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Lite版本 - Android
+          - edition: lite
+            platform: android
+            os: ubuntu-latest
+            build-type: apk
+          - edition: lite
+            platform: android
+            os: ubuntu-latest
+            build-type: appbundle
+          # Lite版本 - iOS (需要macOS)
+          - edition: lite
+            platform: ios
+            os: macos-latest
+          # Lite版本 - macOS (需要macOS)
+          - edition: lite
+            platform: macos
+            os: macos-latest
+          # Lite版本 - Windows
+          - edition: lite
+            platform: windows
+            os: windows-latest
+          # Lite版本 - Linux
+          - edition: lite
+            platform: linux
+            os: ubuntu-latest
+          # Pro版本 - Android
+          - edition: pro
+            platform: android
+            os: ubuntu-latest
+            build-type: apk
+          - edition: pro
+            platform: android
+            os: ubuntu-latest
+            build-type: appbundle
+          # Pro版本 - iOS (需要macOS)
+          - edition: pro
+            platform: ios
+            os: macos-latest
+          # Pro版本 - macOS (需要macOS)
+          - edition: pro
+            platform: macos
+            os: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.27.0
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Build Android APK
+        if: matrix.platform == 'android' && matrix.build-type == 'apk'
+        run: |
+          flutter build apk --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+        continue-on-error: true
+
+      - name: Build Android App Bundle
+        if: matrix.platform == 'android' && matrix.build-type == 'appbundle'
+        run: |
+          flutter build appbundle --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+        continue-on-error: true
+
+      - name: Build iOS
+        if: matrix.platform == 'ios'
+        run: |
+          flutter build ios --release --no-codesign \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+        continue-on-error: true
+
+      - name: Build macOS
+        if: matrix.platform == 'macos'
+        run: |
+          flutter build macos --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+        continue-on-error: true
+
+      - name: Build Windows
+        if: matrix.platform == 'windows'
+        run: |
+          flutter build windows --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+        continue-on-error: true
+
+      - name: Build Linux
+        if: matrix.platform == 'linux'
+        run: |
+          flutter build linux --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+        continue-on-error: true
+
+      - name: Upload Android APK artifact
+        if: matrix.platform == 'android' && matrix.build-type == 'apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+      - name: Upload Android App Bundle artifact
+        if: matrix.platform == 'android' && matrix.build-type == 'appbundle'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-android-appbundle
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7
+
+      - name: Upload iOS artifact
+        if: matrix.platform == 'ios'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-ios
+          path: build/ios/ipa/*.ipa
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload macOS artifact
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-macos
+          path: build/macos/Build/Products/Release/*.app
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Windows artifact
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-windows
+          path: build/windows/runner/Release/*.exe
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Linux artifact
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-linux
+          path: build/linux/x64/release/bundle/*
+          retention-days: 7
+          if-no-files-found: ignore
+

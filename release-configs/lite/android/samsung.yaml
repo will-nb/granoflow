@@ -1,0 +1,12 @@
+# Lite版本 - Samsung Galaxy Store发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: android
+store: samsung-galaxy-store
+storeAccount: shared-account
+keystore: lite-keystore.jks
+versionCode: auto-increment
+track: production
+buildType: apk
+enableInAppPurchase: false
+

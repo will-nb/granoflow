@@ -1,0 +1,12 @@
+# Lite版本 - Amazon Appstore发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: android
+store: amazon-appstore
+storeAccount: shared-account
+keystore: lite-keystore.jks
+versionCode: auto-increment
+track: production
+buildType: apk
+enableInAppPurchase: false
+

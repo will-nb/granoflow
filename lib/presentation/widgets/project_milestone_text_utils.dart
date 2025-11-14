@@ -1,3 +1,5 @@
+import '../../core/utils/text_utils.dart';
+
 /// Utility functions for formatting and truncating project/milestone text
 
 /// Truncates project and milestone names to fit within character limits
@@ -16,21 +18,13 @@ String truncateProjectMilestoneText({
   int maxProjectChars = 12,
   int maxMilestoneChars = 12,
 }) {
-  final truncatedProject = _truncateText(projectName, maxProjectChars);
+  final truncatedProject = TextUtils.truncate(projectName, maxProjectChars, ellipsis: '…');
   
   if (milestoneName == null || milestoneName.isEmpty) {
     return truncatedProject;
   }
   
-  final truncatedMilestone = _truncateText(milestoneName, maxMilestoneChars);
+  final truncatedMilestone = TextUtils.truncate(milestoneName, maxMilestoneChars, ellipsis: '…');
   return '$truncatedProject > $truncatedMilestone';
-}
-
-/// Truncates text to specified length with ellipsis if needed
-String _truncateText(String text, int maxLength) {
-  if (text.length <= maxLength) {
-    return text;
-  }
-  return '${text.substring(0, maxLength)}…';
 }
 

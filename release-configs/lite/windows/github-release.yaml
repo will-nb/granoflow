@@ -1,0 +1,8 @@
+# Lite版本 - GitHub Release EXE发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: windows
+store: github-release
+buildType: exe
+enableInAppPurchase: false
+

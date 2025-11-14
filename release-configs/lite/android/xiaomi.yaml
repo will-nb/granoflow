@@ -1,0 +1,12 @@
+# Lite版本 - 小米应用商店发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: android
+store: xiaomi
+storeAccount: shared-account
+keystore: lite-keystore.jks
+versionCode: auto-increment
+track: production
+buildType: apk
+enableInAppPurchase: false
+

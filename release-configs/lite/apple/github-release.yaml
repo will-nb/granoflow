@@ -1,0 +1,8 @@
+# Lite版本 - GitHub Release DMG发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: macos
+store: github-release
+buildType: dmg
+enableInAppPurchase: false
+

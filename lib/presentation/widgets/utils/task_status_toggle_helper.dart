@@ -214,5 +214,90 @@ class TaskStatusToggleHelper {
       return false;
     }
   }
+
+  /// 切换任务的三态状态（pending → completedActive → trashed → pending）
+  /// 
+  /// [context] BuildContext
+  /// [ref] WidgetRef
+  /// [task] 要切换状态的任务
+  /// [section] 任务所属区域（可选，如果为 null 则根据 task.dueAt 计算）
+  /// 
+  /// 返回 true 表示切换成功，false 表示失败
+  /// 
+  /// 状态切换顺序：
+  /// - pending/doing/paused/inbox → completedActive（调用 taskService.markCompleted()）
+  /// - completedActive → trashed（调用 taskService.softDelete()）
+  /// - trashed → pending（调用 taskService.updateDetails(status: TaskStatus.pending)）
+  static Future<bool> toggleTaskStatusThreeState(
+    BuildContext context,
+    WidgetRef ref,
+    Task task, {
+    TaskSection? section,
+  }) async {
+    try {
+      final taskService = await ref.read(taskServiceProvider.future);
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
+
+      // 获取任务的 section（从参数或计算得出）
+      final taskSection = section ?? TaskSectionUtils.getSectionForDate(task.dueAt);
+
+      // 根据当前状态切换到下一个状态
+      if (task.status == TaskStatus.inbox ||
+          task.status == TaskStatus.pending ||
+          task.status == TaskStatus.doing ||
+          task.status == TaskStatus.paused) {
+        // 活跃状态 → 已完成
+        await taskService.markCompleted(taskId: task.id);
+
+        // 重新分配整个 section 的 sortIndex
+        await _reassignSortIndexesForSection(taskRepository, taskSection);
+
+        if (context.mounted) {
+          // 手动刷新相关 provider，确保 UI 立即更新
+          ref.invalidate(taskSectionsProvider(taskSection));
+        }
+        return true;
+      } else if (task.status == TaskStatus.completedActive) {
+        // 已完成 → 已删除（移到回收站）
+        await taskService.softDelete(task.id);
+
+        if (context.mounted) {
+          // 手动刷新相关 provider，确保 UI 立即更新
+          ref.invalidate(taskSectionsProvider(taskSection));
+        }
+        return true;
+      } else if (task.status == TaskStatus.trashed) {
+        // 已删除 → 待办（恢复到 pending）
+        await taskService.updateDetails(
+          taskId: task.id,
+          payload: const TaskUpdate(status: TaskStatus.pending),
+        );
+
+        // 重新分配整个 section 的 sortIndex
+        await _reassignSortIndexesForSection(taskRepository, taskSection);
+
+        if (context.mounted) {
+          // 手动刷新相关 provider，确保 UI 立即更新
+          ref.invalidate(taskSectionsProvider(taskSection));
+        }
+        return true;
+      }
+      // 其他状态（archived、pseudoDeleted）不支持切换
+      return false;
+    } catch (error, stackTrace) {
+      debugPrint('Failed to toggle task status three state: $error\n$stackTrace');
+      if (context.mounted) {
+        final l10n = AppLocalizations.of(context);
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('${l10n.taskListTaskCompletedError}: $error'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return false;
+    }
+  }
 }
 

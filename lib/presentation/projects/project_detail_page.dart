@@ -10,7 +10,7 @@ import '../../data/models/project.dart';
 import '../../data/models/task.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../tasks/widgets/empty_placeholder.dart';
-import '../tasks/quick_tasks/quick_add_sheet.dart';
+import '../widgets/utils/quick_add_sheet_helper.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
@@ -173,11 +173,6 @@ Future<void> _handleQuickAdd(
   Milestone milestone,
 ) async {
   final l10n = AppLocalizations.of(context);
-  final mediaQuery = MediaQuery.of(context);
-  final isLandscape = mediaQuery.orientation == Orientation.landscape;
-  final maxHeight = isLandscape
-      ? mediaQuery.size.height * 0.5
-      : double.infinity;
 
   // 获取里程碑的任务列表，计算默认日期
   DateTime? defaultDueDate;
@@ -197,46 +192,11 @@ Future<void> _handleQuickAdd(
     defaultDueDate = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 23, 59, 59, 999);
   }
 
-  // 弹出底部弹窗，让用户输入任务信息
-  final result = await showModalBottomSheet<QuickAddResult>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (sheetContext) => ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 拖拽指示器
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // QuickAddSheet（传入计算出的默认日期）
-            QuickAddSheet(
-              section: null,
-              defaultDate: defaultDueDate,
-            ),
-            // 底部安全区域
-            SizedBox(height: mediaQuery.viewPadding.bottom + 20),
-          ],
-        ),
-      ),
-    ),
+  // 使用 QuickAddSheetHelper 显示快速添加任务弹窗（传入计算出的默认日期）
+  final result = await QuickAddSheetHelper.showQuickAddSheet(
+    context,
+    section: null,
+    defaultDate: defaultDueDate,
   );
 
   // 如果用户取消输入，就不做任何操作

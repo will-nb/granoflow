@@ -1,0 +1,9 @@
+# Lite版本 - App Store macOS发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: macos
+store: app-store
+storeAccount: apple-developer-account
+versionCode: auto-increment
+enableInAppPurchase: false
+

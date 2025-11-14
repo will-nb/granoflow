@@ -1,0 +1,9 @@
+# Lite版本 - Microsoft Store发布配置
+edition: lite
+packageName: com.granoflow.lite
+platform: windows
+store: microsoft-store
+storeAccount: microsoft-developer-account
+versionCode: auto-increment
+enableInAppPurchase: false
+

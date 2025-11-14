@@ -13,7 +13,7 @@ import '../widgets/gradient_page_scaffold.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/task_filter_collapsible.dart';
-import 'quick_tasks/quick_add_sheet.dart';
+import '../widgets/utils/quick_add_sheet_helper.dart';
 import 'utils/date_utils.dart';
 import 'views/task_section_panel.dart';
 
@@ -398,49 +398,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
     TaskSection section,
   ) async {
     final l10n = AppLocalizations.of(context);
-    final mediaQuery = MediaQuery.of(context);
-    final isLandscape = mediaQuery.orientation == Orientation.landscape;
-    final maxHeight = isLandscape 
-        ? mediaQuery.size.height * 0.5
-        : double.infinity;
 
-    // 弹出底部弹窗，让用户输入任务信息（与导航栏样式保持一致）
-    final result = await showModalBottomSheet<QuickAddResult>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 拖拽指示器
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // QuickAddSheet
-              QuickAddSheet(section: section),
-              // 底部安全区域
-              SizedBox(height: mediaQuery.viewPadding.bottom + 20),
-            ],
-          ),
-        ),
-      ),
+    // 使用 QuickAddSheetHelper 显示快速添加任务弹窗
+    final result = await QuickAddSheetHelper.showQuickAddSheet(
+      context,
+      section: section,
     );
     // 如果用户取消输入（点击取消或点击空白处），就不做任何操作
     if (result == null) {

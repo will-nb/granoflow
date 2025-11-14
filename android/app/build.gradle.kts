@@ -16,8 +16,16 @@ if (keystorePropertiesFile.exists()) {
     }
 }
 
+// 从项目属性读取appEdition，默认为"lite"
+val appEdition = project.findProperty("appEdition") as String? ?: "lite"
+val packageName = when (appEdition) {
+    "lite" -> "com.granoflow.lite"
+    "pro" -> "com.granoflow.pro"
+    else -> "com.granoflow.app" // 默认值，用于向后兼容
+}
+
 android {
-    namespace = "com.granoflow.app"
+    namespace = packageName
     compileSdk = flutter.compileSdkVersion
     // 使用 NDK r29 以支持 16 KB 页面大小（Android 16+）
     // Flutter 3.35.1 默认使用 r27，不支持 16 KB
@@ -35,8 +43,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.granoflow.app"
+        applicationId = packageName
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -87,6 +94,18 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = false
+        }
+    }
+    
+    // 根据appEdition配置源目录
+    // 注意：由于包名不同，每个版本的MainActivity.kt必须存在于对应的包目录中
+    // Gradle会根据namespace自动选择正确的源文件
+    sourceSets {
+        getByName("main") {
+            java {
+                // 包含所有版本的源目录，Gradle会根据namespace选择正确的文件
+                srcDirs("src/main/kotlin")
+            }
         }
     }
 }

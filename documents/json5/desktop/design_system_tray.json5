@@ -1,0 +1,1368 @@
+{
+  // ===========================================
+  // 系统托盘功能设计文档
+  // 为 Windows/Linux/macOS 桌面应用提供系统托盘图标和菜单功能
+  // ===========================================
+  
+  // ===========================================
+  // 1. 整体设计理念（必填）
+  // ===========================================
+  designPhilosophy: {
+    // 设计目标：提供便捷的系统托盘入口，让用户快速访问逾期和今日活跃任务
+    goal: "为桌面应用提供系统托盘图标和菜单功能，在菜单中分栏显示逾期活跃任务和今日活跃任务列表，每条任务作为独立菜单项，逾期任务使用警告配色标识，今日任务使用正常黑色，点击具体任务后打开应用窗口并导航到对应任务页面，自动显示所点击任务的详情弹窗，提升用户访问任务的便捷性",
+    
+    // 主题集成：与现有 Ocean Breeze 主题保持一致
+    themeIntegration: {
+      // 一致性：保持与现有主题一致的部分
+      consistency: [
+        "使用应用图标作为系统托盘图标（复用现有的 logo 资源）",
+        "菜单项文本使用应用本地化字符串，保持多语言支持",
+        "任务详情弹窗复用现有的 TaskDetailBottomSheet 组件",
+        "导航逻辑复用现有的 go_router 路由系统",
+        "任务查询逻辑复用现有的 taskSectionsProvider",
+      ],
+      
+      // 创新点：与现有功能不同的设计突破
+      innovation: [
+        "系统托盘作为应用的后台入口，即使窗口关闭也能快速访问",
+        "菜单中直接显示任务列表，每条任务作为独立菜单项，无需进入应用即可查看所有任务",
+        "逾期任务使用警告配色（warning color）标识，今日任务使用正常黑色，视觉区分清晰",
+        "点击具体任务后自动打开窗口、导航到对应页面并显示该任务的详情，提供精准的一站式操作体验",
+        "支持跨平台统一体验（Windows/Linux/macOS）",
+      ],
+    },
+    
+    // 设计趋势：参考的设计趋势或风格
+    trends: [
+      "系统托盘作为桌面应用的常驻入口，提供快速访问功能",
+      "上下文菜单直接显示任务列表，减少用户操作步骤",
+      "动态菜单项显示实时任务列表，增强信息透明度",
+      "使用颜色区分任务优先级（逾期警告色 vs 正常黑色），提升视觉识别度",
+      "跨平台统一体验，降低用户学习成本",
+      "2025年现代化设计趋势：极简风格、现代化图标、清晰的视觉层次、优雅的间距设计",
+    ],
+  },
+
+  // ===========================================
+  // 2. 配色方案（必填）
+  // ===========================================
+  // 2025年现代化设计趋势：清晰的视觉层次、优雅的配色、友好的交互
+  colorScheme: {
+    // 系统托盘图标：使用应用图标，不涉及自定义配色
+    // 托盘图标使用现有的 logo 资源：
+    // - Windows: assets/logo/app_icon.ico
+    // - macOS/Linux: assets/logo/granostack-logo-transparent.png
+    
+    // 系统托盘菜单项文本颜色
+    menuItemColors: {
+      // 逾期任务：使用警告配色（warning color）
+      overdueTask: {
+        // 引用主题中的警告色
+        light: "Theme.of(context).extension<AppColorTokens>()?.warning ?? AppColorTokens.light.warning",
+        dark: "Theme.of(context).extension<AppColorTokens>()?.warning ?? AppColorTokens.dark.warning",
+        // 具体颜色值：OceanBreezeColorSchemes.warmYellow
+        colorValue: "OceanBreezeColorSchemes.warmYellow",
+        note: "逾期任务使用警告色（warmYellow），提醒用户任务已逾期",
+      },
+      
+      // 今日任务：使用正常文本颜色（黑色/白色，跟随系统主题）
+      todayTask: {
+        // 使用系统默认文本颜色
+        light: "系统默认文本颜色（通常是黑色或深灰色）",
+        dark: "系统默认文本颜色（通常是白色或浅灰色）",
+        note: "今日任务使用正常文本颜色，与系统菜单项颜色一致",
+      },
+      
+      // 分组标题（"逾期活跃任务"、"今日活跃任务"）
+      sectionTitle: {
+        // 使用系统默认文本颜色，但可以加粗显示
+        light: "系统默认文本颜色（加粗）",
+        dark: "系统默认文本颜色（加粗）",
+        fontWeight: "FontWeight.bold",
+        note: "分组标题使用加粗文本，与任务项区分",
+      },
+    },
+    
+    // 注意：系统托盘菜单的颜色支持可能因平台而异
+    // - Windows: 可能不支持自定义文本颜色，需要使用其他方式（如图标、前缀符号）
+    // - macOS: 可能支持自定义文本颜色
+    // - Linux: 取决于桌面环境，支持程度不同
+    platformLimitations: {
+      note: "如果平台不支持自定义菜单项文本颜色，可以使用图标或前缀符号（如 ⚠️）来标识逾期任务",
+      fallback: "在任务标题前添加警告图标或符号（如 ⚠️ 或 [逾期]）来标识逾期任务",
+    },
+    
+    // 2025年现代化设计趋势：视觉层次优化
+    visualHierarchy: {
+      // 通过图标、间距、字体大小来创建视觉层次
+      primary: "计时器状态：加粗、醒目图标、主题色",
+      secondary: "任务项：正常字体、状态图标、警告图标（如需要）",
+      tertiary: "操作项（添加、设置、退出）：正常字体、功能图标",
+      spacing: "菜单项之间有适当的垂直间距（系统默认或稍大）",
+      grouping: "通过分隔线将不同功能分组，视觉清晰",
+    },
+    
+    // 任务详情弹窗：复用现有的弹窗样式
+    // 使用现有的 TaskDetailBottomSheet 组件，保持与现有弹窗一致的样式
+    taskDetailSheet: {
+      note: "复用现有的 TaskDetailBottomSheet 组件，保持与现有弹窗一致的样式",
+    },
+  },
+
+  // ===========================================
+  // 3. 布局结构（必填）
+  // ===========================================
+  layout: {
+    // 系统托盘图标位置：由操作系统决定，应用无法控制
+    // Windows: 系统托盘区域（任务栏右侧）
+    // macOS: 菜单栏右侧
+    // Linux: 系统托盘区域（取决于桌面环境）
+    
+    // 系统托盘菜单结构
+    menuStructure: {
+      // 菜单项列表（从上到下）
+      // 注意：菜单项顺序根据是否有计时器动态调整
+      items: [
+        // 1. 计时器状态（如果有活跃的计时器，显示在最顶部）
+        // {
+        //   key: "timer_status",
+        //   label: "⏱️ 正在计时：任务标题 (00:15:30)", // 显示计时器状态
+        //   type: "timer_status",
+        //   taskId: "<taskId>",
+        //   // 使用醒目样式（加粗、特殊颜色）
+        //   bold: true,
+        //   separator: false,
+        // },
+        
+        // 2. 快速添加任务
+        // 位置：如果有计时器，在计时器下；如果没有计时器，在最上面
+        {
+          key: "quick_add_task",
+          label: "➕ 添加任务", // 使用本地化字符串
+          type: "action_item",
+          icon: "➕", // 或使用图标
+          separator: false,
+        },
+        
+        // 3. 分隔线（如果有计时器或添加任务，在任务列表前显示分隔线）
+        {
+          key: "separator_before_tasks",
+          type: "separator",
+          // 条件显示：如果有计时器或添加任务，显示分隔线
+          conditional: true,
+        },
+        
+        // 4. 逾期任务列表（直接显示，无分组标题）
+        // 每个逾期任务作为一个菜单项，带有子菜单
+        // 例如：
+        // {
+        //   key: "task_overdue_<taskId>",
+        //   label: "☐ ⚠️ 任务标题", // 状态图标 + 警告图标 + 任务标题
+        //   type: "task_item",
+        //   taskId: "<taskId>",
+        //   section: "overdue",
+        //   status: "pending", // 活跃状态：空框 ☐
+        //   color: "warning", // 使用警告色
+        //   hasSubmenu: true, // 有二级菜单
+        //   submenu: [
+        //     {
+        //       key: "start_timer",
+        //       label: "开始计时",
+        //       enabled: true, // 只有在没有置顶任务时才启用
+        //     },
+        //     {
+        //       key: "open_task",
+        //       label: "打开",
+        //       enabled: true,
+        //     },
+        //   ],
+        //   separator: false,
+        // },
+        
+        // 5. 今日任务列表（直接显示，无分组标题）
+        // 每个今日任务作为一个菜单项，带有子菜单
+        // 例如：
+        // {
+        //   key: "task_today_<taskId>",
+        //   label: "☐ 任务标题", // 状态图标 + 任务标题
+        //   type: "task_item",
+        //   taskId: "<taskId>",
+        //   section: "today",
+        //   status: "pending", // 活跃状态：空框 ☐
+        //   color: "normal", // 使用正常黑色
+        //   hasSubmenu: true, // 有二级菜单
+        //   submenu: [
+        //     {
+        //       key: "start_timer",
+        //       label: "开始计时",
+        //       enabled: true, // 只有在没有置顶任务时才启用
+        //     },
+        //     {
+        //       key: "open_task",
+        //       label: "打开",
+        //       enabled: true,
+        //     },
+        //   ],
+        //   separator: false,
+        // },
+        
+        // 6. 分隔线（在任务列表和设置之间）
+        {
+          key: "separator_before_settings",
+          type: "separator",
+          // 条件显示：如果有任务列表或添加任务，显示分隔线
+          conditional: true,
+        },
+        
+        // 7. 设置
+        {
+          key: "settings",
+          label: "设置", // 使用本地化字符串
+          type: "action_item",
+          separator: false,
+        },
+        
+        // 8. 退出应用（所有平台都显示）
+        {
+          key: "quit",
+          label: "退出", // 使用本地化字符串
+          type: "action_item",
+          separator: false,
+          // 所有平台都显示，但行为可能不同：
+          // - macOS: 完全退出应用（标准行为）
+          // - Windows/Linux: 完全退出应用（标准行为）
+          platforms: ["Windows", "Linux", "macOS"],
+        },
+      ],
+      
+      // 任务列表显示规则
+      taskListRules: {
+        // 最大显示任务数量（避免菜单过长）
+        // 逾期和今日任务合并计算，总共最多显示 10 个任务
+        maxTotalTasks: 10,
+        // 如果任务数量超过最大值，显示提示
+        overflowMessage: "还有 {count} 个任务...", // 使用本地化字符串
+        // 任务标题最大长度（避免菜单项过宽）
+        maxTitleLength: 50,
+        // 超出长度时的处理方式
+        titleOverflow: "ellipsis", // 使用省略号截断
+        // 任务排序：逾期任务在前，今日任务在后
+        sortOrder: ["overdue", "today"],
+      },
+      
+      // 计时器状态显示规则
+      timerStatusRules: {
+        // 检测是否有活跃的计时器（通过 pinnedTaskIdProvider 和 focusSessionProvider）
+        checkActiveTimer: true,
+        // 显示格式：图标 + 已用时间 + 任务标题（时间在前，标题在后）
+        format: "⏱️ ({elapsedTime}) {taskTitle}",
+        // 例如："⏱️ (00:15:30) 完成项目文档"
+        // 时间格式：HH:MM:SS 或 MM:SS（如果小于1小时）
+        timeFormat: "auto", // 自动选择格式
+        // 样式：加粗、醒目颜色
+        bold: true,
+        // 使用主题的主色调或高亮色
+        color: "primary", // 使用主题主色调
+        // 点击行为：完成任务并取消置顶
+        clickAction: "complete_and_unpin",
+      },
+      
+      // 快速添加任务规则
+      quickAddTaskRules: {
+        // 位置：如果有计时器，在计时器下；如果没有，在最上面
+        position: "conditional_top",
+        // 显示格式：图标 + 文本
+        format: "➕ 添加任务",
+        // 点击后打开快速添加任务弹窗（复用 QuickAddSheet）
+        action: "open_quick_add_sheet",
+      },
+      
+      // 分隔线显示规则
+      separatorRules: {
+        // 分隔线1：在任务列表前（如果有计时器或添加任务）
+        beforeTasks: {
+          condition: "hasTimer || hasQuickAdd",
+          show: true,
+        },
+        // 分隔线2：在设置前（如果有任务列表或添加任务）
+        beforeSettings: {
+          condition: "hasTasks || hasQuickAdd",
+          show: true,
+        },
+        // 不在任务列表中间添加分隔线（逾期和今日任务连续显示）
+        betweenTasks: false,
+      },
+    },
+    
+    // 任务详情弹窗：复用现有布局
+    // 使用 TaskDetailBottomSheet 组件，布局由组件内部定义
+    taskDetailSheet: {
+      note: "复用现有的 TaskDetailBottomSheet 组件，无需重新定义布局",
+    },
+  },
+
+  // ===========================================
+  // 4. UI 组件设计（必填）
+  // ===========================================
+  components: {
+    // 系统托盘图标
+    trayIcon: {
+      // Windows: 使用 ICO 格式
+      windows: {
+        path: "assets/logo/app_icon.ico",
+        format: "ico",
+        // 系统会自动处理不同尺寸（16x16, 32x32 等）
+        note: "使用已转换的 ICO 文件，包含多尺寸图标",
+      },
+      
+      // macOS/Linux: 使用 PNG 格式
+      macosLinux: {
+        path: "assets/logo/granostack-logo-transparent.png",
+        format: "png",
+        // 系统会自动缩放，建议使用 16x16 或 32x32 尺寸
+        note: "使用现有的透明 PNG logo，系统会自动处理缩放",
+      },
+      
+      // 工具提示文本（鼠标悬停时显示）
+      tooltip: "GranoFlow", // 使用应用名称
+    },
+    
+    // 系统托盘菜单
+    trayMenu: {
+      // 计时器状态格式（2025年现代化设计）
+      timerStatusFormat: {
+        // 计时器状态：图标 + 已用时间 + 任务标题（时间在前，标题在后）
+        // 使用现代化图标：⏱️ 或 🎯 或 ⏰
+        // 例如："⏱️ (00:15:30) 完成项目文档"
+        format: "⏱️ ({elapsedTime}) {taskTitle}",
+        // 样式：加粗、醒目
+        bold: true,
+        // 颜色：使用主题主色调或高亮色
+        color: "primary",
+        // 视觉增强：使用更现代的图标，时间格式更清晰
+        icon: "⏱️", // 或使用 🎯（目标图标）表示专注中
+        // 时间格式优化：使用更紧凑的格式，如 "15:30" 或 "1h 15m"
+        timeFormat: "compact", // 紧凑格式，更易读
+        // 点击行为：完成任务并取消置顶
+        clickAction: "complete_and_unpin",
+        // 2025年设计趋势：清晰的视觉层次，醒目的状态指示
+        visualEnhancement: {
+          spacing: "适当的间距，使时间与标题分离清晰",
+          typography: "使用等宽字体显示时间，提升可读性",
+          emphasis: "时间部分使用稍小的字体，标题使用正常字体",
+        },
+      },
+      
+      // 快速添加任务格式（2025年现代化设计）
+      quickAddTaskFormat: {
+        // 快速添加任务：图标 + 文本
+        // 使用现代化图标：➕ 或 ✨ 或 ➕
+        // 例如："➕ 添加任务" 或 "✨ 新建任务"
+        format: "➕ 添加任务",
+        // 样式：正常样式，但图标更醒目
+        bold: false,
+        // 颜色：系统默认，但图标可以使用主题色
+        color: "normal",
+        // 图标选择：使用更现代的图标
+        icon: "➕", // 或使用 ✨（星号）表示新建
+        // 点击行为：打开快速添加任务弹窗
+        clickAction: "open_quick_add_sheet",
+        // 2025年设计趋势：清晰的行动号召，友好的视觉提示
+        visualEnhancement: {
+          iconStyle: "使用圆角图标，更友好",
+          spacing: "图标与文本之间有适当间距",
+        },
+      },
+      
+      // 任务项格式（2025年现代化设计）
+      taskItemFormat: {
+        // 任务项格式：状态图标 + 警告图标（仅逾期任务）+ 任务标题
+        // 使用2025年现代化图标系统：
+        // - 活跃状态：使用更现代的复选框图标
+        // - 已完成：使用更醒目的勾选图标
+        // - 已删除：使用更清晰的删除图标
+        // 例如：
+        // - "☐ ⚠️ 完成项目文档"（逾期活跃任务）
+        // - "☑ 准备会议材料"（今日已完成任务）
+        // - "☐ 回复邮件"（今日活跃任务）
+        format: "{statusIcon} {warningIcon}{taskTitle}",
+        // 状态图标映射（2025年现代化图标）
+        statusIconMap: {
+          // 活跃状态：使用更现代的复选框图标
+          // 选项：☐（标准）、□（空心方框）、○（圆形）、▢（圆角方框）
+          active: "☐", // pending、doing、paused、inbox
+          // 已完成：使用更醒目的勾选图标
+          // 选项：☑（标准）、✓（对勾）、✅（带颜色的对勾）、✔（粗体对勾）
+          completed: "☑", // completedActive，或使用 ✅ 更醒目
+          // 已删除：使用更清晰的删除图标
+          // 选项：☒（标准）、✗（叉号）、❌（带颜色的叉号）、🗑️（垃圾桶）
+          deleted: "☒", // trashed，或使用 ❌ 更清晰
+        },
+        // 警告图标（仅逾期任务显示，2025年现代化设计）
+        // 选项：⚠️（标准）、🔴（红点）、⏰（时钟）、❗（感叹号）
+        warningIcon: "⚠️ ", // 仅逾期任务显示，或使用 🔴 更醒目
+        // 如果标题过长，截断并添加省略号
+        maxLength: 50,
+        overflow: "ellipsis",
+        // 2025年设计趋势：清晰的视觉层次，优雅的间距
+        visualEnhancement: {
+          spacing: "状态图标、警告图标、标题之间有适当间距（1-2个字符）",
+          alignment: "图标对齐，标题左对齐，视觉整齐",
+          typography: "使用系统默认字体，但保持一致的字体大小",
+          hierarchy: "通过图标大小和颜色区分不同状态",
+        },
+      },
+      
+      // 任务项子菜单格式（2025年现代化设计）
+      taskItemSubmenuFormat: {
+        // 子菜单项列表
+        items: [
+          {
+            // 开始计时
+            key: "start_timer",
+            label: "开始计时", // 使用本地化字符串
+            // 使用现代化图标：⏱️ 或 ▶️ 或 🎯
+            icon: "⏱️", // 或使用 ▶️（播放图标）表示开始
+            // 显示条件：只有在当前没有置顶任务时才显示
+            enabled: "!hasPinnedTask",
+            // 点击行为：任务状态切换到 doing，并置顶
+            clickAction: "start_timer_and_pin",
+            // 2025年设计趋势：清晰的行动指示
+            visualEnhancement: {
+              iconStyle: "使用与计时器状态一致的图标，保持视觉一致性",
+            },
+          },
+          {
+            // 打开任务
+            key: "open_task",
+            label: "打开", // 使用本地化字符串
+            // 使用现代化图标：📂 或 👁️ 或 ➡️
+            icon: "📂", // 或使用 👁️（眼睛图标）表示查看
+            enabled: true,
+            // 点击行为：打开窗口，导航到任务页面，并弹窗显示任务详情
+            clickAction: "open_task_detail",
+            // 2025年设计趋势：直观的操作指示
+            visualEnhancement: {
+              iconStyle: "使用与操作相关的图标，提升可识别性",
+            },
+          },
+        ],
+        // 2025年设计趋势：子菜单项使用图标增强可读性
+        visualEnhancement: {
+          iconAlignment: "图标与文本对齐，视觉整齐",
+          spacing: "子菜单项之间有适当间距",
+        },
+      },
+      
+      // 菜单项状态
+      itemStates: {
+        // 计时器状态：可点击（点击后完成任务并取消置顶）
+        timerStatus: {
+          clickable: true,
+          // 文本颜色：主题主色调或高亮色
+          color: "primary",
+          bold: true,
+          // 点击行为：完成任务并取消置顶
+          clickAction: "complete_and_unpin",
+        },
+        // 快速添加任务：可点击
+        quickAddTask: {
+          clickable: true,
+          // 文本颜色：系统默认
+          color: "normal",
+          bold: false,
+        },
+        // 任务项：可点击（点击后切换状态：空→勾→叉→空）
+        taskItem: {
+          clickable: true,
+          // 点击行为：切换任务状态
+          // - 空框（活跃）→ 勾选（完成）→ 叉号（删除）→ 空框（活跃）
+          clickAction: "toggle_task_status",
+          // 文本颜色：
+          // - 逾期任务：警告色（warmYellow）或警告图标（⚠️）
+          // - 今日任务：系统默认文本颜色
+          // 注意：置顶任务不显示状态图标，直接显示任务标题
+          showStatusIcon: true, // 除了置顶任务外，都显示状态图标
+        },
+        // 任务项子菜单
+        taskItemSubmenu: {
+          // 开始计时：只有在没有置顶任务时才启用
+          startTimer: {
+            enabled: "!hasPinnedTask",
+            // 点击行为：任务状态切换到 doing，并置顶
+            clickAction: "start_timer_and_pin",
+          },
+          // 打开任务：始终启用
+          openTask: {
+            enabled: true,
+            // 点击行为：打开窗口，导航到任务页面，并弹窗显示任务详情
+            clickAction: "open_task_detail",
+          },
+        },
+        // 设置：可点击（2025年现代化设计）
+        settings: {
+          clickable: true,
+          // 使用现代化图标：⚙️ 或 🛠️ 或 ⚙
+          icon: "⚙️", // 或使用 🛠️（工具图标）
+          // 点击行为：打开窗口并导航到设置页面
+          clickAction: "open_settings",
+          // 2025年设计趋势：清晰的设置入口
+          visualEnhancement: {
+            iconStyle: "使用标准的设置图标，用户易于识别",
+          },
+        },
+        // 退出应用：可点击（2025年现代化设计）
+        quit: {
+          clickable: true,
+          // 使用现代化图标：🚪 或 ❌ 或 ⛔
+          icon: "🚪", // 或使用 ❌（关闭图标）或 ⛔（禁止图标）
+          // 点击行为：完全退出应用
+          // 按照各平台的标准行为：
+          // - macOS: 调用 NSApplication.terminate() 或 exit(0)
+          // - Windows: 调用 PostQuitMessage(0) 或 exit(0)
+          // - Linux: 调用 exit(0)
+          clickAction: "quit_application",
+          // 2025年设计趋势：清晰的退出指示，但不过于醒目（避免误操作）
+          visualEnhancement: {
+            iconStyle: "使用温和的退出图标，不过于醒目",
+            placement: "放在菜单底部，符合用户习惯",
+          },
+        },
+        // 空状态：当没有任务时
+        emptyTasks: {
+          // 不显示空状态提示，直接不显示任务项
+          showEmptyMessage: false,
+          note: "如果没有任务，只显示计时器状态（如果有）和快速添加任务，不显示空状态提示",
+        },
+      },
+    },
+    
+    // 任务详情弹窗：复用现有组件
+    taskDetailDialog: {
+      component: "TaskDetailBottomSheet",
+      note: "复用现有的 TaskDetailBottomSheet 组件，保持与现有弹窗一致的样式和交互",
+    },
+  },
+
+  // ===========================================
+  // 5. 交互流程（必填）
+  // ===========================================
+  interactions: {
+    // 用户操作流程
+    userFlows: [
+      {
+        // 流程1：切换任务状态
+        name: "切换任务状态",
+        steps: [
+          "用户右键点击系统托盘图标",
+          "系统显示上下文菜单",
+          "用户点击某个任务菜单项（主菜单项，不是子菜单）",
+          "任务状态在空框（☐）、勾选（☑）、叉号（☒）之间循环切换：",
+          "  - 空框（☐）：活跃状态（pending、doing、paused、inbox）",
+          "  - 勾选（☑）：已完成状态（completedActive）",
+          "  - 叉号（☒）：已删除状态（trashed）",
+          "应用更新任务状态到数据库",
+          "系统托盘菜单自动更新，显示新的状态图标",
+        ],
+      },
+      {
+        // 流程2：开始计时（通过子菜单）
+        name: "开始计时",
+        steps: [
+          "用户右键点击系统托盘图标",
+          "系统显示上下文菜单",
+          "用户点击某个任务菜单项，展开子菜单",
+          "子菜单显示：",
+          "  - '开始计时'（只有在没有置顶任务时才显示/启用）",
+          "  - '打开'",
+          "用户点击'开始计时'",
+          "应用检查是否有置顶任务，如果没有则：",
+          "  - 任务状态切换到 doing",
+          "  - 任务设置为置顶",
+          "  - 启动计时器（创建 focus session）",
+          "系统托盘菜单更新，顶部显示计时器状态",
+        ],
+      },
+      {
+        // 流程3：打开任务详情（通过子菜单）
+        name: "打开任务详情",
+        steps: [
+          "用户右键点击系统托盘图标",
+          "系统显示上下文菜单",
+          "用户点击某个任务菜单项，展开子菜单",
+          "用户点击'打开'",
+          "应用检查窗口状态（如果窗口已关闭或最小化，则打开/恢复窗口）",
+          "应用导航到任务列表页面，参数 section=overdue 或 section=today",
+          "页面自动滚动到对应分区",
+          "应用显示所点击任务的详情弹窗（使用 TaskDetailBottomSheet）",
+        ],
+      },
+      {
+        // 流程4：完成任务并取消置顶（点击计时器状态）
+        name: "完成任务并取消置顶",
+        steps: [
+          "用户有活跃的计时器正在运行",
+          "用户右键点击系统托盘图标",
+          "系统显示上下文菜单，顶部显示：'⏱️ (00:15:30) 任务标题'",
+          "用户点击计时器状态菜单项",
+          "应用完成任务（标记为 completedActive）",
+          "应用取消置顶（清除 pinnedTaskId）",
+          "应用停止计时器（结束 focus session）",
+          "系统托盘菜单更新，移除计时器状态项",
+        ],
+      },
+      {
+        // 流程5：快速添加任务
+        name: "快速添加任务",
+        steps: [
+          "用户右键点击系统托盘图标",
+          "系统显示上下文菜单",
+          "用户点击'➕ 添加任务'菜单项",
+          "应用检查窗口状态（如果窗口已关闭或最小化，则打开/恢复窗口）",
+          "应用打开快速添加任务弹窗（使用 QuickAddSheet）",
+          "用户输入任务信息并创建任务",
+        ],
+      },
+      {
+        // 流程6：打开设置
+        name: "打开设置",
+        steps: [
+          "用户右键点击系统托盘图标",
+          "系统显示上下文菜单",
+          "用户点击'设置'菜单项",
+          "应用检查窗口状态（如果窗口已关闭或最小化，则打开/恢复窗口）",
+          "应用导航到设置页面（/settings）",
+        ],
+      },
+      {
+        // 流程7：退出应用
+        name: "退出应用",
+        steps: [
+          "用户右键点击系统托盘图标",
+          "系统显示上下文菜单",
+          "用户点击'退出'菜单项",
+          "应用清理资源（停止计时器、保存数据等）",
+          "应用根据平台调用相应的退出方法：",
+          "  - macOS: NSApplication.sharedApplication().terminate(nil)",
+          "  - Windows: PostQuitMessage(0) 或 exit(0)",
+          "  - Linux: exit(0)",
+          "应用完全退出",
+        ],
+      },
+      {
+        // 流程5：应用启动时初始化系统托盘
+        name: "应用启动初始化",
+        steps: [
+          "应用启动（仅桌面平台：Windows/Linux/macOS）",
+          "检测运行平台，如果是桌面平台则初始化系统托盘",
+          "设置系统托盘图标（根据平台选择 ICO 或 PNG）",
+          "创建系统托盘菜单",
+          "注册菜单项点击事件监听器",
+          "启动任务列表监听（使用 taskSectionsProvider 监听任务变化）",
+          "启动计时器状态监听（使用 pinnedTaskIdProvider 和 focusSessionProvider）",
+          "系统托盘图标显示在系统托盘区域",
+        ],
+      },
+      {
+        // 流程6：任务列表更新
+        name: "任务列表动态更新",
+        steps: [
+          "应用监听任务数据变化（使用 taskSectionsProvider）",
+          "当逾期或今日任务列表发生变化时（新增、删除、修改）",
+          "重新构建系统托盘菜单（更新任务列表）",
+          "更新菜单项：添加新任务、移除已删除任务、更新已修改任务的标题",
+          "如果任务数量超过最大值（10个），显示溢出提示",
+        ],
+      },
+      {
+        // 流程7：计时器状态更新
+        name: "计时器状态动态更新",
+        steps: [
+          "应用监听计时器状态变化（使用 pinnedTaskIdProvider 和 focusSessionProvider）",
+          "当计时器开始、暂停、继续或结束时",
+          "更新系统托盘菜单中的计时器状态项",
+          "更新已用时间显示（实时更新）",
+          "如果计时器结束，从菜单中移除计时器状态项",
+        ],
+      },
+    ],
+    
+    // 交互细节
+    interactionDetails: {
+      // 菜单项点击
+      menuItemClick: {
+        // 点击菜单项后的行为
+        action: "打开窗口 -> 导航到任务页面 -> 显示任务详情",
+        // 窗口管理
+        windowManagement: {
+          // 如果窗口已关闭：打开新窗口
+          closed: "打开新窗口",
+          // 如果窗口已最小化：恢复窗口并置顶
+          minimized: "恢复窗口并置顶",
+          // 如果窗口已打开：直接导航（不改变窗口状态）
+          open: "直接导航，不改变窗口状态",
+        },
+        // 导航延迟：等待窗口打开/恢复后再导航
+        navigationDelay: {
+          // 如果窗口需要打开/恢复，等待窗口完全显示后再导航
+          waitForWindow: true,
+          // 延迟时间：建议 100-300ms，确保窗口已显示
+          delayMs: 200,
+        },
+      },
+      
+      // 任务状态切换逻辑
+      taskStatusToggle: {
+        // 切换顺序：空框（☐）→ 勾选（☑）→ 叉号（☒）→ 空框（☐）
+        toggleSequence: {
+          // 空框（活跃状态）
+          empty: {
+            statuses: ["pending", "doing", "paused", "inbox"],
+            nextStatus: "completedActive",
+            nextIcon: "☑",
+            action: "markCompleted",
+          },
+          // 勾选（已完成状态）
+          checked: {
+            status: "completedActive",
+            nextStatus: "trashed",
+            nextIcon: "☒",
+            action: "softDelete",
+          },
+          // 叉号（已删除状态）
+          crossed: {
+            status: "trashed",
+            nextStatus: "pending",
+            nextIcon: "☐",
+            action: "restoreToPending",
+          },
+        },
+        // 注意：置顶任务不显示状态图标，点击主菜单项不会切换状态
+        note: "置顶任务不显示状态图标，点击主菜单项会完成任务并取消置顶（与计时器状态项行为一致）",
+      },
+      
+      // 开始计时逻辑
+      startTimerLogic: {
+        // 显示条件：只有在当前没有置顶任务时才显示/启用
+        condition: "!hasPinnedTask",
+        // 点击行为：
+        // 1. 任务状态切换到 doing
+        // 2. 任务设置为置顶
+        // 3. 启动计时器（创建 focus session）
+        actions: [
+          "taskService.markInProgress(taskId)",
+          "pinnedTaskIdProvider.setPinnedTaskId(taskId)",
+          "focusActionsNotifierProvider.start(taskId)",
+        ],
+      },
+      
+      // 任务详情弹窗显示逻辑
+      taskDetailDisplay: {
+        // 显示条件：用户点击了任务子菜单中的"打开"选项
+        condition: "用户点击了任务子菜单中的'打开'选项",
+        // 显示的任务：用户点击的任务（通过 taskId 标识）
+        taskSelection: "用户点击的任务（从菜单项的 taskId 获取）",
+        // 显示时机：页面加载完成且任务数据加载完成后
+        timing: "页面加载完成 + 任务数据加载完成后，延迟 300-500ms 显示",
+        // 弹窗类型：根据任务状态选择
+        // - 已完成/已归档/已删除：TaskDetailBottomSheet（只读）
+        // - 其他状态：TaskActionBottomSheet（可编辑）
+        // 使用 TaskBottomSheetHelper.showTaskBottomSheet 自动选择
+        sheetType: "根据任务状态自动选择（使用 TaskBottomSheetHelper.showTaskBottomSheet）",
+      },
+      
+      // 完成任务并取消置顶逻辑
+      completeAndUnpinLogic: {
+        // 触发条件：用户点击计时器状态菜单项或置顶任务的主菜单项
+        condition: "用户点击计时器状态菜单项或置顶任务的主菜单项",
+        // 执行操作：
+        // 1. 完成任务（标记为 completedActive）
+        // 2. 取消置顶（清除 pinnedTaskId）
+        // 3. 停止计时器（结束 focus session）
+        actions: [
+          "taskService.markCompleted(taskId)",
+          "pinnedTaskIdProvider.setPinnedTaskId(null)",
+          "focusActionsNotifierProvider.stop(taskId)",
+        ],
+      },
+      
+      // 打开设置逻辑
+      openSettingsLogic: {
+        // 触发条件：用户点击"设置"菜单项
+        condition: "用户点击'设置'菜单项",
+        // 执行操作：
+        // 1. 检查窗口状态（如果窗口已关闭或最小化，则打开/恢复窗口）
+        // 2. 导航到设置页面（/settings）
+        actions: [
+          "windowManager.show() 和 windowManager.focus()（如果需要）",
+          "AppRouter.router.go('/settings')",
+        ],
+      },
+      
+      // 退出应用逻辑
+      quitApplicationLogic: {
+        // 触发条件：用户点击"退出"菜单项
+        condition: "用户点击'退出'菜单项",
+        // 执行操作：按照各平台的标准行为完全退出应用
+        // - macOS: 使用 NSApplication.sharedApplication().terminate(nil) 或 exit(0)
+        // - Windows: 使用 PostQuitMessage(0) 或 exit(0)
+        // - Linux: 使用 exit(0)
+        // 注意：退出前应该清理资源（如停止计时器、保存数据等）
+        actions: [
+          "清理资源（停止计时器、保存数据等）",
+          "根据平台调用相应的退出方法",
+          "macOS: NSApplication.sharedApplication().terminate(nil)",
+          "Windows: PostQuitMessage(0) 或 exit(0)",
+          "Linux: exit(0)",
+        ],
+        // 平台标准行为说明
+        platformBehavior: {
+          macos: "macOS 应用退出时，系统会自动处理窗口关闭和资源清理",
+          windows: "Windows 应用退出时，需要确保所有窗口已关闭，系统托盘图标已移除",
+          linux: "Linux 应用退出时，需要确保所有窗口已关闭，系统托盘图标已移除",
+        },
+      },
+      
+      // 快速添加任务弹窗显示逻辑
+      quickAddTaskDisplay: {
+        // 显示条件：用户点击了"快速添加任务"菜单项
+        condition: "用户点击了'快速添加任务'菜单项",
+        // 显示时机：窗口打开/恢复后立即显示
+        timing: "窗口打开/恢复后，延迟 100-200ms 显示",
+        // 弹窗类型：使用 QuickAddSheet 组件
+        sheetType: "QuickAddSheet（复用现有的快速添加任务组件）",
+      },
+    },
+  },
+
+  // ===========================================
+  // 6. 动画效果（可选）
+  // ===========================================
+  animations: {
+    // 系统托盘菜单：使用系统原生动画，应用不控制
+    menuAnimation: {
+      note: "系统托盘菜单的显示/隐藏动画由操作系统控制，应用无法自定义",
+    },
+    
+    // 窗口打开/恢复：使用系统原生动画
+    windowAnimation: {
+      note: "窗口打开/恢复动画由操作系统控制，应用无法自定义",
+    },
+    
+    // 任务详情弹窗：复用现有动画
+    taskDetailSheetAnimation: {
+      note: "任务详情弹窗使用现有的 showModalBottomSheet 动画，无需额外定义",
+    },
+  },
+
+  // ===========================================
+  // 7. 响应式设计（可选）
+  // ===========================================
+  responsive: {
+    // 系统托盘功能仅在桌面平台可用
+    platforms: {
+      // Windows: 完全支持
+      windows: {
+        supported: true,
+        iconFormat: "ico",
+        menuSupport: "完全支持",
+      },
+      // macOS: 完全支持
+      macos: {
+        supported: true,
+        iconFormat: "png",
+        menuSupport: "完全支持",
+        // macOS 特有：菜单栏图标（而非系统托盘）
+        note: "macOS 使用菜单栏图标，而非系统托盘",
+      },
+      // Linux: 支持（取决于桌面环境）
+      linux: {
+        supported: true,
+        iconFormat: "png",
+        menuSupport: "取决于桌面环境（GNOME、KDE 等）",
+        note: "不同 Linux 桌面环境对系统托盘的支持可能不同",
+      },
+      // 移动平台：不支持
+      mobile: {
+        supported: false,
+        note: "移动平台（Android/iOS）不支持系统托盘功能",
+      },
+      // Web: 不支持
+      web: {
+        supported: false,
+        note: "Web 平台不支持系统托盘功能",
+      },
+    },
+  },
+
+  // ===========================================
+  // 8. 关键场景（必填）
+  // ===========================================
+  keyScenarios: [
+    {
+      // 场景1：有计时器和任务时
+      name: "有计时器和任务",
+      description: "用户有活跃的计时器，同时有逾期和今日任务",
+      steps: [
+        "系统托盘菜单显示：",
+        "  - '⏱️ (00:15:30) 完成项目文档'（加粗，醒目，置顶任务）",
+        "  - '➕ 添加任务'",
+        "  - 分隔线",
+        "  - '☐ ⚠️ 更新用户手册'（警告色，有子菜单）",
+        "  - '☑ ⚠️ 修复 Bug #123'（警告色，已完成，有子菜单）",
+        "  - '☐ 准备会议材料'（正常黑色，有子菜单）",
+        "  - '☑ 回复邮件'（正常黑色，已完成，有子菜单）",
+        "  - 分隔线",
+        "  - '设置'",
+        "  - '退出'",
+        "用户点击某个任务的主菜单项，任务状态切换（☐→☑→☒→☐）",
+        "用户点击某个任务的子菜单，选择'打开'或'开始计时'",
+      ],
+      expectedResult: "用户能够看到计时器状态，快速切换任务状态，并通过子菜单操作任务",
+    },
+    {
+      // 场景2：无计时器，有任务时
+      name: "无计时器，有任务",
+      description: "用户没有活跃的计时器，但有逾期和今日任务",
+      steps: [
+        "系统托盘菜单显示：",
+        "  - '➕ 添加任务'（在最上面）",
+        "  - 分隔线",
+        "  - '☐ ⚠️ 更新用户手册'（警告色，有子菜单：开始计时、打开）",
+        "  - '☑ ⚠️ 修复 Bug #123'（警告色，已完成，有子菜单：打开）",
+        "  - '☐ 准备会议材料'（正常黑色，有子菜单：开始计时、打开）",
+        "  - '☑ 回复邮件'（正常黑色，已完成，有子菜单：打开）",
+        "  - 分隔线",
+        "  - '设置'",
+        "  - '退出'",
+        "用户点击某个任务的主菜单项，任务状态切换",
+        "用户点击某个任务的子菜单，选择'开始计时'（如果没有置顶任务）或'打开'",
+      ],
+      expectedResult: "用户能够快速添加任务、切换任务状态，并通过子菜单操作任务",
+    },
+    {
+      // 场景3：无任务时
+      name: "无任务",
+      description: "用户没有逾期或今日任务，查看系统托盘菜单",
+      steps: [
+        "系统托盘菜单显示：",
+        "  - '⏱️ (00:15:30) 任务标题'（如果有计时器）",
+        "  - '➕ 添加任务'",
+        "  - 分隔线",
+        "  - '设置'",
+        "  - '退出'",
+        "用户只能看到添加任务和设置选项，没有任务列表",
+      ],
+      expectedResult: "用户能够快速添加任务或打开设置，菜单简洁美观",
+    },
+    {
+      // 场景4：点击计时器状态完成任务
+      name: "点击计时器状态完成任务",
+      description: "用户点击计时器状态菜单项，完成任务并取消置顶",
+      steps: [
+        "系统托盘菜单顶部显示：'⏱️ (00:15:30) 完成项目文档'",
+        "用户点击计时器状态菜单项",
+        "应用完成任务（标记为 completedActive）",
+        "应用取消置顶（清除 pinnedTaskId）",
+        "应用停止计时器（结束 focus session）",
+        "系统托盘菜单更新，移除计时器状态项",
+        "任务在菜单中显示为：'☑ 完成项目文档'（已完成状态）",
+      ],
+      expectedResult: "用户能够快速完成任务并停止计时器",
+    },
+    {
+      // 场景5：通过子菜单开始计时
+      name: "通过子菜单开始计时",
+      description: "用户通过任务子菜单开始计时",
+      steps: [
+        "用户没有置顶任务",
+        "系统托盘菜单显示任务：'☐ ⚠️ 更新用户手册'",
+        "用户点击任务菜单项，展开子菜单",
+        "子菜单显示：'开始计时'（启用）和'打开'",
+        "用户点击'开始计时'",
+        "应用将任务状态切换到 doing",
+        "应用设置任务为置顶",
+        "应用启动计时器（创建 focus session）",
+        "系统托盘菜单更新，顶部显示：'⏱️ (00:00:00) 更新用户手册'",
+        "任务在菜单中不再显示状态图标（因为是置顶任务）",
+      ],
+      expectedResult: "用户能够通过子菜单快速开始计时",
+    },
+    {
+      // 场景3：窗口已打开时
+      name: "窗口已打开",
+      description: "应用窗口已打开，用户点击系统托盘菜单",
+      steps: [
+        "用户点击系统托盘菜单项",
+        "应用不改变窗口状态（不最小化/最大化）",
+        "直接导航到对应任务页面",
+        "显示任务详情弹窗",
+      ],
+      expectedResult: "用户能够在不干扰当前窗口状态的情况下快速查看任务",
+    },
+    {
+      // 场景4：任务列表动态更新
+      name: "任务列表更新",
+      description: "用户在应用中完成任务，系统托盘菜单自动更新任务列表",
+      steps: [
+        "系统托盘菜单显示：",
+        "  - '今日活跃任务'",
+        "  - '任务A'",
+        "  - '任务B'",
+        "  - '任务C'",
+        "用户在应用中完成任务B",
+        "任务数据更新",
+        "系统托盘菜单自动更新，移除'任务B'：",
+        "  - '今日活跃任务'",
+        "  - '任务A'",
+        "  - '任务C'",
+      ],
+      expectedResult: "系统托盘菜单实时反映任务列表变化，已完成的任务自动从菜单中移除",
+    },
+    {
+      // 场景5：任务数量超过最大值
+      name: "任务数量超过最大值",
+      description: "用户有超过 10 个逾期任务，系统托盘菜单显示溢出提示",
+      steps: [
+        "用户有 15 个逾期任务",
+        "系统托盘菜单显示：",
+        "  - '逾期活跃任务'",
+        "  - '任务1'",
+        "  - '任务2'",
+        "  - ...（显示前 10 个任务）",
+        "  - '任务10'",
+        "  - '还有 5 个任务...'（灰色，不可点击）",
+      ],
+      expectedResult: "菜单不会过长，用户可以看到前 10 个任务，并知道还有更多任务",
+    },
+  ],
+
+  // ===========================================
+  // 9. 边界情况（必填）
+  // ===========================================
+  edgeCases: [
+    {
+      // 边界情况1：应用首次启动
+      case: "应用首次启动",
+      description: "应用首次启动，还没有任务数据",
+      handling: "系统托盘菜单显示：'逾期活跃任务 (0)' 和 '今日活跃任务 (0)'",
+    },
+    {
+      // 边界情况2：任务数据加载失败
+      case: "任务数据加载失败",
+      description: "任务数据查询失败或网络错误",
+      handling: "系统托盘菜单显示上次成功获取的任务数量，或显示 '(?)' 表示未知",
+    },
+    {
+      // 边界情况3：窗口打开失败
+      case: "窗口打开失败",
+      description: "尝试打开/恢复窗口时失败",
+      handling: "记录错误日志，尝试重新打开窗口，如果多次失败则提示用户",
+    },
+    {
+      // 边界情况4：任务列表为空时
+      case: "任务列表为空",
+      description: "没有逾期和今日任务",
+      handling: "不显示任务列表，只显示计时器状态（如果有）、快速添加任务、设置和退出选项，菜单简洁美观",
+    },
+    {
+      // 边界情况9：计时器状态更新延迟
+      case: "计时器状态更新延迟",
+      description: "计时器已用时间需要实时更新，但系统托盘菜单可能不支持实时更新",
+      handling: "定期更新计时器状态（每 1 秒更新一次），或使用平台特定的实时更新机制",
+    },
+    {
+      // 边界情况11：任务状态切换失败
+      case: "任务状态切换失败",
+      description: "尝试切换任务状态时失败（例如数据库错误）",
+      handling: "记录错误日志，保持当前状态图标不变，不更新菜单",
+    },
+    {
+      // 边界情况12：开始计时时已有置顶任务
+      case: "开始计时时已有置顶任务",
+      description: "用户尝试开始计时，但已有其他任务置顶",
+      handling: "子菜单中的'开始计时'选项应该被禁用或隐藏，不允许开始新的计时",
+    },
+    {
+      // 边界情况13：置顶任务不显示状态图标
+      case: "置顶任务显示",
+      description: "置顶任务在菜单中如何显示",
+      handling: "置顶任务不显示状态图标，直接显示任务标题（作为计时器状态项显示在顶部）",
+    },
+    {
+      // 边界情况14：子菜单不支持
+      case: "平台不支持子菜单",
+      description: "某些平台可能不支持子菜单（二级菜单）",
+      handling: "检测平台支持情况，如果不支持子菜单，则使用其他交互方式（如长按、右键等）",
+    },
+    {
+      // 边界情况10：快速添加任务弹窗打开失败
+      case: "快速添加任务弹窗打开失败",
+      description: "尝试打开快速添加任务弹窗时失败",
+      handling: "记录错误日志，尝试重新打开窗口，如果多次失败则提示用户",
+    },
+    {
+      // 边界情况7：任务标题过长
+      case: "任务标题过长",
+      description: "任务标题超过 50 个字符",
+      handling: "截断标题并添加省略号，例如：'这是一个非常长的任务标题，会被截断...'",
+    },
+    {
+      // 边界情况8：任务在菜单显示期间被删除
+      case: "任务被删除",
+      description: "用户在应用中删除了任务，但系统托盘菜单仍显示该任务",
+      handling: "监听任务数据变化，当任务被删除时，立即从菜单中移除该任务项",
+    },
+    {
+      // 边界情况5：任务详情弹窗显示失败
+      case: "任务详情弹窗显示失败",
+      description: "尝试显示任务详情弹窗时失败（例如任务已被删除）",
+      handling: "记录错误日志，只显示任务列表页面，不显示弹窗",
+    },
+    {
+      // 边界情况6：平台不支持系统托盘
+      case: "平台不支持",
+      description: "在不支持系统托盘的平台（移动端、Web）上运行",
+      handling: "检测平台，如果是移动端或 Web，不初始化系统托盘功能，不影响其他功能",
+    },
+  ],
+
+  // ===========================================
+  // 10. 非功能需求（必填）
+  // ===========================================
+  nonFunctionalRequirements: {
+    // 性能要求
+    performance: {
+      // 菜单项点击响应时间：< 500ms
+      menuClickResponse: "< 500ms",
+      // 任务数量更新频率：实时（任务数据变化时立即更新）
+      updateFrequency: "实时（任务数据变化时立即更新）",
+      // 系统托盘初始化时间：< 1s
+      initializationTime: "< 1s",
+    },
+    
+    // 可靠性要求
+    reliability: {
+      // 系统托盘图标应始终显示（除非用户手动隐藏）
+      iconVisibility: "始终显示",
+      // 菜单项点击应始终响应（除非应用崩溃）
+      menuResponsiveness: "始终响应",
+      // 任务数量应准确反映实际任务数量
+      countAccuracy: "准确反映实际任务数量",
+    },
+    
+    // 兼容性要求
+    compatibility: {
+      // 支持 Windows 10/11
+      windows: "Windows 10/11",
+      // 支持 macOS 10.14+
+      macos: "macOS 10.14+",
+      // 支持主流 Linux 桌面环境（GNOME、KDE 等）
+      linux: "主流 Linux 桌面环境",
+    },
+    
+    // 可维护性要求
+    maintainability: {
+      // 系统托盘功能应独立封装，便于维护和测试
+      modularity: "独立封装为 SystemTrayService",
+      // 代码应遵循现有项目的代码规范
+      codeStyle: "遵循现有项目代码规范",
+      // 应提供充分的注释和文档
+      documentation: "提供充分的注释和文档",
+    },
+  },
+
+  // ===========================================
+  // 11. 依赖与风险（必填）
+  // ===========================================
+  dependenciesAndRisks: {
+    // 技术依赖
+    technicalDependencies: [
+      {
+        dependency: "tray_manager 包",
+        version: "^0.2.0",
+        purpose: "提供跨平台系统托盘功能",
+        risk: "低 - 已验证与项目依赖兼容",
+      },
+      {
+        dependency: "go_router",
+        version: "已存在",
+        purpose: "导航到任务列表页面",
+        risk: "无 - 现有依赖",
+      },
+      {
+        dependency: "taskSectionsProvider",
+        version: "已存在",
+        purpose: "查询逾期和今日任务列表",
+        risk: "无 - 现有功能",
+      },
+      {
+        dependency: "TaskDetailBottomSheet 组件",
+        version: "已存在",
+        purpose: "显示任务详情弹窗",
+        risk: "无 - 现有组件",
+      },
+    ],
+    
+    // 资源依赖
+    resourceDependencies: [
+      {
+        resource: "app_icon.ico",
+        path: "assets/logo/app_icon.ico",
+        purpose: "Windows 系统托盘图标",
+        status: "已准备",
+      },
+      {
+        resource: "granostack-logo-transparent.png",
+        path: "assets/logo/granostack-logo-transparent.png",
+        purpose: "macOS/Linux 系统托盘图标",
+        status: "已存在",
+      },
+    ],
+    
+    // 风险点
+    risks: [
+      {
+        risk: "Linux 平台兼容性",
+        description: "不同 Linux 桌面环境对系统托盘的支持可能不同",
+        mitigation: "测试主流桌面环境（GNOME、KDE），提供降级方案",
+        severity: "中",
+      },
+      {
+        risk: "窗口管理 API",
+        description: "需要窗口管理功能（打开/恢复窗口），可能需要额外依赖",
+        mitigation: "检查 tray_manager 是否提供窗口管理功能，如无则使用 window_manager 或平台特定 API",
+        severity: "中",
+      },
+      {
+        risk: "任务数量更新性能",
+        description: "频繁更新菜单项文本可能影响性能",
+        mitigation: "使用防抖（debounce）机制，限制更新频率",
+        severity: "低",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 12. 待确认问题（必填）
+  // ===========================================
+  openQuestions: [
+    {
+      // 问题1：菜单项文本颜色支持
+      question: "如何在不同平台实现菜单项文本颜色？",
+      description: "系统托盘菜单的文本颜色支持可能因平台而异，如何确保逾期任务使用警告色？",
+      options: [
+        "使用平台特定 API 设置文本颜色（如果支持）",
+        "在任务标题前添加警告图标或符号（如 ⚠️ 或 [逾期]）作为降级方案",
+        "结合使用：优先使用颜色，不支持时使用图标/符号",
+      ],
+      recommendation: "结合使用：优先尝试设置文本颜色，如果平台不支持，则在标题前添加警告图标（⚠️）",
+      confirmed: true,
+      confirmedAnswer: "结合使用：优先使用颜色，不支持时使用图标/符号",
+    },
+    {
+      // 问题2：任务列表最大显示数量
+      question: "每个分组最多显示多少个任务？",
+      description: "如果任务数量很多，菜单会很长，需要限制显示数量",
+      options: [
+        "10 个任务 - 平衡信息量和菜单长度",
+        "5 个任务 - 菜单更短，但信息量较少",
+        "20 个任务 - 信息量更多，但菜单可能过长",
+      ],
+      recommendation: "10 个任务，超过时显示'还有 X 个任务...'提示",
+      confirmed: true,
+      confirmedAnswer: "10 个任务，超过时显示溢出提示",
+    },
+    {
+      // 问题3：是否显示"退出"菜单项
+      question: "是否在系统托盘菜单中显示'退出'选项？",
+      description: "不同平台对'退出'选项的需求不同，macOS 通常需要，Windows/Linux 可能不需要",
+      options: [
+        "仅在 macOS 上显示'退出'选项",
+        "在所有平台都显示'退出'选项",
+        "不显示'退出'选项（用户可以通过其他方式退出）",
+      ],
+      recommendation: "在所有平台都显示'退出'选项，因为应用有系统托盘时，关闭窗口后仍在运行，用户需要明确的退出方式",
+      confirmed: true,
+      confirmedAnswer: "在所有平台都显示'退出'选项，按照各平台的标准行为表现",
+    },
+    {
+      // 问题4：任务详情弹窗显示哪个任务
+      question: "任务详情弹窗显示哪个任务？",
+      description: "用户点击菜单中的任务项后，应该显示哪个任务的详情？",
+      options: [
+        "显示用户点击的任务（通过 taskId 标识）",
+        "显示第一个任务（列表中的第一个）",
+        "不自动显示，让用户在列表中选择",
+      ],
+      recommendation: "显示用户点击的任务，提供精准的访问体验",
+      confirmed: true,
+      confirmedAnswer: "显示用户点击的任务（通过 taskId 标识）",
+    },
+    {
+      // 问题5：窗口管理方式
+      question: "如何实现窗口打开/恢复功能？",
+      description: "tray_manager 可能不提供窗口管理功能，需要确认使用什么方式",
+      options: [
+        "使用 tray_manager 提供的窗口管理功能（如果支持）",
+        "使用 window_manager 包（需要额外依赖）",
+        "使用平台特定的窗口管理 API",
+      ],
+      recommendation: "使用 window_manager 包（已添加依赖）",
+      confirmed: true,
+      confirmedAnswer: "使用 window_manager 包（已添加依赖）",
+    },
+    {
+      // 问题8：任务状态切换逻辑
+      question: "任务状态切换的具体逻辑？",
+      description: "点击任务主菜单项时，状态如何切换？",
+      options: [
+        "空框（☐）→ 勾选（☑）→ 叉号（☒）→ 空框（☐）循环切换",
+        "根据当前状态智能切换（如从完成切换到活跃，从删除恢复到活跃）",
+        "只支持完成和删除两种切换",
+      ],
+      recommendation: "空框（☐）→ 勾选（☑）→ 叉号（☒）→ 空框（☐）循环切换，简单直观",
+      confirmed: true,
+      confirmedAnswer: "空框（☐）→ 勾选（☑）→ 叉号（☒）→ 空框（☐）循环切换",
+    },
+    {
+      // 问题9：子菜单支持
+      question: "系统托盘菜单是否支持子菜单（二级菜单）？",
+      description: "不同平台对子菜单的支持可能不同",
+      options: [
+        "所有平台都支持子菜单",
+        "部分平台支持，需要检测并降级处理",
+        "不支持子菜单，需要使用其他交互方式",
+      ],
+      recommendation: "先尝试使用子菜单，如果不支持则使用其他交互方式（如长按、右键等）",
+      confirmed: false,
+    },
+    {
+      // 问题6：计时器状态显示格式
+      question: "计时器状态如何显示？",
+      description: "计时器状态应该显示哪些信息，格式如何？",
+      options: [
+        "显示：图标 + 任务标题 + 已用时间（例如：'⏱️ 完成项目文档 (00:15:30)'）",
+        "显示：图标 + 已用时间（例如：'⏱️ 00:15:30'）",
+        "显示：任务标题 + 已用时间（例如：'完成项目文档 (00:15:30)'）",
+      ],
+      recommendation: "显示：图标 + 任务标题 + 已用时间，让用户清楚知道正在计时哪个任务",
+      confirmed: true,
+      confirmedAnswer: "显示：图标 + 任务标题 + 已用时间（例如：'⏱️ 完成项目文档 (00:15:30)'）",
+    },
+    {
+      // 问题7：快速添加任务位置
+      question: "快速添加任务在菜单中的位置？",
+      description: "快速添加任务应该放在哪里？",
+      options: [
+        "如果有计时器，放在计时器下；如果没有，放在最上面",
+        "始终放在最上面",
+        "始终放在最下面（任务列表后）",
+      ],
+      recommendation: "如果有计时器，放在计时器下；如果没有，放在最上面，保证菜单美观和逻辑清晰",
+      confirmed: true,
+      confirmedAnswer: "如果有计时器，放在计时器下；如果没有，放在最上面",
+    },
+  ],
+}
+
