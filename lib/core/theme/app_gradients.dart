@@ -254,9 +254,6 @@ class AppGradientsExtension extends ThemeExtension<AppGradientsExtension> {
 extension AppGradientsTheme on BuildContext {
   AppGradientsExtension get gradients {
     final gradients = Theme.of(this).extension<AppGradientsExtension>();
-    if (gradients == null) {
-      throw StateError('AppGradientsExtension not found on Theme');
-    }
-    return gradients;
+    return gradients ?? AppGradientsExtension.light;
   }
 }

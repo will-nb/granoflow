@@ -5,7 +5,7 @@ import '../services/system_tray_service.dart';
 /// 
 /// 提供 SystemTrayService 实例的全局访问
 final systemTrayServiceProvider = FutureProvider<SystemTrayService>((ref) async {
-  return SystemTrayService(ref);
+  return SystemTrayService();
 });
 
 /// 系统托盘初始化状态 Provider

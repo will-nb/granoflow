@@ -29,37 +29,24 @@ class _GranoFlowAppState extends ConsumerState<GranoFlowApp> {
     super.initState();
     // 在应用启动后初始化系统托盘（仅桌面平台）
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      debugPrint('[GranoFlowApp] PostFrameCallback triggered, initializing system tray...');
       _initializeSystemTray();
     });
   }
 
   Future<void> _initializeSystemTray() async {
-    debugPrint('[GranoFlowApp] Starting system tray initialization...');
     // 检测运行平台
     if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
-      debugPrint('[GranoFlowApp] Not a desktop platform, skipping system tray initialization');
       return;
     }
 
-    debugPrint('[GranoFlowApp] Platform: ${Platform.operatingSystem}');
-
     try {
-      debugPrint('[GranoFlowApp] Reading system tray service provider...');
       // 读取系统托盘服务并初始化
       final service = await ref.read(systemTrayServiceProvider.future);
-      debugPrint('[GranoFlowApp] System tray service obtained, calling init...');
       await service.init();
-      debugPrint('[GranoFlowApp] System tray service initialized');
-
       // 更新初始化状态
       ref.read(systemTrayInitializedProvider.notifier).state = true;
-      debugPrint('[GranoFlowApp] System tray initialization completed successfully');
     } catch (error, stackTrace) {
-      debugPrint('[GranoFlowApp] ❌ Failed to initialize system tray: $error');
-      debugPrint('[GranoFlowApp] Stack trace: $stackTrace');
-      // 重新抛出错误以便调试
-      rethrow;
+      debugPrint('[GranoFlowApp] Failed to initialize system tray: $error\n$stackTrace');
     }
   }
 
