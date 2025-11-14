@@ -3,10 +3,10 @@
 /// 统一管理所有拖拽组件的视觉参数，确保 Tasks 和 Inbox 页面外观一致
 class DragConstants {
   // 拖拽反馈效果
-  static const double tiltAngle = 0.026; // ~1.5度
+  static const double tiltAngle = 0.036; // ~1.5度
   static const double feedbackScale = 1.03; // 轻微放大
-  static const double feedbackOpacity = 0.8; // 半透明，拖拽时可以看到后面的间隔线
-  static const double draggingOpacity = 0.5; // 原位更透明，确保分割线可见（从 0.92 调整为 0.5）
+  static const double feedbackOpacity = 0.98; // 半透明，拖拽时可以看到后面的间隔线
+  static const double draggingOpacity = 0.8; // 原位更透明，确保分割线可见
   static const double feedbackElevation = 8.0; // 中等阴影
   static const double feedbackWidth = 300.0; // 反馈宽度
   static const double feedbackPadding = 8.0; // 反馈内边距（文字和阴影边框的间距）
