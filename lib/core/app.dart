@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -8,19 +10,53 @@ import '../presentation/navigation/app_router.dart';
 import 'constants/font_scale_constants.dart';
 import 'providers/app_providers.dart';
 import 'providers/service_providers.dart';
+import 'providers/system_tray_provider.dart';
 import 'theme/app_theme.dart';
 
-class GranoFlowApp extends ConsumerWidget {
+class GranoFlowApp extends ConsumerStatefulWidget {
   const GranoFlowApp({super.key, this.locale});
 
   final Locale? locale;
 
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GranoFlowApp> createState() => _GranoFlowAppState();
+}
+
+class _GranoFlowAppState extends ConsumerState<GranoFlowApp> {
+  @override
+  void initState() {
+    super.initState();
+    // 在应用启动后初始化系统托盘（仅桌面平台）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeSystemTray();
+    });
+  }
+
+  Future<void> _initializeSystemTray() async {
+    // 检测运行平台
+    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) {
+      return;
+    }
+
+    try {
+      // 读取系统托盘服务并初始化
+      final service = await ref.read(systemTrayServiceProvider.future);
+      await service.init();
+
+      // 更新初始化状态
+      ref.read(systemTrayInitializedProvider.notifier).state = true;
+    } catch (error, stackTrace) {
+      debugPrint('[GranoFlowApp] Failed to initialize system tray: $error\n$stackTrace');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final preferenceLocale = ref
         .watch(appLocaleProvider)
         .maybeWhen(data: (value) => value, orElse: () => null);
-    final localeValue = locale ?? preferenceLocale;
+    final localeValue = widget.locale ?? preferenceLocale;
     final themeMode = ref
         .watch(themeProvider)
         .maybeWhen(data: (value) => value, orElse: () => ThemeMode.system);

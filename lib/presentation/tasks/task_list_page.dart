@@ -5,6 +5,7 @@ import '../widgets/pinned_task_bar.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/providers/pinned_task_provider.dart';
+import '../../core/providers/repository_providers.dart';
 import '../../core/providers/service_providers.dart';
 import '../../core/providers/tasks_drag_provider.dart';
 import '../../data/models/task.dart';
@@ -14,6 +15,7 @@ import '../widgets/main_drawer.dart';
 import '../widgets/page_app_bar.dart';
 import '../widgets/task_filter_collapsible.dart';
 import '../widgets/utils/quick_add_sheet_helper.dart';
+import '../widgets/utils/task_bottom_sheet_helper.dart';
 import 'utils/date_utils.dart';
 import 'views/task_section_panel.dart';
 
@@ -34,6 +36,7 @@ class TaskListPage extends ConsumerStatefulWidget {
     super.key,
     this.initialSection,
     this.scrollToPinned = false,
+    this.initialTaskId,
   });
 
   /// 可选的初始分区参数
@@ -54,6 +57,12 @@ class TaskListPage extends ConsumerStatefulWidget {
   ///
   /// 如果为 true，页面加载时会自动滚动到置顶任务栏的位置。
   final bool scrollToPinned;
+
+  /// 可选的初始任务 ID 参数
+  ///
+  /// 如果提供了这个参数，页面加载时会自动显示该任务的详情弹窗。
+  /// 可以通过路由参数传入，比如从系统托盘菜单点击任务时，直接显示任务详情。
+  final String? initialTaskId;
 
   @override
   ConsumerState<TaskListPage> createState() => _TaskListPageState();
@@ -92,6 +101,11 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
   /// 用来确保滚动到置顶任务只执行一次。
   bool _didScrollToPinned = false;
 
+  /// 是否已经显示初始任务详情
+  ///
+  /// 用来确保任务详情弹窗只显示一次。
+  bool _didShowInitialTaskDetail = false;
+
   /// 置顶任务栏的全局键
   ///
   /// 用于定位置顶任务栏的位置，方便自动滚动。
@@ -128,8 +142,46 @@ class _TaskListPageState extends ConsumerState<TaskListPage> {
         if (widget.scrollToPinned && !_didScrollToPinned) {
           _scrollToPinnedTask();
         }
+
+        // 检查是否需要显示初始任务详情
+        if (widget.initialTaskId != null && !_didShowInitialTaskDetail) {
+          _showInitialTaskDetail(widget.initialTaskId!);
+        }
       }
     });
+  }
+
+  /// 显示初始任务详情
+  /// 
+  /// [taskId] 任务 ID
+  Future<void> _showInitialTaskDetail(String taskId) async {
+    if (_didShowInitialTaskDetail) {
+      return;
+    }
+
+    _didShowInitialTaskDetail = true;
+
+    // 延迟显示，确保页面已加载
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (!mounted) {
+      return;
+    }
+
+    try {
+      // 获取任务数据
+      final taskRepository = await ref.read(taskRepositoryProvider.future);
+      final task = await taskRepository.findById(taskId);
+      if (task == null) {
+        debugPrint('[TaskListPage] Task not found: $taskId');
+        return;
+      }
+
+      // 显示任务详情弹窗
+      TaskBottomSheetHelper.showTaskBottomSheet(context, ref, task);
+    } catch (error, stackTrace) {
+      debugPrint('[TaskListPage] Failed to show initial task detail: $error\n$stackTrace');
+    }
   }
 
   @override

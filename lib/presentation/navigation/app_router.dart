@@ -33,9 +33,11 @@ class AppRouter {
             builder: (context, state) {
               final sectionParam = state.uri.queryParameters['section'];
               final scrollToPinned = state.uri.queryParameters['scrollToPinned'] == 'true';
+              final taskIdParam = state.uri.queryParameters['taskId'];
               return TaskListPage(
                 initialSection: sectionParam,
                 scrollToPinned: scrollToPinned,
+                initialTaskId: taskIdParam,
               );
             },
           ),
