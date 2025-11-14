@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/node.dart';
 import '../../data/models/task.dart';
 import '../../core/providers/node_providers.dart';
 import '../../core/providers/service_providers.dart';
+import '../../generated/l10n/app_localizations.dart';
 import 'tri_state_checkbox.dart';
-import 'utils/node_editor_helper.dart';
+import 'input_decoration_builder.dart';
 
 /// 任务节点列表组件（支持交互）
 /// 
@@ -23,6 +25,20 @@ class TaskNodesListReadonly extends ConsumerStatefulWidget {
 }
 
 class _TaskNodesListReadonlyState extends ConsumerState<TaskNodesListReadonly> {
+  String? _editingNodeId;
+  final Map<String, TextEditingController> _editingControllers = {};
+  final Map<String, FocusNode> _editingFocusNodes = {};
+
+  @override
+  void dispose() {
+    for (final controller in _editingControllers.values) {
+      controller.dispose();
+    }
+    for (final focusNode in _editingFocusNodes.values) {
+      focusNode.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,67 +82,153 @@ class _TaskNodesListReadonlyState extends ConsumerState<TaskNodesListReadonly> {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
     final isDeleted = node.status == NodeStatus.deleted;
     final isFinished = node.status == NodeStatus.finished;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 节点瓦片（可交互）
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () async {
-              await NodeEditorHelper.showNodeEditor(
-                context,
-                ref,
-                taskId: widget.task.id,
-                nodeId: node.id,
-                initialTitle: node.title,
-              );
-            },
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: depth * 24.0 + 16.0,
-                right: 16.0,
-                top: 6.0,
-                bottom: 6.0,
-              ),
-              child: Row(
-                children: [
-                  // 三态复选框（可交互）
-                  TriStateCheckbox(
-                    value: _nodeStatusToTriState(node.status),
-                    onChanged: (newState) {
-                      final newStatus = _triStateToNodeStatus(newState);
-                      _updateNodeStatus(node.id, newStatus);
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  // 节点标题（可点击编辑）
-                  Expanded(
-                    child: Text(
-                      node.title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        decoration: isDeleted || isFinished
-                            ? TextDecoration.lineThrough
-                            : null,
-                        color: isDeleted
-                            ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
-                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
-                        height: 1.4,
-                      ),
+        // 节点瓦片（内联编辑或普通显示）
+        _editingNodeId == node.id
+            ? _buildEditingNodeTile(context, node, depth, theme, colorScheme, l10n)
+            : Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _editingNodeId = node.id;
+                    });
+                    // 初始化编辑控制器
+                    if (!_editingControllers.containsKey(node.id)) {
+                      _editingControllers[node.id] = TextEditingController(text: node.title);
+                      _editingFocusNodes[node.id] = FocusNode();
+                      _editingFocusNodes[node.id]!.addListener(() {
+                        if (!_editingFocusNodes[node.id]!.hasFocus && _editingNodeId == node.id) {
+                          _saveNodeTitle(node.id);
+                        }
+                        // 触发重建以更新焦点状态
+                        if (mounted && _editingNodeId == node.id) {
+                          setState(() {});
+                        }
+                      });
+                    } else {
+                      // 更新控制器文本为最新值
+                      _editingControllers[node.id]!.text = node.title;
+                    }
+                    // 自动聚焦
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _editingFocusNodes[node.id]?.requestFocus();
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: depth * 24.0 + 16.0,
+                      right: 16.0,
+                      top: 6.0,
+                      bottom: 6.0,
+                    ),
+                    child: Row(
+                      children: [
+                        // 三态复选框（可交互）
+                        TriStateCheckbox(
+                          value: _nodeStatusToTriState(node.status),
+                          onChanged: (newState) {
+                            final newStatus = _triStateToNodeStatus(newState);
+                            _updateNodeStatus(node.id, newStatus);
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        // 节点标题（可点击编辑）
+                        Expanded(
+                          child: Text(
+                            node.title,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              decoration: isDeleted || isFinished
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              color: isDeleted
+                                  ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
         // 子节点
         if (children.isNotEmpty)
           ...children.map((child) => _buildNodeItem(context, child, allNodes, depth + 1)),
       ],
+    );
+  }
+
+  Widget _buildEditingNodeTile(
+    BuildContext context,
+    Node node,
+    int depth,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    AppLocalizations l10n,
+  ) {
+    if (!_editingControllers.containsKey(node.id)) {
+      _editingControllers[node.id] = TextEditingController(text: node.title);
+      _editingFocusNodes[node.id] = FocusNode();
+      _editingFocusNodes[node.id]!.addListener(() {
+        if (!_editingFocusNodes[node.id]!.hasFocus && _editingNodeId == node.id) {
+          _saveNodeTitle(node.id);
+        }
+        // 触发重建以更新焦点状态
+        if (mounted && _editingNodeId == node.id) {
+          setState(() {});
+        }
+      });
+    } else {
+      // 确保控制器文本与节点标题同步
+      if (_editingControllers[node.id]!.text != node.title) {
+        _editingControllers[node.id]!.text = node.title;
+      }
+    }
+
+    final focusNode = _editingFocusNodes[node.id]!;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: depth * 24.0 + 16.0,
+        right: 16.0,
+        top: 6.0,
+        bottom: 6.0,
+      ),
+      child: Focus(
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+            setState(() {
+              _editingNodeId = null;
+            });
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: TextField(
+            controller: _editingControllers[node.id],
+            focusNode: focusNode,
+            decoration: InputDecorationBuilder.buildUnderlineInputDecoration(
+              context,
+              hintText: l10n.nodeTitleHint,
+              isFocused: focusNode.hasFocus,
+            ),
+            style: theme.textTheme.bodyMedium,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _saveNodeTitle(node.id),
+          ),
+        ),
+      ),
     );
   }
 
@@ -144,6 +246,37 @@ class _TaskNodesListReadonlyState extends ConsumerState<TaskNodesListReadonly> {
       TriState.finished => NodeStatus.finished,
       TriState.deleted => NodeStatus.deleted,
     };
+  }
+
+  Future<void> _saveNodeTitle(String nodeId) async {
+    final controller = _editingControllers[nodeId];
+    if (controller == null) return;
+
+    final newTitle = controller.text.trim();
+    if (newTitle.isEmpty) {
+      setState(() {
+        _editingNodeId = null;
+      });
+      return;
+    }
+
+    try {
+      final nodeService = await ref.read(nodeServiceProvider.future);
+      await nodeService.updateNodeTitle(nodeId, newTitle);
+      ref.invalidate(taskNodesProvider(widget.task.id));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update node: $e')),
+        );
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _editingNodeId = null;
+      });
+    }
   }
 
   Future<void> _updateNodeStatus(String nodeId, NodeStatus status) async {
