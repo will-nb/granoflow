@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'gradient_page_scaffold.dart';
 import 'tri_state_checkbox.dart';
 import 'input_decoration_builder.dart';
 import 'empty_state_widget.dart';
+import 'animation_utils.dart';
 
 /// 全屏节点管理弹窗组件
 /// 
@@ -244,8 +246,50 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      children: rootNodes.map((node) => _buildNodeItem(context, node, nodes, 0, theme, colorScheme, l10n)).toList(),
+    final nodeCount = nodes.length;
+    final stopwatch = Stopwatch()..start();
+
+    // 性能监控：记录节点数量
+    if (nodeCount > 50) {
+      developer.log(
+        '[NodeManagerDialog] Animation: nodeCount=$nodeCount (warning: high node count)',
+        name: 'NodeManagerDialog',
+      );
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      stopwatch.stop();
+      final duration = stopwatch.elapsedMilliseconds;
+      if (duration > 300) {
+        developer.log(
+          '[NodeManagerDialog] Animation: nodeCount=$nodeCount, duration=${duration}ms (warning: slow animation)',
+          name: 'NodeManagerDialog',
+          level: 900, // warning level
+        );
+      } else {
+        developer.log(
+          '[NodeManagerDialog] Animation: nodeCount=$nodeCount, duration=${duration}ms',
+          name: 'NodeManagerDialog',
+        );
+      }
+    });
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) {
+        return AnimationUtils.createFadeSlideTransition(
+          child,
+          animation,
+          begin: const Offset(0, -0.1),
+          end: Offset.zero,
+        );
+      },
+      child: Column(
+        key: ValueKey('nodes_$nodeCount'),
+        children: rootNodes.map((node) => _buildNodeItem(context, node, nodes, 0, theme, colorScheme, l10n)).toList(),
+      ),
     );
   }
 
@@ -262,6 +306,7 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
     children.sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
 
     return Column(
+      key: ValueKey('node_${node.id}'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 节点瓦片（内联编辑或普通显示）
@@ -371,11 +416,36 @@ class _NodeManagerDialogState extends ConsumerState<NodeManagerDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                   children: [
-                    // 三态复选框
+                    // 三态复选框（TriStateCheckbox 本身已有动画）
                     TriStateCheckbox(
                       value: _nodeStatusToTriState(node.status),
                       onChanged: (newState) {
-                        _updateNodeStatus(node.id, _triStateToNodeStatus(newState));
+                        final oldStatus = node.status;
+                        final newStatus = _triStateToNodeStatus(newState);
+                        final stopwatch = Stopwatch()..start();
+                        
+                        // 性能监控：记录状态切换
+                        developer.log(
+                          '[NodeManagerDialog] StatusChange: nodeId=${node.id}, from=$oldStatus, to=$newStatus',
+                          name: 'NodeManagerDialog',
+                        );
+                        
+                        _updateNodeStatus(node.id, newStatus).then((_) {
+                          stopwatch.stop();
+                          final duration = stopwatch.elapsedMilliseconds;
+                          if (duration > 300) {
+                            developer.log(
+                              '[NodeManagerDialog] StatusChange: nodeId=${node.id}, duration=${duration}ms (warning: slow update)',
+                              name: 'NodeManagerDialog',
+                              level: 900, // warning level
+                            );
+                          } else {
+                            developer.log(
+                              '[NodeManagerDialog] StatusChange: nodeId=${node.id}, duration=${duration}ms',
+                              name: 'NodeManagerDialog',
+                            );
+                          }
+                        });
                       },
                     ),
                     const SizedBox(width: 12),
