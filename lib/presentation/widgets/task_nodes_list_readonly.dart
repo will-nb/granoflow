@@ -28,38 +28,69 @@ class _TaskNodesListReadonlyState extends ConsumerState<TaskNodesListReadonly> {
   String? _editingNodeId;
   final Map<String, TextEditingController> _editingControllers = {};
   final Map<String, FocusNode> _editingFocusNodes = {};
+  bool _isAddingNode = false;
+  String? _currentParentId; // null = 根节点
+  final TextEditingController _addNodeController = TextEditingController();
+  final FocusNode _addNodeFocusNode = FocusNode();
+  final GlobalKey _inputFieldKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _addNodeFocusNode.addListener(_onBottomInputFocusChange);
+  }
+
+  void _onBottomInputFocusChange() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   void dispose() {
+    _addNodeFocusNode.removeListener(_onBottomInputFocusChange);
     for (final controller in _editingControllers.values) {
       controller.dispose();
     }
     for (final focusNode in _editingFocusNodes.values) {
       focusNode.dispose();
     }
+    _addNodeController.dispose();
+    _addNodeFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final nodesAsync = ref.watch(taskNodesProvider(widget.task.id));
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return nodesAsync.when(
       data: (nodes) {
         // 显示所有节点（包括已删除和已完成的）
         final visibleNodes = nodes.where((n) => n.status != NodeStatus.deleted || true).toList();
-        
-        if (visibleNodes.isEmpty) {
-          return const SizedBox.shrink();
-        }
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: _buildNodesTree(context, visibleNodes),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 节点列表
+            if (visibleNodes.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: _buildNodesTree(context, visibleNodes),
+              ),
+            // 底部输入框占位（当不在添加状态时）
+            if (!_isAddingNode && visibleNodes.isNotEmpty)
+              const SizedBox(height: 8),
+            // 底部统一输入框（始终显示）
+            _buildBottomInputField(context, theme, colorScheme, l10n),
+          ],
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () => _buildBottomInputField(context, theme, colorScheme, l10n),
+      error: (_, __) => _buildBottomInputField(context, theme, colorScheme, l10n),
     );
   }
 
@@ -153,6 +184,24 @@ class _TaskNodesListReadonlyState extends ConsumerState<TaskNodesListReadonly> {
                               height: 1.4,
                             ),
                           ),
+                        ),
+                        // 添加子节点按钮
+                        IconButton(
+                          icon: const Icon(Icons.add, size: 20),
+                          onPressed: () {
+                            setState(() {
+                              _isAddingNode = true;
+                              _currentParentId = node.id;
+                              _editingNodeId = null;
+                              _addNodeController.clear();
+                            });
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _addNodeFocusNode.requestFocus();
+                            });
+                          },
+                          tooltip: l10n.nodeAddButton,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),
@@ -276,6 +325,150 @@ class _TaskNodesListReadonlyState extends ConsumerState<TaskNodesListReadonly> {
       setState(() {
         _editingNodeId = null;
       });
+    }
+  }
+
+  Widget _buildBottomInputField(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    AppLocalizations l10n,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outline.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Focus(
+        key: _inputFieldKey,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+            _cancelAddingNode();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: TextField(
+            controller: _addNodeController,
+            focusNode: _addNodeFocusNode,
+            decoration: InputDecorationBuilder.buildUnderlineInputDecoration(
+              context,
+              hintText: l10n.nodeTitleHint,
+              isFocused: _addNodeFocusNode.hasFocus,
+            ),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (value) => _handleSubmitNode(value),
+            onTap: () {
+              // 点击底部输入框时，重置为添加根节点模式
+              if (_currentParentId != null) {
+                setState(() {
+                  _currentParentId = null;
+                  _isAddingNode = true;
+                });
+              }
+            },
+            onTapOutside: (_) {
+              if (_addNodeController.text.trim().isEmpty) {
+                _cancelAddingNode();
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _cancelAddingNode() {
+    setState(() {
+      _isAddingNode = false;
+      _currentParentId = null;
+      _addNodeController.clear();
+    });
+    _addNodeFocusNode.unfocus();
+  }
+
+  Future<void> _handleSubmitNode(String value) async {
+    final title = value.trim();
+    if (title.isEmpty) {
+      _cancelAddingNode();
+      return;
+    }
+
+    if (_currentParentId == null) {
+      await _createRootNode(title);
+    } else {
+      await _createChildNode(_currentParentId!, title);
+    }
+  }
+
+  Future<void> _createRootNode(String title) async {
+    try {
+      final nodeService = await ref.read(nodeServiceProvider.future);
+      await nodeService.createNode(
+        taskId: widget.task.id,
+        title: title,
+        parentId: null,
+      );
+      
+      // 刷新节点列表
+      ref.invalidate(taskNodesProvider(widget.task.id));
+      
+      // Things3 风格：创建后清空输入框但保持焦点，支持连续添加
+      if (mounted) {
+        setState(() {
+          _addNodeController.clear();
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _addNodeFocusNode.requestFocus();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create node: $e')),
+        );
+        _cancelAddingNode();
+      }
+    }
+  }
+
+  Future<void> _createChildNode(String parentId, String title) async {
+    try {
+      final nodeService = await ref.read(nodeServiceProvider.future);
+      await nodeService.createNode(
+        taskId: widget.task.id,
+        title: title,
+        parentId: parentId,
+      );
+      
+      // 刷新节点列表
+      ref.invalidate(taskNodesProvider(widget.task.id));
+      
+      // Things3 风格：创建后清空输入框但保持焦点，支持连续添加
+      if (mounted) {
+        setState(() {
+          _addNodeController.clear();
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _addNodeFocusNode.requestFocus();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create node: $e')),
+        );
+        _cancelAddingNode();
+      }
     }
   }
 
