@@ -1,0 +1,923 @@
+{
+  // ===========================================
+  // 节点管理弹窗（NodeManagerDialog）美化迭代蓝图
+  // 基于 design_node_manager_dialog.json5 优化全屏节点管理弹窗的视觉设计和用户体验
+  // ===========================================
+  
+  // ===========================================
+  // 1. 迭代概述（必填）
+  // ===========================================
+  iteration: {
+    // 迭代 ID：格式 YYMMDD-module-slug
+    id: "250127-tasks-node-manager-dialog-enhancement",
+    
+    // 迭代标题
+    title: "节点管理弹窗美化：优化 NodeManagerDialog 的视觉设计和用户体验",
+    
+    // 迭代描述
+    description: "基于设计文档优化 NodeManagerDialog 的视觉设计和用户体验，包括：优化顶部栏（改进间距和字体）、美化节点列表项（使用 Card 容器，20dp 圆角，更宽松的间距）、优化输入框（改进焦点状态和边框样式）、改进空状态（添加友好的空状态提示）、优化动画（添加微妙的过渡动画），使界面更现代、统一、易用，与项目整体设计风格保持一致，符合2025年设计趋势",
+    
+    // 状态
+    status: "planning",
+    
+    // 优先级
+    priority: "medium",
+    
+    // 基于的设计文档
+    basedOnDesign: "documents/json5/tasks/design_node_manager_dialog.json5",
+  },
+
+  // ===========================================
+  // 2. 文件创建清单（必填）
+  // ===========================================
+  files: {
+    // Widget 组件（可复用的通用组件）
+    widgets: [
+      {
+        path: "lib/presentation/widgets/empty_state_widget.dart",
+        purpose: "创建通用的空状态组件，支持图标、文本和自定义样式，可在多个地方复用",
+        action: "create",
+        estimatedLines: 80,
+        dependencies: [],
+        details: [
+          "创建 EmptyStateWidget 组件（StatelessWidget）",
+          "属性：",
+          "  - icon: IconData（可选，默认 Icons.inbox_outlined）",
+          "  - iconSize: double（默认 64dp）",
+          "  - message: String（必需，提示文本）",
+          "  - padding: EdgeInsetsGeometry（可选，默认 EdgeInsets.symmetric(horizontal: 32, vertical: 64)）",
+          "  - iconColor: Color（可选，使用主题颜色）",
+          "  - textStyle: TextStyle（可选，使用主题文本样式）",
+          "样式：",
+          "  - 图标：居中显示，使用 onSurfaceVariant.withValues(alpha: 0.4)",
+          "  - 文本：居中显示，使用 onSurfaceVariant.withValues(alpha: 0.6)，16sp，最多 2 行",
+          "  - 布局：Center > Column（垂直居中）",
+          "复用性：可以在 NodeManagerDialog、TaskNodesList 等地方复用",
+        ],
+      },
+      {
+        path: "lib/presentation/widgets/animation_utils.dart",
+        purpose: "提取通用的动画工具函数，用于创建 FadeTransition + SlideTransition 动画",
+        action: "create",
+        estimatedLines: 50,
+        dependencies: [],
+        details: [
+          "创建 AnimationUtils 工具类（静态方法）",
+          "方法：createFadeSlideTransition（Widget child, Animation<double> animation, {Offset begin, Offset end, Duration duration}）",
+          "返回：FadeTransition + SlideTransition 组合的 Widget",
+          "默认参数：",
+          "  - begin: Offset(0, -0.1)（向上滑动）",
+          "  - end: Offset.zero",
+          "  - duration: Duration(milliseconds: 200)",
+          "复用性：可以在 NodeManagerDialog、PinnedTaskBar 等地方复用",
+          "注意：如果项目中已有类似的工具函数，可以复用现有的",
+        ],
+      },
+      {
+        path: "lib/presentation/widgets/input_decoration_builder.dart",
+        purpose: "提取通用的 InputDecoration 构建器，用于统一输入框样式",
+        action: "create",
+        estimatedLines: 60,
+        dependencies: [],
+        details: [
+          "创建 InputDecorationBuilder 工具类（静态方法）",
+          "方法：buildUnderlineInputDecoration（BuildContext context, {String? hintText, bool isFocused}）",
+          "返回：InputDecoration",
+          "样式：",
+          "  - border: UnderlineInputBorder",
+          "  - 边框颜色：normal 状态使用 outline.withValues(alpha: 0.3)，focused 状态使用 primary",
+          "  - 边框宽度：normal 状态 1dp，focused 状态 1.5dp",
+          "  - 占位符颜色：onSurfaceVariant.withValues(alpha: 0.6)",
+          "复用性：可以在 NodeManagerDialog、TaskNodesList 等地方复用",
+          "注意：如果项目中已有类似的工具函数，可以复用现有的",
+        ],
+      },
+    ],
+  },
+
+  // ===========================================
+  // 3. 需要修改的现有文件（必填）
+  // ===========================================
+  modifications: [
+    {
+      // 文件路径
+      file: "lib/presentation/widgets/node_manager_dialog.dart",
+      // 修改目的
+      purpose: "优化 NodeManagerDialog 的视觉设计和用户体验，包括顶部栏、节点列表项、输入框、空状态和动画",
+      // 具体修改内容列表
+      changes: [
+        "优化顶部栏（_buildTopBar 方法）：",
+        "  - 内边距从 8dp 增加到 12dp（vertical: 12）",
+        "  - 标题字号从 titleMedium（16sp）增加到 18sp",
+        "  - 标题字重从 regular 增加到 semiBold（FontWeight.w600）",
+        "  - 保持现有的保存按钮和布局结构",
+        "",
+        "美化节点列表项（_buildNormalNodeTile 方法）：",
+        "  - 使用 Card 容器包裹节点项（elevation: 0, borderRadius: 20dp）",
+        "  - Card 内边距：horizontal: 16dp, vertical: 12dp（从 8dp 增加到 12dp）",
+        "  - Card 外边距：horizontal: 16dp, vertical: 8dp（节点之间的间距）",
+        "  - 浅色模式使用 surface 背景，深色模式使用 surfaceContainerHigh 背景",
+        "  - 添加悬停/点击效果：使用 InkWell 或 Material，背景色变化为 surfaceContainerHighest（50% 透明度）",
+        "  - 确保 Card 包裹在 Dismissible 内，以支持滑动操作（右滑完成、左滑删除）",
+        "  - 保持现有的层级缩进逻辑（depth * 24.0 + 16.0）",
+        "",
+        "优化内联编辑输入框（_buildEditingNodeTile 方法）：",
+        "  - 保持 UnderlineInputBorder 样式",
+        "  - 优化边框颜色：normal 状态使用 outline.withValues(alpha: 0.3)，focused 状态使用 primary",
+        "  - 优化边框宽度：normal 状态 1dp，focused 状态 1.5dp",
+        "  - 添加边框颜色过渡动画（AnimatedContainer 或 AnimatedBorder）",
+        "",
+        "优化底部输入框（_buildBottomInputField 方法）：",
+        "  - 容器内边距从 8dp 增加到 12dp（vertical: 12）",
+        "  - 优化输入框边框颜色：normal 状态使用 outline.withValues(alpha: 0.3)，focused 状态使用 primary",
+        "  - 优化边框宽度：normal 状态 1dp，focused 状态 1.5dp",
+        "  - 优化占位符颜色：onSurfaceVariant.withValues(alpha: 0.6)",
+        "  - 添加边框颜色过渡动画",
+        "",
+        "添加空状态组件（_buildEmptyState 方法，新建）：",
+        "  - 当节点列表为空时显示空状态",
+        "  - 显示图标：Icons.checklist_rtl 或 Icons.list_alt（64dp，onSurfaceVariant.withValues(alpha: 0.4)）",
+        "  - 显示提示文字：'暂无节点，在下方输入框添加第一个节点'（16sp，onSurfaceVariant.withValues(alpha: 0.6)）",
+        "  - 布局：垂直居中，内边距 horizontal: 32dp, vertical: 64dp",
+        "  - 在 _buildContent 方法中，当 visibleNodes.isEmpty 时显示空状态而不是 SizedBox.shrink()",
+        "",
+        "优化动画效果：",
+        "  - 节点添加动画：使用 AnimatedSwitcher 或 AnimatedList，淡入并向上滑动（200ms，Curves.easeOut）",
+        "  - 节点状态切换动画：复选框使用 AnimatedContainer，轻微缩放动画（150ms，Curves.easeOut）",
+        "  - 输入框焦点动画：边框颜色使用 AnimatedContainer 或 AnimatedBorder，平滑过渡（200ms，Curves.easeOut）",
+        "  - 悬停动画：背景色使用 AnimatedContainer，平滑过渡（150ms，Curves.easeOut）",
+        "",
+        "保持现有功能：",
+        "  - 保持 Dismissible 滑动操作（右滑完成、左滑删除）",
+        "  - 保持内联编辑功能",
+        "  - 保持添加子节点功能",
+        "  - 保持三态复选框功能",
+        "  - 保持层级缩进逻辑",
+        "  - 保持自动保存功能",
+      ],
+      // 预估代码行数
+      estimatedLines: 150,
+    },
+  ],
+
+  // ===========================================
+  // 4. 实现步骤（必填）
+  // ===========================================
+  // 注意：阶段完成后自动执行下一阶段，不需要沟通确认
+  // AI 开发将完成所有功能，按顺序执行所有阶段
+  // 每个阶段完成时忽略 pre-commit，强行 git commit（使用 --no-verify 选项）
+  // 
+  // 错误处理策略：
+  // - 如果某个任务失败，先尝试修复（如 analyze issues、测试失败），修复后继续
+  // - 如果无法自动修复（如需要人工决策），记录问题并继续下一个任务，在阶段完成时总结所有未解决问题
+  // - build_runner 冲突：使用 --delete-conflicting-outputs 参数自动删除冲突文件
+  // - analyze issues 无法自动修复：记录到 commit message 中，标记为已知问题，继续后续任务
+  implementationSteps: [
+    {
+      // 步骤序号
+      step: 0,
+      // 步骤标题
+      title: "阶段 0：创建可复用的通用组件和工具函数（可选，但推荐）",
+      // 步骤描述
+      description: "创建可复用的通用组件和工具函数，提高代码复用性和可维护性",
+      // 任务列表
+      tasks: [
+        {
+          task: "检查现有组件和工具函数",
+          action: [
+            "检查项目中是否已有 EmptyStateWidget、AnimationUtils、InputDecorationBuilder 等组件或工具函数",
+            "评估现有组件是否可以复用或需要扩展",
+            "如果现有组件可以满足需求，优先复用；如果需要扩展，考虑创建新的通用组件",
+          ],
+        },
+        {
+          task: "创建通用的空状态组件（如果需要）",
+          file: "lib/presentation/widgets/empty_state_widget.dart",
+          action: [
+            "如果不存在类似的通用组件，创建 EmptyStateWidget",
+            "参考 EmptyPlaceholder 和 InboxEmptyStateCard 的设计",
+            "确保组件支持图标、文本和自定义样式",
+            "添加 Widget 测试（可选）",
+          ],
+        },
+        {
+          task: "创建通用的动画工具函数（如果需要）",
+          file: "lib/presentation/widgets/animation_utils.dart",
+          action: [
+            "如果不存在类似的工具函数，创建 AnimationUtils",
+            "参考 pinned_task_bar.dart 中的动画逻辑",
+            "提取 FadeTransition + SlideTransition 动画逻辑",
+            "确保工具函数易于使用和扩展",
+          ],
+        },
+        {
+          task: "创建通用的 InputDecoration 构建器（如果需要）",
+          file: "lib/presentation/widgets/input_decoration_builder.dart",
+          action: [
+            "如果不存在类似的工具函数，创建 InputDecorationBuilder",
+            "统一管理输入框的边框颜色、宽度、占位符颜色等样式",
+            "确保工具函数易于使用和扩展",
+          ],
+        },
+        {
+          task: "运行代码检查",
+          command: "flutter analyze",
+          action: "检查新创建的组件和工具函数是否有 lint 错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'refactor: 阶段 0 完成 - 创建可复用的通用组件和工具函数'",
+          action: "提交阶段 0 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+      note: "这个阶段是可选的，如果时间有限可以先跳过，直接在后续阶段中内联实现。但建议创建可复用组件，提高代码质量。",
+    },
+    {
+      // 步骤序号
+      step: 1,
+      // 步骤标题
+      title: "阶段 1：优化顶部栏和输入框样式",
+      // 步骤描述
+      description: "优化顶部栏的间距和字体，优化输入框的边框颜色和焦点状态",
+      // 任务列表
+      tasks: [
+        {
+          task: "优化顶部栏样式",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "修改 _buildTopBar 方法",
+            "将内边距从 EdgeInsets.symmetric(horizontal: 16, vertical: 8) 改为 EdgeInsets.symmetric(horizontal: 16, vertical: 12)",
+            "将标题样式从 theme.textTheme.titleMedium 改为 theme.textTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600)",
+            "保持现有的保存按钮和布局结构",
+          ],
+        },
+        {
+          task: "创建通用的 InputDecoration 构建器（如果不存在）",
+          file: "lib/presentation/widgets/input_decoration_builder.dart",
+          action: [
+            "检查项目中是否已有类似的 InputDecoration 构建器",
+            "如果没有，创建 InputDecorationBuilder 工具类",
+            "方法：buildUnderlineInputDecoration（BuildContext context, {String? hintText, bool isFocused}）",
+            "样式：统一边框颜色、宽度、占位符颜色等",
+            "如果已有类似的工具函数，评估是否可以复用或需要扩展",
+          ],
+        },
+        {
+          task: "优化内联编辑输入框样式",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "修改 _buildEditingNodeTile 方法中的 TextField decoration",
+            "使用 InputDecorationBuilder.buildUnderlineInputDecoration 构建 decoration（如果存在）",
+            "或者直接设置：normal 状态使用 colorScheme.outline.withValues(alpha: 0.3)，focused 状态使用 colorScheme.primary",
+            "边框宽度：normal 状态 1dp，focused 状态 1.5dp",
+            "使用 AnimatedContainer 包裹 TextField，添加边框颜色过渡动画（200ms，Curves.easeOut）",
+          ],
+        },
+        {
+          task: "优化底部输入框样式",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "修改 _buildBottomInputField 方法",
+            "将容器内边距从 EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0) 改为 EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0)",
+            "使用 InputDecorationBuilder.buildUnderlineInputDecoration 构建 decoration（如果存在）",
+            "或者直接设置：normal 状态使用 outline.withValues(alpha: 0.3)，focused 状态使用 primary",
+            "边框宽度：normal 状态 1dp，focused 状态 1.5dp",
+            "占位符颜色：onSurfaceVariant.withValues(alpha: 0.6)",
+            "使用 AnimatedContainer 包裹 TextField，添加边框颜色过渡动画",
+          ],
+        },
+        {
+          task: "运行代码检查",
+          command: "flutter analyze lib/presentation/widgets/node_manager_dialog.dart",
+          action: "检查代码是否有 lint 错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 1 完成 - 优化顶部栏和输入框样式'",
+          action: "提交阶段 1 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 2,
+      title: "阶段 2：美化节点列表项（使用 Card 容器）",
+      description: "使用 Card 容器包裹节点项，添加圆角和悬停效果，提升视觉层次",
+      tasks: [
+        {
+          task: "修改节点列表项为 Card 容器",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "修改 _buildNormalNodeTile 方法",
+            "将 Dismissible 的 child 从 InkWell 改为 Card + Material + InkWell 结构：",
+            "  - 结构：Dismissible > Card > Material > InkWell > Padding > Row",
+            "  - Card：elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))",
+            "  - Card 颜色：浅色模式使用 colorScheme.surface，深色模式使用 colorScheme.surfaceContainerHigh",
+            "  - Card 外边距：EdgeInsets.only(left: depth * 24.0 + 16.0, right: 16.0, top: 8.0, bottom: 8.0)（处理层级缩进）",
+            "  - Card 内边距：EdgeInsets.symmetric(horizontal: 16, vertical: 12)",
+            "  - 在 Card 内使用 Material 组件（color: Colors.transparent），然后使用 InkWell 包裹内容",
+            "  - InkWell 的 splashColor 和 highlightColor 使用 surfaceContainerHighest.withValues(alpha: 0.5)",
+            "  - InkWell 内使用 Padding（EdgeInsets.zero，因为 Card 已经有内边距）包裹 Row 内容",
+            "确保 Card 包裹在 Dismissible 内，以支持滑动操作（Dismissible 检测 Card 的滑动）",
+          ],
+        },
+        {
+          task: "确认编辑状态下的节点项不使用 Card",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "确认 _buildEditingNodeTile 方法不使用 Card 包裹",
+            "编辑状态下主要是 TextField，保持简洁设计，只优化输入框样式",
+            "保持现有的 Padding 结构，只优化输入框的边框颜色和焦点状态",
+            "确保编辑状态和普通状态的视觉过渡自然",
+          ],
+        },
+        {
+          task: "添加悬停/点击动画效果",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "在 InkWell 上添加 Material 组件，设置 splashColor 和 highlightColor",
+            "使用 AnimatedContainer 包裹 Card，添加背景色过渡动画（150ms，Curves.easeOut）",
+            "或者使用 Material 的 InkWell，自动处理点击和悬停效果",
+          ],
+        },
+        {
+          task: "运行代码检查",
+          command: "flutter analyze lib/presentation/widgets/node_manager_dialog.dart",
+          action: "检查代码是否有 lint 错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 2 完成 - 美化节点列表项（使用 Card 容器）'",
+          action: "提交阶段 2 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 3,
+      title: "阶段 3：添加空状态组件",
+      description: "添加友好的空状态提示，引导用户添加第一个节点",
+      tasks: [
+        {
+          task: "添加空状态国际化文本",
+          file: "lib/l10n/app_zh_CN.arb, app_en.arb, app_zh_HK.arb",
+          action: [
+            "添加 'nodeEmptyStateMessage' key 到三个 l10n 文件：",
+            "  - app_zh_CN.arb：添加 'nodeEmptyStateMessage': '暂无节点，在下方输入框添加第一个节点'",
+            "  - app_en.arb：添加 'nodeEmptyStateMessage': 'No nodes yet. Add your first node in the input field below.'",
+            "  - app_zh_HK.arb：添加 'nodeEmptyStateMessage': '暫無節點，在下方輸入框添加第一個節點'",
+            "确保 key 名称一致，格式正确",
+          ],
+        },
+        {
+          task: "创建通用的空状态组件（如果不存在）",
+          file: "lib/presentation/widgets/empty_state_widget.dart",
+          action: [
+            "检查项目中是否已有类似的通用空状态组件",
+            "如果没有，创建 EmptyStateWidget 组件（参考 EmptyPlaceholder 和 InboxEmptyStateCard）",
+            "组件属性：icon, iconSize, message, padding, iconColor, textStyle",
+            "样式：图标居中，文本居中，支持自定义样式",
+            "如果已有类似的组件，评估是否可以复用或需要扩展",
+          ],
+        },
+        {
+          task: "使用空状态组件",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "在 _buildContent 方法中，使用 EmptyStateWidget 组件",
+            "传入参数：",
+            "  - icon: Icons.checklist_rtl",
+            "  - iconSize: 64",
+            "  - message: l10n.nodeEmptyStateMessage",
+            "  - padding: EdgeInsets.symmetric(horizontal: 32, vertical: 64)",
+            "如果 EmptyStateWidget 不存在，则创建 _buildEmptyState 私有方法（临时方案）",
+          ],
+        },
+        {
+          task: "在内容区域显示空状态",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "修改 _buildContent 方法",
+            "在 Expanded 的 child 中，使用条件渲染：",
+            "  - 当 visibleNodes.isEmpty 时，显示 _buildEmptyState()（使用 Center 包裹，确保居中）",
+            "  - 当 visibleNodes.isNotEmpty 时，显示 ListView（保持现有逻辑）",
+            "结构：Expanded(child: visibleNodes.isEmpty ? _buildEmptyState() : ListView(...))",
+            "确保空状态在可滚动区域内，用户可以滚动查看（如果需要）",
+          ],
+        },
+        {
+          task: "运行代码检查",
+          command: "flutter analyze lib/presentation/widgets/node_manager_dialog.dart",
+          action: "检查代码是否有 lint 错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 3 完成 - 添加空状态组件'",
+          action: "提交阶段 3 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 4,
+      title: "阶段 4：优化动画效果",
+      description: "添加微妙的过渡动画，提升交互流畅度",
+      tasks: [
+        {
+          task: "创建通用的动画工具函数（如果不存在）",
+          file: "lib/presentation/widgets/animation_utils.dart",
+          action: [
+            "检查项目中是否已有类似的动画工具函数（如 pinned_task_bar.dart 中的动画逻辑）",
+            "如果没有，创建 AnimationUtils 工具类",
+            "方法：createFadeSlideTransition（Widget child, Animation<double> animation, {Offset begin, Offset end}）",
+            "返回：FadeTransition + SlideTransition 组合的 Widget",
+            "默认参数：begin: Offset(0, -0.1)，end: Offset.zero",
+            "如果已有类似的工具函数，评估是否可以复用或需要扩展",
+          ],
+        },
+        {
+          task: "添加节点添加动画",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "在 _buildNodeItem 方法中，为每个节点项添加 ValueKey（key: ValueKey('node_${node.id}')）",
+            "在 _buildNodesTree 方法中，使用 AnimatedSwitcher 包裹 Column（节点列表）",
+            "或者使用 AnimatedList（如果支持动态添加/删除）",
+            "AnimatedSwitcher 设置：",
+            "  - duration: Duration(milliseconds: 200)",
+            "  - switchInCurve: Curves.easeOut",
+            "  - switchOutCurve: Curves.easeIn",
+            "  - transitionBuilder: 使用 AnimationUtils.createFadeSlideTransition（如果存在）或直接创建 FadeTransition + SlideTransition",
+            "注意：由于节点列表是递归构建的，AnimatedSwitcher 可能需要包裹整个 Column",
+            "添加性能监控日志：",
+            "  - 在动画开始和结束时记录日志（使用 debugPrint 或 logger）",
+            "  - 记录节点数量、动画时长、是否出现卡顿等信息",
+            "  - 格式：'[NodeManagerDialog] Animation: nodeCount=$count, duration=${stopwatch.elapsedMilliseconds}ms'",
+            "  - 如果动画时长超过 300ms 或节点数量超过 50，输出警告日志",
+          ],
+        },
+        {
+          task: "添加节点状态切换动画",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "TriStateCheckbox 组件已经可能有动画，检查是否需要优化",
+            "如果需要，在 _buildNormalNodeTile 中，使用 AnimatedContainer 包裹 TriStateCheckbox",
+            "添加轻微缩放动画（scale: 0.95 → 1.0，150ms，Curves.easeOut）",
+            "添加性能监控日志：",
+            "  - 在状态切换动画开始时记录日志",
+            "  - 记录节点 ID、状态变化、动画时长等信息",
+            "  - 格式：'[NodeManagerDialog] StatusChange: nodeId=$nodeId, from=$oldStatus, to=$newStatus, duration=${stopwatch.elapsedMilliseconds}ms'",
+          ],
+        },
+        {
+          task: "优化输入框焦点动画",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "确保 _buildEditingNodeTile 和 _buildBottomInputField 中的 AnimatedContainer 正确工作",
+            "动画时长：200ms，曲线：Curves.easeOut",
+            "动画效果：边框颜色平滑过渡",
+          ],
+        },
+        {
+          task: "优化悬停动画",
+          file: "lib/presentation/widgets/node_manager_dialog.dart",
+          action: [
+            "确保 Card 的 InkWell 或 Material 组件正确显示悬停效果",
+            "如果需要自定义，使用 AnimatedContainer 包裹 Card，添加背景色过渡动画（150ms，Curves.easeOut）",
+          ],
+        },
+        {
+          task: "运行代码检查",
+          command: "flutter analyze lib/presentation/widgets/node_manager_dialog.dart",
+          action: "检查代码是否有 lint 错误",
+        },
+        {
+          task: "阶段完成：忽略 pre-commit，强行 git commit",
+          command: "git add -A && git commit --no-verify -m 'feat: 阶段 4 完成 - 优化动画效果'",
+          action: "提交阶段 4 的所有更改，忽略 pre-commit 钩子",
+        },
+      ],
+    },
+    {
+      step: 5,
+      title: "阶段 5：测试和验证",
+      description: "运行测试，验证所有功能正常，确保没有破坏现有功能",
+      tasks: [
+        {
+          task: "运行代码检查",
+          command: "flutter analyze",
+          action: "检查整个项目是否有 lint 错误",
+        },
+        {
+          task: "运行单元测试",
+          command: "flutter test",
+          action: "运行所有单元测试，确保没有破坏现有功能",
+        },
+        {
+          task: "手动测试节点管理弹窗",
+          action: [
+            "打开应用，进入任务操作弹窗",
+            "点击'编辑节点'按钮，打开节点管理弹窗",
+            "验证顶部栏样式（间距、字体）",
+            "验证节点列表项样式（Card 容器、圆角、间距）",
+            "验证空状态显示（当没有节点时）",
+            "验证内联编辑功能（点击节点标题）",
+            "验证添加节点功能（底部输入框）",
+            "验证滑动操作（右滑完成、左滑删除）",
+            "验证三态复选框功能",
+            "验证添加子节点功能",
+            "验证多层级节点缩进正确",
+            "验证动画效果（添加节点、状态切换、焦点变化）",
+            "验证浅色和深色模式下的样式正确",
+            "验证大量节点（50+）时的滚动性能",
+          ],
+        },
+        {
+          task: "修复发现的问题",
+          action: "根据测试结果修复任何发现的问题",
+        },
+        {
+          task: "最终提交",
+          command: "git add -A && git commit --no-verify -m 'feat: 节点管理弹窗美化完成 - 优化视觉设计和用户体验'",
+          action: "提交所有最终更改",
+        },
+      ],
+    },
+  ],
+
+  // ===========================================
+  // 5. 重构和复用策略（必填）
+  // ===========================================
+  refactoring: {
+    // 可复用的组件
+    reusableComponents: [
+      {
+        component: "EmptyStateWidget",
+        purpose: "通用的空状态组件，支持图标、文本和自定义样式",
+        locations: [
+          "NodeManagerDialog（节点管理弹窗）",
+          "TaskNodesList（任务节点列表，如果也需要空状态）",
+          "其他需要空状态的地方",
+        ],
+        benefits: [
+          "统一空状态样式，保持视觉一致性",
+          "减少重复代码，提高可维护性",
+          "便于统一修改和优化",
+        ],
+        note: "如果项目中已有类似的组件（如 EmptyPlaceholder、InboxEmptyStateCard），评估是否可以复用或需要扩展",
+      },
+      {
+        component: "AnimationUtils",
+        purpose: "通用的动画工具函数，用于创建 FadeTransition + SlideTransition 动画",
+        locations: [
+          "NodeManagerDialog（节点添加动画）",
+          "PinnedTaskBar（已有类似实现，可以提取）",
+          "其他需要淡入滑动动画的地方",
+        ],
+        benefits: [
+          "统一动画效果，保持交互一致性",
+          "减少重复代码，提高可维护性",
+          "便于统一调整动画参数",
+        ],
+        note: "检查 pinned_task_bar.dart 中是否已有类似的动画逻辑，可以提取为工具函数",
+      },
+      {
+        component: "InputDecorationBuilder",
+        purpose: "通用的 InputDecoration 构建器，用于统一输入框样式",
+        locations: [
+          "NodeManagerDialog（内联编辑和底部输入框）",
+          "TaskNodesList（节点编辑输入框）",
+          "其他需要统一输入框样式的地方",
+        ],
+        benefits: [
+          "统一输入框样式，保持视觉一致性",
+          "减少重复代码，提高可维护性",
+          "便于统一修改和优化",
+        ],
+        note: "检查项目中是否已有类似的工具函数，可以复用或扩展",
+      },
+    ],
+    
+    // 代码重构点
+    refactoringPoints: [
+      {
+        location: "lib/presentation/widgets/node_manager_dialog.dart",
+        refactoring: "提取空状态组件",
+        reason: "空状态逻辑可以复用，避免重复代码",
+        approach: "创建 EmptyStateWidget 组件，或在现有组件基础上扩展",
+      },
+      {
+        location: "lib/presentation/widgets/node_manager_dialog.dart",
+        refactoring: "提取动画逻辑",
+        reason: "FadeTransition + SlideTransition 动画逻辑可以复用",
+        approach: "创建 AnimationUtils 工具函数，或在现有工具函数基础上扩展",
+      },
+      {
+        location: "lib/presentation/widgets/node_manager_dialog.dart",
+        refactoring: "提取输入框样式",
+        reason: "输入框的边框颜色、宽度等样式可以复用",
+        approach: "创建 InputDecorationBuilder 工具函数，统一管理输入框样式",
+      },
+      {
+        location: "lib/presentation/widgets/pinned_task_bar.dart",
+        refactoring: "提取动画逻辑（可选）",
+        reason: "与 NodeManagerDialog 使用相同的动画效果，可以复用",
+        approach: "将动画逻辑提取到 AnimationUtils，两个地方都使用工具函数",
+        note: "这是可选的，如果时间有限可以先不重构，但建议后续重构",
+      },
+    ],
+    
+    // 复用现有组件
+    reuseExisting: [
+      {
+        component: "TriStateCheckbox",
+        location: "lib/presentation/widgets/tri_state_checkbox.dart",
+        usage: "节点状态显示和切换",
+        note: "已存在，直接复用",
+      },
+      {
+        component: "GradientPageScaffold",
+        location: "lib/presentation/widgets/gradient_page_scaffold.dart",
+        usage: "全屏弹窗背景",
+        note: "已存在，直接复用",
+      },
+      {
+        component: "EmptyPlaceholder / InboxEmptyStateCard",
+        location: "lib/presentation/tasks/widgets/empty_placeholder.dart / lib/presentation/inbox/widgets/inbox_empty_state_card.dart",
+        usage: "评估是否可以复用或扩展",
+        note: "如果现有组件可以满足需求，优先复用；如果需要扩展，考虑创建新的通用组件",
+      },
+    ],
+  },
+
+  // ===========================================
+  // 6. 技术细节和注意事项（必填）
+  // ===========================================
+  technicalDetails: {
+    // 关键技术决策
+    keyDecisions: {
+      // Card 容器选择
+      cardContainer: {
+        recommendation: "使用 Flutter 的 Card 组件",
+        reason: "与项目其他卡片组件（如 QuickTaskCard）保持一致，使用 elevation: 0 和 borderRadius: 20dp，符合2025年设计趋势",
+        alternative: "使用 Container + BoxDecoration，但 Card 组件更符合 Material Design 3 规范",
+      },
+      // 动画方案
+      animation: {
+        method: "使用 Flutter 内置的 AnimatedContainer、AnimatedSwitcher 等组件",
+        stateManagement: "不需要额外的状态管理，使用 Flutter 的内置动画组件即可",
+        rollback: "如果动画影响性能，可以简化或移除部分动画效果",
+      },
+      // Dismissible 与 Card 的集成
+      dismissibleIntegration: {
+        method: "Card 包裹在 Dismissible 的 child 内",
+        reason: "保持现有的滑动操作功能（右滑完成、左滑删除），Dismissible 需要包裹可滑动的子组件",
+        note: "确保 Card 不会阻止 Dismissible 的滑动检测",
+      },
+    },
+    
+    // 代码规范要求
+    codeStandards: {
+      // 组件结构
+      componentStructure: {
+        rule: "保持现有的组件结构和方法命名规范",
+        location: "lib/presentation/widgets/node_manager_dialog.dart",
+        example: "_buildTopBar、_buildNormalNodeTile、_buildContent 等方法保持私有",
+        note: "只修改现有方法的实现，不改变方法签名和整体结构",
+      },
+      // 颜色使用
+      colorUsage: {
+        rule: "所有颜色必须从 Theme.of(context).colorScheme 获取，不能硬编码",
+        location: "所有使用颜色的地方",
+        example: "colorScheme.surface、colorScheme.primary、colorScheme.onSurfaceVariant.withValues(alpha: 0.6)",
+        note: "确保支持浅色和深色模式",
+      },
+      // 间距使用
+      spacingUsage: {
+        rule: "使用 8dp 网格系统，间距使用 8 的倍数（8、12、16、24、32 等）",
+        location: "所有 padding 和 margin",
+        example: "EdgeInsets.symmetric(horizontal: 16, vertical: 12)",
+        note: "符合2025年设计趋势：更宽松的间距（12dp 而不是 8dp）",
+      },
+    },
+    
+    // 性能考虑
+    performance: {
+      // 优化措施
+      optimization: [
+        "使用 AnimatedContainer 而不是多个独立的动画组件，减少重建次数",
+        "为列表项添加 ValueKey，优化 AnimatedSwitcher 的性能",
+        "避免在动画过程中进行复杂的计算",
+        "Card 使用 elevation: 0，减少渲染开销",
+      ],
+      // 性能监控
+      monitoring: [
+        "检查动画是否流畅（60fps）",
+        "检查列表滚动性能（大量节点时）",
+        "检查内存使用（动画组件是否正确释放）",
+        "添加性能监控日志输出：",
+        "  - 节点添加动画：记录节点数量、动画时长、是否出现卡顿",
+        "  - 节点状态切换动画：记录节点 ID、状态变化、动画时长",
+        "  - 如果动画时长超过 300ms 或节点数量超过 50，输出警告日志",
+        "  - 使用 debugPrint 或 logger 输出日志，格式：'[NodeManagerDialog] <action>: <details>'",
+        "  - 日志级别：正常操作为 debug，性能警告为 warning",
+      ],
+    },
+  },
+
+  // ===========================================
+  // 7. 依赖关系图（可选）
+  // ===========================================
+  dependencies: {
+    // UI 组件层依赖
+    uiLayer: [
+      "lib/presentation/widgets/node_manager_dialog.dart（主要修改文件）",
+      "lib/presentation/widgets/gradient_page_scaffold.dart（复用现有组件）",
+      "lib/presentation/widgets/tri_state_checkbox.dart（复用现有组件）",
+      "lib/presentation/widgets/empty_state_widget.dart（新建通用组件，可选）",
+      "lib/presentation/widgets/animation_utils.dart（新建工具函数，可选）",
+      "lib/presentation/widgets/input_decoration_builder.dart（新建工具函数，可选）",
+      "lib/data/models/node.dart（数据模型）",
+      "lib/core/providers/node_providers.dart（状态管理）",
+    ],
+  },
+
+  // ===========================================
+  // 8. 测试策略和详细测试用例（必填）
+  // ===========================================
+  testing: {
+    // Widget 测试
+    widgetTests: [
+      {
+        file: "test/presentation/widgets/node_manager_dialog_test.dart",
+        description: "测试 NodeManagerDialog 的 UI 组件和交互",
+        testCases: [
+          {
+            group: "顶部栏测试",
+            cases: [
+              {
+                name: "顶部栏显示正确的标题和按钮",
+                test: "创建 NodeManagerDialog → 验证顶部栏显示保存按钮和标题 → 验证标题字号为 18sp，字重为 semiBold",
+              },
+              {
+                name: "顶部栏内边距正确",
+                test: "创建 NodeManagerDialog → 验证顶部栏内边距为 horizontal: 16dp, vertical: 12dp",
+              },
+            ],
+          },
+          {
+            group: "节点列表项测试",
+            cases: [
+              {
+                name: "节点列表项使用 Card 容器",
+                test: "创建 NodeManagerDialog，添加节点 → 验证节点项被 Card 容器包裹 → 验证 Card 的 borderRadius 为 20dp，elevation 为 0",
+              },
+              {
+                name: "节点列表项内边距和外边距正确",
+                test: "创建 NodeManagerDialog，添加节点 → 验证 Card 内边距为 horizontal: 16dp, vertical: 12dp → 验证 Card 外边距为 horizontal: 16dp, vertical: 8dp",
+              },
+              {
+                name: "节点列表项支持滑动操作",
+                test: "创建 NodeManagerDialog，添加节点 → 右滑节点 → 验证显示完成背景 → 左滑节点 → 验证显示删除背景",
+              },
+            ],
+          },
+          {
+            group: "空状态测试",
+            cases: [
+              {
+                name: "空状态正确显示",
+                test: "创建 NodeManagerDialog，不添加节点 → 验证显示空状态图标和提示文字",
+              },
+              {
+                name: "空状态图标和文字样式正确",
+                test: "创建 NodeManagerDialog，不添加节点 → 验证图标大小为 64dp，颜色为 onSurfaceVariant.withValues(alpha: 0.4) → 验证文字大小为 16sp，颜色为 onSurfaceVariant.withValues(alpha: 0.6)",
+              },
+            ],
+          },
+          {
+            group: "输入框测试",
+            cases: [
+              {
+                name: "内联编辑输入框样式正确",
+                test: "创建 NodeManagerDialog，添加节点 → 点击节点标题 → 验证输入框边框颜色和宽度正确 → 验证焦点时边框颜色变为 primary",
+              },
+              {
+                name: "底部输入框样式正确",
+                test: "创建 NodeManagerDialog → 验证底部输入框边框颜色和宽度正确 → 验证焦点时边框颜色变为 primary",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    
+    // 集成测试（可选，如果需要）
+    integrationTests: [],
+  },
+
+  // ===========================================
+  // 9. 风险点和注意事项（必填）
+  // ===========================================
+  risks: [
+    {
+      // 风险描述
+      risk: "Card 容器可能影响 Dismissible 的滑动检测",
+      // 缓解措施
+      mitigation: "确保 Card 包裹在 Dismissible 的 child 内，而不是相反。测试滑动操作是否正常工作",
+      // 优先级
+      priority: "high",
+      // 检查项
+      check: "手动测试滑动操作（右滑完成、左滑删除），确保功能正常",
+      // 强制执行措施
+      enforcement: "在阶段 5 的测试中必须验证滑动操作功能",
+    },
+    {
+      risk: "层级缩进逻辑可能因为 Card 的外边距而出现问题",
+      mitigation: "仔细调整层级缩进的处理方式，在 Card 的 margin 中处理水平缩进，确保缩进逻辑正确",
+      priority: "high",
+      check: "手动测试多层级节点，验证缩进是否正确",
+      enforcement: "在阶段 5 的测试中必须验证多层级节点的缩进",
+    },
+    {
+      risk: "动画可能影响性能（特别是大量节点时）",
+      mitigation: "使用 Flutter 内置的优化动画组件（如 AnimatedContainer），避免过度动画。如果性能有问题，可以简化或移除部分动画",
+      priority: "medium",
+      check: "测试大量节点（50+）时的滚动和动画性能",
+      enforcement: "在阶段 5 的测试中检查性能",
+    },
+    {
+      risk: "空状态可能在某些情况下不显示",
+      mitigation: "仔细检查 _buildContent 方法中的条件逻辑，确保当 visibleNodes.isEmpty 时正确显示空状态",
+      priority: "medium",
+      check: "手动测试空状态显示（删除所有节点后）",
+      enforcement: "在阶段 5 的测试中必须验证空状态显示",
+    },
+  ],
+
+  // ===========================================
+  // 10. 验证清单（必填）
+  // ===========================================
+  verification: {
+    // 代码质量检查
+    codeQuality: [
+      "运行 flutter analyze，确保没有 lint 错误",
+      "运行 flutter test，确保所有单元测试通过",
+      "代码审查，确保符合代码规范（颜色使用、间距使用等）",
+    ],
+    
+    // 功能验证
+    functionality: [
+      "验证顶部栏样式（间距、字体）正确",
+      "验证节点列表项样式（Card 容器、圆角、间距）正确",
+      "验证空状态显示正确（当没有节点时）",
+      "验证内联编辑功能正常（点击节点标题）",
+      "验证添加节点功能正常（底部输入框）",
+      "验证滑动操作正常（右滑完成、左滑删除）",
+      "验证三态复选框功能正常",
+      "验证添加子节点功能正常",
+      "验证层级缩进正确（多层级节点）",
+      "验证动画效果流畅（添加节点、状态切换、焦点变化）",
+      "验证浅色和深色模式下的样式正确",
+    ],
+    
+    // 性能验证
+    performance: [
+      "测试大量节点（50+）时的滚动性能",
+      "测试动画流畅度（60fps）",
+      "测试内存使用（动画组件是否正确释放）",
+    ],
+    
+    // 兼容性验证
+    compatibility: [
+      "验证在不同屏幕尺寸下的显示正确（手机、平板）",
+      "验证在不同 Flutter 版本下的兼容性（如果适用）",
+    ],
+  },
+
+  // ===========================================
+  // 11. 数据与状态（可选，但建议包含）
+  // ===========================================
+  dataAndState: {
+    // 数据模型变更
+    modelChanges: [
+      "无数据模型变更，本次迭代只涉及 UI 美化",
+    ],
+    
+    // 持久化结构变更
+    persistenceChanges: [
+      "无持久化结构变更，本次迭代只涉及 UI 美化",
+    ],
+    
+    // 状态管理变更
+    stateManagementChanges: [
+      "无状态管理变更，本次迭代只涉及 UI 美化，保持现有的状态管理逻辑",
+    ],
+    
+    // 国际化变更
+    localizationChanges: [
+      "添加空状态提示文本的 l10n key（nodeEmptyStateMessage）",
+      "在 app_zh_CN.arb、app_en.arb、app_zh_HK.arb 中添加对应的翻译：",
+      "  - 中文：'暂无节点，在下方输入框添加第一个节点'",
+      "  - 英文：'No nodes yet. Add your first node in the input field below.'",
+      "  - 繁体中文：'暫無節點，在下方輸入框添加第一個節點'",
+    ],
+  },
+}
+
