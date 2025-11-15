@@ -55,7 +55,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'  # 使用支持 Dart 3.8.0+ 的版本
+          flutter-version: '3.35.7'
           channel: stable
           cache: true
 
@@ -325,7 +325,6 @@ jobs:
           pattern: ${{ inputs.edition || 'lite' }}-*
           merge-multiple: true
           path: artifacts
-          if-no-files-found: warn
 
       - name: List downloaded artifacts
         run: |
