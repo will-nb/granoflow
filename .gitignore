@@ -11,7 +11,7 @@ coverage/
 # Android related
 android/app/build/
 android/app/google-services.json
-android/app/src/main/res/mipmap-*/ic_launcher.png
+# android/app/src/main/res/mipmap-*/ic_launcher.png - 移除，需要提交图标文件到仓库
 android/keystore.properties
 # android/app/keystore.properties - 允许提交，因为使用相对路径，不包含敏感信息
 android/app/upload-keystore.jks
