@@ -108,6 +108,42 @@ jobs:
             --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
             --dart-define=appEdition=${{ matrix.edition }}
 
+      - name: Generate Windows Certificate (for MSIX)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          # 确保 windows 目录存在
+          if (-not (Test-Path "windows")) {
+            New-Item -ItemType Directory -Path "windows"
+          }
+          
+          # 在 Windows 上生成自签名证书用于 MSIX 打包
+          $password = ConvertTo-SecureString -String "uKcaZRFLezfR68aW" -Force -AsPlainText
+          $cert = New-SelfSignedCertificate `
+            -Subject "CN=GranoFlow Test Publisher" `
+            -Type CodeSigning `
+            -CertStoreLocation Cert:\CurrentUser\My `
+            -KeyUsage DigitalSignature `
+            -KeyAlgorithm RSA `
+            -KeyLength 2048 `
+            -NotAfter (Get-Date).AddYears(10)
+          
+          # 导出为 PFX 文件
+          $certPath = "windows\granoflow-test-cert.pfx"
+          Export-PfxCertificate `
+            -Cert $cert `
+            -FilePath $certPath `
+            -Password $password
+          
+          Write-Host "Certificate generated: $certPath"
+        continue-on-error: true
+
+      - name: Package Windows App as MSIX
+        if: matrix.platform == 'windows'
+        run: |
+          flutter pub run msix:create
+        continue-on-error: true
+
       - name: Build Linux
         if: matrix.platform == 'linux'
         run: |
@@ -246,7 +282,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.edition }}-windows
-          path: build/windows/runner/Release/*.exe
+          path: build/windows/runner/Release/*.msix
           retention-days: 30
           if-no-files-found: ignore
 
@@ -302,7 +338,7 @@ jobs:
             - **Android APK (arm64-v8a)**: 见下方 Assets（适用于大多数现代设备）
             - **Android APK (x86_64)**: 见下方 Assets（适用于模拟器和 x86 设备）
             - **macOS DMG**: 见下方 Assets
-            - **Windows EXE**: 见下方 Assets
+            - **Windows MSIX**: 见下方 Assets（需要先安装证书，详见安装说明）
             - **Linux AppImage**: 见下方 Assets
             
             ### 变更
@@ -313,7 +349,10 @@ jobs:
               - 大多数设备：下载 `*-arm64-v8a-release.apk` 并安装
               - 模拟器/x86 设备：下载 `*-x86_64-release.apk` 并安装
             - **macOS**: 下载 DMG 文件，双击挂载后拖拽应用到 Applications 文件夹
-            - **Windows**: 下载 EXE 文件并运行安装程序
+            - **Windows**: 
+              - 下载 MSIX 文件
+              - **重要**：首次安装前需要先安装自签名证书（见 `windows/MSIX_TESTING.md`）
+              - 双击 MSIX 文件安装，或在 PowerShell 中运行：`Add-AppxPackage -Path "*.msix"`
             - **Linux**: 下载 AppImage 文件，添加执行权限后直接运行（`chmod +x *.AppImage && ./granoflow-*.AppImage`）
             
             ### 注意
