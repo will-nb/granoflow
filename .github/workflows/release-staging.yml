@@ -70,7 +70,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '11'
+          java-version: '17'
 
       - name: Setup Keystore (Android only)
         if: matrix.platform == 'android'
@@ -102,6 +102,7 @@ jobs:
 
       - name: Build Windows
         if: matrix.platform == 'windows'
+        shell: bash
         run: |
           flutter build windows --release \
             --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
@@ -144,6 +145,16 @@ jobs:
           flutter pub run msix:create
         continue-on-error: true
 
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libblkid-dev \
+            liblzma-dev \
+            pkg-config
+
       - name: Build Linux
         if: matrix.platform == 'linux'
         run: |
@@ -151,6 +162,18 @@ jobs:
             --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
             --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
             --dart-define=appEdition=${{ matrix.edition }}
+
+      - name: Sign macOS App (ad-hoc for staging)
+        if: matrix.platform == 'macos'
+        run: |
+          APP_NAME="granoflow"
+          APP_PATH="build/macos/Build/Products/Release/${APP_NAME}.app"
+          
+          # 使用 ad-hoc 签名（临时签名，不需要证书）
+          # 这会让应用显示"未验证的开发者"，但用户可以右键点击 -> 打开来绕过
+          codesign --force --deep --sign - "${APP_PATH}"
+          
+          echo "App signed with ad-hoc signature: ${APP_PATH}"
 
       - name: Package macOS App as DMG
         if: matrix.platform == 'macos'
@@ -356,7 +379,13 @@ jobs:
             - **Android**: 
               - 大多数设备：下载 `*-arm64-v8a-release.apk` 并安装
               - 模拟器/x86 设备：下载 `*-x86_64-release.apk` 并安装
-            - **macOS**: 下载 DMG 文件，双击挂载后拖拽应用到 Applications 文件夹
+            - **macOS**: 
+              - 下载 DMG 文件，双击挂载
+              - 如果出现"无法打开，因为无法验证开发者"警告：
+                - **方法 1（推荐）**：右键点击应用图标 → 选择"打开" → 在对话框中选择"打开"
+                - **方法 2**：打开"系统设置" → "隐私与安全性" → 找到被阻止的应用 → 点击"仍要打开"
+              - 将应用拖拽到 Applications 文件夹
+              - 详细说明见 `macos/SIGNING.md`
             - **Windows**: 
               - 下载 MSIX 文件
               - **重要**：首次安装前需要先安装自签名证书（见 `windows/MSIX_TESTING.md`）
