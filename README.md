@@ -103,9 +103,9 @@ fvm flutter build macos --release
   - 当代码推送到 `staging` 分支时，会自动构建所有平台的安装包
   - 自动创建 GitHub Release，包含：
     - Android APK
-    - macOS (.app 和 .zip)
-    - Windows (.exe)
-    - Linux (压缩包)
+    - macOS DMG（磁盘映像文件，标准 macOS 分发格式）
+    - Windows EXE
+    - Linux 压缩包
   - 用于全平台验证，验证通过后合并到 `develop` 分支
 
 - **`develop` 分支**：内部测试快速迭代
