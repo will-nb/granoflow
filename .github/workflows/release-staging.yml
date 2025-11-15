@@ -174,7 +174,8 @@ jobs:
             gstreamer1.0-gl \
             gstreamer1.0-alsa \
             gstreamer1.0-libav \
-            libayatana-appindicator3-dev
+            libayatana-appindicator3-dev \
+            libfuse2
 
       - name: Build Linux
         if: matrix.platform == 'linux'
@@ -326,7 +327,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.edition }}-windows
-          path: build/windows/runner/Release/*.msix
+          path: build/windows/x64/runner/Release/*.msix
           retention-days: 30
           if-no-files-found: ignore
 
