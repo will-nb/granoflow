@@ -258,8 +258,8 @@ jobs:
           EOF
           chmod +x "${APP_DIR}/AppRun"
           
-          # 创建 .desktop 文件
-          cat > "${APP_DIR}/usr/share/applications/granoflow.desktop" << EOF
+          # 创建 .desktop 文件（AppImage 需要在 AppDir 根目录找到 .desktop 文件）
+          cat > "${APP_DIR}/granoflow.desktop" << EOF
           [Desktop Entry]
           Name=GranoFlow
           Comment=任务与计时管理应用
@@ -269,8 +269,16 @@ jobs:
           Categories=Utility;Office;
           EOF
           
-          # 复制图标（如果存在）
+          # 同时在标准位置也创建一份（用于系统集成）
+          mkdir -p "${APP_DIR}/usr/share/applications"
+          cp "${APP_DIR}/granoflow.desktop" "${APP_DIR}/usr/share/applications/"
+          
+          # 复制图标（AppImage 需要在 AppDir 根目录找到图标文件）
           if [ -f "assets/logo/granoflow-logo.png" ]; then
+            # 在 AppDir 根目录创建图标（.desktop 文件引用）
+            cp "assets/logo/granoflow-logo.png" "${APP_DIR}/granoflow.png"
+            # 同时在标准位置也创建一份（用于系统集成）
+            mkdir -p "${APP_DIR}/usr/share/icons/hicolor/256x256/apps"
             cp "assets/logo/granoflow-logo.png" "${APP_DIR}/usr/share/icons/hicolor/256x256/apps/granoflow.png"
           elif [ -f "assets/logo/app_icon.ico" ]; then
             # 如果有 ico 文件，可以尝试转换或使用占位符
