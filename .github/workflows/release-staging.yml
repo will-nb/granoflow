@@ -325,6 +325,15 @@ jobs:
           pattern: ${{ inputs.edition || 'lite' }}-*
           merge-multiple: true
           path: artifacts
+          if-no-files-found: warn
+
+      - name: List downloaded artifacts
+        run: |
+          echo "=== Artifacts directory structure ==="
+          find artifacts -type f 2>/dev/null || echo "No artifacts found"
+          echo ""
+          echo "=== Artifacts file list ==="
+          ls -laR artifacts/ 2>/dev/null || echo "Artifacts directory is empty"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -359,7 +368,10 @@ jobs:
             - 这是 Staging 版本，用于全平台验证
             - 验证通过后，将合并到 develop 分支进行内部测试
           files: |
-            artifacts/**/*
+            artifacts/**/*.apk
+            artifacts/**/*.dmg
+            artifacts/**/*.msix
+            artifacts/**/*.AppImage
           draft: false
           prerelease: true
         env:
