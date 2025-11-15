@@ -1,0 +1,234 @@
+name: Release Staging - All Platforms
+
+on:
+  push:
+    branches:
+      - staging
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'macos/**'
+      - 'windows/**'
+      - 'linux/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/release-staging.yml'
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'App edition (lite or pro)'
+        required: true
+        type: choice
+        options:
+          - lite
+          - pro
+
+jobs:
+  build-all-platforms:
+    name: Build All Platforms - ${{ inputs.edition || 'lite' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Android APK
+          - edition: ${{ inputs.edition || 'lite' }}
+            platform: android
+            os: ubuntu-latest
+            build-type: apk
+          # macOS
+          - edition: ${{ inputs.edition || 'lite' }}
+            platform: macos
+            os: macos-latest
+          # Windows
+          - edition: ${{ inputs.edition || 'lite' }}
+            platform: windows
+            os: windows-latest
+          # Linux
+          - edition: ${{ inputs.edition || 'lite' }}
+            platform: linux
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.27.0
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Setup Java (Android only)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      - name: Setup Keystore (Android only)
+        if: matrix.platform == 'android'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/granoflow-keystore.jks
+          cat > android/app/keystore.properties << EOF
+          storeFile=granoflow-keystore.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Build Android APK
+        if: matrix.platform == 'android' && matrix.build-type == 'apk'
+        run: |
+          flutter build apk --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+
+      - name: Build macOS
+        if: matrix.platform == 'macos'
+        run: |
+          flutter build macos --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+
+      - name: Build Windows
+        if: matrix.platform == 'windows'
+        run: |
+          flutter build windows --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+
+      - name: Build Linux
+        if: matrix.platform == 'linux'
+        run: |
+          flutter build linux --release \
+            --dart-define=GRANOFLOW_APP_EDITION=${{ matrix.edition }} \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.${{ matrix.edition }} \
+            --dart-define=appEdition=${{ matrix.edition }}
+
+      - name: Package macOS App
+        if: matrix.platform == 'macos'
+        run: |
+          cd build/macos/Build/Products/Release
+          # 创建 zip 压缩包，方便下载和分发
+          zip -r granoflow-${{ matrix.edition }}-macos.zip GranoFlow.app
+        continue-on-error: true
+
+      - name: Package Linux App
+        if: matrix.platform == 'linux'
+        run: |
+          cd build/linux/x64/release/bundle
+          # 创建 tar.gz 压缩包，方便下载和分发
+          tar -czf granoflow-${{ matrix.edition }}-linux.tar.gz .
+        continue-on-error: true
+
+      - name: Upload Android APK artifact
+        if: matrix.platform == 'android' && matrix.build-type == 'apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Upload macOS artifact
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-macos
+          path: |
+            build/macos/Build/Products/Release/*.app
+            build/macos/Build/Products/Release/*.zip
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload Windows artifact
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-windows
+          path: build/windows/runner/Release/*.exe
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload Linux artifact
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-linux
+          path: build/linux/x64/release/bundle/*
+          retention-days: 30
+          if-no-files-found: ignore
+
+  create-release:
+    name: Create GitHub Release
+    needs: build-all-platforms
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_PART=$(echo "$VERSION" | cut -d'+' -f1)
+          BUILD_PART=$(echo "$VERSION" | cut -d'+' -f2)
+          echo "version=$VERSION_PART" >> $GITHUB_OUTPUT
+          echo "build=$BUILD_PART" >> $GITHUB_OUTPUT
+          EDITION="${{ inputs.edition || 'lite' }}"
+          echo "tag=v$VERSION_PART-staging-$EDITION.$BUILD_PART" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.edition || 'lite' }}-*
+          merge-multiple: true
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Staging Release ${{ steps.version.outputs.version }} (${{ inputs.edition || 'lite' }})
+          body: |
+            ## GranoFlow ${{ inputs.edition || 'lite' }} Staging Release ${{ steps.version.outputs.version }}
+            
+            ### 下载
+            - **Android APK**: 见下方 Assets
+            - **macOS**: 见下方 Assets
+            - **Windows EXE**: 见下方 Assets
+            - **Linux**: 见下方 Assets
+            
+            ### 变更
+            - 查看 [提交历史](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
+            
+            ### 安装说明
+            - **Android**: 下载 APK 文件并安装
+            - **macOS**: 下载 .app 或 .zip 文件，解压后拖拽到 Applications 文件夹
+            - **Windows**: 下载 EXE 文件并运行安装程序
+            - **Linux**: 下载压缩包，解压后运行
+            
+            ### 注意
+            - 这是 Staging 版本，用于全平台验证
+            - 验证通过后，将合并到 develop 分支进行内部测试
+          files: |
+            artifacts/**/*
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

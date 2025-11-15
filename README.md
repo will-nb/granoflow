@@ -97,13 +97,24 @@ fvm flutter build macos --release
 
 项目已配置通过 GitHub Actions 自动部署到 Google Play。
 
-**自动触发**：
-- 当代码推送到 `develop` 分支时，会自动构建 Lite 版本的 AAB 和 APK
+**分支策略**：
+
+- **`staging` 分支**：全平台构建和发布
+  - 当代码推送到 `staging` 分支时，会自动构建所有平台的安装包
+  - 自动创建 GitHub Release，包含：
+    - Android APK
+    - macOS (.app 和 .zip)
+    - Windows (.exe)
+    - Linux (压缩包)
+  - 用于全平台验证，验证通过后合并到 `develop` 分支
+
+- **`develop` 分支**：内部测试快速迭代
+  - 当代码推送到 `develop` 分支时，会自动构建 Lite 版本的 AAB 和 APK
   - AAB 部署到 Google Play Internal Testing 轨道（团队内部快速迭代，最多100人）
   - APK 发布到 GitHub Release（备用下载渠道，无需审核）
 
 **手动触发**：
-- 在 GitHub Actions 页面手动运行 `Release Android Internal Testing` 工作流
+- 在 GitHub Actions 页面手动运行相应的工作流
 - 可选择跳过构建，仅部署已有的 artifact
 - 可以手动选择部署到其他轨道（Alpha、Beta、Production）
 
