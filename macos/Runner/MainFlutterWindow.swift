@@ -19,7 +19,7 @@ class MainFlutterWindow: NSWindow {
     }
   }
 
-  private let fallbackSize = NSSize(width: 744, height: 1133) // 竖屏默认尺寸
+  private let fallbackSize = NSSize(width: 1280, height: 720) // 默认尺寸
 
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()

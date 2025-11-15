@@ -16,7 +16,6 @@ import '../providers/service_providers.dart';
 import '../utils/tray_menu_builder.dart';
 import '../../presentation/navigation/app_router.dart';
 import '../../presentation/widgets/utils/quick_add_sheet_helper.dart';
-import '../../presentation/widgets/utils/task_status_toggle_helper.dart';
 
 /// 系统托盘服务
 class SystemTrayService {
@@ -274,42 +273,6 @@ class SystemTrayService {
       return;
     }
     await QuickAddSheetHelper.showQuickAddSheet(context);
-  }
-
-  Future<void> _handleTaskToggle(String taskId) async {
-    final context = _currentContext;
-    if (context == null) {
-      debugPrint('[SystemTrayService] Unable to toggle task: no context');
-      return;
-    }
-    final task = _findTask(taskId);
-    if (task == null) {
-      debugPrint('[SystemTrayService] Task not found for toggle: $taskId');
-      return;
-    }
-    await TaskStatusToggleHelper.toggleTaskStatusThreeStateWithRef(
-      context,
-      _ref,
-      task,
-      section: _taskSectionIndex[task.id],
-    );
-  }
-
-  Future<void> _handleStartTimer(String taskId) async {
-    if (_pinnedTaskId != null) {
-      return;
-    }
-    try {
-      final taskService = await _ref.read(taskServiceProvider.future);
-      await taskService.markInProgress(taskId);
-
-      final focusNotifier = _ref.read(focusActionsNotifierProvider.notifier);
-      await focusNotifier.start(taskId);
-
-      await _ref.read(pinnedTaskIdProvider.notifier).setPinnedTaskId(taskId);
-    } catch (error, stackTrace) {
-      debugPrint('[SystemTrayService] Failed to start timer: $error\n$stackTrace');
-    }
   }
 
   Future<void> _handleOpenTask(String taskId) async {

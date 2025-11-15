@@ -92,6 +92,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final allStatisticsAsync = ref.watch(allStatisticsProvider);
     
     // 在 build 方法中检查路由状态，确保每次进入首页时刷新数据
     if (_hasLoadedInitial) {
@@ -121,10 +122,10 @@ class _HomePageState extends ConsumerState<HomePage> {
           final textTheme = theme.textTheme;
           final colorScheme = theme.colorScheme;
           
-          // 根据主题亮度选择文字颜色 (Choose text color based on theme brightness)
+          // 根据主题亮度选择文字颜色
           final heroTextColor = theme.brightness == Brightness.light
-              ? colorScheme.onSurface  // Light 模式：海军蓝
-              : Colors.white;           // Dark 模式：白色
+              ? colorScheme.onSurface
+              : Colors.white;
 
           final greeting = Text(
             l10n.homeGreeting,
@@ -137,7 +138,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               applyHeightToFirstAscent: false,
               applyHeightToLastDescent: false,
             ),
-            textAlign: TextAlign.start, // 文本左对齐，与 Column 对齐方式一致
+            textAlign: TextAlign.start,
           );
 
           final subtitle = Text(
@@ -150,20 +151,19 @@ class _HomePageState extends ConsumerState<HomePage> {
               applyHeightToFirstAscent: false,
               applyHeightToLastDescent: false,
             ),
-            textAlign: TextAlign.start, // 文本左对齐，与 Column 对齐方式一致
+            textAlign: TextAlign.start,
           );
 
-          // 根据主题亮度选择 Logo variant (Choose Logo variant based on theme brightness)
+          // 根据主题亮度选择 Logo variant
           final logoVariant = theme.brightness == Brightness.light
-              ? AppLogoVariant.primary      // Light 模式：彩色 Logo
-              : AppLogoVariant.onPrimary;   // Dark 模式：白色 Logo
+              ? AppLogoVariant.primary
+              : AppLogoVariant.onPrimary;
 
           // 将 Logo + 标题 + 标语打包为一个横向 heroBlock
           final heroBlock = Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center, // 垂直居中对齐
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 左侧 Logo：使用固定尺寸，简化布局
               SizedBox(
                 width: isWide ? 80 : 64,
                 height: isWide ? 80 : 64,
@@ -173,12 +173,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                   variant: logoVariant,
                 ),
               ),
-              SizedBox(width: isWide ? 20 : 16), // 增加间距，更统一
-              // 文本区域：移除 Transform，使用标准布局
+              SizedBox(width: isWide ? 20 : 16),
               Flexible(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start, // 文本左对齐
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     greeting,
                     const SizedBox(height: 8),
@@ -189,77 +188,141 @@ class _HomePageState extends ConsumerState<HomePage> {
             ],
           );
 
-          // 响应式布局
-          if (isWide) {
-            // 横屏：两栏布局
-            return Padding(
-              padding: EdgeInsets.only(
-                top: 24, // 增加顶部间距，与标题栏保持距离
-                bottom: 16,
-                left: constraints.maxWidth >= 1200 ? 48 : 32,
-                right: constraints.maxWidth >= 1200 ? 48 : 32,
+          // Hero + 搜索栏的组合
+          final heroWithSearch = Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              heroBlock,
+              const SizedBox(height: 24),
+              TaskSearchBar(
+                onTap: () => context.go('/search'),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 左侧栏：Hero + 搜索栏
-                  Flexible(
-                    flex: constraints.maxWidth >= 1200 ? 35 : 30,
+            ],
+          );
+
+          return allStatisticsAsync.when(
+            data: (allStatistics) {
+              // 判断是否为空数据
+              final isEmpty = allStatistics.today.completedCount == 0 &&
+                  allStatistics.today.focusMinutes == 0 &&
+                  allStatistics.thisWeek.completedCount == 0 &&
+                  allStatistics.thisWeek.focusMinutes == 0 &&
+                  allStatistics.thisMonth.completedCount == 0 &&
+                  allStatistics.thisMonth.focusMinutes == 0 &&
+                  allStatistics.total.completedCount == 0 &&
+                  allStatistics.total.focusMinutes == 0;
+
+              if (isEmpty) {
+                // 空状态：heroBlock + 搜索栏居中显示（上下左右都居中）
+                return Center(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: heroWithSearch,
+                    ),
+                  ),
+                );
+              }
+
+              // 有数据时的布局
+              if (isWide) {
+                // 宽屏：左右两栏布局，heroBlock 垂直居中
+                return Padding(
+                  padding: EdgeInsets.only(
+                    top: 24,
+                    bottom: 16,
+                    left: constraints.maxWidth >= 1200 ? 48 : 32,
+                    right: constraints.maxWidth >= 1200 ? 48 : 32,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center, // 垂直居中
+                    children: [
+                      // 左侧栏：Hero + 搜索栏（垂直居中）
+                      Flexible(
+                        flex: constraints.maxWidth >= 1200 ? 35 : 30,
+                        child: Center(
+                          child: heroWithSearch,
+                        ),
+                      ),
+                      SizedBox(
+                        width: constraints.maxWidth >= 1200 ? 48 : 32,
+                      ),
+                      // 右侧栏：统计表
+                      Flexible(
+                        flex: constraints.maxWidth >= 1200 ? 50 : 40,
+                        child: const HomeStatisticsWidget(),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                // 窄屏：垂直布局
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(todayStatisticsProvider);
+                    ref.invalidate(thisWeekStatisticsProvider);
+                    ref.invalidate(thisMonthStatisticsProvider);
+                    ref.invalidate(totalStatisticsProvider);
+                    ref.invalidate(thisMonthTopCompletedDateProvider);
+                    ref.invalidate(thisMonthTopFocusDateProvider);
+                    ref.invalidate(totalTopCompletedDateProvider);
+                    ref.invalidate(totalTopFocusDateProvider);
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        const SizedBox(height: 24),
                         heroBlock,
                         const SizedBox(height: 24),
                         TaskSearchBar(
                           onTap: () => context.go('/search'),
                         ),
+                        const HomeStatisticsWidget(),
                       ],
                     ),
                   ),
-                  SizedBox(
-                    width: constraints.maxWidth >= 1200 ? 48 : 32,
+                );
+              }
+            },
+            loading: () {
+              // 加载中时，显示居中布局（与空状态一致）
+              return Center(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: heroWithSearch,
                   ),
-                  // 右侧栏：统计表
-                  Flexible(
-                    flex: constraints.maxWidth >= 1200 ? 50 : 40,
-                    child: const HomeStatisticsWidget(),
-                  ),
-                ],
-              ),
-            );
-          } else {
-            // 竖屏：垂直布局
-            return RefreshIndicator(
-              onRefresh: () async {
-                // 刷新所有统计数据
-                ref.invalidate(todayStatisticsProvider);
-                ref.invalidate(thisWeekStatisticsProvider);
-                ref.invalidate(thisMonthStatisticsProvider);
-                ref.invalidate(totalStatisticsProvider);
-                ref.invalidate(thisMonthTopCompletedDateProvider);
-                ref.invalidate(thisMonthTopFocusDateProvider);
-                ref.invalidate(totalTopCompletedDateProvider);
-                ref.invalidate(totalTopFocusDateProvider);
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 24), // 增加顶部间距，与标题栏保持距离
-                    heroBlock,
-                    const SizedBox(height: 24),
-                    TaskSearchBar(
-                      onTap: () => context.go('/search'),
-                    ),
-                    const HomeStatisticsWidget(),
-                  ],
                 ),
-              ),
-            );
-          }
+              );
+            },
+            error: (error, stack) {
+              // 错误时，也显示居中布局
+              return Center(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        heroWithSearch,
+                        const SizedBox(height: 24),
+                        Text(
+                          'Error: $error',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
     );
