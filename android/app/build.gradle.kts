@@ -118,5 +118,6 @@ flutter {
 
 dependencies {
     // Core library desugaring（flutter_local_notifications 需要）
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    // flutter_local_notifications 19.5.0+ 要求 desugar_jdk_libs >= 2.1.4
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
