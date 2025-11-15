@@ -3,18 +3,17 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 
 /// 统一通知服务（跨平台）
-/// 
-/// 封装 Android/iOS 通知功能，提供初始化、调度、取消等接口
+///
+/// 封装 Android/iOS/macOS/Linux 通知功能，提供初始化、调度、取消等接口
 class NotificationService {
   NotificationService();
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
 
   /// 初始化通知服务
-  /// 
+  ///
   /// 必须在应用启动时调用一次
   Future<void> initialize() async {
     if (_initialized) {
@@ -41,11 +40,15 @@ class NotificationService {
       requestSoundPermission: true,
     );
 
+    // Linux 通知配置
+    const linuxSettings = LinuxInitializationSettings(defaultActionName: '打开通知');
+
     // 初始化设置
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
       macOS: macosSettings,
+      linux: linuxSettings,
     );
 
     // 初始化通知插件
@@ -73,8 +76,7 @@ class NotificationService {
     );
 
     await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
   }
 
@@ -90,21 +92,20 @@ class NotificationService {
     );
 
     await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
   }
 
   /// 请求通知权限
-  /// 
+  ///
   /// Android 13+ 和 iOS 需要用户授权
+  /// Linux 使用系统通知服务器（D-Bus），通常不需要额外权限请求
   /// 如果权限请求正在进行中，会捕获异常并返回 false
   Future<bool> requestPermission() async {
     try {
       // Android 13+ 权限请求
       final androidImplementation = _notificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       if (androidImplementation != null) {
         final granted = await androidImplementation.requestNotificationsPermission();
         if (granted == true) {
@@ -114,8 +115,7 @@ class NotificationService {
 
       // iOS 权限请求（在初始化时已请求，这里检查状态）
       final iosImplementation = _notificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>();
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
       if (iosImplementation != null) {
         final settings = await iosImplementation.requestPermissions(
           alert: true,
@@ -123,6 +123,15 @@ class NotificationService {
           sound: true,
         );
         return settings ?? false;
+      }
+
+      // Linux 使用系统通知服务器（D-Bus），通常不需要额外权限请求
+      // 如果系统通知服务器可用，则认为权限已授予
+      final linuxImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<LinuxFlutterLocalNotificationsPlugin>();
+      if (linuxImplementation != null) {
+        // Linux 通知通常不需要权限请求，直接返回 true
+        return true;
       }
     } catch (e) {
       // 如果权限请求正在进行中或其他错误，记录并返回 false
@@ -135,7 +144,7 @@ class NotificationService {
   }
 
   /// 调度本地通知（iOS 到点提醒）
-  /// 
+  ///
   /// [id] 通知 ID
   /// [title] 通知标题
   /// [body] 通知内容
@@ -164,21 +173,17 @@ class NotificationService {
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
+        iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+        linux: const LinuxNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
     );
   }
 
   /// 取消通知
-  /// 
+  ///
   /// [id] 通知 ID
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
@@ -190,7 +195,7 @@ class NotificationService {
   }
 
   /// 立即显示通知
-  /// 
+  ///
   /// [id] 通知 ID
   /// [title] 通知标题
   /// [body] 通知内容
@@ -211,8 +216,7 @@ class NotificationService {
     // 注意：渠道在初始化时已经创建，这里直接创建即可（如果已存在会被忽略）
     if (channelId != null && channelName != null) {
       final androidImplementation = _notificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       if (androidImplementation != null) {
         // 直接创建渠道（如果已存在会被忽略）
         const androidChannel = AndroidNotificationChannel(
@@ -246,6 +250,7 @@ class NotificationService {
           presentBadge: true,
           presentSound: false, // 置顶任务通知不播放声音
         ),
+        linux: const LinuxNotificationDetails(),
       ),
     );
   }
@@ -269,4 +274,3 @@ class NotificationService {
     // AppRouter.router.go('/tasks?scrollToPinned=true');
   }
 }
-

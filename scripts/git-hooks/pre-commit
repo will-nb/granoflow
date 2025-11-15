@@ -207,6 +207,17 @@ if echo "$CHANGED" | grep -E '^lib/|^test/|^integration_test/' >/dev/null 2>&1; 
 
   echo "[pre-commit] Running flutter analyze ..."
   flutter analyze
+  if [ $? -ne 0 ]; then
+    echo "[pre-commit] ❌ flutter analyze failed"
+    exit 1
+  fi
+
+  echo "[pre-commit] Running flutter test ..."
+  flutter test
+  if [ $? -ne 0 ]; then
+    echo "[pre-commit] ❌ flutter test failed"
+    exit 1
+  fi
 fi
 
 # 2) 架构文档 Linter（精准到变更）
