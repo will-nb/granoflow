@@ -5,7 +5,10 @@
 # 颜色变量和工具函数应该由主文件定义
 
 run_android() {
-  echo -e "${GREEN}🚀 准备在 Android 手机上运行应用（Pixel 6, 6.4\", 1080 x 2400）${NC}"
+  local edition="${1:-lite}"
+  local package_name="com.granoflow.$edition"
+  
+  echo -e "${GREEN}🚀 准备在 Android 手机上运行应用（Pixel 6, 6.4\", 1080 x 2400）[Edition: $edition]${NC}"
   
   # 准备设备（查找、启动、等待就绪）
   local device_id=$(prepare_android_device "Pixel 6" "Pixel 6")
@@ -15,15 +18,22 @@ run_android() {
   fi
   
   # 卸载已安装的应用
-  uninstall_android_app "$device_id"
+  uninstall_android_app "$device_id" "$package_name"
   
   # 运行应用
   echo -e "${BLUE}运行应用...${NC}"
-  flutter run -d "$device_id"
+  # 通过环境变量传递 Gradle 项目属性（直接在命令前设置，确保传递到子进程）
+  ORG_GRADLE_PROJECT_appEdition="$edition" flutter run -d "$device_id" \
+    --dart-define=GRANOFLOW_APP_EDITION="$edition" \
+    --dart-define=GRANOFLOW_PACKAGE_NAME="$package_name" \
+    --dart-define=appEdition="$edition"
 }
 
 run_tablet() {
-  echo -e "${GREEN}🚀 准备在 Android 平板上运行应用（Pixel Tablet, 10.2\", 2560 x 1600）${NC}"
+  local edition="${1:-lite}"
+  local package_name="com.granoflow.$edition"
+  
+  echo -e "${GREEN}🚀 准备在 Android 平板上运行应用（Pixel Tablet, 10.2\", 2560 x 1600）[Edition: $edition]${NC}"
   
   # 准备设备（查找、启动、等待就绪）
   local device_id=$(prepare_android_device "Pixel Tablet" "Pixel Tablet")
@@ -33,15 +43,22 @@ run_tablet() {
   fi
   
   # 卸载已安装的应用
-  uninstall_android_app "$device_id"
+  uninstall_android_app "$device_id" "$package_name"
   
   # 运行应用
   echo -e "${BLUE}运行应用...${NC}"
-  flutter run -d "$device_id"
+  # 通过环境变量传递 Gradle 项目属性（直接在命令前设置，确保传递到子进程）
+  ORG_GRADLE_PROJECT_appEdition="$edition" flutter run -d "$device_id" \
+    --dart-define=GRANOFLOW_APP_EDITION="$edition" \
+    --dart-define=GRANOFLOW_PACKAGE_NAME="$package_name" \
+    --dart-define=appEdition="$edition"
 }
 
 run_iphone() {
-  echo -e "${GREEN}🚀 准备在 iPhone 上运行应用（iPhone 16 Pro, 6.3\", 1290 x 2796）${NC}"
+  local edition="${1:-lite}"
+  local package_name="com.granoflow.$edition"
+  
+  echo -e "${GREEN}🚀 准备在 iPhone 上运行应用（iPhone 16 Pro, 6.3\", 1290 x 2796）[Edition: $edition]${NC}"
   
   # 准备设备（查找、启动、等待就绪）
   local device_udid=$(prepare_ios_device "iPhone 16 Pro" "iPhone")
@@ -51,15 +68,21 @@ run_iphone() {
   fi
   
   # 卸载已安装的应用
-  uninstall_ios_app "$device_udid"
+  uninstall_ios_app "$device_udid" "$package_name"
   
   # 运行应用
   echo -e "${BLUE}运行应用...${NC}"
-  flutter run -d "$device_udid"
+  flutter run -d "$device_udid" \
+    --dart-define=GRANOFLOW_APP_EDITION="$edition" \
+    --dart-define=GRANOFLOW_PACKAGE_NAME="$package_name" \
+    --dart-define=appEdition="$edition"
 }
 
 run_ipad() {
-  echo -e "${GREEN}🚀 准备在 iPad 上运行应用（iPad Pro 11\", 11\", 2388 x 1668）${NC}"
+  local edition="${1:-lite}"
+  local package_name="com.granoflow.$edition"
+  
+  echo -e "${GREEN}🚀 准备在 iPad 上运行应用（iPad Pro 11\", 11\", 2388 x 1668）[Edition: $edition]${NC}"
   
   # 准备设备（查找、启动、等待就绪）
   local device_udid=$(prepare_ios_device "iPad Pro 11-inch" "iPad")
@@ -73,15 +96,21 @@ run_ipad() {
   fi
   
   # 卸载已安装的应用
-  uninstall_ios_app "$device_udid"
+  uninstall_ios_app "$device_udid" "$package_name"
   
   # 运行应用
   echo -e "${BLUE}运行应用...${NC}"
-  flutter run -d "$device_udid"
+  flutter run -d "$device_udid" \
+    --dart-define=GRANOFLOW_APP_EDITION="$edition" \
+    --dart-define=GRANOFLOW_PACKAGE_NAME="$package_name" \
+    --dart-define=appEdition="$edition"
 }
 
 run_macos() {
-  echo -e "${GREEN}🚀 准备在 macOS 上运行应用（桌面应用）${NC}"
+  local edition="${1:-lite}"
+  local package_name="com.granoflow.$edition"
+  
+  echo -e "${GREEN}🚀 准备在 macOS 上运行应用（桌面应用）[Edition: $edition]${NC}"
   
   # 检查 macOS 设备是否可用
   if ! flutter devices --machine 2>/dev/null | grep -q '"id"[[:space:]]*:[[:space:]]*"macos"'; then
@@ -95,6 +124,9 @@ run_macos() {
   
   echo -e "${GREEN}✅ 环境已清理完毕，macOS 设备可用${NC}"
   echo -e "${BLUE}运行应用...${NC}"
-  flutter run -d macos
+  flutter run -d macos \
+    --dart-define=GRANOFLOW_APP_EDITION="$edition" \
+    --dart-define=GRANOFLOW_PACKAGE_NAME="$package_name" \
+    --dart-define=appEdition="$edition"
 }
 

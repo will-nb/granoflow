@@ -271,40 +271,111 @@ main() {
       python3 "$ROOT_DIR/scripts/anz_modules/refactor/check.py" ;;
     
     run:android)
+      echo "run:android 命令需要指定 edition"
+      echo "用法:"
+      echo "  scripts/anz run:android:lite  # 运行 lite 版本"
+      echo "  scripts/anz run:android:pro   # 运行 pro 版本"
+      exit 1 ;;
+    
+    run:android:lite)
       if has_help "$@"; then
-        echo "run:android: 在 Android 手机上运行应用（Pixel 6, 6.4\", 1080 x 2400）"
+        echo "run:android:lite: 在 Android 手机上运行应用（Pixel 6, 6.4\", 1080 x 2400）- Lite 版本"
         exit 0
       fi
-      run_android ;;
+      run_android lite ;;
+    
+    run:android:pro)
+      if has_help "$@"; then
+        echo "run:android:pro: 在 Android 手机上运行应用（Pixel 6, 6.4\", 1080 x 2400）- Pro 版本"
+        exit 0
+      fi
+      run_android pro ;;
     
     run:tablet)
+      echo "run:tablet 命令需要指定 edition"
+      echo "用法:"
+      echo "  scripts/anz run:tablet:lite  # 运行 lite 版本"
+      echo "  scripts/anz run:tablet:pro   # 运行 pro 版本"
+      exit 1 ;;
+    
+    run:tablet:lite)
       if has_help "$@"; then
-        echo "run:tablet: 在 Android 平板上运行应用（Pixel Tablet, 10.2\", 2560 x 1600）"
+        echo "run:tablet:lite: 在 Android 平板上运行应用（Pixel Tablet, 10.2\", 2560 x 1600）- Lite 版本"
         exit 0
       fi
-      run_tablet ;;
+      run_tablet lite ;;
+    
+    run:tablet:pro)
+      if has_help "$@"; then
+        echo "run:tablet:pro: 在 Android 平板上运行应用（Pixel Tablet, 10.2\", 2560 x 1600）- Pro 版本"
+        exit 0
+      fi
+      run_tablet pro ;;
     
     run:iphone)
+      echo "run:iphone 命令需要指定 edition"
+      echo "用法:"
+      echo "  scripts/anz run:iphone:lite  # 运行 lite 版本"
+      echo "  scripts/anz run:iphone:pro   # 运行 pro 版本"
+      exit 1 ;;
+    
+    run:iphone:lite)
       if has_help "$@"; then
-        echo "run:iphone: 在 iPhone 上运行应用（iPhone 16 Pro, 6.3\", 1290 x 2796）"
+        echo "run:iphone:lite: 在 iPhone 上运行应用（iPhone 16 Pro, 6.3\", 1290 x 2796）- Lite 版本"
         exit 0
       fi
-      run_iphone ;;
+      run_iphone lite ;;
+    
+    run:iphone:pro)
+      if has_help "$@"; then
+        echo "run:iphone:pro: 在 iPhone 上运行应用（iPhone 16 Pro, 6.3\", 1290 x 2796）- Pro 版本"
+        exit 0
+      fi
+      run_iphone pro ;;
     
     run:ipad)
+      echo "run:ipad 命令需要指定 edition"
+      echo "用法:"
+      echo "  scripts/anz run:ipad:lite  # 运行 lite 版本"
+      echo "  scripts/anz run:ipad:pro   # 运行 pro 版本"
+      exit 1 ;;
+    
+    run:ipad:lite)
       if has_help "$@"; then
-        echo "run:ipad: 在 iPad 上运行应用（iPad Pro 11\", 11\", 2388 x 1668）"
+        echo "run:ipad:lite: 在 iPad 上运行应用（iPad Pro 11\", 11\", 2388 x 1668）- Lite 版本"
         exit 0
       fi
-      run_ipad ;;
+      run_ipad lite ;;
+    
+    run:ipad:pro)
+      if has_help "$@"; then
+        echo "run:ipad:pro: 在 iPad 上运行应用（iPad Pro 11\", 11\", 2388 x 1668）- Pro 版本"
+        exit 0
+      fi
+      run_ipad pro ;;
     
     run:macos)
+      echo "run:macos 命令需要指定 edition"
+      echo "用法:"
+      echo "  scripts/anz run:macos:lite  # 运行 lite 版本"
+      echo "  scripts/anz run:macos:pro   # 运行 pro 版本"
+      exit 1 ;;
+    
+    run:macos:lite)
       if has_help "$@"; then
-        echo "run:macos: 在 macOS 上运行应用（桌面应用）"
+        echo "run:macos:lite: 在 macOS 上运行应用（桌面应用）- Lite 版本"
         echo "流程：先执行 scripts/anz clean，再 flutter run -d macos，确保环境干净"
         exit 0
       fi
-      run_macos ;;
+      run_macos lite ;;
+    
+    run:macos:pro)
+      if has_help "$@"; then
+        echo "run:macos:pro: 在 macOS 上运行应用（桌面应用）- Pro 版本"
+        echo "流程：先执行 scripts/anz clean，再 flutter run -d macos，确保环境干净"
+        exit 0
+      fi
+      run_macos pro ;;
     
     test:macos)
       if has_help "$@"; then

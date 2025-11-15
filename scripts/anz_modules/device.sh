@@ -156,6 +156,7 @@ create_android_emulator() {
 # 卸载 Android 应用
 uninstall_android_app() {
   local device_id="$1"
+  local package_name="${2:-com.granoflow.app}"
   if [ -z "$device_id" ]; then
     echo -e "${YELLOW}⚠️  设备 ID 为空，跳过卸载${NC}"
     return 0
@@ -164,10 +165,10 @@ uninstall_android_app() {
   echo -e "${BLUE}卸载已安装的应用（如果存在）...${NC}"
   
   # 先停止应用（如果正在运行）
-  adb -s "$device_id" shell am force-stop com.granoflow.app 2>/dev/null || true
+  adb -s "$device_id" shell am force-stop "$package_name" 2>/dev/null || true
   
   # 卸载应用
-  local result=$(adb -s "$device_id" uninstall com.granoflow.app 2>&1)
+  local result=$(adb -s "$device_id" uninstall "$package_name" 2>&1)
   if echo "$result" | grep -q "Success"; then
     echo -e "${GREEN}✅ 应用已卸载${NC}"
   elif echo "$result" | grep -q "not found"; then
@@ -180,6 +181,7 @@ uninstall_android_app() {
 # 授予 Android 应用通知权限（用于测试，避免弹出权限对话框）
 grant_android_notification_permission() {
   local device_id="$1"
+  local package_name="${2:-com.granoflow.app}"
   if [ -z "$device_id" ]; then
     echo -e "${YELLOW}⚠️  设备 ID 为空，跳过权限授予${NC}"
     return 0
@@ -188,7 +190,7 @@ grant_android_notification_permission() {
   echo -e "${BLUE}授予通知权限（避免测试时弹出对话框）...${NC}"
   
   # 授予 Android 13+ 通知权限
-  adb -s "$device_id" shell pm grant com.granoflow.app android.permission.POST_NOTIFICATIONS 2>/dev/null || {
+  adb -s "$device_id" shell pm grant "$package_name" android.permission.POST_NOTIFICATIONS 2>/dev/null || {
     echo -e "${YELLOW}  ⚠️  权限授予失败（可能应用未安装或权限已授予）${NC}"
   }
   
@@ -198,6 +200,7 @@ grant_android_notification_permission() {
 # 卸载 iOS 应用
 uninstall_ios_app() {
   local device_id="$1"
+  local package_name="${2:-com.granoflow.app}"
   if [ -z "$device_id" ]; then
     # 如果没有指定设备 ID，使用 booted
     device_id="booted"
@@ -206,10 +209,10 @@ uninstall_ios_app() {
   echo -e "${BLUE}卸载已安装的应用（如果存在）...${NC}"
   
   # 先终止应用（如果正在运行）
-  xcrun simctl terminate "$device_id" com.granoflow.app 2>/dev/null || true
+  xcrun simctl terminate "$device_id" "$package_name" 2>/dev/null || true
   
   # 卸载应用
-  local result=$(xcrun simctl uninstall "$device_id" com.granoflow.app 2>&1)
+  local result=$(xcrun simctl uninstall "$device_id" "$package_name" 2>&1)
   if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ 应用已卸载${NC}"
   else
