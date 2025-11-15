@@ -6,8 +6,8 @@ GranoFlow 是一款离线优先的任务与计时管理应用，支持 Android�
 
 ### 敏感文件处理
 项目已配置完善的 `.gitignore`，自动忽略以下敏感文件：
-- 签名密钥文件（`*.jks`, `*.keystore`, `keystore.properties`）
-- 构建产物（`*.apk`, `*.aab`, `*.ipa`）
+- 签名密钥文件（`*.jks`, `*.keystore`, `keystore.properties`, `*.pfx`）
+- 构建产物（`*.apk`, `*.aab`, `*.ipa`, `*.msix`）
 - IDE 配置和缓存文件
 - 系统临时文件
 
@@ -37,6 +37,7 @@ GranoFlow 是一款离线优先的任务与计时管理应用，支持 Android�
    - Dart SDK：随 Flutter 一同安装
    - Android Studio（Arctic Fox+）或 VS Code（需安装 Flutter/Dart 插件）
    - Xcode 14+（仅 macOS 构建）
+   - Windows 10/11（仅 Windows 构建和 MSIX 测试）
    - Git、Chrome（Web 调试可选）
 
 2. **使用 FVM 安装 Flutter**
@@ -102,7 +103,7 @@ fvm flutter build macos --release
 - **`staging` 分支**：全平台构建和发布
   - 当代码推送到 `staging` 分支时，会自动构建所有平台的安装包
   - 自动创建 GitHub Release，包含：
-    - Android APK
+    - Android APK（arm64-v8a 和 x86_64 分架构版本）
     - macOS DMG（磁盘映像文件，标准 macOS 分发格式）
     - Windows EXE
     - Linux AppImage（便携式应用格式，无需安装即可运行）
@@ -181,6 +182,42 @@ fvm flutter build macos --release
 - **keystore 共享**：lite 和 pro 版本共用同一个 keystore 文件（`granoflow-keystore.jks`），因为它们的包名不同（`com.granoflow.lite` 和 `com.granoflow.pro`），不会产生冲突。同一个 keystore 也可以用于其他项目，只要包名不同即可。
 - versionCode 必须递增，否则上传会失败（需手动更新 `pubspec.yaml` 中的 build 号）
 - 工作流会跳过 metadata 和 screenshots 上传，仅上传 AAB 文件
+
+### Windows MSIX 测试
+
+项目支持生成 MSIX 包用于 Microsoft Store 上架前的本地测试。
+
+**快速开始**：
+
+1. **生成测试证书**（macOS/Linux）：
+   ```bash
+   ./scripts/generate-windows-cert.sh
+   ```
+   或在 Windows 上：
+   ```powershell
+   .\scripts\generate-windows-cert.ps1
+   ```
+
+2. **生成 MSIX 包**：
+   ```bash
+   flutter pub get
+   flutter pub run msix:create
+   ```
+
+3. **安装证书到 Windows 系统**（重要）：
+   - 将证书安装到"受信任的根证书颁发机构"
+   - 详细步骤请参考 `windows/MSIX_TESTING.md`
+
+4. **安装和测试 MSIX 包**：
+   - 双击生成的 `.msix` 文件安装
+   - 或在 PowerShell 中：`Add-AppxPackage -Path "build/windows/runner/Release/*.msix"`
+
+**详细文档**：请查看 [windows/MSIX_TESTING.md](windows/MSIX_TESTING.md)
+
+**注意事项**：
+- 测试证书仅用于本地测试，不能用于正式发布
+- 注册 Microsoft Store 后需要更新 `pubspec.yaml` 中的配置
+- MSIX 包只能在 Windows 10/11 上安装和运行
 
 ## 常用命令
 - `fvm flutter analyze`：静态检查（CI Gate）。

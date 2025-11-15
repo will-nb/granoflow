@@ -50,6 +50,19 @@ dev_dependencies:
     sdk: flutter
   build_runner: ^2.4.11
   drift_dev: ^2.29.0
+  msix: ^3.16.12
+
+msix_config:
+  display_name: "GranoFlow"
+  publisher_display_name: "GranoFlow Team"
+  identity_name: "com.granoflow.lite"
+  publisher: "CN=GranoFlow Test Publisher"
+  msix_version: 1.0.0.0
+  certificate_path: "windows/granoflow-test-cert.pfx"
+  certificate_password: "TestPassword123"
+  start_menu: true
+  desktop_shortcut: true
+  architecture: x64
 
 flutter:
   generate: true

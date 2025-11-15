@@ -52,8 +52,9 @@ android {
         versionName = flutter.versionName
         
         // 支持 16 KB 页面大小（Android 16+）
+        // 只支持 arm64-v8a 和 x86_64 架构
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += listOf("arm64-v8a", "x86_64")
         }
     }
 
