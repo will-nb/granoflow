@@ -13,6 +13,7 @@ class GradientPageScaffold extends StatelessWidget {
   final Gradient? gradient;
   final bool extendBodyBehindAppBar;
   final bool extendBody;
+
   /// 全屏沉浸式模式（无 AppBar、无导航栏）
   final bool fullScreen;
 
@@ -35,8 +36,8 @@ class GradientPageScaffold extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isLight = brightness == Brightness.light;
     final backgroundImage = isLight
-        ? 'assets/images/background.light.png'
-        : 'assets/images/background.dark.png';
+        ? 'assets/images/background.light.webp'
+        : 'assets/images/background.dark.webp';
     final pageGradient = gradient ?? context.gradients.pageBackground;
 
     // 构建背景层：图片 + 半透明渐变叠加
@@ -47,20 +48,13 @@ class GradientPageScaffold extends StatelessWidget {
           // 底层：背景图片
           Container(
             decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(backgroundImage),
-                fit: BoxFit.cover,
-              ),
+              image: DecorationImage(image: AssetImage(backgroundImage), fit: BoxFit.cover),
             ),
           ),
           // 上层：半透明渐变叠加
           Opacity(
             opacity: 0.6, // 渐变透明度，可根据需要调整
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: pageGradient,
-              ),
-            ),
+            child: Container(decoration: BoxDecoration(gradient: pageGradient)),
           ),
           // 内容层
           child,
@@ -71,18 +65,14 @@ class GradientPageScaffold extends StatelessWidget {
     // 全屏沉浸式模式：无 AppBar、无导航栏
     if (fullScreen) {
       return Scaffold(
-        body: buildBackground(
-          child: SafeArea(
-            child: body,
-          ),
-        ),
+        body: buildBackground(child: SafeArea(child: body)),
       );
     }
-    
+
     // 正常模式
     final shouldExtendBody = extendBodyBehindAppBar || drawer != null;
     final hasAppBar = appBar != null;
-    
+
     // 当 extendBodyBehindAppBar 为 true 且存在 AppBar 时，
     // 需要计算状态栏高度 + AppBar 高度的总 padding
     double topPadding = 0;
@@ -92,7 +82,7 @@ class GradientPageScaffold extends StatelessWidget {
       final appBarHeight = appBar!.preferredSize.height;
       topPadding = statusBarHeight + appBarHeight;
     }
-    
+
     return Scaffold(
       appBar: appBar,
       drawer: drawer,
@@ -118,4 +108,3 @@ class GradientPageScaffold extends StatelessWidget {
     );
   }
 }
-

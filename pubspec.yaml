@@ -73,11 +73,9 @@ flutter:
     - assets/seeds/en/
     - assets/seeds/zh_CN/
     - assets/seeds/zh_HK/
-    - assets/images/background.light.png
-    - assets/images/background.dark.png
     - assets/images/background.light.webp
     - assets/images/background.dark.webp
-    - assets/images/homepage_empty_data.png
+    - assets/images/homepage_empty_data.webp
     - assets/logo/
     - assets/sounds/
     - assets/config/desktop_window.json

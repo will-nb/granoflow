@@ -123,7 +123,7 @@ class HomeEmptyStateCard extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 24),
                         child: Image.asset(
-                          'assets/images/homepage_empty_data.png',
+                          'assets/images/homepage_empty_data.webp',
                           height: resolvedIllustrationHeight,
                           fit: BoxFit.contain,
                           filterQuality: FilterQuality.high,

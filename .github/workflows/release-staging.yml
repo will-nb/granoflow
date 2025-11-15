@@ -83,6 +83,14 @@ jobs:
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
           EOF
 
+      - name: Accept Android SDK licenses (Android only)
+        if: matrix.platform == 'android'
+        env:
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        run: |
+          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" "ndk;29.0.13846066"
+
       - name: Build Android APK (split per ABI)
         if: matrix.platform == 'android' && matrix.build-type == 'apk'
         run: |
@@ -162,7 +170,8 @@ jobs:
             gstreamer1.0-plugins-ugly \
             gstreamer1.0-gl \
             gstreamer1.0-alsa \
-            gstreamer1.0-libav
+            gstreamer1.0-libav \
+            libayatana-appindicator3-dev
 
       - name: Build Linux
         if: matrix.platform == 'linux'

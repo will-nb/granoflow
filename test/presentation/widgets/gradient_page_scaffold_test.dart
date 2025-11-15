@@ -9,9 +9,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.light(),
-          home: const GradientPageScaffold(
-            body: Center(child: Text('Test Body')),
-          ),
+          home: const GradientPageScaffold(body: Center(child: Text('Test Body'))),
         ),
       );
 
@@ -78,9 +76,7 @@ void main() {
         MaterialApp(
           theme: AppTheme.light(),
           home: const GradientPageScaffold(
-            bottomNavigationBar: BottomAppBar(
-              child: Text('Bottom Bar'),
-            ),
+            bottomNavigationBar: BottomAppBar(child: Text('Bottom Bar')),
             body: Center(child: Text('Test Body')),
           ),
         ),
@@ -90,9 +86,7 @@ void main() {
     });
 
     testWidgets('should use custom gradient when provided', (tester) async {
-      const customGradient = LinearGradient(
-        colors: [Colors.red, Colors.blue],
-      );
+      const customGradient = LinearGradient(colors: [Colors.red, Colors.blue]);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -109,7 +103,7 @@ void main() {
       //   of: find.byType(Scaffold),
       //   matching: find.byType(Stack),
       // );
-      
+
       Stack? backgroundStack;
       tester.allWidgets.forEach((widget) {
         if (widget is Stack && widget.fit == StackFit.expand) {
@@ -118,7 +112,7 @@ void main() {
       });
 
       expect(backgroundStack, isNotNull);
-      
+
       // The gradient container should be the second child (index 1) in the Stack, wrapped in Opacity
       expect(backgroundStack!.children.length, greaterThanOrEqualTo(2));
       final opacityWidget = backgroundStack!.children[1] as Opacity;
@@ -131,9 +125,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.light(),
-          home: const GradientPageScaffold(
-            body: Center(child: Text('Test Body')),
-          ),
+          home: const GradientPageScaffold(body: Center(child: Text('Test Body'))),
         ),
       );
 
@@ -146,7 +138,7 @@ void main() {
       });
 
       expect(backgroundStack, isNotNull);
-      
+
       // The gradient container should be the second child (index 1) in the Stack, wrapped in Opacity
       expect(backgroundStack!.children.length, greaterThanOrEqualTo(2));
       final opacityWidget = backgroundStack!.children[1] as Opacity;
@@ -193,9 +185,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.dark(),
-          home: const GradientPageScaffold(
-            body: Center(child: Text('Test Body')),
-          ),
+          home: const GradientPageScaffold(body: Center(child: Text('Test Body'))),
         ),
       );
 
@@ -210,22 +200,21 @@ void main() {
       });
 
       expect(backgroundStack, isNotNull);
-      
+
       // The gradient container should be the second child (index 1) in the Stack, wrapped in Opacity
       expect(backgroundStack!.children.length, greaterThanOrEqualTo(2));
       final opacityWidget = backgroundStack!.children[1] as Opacity;
       final gradientContainer = opacityWidget.child as Container;
       final decoration = gradientContainer.decoration as BoxDecoration;
       expect(decoration.gradient, isNotNull);
-      
+
       // Verify background image exists (first child should be the image container)
       final imageContainer = backgroundStack!.children[0] as Container;
       final imageDecoration = imageContainer.decoration as BoxDecoration;
       expect(imageDecoration.image, isNotNull);
       expect(imageDecoration.image!.image, isA<AssetImage>());
       final assetImage = imageDecoration.image!.image as AssetImage;
-      expect(assetImage.assetName, 'assets/images/background.dark.png');
+      expect(assetImage.assetName, 'assets/images/background.dark.webp');
     });
   });
 }
-
