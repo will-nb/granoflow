@@ -13,7 +13,7 @@ android/app/build/
 android/app/google-services.json
 android/app/src/main/res/mipmap-*/ic_launcher.png
 android/keystore.properties
-android/app/keystore.properties
+# android/app/keystore.properties - 允许提交，因为使用相对路径，不包含敏感信息
 android/app/upload-keystore.jks
 *.jks
 *.keystore
@@ -93,6 +93,7 @@ $RECYCLE.BIN/
 *.backup
 .cache/
 temp_file
+temp/
 
 # Logs
 *.log
