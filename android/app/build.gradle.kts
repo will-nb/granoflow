@@ -88,14 +88,9 @@ android {
         }
     }
 
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "x86_64")
-            isUniversalApk = false
-        }
-    }
+    // 注意：不要在这里配置 splits，使用 Flutter 的 --split-per-abi 标志
+    // Flutter 的 --split-per-abi 会自动处理 ABI 分割，并将 APK 生成到正确的位置
+    // 如果在这里配置 splits，可能会与 Flutter 的配置冲突，导致 APK 生成到错误的位置
     
     // 支持 16 KB 页面大小（Android 16+）
     packaging {
