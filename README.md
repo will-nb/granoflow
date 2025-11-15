@@ -105,7 +105,7 @@ fvm flutter build macos --release
     - Android APK
     - macOS DMG（磁盘映像文件，标准 macOS 分发格式）
     - Windows EXE
-    - Linux 压缩包
+    - Linux AppImage（便携式应用格式，无需安装即可运行）
   - 用于全平台验证，验证通过后合并到 `develop` 分支
 
 - **`develop` 分支**：内部测试快速迭代

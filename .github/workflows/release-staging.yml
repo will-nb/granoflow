@@ -147,12 +147,70 @@ jobs:
           echo "DMG created: ${DMG_PATH}"
         continue-on-error: true
 
-      - name: Package Linux App
+      - name: Package Linux App as AppImage
         if: matrix.platform == 'linux'
         run: |
-          cd build/linux/x64/release/bundle
-          # 创建 tar.gz 压缩包，方便下载和分发
-          tar -czf granoflow-${{ matrix.edition }}-linux.tar.gz .
+          APP_NAME="granoflow"
+          APP_DIR="granoflow-${{ matrix.edition }}.AppDir"
+          BUNDLE_DIR="build/linux/x64/release/bundle"
+          
+          # 创建 AppDir 目录结构
+          mkdir -p "${APP_DIR}/usr/bin"
+          mkdir -p "${APP_DIR}/usr/lib"
+          mkdir -p "${APP_DIR}/usr/share/applications"
+          mkdir -p "${APP_DIR}/usr/share/icons/hicolor/256x256/apps"
+          
+          # 复制整个 bundle 目录到 usr/bin（Flutter bundle 包含所有必要文件）
+          cp -r "${BUNDLE_DIR}"/* "${APP_DIR}/usr/bin/"
+          
+          # 确保可执行文件有执行权限
+          chmod +x "${APP_DIR}/usr/bin/${APP_NAME}"
+          
+          # 创建 AppRun 脚本（指向 bundle 中的可执行文件）
+          cat > "${APP_DIR}/AppRun" << 'EOF'
+          #!/bin/bash
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          export PATH="${HERE}/usr/bin:${PATH}"
+          export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
+          exec "${HERE}/usr/bin/granoflow" "$@"
+          EOF
+          chmod +x "${APP_DIR}/AppRun"
+          
+          # 创建 .desktop 文件
+          cat > "${APP_DIR}/usr/share/applications/granoflow.desktop" << EOF
+          [Desktop Entry]
+          Name=GranoFlow
+          Comment=任务与计时管理应用
+          Exec=granoflow
+          Icon=granoflow
+          Type=Application
+          Categories=Utility;Office;
+          EOF
+          
+          # 复制图标（如果存在）
+          if [ -f "assets/logo/granoflow-logo.png" ]; then
+            cp "assets/logo/granoflow-logo.png" "${APP_DIR}/usr/share/icons/hicolor/256x256/apps/granoflow.png"
+          elif [ -f "assets/logo/app_icon.ico" ]; then
+            # 如果有 ico 文件，可以尝试转换或使用占位符
+            echo "Icon file found but may need conversion"
+          fi
+          
+          # 下载 appimagetool
+          APPIMAGETOOL="appimagetool-x86_64.AppImage"
+          if [ ! -f "${APPIMAGETOOL}" ]; then
+            wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/${APPIMAGETOOL}" -O "${APPIMAGETOOL}"
+            chmod +x "${APPIMAGETOOL}"
+          fi
+          
+          # 创建 AppImage
+          ARCH="x86_64"
+          OUTPUT_NAME="granoflow-${{ matrix.edition }}-linux-${ARCH}.AppImage"
+          ./${APPIMAGETOOL} "${APP_DIR}" "${OUTPUT_NAME}"
+          
+          # 移动到构建目录
+          mv "${OUTPUT_NAME}" "${BUNDLE_DIR}/"
+          
+          echo "AppImage created: ${BUNDLE_DIR}/${OUTPUT_NAME}"
         continue-on-error: true
 
       - name: Upload Android APK artifact
@@ -186,7 +244,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.edition }}-linux
-          path: build/linux/x64/release/bundle/*
+          path: build/linux/x64/release/bundle/*.AppImage
           retention-days: 30
           if-no-files-found: ignore
 
@@ -233,7 +291,7 @@ jobs:
             - **Android APK**: 见下方 Assets
             - **macOS DMG**: 见下方 Assets
             - **Windows EXE**: 见下方 Assets
-            - **Linux**: 见下方 Assets
+            - **Linux AppImage**: 见下方 Assets
             
             ### 变更
             - 查看 [提交历史](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
@@ -242,7 +300,7 @@ jobs:
             - **Android**: 下载 APK 文件并安装
             - **macOS**: 下载 DMG 文件，双击挂载后拖拽应用到 Applications 文件夹
             - **Windows**: 下载 EXE 文件并运行安装程序
-            - **Linux**: 下载压缩包，解压后运行
+            - **Linux**: 下载 AppImage 文件，添加执行权限后直接运行（`chmod +x *.AppImage && ./granoflow-*.AppImage`）
             
             ### 注意
             - 这是 Staging 版本，用于全平台验证
