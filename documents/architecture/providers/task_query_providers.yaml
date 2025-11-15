@@ -1,11 +1,11 @@
 meta:
-  name: Unknown
+  name: TaskProjectHierarchy
   type: provider
   file_path: lib/core/providers/task_query_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -206,6 +206,8 @@ calls:
 - lib/data/models/project.dart
 - lib/data/models/task.dart
 - lib/core/services/tag_service.dart
+- lib/core/utils/project_statistics_utils.dart
+- lib/core/utils/task_section_utils.dart
 test_mapping:
   unit: []
   integration: []

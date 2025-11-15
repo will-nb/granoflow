@@ -7,7 +7,7 @@ set -e
 CERT_DIR="windows"
 CERT_NAME="granoflow-test-cert"
 CERT_PATH="${CERT_DIR}/${CERT_NAME}.pfx"
-PASSWORD="TestPassword123"
+PASSWORD="uKcaZRFLezfR68aW"
 
 echo "🔐 生成 Windows MSIX 测试证书..."
 

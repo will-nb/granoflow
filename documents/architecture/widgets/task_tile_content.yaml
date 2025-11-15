@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_tile_content.dart
   description: _TaskTileContentState 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -78,6 +78,21 @@ widget_properties:
   required: false
   default_value: null
   description: 任务的层级（level），用于判断是否是子任务 level > 1 表示是子任务，子任务不显示截止日期
+- name: isEditingNotifier
+  type: ValueNotifier<bool>
+  required: false
+  default_value: null
+  description: 编辑状态通知器，用于控制拖拽和滑动的启用/禁用 如果为 null，则创建本地 ValueNotifier
+- name: _isEditingNotifier
+  type: ValueNotifier<bool>
+  required: true
+  default_value: null
+  description: ''
+- name: _isLocalNotifier
+  type: bool
+  required: true
+  default_value: null
+  description: ''
 widget_methods:
 - name: methodName
   return_type: 返回类型
@@ -166,6 +181,7 @@ widget_dependencies:
 widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
+- ../../core/theme/app_color_tokens.dart
 - ../../core/theme/app_spacing_tokens.dart
 - ../../data/models/task.dart
 - task_row_content.dart
@@ -263,6 +279,7 @@ widget_state_management:
 source_of_truth: lib/presentation/widgets/task_tile_content.dart
 called_by: []
 calls:
+- lib/core/theme/app_color_tokens.dart
 - lib/core/theme/app_spacing_tokens.dart
 - lib/data/models/task.dart
 - lib/presentation/common/drag/standard_draggable.dart

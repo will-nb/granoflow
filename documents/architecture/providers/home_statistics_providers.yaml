@@ -1,11 +1,11 @@
 meta:
-  name: TaskProjectHierarchy
+  name: Unknown
   type: provider
-  file_path: lib/core/providers/task_hierarchy_providers.dart
+  file_path: lib/core/providers/home_statistics_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -199,14 +199,10 @@ provider_families:
     description: 参数描述
   usage: 使用场景
   benefits: 优势
-source_of_truth: lib/core/providers/task_hierarchy_providers.dart
+source_of_truth: lib/core/providers/home_statistics_providers.dart
 called_by: []
 calls:
-- lib/data/models/milestone.dart
-- lib/data/models/project.dart
-- lib/data/models/task.dart
-- lib/data/repositories/task_repository.dart
-- lib/presentation/tasks/utils/hierarchy_utils.dart
+- lib/data/models/home_statistics.dart
 test_mapping:
   unit: []
   integration: []

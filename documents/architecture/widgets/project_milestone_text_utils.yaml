@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/project_milestone_text_utils.dart
   description: None 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -124,7 +124,8 @@ widget_dependencies:
   description: 依赖描述
   required: true|false
   version: 版本要求
-widget_imports: []
+widget_imports:
+- ../../core/utils/text_utils.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -217,7 +218,8 @@ widget_state_management:
   considerations: 注意事项
 source_of_truth: lib/presentation/widgets/project_milestone_text_utils.dart
 called_by: []
-calls: []
+calls:
+- lib/core/utils/text_utils.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

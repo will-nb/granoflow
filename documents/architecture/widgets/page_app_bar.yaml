@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/page_app_bar.dart
   description: PageAppBar 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -135,6 +135,7 @@ widget_dependencies:
   version: 版本要求
 widget_imports:
 - package:flutter/material.dart
+- ../../generated/l10n/app_localizations.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -227,7 +228,8 @@ widget_state_management:
   considerations: 注意事项
 source_of_truth: lib/presentation/widgets/page_app_bar.dart
 called_by: []
-calls: []
+calls:
+- lib/generated/l10n/app_localizations.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

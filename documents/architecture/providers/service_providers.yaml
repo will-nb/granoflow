@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/providers/service_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -203,6 +203,10 @@ source_of_truth: lib/core/providers/service_providers.dart
 called_by: []
 calls:
 - lib/core/config/app_config.dart
+- lib/core/services/encryption_key_service.dart
+- lib/core/services/export_encryption_service.dart
+- lib/core/services/export_service.dart
+- lib/core/services/import_service.dart
 - lib/core/services/focus_flow_service.dart
 - lib/core/services/metric_orchestrator.dart
 - lib/core/services/preference_service.dart
@@ -213,6 +217,12 @@ calls:
 - lib/core/services/task_service.dart
 - lib/core/services/sort_index_service.dart
 - lib/core/services/task_template_service.dart
+- lib/core/services/clock_audio_service.dart
+- lib/core/services/calendar_review_service.dart
+- lib/core/services/heatmap_color_service.dart
+- lib/core/services/home_statistics_service.dart
+- lib/core/services/task_query_service.dart
+- lib/core/services/node_service.dart
 - lib/core/monetization/monetization_service.dart
 test_mapping:
   unit: []

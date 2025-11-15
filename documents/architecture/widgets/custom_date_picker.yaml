@@ -1,17 +1,17 @@
 meta:
-  name: _DayCell
+  name: _CustomDatePickerDialogState
   type: widget
   file_path: lib/presentation/widgets/custom_date_picker.dart
-  description: _DayCell 组件
+  description: _CustomDatePickerDialogState 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
-  name: _DayCell
+  name: _CustomDatePickerDialogState
   layer: presentation
-  pattern: stateless
+  pattern: stateful
   category: ui_component
   reusable: true
 widget_types:
@@ -56,91 +56,6 @@ widget_properties:
 - name: _displayedMonth
   type: DateTime
   required: true
-  default_value: null
-  description: ''
-- name: onDateSelected
-  type: ValueChanged<DateTime>
-  required: true
-  default_value: null
-  description: ''
-- name: label
-  type: String
-  required: true
-  default_value: null
-  description: ''
-- name: icon
-  type: IconData
-  required: true
-  default_value: null
-  description: ''
-- name: onTap
-  type: VoidCallback
-  required: true
-  default_value: null
-  description: ''
-- name: color
-  type: Color
-  required: true
-  default_value: null
-  description: ''
-- name: displayedMonth
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: selectedDate
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: firstDate
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: lastDate
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: onDateSelected
-  type: ValueChanged<DateTime>
-  required: true
-  default_value: null
-  description: ''
-- name: getSpecialLabel
-  type: String Function(DateTime)
-  required: false
-  default_value: null
-  description: ''
-- name: day
-  type: int
-  required: true
-  default_value: null
-  description: ''
-- name: isSelected
-  type: bool
-  required: true
-  default_value: null
-  description: ''
-- name: isEnabled
-  type: bool
-  required: true
-  default_value: null
-  description: ''
-- name: isToday
-  type: bool
-  required: true
-  default_value: null
-  description: ''
-- name: specialLabel
-  type: String
-  required: false
-  default_value: null
-  description: ''
-- name: onTap
-  type: VoidCallback
-  required: false
   default_value: null
   description: ''
 widget_methods:
@@ -232,6 +147,8 @@ widget_imports:
 - package:flutter/material.dart
 - package:intl/intl.dart
 - ../../generated/l10n/app_localizations.dart
+- custom_date_picker/custom_date_picker_actions.dart
+- custom_date_picker/custom_date_picker_calendar.dart
 widget_categories:
   ui_components:
   - name: componentName

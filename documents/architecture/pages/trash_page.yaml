@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/completion_management/trash_page.dart
   description: _TrashPageState 页面
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -199,6 +199,10 @@ calls:
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/gradient_page_scaffold.dart
 - lib/presentation/widgets/task_filter_collapsible.dart
+- lib/presentation/widgets/expandable_task_row.dart
+- lib/presentation/widgets/dismissible_task_tile.dart
+- lib/presentation/widgets/swipe_action_handler.dart
+- lib/presentation/widgets/swipe_configs.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

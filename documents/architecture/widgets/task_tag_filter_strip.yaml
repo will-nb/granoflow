@@ -1,15 +1,15 @@
 meta:
-  name: _ProjectFilterTileState
+  name: TaskTagFilterStrip
   type: widget
   file_path: lib/presentation/widgets/task_tag_filter_strip.dart
-  description: _ProjectFilterTileState 组件
+  description: TaskTagFilterStrip 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
-  name: _ProjectFilterTileState
+  name: TaskTagFilterStrip
   layer: presentation
   pattern: consumer
   category: ui_component
@@ -33,31 +33,11 @@ widget_properties:
   required: true
   default_value: null
   description: 筛选Provider（StateNotifierProvider<TaskFilterNotifier, TaskFilterState>）
-- name: project
-  type: Project
-  required: true
-  default_value: null
-  description: ''
-- name: isSelected
-  type: bool
-  required: true
-  default_value: null
-  description: ''
-- name: currentMilestoneId
-  type: String
+- name: projectsProvider
+  type: StreamProvider<List<Project>>
   required: false
   default_value: null
-  description: ''
-- name: onSelected
-  type: ValueChanged<String>
-  required: false
-  default_value: null
-  description: ''
-- name: _isExpanded
-  type: bool
-  required: false
-  default_value: 'false'
-  description: ''
+  description: 可选的 projectsProvider，用于自定义项目列表来源 如果不提供，则使用默认的 projectsDomainProvider（只显示活跃项目）
 widget_methods:
 - name: methodName
   return_type: 返回类型
@@ -147,13 +127,10 @@ widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
 - ../../core/providers/app_providers.dart
-- ../../data/models/tag.dart
 - ../../data/models/project.dart
-- ../../data/models/milestone.dart
-- ../../generated/l10n/app_localizations.dart
 - error_banner.dart
-- modern_tag.dart
-- tag_data.dart
+- task_tag_filter_strip/project_filter_section.dart
+- task_tag_filter_strip/tag_filter_section.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -248,10 +225,7 @@ source_of_truth: lib/presentation/widgets/task_tag_filter_strip.dart
 called_by: []
 calls:
 - lib/core/providers/app_providers.dart
-- lib/data/models/tag.dart
 - lib/data/models/project.dart
-- lib/data/models/milestone.dart
-- lib/generated/l10n/app_localizations.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

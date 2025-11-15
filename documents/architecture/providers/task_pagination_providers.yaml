@@ -1,11 +1,11 @@
 meta:
-  name: TrashedTasksPaginationNotifier
+  name: Unknown
   type: provider
   file_path: lib/core/providers/task_pagination_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -201,9 +201,7 @@ provider_families:
   benefits: 优势
 source_of_truth: lib/core/providers/task_pagination_providers.dart
 called_by: []
-calls:
-- lib/data/models/task.dart
-- lib/data/repositories/task_repository.dart
+calls: []
 test_mapping:
   unit: []
   integration: []

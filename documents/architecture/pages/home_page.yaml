@@ -1,11 +1,11 @@
 meta:
-  name: HomePage
+  name: _HomePageState
   type: page
   file_path: lib/presentation/home/home_page.dart
-  description: HomePage 页面
+  description: _HomePageState 页面
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -194,8 +194,7 @@ called_by: []
 calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/core/providers/app_providers.dart
-- lib/presentation/navigation/navigation_destinations.dart
-- lib/presentation/timer/timer_page.dart
+- lib/core/providers/home_statistics_providers.dart
 - lib/presentation/widgets/page_app_bar.dart
 - lib/presentation/widgets/app_logo.dart
 - lib/presentation/widgets/main_drawer.dart

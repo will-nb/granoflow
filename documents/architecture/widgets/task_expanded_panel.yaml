@@ -1,17 +1,17 @@
 meta:
-  name: _QuickDateOption
+  name: _TaskExpandedPanelState
   type: widget
   file_path: lib/presentation/widgets/task_expanded_panel.dart
-  description: _QuickDateOption 组件
+  description: _TaskExpandedPanelState 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
-  name: _QuickDateOption
+  name: _TaskExpandedPanelState
   layer: presentation
-  pattern: stateless
+  pattern: consumer
   category: ui_component
   reusable: true
 widget_types:
@@ -87,46 +87,6 @@ widget_properties:
   type: bool
   required: false
   default_value: 'false'
-  description: ''
-- name: today
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: tomorrow
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: thisWeek
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: thisMonth
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: icon
-  type: IconData
-  required: true
-  default_value: null
-  description: ''
-- name: label
-  type: String
-  required: true
-  default_value: null
-  description: ''
-- name: date
-  type: DateTime
-  required: true
-  default_value: null
-  description: ''
-- name: onTap
-  type: VoidCallback
-  required: true
-  default_value: null
   description: ''
 widget_methods:
 - name: methodName
@@ -220,11 +180,14 @@ widget_imports:
 - ../../core/providers/app_providers.dart
 - ../../core/providers/service_providers.dart
 - ../../core/services/tag_service.dart
+- ../../core/utils/task_section_utils.dart
 - ../../data/models/tag.dart
 - ../../data/models/task.dart
 - ../../generated/l10n/app_localizations.dart
-- tag_panel.dart
+- custom_date_picker.dart
 - error_banner.dart
+- tag_panel.dart
+- task_expanded_panel/task_expanded_panel_date_section.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -321,6 +284,7 @@ calls:
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
 - lib/core/services/tag_service.dart
+- lib/core/utils/task_section_utils.dart
 - lib/data/models/tag.dart
 - lib/data/models/task.dart
 - lib/generated/l10n/app_localizations.dart

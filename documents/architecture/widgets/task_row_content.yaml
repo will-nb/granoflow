@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_row_content.dart
   description: _TaskRowContentState 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -68,21 +68,11 @@ widget_properties:
   required: false
   default_value: null
   description: 任务的层级（level），用于判断是否是子任务 level > 1 表示是子任务，子任务不显示截止日期
-- name: _titleController
-  type: TextEditingController
-  required: true
-  default_value: null
-  description: ''
-- name: _titleFocusNode
-  type: FocusNode
-  required: true
-  default_value: null
-  description: ''
-- name: _isEditingTitle
-  type: bool
+- name: isEditingNotifier
+  type: ValueNotifier<bool>
   required: false
-  default_value: 'false'
-  description: ''
+  default_value: null
+  description: 编辑状态通知器，用于控制拖拽和滑动的启用/禁用
 widget_methods:
 - name: methodName
   return_type: 返回类型
@@ -186,6 +176,7 @@ widget_imports:
 - ../../data/models/tag.dart
 - project_milestone_picker.dart
 - inline_project_milestone_display.dart
+- task_row_content/task_row_title_editor.dart
 widget_categories:
   ui_components:
   - name: componentName

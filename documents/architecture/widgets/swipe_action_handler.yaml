@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/swipe_action_handler.dart
   description: SwipeActionHandler 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -128,11 +128,13 @@ widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
 - ../../data/models/task.dart
-- ../../core/providers/service_providers.dart
-- ../../core/providers/repository_providers.dart
-- ../../generated/l10n/app_localizations.dart
-- swipe_action_type.dart
 - ../../core/providers/app_providers.dart
+- ../../core/providers/repository_providers.dart
+- ../../core/providers/service_providers.dart
+- ../../core/utils/task_section_utils.dart
+- ../../generated/l10n/app_localizations.dart
+- swipe_action_handler/swipe_action_handler_date_utils.dart
+- swipe_action_type.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -227,10 +229,11 @@ source_of_truth: lib/presentation/widgets/swipe_action_handler.dart
 called_by: []
 calls:
 - lib/data/models/task.dart
-- lib/core/providers/service_providers.dart
-- lib/core/providers/repository_providers.dart
-- lib/generated/l10n/app_localizations.dart
 - lib/core/providers/app_providers.dart
+- lib/core/providers/repository_providers.dart
+- lib/core/providers/service_providers.dart
+- lib/core/utils/task_section_utils.dart
+- lib/generated/l10n/app_localizations.dart
 i18n_keys:
 - taskPostponeSuccessDetailed
 design_tokens: []

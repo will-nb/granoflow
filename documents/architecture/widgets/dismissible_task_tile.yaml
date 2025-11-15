@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/dismissible_task_tile.dart
   description: DismissibleTaskTile 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -58,6 +58,11 @@ widget_properties:
   required: true
   default_value: null
   description: 滑动方向，默认为水平滑动
+- name: isEditingNotifier
+  type: ValueNotifier<bool>
+  required: false
+  default_value: null
+  description: 编辑状态通知器，用于控制滑动的启用/禁用
 widget_methods:
 - name: methodName
   return_type: 返回类型

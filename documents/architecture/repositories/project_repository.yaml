@@ -1,11 +1,11 @@
 meta:
-  name: IsarProjectRepository
+  name: ProjectRepository
   type: repository
   file_path: lib/data/repositories/project_repository.dart
   description: Repository 描述
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 repository_definition:
@@ -144,8 +144,7 @@ testing_strategy:
 source_of_truth: lib/data/repositories/project_repository.dart
 called_by: []
 calls:
-- lib/core/services/tag_service.dart
-- lib/data/isar/project_entity.dart
+- lib/core/providers/project_filter_providers.dart
 - lib/data/models/project.dart
 - lib/data/models/task.dart
 test_mapping:

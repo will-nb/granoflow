@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/create_task_dialog.dart
   description: _CreateTaskDialogState 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -33,25 +33,15 @@ widget_properties:
   required: false
   default_value: TextEditingController()
   description: ''
-- name: _selectedTag
-  type: String
+- name: _selectedDate
+  type: DateTime
   required: false
-  default_value: '''工作'''
+  default_value: null
   description: ''
-- name: _selectedParent
-  type: String
+- name: _isSubmitting
+  type: bool
   required: false
-  default_value: '''根任务'''
-  description: ''
-- name: _availableTags
-  type: List<String>
-  required: false
-  default_value: '[''工作'', ''学习'', ''生活'', ''娱乐'']'
-  description: ''
-- name: _availableParents
-  type: List<String>
-  required: false
-  default_value: '[''根任务'', ''项目A'', ''项目B'']'
+  default_value: 'false'
   description: ''
 widget_methods:
 - name: methodName
@@ -141,6 +131,10 @@ widget_dependencies:
 widget_imports:
 - package:flutter/material.dart
 - package:flutter_riverpod/flutter_riverpod.dart
+- ../../core/providers/service_providers.dart
+- ../../core/utils/task_section_utils.dart
+- ../../generated/l10n/app_localizations.dart
+- custom_date_picker.dart
 widget_categories:
   ui_components:
   - name: componentName
@@ -233,7 +227,10 @@ widget_state_management:
   considerations: 注意事项
 source_of_truth: lib/presentation/widgets/create_task_dialog.dart
 called_by: []
-calls: []
+calls:
+- lib/core/providers/service_providers.dart
+- lib/core/utils/task_section_utils.dart
+- lib/generated/l10n/app_localizations.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

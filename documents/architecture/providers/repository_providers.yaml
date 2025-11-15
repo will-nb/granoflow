@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/providers/repository_providers.dart
   description: Provider 描述
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 provider_definition:
@@ -202,6 +202,7 @@ provider_families:
 source_of_truth: lib/core/providers/repository_providers.dart
 called_by: []
 calls:
+- lib/data/database/database_adapter.dart
 - lib/data/repositories/focus_session_repository.dart
 - lib/data/repositories/metric_repository.dart
 - lib/data/repositories/preference_repository.dart
@@ -211,6 +212,17 @@ calls:
 - lib/data/repositories/tag_repository.dart
 - lib/data/repositories/task_repository.dart
 - lib/data/repositories/task_template_repository.dart
+- lib/data/repositories/node_repository.dart
+- lib/data/repositories/drift/drift_focus_session_repository.dart
+- lib/data/repositories/drift/drift_milestone_repository.dart
+- lib/data/repositories/drift/drift_preference_repository.dart
+- lib/data/repositories/drift/drift_project_repository.dart
+- lib/data/repositories/drift/drift_seed_repository.dart
+- lib/data/repositories/drift/drift_tag_repository.dart
+- lib/data/repositories/drift/drift_task_repository.dart
+- lib/data/repositories/drift/drift_task_template_repository.dart
+- lib/data/repositories/drift/drift_node_repository.dart
+- lib/core/config/database_config.dart
 test_mapping:
   unit: []
   integration: []

@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/timer/timer_page.dart
   description: _ErrorCard 页面
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -195,7 +195,6 @@ calls:
 - lib/generated/l10n/app_localizations.dart
 - lib/core/providers/app_providers.dart
 - lib/core/providers/service_providers.dart
-- lib/core/services/focus_flow_service.dart
 - lib/data/models/focus_session.dart
 - lib/data/models/task.dart
 - lib/data/models/task_template.dart

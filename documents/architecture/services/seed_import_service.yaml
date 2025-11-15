@@ -4,8 +4,8 @@ meta:
   file_path: lib/core/services/seed_import_service.dart
   description: Service 描述
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 service_definition:
@@ -194,6 +194,8 @@ source_of_truth: lib/core/services/seed_import_service.dart
 called_by: []
 calls:
 - lib/data/models/milestone.dart
+- lib/data/models/node.dart
+- lib/data/models/project.dart
 - lib/data/models/task.dart
 - lib/data/models/task_template.dart
 - lib/data/repositories/milestone_repository.dart
@@ -201,6 +203,8 @@ calls:
 - lib/data/repositories/tag_repository.dart
 - lib/data/repositories/task_repository.dart
 - lib/data/repositories/task_template_repository.dart
+- lib/core/utils/id_generator.dart
+- lib/core/utils/database_instrumentation.dart
 test_mapping:
   unit: []
   integration: []

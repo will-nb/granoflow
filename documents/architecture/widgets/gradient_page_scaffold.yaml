@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/gradient_page_scaffold.dart
   description: GradientPageScaffold 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -73,6 +73,11 @@ widget_properties:
   required: true
   default_value: null
   description: ''
+- name: fullScreen
+  type: bool
+  required: true
+  default_value: null
+  description: 全屏沉浸式模式（无 AppBar、无导航栏）
 widget_methods:
 - name: methodName
   return_type: 返回类型

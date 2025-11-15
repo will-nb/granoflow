@@ -59,27 +59,32 @@ jobs:
       - name: Run unit tests
         run: flutter test
 
+      # Integration tests 保持可选，因为可能不稳定或需要特殊环境
+      # 建议定期检查失败情况，但不阻止合并
       - name: Run integration tests
         run: flutter test integration_test || true
         continue-on-error: true
 
-  yaml-consistency:
-    name: YAML Consistency
+  architecture-lint:
+    name: Architecture Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          flutter-version: 3.27.0
-          channel: stable
-          cache: true
+          python-version: '3.x'
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Install PyYAML
+        run: pip install pyyaml
 
-      - name: Run YAML consistency tests
-        run: flutter test test/yaml/ || true
-        continue-on-error: true
+      - name: Run Architecture Linter
+        run: |
+          FILES=$(find documents/architecture -name "*.yaml" -o -name "*.yml" 2>/dev/null || true)
+          if [ -n "$FILES" ]; then
+            python3 scripts/anz_modules/architecture/architecture_linter.py --files $FILES
+          else
+            echo "No architecture YAML files found"
+          fi

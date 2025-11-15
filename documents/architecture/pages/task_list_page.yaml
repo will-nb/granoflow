@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/tasks/task_list_page.dart
   description: _SectionMeta 页面
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 page_definition:
@@ -192,7 +192,10 @@ page_state_management:
 source_of_truth: lib/presentation/tasks/task_list_page.dart
 called_by: []
 calls:
+- lib/presentation/widgets/pinned_task_bar.dart
 - lib/core/providers/app_providers.dart
+- lib/core/providers/pinned_task_provider.dart
+- lib/core/providers/repository_providers.dart
 - lib/core/providers/service_providers.dart
 - lib/core/providers/tasks_drag_provider.dart
 - lib/data/models/task.dart
@@ -201,6 +204,8 @@ calls:
 - lib/presentation/widgets/main_drawer.dart
 - lib/presentation/widgets/page_app_bar.dart
 - lib/presentation/widgets/task_filter_collapsible.dart
+- lib/presentation/widgets/utils/quick_add_sheet_helper.dart
+- lib/presentation/widgets/utils/task_bottom_sheet_helper.dart
 i18n_keys: []
 design_tokens: []
 test_mapping:

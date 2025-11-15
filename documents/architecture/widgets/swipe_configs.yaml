@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/swipe_configs.dart
   description: SwipeConfigs 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -56,6 +56,23 @@ widget_properties:
     leftIcon: Icons.check_circle, rightIcon: Icons.delete, leftColor: OceanBreezeColorSchemes.softGreen,
     rightColor: OceanBreezeColorSchemes.errorDark)'
   description: Tasks页面子任务的滑动配置 左滑：完成任务（安全操作），右滑：移动到回收站（删除操作） 用于 level > 1 的子任务
+- name: tasksNonTodayConfig
+  type: SwipeActionConfig
+  required: false
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.quickPlan, rightAction:
+    SwipeActionType.archive, leftHintKey: ''inboxQuickPlanAction'', rightHintKey:
+    ''taskArchiveAction'', leftIcon: Icons.today, rightIcon: Icons.archive, leftColor:
+    OceanBreezeColorSchemes.softGreen, rightColor: OceanBreezeColorSchemes.softPink)'
+  description: Tasks页面非今日区域的滑动配置 左滑：移动到今日（quickPlan，安全操作），右滑：归档任务（警告操作） 用于非今日区域的根任务（本周、本月、下月、以后、已逾期）
+- name: tasksNonTodaySubtaskConfig
+  type: SwipeActionConfig
+  required: false
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.quickPlan, rightAction:
+    SwipeActionType.delete, leftHintKey: ''inboxQuickPlanAction'', rightHintKey: ''inboxDeleteAction'',
+    leftIcon: Icons.today, rightIcon: Icons.delete, leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark)'
+  description: Tasks页面非今日区域子任务的滑动配置 左滑：移动到今日（quickPlan，安全操作），右滑：移动到回收站（删除操作） 用于非今日区域的子任务（level
+    > 1）
 - name: completedArchivedConfig
   type: SwipeActionConfig
   required: false
@@ -68,12 +85,12 @@ widget_properties:
 - name: inboxSubtaskConfig
   type: SwipeActionConfig
   required: false
-  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.promoteToIndependent,
-    rightAction: SwipeActionType.delete, leftHintKey: ''actionPromoteToIndependent'',
-    rightHintKey: ''inboxDeleteAction'', leftIcon: Icons.arrow_upward, rightIcon:
-    Icons.delete, leftColor: OceanBreezeColorSchemes.softGreen, rightColor: OceanBreezeColorSchemes.errorDark)'
-  description: Inbox页面子任务的滑动配置 方向规范：与 inboxConfig 保持一致 - 右滑（startToEnd，常用/安全）= 提升为独立任务（promoteToIndependent，绿色）
-    - 左滑（endToStart，危险）= 移动到回收站（delete，红色）
+  default_value: 'SwipeActionConfig(leftAction: SwipeActionType.quickPlan, rightAction:
+    SwipeActionType.delete, leftHintKey: ''inboxQuickPlanAction'', rightHintKey: ''inboxDeleteAction'',
+    leftIcon: Icons.today, rightIcon: Icons.delete, leftColor: OceanBreezeColorSchemes.softGreen,
+    rightColor: OceanBreezeColorSchemes.errorDark)'
+  description: Inbox页面子任务的滑动配置 方向规范：与 inboxConfig 保持一致 - 右滑（startToEnd，常用/安全）= 快速加入今日（quickPlan，绿色）
+    - 左滑（endToStart，危险）= 移动到回收站（delete，红色） 注意：子任务功能已禁用，此配置与 inboxConfig 相同
 - name: trashConfig
   type: SwipeActionConfig
   required: false

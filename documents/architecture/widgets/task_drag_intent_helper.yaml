@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/task_drag_intent_helper.dart
   description: TaskDragIntentHelper 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -126,13 +126,9 @@ widget_dependencies:
   version: 版本要求
 widget_imports:
 - package:flutter/material.dart
-- package:flutter/foundation.dart
 - package:flutter_riverpod/flutter_riverpod.dart
-- ../../core/providers/repository_providers.dart
-- ../../core/providers/service_providers.dart
 - ../../data/models/task.dart
 - ../../generated/l10n/app_localizations.dart
-- ../tasks/utils/hierarchy_utils.dart
 - ../common/drag/task_drag_intent_target.dart
 widget_categories:
   ui_components:
@@ -227,11 +223,8 @@ widget_state_management:
 source_of_truth: lib/presentation/widgets/task_drag_intent_helper.dart
 called_by: []
 calls:
-- lib/core/providers/repository_providers.dart
-- lib/core/providers/service_providers.dart
 - lib/data/models/task.dart
 - lib/generated/l10n/app_localizations.dart
-- lib/presentation/tasks/utils/hierarchy_utils.dart
 - lib/presentation/common/drag/task_drag_intent_target.dart
 i18n_keys: []
 design_tokens: []

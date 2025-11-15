@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/project_milestone_menu.dart
   description: _ProjectSection 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -44,7 +44,7 @@ widget_properties:
   default_value: null
   description: 当前任务关联的里程碑 ID（业务 ID）
 - name: _expandedProjects
-  type: Set<int>
+  type: Set<String>
   required: false
   default_value: '{}'
   description: ''

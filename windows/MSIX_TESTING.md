@@ -24,7 +24,7 @@
 .\scripts\generate-windows-cert.ps1
 ```
 
-证书将生成在 `windows/granoflow-test-cert.pfx`，密码为 `TestPassword123`。
+证书将生成在 `windows/granoflow-test-cert.pfx`，密码为 `uKcaZRFLezfR68aW`。
 
 ## 步骤 2: 安装依赖
 
@@ -49,7 +49,7 @@ flutter pub run msix:create
 1. 将 `windows/granoflow-test-cert.pfx` 复制到 Windows 系统
 2. 右键点击 `.pfx` 文件，选择"安装 PFX"
 3. 选择"本地计算机"
-4. 输入密码：`TestPassword123`
+4. 输入密码：`uKcaZRFLezfR68aW`
 5. 选择"将所有证书放入以下存储"
 6. 浏览并选择"受信任的根证书颁发机构"
 7. 完成安装
@@ -70,7 +70,7 @@ flutter pub run msix:create
 
 ```powershell
 # 导入证书到受信任的根证书颁发机构
-$password = ConvertTo-SecureString -String "TestPassword123" -Force -AsPlainText
+$password = ConvertTo-SecureString -String "uKcaZRFLezfR68aW" -Force -AsPlainText
 Import-PfxCertificate `
     -FilePath "windows/granoflow-test-cert.pfx" `
     -CertStoreLocation "Cert:\LocalMachine\Root" `
@@ -119,7 +119,7 @@ msix_config:
   publisher: "CN=GranoFlow Test Publisher"
   msix_version: 1.0.0.0
   certificate_path: "windows/granoflow-test-cert.pfx"
-  certificate_password: "TestPassword123"
+  certificate_password: "uKcaZRFLezfR68aW"
   start_menu: true
   desktop_shortcut: true
   architecture: x64

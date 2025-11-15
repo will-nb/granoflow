@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/chip_toggle_group.dart
   description: ChipToggleGroup 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:

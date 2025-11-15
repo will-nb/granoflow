@@ -59,7 +59,7 @@ msix_config:
   publisher: "CN=GranoFlow Test Publisher"
   msix_version: 1.0.0.0
   certificate_path: "windows/granoflow-test-cert.pfx"
-  certificate_password: "TestPassword123"
+  certificate_password: "uKcaZRFLezfR68aW"
   start_menu: true
   desktop_shortcut: true
   architecture: x64

@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 $CertDir = "windows"
 $CertName = "granoflow-test-cert"
 $CertPath = Join-Path $CertDir "$CertName.pfx"
-$Password = "TestPassword123"
+$Password = "uKcaZRFLezfR68aW"
 $SecurePassword = ConvertTo-SecureString -String $Password -Force -AsPlainText
 
 Write-Host "🔐 生成 Windows MSIX 测试证书..." -ForegroundColor Cyan

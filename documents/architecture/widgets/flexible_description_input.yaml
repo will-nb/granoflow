@@ -4,8 +4,8 @@ meta:
   file_path: lib/presentation/widgets/flexible_description_input.dart
   description: _FlexibleDescriptionInputState 组件
   version: '1.0'
-  created_date: '251104'
-  last_updated: '251104'
+  created_date: '251115'
+  last_updated: '251115'
   schema_version: 1
   last_synced_sha: ''
 widget_definition:
@@ -59,6 +59,13 @@ widget_properties:
   required: false
   default_value: null
   description: 标签文本 (Label text)
+- name: buttonText
+  type: String
+  required: false
+  default_value: null
+  description: 自定义按钮文本（当有内容时显示编辑文本，无内容时显示添加文本） 如果为 null，则使用默认的本地化文本 (Custom button
+    text - shows edit text when has content, add text when empty) (If null, uses default
+    localized text)
 - name: enabled
   type: bool
   required: true
@@ -74,6 +81,11 @@ widget_properties:
   required: true
   default_value: null
   description: 最大行数 (Maximum lines)
+- name: showCounter
+  type: bool
+  required: true
+  default_value: null
+  description: 是否显示字符计数器 (Whether to show character counter)
 - name: _isExpanded
   type: bool
   required: false
