@@ -449,7 +449,7 @@
   "homeGreeting": "GranoFlow",
   "homePageTitle": "首页",
   "homeEmptyStateTitle": "这里还很安静",
-  "homeEmptyStateDescription": "创建第一个任务后，专注时长和完成情况都会在此呈现。",
+  "homeEmptyStateDescription": "完成第一个任务后，专注时长和完成情况都会在此呈现。",
   "homeEmptyStatePrimaryAction": "创建第一个任务",
   "homeStatisticsEmpty": "暂无统计数据",
   "homeStatisticsHours": "小时",

@@ -137,7 +137,7 @@
   "homeGreeting": "GranoFlow",
   "homePageTitle": "首頁",
   "homeEmptyStateTitle": "這裡還很安靜",
-  "homeEmptyStateDescription": "建立第一個任務後，專注時長與完成情況會在此顯示。",
+  "homeEmptyStateDescription": "完成第一個任務後，專注時長與完成情況會在此顯示。",
   "homeEmptyStatePrimaryAction": "建立第一個任務",
   "homeTagline": "Stay in flow. Grow in focus.",
   "inbox": "收集箱",

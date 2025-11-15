@@ -242,7 +242,7 @@
   "homeGreeting": "GranoFlow",
   "homePageTitle": "首頁",
   "homeEmptyStateTitle": "這裡還很安靜",
-  "homeEmptyStateDescription": "建立第一個任務後，專注時長和完成狀態會顯示在這裡。",
+  "homeEmptyStateDescription": "完成第一個任務後，專注時長和完成狀態會顯示在這裡。",
   "homeEmptyStatePrimaryAction": "建立第一個任務",
   "homeStatisticsEmpty": "暫無統計數據",
   "homeStatisticsHours": "小時",

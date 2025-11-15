@@ -257,7 +257,7 @@
   "homeGreeting": "GranoFlow",
   "homePageTitle": "Home",
   "homeEmptyStateTitle": "Everything is calm here",
-  "homeEmptyStateDescription": "Start your first task to see focus time and completion insights in this space.",
+  "homeEmptyStateDescription": "Complete your first task to see focus time and completion insights in this space.",
   "homeEmptyStatePrimaryAction": "Create first task",
   "homeStatisticsEmpty": "No statistics available",
   "homeStatisticsHours": "hours",
