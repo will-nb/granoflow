@@ -48,9 +48,10 @@ jobs:
       - name: Setup Keystore
         run: |
           # 使用统一的 keystore 文件，lite 和 pro 可以共用同一个 keystore
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/granoflow-keystore.jks
+          # 注意：keystore 实际是 PKCS12 格式，但文件名错误为 .jks，这里直接使用 .p12 扩展名
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/granoflow-keystore.p12
           cat > android/app/keystore.properties << EOF
-          storeFile=granoflow-keystore.jks
+          storeFile=granoflow-keystore.p12
           storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}

@@ -75,9 +75,12 @@ jobs:
       - name: Setup Keystore (Android only)
         if: matrix.platform == 'android'
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/granoflow-keystore.jks
+          # 解码 base64 keystore 文件（实际是 PKCS12 格式，但文件名是 .jks）
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/granoflow-keystore.p12
+          
+          # 创建 keystore.properties 文件
           cat > android/app/keystore.properties << EOF
-          storeFile=granoflow-keystore.jks
+          storeFile=granoflow-keystore.p12
           storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
