@@ -60,6 +60,8 @@ android {
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
+                // 明确指定 PKCS12 格式（即使文件扩展名是 .jks）
+                storeType = "PKCS12"
             }
         }
     }
