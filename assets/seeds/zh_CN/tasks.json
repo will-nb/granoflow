@@ -15,7 +15,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 0
     },
     {
       "slug": "milestone_task_creation",
@@ -24,7 +25,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 1
     },
     {
       "slug": "milestone_task_editing",
@@ -33,7 +35,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 2
     },
     {
       "slug": "milestone_task_actions",
@@ -42,7 +45,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 3
     },
     {
       "slug": "milestone_swipe_actions",
@@ -51,7 +55,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 4
     },
     {
       "slug": "milestone_drag_operations",
@@ -60,7 +65,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 5
     },
     {
       "slug": "milestone_project_operations",
@@ -69,7 +75,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 6
     },
     {
       "slug": "milestone_tag_operations",
@@ -78,7 +85,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 7
     },
     {
       "slug": "milestone_search_operations",
@@ -87,7 +95,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 8
     },
     {
       "slug": "milestone_calendar_review",
@@ -96,7 +105,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 9
     },
     {
       "slug": "milestone_timer_operations",
@@ -105,7 +115,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 10
     },
     {
       "slug": "milestone_filter_operations",
@@ -114,7 +125,8 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 11
     },
     {
       "slug": "milestone_other_operations",
@@ -123,20 +135,12 @@
       "taskKind": "milestone",
       "parentSlug": "project_learn_how_to_use",
       "allowInstantComplete": false,
-      "tags": []
-    },
-    {
-      "slug": "milestone_long_term_goals",
-      "title": "长期目标规划",
-      "status": "pending",
-      "taskKind": "milestone",
-      "parentSlug": "project_learn_how_to_use",
-      "allowInstantComplete": false,
-      "tags": []
+      "tags": [],
+      "dueAt": 12
     },
     {
       "slug": "nav_001",
-      "title": "打开抽屉菜单",
+      "title": "打开抽屉菜单 - 从左侧滑出导航菜单，快速访问所有功能页面",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -164,127 +168,403 @@
     },
     {
       "slug": "nav_002",
-      "title": "关闭抽屉菜单",
+      "title": "关闭抽屉菜单 - 点击菜单外区域或返回按钮，收起侧边导航栏",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_002_node_1",
+          "title": "点击抽屉菜单外的区域或返回按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_002_node_2",
+          "title": "验证菜单收起",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_003",
-      "title": "导航到首页",
+      "title": "导航到首页 - 查看今日任务概览、统计数据和快速操作入口",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_003_node_1",
+          "title": "点击底部导航栏的首页图标",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_003_node_2",
+          "title": "验证页面切换到首页",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_004",
-      "title": "导航到收件箱",
+      "title": "导航到收件箱 - 查看待处理的任务收集箱，快速捕获想法和待办事项",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_004_node_1",
+          "title": "点击底部导航栏的收件箱图标",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_004_node_2",
+          "title": "验证页面切换到收件箱",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_005",
-      "title": "导航到任务列表",
+      "title": "导航到任务列表 - 查看按日期分组的任务列表（今日、明日、本周等）",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_005_node_1",
+          "title": "点击底部导航栏的任务列表图标",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_005_node_2",
+          "title": "验证页面切换到任务列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_006",
-      "title": "导航到项目",
+      "title": "导航到项目 - 管理项目和里程碑，查看项目下的所有任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_006_node_1",
+          "title": "点击底部导航栏的项目图标",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_006_node_2",
+          "title": "验证页面切换到项目列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_007",
-      "title": "导航到定时器",
+      "title": "导航到定时器 - 开始时间追踪，记录任务实际花费的时间",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_007_node_1",
+          "title": "点击底部导航栏的定时器图标",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_007_node_2",
+          "title": "验证页面切换到定时器",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_008",
-      "title": "导航到回顾",
+      "title": "导航到回顾 - 查看日历视图，回顾历史任务完成情况",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_008_node_1",
+          "title": "点击底部导航栏的回顾图标",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_008_node_2",
+          "title": "验证页面切换到日历回顾",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_009",
-      "title": "导航到搜索",
+      "title": "导航到搜索 - 通过关键词快速查找任务、项目或里程碑",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_009_node_1",
+          "title": "点击顶部搜索图标或搜索框",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_009_node_2",
+          "title": "验证搜索页面打开",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_010",
-      "title": "导航到成就",
+      "title": "导航到成就 - 查看任务完成统计、时间追踪数据和成就记录",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_010_node_1",
+          "title": "从抽屉菜单点击成就选项",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_010_node_2",
+          "title": "验证页面切换到成就页面",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "nav_011",
-      "title": "底部导航栏切换",
+      "title": "底部导航栏切换 - 使用底部导航栏在不同主要功能页面间快速切换",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_navigation"
+      "parentSlug": "milestone_navigation",
+      "nodes": [
+        {
+          "slug": "nav_011_node_1",
+          "title": "点击底部导航栏的不同图标",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "nav_011_node_2",
+          "title": "验证页面在不同功能间切换",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_create_001",
-      "title": "通过对话框创建任务（无日期）",
+      "title": "通过对话框创建任务（无日期） - 使用创建任务对话框添加待办事项，不设置截止日期",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_creation"
+      "parentSlug": "milestone_task_creation",
+      "nodes": [
+        {
+          "slug": "task_create_001_node_1",
+          "title": "点击创建任务按钮或使用快捷键",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_001_node_2",
+          "title": "在对话框中输入任务标题",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_001_node_3",
+          "title": "确认创建（不设置日期）",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_001_node_4",
+          "title": "验证任务创建成功",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_create_002",
-      "title": "通过对话框创建任务（有日期）",
+      "title": "通过对话框创建任务（有日期） - 使用创建任务对话框添加待办事项，并设置截止日期",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_creation"
+      "parentSlug": "milestone_task_creation",
+      "nodes": [
+        {
+          "slug": "task_create_002_node_1",
+          "title": "点击创建任务按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_002_node_2",
+          "title": "输入任务标题",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_002_node_3",
+          "title": "选择截止日期",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_002_node_4",
+          "title": "确认创建",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_002_node_5",
+          "title": "验证任务创建成功并显示日期",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_create_003",
-      "title": "在收件箱快速添加任务",
+      "title": "在收件箱快速添加任务 - 在收件箱页面快速输入任务标题，创建待处理任务（无截止日期）",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_creation"
+      "parentSlug": "milestone_task_creation",
+      "nodes": [
+        {
+          "slug": "task_create_003_node_1",
+          "title": "导航到收件箱页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_003_node_2",
+          "title": "点击快速添加输入框",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_003_node_3",
+          "title": "输入任务标题并确认",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_003_node_4",
+          "title": "验证任务添加到收件箱",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_create_004",
-      "title": "在任务列表快速添加任务",
+      "title": "在任务列表快速添加任务 - 在任务列表页面快速输入任务标题，直接添加到今日任务列表",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_creation"
+      "parentSlug": "milestone_task_creation",
+      "nodes": [
+        {
+          "slug": "task_create_004_node_1",
+          "title": "导航到任务列表页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_004_node_2",
+          "title": "点击快速添加输入框",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_004_node_3",
+          "title": "输入任务标题并确认",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_004_node_4",
+          "title": "验证任务添加到今日列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_create_005",
-      "title": "在项目详情页快速添加任务",
+      "title": "在项目详情页快速添加任务 - 在项目详情页面快速输入任务标题，创建属于该项目的任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_creation"
+      "parentSlug": "milestone_task_creation",
+      "nodes": [
+        {
+          "slug": "task_create_005_node_1",
+          "title": "打开项目详情页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_005_node_2",
+          "title": "点击快速添加输入框",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_005_node_3",
+          "title": "输入任务标题并确认",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_create_005_node_4",
+          "title": "验证任务添加到项目",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_001",
-      "title": "编辑任务标题",
+      "title": "编辑任务标题 - 修改任务的名称，更新任务描述文字",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -318,7 +598,7 @@
     },
     {
       "slug": "task_edit_002",
-      "title": "编辑任务描述",
+      "title": "编辑任务描述 - 在富文本编辑器中添加或修改任务的详细说明和备注信息",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -352,63 +632,245 @@
     },
     {
       "slug": "task_edit_003",
-      "title": "添加标签",
+      "title": "添加标签 - 为任务添加分类标签，用于筛选和查找相关任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_editing"
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_003_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_003_node_2",
+          "title": "点击标签按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_003_node_3",
+          "title": "选择或创建标签",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_003_node_4",
+          "title": "验证标签添加到任务",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_004",
-      "title": "删除标签",
+      "title": "删除标签 - 从任务中移除已添加的标签",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_editing"
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_004_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_004_node_2",
+          "title": "点击标签按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_004_node_3",
+          "title": "点击标签上的删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_004_node_4",
+          "title": "验证标签从任务中移除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_005",
-      "title": "设置截止日期",
+      "title": "设置截止日期 - 为任务指定完成时间，任务会出现在对应日期的任务列表中",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_editing"
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_005_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_005_node_2",
+          "title": "点击截止日期按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_005_node_3",
+          "title": "在日期选择器中选择日期",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_005_node_4",
+          "title": "验证截止日期设置成功",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_006",
-      "title": "清除截止日期",
+      "title": "清除截止日期 - 移除任务的截止日期，任务会移回收件箱",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_editing"
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_006_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_006_node_2",
+          "title": "点击截止日期按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_006_node_3",
+          "title": "点击清除日期按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_006_node_4",
+          "title": "验证截止日期已清除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_007",
-      "title": "分配项目",
+      "title": "分配项目 - 将任务归属到某个项目，任务会显示在项目详情页",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_editing"
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_007_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_007_node_2",
+          "title": "点击项目按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_007_node_3",
+          "title": "选择项目",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_007_node_4",
+          "title": "验证任务归属到项目",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_008",
-      "title": "分配里程碑",
+      "title": "分配里程碑 - 将任务归属到项目的某个里程碑，用于项目进度管理",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_editing"
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_008_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_008_node_2",
+          "title": "点击里程碑按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_008_node_3",
+          "title": "选择里程碑",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_008_node_4",
+          "title": "验证任务归属到里程碑",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_009",
-      "title": "清除项目分配",
+      "title": "清除项目分配 - 移除任务的项目归属，任务变为独立任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_editing"
+      "parentSlug": "milestone_task_editing",
+      "nodes": [
+        {
+          "slug": "task_edit_009_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_009_node_2",
+          "title": "点击项目按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_009_node_3",
+          "title": "点击清除项目按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_edit_009_node_4",
+          "title": "验证任务项目归属已清除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_edit_010",
-      "title": "管理任务节点",
+      "title": "管理任务节点 - 将任务拆分为多个子步骤，支持无限层级，帮助分解复杂任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -442,7 +904,7 @@
     },
     {
       "slug": "task_action_001",
-      "title": "完成任务",
+      "title": "完成任务 - 标记任务为已完成状态，任务会移到已完成分区",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -470,55 +932,177 @@
     },
     {
       "slug": "task_action_002",
-      "title": "归档任务",
+      "title": "归档任务 - 将任务标记为已归档，任务会移到归档区但不会删除，可以恢复",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_002_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_002_node_2",
+          "title": "点击归档按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_002_node_3",
+          "title": "验证任务移到归档区",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_003",
-      "title": "删除任务到回收站",
+      "title": "删除任务到回收站 - 将任务移到回收站，任务不会立即删除，可以恢复",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_003_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_003_node_2",
+          "title": "点击删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_003_node_3",
+          "title": "确认删除",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_003_node_4",
+          "title": "验证任务移到回收站",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_004",
-      "title": "恢复任务",
+      "title": "恢复任务 - 从回收站恢复已删除的任务，任务会回到原来的位置",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_004_node_1",
+          "title": "导航到回收站",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_004_node_2",
+          "title": "找到要恢复的任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_004_node_3",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_004_node_4",
+          "title": "点击恢复按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_004_node_5",
+          "title": "验证任务恢复到原位置",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_005",
-      "title": "永久删除任务",
+      "title": "永久删除任务 - 彻底删除任务，无法恢复，请谨慎操作",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_005_node_1",
+          "title": "导航到回收站",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_005_node_2",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_005_node_3",
+          "title": "点击永久删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_005_node_4",
+          "title": "确认永久删除",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_005_node_5",
+          "title": "验证任务彻底删除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_006",
-      "title": "快速规划到今日",
+      "title": "快速规划到今日 - 将任务的截止日期设置为今天，任务会出现在今日任务列表中",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
-    },
-    {
-      "slug": "task_action_007",
-      "title": "智能推迟任务",
-      "status": "pending",
-      "allowInstantComplete": true,
-      "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_006_node_1",
+          "title": "打开任务操作弹窗或使用快捷操作",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_006_node_2",
+          "title": "点击快速规划到今日按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_006_node_3",
+          "title": "验证任务移到今日列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_008",
-      "title": "开始计时",
+      "title": "开始计时 - 为任务启动时间追踪，记录任务实际花费的时间，任务会自动置顶",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -552,63 +1136,236 @@
     },
     {
       "slug": "task_action_009",
-      "title": "结束计时",
+      "title": "结束计时 - 停止当前任务的时间追踪，保存已记录的时间",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_009_node_1",
+          "title": "在定时器页面点击停止按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_009_node_2",
+          "title": "验证计时停止",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_010",
-      "title": "结束会话-完成任务",
+      "title": "结束会话-完成任务 - 结束计时会话并标记任务为已完成，时间会记录到该任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "description": "结束计时会话时，可以选择将这段时间记录为完成任务，系统会自动标记任务为已完成。",
+      "nodes": [
+        {
+          "slug": "task_action_010_node_1",
+          "title": "在定时器页面点击结束会话",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_010_node_2",
+          "title": "选择完成任务选项",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_010_node_3",
+          "title": "确认结束会话",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_010_node_4",
+          "title": "验证任务标记为已完成",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_011",
-      "title": "结束会话-记录多个任务",
+      "title": "结束会话-记录多个任务 - 结束计时会话并将时间分配给多个任务，适合处理多个相关任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "description": "结束计时会话时，可以将这段时间分配给多个任务，适合处理多个相关任务的情况。",
+      "nodes": [
+        {
+          "slug": "task_action_011_node_1",
+          "title": "在定时器页面点击结束会话",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_011_node_2",
+          "title": "选择记录多个任务选项",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_011_node_3",
+          "title": "选择要分配时间的任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_011_node_4",
+          "title": "输入各任务的时间分配",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_011_node_5",
+          "title": "确认结束会话",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_011_node_6",
+          "title": "验证时间记录到多个任务",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_012",
-      "title": "结束会话-标记为浪费",
+      "title": "结束会话-标记为浪费 - 结束计时会话并标记为无效时间，任务会添加'wasted'标签用于分析",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "description": "如果计时期间没有实际工作，可以标记为浪费时间，帮助分析时间使用情况。",
+      "nodes": [
+        {
+          "slug": "task_action_012_node_1",
+          "title": "在定时器页面点击结束会话",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_012_node_2",
+          "title": "选择标记为浪费选项",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_012_node_3",
+          "title": "确认结束会话",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_012_node_4",
+          "title": "验证时间记录为浪费",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_013",
-      "title": "转换为项目",
+      "title": "转换为项目 - 将任务升级为项目，可以添加里程碑和子任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_013_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_013_node_2",
+          "title": "点击转换为项目按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_013_node_3",
+          "title": "确认转换",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_013_node_4",
+          "title": "验证任务转换为项目",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_014",
-      "title": "置顶任务",
+      "title": "置顶任务 - 将任务固定在任务列表顶部，方便快速访问重要任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_014_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_014_node_2",
+          "title": "点击置顶按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_014_node_3",
+          "title": "验证任务移到列表顶部",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "task_action_015",
-      "title": "取消置顶",
+      "title": "取消置顶 - 移除任务的置顶状态，任务回到正常排序位置",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_task_actions"
+      "parentSlug": "milestone_task_actions",
+      "nodes": [
+        {
+          "slug": "task_action_015_node_1",
+          "title": "打开任务操作弹窗",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_015_node_2",
+          "title": "点击取消置顶按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "task_action_015_node_3",
+          "title": "验证任务取消置顶状态",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_001",
-      "title": "收件箱-右滑快速规划",
+      "title": "收件箱-右滑快速规划 - 在收件箱中向右滑动任务，快速将任务安排到今天执行",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -636,87 +1393,317 @@
     },
     {
       "slug": "swipe_002",
-      "title": "收件箱-左滑删除",
+      "title": "收件箱-左滑删除 - 在收件箱中向左滑动任务，将任务移到回收站",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_002_node_1",
+          "title": "导航到收件箱页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_002_node_2",
+          "title": "在任务上向左滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_002_node_3",
+          "title": "点击删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_002_node_4",
+          "title": "验证任务删除到回收站",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_003",
-      "title": "任务列表-右滑完成",
+      "title": "任务列表-右滑完成 - 在任务列表中向右滑动任务，快速标记任务为已完成",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_003_node_1",
+          "title": "导航到任务列表页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_003_node_2",
+          "title": "在任务上向右滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_003_node_3",
+          "title": "验证任务标记为已完成",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_004",
-      "title": "任务列表-左滑归档",
+      "title": "任务列表-左滑归档 - 在任务列表中向左滑动任务，将任务移到归档区",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_004_node_1",
+          "title": "导航到任务列表页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_004_node_2",
+          "title": "在任务上向左滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_004_node_3",
+          "title": "验证任务移到归档区",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_005",
-      "title": "任务列表非今日-右滑快速规划",
+      "title": "任务列表非今日-右滑快速规划 - 在非今日分区（明日、本周等）向右滑动任务，将任务安排到今天",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_005_node_1",
+          "title": "导航到任务列表的非今日分区",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_005_node_2",
+          "title": "在任务上向右滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_005_node_3",
+          "title": "验证任务移到今日列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_006",
-      "title": "已完成-右滑快速规划",
+      "title": "已完成-右滑快速规划 - 在已完成分区向右滑动任务，重新激活任务并安排到今天",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_006_node_1",
+          "title": "导航到已完成分区",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_006_node_2",
+          "title": "在任务上向右滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_006_node_3",
+          "title": "验证任务移到今日列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_007",
-      "title": "已完成-左滑删除",
+      "title": "已完成-左滑删除 - 在已完成分区向左滑动任务，将任务移到回收站",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_007_node_1",
+          "title": "导航到已完成分区",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_007_node_2",
+          "title": "在任务上向左滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_007_node_3",
+          "title": "点击删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_007_node_4",
+          "title": "验证任务删除到回收站",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_008",
-      "title": "已归档-右滑快速规划",
+      "title": "已归档-右滑快速规划 - 在已归档分区向右滑动任务，重新激活任务并安排到今天",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_008_node_1",
+          "title": "导航到已归档分区",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_008_node_2",
+          "title": "在任务上向右滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_008_node_3",
+          "title": "验证任务移到今日列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_009",
-      "title": "已归档-左滑删除",
+      "title": "已归档-左滑删除 - 在已归档分区向左滑动任务，将任务移到回收站",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_009_node_1",
+          "title": "导航到已归档分区",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_009_node_2",
+          "title": "在任务上向左滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_009_node_3",
+          "title": "点击删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_009_node_4",
+          "title": "验证任务删除到回收站",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_010",
-      "title": "回收站-右滑恢复",
+      "title": "回收站-右滑恢复 - 在回收站向右滑动任务，恢复任务到原来的位置",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_010_node_1",
+          "title": "导航到回收站",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_010_node_2",
+          "title": "在任务上向右滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_010_node_3",
+          "title": "验证任务恢复到原位置",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "swipe_011",
-      "title": "回收站-左滑永久删除",
+      "title": "回收站-左滑永久删除 - 在回收站向左滑动任务，彻底删除任务（无法恢复）",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_swipe_actions"
+      "parentSlug": "milestone_swipe_actions",
+      "nodes": [
+        {
+          "slug": "swipe_011_node_1",
+          "title": "导航到回收站",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_011_node_2",
+          "title": "在任务上向左滑动",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_011_node_3",
+          "title": "点击永久删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_011_node_4",
+          "title": "确认永久删除",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "swipe_011_node_5",
+          "title": "验证任务彻底删除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "drag_001",
-      "title": "拖拽任务重新排序",
+      "title": "拖拽任务重新排序 - 长按任务后拖拽，在同一日期分区内调整任务的优先级顺序",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -750,39 +1737,138 @@
     },
     {
       "slug": "drag_002",
-      "title": "拖拽任务到不同分区",
+      "title": "拖拽任务到不同分区 - 长按任务后拖拽到另一个日期分区（今日、明日、本周等），自动更新截止日期",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_drag_operations"
+      "parentSlug": "milestone_drag_operations",
+      "nodes": [
+        {
+          "slug": "drag_002_node_1",
+          "title": "长按任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_002_node_2",
+          "title": "拖拽任务到另一个日期分区",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_002_node_3",
+          "title": "释放任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_002_node_4",
+          "title": "验证任务移到新分区",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "drag_003",
-      "title": "拖拽任务到收件箱",
+      "title": "拖拽任务到收件箱 - 长按任务后拖拽到收件箱区域，移除任务的截止日期，任务回到收件箱",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_drag_operations"
+      "parentSlug": "milestone_drag_operations",
+      "nodes": [
+        {
+          "slug": "drag_003_node_1",
+          "title": "长按任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_003_node_2",
+          "title": "拖拽任务到收件箱区域",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_003_node_3",
+          "title": "释放任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_003_node_4",
+          "title": "验证任务移到收件箱",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "drag_004",
-      "title": "拖拽任务到项目里程碑",
+      "title": "拖拽任务到项目里程碑 - 在项目详情页长按任务后拖拽到里程碑区域，将任务归属到该里程碑",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_drag_operations"
+      "parentSlug": "milestone_drag_operations",
+      "nodes": [
+        {
+          "slug": "drag_004_node_1",
+          "title": "打开项目详情页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_004_node_2",
+          "title": "长按任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_004_node_3",
+          "title": "拖拽任务到里程碑区域",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_004_node_4",
+          "title": "释放任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_004_node_5",
+          "title": "验证任务归属到里程碑",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "drag_005",
-      "title": "禁止拖拽到逾期分区",
+      "title": "禁止拖拽到逾期分区 - 系统会阻止将任务拖拽到逾期分区，防止误操作导致任务被标记为逾期",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_drag_operations"
+      "parentSlug": "milestone_drag_operations",
+      "description": "系统会阻止将任务拖拽到逾期分区，防止误操作导致任务被标记为逾期。",
+      "nodes": [
+        {
+          "slug": "drag_005_node_1",
+          "title": "尝试拖拽任务到逾期分区",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "drag_005_node_2",
+          "title": "验证拖拽被阻止",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "project_001",
-      "title": "创建项目",
+      "title": "创建项目 - 新建一个项目容器，用于组织和管理相关任务和里程碑",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -816,31 +1902,103 @@
     },
     {
       "slug": "project_002",
-      "title": "编辑项目",
+      "title": "编辑项目 - 修改项目的名称、描述、截止日期等信息",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_project_operations"
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_002_node_1",
+          "title": "打开项目详情页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_002_node_2",
+          "title": "点击编辑按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_002_node_3",
+          "title": "修改项目信息",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_002_node_4",
+          "title": "保存修改",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_002_node_5",
+          "title": "验证项目信息更新",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "project_003",
-      "title": "删除项目",
+      "title": "删除项目 - 删除项目及其下的所有任务和里程碑（不可恢复）",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_project_operations"
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_003_node_1",
+          "title": "打开项目详情页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_003_node_2",
+          "title": "点击删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_003_node_3",
+          "title": "确认删除",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_003_node_4",
+          "title": "验证项目删除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "project_004",
-      "title": "查看项目详情",
+      "title": "查看项目详情 - 打开项目详情页面，查看项目信息、里程碑和任务列表",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_project_operations"
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_004_node_1",
+          "title": "在项目列表中点击项目",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_004_node_2",
+          "title": "验证项目详情页面打开",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "project_005",
-      "title": "创建里程碑",
+      "title": "创建里程碑 - 在项目中添加里程碑，用于标记项目的重要节点",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -874,87 +2032,312 @@
     },
     {
       "slug": "project_006",
-      "title": "编辑里程碑",
+      "title": "编辑里程碑 - 修改里程碑的名称、描述、截止日期等信息",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_project_operations"
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_006_node_1",
+          "title": "打开项目详情页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_006_node_2",
+          "title": "找到要编辑的里程碑",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_006_node_3",
+          "title": "点击编辑按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_006_node_4",
+          "title": "修改里程碑信息",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_006_node_5",
+          "title": "保存修改",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_006_node_6",
+          "title": "验证里程碑信息更新",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "project_007",
-      "title": "删除里程碑",
+      "title": "删除里程碑 - 删除项目中的里程碑（不会删除里程碑下的任务）",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_project_operations"
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_007_node_1",
+          "title": "打开项目详情页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_007_node_2",
+          "title": "找到要删除的里程碑",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_007_node_3",
+          "title": "点击删除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_007_node_4",
+          "title": "确认删除",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_007_node_5",
+          "title": "验证里程碑删除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "project_008",
-      "title": "查看里程碑详情",
+      "title": "查看里程碑详情 - 打开里程碑详情，查看里程碑信息和归属的任务列表",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_project_operations"
+      "parentSlug": "milestone_project_operations",
+      "nodes": [
+        {
+          "slug": "project_008_node_1",
+          "title": "打开项目详情页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_008_node_2",
+          "title": "点击里程碑",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "project_008_node_3",
+          "title": "验证里程碑详情显示",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "tag_001",
-      "title": "按标签筛选任务",
+      "title": "按标签筛选任务 - 在筛选器中选择标签，只显示包含该标签的任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_tag_operations"
+      "parentSlug": "milestone_tag_operations",
+      "nodes": [
+        {
+          "slug": "tag_001_node_1",
+          "title": "在筛选器中点击标签选项",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "tag_001_node_2",
+          "title": "选择要筛选的标签",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "tag_001_node_3",
+          "title": "验证只显示该标签的任务",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "tag_002",
-      "title": "清除标签筛选",
+      "title": "清除标签筛选 - 取消已选择的标签筛选条件，显示所有任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_tag_operations"
+      "parentSlug": "milestone_tag_operations",
+      "nodes": [
+        {
+          "slug": "tag_002_node_1",
+          "title": "在筛选器中点击已选标签",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "tag_002_node_2",
+          "title": "或点击清除筛选按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "tag_002_node_3",
+          "title": "验证标签筛选已清除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "tag_003",
-      "title": "多标签筛选",
+      "title": "多标签筛选 - 同时选择多个标签进行筛选，只显示同时包含这些标签的任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_tag_operations"
+      "parentSlug": "milestone_tag_operations",
+      "description": "可以同时选择多个标签进行筛选，显示同时包含这些标签的任务。",
+      "nodes": [
+        {
+          "slug": "tag_003_node_1",
+          "title": "在筛选器中点击标签选项",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "tag_003_node_2",
+          "title": "选择多个标签",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "tag_003_node_3",
+          "title": "验证显示同时包含这些标签的任务",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "search_001",
-      "title": "输入搜索关键词",
+      "title": "输入搜索关键词 - 在搜索框中输入关键词，实时搜索匹配的任务、项目或里程碑",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_search_operations"
+      "parentSlug": "milestone_search_operations",
+      "nodes": [
+        {
+          "slug": "search_001_node_1",
+          "title": "打开搜索页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "search_001_node_2",
+          "title": "在搜索框中输入关键词",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "search_001_node_3",
+          "title": "验证搜索结果实时显示",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "search_002",
-      "title": "点击搜索结果",
+      "title": "点击搜索结果 - 从搜索结果中选择任务，跳转到任务详情或任务所在页面",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_search_operations"
+      "parentSlug": "milestone_search_operations",
+      "nodes": [
+        {
+          "slug": "search_002_node_1",
+          "title": "在搜索结果中找到目标任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "search_002_node_2",
+          "title": "点击任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "search_002_node_3",
+          "title": "验证跳转到任务详情",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "search_003",
-      "title": "清空搜索",
+      "title": "清空搜索 - 清除搜索框中的关键词，退出搜索模式",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_search_operations"
+      "parentSlug": "milestone_search_operations",
+      "nodes": [
+        {
+          "slug": "search_003_node_1",
+          "title": "点击搜索框的清除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "search_003_node_2",
+          "title": "或删除搜索关键词",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "search_003_node_3",
+          "title": "验证搜索条件清除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "search_004",
-      "title": "搜索最少字符限制",
+      "title": "搜索最少字符限制 - 系统要求输入最少字符数才开始搜索，防止无效搜索",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_search_operations"
+      "parentSlug": "milestone_search_operations",
+      "nodes": [
+        {
+          "slug": "search_004_node_1",
+          "title": "在搜索框中输入少于最少字符数的关键词",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "search_004_node_2",
+          "title": "验证搜索不执行或提示需要更多字符",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "calendar_001",
-      "title": "选择日期",
+      "title": "选择日期 - 在日历视图中点击日期，查看该日期的任务列表和完成情况",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -982,55 +2365,175 @@
     },
     {
       "slug": "calendar_002",
-      "title": "切换到日视图",
+      "title": "切换到日视图 - 将日历视图切换为日视图，查看单日的详细任务列表",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_calendar_review"
+      "parentSlug": "milestone_calendar_review",
+      "nodes": [
+        {
+          "slug": "calendar_002_node_1",
+          "title": "导航到日历回顾页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_002_node_2",
+          "title": "点击日视图按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_002_node_3",
+          "title": "验证切换到日视图",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "calendar_003",
-      "title": "切换到周视图",
+      "title": "切换到周视图 - 将日历视图切换为周视图，查看一周的任务概览",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_calendar_review"
+      "parentSlug": "milestone_calendar_review",
+      "nodes": [
+        {
+          "slug": "calendar_003_node_1",
+          "title": "导航到日历回顾页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_003_node_2",
+          "title": "点击周视图按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_003_node_3",
+          "title": "验证切换到周视图",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "calendar_004",
-      "title": "切换到月视图",
+      "title": "切换到月视图 - 将日历视图切换为月视图，查看整月的任务分布情况",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_calendar_review"
+      "parentSlug": "milestone_calendar_review",
+      "nodes": [
+        {
+          "slug": "calendar_004_node_1",
+          "title": "导航到日历回顾页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_004_node_2",
+          "title": "点击月视图按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_004_node_3",
+          "title": "验证切换到月视图",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "calendar_005",
-      "title": "翻页查看其他月份",
+      "title": "翻页查看其他月份 - 在日历视图中向前或向后翻页，查看历史或未来的月份",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_calendar_review"
+      "parentSlug": "milestone_calendar_review",
+      "nodes": [
+        {
+          "slug": "calendar_005_node_1",
+          "title": "导航到日历回顾页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_005_node_2",
+          "title": "点击上一月或下一月按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_005_node_3",
+          "title": "验证月份切换",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "calendar_006",
-      "title": "查看日期详情",
+      "title": "查看日期详情 - 点击日历中的日期，查看该日期的详细任务列表和完成统计",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_calendar_review"
+      "parentSlug": "milestone_calendar_review",
+      "nodes": [
+        {
+          "slug": "calendar_006_node_1",
+          "title": "在日历中点击日期",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "calendar_006_node_2",
+          "title": "验证显示该日期的任务列表",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "timer_001",
-      "title": "选择任务",
+      "title": "选择任务 - 在定时器页面的下拉菜单中选择要计时的任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_timer_operations"
+      "parentSlug": "milestone_timer_operations",
+      "nodes": [
+        {
+          "slug": "timer_001_node_1",
+          "title": "导航到定时器页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_001_node_2",
+          "title": "点击任务选择下拉框",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_001_node_3",
+          "title": "从列表中选择任务",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_001_node_4",
+          "title": "验证任务已选择",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "timer_002",
-      "title": "开始计时",
+      "title": "开始计时 - 启动时间追踪，开始记录任务的实际工作时间，任务会自动置顶",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1058,79 +2561,249 @@
     },
     {
       "slug": "timer_003",
-      "title": "结束计时",
+      "title": "结束计时 - 停止当前的时间追踪，保存已记录的工作时间",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_timer_operations"
+      "parentSlug": "milestone_timer_operations",
+      "nodes": [
+        {
+          "slug": "timer_003_node_1",
+          "title": "在定时器页面点击停止按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_003_node_2",
+          "title": "验证计时停止",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "timer_004",
-      "title": "搜索模板",
+      "title": "搜索模板 - 在定时器模板列表中搜索预设的计时模板",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_timer_operations"
+      "parentSlug": "milestone_timer_operations",
+      "nodes": [
+        {
+          "slug": "timer_004_node_1",
+          "title": "导航到定时器页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_004_node_2",
+          "title": "在模板搜索框中输入关键词",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_004_node_3",
+          "title": "验证模板搜索结果",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "timer_005",
-      "title": "应用模板",
+      "title": "应用模板 - 使用预设的计时模板，快速加载模板中的任务列表和时间分配",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_timer_operations"
+      "parentSlug": "milestone_timer_operations",
+      "description": "模板可以预设任务列表和时间分配，快速开始计时会话。",
+      "nodes": [
+        {
+          "slug": "timer_005_node_1",
+          "title": "在模板列表中选择模板",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_005_node_2",
+          "title": "点击应用模板按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_005_node_3",
+          "title": "验证模板任务加载到定时器",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "timer_006",
-      "title": "查看活跃会话",
+      "title": "查看活跃会话 - 查看当前正在进行的计时会话，包括任务和时间信息",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_timer_operations"
+      "parentSlug": "milestone_timer_operations",
+      "nodes": [
+        {
+          "slug": "timer_006_node_1",
+          "title": "导航到定时器页面",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_006_node_2",
+          "title": "查看当前活跃的计时会话",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "timer_006_node_3",
+          "title": "验证显示正在计时的任务和时间",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "filter_001",
-      "title": "展开筛选器",
+      "title": "展开筛选器 - 在任务列表页面展开筛选器面板，显示筛选选项",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_filter_operations"
+      "parentSlug": "milestone_filter_operations",
+      "nodes": [
+        {
+          "slug": "filter_001_node_1",
+          "title": "在任务列表页面点击筛选器按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_001_node_2",
+          "title": "验证筛选器展开",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "filter_002",
-      "title": "收起筛选器",
+      "title": "收起筛选器 - 收起筛选器面板，隐藏筛选选项",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_filter_operations"
+      "parentSlug": "milestone_filter_operations",
+      "nodes": [
+        {
+          "slug": "filter_002_node_1",
+          "title": "点击筛选器按钮或关闭按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_002_node_2",
+          "title": "验证筛选器收起",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "filter_003",
-      "title": "按项目筛选",
+      "title": "按项目筛选 - 在筛选器中选择项目，只显示属于该项目的任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_filter_operations"
+      "parentSlug": "milestone_filter_operations",
+      "nodes": [
+        {
+          "slug": "filter_003_node_1",
+          "title": "展开筛选器",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_003_node_2",
+          "title": "点击项目筛选选项",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_003_node_3",
+          "title": "选择要筛选的项目",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_003_node_4",
+          "title": "验证只显示该项目下的任务",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "filter_004",
-      "title": "清除项目筛选",
+      "title": "清除项目筛选 - 取消已选择的项目筛选条件，显示所有任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_filter_operations"
+      "parentSlug": "milestone_filter_operations",
+      "nodes": [
+        {
+          "slug": "filter_004_node_1",
+          "title": "点击已选项目的清除按钮",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_004_node_2",
+          "title": "验证项目筛选已清除",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "filter_005",
-      "title": "组合筛选",
+      "title": "组合筛选 - 同时使用多个筛选条件（如项目+标签），精确查找需要的任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
-      "parentSlug": "milestone_filter_operations"
+      "parentSlug": "milestone_filter_operations",
+      "description": "可以同时使用项目筛选、标签筛选等多个条件，精确查找需要的任务。",
+      "nodes": [
+        {
+          "slug": "filter_005_node_1",
+          "title": "展开筛选器",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_005_node_2",
+          "title": "选择项目筛选",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_005_node_3",
+          "title": "选择标签筛选",
+          "status": "pending",
+          "parentSlug": null
+        },
+        {
+          "slug": "filter_005_node_4",
+          "title": "验证同时应用多个筛选条件",
+          "status": "pending",
+          "parentSlug": null
+        }
+      ]
     },
     {
       "slug": "other_001",
-      "title": "下拉刷新",
+      "title": "下拉刷新 - 在任务列表页面下拉刷新，重新加载最新的任务数据",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1138,7 +2811,7 @@
     },
     {
       "slug": "other_002",
-      "title": "点击空白区域收起键盘",
+      "title": "点击空白区域收起键盘 - 点击输入框外的空白区域，关闭弹出的输入法键盘",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1146,7 +2819,7 @@
     },
     {
       "slug": "other_003",
-      "title": "展开任务详情",
+      "title": "展开任务详情 - 点击任务卡片展开，查看任务的完整信息（描述、标签、节点等）",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1154,7 +2827,7 @@
     },
     {
       "slug": "other_004",
-      "title": "收起任务详情",
+      "title": "收起任务详情 - 点击任务卡片收起，隐藏任务的详细信息，只显示标题",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1162,7 +2835,7 @@
     },
     {
       "slug": "other_005",
-      "title": "打开任务操作弹窗",
+      "title": "打开任务操作弹窗 - 点击任务打开底部操作弹窗，访问所有任务操作选项",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1170,7 +2843,7 @@
     },
     {
       "slug": "other_006",
-      "title": "关闭任务操作弹窗",
+      "title": "关闭任务操作弹窗 - 点击弹窗外区域或关闭按钮，关闭任务操作弹窗",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1178,7 +2851,7 @@
     },
     {
       "slug": "other_007",
-      "title": "滚动到置顶任务",
+      "title": "滚动到置顶任务 - 自动滚动页面到置顶任务的位置，方便快速查看重要任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1186,7 +2859,7 @@
     },
     {
       "slug": "other_008",
-      "title": "滚动到指定分区",
+      "title": "滚动到指定分区 - 快速滚动到指定的日期分区（今日、明日等），跳转到目标位置",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1194,7 +2867,7 @@
     },
     {
       "slug": "other_009",
-      "title": "加载更多（分页）",
+      "title": "加载更多（分页） - 当任务列表较长时，滚动到底部自动加载更多任务",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1202,7 +2875,7 @@
     },
     {
       "slug": "other_010",
-      "title": "清空回收站",
+      "title": "清空回收站 - 永久删除回收站中的所有任务，无法恢复，请谨慎操作",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1210,7 +2883,7 @@
     },
     {
       "slug": "other_011",
-      "title": "查看任务描述预览",
+      "title": "查看任务描述预览 - 在任务列表中查看任务的描述内容预览（如果有描述）",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
@@ -1218,51 +2891,11 @@
     },
     {
       "slug": "other_012",
-      "title": "查看任务节点列表",
+      "title": "查看任务节点列表 - 在任务详情中查看任务的子步骤列表，了解任务分解情况",
       "status": "pending",
       "allowInstantComplete": true,
       "tags": [],
       "parentSlug": "milestone_other_operations"
-    },
-    {
-      "slug": "long_term_goal_001",
-      "title": "在未来3-5年内成为技术团队的核心架构师，负责设计和实施大规模分布式系统，掌握微服务架构、云原生技术栈（Kubernetes、Docker、Service Mesh），具备跨团队协作和 mentorship 能力，能够指导初级和中级工程师成长，并在技术决策中发挥关键作用",
-      "status": "pending",
-      "allowInstantComplete": false,
-      "tags": [],
-      "parentSlug": "milestone_long_term_goals"
-    },
-    {
-      "slug": "long_term_goal_002",
-      "title": "系统学习并掌握现代前端技术栈（React、Vue、TypeScript、WebAssembly）和后端技术（Node.js、Go、Rust），深入理解性能优化、安全最佳实践和可扩展性设计，能够独立设计和实现全栈应用，并在开源社区贡献高质量代码，建立个人技术品牌",
-      "status": "pending",
-      "allowInstantComplete": false,
-      "tags": [],
-      "parentSlug": "milestone_long_term_goals"
-    },
-    {
-      "slug": "long_term_goal_003",
-      "title": "完成公司核心产品的重构和现代化改造项目，将单体应用迁移到微服务架构，提升系统性能和可维护性，实现零停机部署，建立完善的监控和告警体系，确保系统可用性达到99.9%以上，并在项目过程中建立最佳实践文档和培训材料，帮助团队提升整体技术水平",
-      "status": "pending",
-      "allowInstantComplete": false,
-      "tags": [],
-      "parentSlug": "milestone_long_term_goals"
-    },
-    {
-      "slug": "long_term_goal_004",
-      "title": "提升沟通协调、问题解决和领导力等软技能，通过参与跨部门项目、组织技术分享会、撰写技术博客等方式锻炼表达能力，学习项目管理方法论（Agile、Scrum、Kanban），培养数据驱动的决策思维，建立个人影响力，成为团队中值得信赖的技术顾问和问题解决者",
-      "status": "pending",
-      "allowInstantComplete": false,
-      "tags": [],
-      "parentSlug": "milestone_long_term_goals"
-    },
-    {
-      "slug": "long_term_goal_005",
-      "title": "在团队中承担技术导师角色，建立mentorship计划，帮助3-5名初级工程师快速成长，通过code review、技术分享、一对一指导等方式传递知识和经验，推动团队技术文化建设，建立知识分享机制，提升团队整体技术水平和协作效率，为团队长期发展做出贡献",
-      "status": "pending",
-      "allowInstantComplete": false,
-      "tags": [],
-      "parentSlug": "milestone_long_term_goals"
     }
   ]
 }

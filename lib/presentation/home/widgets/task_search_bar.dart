@@ -5,12 +5,7 @@ import '../../../generated/l10n/app_localizations.dart';
 
 /// 任务搜索栏组件
 class TaskSearchBar extends ConsumerStatefulWidget {
-  const TaskSearchBar({
-    super.key,
-    this.onTap,
-    this.autofocus = false,
-    this.onChanged,
-  });
+  const TaskSearchBar({super.key, this.onTap, this.autofocus = false, this.onChanged});
 
   /// 点击回调（用于跳转到搜索页面）
   final VoidCallback? onTap;
@@ -101,11 +96,15 @@ class _TaskSearchBarState extends ConsumerState<TaskSearchBar> {
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      l10n.searchTasksPlaceholder,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontSize: 16,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    Expanded(
+                      child: Text(
+                        l10n.searchTasksPlaceholder,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontSize: 16,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                       ),
                     ),
                   ],
@@ -116,9 +115,7 @@ class _TaskSearchBarState extends ConsumerState<TaskSearchBar> {
               controller: _controller,
               focusNode: _focusNode,
               autofocus: widget.autofocus,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontSize: 16,
-              ),
+              style: theme.textTheme.bodyLarge?.copyWith(fontSize: 16),
               decoration: InputDecoration(
                 hintText: l10n.searchTasksPlaceholder,
                 hintStyle: theme.textTheme.bodyLarge?.copyWith(
@@ -141,14 +138,10 @@ class _TaskSearchBarState extends ConsumerState<TaskSearchBar> {
                       )
                     : null,
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               onChanged: _handleChanged,
             ),
     );
   }
 }
-

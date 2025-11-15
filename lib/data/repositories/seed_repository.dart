@@ -31,6 +31,7 @@ class SeedTask {
     this.dueAt,
     this.taskKind,
     this.nodes = const [],
+    this.description,
   });
 
   final String slug;
@@ -43,6 +44,7 @@ class SeedTask {
   final dynamic dueAt;
   final String? taskKind; // 从种子文件中读取的字符串，用于区分项目/里程碑/普通任务
   final List<SeedNode> nodes; // 节点列表
+  final String? description; // 任务描述
 }
 
 class SeedTemplate {
@@ -126,63 +128,65 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
       .loadString('assets/seeds/version.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
   debugPrint('🔵 loadSeedPayload: Version loaded: ${versionJson['version']}');
-  
+
   debugPrint('🔵 loadSeedPayload: Loading tasks.json from assets/seeds/$normalized/tasks.json...');
   final tasksJson = await rootBundle
       .loadString('assets/seeds/$normalized/tasks.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
-  debugPrint('🔵 loadSeedPayload: Tasks loaded: ${(tasksJson['tasks'] as List?)?.length ?? 0} tasks');
-  
-  debugPrint('🔵 loadSeedPayload: Loading templates.json from assets/seeds/$normalized/templates.json...');
+  debugPrint(
+    '🔵 loadSeedPayload: Tasks loaded: ${(tasksJson['tasks'] as List?)?.length ?? 0} tasks',
+  );
+
+  debugPrint(
+    '🔵 loadSeedPayload: Loading templates.json from assets/seeds/$normalized/templates.json...',
+  );
   final templatesJson = await rootBundle
       .loadString('assets/seeds/$normalized/templates.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
-  debugPrint('🔵 loadSeedPayload: Templates loaded: ${(templatesJson['templates'] as List?)?.length ?? 0} templates');
-  
+  debugPrint(
+    '🔵 loadSeedPayload: Templates loaded: ${(templatesJson['templates'] as List?)?.length ?? 0} templates',
+  );
+
   debugPrint('🔵 loadSeedPayload: Loading inbox.json from assets/seeds/$normalized/inbox.json...');
   final inboxJson = await rootBundle
       .loadString('assets/seeds/$normalized/inbox.json')
       .then((value) => jsonDecode(value) as Map<String, dynamic>);
-  debugPrint('🔵 loadSeedPayload: Inbox items loaded: ${(inboxJson['inbox'] as List?)?.length ?? 0} items');
+  debugPrint(
+    '🔵 loadSeedPayload: Inbox items loaded: ${(inboxJson['inbox'] as List?)?.length ?? 0} items',
+  );
 
   return SeedPayload(
     version: versionJson['version'] as String,
-    tasks: (tasksJson['tasks'] as List<dynamic>)
-        .map((raw) => raw as Map<String, dynamic>)
-        .map((raw) {
-          final statusRaw = ((raw['status'] as String?) ?? 'pending')
-              .replaceAll('_', '')
-              .toLowerCase();
-          final status = TaskStatus.values.firstWhere(
-            (value) => value.name.toLowerCase() == statusRaw,
-            orElse: () => TaskStatus.pending,
+    tasks: (tasksJson['tasks'] as List<dynamic>).map((raw) => raw as Map<String, dynamic>).map((
+      raw,
+    ) {
+      final statusRaw = ((raw['status'] as String?) ?? 'pending').replaceAll('_', '').toLowerCase();
+      final status = TaskStatus.values.firstWhere(
+        (value) => value.name.toLowerCase() == statusRaw,
+        orElse: () => TaskStatus.pending,
+      );
+      return SeedTask(
+        slug: raw['slug'] as String,
+        title: raw['title'] as String,
+        status: status,
+        parentSlug: raw['parentSlug'] as String?,
+        tags: ((raw['tags'] as List<dynamic>?) ?? const <dynamic>[]).cast<String>(),
+        allowInstantComplete: (raw['allowInstantComplete'] as bool?) ?? false,
+        sortIndex: (raw['sortIndex'] as num?)?.toDouble() ?? 0,
+        dueAt: raw['dueAt'],
+        taskKind: raw['taskKind'] as String?,
+        nodes: ((raw['nodes'] as List<dynamic>?) ?? const <dynamic>[]).map((nodeRaw) {
+          final nodeMap = nodeRaw as Map<String, dynamic>;
+          return SeedNode(
+            slug: nodeMap['slug'] as String,
+            title: nodeMap['title'] as String,
+            parentSlug: nodeMap['parentSlug'] as String?,
+            status: (nodeMap['status'] as String?) ?? 'pending',
           );
-          return SeedTask(
-            slug: raw['slug'] as String,
-            title: raw['title'] as String,
-            status: status,
-            parentSlug: raw['parentSlug'] as String?,
-            tags: ((raw['tags'] as List<dynamic>?) ?? const <dynamic>[])
-                .cast<String>(),
-            allowInstantComplete:
-                (raw['allowInstantComplete'] as bool?) ?? false,
-            sortIndex: (raw['sortIndex'] as num?)?.toDouble() ?? 0,
-            dueAt: raw['dueAt'],
-            taskKind: raw['taskKind'] as String?,
-            nodes: ((raw['nodes'] as List<dynamic>?) ?? const <dynamic>[])
-                .map((nodeRaw) {
-                  final nodeMap = nodeRaw as Map<String, dynamic>;
-                  return SeedNode(
-                    slug: nodeMap['slug'] as String,
-                    title: nodeMap['title'] as String,
-                    parentSlug: nodeMap['parentSlug'] as String?,
-                    status: (nodeMap['status'] as String?) ?? 'pending',
-                  );
-                })
-                .toList(),
-          );
-        })
-        .toList(),
+        }).toList(),
+        description: raw['description'] as String?,
+      );
+    }).toList(),
     templates: (templatesJson['templates'] as List<dynamic>)
         .map((raw) => raw as Map<String, dynamic>)
         .map(
@@ -190,9 +194,8 @@ Future<SeedPayload> loadSeedPayload(String localeCode) async {
             slug: raw['slug'] as String,
             title: raw['title'] as String,
             parentSlug: raw['parentSlug'] as String?,
-            defaultTags:
-                ((raw['defaultTags'] as List<dynamic>?) ?? const <dynamic>[])
-                    .cast<String>(),
+            defaultTags: ((raw['defaultTags'] as List<dynamic>?) ?? const <dynamic>[])
+                .cast<String>(),
             suggestedEstimateMinutes: (raw['suggestedEstimateMinutes'] as int?),
           ),
         )

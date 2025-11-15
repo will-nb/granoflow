@@ -1,0 +1,11 @@
+minimum_pre_commit_version: '3.0.0'
+
+repos:
+  - repo: local
+    hooks:
+      - id: granoflow-custom-pre-commit
+        name: Granoflow Custom Quality Gates
+        entry: scripts/git-hooks/pre-commit
+        language: script
+        pass_filenames: false
+

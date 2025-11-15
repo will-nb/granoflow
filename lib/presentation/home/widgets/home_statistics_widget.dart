@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/providers/home_statistics_providers.dart';
 import '../../../core/utils/home_statistics_utils.dart';
 import '../../../generated/l10n/app_localizations.dart';
+import 'home_empty_state_card.dart';
 
 /// 首页统计表组件
 class HomeStatisticsWidget extends ConsumerWidget {
@@ -16,9 +18,7 @@ class HomeStatisticsWidget extends ConsumerWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 1,
       color: theme.cardColor.withValues(alpha: 0.95),
       shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.1),
@@ -26,31 +26,23 @@ class HomeStatisticsWidget extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: allStatisticsAsync.when(
           data: (allStatistics) {
-            if (allStatistics.today.completedCount == 0 &&
+            final bool isEmpty =
+                allStatistics.today.completedCount == 0 &&
                 allStatistics.today.focusMinutes == 0 &&
                 allStatistics.thisWeek.completedCount == 0 &&
                 allStatistics.thisWeek.focusMinutes == 0 &&
                 allStatistics.thisMonth.completedCount == 0 &&
                 allStatistics.thisMonth.focusMinutes == 0 &&
                 allStatistics.total.completedCount == 0 &&
-                allStatistics.total.focusMinutes == 0) {
-              // 空状态
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.analytics_outlined,
-                    size: 48,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.homeStatisticsEmpty,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
+                allStatistics.total.focusMinutes == 0;
+
+            if (isEmpty) {
+              return HomeEmptyStateCard(
+                title: l10n.homeEmptyStateTitle,
+                description: l10n.homeEmptyStateDescription,
+                primaryActionLabel: l10n.homeEmptyStatePrimaryAction,
+                onPrimaryAction: () => context.go('/inbox'),
+                variant: HomeEmptyStateCardVariant.embedded,
               );
             }
 
@@ -77,9 +69,7 @@ class HomeStatisticsWidget extends ConsumerWidget {
           error: (error, stack) => Center(
             child: Text(
               'Error: $error',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.error,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
             ),
           ),
         ),
@@ -269,7 +259,11 @@ class HomeStatisticsWidget extends ConsumerWidget {
     required bool isThisMonth,
   }) {
     final colorScheme = theme.colorScheme;
-    final formattedDate = HomeStatisticsUtils.formatTopDate(context, date, isThisMonth: isThisMonth);
+    final formattedDate = HomeStatisticsUtils.formatTopDate(
+      context,
+      date,
+      isThisMonth: isThisMonth,
+    );
     final value = completedCount != null
         ? '$completedCount'
         : HomeStatisticsUtils.formatFocusMinutes(focusMinutes!);
@@ -380,4 +374,3 @@ class HomeStatisticsWidget extends ConsumerWidget {
     );
   }
 }
-

@@ -1,0 +1,102 @@
+meta:
+  name: SeedImportLog
+  type: model
+  file_path: lib/data/models/seed_import_log.dart
+  description: 模型描述
+  version: '1.0'
+  created_date: '251104'
+  last_updated: '251104'
+  schema_version: 1
+  last_synced_sha: ''
+model_definition:
+  name: 类名
+  storage: isar_collection|memory|other
+  immutable: true
+  annotation: '@immutable'
+enums:
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
+fields:
+- name: 字段名
+  type: 类型
+  required: true|false
+  nullable: true|false
+  default: 默认值
+  final: true|false
+  description: 字段描述
+constructors:
+- type: const|factory
+  name: 构造函数名
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 构造函数描述
+methods:
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  visibility: public|private
+  description: 方法描述
+  implementation: 方法实现描述
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
+imports:
+- package:flutter/foundation.dart
+- package:collection/collection.dart
+- package:flutter/material.dart
+- 其他实际导入的包
+dependencies:
+- 依赖的模型类
+- 依赖的枚举类型
+relationships:
+- type: one_to_many|many_to_one|many_to_many
+  target: 目标模型
+  field: 关联字段
+  description: 关系描述
+validation_rules:
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+business_rules:
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+storage_config:
+  indexes:
+  - field: 字段名
+  - composite:
+      fields:
+      - 字段1
+      - 字段2
+  constraints:
+  - field: 字段名
+    constraint: 约束类型
+  collection_version: 1
+  migration_plan:
+  - from: 1
+    to: 2
+    steps:
+    - 新增字段 xxx，默认值 yyy
+    - 重建索引 zzz
+source_of_truth: lib/data/models/seed_import_log.dart
+called_by: []
+calls: []
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

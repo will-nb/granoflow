@@ -1,0 +1,209 @@
+meta:
+  name: ProjectService
+  type: service
+  file_path: lib/core/services/project_service.dart
+  description: Service 描述
+  version: '1.0'
+  created_date: '251104'
+  last_updated: '251104'
+  schema_version: 1
+  last_synced_sha: ''
+service_definition:
+  name: ServiceName
+  layer: business_logic
+  pattern: service|orchestrator|facade
+  singleton: true|false
+enums:
+- name: 枚举名
+  values:
+  - value1
+  - value2
+  - value3
+  description: 枚举描述
+constructor:
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    description: 构造函数参数描述
+  dependencies:
+  - name: 依赖名
+    type: 依赖类型
+    description: 依赖描述
+public_methods:
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+    default: 默认值
+  description: 公共方法描述
+  visibility: public
+  async: true|false
+private_methods:
+- name: 方法名
+  return_type: 返回类型
+  parameters:
+  - name: 参数名
+    type: 参数类型
+    required: true|false
+  description: 私有方法描述
+  visibility: private
+  async: true|false
+getters:
+- name: getter名
+  return_type: 返回类型
+  description: getter描述
+  implementation: getter实现描述
+fields:
+- name: 字段名
+  type: 字段类型
+  final: true|false
+  description: 字段描述
+imports:
+- package:flutter/material.dart
+- dart:async
+- 其他实际导入的包
+dependencies:
+- name: Repository
+  type: data/repositories/xxx_repository.dart
+  description: 数据访问层依赖
+- name: Model
+  type: data/models/xxx.dart
+  description: 领域模型依赖
+- name: OtherService
+  type: core/services/xxx_service.dart
+  description: 其他服务依赖
+responsibilities:
+- 业务逻辑处理
+- 数据协调
+- 业务规则执行
+- 事务管理
+- 错误处理
+- 业务验证
+business_operations:
+  create:
+  - name: createXxx
+    description: 创建业务对象
+    parameters: []
+  read:
+  - name: getXxx
+    description: 获取业务对象
+    parameters: []
+  - name: listXxx
+    description: 列出业务对象
+    parameters: []
+  - name: searchXxx
+    description: 搜索业务对象
+    parameters: []
+  update:
+  - name: updateXxx
+    description: 更新业务对象
+    parameters: []
+  - name: moveXxx
+    description: 移动业务对象
+    parameters: []
+  - name: reorderXxx
+    description: 重新排序业务对象
+    parameters: []
+  delete:
+  - name: deleteXxx
+    description: 删除业务对象
+    parameters: []
+  - name: archiveXxx
+    description: 归档业务对象
+    parameters: []
+stream_operations:
+- name: watchXxx
+  description: 监听业务对象变化
+  return_type: Stream<T>
+business_rules:
+- name: 业务规则名
+  description: 业务规则描述
+  implementation: 实现方式
+  validation: 验证逻辑
+error_handling:
+- exception: 异常类型
+  description: 异常描述
+  handling: 处理方式
+  recovery: 恢复策略
+validation_rules:
+- field: 字段名
+  rule: 验证规则
+  description: 验证描述
+  message: 错误消息
+performance_considerations:
+- operation: 操作名
+  optimization: 优化策略
+  description: 性能考虑
+  caching: 缓存策略
+transaction_management:
+- operation: 操作名
+  scope: 事务范围
+  rollback: 回滚策略
+  isolation: 隔离级别
+testing_strategy:
+  unit_tests:
+  - name: test_create_xxx
+    description: 测试创建功能
+  - name: test_get_xxx
+    description: 测试获取功能
+  - name: test_update_xxx
+    description: 测试更新功能
+  - name: test_delete_xxx
+    description: 测试删除功能
+  - name: test_business_rules
+    description: 测试业务规则
+  - name: test_error_handling
+    description: 测试错误处理
+  - name: test_validation
+    description: 测试验证逻辑
+  integration_tests:
+  - name: test_service_integration
+    description: 测试服务集成
+  - name: test_repository_coordination
+    description: 测试仓库协调
+  - name: test_transaction_management
+    description: 测试事务管理
+  mock_strategy:
+  - name: MockXxxService
+    description: Mock 实现用于测试
+  - name: FakeXxxService
+    description: Fake 实现用于测试
+lifecycle_management:
+- phase: initialization
+  description: 初始化阶段
+  operations:
+  - 依赖注入
+  - 配置加载
+  - 状态初始化
+- phase: operation
+  description: 运行阶段
+  operations:
+  - 业务处理
+  - 数据协调
+  - 状态管理
+- phase: cleanup
+  description: 清理阶段
+  operations:
+  - 资源释放
+  - 状态重置
+  - 连接关闭
+source_of_truth: lib/core/services/project_service.dart
+called_by: []
+calls:
+- lib/data/models/milestone.dart
+- lib/data/models/project.dart
+- lib/data/models/task.dart
+- lib/data/repositories/milestone_repository.dart
+- lib/data/repositories/project_repository.dart
+- lib/data/repositories/task_repository.dart
+- lib/core/constants/task_constants.dart
+test_mapping:
+  unit: []
+  integration: []
+supersedes: []
+deprecated_since: ''
+i18n_keys: []
+design_tokens: []

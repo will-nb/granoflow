@@ -132,16 +132,15 @@ class SystemTrayService {
     _focusSessionSubscription = null;
 
     if (taskId != null) {
-      _pinnedTaskDataSubscription = _ref.listen<AsyncValue<Task?>>(
-        taskByIdProvider(taskId),
-        (_, next) {
-          next.whenData((task) {
-            _pinnedTask = task;
-            _scheduleMenuUpdate();
-          });
-        },
-        fireImmediately: true,
-      );
+      _pinnedTaskDataSubscription = _ref.listen<AsyncValue<Task?>>(taskByIdProvider(taskId), (
+        _,
+        next,
+      ) {
+        next.whenData((task) {
+          _pinnedTask = task;
+          _scheduleMenuUpdate();
+        });
+      }, fireImmediately: true);
 
       _focusSessionSubscription = _ref.listen<AsyncValue<FocusSession?>>(
         focusSessionProvider(taskId),
@@ -187,10 +186,7 @@ class SystemTrayService {
         timerStatus: _buildTimerStatus(),
       );
       final context = _currentContext;
-      final menuItems = TrayMenuBuilder.build(
-        context: context,
-        data: data,
-      );
+      final menuItems = TrayMenuBuilder.build(context: context, data: data);
       await _trayManager.setContextMenu(Menu(items: menuItems));
     } catch (error, stackTrace) {
       debugPrint('[SystemTrayService] Failed to update menu: $error\n$stackTrace');
@@ -205,11 +201,7 @@ class SystemTrayService {
       return null;
     }
     final elapsed = DateTime.now().difference(session.startedAt);
-    return TrayMenuTimerStatus(
-      taskId: taskId,
-      taskTitle: task.title,
-      elapsed: elapsed,
-    );
+    return TrayMenuTimerStatus(taskId: taskId, taskTitle: task.title, elapsed: elapsed);
   }
 
   Future<void> _scheduleMenuUpdate({bool immediate = false}) async {
@@ -277,9 +269,7 @@ class SystemTrayService {
 
   Future<void> _handleOpenTask(String taskId) async {
     final section = _taskSectionIndex[taskId];
-    final params = <String, String>{
-      'taskId': taskId,
-    };
+    final params = <String, String>{'taskId': taskId};
     if (section != null) {
       params['section'] = section.name;
     }
@@ -296,10 +286,7 @@ class SystemTrayService {
     try {
       if (session != null && session.isActive) {
         final focusNotifier = _ref.read(focusActionsNotifierProvider.notifier);
-        await focusNotifier.end(
-          sessionId: session.id,
-          outcome: FocusOutcome.complete,
-        );
+        await focusNotifier.end(sessionId: session.id, outcome: FocusOutcome.complete);
       } else {
         final taskService = await _ref.read(taskServiceProvider.future);
         await taskService.markCompleted(taskId: pinnedTaskId);
@@ -364,6 +351,7 @@ class SystemTrayService {
     return key.currentContext;
   }
 
+  // ignore: unused_element
   Task? _findTask(String taskId) {
     for (final task in _overdueTasks) {
       if (task.id == taskId) return task;

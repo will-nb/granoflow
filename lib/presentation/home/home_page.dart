@@ -9,6 +9,7 @@ import '../widgets/page_app_bar.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/main_drawer.dart';
 import '../widgets/gradient_page_scaffold.dart';
+import 'widgets/home_empty_state_card.dart';
 import 'widgets/home_statistics_widget.dart';
 import 'widgets/task_search_bar.dart';
 
@@ -49,12 +50,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 检查路由是否变化，如果变化则刷新统计数据
     final route = ModalRoute.of(context);
     final isCurrentRoute = route?.isCurrent ?? false;
-    
+
     if (_hasLoadedInitial && isCurrentRoute) {
       // 使用 GoRouter 获取当前路由路径
       final router = GoRouter.of(context);
       final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
-      
+
       // 如果路由路径变化，说明进入了新页面
       if (currentLocation == '/' && currentLocation != _lastLocation) {
         _lastLocation = currentLocation;
@@ -66,39 +67,49 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _refreshStatistics() {
     if (!mounted) return;
-    
+
     // 防止频繁刷新：如果距离上次刷新不到 500ms，则跳过
     final now = DateTime.now();
     if (_lastRefreshTime != null && now.difference(_lastRefreshTime!).inMilliseconds < 500) {
       return;
     }
     _lastRefreshTime = now;
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         debugPrint('[HomePage] Refreshing all statistics providers');
-        ref.invalidate(todayStatisticsProvider);
-        ref.invalidate(thisWeekStatisticsProvider);
-        ref.invalidate(thisMonthStatisticsProvider);
-        ref.invalidate(totalStatisticsProvider);
-        ref.invalidate(thisMonthTopCompletedDateProvider);
-        ref.invalidate(thisMonthTopFocusDateProvider);
-        ref.invalidate(totalTopCompletedDateProvider);
-        ref.invalidate(totalTopFocusDateProvider);
+        _invalidateStatisticsProviders();
       }
     });
+  }
+
+  void _invalidateStatisticsProviders() {
+    ref.invalidate(todayStatisticsProvider);
+    ref.invalidate(thisWeekStatisticsProvider);
+    ref.invalidate(thisMonthStatisticsProvider);
+    ref.invalidate(totalStatisticsProvider);
+    ref.invalidate(thisMonthTopCompletedDateProvider);
+    ref.invalidate(thisMonthTopFocusDateProvider);
+    ref.invalidate(totalTopCompletedDateProvider);
+    ref.invalidate(totalTopFocusDateProvider);
+  }
+
+  Future<void> _handlePullToRefresh() async {
+    _invalidateStatisticsProviders();
+    // 等待一帧以确保 RefreshIndicator 有感知
+    await Future<void>.delayed(const Duration(milliseconds: 150));
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final allStatisticsAsync = ref.watch(allStatisticsProvider);
-    
+
     // 在 build 方法中检查路由状态，确保每次进入首页时刷新数据
     if (_hasLoadedInitial) {
       final router = GoRouter.of(context);
       final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
-      
+
       // 如果当前是首页且路由路径变化，刷新统计数据
       if (currentLocation == '/' && currentLocation != _lastLocation) {
         _lastLocation = currentLocation;
@@ -111,9 +122,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     return GradientPageScaffold(
-      appBar: PageAppBar(
-        title: l10n.homePageTitle,
-      ),
+      appBar: PageAppBar(title: l10n.homePageTitle),
       drawer: const MainDrawer(),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -121,7 +130,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           final theme = Theme.of(context);
           final textTheme = theme.textTheme;
           final colorScheme = theme.colorScheme;
-          
+
           // 根据主题亮度选择文字颜色
           final heroTextColor = theme.brightness == Brightness.light
               ? colorScheme.onSurface
@@ -167,22 +176,14 @@ class _HomePageState extends ConsumerState<HomePage> {
               SizedBox(
                 width: isWide ? 80 : 64,
                 height: isWide ? 80 : 64,
-                child: AppLogo(
-                  size: isWide ? 80 : 64,
-                  showText: false,
-                  variant: logoVariant,
-                ),
+                child: AppLogo(size: isWide ? 80 : 64, showText: false, variant: logoVariant),
               ),
               SizedBox(width: isWide ? 20 : 16),
               Flexible(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    greeting,
-                    const SizedBox(height: 8),
-                    subtitle,
-                  ],
+                  children: [greeting, const SizedBox(height: 8), subtitle],
                 ),
               ),
             ],
@@ -191,20 +192,30 @@ class _HomePageState extends ConsumerState<HomePage> {
           // Hero + 搜索栏的组合
           final heroWithSearch = Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: isWide ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
               heroBlock,
               const SizedBox(height: 24),
-              TaskSearchBar(
-                onTap: () => context.go('/search'),
-              ),
+              TaskSearchBar(onTap: () => context.go('/search')),
             ],
           );
+
+          final homeEmptyStateCard = HomeEmptyStateCard(
+            title: l10n.homeEmptyStateTitle,
+            description: l10n.homeEmptyStateDescription,
+            primaryActionLabel: l10n.homeEmptyStatePrimaryAction,
+            onPrimaryAction: () => context.go('/inbox'),
+            maxWidth: 520,
+          );
+
+          final horizontalPadding = constraints.maxWidth >= 1200 ? 48.0 : 32.0;
+          final columnGap = constraints.maxWidth >= 1200 ? 48.0 : 32.0;
 
           return allStatisticsAsync.when(
             data: (allStatistics) {
               // 判断是否为空数据
-              final isEmpty = allStatistics.today.completedCount == 0 &&
+              final isEmpty =
+                  allStatistics.today.completedCount == 0 &&
                   allStatistics.today.focusMinutes == 0 &&
                   allStatistics.thisWeek.completedCount == 0 &&
                   allStatistics.thisWeek.focusMinutes == 0 &&
@@ -214,12 +225,58 @@ class _HomePageState extends ConsumerState<HomePage> {
                   allStatistics.total.focusMinutes == 0;
 
               if (isEmpty) {
-                // 空状态：heroBlock + 搜索栏居中显示（上下左右都居中）
-                return Center(
+                if (isWide) {
+                  // 横屏空状态：两栏布局，右侧展示插画空态卡片
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      top: 32,
+                      bottom: 24,
+                      left: horizontalPadding,
+                      right: horizontalPadding,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          flex: constraints.maxWidth >= 1200 ? 35 : 32,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 420),
+                              child: heroWithSearch,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: columnGap),
+                        Flexible(
+                          flex: constraints.maxWidth >= 1200 ? 50 : 45,
+                          child: Align(alignment: Alignment.center, child: homeEmptyStateCard),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // 竖屏空状态：保留下拉刷新，增加空态卡片
+                return RefreshIndicator(
+                  onRefresh: _handlePullToRefresh,
                   child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: heroWithSearch,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 24),
+                        heroBlock,
+                        const SizedBox(height: 24),
+                        TaskSearchBar(onTap: () => context.go('/search')),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: homeEmptyStateCard,
+                        ),
+                        const SizedBox(height: 48),
+                      ],
                     ),
                   ),
                 );
@@ -241,13 +298,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                       // 左侧栏：Hero + 搜索栏（垂直居中）
                       Flexible(
                         flex: constraints.maxWidth >= 1200 ? 35 : 30,
-                        child: Center(
-                          child: heroWithSearch,
-                        ),
+                        child: Center(child: heroWithSearch),
                       ),
-                      SizedBox(
-                        width: constraints.maxWidth >= 1200 ? 48 : 32,
-                      ),
+                      SizedBox(width: constraints.maxWidth >= 1200 ? 48 : 32),
                       // 右侧栏：统计表
                       Flexible(
                         flex: constraints.maxWidth >= 1200 ? 50 : 40,
@@ -259,16 +312,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               } else {
                 // 窄屏：垂直布局
                 return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(todayStatisticsProvider);
-                    ref.invalidate(thisWeekStatisticsProvider);
-                    ref.invalidate(thisMonthStatisticsProvider);
-                    ref.invalidate(totalStatisticsProvider);
-                    ref.invalidate(thisMonthTopCompletedDateProvider);
-                    ref.invalidate(thisMonthTopFocusDateProvider);
-                    ref.invalidate(totalTopCompletedDateProvider);
-                    ref.invalidate(totalTopFocusDateProvider);
-                  },
+                  onRefresh: _handlePullToRefresh,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
@@ -278,9 +322,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         const SizedBox(height: 24),
                         heroBlock,
                         const SizedBox(height: 24),
-                        TaskSearchBar(
-                          onTap: () => context.go('/search'),
-                        ),
+                        TaskSearchBar(onTap: () => context.go('/search')),
                         const HomeStatisticsWidget(),
                       ],
                     ),
@@ -292,10 +334,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               // 加载中时，显示居中布局（与空状态一致）
               return Center(
                 child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: heroWithSearch,
-                  ),
+                  child: Padding(padding: const EdgeInsets.all(24.0), child: heroWithSearch),
                 ),
               );
             },
