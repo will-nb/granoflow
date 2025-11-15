@@ -4,7 +4,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 
 /// 统一通知服务（跨平台）
 ///
-/// 封装 Android/iOS/macOS/Linux 通知功能，提供初始化、调度、取消等接口
+/// 封装 Android/iOS/macOS/Linux/Windows 通知功能，提供初始化、调度、取消等接口
 class NotificationService {
   NotificationService();
 
@@ -43,12 +43,20 @@ class NotificationService {
     // Linux 通知配置
     const linuxSettings = LinuxInitializationSettings(defaultActionName: '打开通知');
 
+    // Windows 通知配置
+    const windowsSettings = WindowsInitializationSettings(
+      appName: 'GranoFlow',
+      appUserModelId: 'com.granoflow.lite',
+      guid: 'FD65DAF3-13E5-4642-ADF3-EDB03A5CF7CF',
+    );
+
     // 初始化设置
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
       macOS: macosSettings,
       linux: linuxSettings,
+      windows: windowsSettings,
     );
 
     // 初始化通知插件
@@ -100,6 +108,7 @@ class NotificationService {
   ///
   /// Android 13+ 和 iOS 需要用户授权
   /// Linux 使用系统通知服务器（D-Bus），通常不需要额外权限请求
+  /// Windows 10+ 通常不需要额外权限请求
   /// 如果权限请求正在进行中，会捕获异常并返回 false
   Future<bool> requestPermission() async {
     try {
@@ -131,6 +140,15 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<LinuxFlutterLocalNotificationsPlugin>();
       if (linuxImplementation != null) {
         // Linux 通知通常不需要权限请求，直接返回 true
+        return true;
+      }
+
+      // Windows 10+ 通常不需要额外权限请求
+      // 如果系统通知服务器可用，则认为权限已授予
+      final windowsImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<FlutterLocalNotificationsWindows>();
+      if (windowsImplementation != null) {
+        // Windows 通知通常不需要权限请求，直接返回 true
         return true;
       }
     } catch (e) {
@@ -175,9 +193,9 @@ class NotificationService {
         ),
         iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
         linux: const LinuxNotificationDetails(),
+        windows: const WindowsNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
     );
   }
@@ -251,6 +269,7 @@ class NotificationService {
           presentSound: false, // 置顶任务通知不播放声音
         ),
         linux: const LinuxNotificationDetails(),
+        windows: const WindowsNotificationDetails(),
       ),
     );
   }
