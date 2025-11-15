@@ -7,6 +7,11 @@ on:
         description: 'App edition (lite or pro)'
         required: true
         type: string
+      track:
+        description: 'Google Play track (internal, alpha, beta, production)'
+        required: false
+        type: string
+        default: 'internal'
   workflow_dispatch:
     inputs:
       edition:
@@ -16,10 +21,20 @@ on:
         options:
           - lite
           - pro
+      track:
+        description: 'Google Play track'
+        required: false
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+        default: 'internal'
 
 jobs:
   deploy:
-    name: Deploy Android - ${{ inputs.edition }}
+    name: Deploy Android - ${{ inputs.edition }} to ${{ inputs.track || 'internal' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,13 +46,43 @@ jobs:
           pattern: ${{ inputs.edition }}-android-*
           merge-multiple: true
 
-      - name: Deploy to Google Play
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      - name: Setup Keystore
         if: ${{ inputs.edition == 'lite' || inputs.edition == 'pro' }}
         run: |
-          echo "🚀 部署到Google Play..."
-          # TODO: 实现Google Play部署
-          # 需要使用fastlane或google-play-deploy-action
-          echo "Google Play部署功能待实现"
+          # 使用统一的 keystore 文件，lite 和 pro 可以共用同一个 keystore
+          # 因为它们的包名不同（com.granoflow.lite 和 com.granoflow.pro），不会冲突
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/granoflow-keystore.jks
+          cat > android/app/keystore.properties << EOF
+          storeFile=granoflow-keystore.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Setup Google Play Service Account
+        if: ${{ inputs.edition == 'lite' || inputs.edition == 'pro' }}
+        run: |
+          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" > ${{ runner.temp }}/google-play-service-account.json
+
+      - name: Deploy to Google Play
+        if: ${{ inputs.edition == 'lite' || inputs.edition == 'pro' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.granoflow.${{ inputs.edition }}
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.track || 'internal' }}
+          status: completed
+          inAppUpdatePriority: 2
+          skipUploadMetadata: true
+          skipUploadImages: true
+          skipUploadScreenshots: true
 
       - name: Deploy to Amazon Appstore
         if: ${{ inputs.edition == 'lite' }}

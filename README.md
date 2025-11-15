@@ -21,13 +21,15 @@ GranoFlow 是一款离线优先的任务与计时管理应用，支持 Android�
 
 2. 编辑 `android/app/keystore.properties` 并填入真实信息：
    ```properties
-   storeFile=upload-keystore.jks
+   storeFile=granoflow-keystore.jks
    storePassword=YOUR_ACTUAL_STORE_PASSWORD
-   keyAlias=upload
+   keyAlias=YOUR_KEY_ALIAS
    keyPassword=YOUR_ACTUAL_KEY_PASSWORD
    ```
 
-3. 将签名密钥文件 `upload-keystore.jks` 放置在 `android/app/` 目录（此文件会被 `.gitignore` 忽略）
+3. 将签名密钥文件 `granoflow-keystore.jks` 放置在 `android/app/` 目录（此文件会被 `.gitignore` 忽略）
+   - **注意**：lite 和 pro 版本共用同一个 keystore 文件，因为它们的包名不同（`com.granoflow.lite` 和 `com.granoflow.pro`），不会产生冲突
+   - 同一个 keystore 也可以用于其他项目，只要包名不同即可
 
 ## 环境准备
 1. **安装依赖**
@@ -83,11 +85,91 @@ fvm flutter build macos --release
 ```
 
 ### Google Play 发布
+
+#### 手动发布
 1. 使用上述命令构建 AAB 文件
 2. 访问 [Google Play Console](https://play.google.com/console/)
 3. 创建新应用并上传 AAB 文件
 4. 完善应用信息（描述、截图、隐私政策等）
 5. 提交审核
+
+#### 自动发布（CI/CD）
+
+项目已配置通过 GitHub Actions 自动部署到 Google Play。
+
+**自动触发**：
+- 当代码推送到 `develop` 分支时，会自动构建 Lite 版本的 AAB 和 APK
+  - AAB 部署到 Google Play Internal Testing 轨道（团队内部快速迭代，最多100人）
+  - APK 发布到 GitHub Release（备用下载渠道，无需审核）
+
+**手动触发**：
+- 在 GitHub Actions 页面手动运行 `Release Android Internal Testing` 工作流
+- 可选择跳过构建，仅部署已有的 artifact
+- 可以手动选择部署到其他轨道（Alpha、Beta、Production）
+
+**所需 GitHub Secrets**：
+
+在 GitHub Repository Settings → Secrets and variables → Actions 中配置以下 secrets：
+
+1. `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+   - Google Play Service Account 的完整 JSON 凭证内容
+   - 获取方式：Google Play Console → 设置 → API 访问 → 创建服务账号 → 下载 JSON 密钥
+
+2. `ANDROID_KEYSTORE_BASE64`
+   - keystore 文件的 base64 编码
+   - **注意**：lite 和 pro 版本共用同一个 keystore（因为包名不同，不会冲突）
+   - 获取方式：`base64 -i granoflow-keystore.jks | pbcopy`（macOS）或 `base64 -i granoflow-keystore.jks`（Linux）
+   - 也可以用于其他项目，只要包名不同即可
+
+3. `ANDROID_KEYSTORE_PASSWORD`
+   - keystore 密码
+
+4. `ANDROID_KEY_ALIAS`
+   - 密钥别名（通常是 `granoflow` 或 `upload`）
+
+5. `ANDROID_KEY_PASSWORD`
+   - 密钥密码
+
+**Google Play Service Account 设置步骤**：
+
+1. 访问 [Google Play Console](https://play.google.com/console/)
+2. 进入 **设置** → **API 访问**
+3. 创建新的服务账号（如果还没有）
+4. 创建新的服务账号密钥，下载 JSON 文件
+5. 在 Google Play Console 中，为该服务账号授予 **发布应用** 权限
+6. 将 JSON 文件内容复制到 `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` secret
+
+**Google Play 测试轨道说明**：
+
+- **Internal Testing**（develop 分支自动部署）
+  - 用于团队内部快速迭代测试（最多100人）
+  - 首次提交需要审核（1-3天），后续更新几乎无需审核（几秒内可用）
+  - 适合：测试工程师发现 bug → 程序员修复 → 立即提交 → 继续测试的循环
+  - 一天多次提交完全没问题
+
+- **Alpha (Closed Testing)**
+  - 封闭测试，无人数限制
+  - 审核时间：几分钟到几小时
+  - 适合：中等频率的封闭测试
+
+- **Beta (Open Testing)**
+  - 公开测试，无人数限制
+  - 审核时间：几小时到几天
+  - 适合：公开测试，收集用户反馈
+
+- **Production**
+  - 正式发布版本
+  - 审核时间：几天
+  - 适合：正式发布给所有用户
+
+**注意事项**：
+- 首次部署前需在 Google Play Console 创建应用并完成基本信息设置
+- 首次提交到 Internal Testing 需要审核（1-3天），后续更新几乎无需等待
+- 需要在 Google Play Console 中添加测试人员到 Internal Testing 测试计划
+- keystore 必须与 Google Play Console 中配置的签名密钥一致
+- **keystore 共享**：lite 和 pro 版本共用同一个 keystore 文件（`granoflow-keystore.jks`），因为它们的包名不同（`com.granoflow.lite` 和 `com.granoflow.pro`），不会产生冲突。同一个 keystore 也可以用于其他项目，只要包名不同即可。
+- versionCode 必须递增，否则上传会失败（需手动更新 `pubspec.yaml` 中的 build 号）
+- 工作流会跳过 metadata 和 screenshots 上传，仅上传 AAB 文件
 
 ## 常用命令
 - `fvm flutter analyze`：静态检查（CI Gate）。

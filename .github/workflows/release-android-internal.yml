@@ -1,0 +1,149 @@
+name: Release Android Internal Testing
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/release-android-internal.yml'
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: 'Skip build and only deploy existing artifact'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: Build Lite AAB
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.27.0
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      - name: Setup Keystore
+        run: |
+          # 使用统一的 keystore 文件，lite 和 pro 可以共用同一个 keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/granoflow-keystore.jks
+          cat > android/app/keystore.properties << EOF
+          storeFile=granoflow-keystore.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Build Android App Bundle
+        run: |
+          flutter build appbundle --release \
+            --dart-define=GRANOFLOW_APP_EDITION=lite \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.lite \
+            --dart-define=appEdition=lite
+
+      - name: Build Android APK
+        run: |
+          flutter build apk --release \
+            --dart-define=GRANOFLOW_APP_EDITION=lite \
+            --dart-define=GRANOFLOW_PACKAGE_NAME=com.granoflow.lite \
+            --dart-define=appEdition=lite
+
+      - name: Upload Android App Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lite-android-appbundle
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lite-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Google Play Internal Testing
+    needs: build
+    if: always() && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    uses: ./.github/workflows/deploy-android.yml
+    with:
+      edition: lite
+      track: internal
+    secrets: inherit
+
+  release:
+    name: Create GitHub Release with APK
+    needs: build
+    if: needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION_PART=$(echo "$VERSION" | cut -d'+' -f1)
+          BUILD_PART=$(echo "$VERSION" | cut -d'+' -f2)
+          echo "version=$VERSION_PART" >> $GITHUB_OUTPUT
+          echo "build=$BUILD_PART" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION_PART-lite-internal.$BUILD_PART" >> $GITHUB_OUTPUT
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lite-android-apk
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Internal Testing Release ${{ steps.version.outputs.version }} (Lite)
+          body: |
+            ## GranoFlow Lite Internal Testing ${{ steps.version.outputs.version }}
+            
+            ### 下载
+            - **Android APK**: 见下方 Assets
+            
+            ### 安装说明
+            - **Android**: 下载 APK 文件并安装
+            
+            ### 注意
+            - 这是内部测试版本，用于团队快速迭代
+            - 同时已部署到 Google Play Internal Testing 轨道
+          files: |
+            artifacts/**/*.apk
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

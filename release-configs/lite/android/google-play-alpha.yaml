@@ -1,0 +1,12 @@
+# Lite版本 - Google Play Alpha轨道发布配置（用于develop分支）
+edition: lite
+packageName: com.granoflow.lite
+platform: android
+store: google-play
+storeAccount: google-play-lite-account
+keystore: lite-keystore.jks
+versionCode: auto-increment
+track: alpha  # Alpha轨道用于内部测试
+buildType: appbundle
+enableInAppPurchase: false
+
